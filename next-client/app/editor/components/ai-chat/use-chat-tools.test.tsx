@@ -1,5 +1,5 @@
 import React from "react";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore, Provider } from "jotai";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
@@ -11,8 +11,6 @@ const callAIChatTurn = vi.hoisted(() => vi.fn());
 vi.mock("@/app/services/ai", () => ({ callAIChatTurn }));
 const searchNoteContent = vi.hoisted(() => vi.fn());
 vi.mock("@/app/services/content-search-client", () => ({ searchNoteContent }));
-const appendToToday = vi.hoisted(() => vi.fn());
-vi.mock("../../hooks/use-today-append", () => ({ useTodayAppend: () => ({ appendToToday }) }));
 const readCurrentText = vi.hoisted(() => vi.fn());
 vi.mock("@/app/hooks/file-system/use-note-buffer", () => ({ useNoteBuffer: () => ({ readCurrentText }) }));
 
@@ -95,47 +93,15 @@ describe("useChatTools", () => {
     expect(lastToolResult()).toContain("is private");
   });
 
-  it("adds to today's sheet only after the user approves", async () => {
-    appendToToday.mockResolvedValue({ result: "added", sheetName: "2026-10-12" });
-    callAIChatTurn
-      .mockResolvedValueOnce(turnWith(call("add_to_today", { lines: ["- [ ] Call the vendor", "- [ ] Send the invoice"] })))
-      .mockResolvedValueOnce({ text: "Added both." });
-    const { result } = setup();
-
-    let pending!: Promise<string>;
-    act(() => {
-      pending = result.current.converse("system", [{ role: "user", content: "Add these to today" }], () => {});
-    });
-    await waitFor(() => expect(result.current.approval?.lines).toEqual(["- [ ] Call the vendor", "- [ ] Send the invoice"]));
-    expect(appendToToday).not.toHaveBeenCalled();
-
-    await act(async () => {
-      result.current.approval!.approve();
-      await pending;
-    });
-    expect(appendToToday.mock.calls.map(([line]) => line)).toEqual(["- [ ] Call the vendor", "- [ ] Send the invoice"]);
-    expect(lastToolResult()).toBe("Added 2 lines to [[2026-10-12]].");
-    expect(result.current.approval).toBeNull();
-  });
-
-  it("tells the model when the user declines, and writes nothing", async () => {
+  it("answers an unknown tool, such as the removed add_to_today, without writing", async () => {
     callAIChatTurn
       .mockResolvedValueOnce(turnWith(call("add_to_today", { lines: ["- [ ] Call the vendor"] })))
-      .mockResolvedValueOnce({ text: "Okay, nothing added." });
+      .mockResolvedValueOnce({ text: "I can't add to notes." });
     const { result } = setup();
-
-    let pending!: Promise<string>;
-    act(() => {
-      pending = result.current.converse("system", [{ role: "user", content: "Add this" }], () => {});
-    });
-    await waitFor(() => expect(result.current.approval).not.toBeNull());
     await act(async () => {
-      result.current.cancelApproval();
-      await pending;
+      await result.current.converse("system", [{ role: "user", content: "Add this" }], () => {});
     });
-
-    expect(appendToToday).not.toHaveBeenCalled();
-    expect(lastToolResult()).toMatch(/declined/);
+    expect(lastToolResult()).toBe("Unknown tool add_to_today.");
   });
 
   it("stops after the round limit", async () => {

@@ -1,7 +1,6 @@
 import type { PanelLeaf, WorkspaceContainer } from "@/app/types/workspace";
 import type { FileState } from "./file-atoms";
 import { getWorkspaceTabs } from "./utils";
-import { parseSheetName } from "@/app/utils/sheet-nav";
 
 // Each pane keeps at most this many notes open. Opening one more closes the
 // pane's least recently viewed note — never one with unsaved changes, the
@@ -12,26 +11,6 @@ export const MAX_TABS_PER_PANE = 20;
 
 export function hasUnsavedChanges(state: FileState | undefined): boolean {
   return !!state && state.content !== state.lastSavedContent;
-}
-
-const isWorklogSheet = (path: string) => !!parseSheetName(path.split("/").pop() ?? "");
-
-// Worklog sheets (a day, week, month, quarter or year) share one tab per
-// pane: opening one replaces the pane's sheet tab in place instead of adding
-// a tab, so moving through time with the sheet switcher doesn't fill the tab
-// strip. The active tab is preferred when it's a sheet. A sheet with unsaved
-// changes is never replaced (the new one opens in its own tab). Null when
-// `path` isn't a sheet or the pane shows none.
-export function worklogTabToReplace(
-  openPaths: string[],
-  activePath: string | undefined,
-  path: string,
-  files: Record<string, FileState>,
-): string | null {
-  if (!isWorklogSheet(path)) return null;
-  const replaceable = (p: string) => p !== path && isWorklogSheet(p) && !hasUnsavedChanges(files[p]);
-  if (activePath && openPaths.includes(activePath) && replaceable(activePath)) return activePath;
-  return openPaths.find(replaceable) ?? null;
 }
 
 // `recent` with `path` moved to the end (most recent last), keeping only

@@ -33,7 +33,6 @@ import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
 import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import { useRouter } from "next/navigation";
-import { OPEN_TODAY_SHEET_EVENT } from "./utils/worklog-events";
 import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
@@ -83,7 +82,6 @@ export default function LiteEditor() {
     scanVault,
     indexVaultTags,
     syncCurrentDirectoryToPath,
-    openTodayNote,
   } = useFileSystem();
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const handleRefreshVault = useCallback(() => {
@@ -192,8 +190,6 @@ export default function LiteEditor() {
     newNote: handleNewFile,
     materializeDraft,
     importFile: handleImport,
-    openTodayNote: () => openTodayNote(),
-    vaultDisabledReason: isVaultLocked ? "Vault is loading" : !vaultHandle ? "Open a vault first" : undefined,
   });
 
 
@@ -206,16 +202,6 @@ export default function LiteEditor() {
     }
     await exportFile(content, fileName);
   };
-
-  // `/daily` in an editor pane (worklog-events.ts) opens today's sheet once
-  // the vault is ready.
-  const openTodayFromSlash = useRef<(() => unknown) | undefined>(undefined);
-  openTodayFromSlash.current = !isVaultLocked && vaultHandle ? feedProps.onOpenToday : undefined;
-  useEffect(() => {
-    const handleOpen = () => { void openTodayFromSlash.current?.(); };
-    document.addEventListener(OPEN_TODAY_SHEET_EVENT, handleOpen);
-    return () => document.removeEventListener(OPEN_TODAY_SHEET_EVENT, handleOpen);
-  }, []);
 
   // Once the chrome fades, a single pane's text re-centres on the window
   // rather than on the space beside the faded sidebar (editor.scss).
@@ -238,6 +224,7 @@ export default function LiteEditor() {
         isMobileChrome={isMobileChrome}
         onOpenMobileFiles={() => setIsMobileFileOverlayOpen(true)}
         onOpenTasks={() => navigateWithGuard("/editor/tasks", "Tasks")}
+        onOpenTemplates={() => navigateWithGuard("/editor/templates", "Templates")}
         onHome={() => navigateWithGuard("/", "Home")}
         onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
         onRefreshVault={handleRefreshVault}
@@ -280,7 +267,7 @@ export default function LiteEditor() {
         {!isMobileChrome && !isVaultLocked && !isHomeFeedOpen && (
           // A wrapper takes the fade: the sidebar's own transition is its slide.
           <div className="typing-chrome shrink-0 flex">
-            <WorkspaceSidebar onOpenTasks={() => navigateWithGuard("/editor/tasks", "Tasks")} />
+            <WorkspaceSidebar onOpenTasks={() => navigateWithGuard("/editor/tasks", "Tasks")} onOpenTemplates={() => navigateWithGuard("/editor/templates", "Templates")} />
           </div>
         )}
 

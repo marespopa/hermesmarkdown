@@ -139,7 +139,6 @@ export const ACTIVE_FILE_CHAR_LIMIT = 20_000;
 export const TOOLS_GUIDE = `You have tools for the user's vault. Use them instead of guessing:
 - search_notes to find notes about something, then read_note to read one (by its name).
 - list_open_tasks for questions about tasks: what's due, overdue, in progress, or tagged.
-- add_to_today to add lines (tasks or notes) to today's daily sheet when the user asks for that. The user approves first. Write the lines in HermesMarkdown syntax.
 Private notes aren't shared with you; if a tool says a note is private, tell the user. Link notes you mention as [[Note name]]. Keep tool use to what the question needs.`;
 
 export function buildChatSystemPrompt(

@@ -31,11 +31,6 @@ export interface FeedEntry {
   previewStyle: PreviewStyle;
   /** Frontmatter tags and inline #hashtags; empty for sensitive notes, whose tags may say more than their title. */
   tags: string[];
-  /**
-   * Today's worklog sheet (`withTodaySheet`): "existing" leads the day,
-   * "missing" is the row that starts it (not a note yet).
-   */
-  todaySheet?: "existing" | "missing";
 }
 
 // Vault notes only: no dotfolders (.hermes/, .obsidian/), no _-prefixed
@@ -124,40 +119,6 @@ export function buildFeed(
     ...sorted.map((entry) => toEntry(entry, false)),
   ];
   return labelDays(entries, now);
-}
-
-// Today's sheet leads the unpinned notes, so it heads "Today": the note
-// itself, marked, or, when there's none yet, a "missing" row in its place
-// that starts it. `today.exists` without the note in the feed (hidden by
-// Privacy Mode) adds nothing; nor does a pinned sheet, which stays pinned.
-export function withTodaySheet(
-  feed: FeedEntry[],
-  today: { path: string; exists: boolean },
-  now: Date,
-): FeedEntry[] {
-  const index = feed.findIndex((entry) => entry.path === today.path);
-  if (index >= 0 && feed[index].isPinned) return feed;
-  if (index < 0 && today.exists) return feed;
-  const sheet: FeedEntry = index >= 0
-    ? { ...feed[index], todaySheet: "existing" }
-    : {
-        path: today.path,
-        title: "Start today's sheet",
-        fileName: today.path.split("/").pop()!,
-        preview: "",
-        modifiedAt: now.getTime(),
-        dayLabel: null,
-        isPinned: false,
-        isIndexed: true,
-        isSensitive: false,
-        previewStyle: "plain",
-        tags: [],
-        todaySheet: "missing",
-      };
-  const rest = feed.filter((entry) => entry.path !== today.path);
-  const firstUnpinned = rest.findIndex((entry) => !entry.isPinned);
-  const at = firstUnpinned < 0 ? rest.length : firstUnpinned;
-  return labelDays([...rest.slice(0, at), sheet, ...rest.slice(at)], now);
 }
 
 // "Pinned" on the first pinned note, then a day label on the first note of

@@ -165,7 +165,7 @@ describe('AI route', () => {
     const response = await (await import('./route')).POST(request);
     const body = await response.json();
 
-    expect(Object.keys(generateTextMock.mock.calls[0][0].tools)).toEqual(['search_notes', 'read_note', 'list_open_tasks', 'add_to_today']);
+    expect(Object.keys(generateTextMock.mock.calls[0][0].tools)).toEqual(['search_notes', 'read_note', 'list_open_tasks']);
     expect(response.status).toBe(200);
     expect(body).toEqual({ text: '', toolCalls: [{ toolCallId: 'call-1', toolName: 'list_open_tasks', input: {} }], responseMessages });
   });

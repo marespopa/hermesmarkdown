@@ -1,17 +1,15 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { isSensitiveFrontmatter } from "@/app/utils/note-privacy";
-import type { Period } from "@/app/utils/periods/period";
 import { localISODate } from "@/app/utils/task-line";
 import { isOpenStatus, TASK_STATUS_CHAR, TASK_STATUS_LABEL } from "@/app/utils/task-status";
 import type { TaskItem } from "@/app/utils/taskExtractor";
 
-// The data the weekly review and tasks chat skills send with their
+// The data the tasks chat skill sends with their
 // instructions (chat-skills.ts). Pure: use-chat-skills.ts gathers the inputs.
 // Private notes (sensitive frontmatter or content) are left out and only
 // counted, like everywhere else note text could leave the device.
 
-// Caps, so a busy week or a big vault can't crowd out the conversation.
-export const WEEK_DAYS_CHAR_LIMIT = 12_000;
+// A cap, so a big vault can't crowd out the conversation.
 export const OPEN_TASKS_LIMIT = 150;
 
 const WEEKDAY = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -21,35 +19,8 @@ export function todayLine(now: Date): string {
   return `Today is ${localISODate(now)} (${WEEKDAY[now.getDay()]}).`;
 }
 
-/** Which week a review asks about: last week (-1) when the latest asking message says so, else this week. */
-export function reviewWeekOffset(asking: string | undefined): 0 | -1 {
-  return asking && /\b(?:last|previous|past)\s+week\b/i.test(asking) ? -1 : 0;
-}
-
 const privateNote = (count: number, what: string) =>
   count ? `\n(${count} private ${what}${count === 1 ? "" : "s"} left out.)` : "";
-
-// Each day's sheet of the week, oldest first, up to WEEK_DAYS_CHAR_LIMIT.
-export function weekDataBlock(period: Period, sheets: { date: string; text: string; sensitive?: boolean }[]): string {
-  const kept = sheets.filter((sheet) => !sheet.sensitive);
-  const left = sheets.length - kept.length;
-  if (!kept.length) {
-    return `--- WEEK DATA: ${period.heading} (${period.name}) ---\nNo daily sheets for this week.${privateNote(left, "daily sheet")}\n--- END WEEK DATA ---`;
-  }
-  const days: string[] = [];
-  let used = 0;
-  for (const sheet of [...kept].sort((a, b) => a.date.localeCompare(b.date))) {
-    const room = WEEK_DAYS_CHAR_LIMIT - used;
-    if (room <= 0) break;
-    const text = sheet.text.length > room ? `${sheet.text.slice(0, room)}\n[sheet continues…]` : sheet.text;
-    used += text.length;
-    days.push(`### [[${sheet.date}]]\n${text.trim()}`);
-  }
-  return `--- WEEK DATA: ${period.heading} (${period.name}) ---
-## Daily sheets
-${days.join("\n\n")}${privateNote(left, "daily sheet")}
---- END WEEK DATA ---`;
-}
 
 const PRIORITY_RANK = { high: 0, med: 1, low: 2 } as const;
 

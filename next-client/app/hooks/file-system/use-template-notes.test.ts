@@ -4,12 +4,12 @@ import { act, renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import toast from "react-hot-toast";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
-import { atom_newNoteFolder, atom_pendingScrollTarget, atom_todayFolder } from "@/app/atoms/ui-atoms";
+import { atom_newNoteFolder, atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_templateFolderSettings } from "@/app/atoms/template-atoms";
 import { writeFileContent } from "@/app/services/file-writer";
 import { TEMPLATE_STARTER, TEMPLATE_STARTERS } from "@/app/utils/templates/template-starter";
-import { useTemplateCreate } from "./use-template-create";
+import { namesItsNote, useTemplateCreate } from "./use-template-create";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("react-hot-toast", () => ({ default: { error: vi.fn(), success: vi.fn() } }));
@@ -213,12 +213,41 @@ describe("createNoteFromTemplate", () => {
     expect(root.at("inbox/Auth Spec.md")?.content).toBe("Body Auth Spec\n");
   });
 
+  it("names a dated note without asking for a title, and opens it again instead of duplicating", async () => {
+    const daily = "---\ntarget_folder: journal/{{year}}\nfile_name: {{date}}\n---\n# {{title}}\n{{cursor}}\n";
+    const { root, props, flows } = await setup({ templates: { "templates/Journal/Daily.md": daily } });
+    const entry = { name: "Daily", path: "templates/Journal/Daily.md", pack: "Journal" };
+    await act(() => flows.createNoteFromTemplate(entry));
+    expect(pickTemplate).not.toHaveBeenCalled();
+    expect(dialog.prompt).not.toHaveBeenCalled();
+    expect(root.at("journal/2026/2026-10-04.md")?.content).toBe("# 2026-10-04\n\n");
+
+    root.at("journal/2026/2026-10-04.md")!.content = "# 2026-10-04\nWritten today\n";
+    props.openFile.mockClear();
+    await act(() => flows.createNoteFromTemplate(entry));
+    expect(root.at("journal/2026/2026-10-04.md")?.content).toBe("# 2026-10-04\nWritten today\n");
+    expect(root.at("journal/2026/2026-10-04 (1).md")).toBeUndefined();
+    expect(props.openFile).toHaveBeenCalledWith(expect.anything(), "journal/2026/2026-10-04.md", true);
+  });
+
   it("cancels on an empty title", async () => {
     dialog.prompt.mockResolvedValue("  ");
     const { flows } = await setup();
     await act(() => flows.createNoteFromTemplate());
     expect(askPrompts).not.toHaveBeenCalled();
     expect(writeFileContent).not.toHaveBeenCalled();
+  });
+});
+
+describe("namesItsNote", () => {
+  it("is true for a file_name that doesn't come from the title", () => {
+    expect(namesItsNote("{{date}}")).toBe(true);
+    expect(namesItsNote("{{weekSheet}}")).toBe(true);
+    expect(namesItsNote("{{prompt:Client}} notes")).toBe(true);
+    expect(namesItsNote("rfc-{{date}}-{{slug}}")).toBe(false);
+    expect(namesItsNote("{{title}}")).toBe(false);
+    expect(namesItsNote(undefined)).toBe(false);
+    expect(namesItsNote("  ")).toBe(false);
   });
 });
 
@@ -258,6 +287,13 @@ describe("createTemplate", () => {
     expect(props.scanVault).toHaveBeenCalled();
     expect(props.openFile).toHaveBeenCalledWith(created, "templates/Meeting.md", true);
     expect(toast.success).toHaveBeenCalledWith("Created: templates/Meeting.md");
+  });
+
+  it("creates it inside a pack when given one, apart from a loose template of the same name", async () => {
+    const { root, flows } = await setup({ templates: { "templates/Meeting.md": "loose\n" } });
+    await act(() => flows.createTemplate("Work"));
+    expect(root.at("templates/Work/Meeting.md")?.content).toBe(TEMPLATE_STARTER);
+    expect(root.at("templates/Meeting.md")?.content).toBe("loose\n");
   });
 
   it("uses the first existing default folder", async () => {
@@ -401,116 +437,5 @@ describe("createLinkedNoteFromTemplate", () => {
     await act(async () => { path = await flows.createLinkedNoteFromTemplate("Auth", rfc); });
     expect(path).toBeNull();
     expect(writeFileContent).not.toHaveBeenCalled();
-  });
-});
-
-describe("openTodayNote", () => {
-  const NOW = new Date(2026, 9, 9, 8, 30);
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-  });
-
-  it("asks for the folder the first time, remembers it and creates a dated sheet there", async () => {
-    dialog.prompt.mockResolvedValue("journal/{{year}}");
-    const { root, store, props, flows } = await setup({ templates: {} });
-    await act(() => flows.openTodayNote(NOW));
-    expect(dialog.prompt).toHaveBeenCalledWith(expect.any(String), "journal/{{year}}", "Today's sheet");
-    expect(store.get(atom_todayFolder)).toBe("journal/{{year}}");
-    const created = root.at("journal/2026/2026-10-09.md");
-    expect(created?.content).toMatch(/^# .+\n\n$/);
-    expect(props.openFile).toHaveBeenCalledWith(created, "journal/2026/2026-10-09.md", true);
-  });
-
-  it("writes nothing when the folder prompt is cancelled", async () => {
-    dialog.prompt.mockResolvedValue(null);
-    const { store, flows } = await setup({ templates: {} });
-    await act(() => flows.openTodayNote(NOW));
-    expect(store.get(atom_todayFolder)).toBeNull();
-    expect(writeFileContent).not.toHaveBeenCalled();
-  });
-
-  it("uses the saved folder without asking, and a journal template's body", async () => {
-    const { root, store, flows } = await setup({ templates: { "templates/Journal.md": "# {{title}}\n{{cursor}}\n" } });
-    store.set(atom_todayFolder, "log/{{year}}/{{month}}");
-    await act(() => flows.openTodayNote(NOW));
-    expect(dialog.prompt).not.toHaveBeenCalled();
-    expect(root.at("log/2026/10/2026-10-09.md")?.content).toBe("# 2026-10-09\n\n");
-  });
-
-  it("opens today's sheet from the index as is, wherever it is", async () => {
-    const { root, store, props, flows } = await setup({ templates: {} });
-    await root.put("old/2026-10-09.md", "keep me");
-    store.set(atom_fileMetadata, { "old/2026-10-09.md": meta("old/2026-10-09.md") });
-    await act(() => flows.openTodayNote(NOW));
-    expect(dialog.prompt).not.toHaveBeenCalled();
-    expect(writeFileContent).not.toHaveBeenCalled();
-    expect(props.openFile).toHaveBeenCalledWith(root.at("old/2026-10-09.md"), "old/2026-10-09.md", true);
-  });
-
-  describe("ensureTodayNote", () => {
-    it("creates the sheet (folder prompt, template) without opening it and returns its path and handle", async () => {
-      dialog.prompt.mockResolvedValue("journal/{{year}}");
-      const { root, store, props, flows } = await setup({ templates: { "templates/Journal.md": "# {{title}}\n{{cursor}}\n" } });
-      let sheet: Awaited<ReturnType<typeof flows.ensureTodayNote>> = null;
-      await act(async () => { sheet = await flows.ensureTodayNote(NOW); });
-      const created = root.at("journal/2026/2026-10-09.md");
-      expect(created?.content).toBe("# 2026-10-09\n\n");
-      expect(sheet).toEqual({ path: "journal/2026/2026-10-09.md", handle: created });
-      expect(props.openFile).not.toHaveBeenCalled();
-      expect(store.get(atom_pendingScrollTarget)).toBeNull();
-      expect(toast.success).not.toHaveBeenCalled();
-    });
-
-    it("returns an existing sheet's path and handle without opening or writing it", async () => {
-      const { root, store, props, flows } = await setup({ templates: {} });
-      await root.put("old/2026-10-09.md", "keep me");
-      store.set(atom_fileMetadata, { "old/2026-10-09.md": meta("old/2026-10-09.md") });
-      let sheet: Awaited<ReturnType<typeof flows.ensureTodayNote>> = null;
-      await act(async () => { sheet = await flows.ensureTodayNote(NOW); });
-      expect(sheet).toEqual({ path: "old/2026-10-09.md", handle: root.at("old/2026-10-09.md") });
-      expect(writeFileContent).not.toHaveBeenCalled();
-      expect(props.openFile).not.toHaveBeenCalled();
-    });
-
-    it("returns null and writes nothing when the folder prompt is cancelled", async () => {
-      dialog.prompt.mockResolvedValue(null);
-      const { flows } = await setup({ templates: {} });
-      let sheet: Awaited<ReturnType<typeof flows.ensureTodayNote>> | "unset" = "unset";
-      await act(async () => { sheet = await flows.ensureTodayNote(NOW); });
-      expect(sheet).toBeNull();
-      expect(writeFileContent).not.toHaveBeenCalled();
-    });
-  });
-});
-
-describe("resolveSheetFolder", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-  });
-
-  it("asks for the pattern once, then expands it for the anchor date", async () => {
-    dialog.prompt.mockResolvedValue("journal/{{year}}/{{month}}");
-    const { store, flows } = await setup({ templates: {} });
-    let folder: string | null = null;
-    await act(async () => { folder = await flows.resolveSheetFolder(new Date(2026, 11, 31), "Weekly sheet"); });
-    expect(dialog.prompt).toHaveBeenCalledWith(expect.any(String), "journal/{{year}}", "Weekly sheet");
-    expect(store.get(atom_todayFolder)).toBe("journal/{{year}}/{{month}}");
-    expect(folder).toBe("journal/2026/12");
-
-    await act(async () => { folder = await flows.resolveSheetFolder(new Date(2026, 9, 1)); });
-    expect(dialog.prompt).toHaveBeenCalledTimes(1);
-    expect(folder).toBe("journal/2026/10");
-  });
-
-  it("is null when the prompt is cancelled", async () => {
-    dialog.prompt.mockResolvedValue(null);
-    const { store, flows } = await setup({ templates: {} });
-    let folder: string | null = "unset";
-    await act(async () => { folder = await flows.resolveSheetFolder(new Date(2026, 9, 1)); });
-    expect(folder).toBeNull();
-    expect(store.get(atom_todayFolder)).toBeNull();
   });
 });

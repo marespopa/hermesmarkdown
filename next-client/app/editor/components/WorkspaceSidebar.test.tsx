@@ -12,7 +12,6 @@ const fileSystem = vi.hoisted(() => ({
   vaultHandle: null as unknown,
   createNewFile: vi.fn(),
   createFolder: vi.fn(),
-  openTodayNote: vi.fn(async () => {}),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -30,7 +29,6 @@ vi.mock("@/app/hooks/use-file-system", () => ({
     moveItem: vi.fn(),
     createNewFile: fileSystem.createNewFile,
     createFolder: fileSystem.createFolder,
-    openTodayNote: fileSystem.openTodayNote,
   }),
 }));
 
@@ -54,7 +52,7 @@ const TopRequest = () => <output data-testid="top-request">{useAtomValue(atom_ho
 const left = { id: "left", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
 const right = { id: "right", type: "editor" as const, openFilePaths: ["b.md"], activeFilePath: "b.md", isPinned: false };
 
-const renderSidebar = (open = true, homeFeedOpen = true, descriptor: unknown = null, onOpenTasks?: () => void) =>
+const renderSidebar = (open = true, homeFeedOpen = true, descriptor: unknown = null, onOpenTasks?: () => void, onOpenTemplates?: () => void) =>
   render(
     <Provider>
       <HydrateAtoms initialValues={[
@@ -69,7 +67,7 @@ const renderSidebar = (open = true, homeFeedOpen = true, descriptor: unknown = n
         }],
         [atom_workspaceLayout, { rootContainer: { id: "root", direction: "horizontal", sizes: [50, 50], children: [left, right] } }],
       ]}>
-        <WorkspaceSidebar onOpenTasks={onOpenTasks} />
+        <WorkspaceSidebar onOpenTasks={onOpenTasks} onOpenTemplates={onOpenTemplates} />
         <ActivePane />
         <HomeFeed />
         <TopRequest />
@@ -201,22 +199,22 @@ describe("WorkspaceSidebar", () => {
     expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
   });
 
-  it("opens today's sheet and the Tasks page, with a vault", () => {
+  it("opens the Templates and Tasks pages, with a vault", () => {
     const onOpenTasks = vi.fn();
+    const onOpenTemplates = vi.fn();
     fileSystem.vaultHandle = { name: "Notes" };
-    renderSidebar(true, true, null, onOpenTasks);
+    renderSidebar(true, true, null, onOpenTasks, onOpenTemplates);
 
-    fireEvent.click(screen.getByRole("button", { name: "Today" }));
-    expect(fileSystem.openTodayNote).toHaveBeenCalled();
-    expect(screen.getByTestId("home-feed")).toHaveTextContent("false");
-
+    expect(screen.queryByRole("button", { name: "Today" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Templates" }));
+    expect(onOpenTemplates).toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Tasks" }));
     expect(onOpenTasks).toHaveBeenCalled();
   });
 
-  it("has no Today or Tasks without a vault", () => {
-    renderSidebar(true, true, null, vi.fn());
-    expect(screen.queryByRole("button", { name: "Today" })).not.toBeInTheDocument();
+  it("has no Templates or Tasks without a vault", () => {
+    renderSidebar(true, true, null, vi.fn(), vi.fn());
+    expect(screen.queryByRole("button", { name: "Templates" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Tasks" })).not.toBeInTheDocument();
   });
 

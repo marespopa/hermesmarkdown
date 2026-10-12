@@ -189,22 +189,12 @@ describe("createSlashMenuSource", () => {
     expect(view.state.doc.toString()).toBe("Owner: ");
     expect(callbacks.onInsertTemplateField).toHaveBeenCalledOnce();
   });
-  it("offers Daily only with a vault, and no Jot", () => {
+  it("offers no Daily or Jot entries", () => {
     const labels = (doc: string, callbacks: SlashMenuCallbacks) =>
       getResult(doc, callbacks).result?.options.map(({ label }) => label) ?? [];
-    const withVault = { ...makeCallbacks(), onOpenDailySheet: vi.fn() };
 
-    expect(labels("/daily", withVault)).toContain("Daily");
-    expect(labels("/jot", withVault)).not.toContain("Jot");
     expect(labels("/daily", makeCallbacks())).not.toContain("Daily");
-  });
-
-  it("/daily removes the trigger and opens today's sheet", () => {
-    const callbacks = { ...makeCallbacks(), onOpenDailySheet: vi.fn() };
-    const { view } = applyOption("Notes /daily", "Daily", callbacks);
-
-    expect(view.state.doc.toString()).toBe("Notes ");
-    expect(callbacks.onOpenDailySheet).toHaveBeenCalledOnce();
+    expect(labels("/jot", makeCallbacks())).not.toContain("Jot");
   });
 });
 

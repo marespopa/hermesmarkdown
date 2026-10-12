@@ -77,7 +77,8 @@ describe("template files", () => {
     store.set(atom_fileMetadata, {
       "plain.md": file("plain.md", [task("plain.md", "Buy milk", [])]),
       "templates/rfc.md": file("templates/rfc.md", [task("templates/rfc.md", "{{prompt:Task}}", [])]),
-      "templates/old/x.md": file("templates/old/x.md", [task("templates/old/x.md", "Nested", [])]),
+      "templates/Work/x.md": file("templates/Work/x.md", [task("templates/Work/x.md", "In a pack", [])]),
+      "templates/a/b/y.md": file("templates/a/b/y.md", [task("templates/a/b/y.md", "Nested", [])]),
     });
     expect(store.get(atom_allTasks).map((t) => t.text)).toEqual(["Buy milk", "Nested"]);
     expect(store.get(atom_visibleTasks).map((t) => t.text)).toEqual(["Buy milk", "Nested"]);

@@ -1,16 +1,13 @@
 // Token grammar for vault templates: `{{name}}` (whitespace inside the braces
 // allowed), `{{prompt:Label}}`, and for dates `{{date:YYYY-MM-DD}}` (a
 // format), `{{date+1d}}` (math: d, w, m = months, y) or both
-// (`{{date-1w:dddd}}`); `{{time:HH:mm}}` takes a format too. The worklog
-// sheet names (`{{weekSheet}}` → `2026-W42`, …) take math as well
-// (`{{weekSheet-1w}}`), and the period tokens (`{{period}}`, …) only expand
-// when a weekly / monthly / quarterly / yearly sheet is created from its
-// template. Expansion is one
-// left-to-right pass, so text a token inserts (clipboard, selection, prompt
+// (`{{date-1w:dddd}}`); `{{time:HH:mm}}` takes a format too. The period
+// names (`{{weekSheet}}` → `2026-W42`, …) take math as well
+// (`{{weekSheet-1w}}`). Expansion is one left-to-right pass, so text a token inserts (clipboard, selection, prompt
 // answers) is never expanded again. Any other `{{name}}` stays as it is: a
 // blank to fill in in the created note (Tab jumps between them).
 
-import { periodOf, type PeriodKind, type Period } from "../periods/period";
+import { periodOf, type PeriodKind } from "../periods/period";
 
 export const TEMPLATE_TOKENS = [
   "date",
@@ -28,10 +25,6 @@ export const TEMPLATE_TOKENS = [
   "monthSheet",
   "quarterSheet",
   "yearSheet",
-  "period",
-  "periodHeading",
-  "previousPeriod",
-  "nextPeriod",
   "title",
   "slug",
   "clipboard",
@@ -57,8 +50,6 @@ export interface TemplateContext {
   prompts: Record<string, string>;
   /** Text selected when the template was inserted (`{{selection}}`). */
   selection?: string;
-  /** The periodic sheet being created (`{{period}}` and friends). */
-  period?: Period;
 }
 
 export interface ExpandedTemplate {
@@ -252,7 +243,6 @@ function tokenValue(token: string, ctx: TemplateContext): string | typeof CURSOR
   }
   if (name === "time" && format) return formatDate(ctx.now, format);
   if (name in SHEET_TOKENS) return periodOf(SHEET_TOKENS[name], offset ? shiftDate(ctx.now, offset) : ctx.now).name;
-  if (name.startsWith("period") || name === "previousPeriod" || name === "nextPeriod") return periodValue(name, ctx.period);
   switch (name) {
     case "title": return ctx.title;
     case "slug": return slugify(ctx.title);
@@ -260,17 +250,6 @@ function tokenValue(token: string, ctx: TemplateContext): string | typeof CURSOR
     case "selection": return ctx.selection ?? "";
     case "cursor": return CURSOR;
     default: return temporalValue(name, ctx.now);
-  }
-}
-
-// `{{period}}` and friends: null (copied as typed) outside a periodic sheet.
-function periodValue(name: string, period: Period | undefined): string | null {
-  if (!period) return null;
-  switch (name) {
-    case "period": return period.name;
-    case "periodHeading": return period.heading;
-    case "previousPeriod": return periodOf(period.kind, period.start, -1).name;
-    default: return periodOf(period.kind, period.start, 1).name;
   }
 }
 

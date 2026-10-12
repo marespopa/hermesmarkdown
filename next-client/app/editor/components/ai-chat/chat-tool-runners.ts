@@ -8,7 +8,7 @@ import type { TaskItem } from "@/app/utils/taskExtractor";
 // use-chat-tools.ts runs them. Private notes (sensitive or private) are never
 // returned: searching skips them, and reading one says it's private.
 
-export const CHAT_TOOL_NAMES = ["search_notes", "read_note", "list_open_tasks", "add_to_today"] as const;
+export const CHAT_TOOL_NAMES = ["search_notes", "read_note", "list_open_tasks"] as const;
 export type ChatToolName = (typeof CHAT_TOOL_NAMES)[number];
 
 export const NOTE_CHAR_LIMIT = 20_000;
@@ -100,6 +100,5 @@ export function toolActivity(name: string, input: Record<string, unknown>, detai
     const tag = input.tag ? ` tagged #${String(input.tag).replace(/^#/, "")}` : "";
     return `Looked at ${VIEW_LABEL[view] ?? VIEW_LABEL.all}${tag}${suffix}`;
   }
-  if (name === "add_to_today") return `Today's sheet${suffix}`;
   return `${name}${suffix}`;
 }

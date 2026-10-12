@@ -21,6 +21,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     isOnlyPane,
     lineNumbers,
     onOpenTasks,
+    onOpenTemplates,
     router,
     scanVault,
     setActiveFilePath,
@@ -61,6 +62,12 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       label: "Open Tasks",
       keywords: "tasks todos checklist",
       action: onOpenTasks,
+    },
+    {
+      id: "open-templates",
+      label: "Open Templates",
+      keywords: "templates template packs journal daily weekly meeting new note from template manage",
+      action: onOpenTemplates,
     },
   ];
 

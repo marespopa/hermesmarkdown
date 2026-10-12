@@ -6,11 +6,9 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { atom_homePinnedPaths, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
-import { atom_homeFeedTopRequest, atom_indexerState, atom_newNoteFolder, atom_todayFolder, atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_homeFeedTopRequest, atom_indexerState, atom_userName } from "@/app/atoms/ui-atoms";
 import { atom_templatesFolder } from "@/app/atoms/template-atoms";
 import Button from "@/app/components/Button";
-import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
-import { findTodayNote, resolveTodayFolder, todayNoteName } from "@/app/utils/today-note";
 import FeedBar from "./home-feed/FeedBar";
 import FeedHeader from "./home-feed/FeedHeader";
 import FeedRow from "./home-feed/FeedRow";
@@ -19,7 +17,7 @@ import FeedStart from "./home-feed/FeedStart";
 import FeedVault from "./home-feed/FeedVault";
 import FeedStatus from "./home-feed/FeedStatus";
 import FeedTasks from "./home-feed/FeedTasks";
-import { buildFeed, isFeedPath, openFeedTasks, withTodaySheet, type FeedEntry } from "./home-feed/feed-model";
+import { buildFeed, openFeedTasks, type FeedEntry } from "./home-feed/feed-model";
 
 // Above this many notes only the rows in view (plus overscan) are rendered,
 // however far you scroll. Smaller vaults render every row.
@@ -39,8 +37,6 @@ interface HomeFeedProps {
   hasVault?: boolean;
   /** Opens a file from the device into the draft (the no-vault "Open File…"). */
   onOpenFile?: () => void;
-  /** Opens today's worklog sheet, creating it when it doesn't exist. */
-  onOpenToday?: () => void;
   /** Opens a note with the caret on a line (0-indexed): an open task. */
   onOpenTask?: (path: string, line: number) => void;
 }
@@ -54,11 +50,11 @@ function isTypingTarget(target: EventTarget | null) {
 const GG_WINDOW_MS = 600;
 
 // The vault's home screen: recent notes, newest first, in the editor's
-// column, under a "Today" row and the open tasks of the past week. Keyboard,
-// vim-style: j/k or arrows move, gg/G jump to the top and end, Enter or o
-// opens, p pins, t opens today's sheet, / searches, Escape leaves; any other
+// column, under the open tasks of the past week. Keyboard, vim-style: j/k
+// or arrows move, gg/G jump to the top and end, Enter or o opens, p pins,
+// / searches, Escape leaves; any other
 // printable key opens the command palette with that key typed.
-export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile, onOpenToday, onOpenTask }: HomeFeedProps) {
+export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile, onOpenTask }: HomeFeedProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const indexerState = useAtomValue(atom_indexerState);
   const userName = useAtomValue(atom_userName);
@@ -68,26 +64,11 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
   const pinnedPaths = useAtomValue(atom_homePinnedPaths);
   const togglePin = useSetAtom(atom_toggleHomePin);
   const now = useMemo(() => new Date(), [fileMetadata, displayItems]); // eslint-disable-line react-hooks/exhaustive-deps
-  const allNotes = useMemo(
+  const feed = useMemo(
     () => buildFeed(fileMetadata, displayItems, now, templatesFolder, pinnedPaths),
     [fileMetadata, displayItems, now, templatesFolder, pinnedPaths],
   );
-  // Today's sheet: where it is, or where "Start today's sheet" will put it.
-  const todayPattern = useAtomValue(atom_todayFolder);
-  const newNoteFolder = useAtomValue(atom_newNoteFolder);
-  const todayFolder = normalizeFolderPath(todayPattern === null ? newNoteFolder : resolveTodayFolder(todayPattern, now));
-  const today = useMemo(() => {
-    const path = findTodayNote(Object.keys(fileMetadata).filter(isFeedPath), now, todayFolder);
-    const fileName = `${todayNoteName(now)}.md`;
-    return { path: path ?? (todayFolder ? `${todayFolder}/${fileName}` : fileName), exists: !!path };
-  }, [fileMetadata, now, todayFolder]);
-  const showToday = hasVault && !!onOpenToday;
-  // An empty (or still loading) vault keeps its "Start writing" / skeleton.
-  const feed = useMemo(
-    () => (showToday && allNotes.length > 0 ? withTodaySheet(allNotes, today, now) : allNotes),
-    [allNotes, now, showToday, today],
-  );
-  const openTasks = useMemo(() => openFeedTasks(allNotes, fileMetadata, now), [allNotes, fileMetadata, now]);
+  const openTasks = useMemo(() => openFeedTasks(feed, fileMetadata, now), [feed, fileMetadata, now]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -132,12 +113,10 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
     else element.scrollTop = 0;
   }, [topRequest]);
 
-  // The "Start today's sheet" row isn't a note yet: it starts the sheet.
-  const openEntry = (entry: FeedEntry) =>
-    (entry.todaySheet === "missing" && onOpenToday ? onOpenToday() : onOpenNote(entry.path));
+  const openEntry = (entry: FeedEntry) => onOpenNote(entry.path);
 
-  const latest = useRef({ feed, selectedIndex, shouldVirtualize, rowVirtualizer, openEntry, onSearch, onClose, togglePin, onOpenToday, showToday });
-  latest.current = { feed, selectedIndex, shouldVirtualize, rowVirtualizer, openEntry, onSearch, onClose, togglePin, onOpenToday, showToday };
+  const latest = useRef({ feed, selectedIndex, shouldVirtualize, rowVirtualizer, openEntry, onSearch, onClose, togglePin });
+  latest.current = { feed, selectedIndex, shouldVirtualize, rowVirtualizer, openEntry, onSearch, onClose, togglePin };
 
   // Selects a row and scrolls it into view.
   const select = useCallback((index: number) => {
@@ -202,11 +181,6 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
       lastG = 0;
       if (event.key === "G") { event.preventDefault(); if (rows.length) select(rows.length - 1); return; }
       if (event.key === "/") { event.preventDefault(); latest.current.onSearch(); return; }
-      if (event.key === "t" && latest.current.showToday && latest.current.onOpenToday) {
-        event.preventDefault();
-        latest.current.onOpenToday();
-        return;
-      }
       if (event.key === "Enter" || event.key === "o") {
         // A focused button handles its own Enter (click).
         if (event.key === "Enter" && (event.target as HTMLElement | null)?.closest?.("button")) return;
@@ -217,7 +191,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
       }
       if (event.key === "p") {
         event.preventDefault();
-        if (!rows[index] || rows[index].todaySheet === "missing") return;
+        if (!rows[index]) return;
         pinnedByKey.current = rows[index].path;
         latest.current.togglePin(rows[index].path);
         return;
