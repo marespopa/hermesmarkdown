@@ -81,9 +81,9 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     setIsWizardOpen: vi.fn(),
     privacyLevel: "show_title",
     setPrivacyLevel: vi.fn(),
-    revealAllSensitive: false,
-    setRevealAllSensitive: vi.fn(),
-    setRevealedSensitivePaths: vi.fn(),
+    revealAllPrivate: false,
+    setRevealAllPrivate: vi.fn(),
+    setRevealedPrivatePaths: vi.fn(),
     activeFileHandle: { name: "Note.md" },
     activeEditorView: {},
     activeLeaf,
@@ -136,7 +136,7 @@ describe("buildEditorCommands", () => {
       "start-welcome-tour",
       "privacy-mode-show-title",
       "privacy-mode-hidden",
-      "reveal-sensitive-session",
+      "reveal-private-session",
       "toggle-home-pin",
       "close-vault",
       "copy-markdown",
@@ -312,18 +312,18 @@ describe("buildEditorCommands", () => {
   });
 
   it("toggles the session reveal and clears per-note reveals when turned off", () => {
-    const off = createContext({ revealAllSensitive: false });
-    const showAll = buildEditorCommands(off).find((command) => command.id === "reveal-sensitive-session");
+    const off = createContext({ revealAllPrivate: false });
+    const showAll = buildEditorCommands(off).find((command) => command.id === "reveal-private-session");
     expect(showAll?.label).toBe("Show all private notes this session");
     showAll?.action();
-    expect(off.setRevealAllSensitive).toHaveBeenCalledWith(true);
-    expect(off.setRevealedSensitivePaths).not.toHaveBeenCalled();
+    expect(off.setRevealAllPrivate).toHaveBeenCalledWith(true);
+    expect(off.setRevealedPrivatePaths).not.toHaveBeenCalled();
 
-    const on = createContext({ revealAllSensitive: true });
-    const hideAgain = buildEditorCommands(on).find((command) => command.id === "reveal-sensitive-session");
+    const on = createContext({ revealAllPrivate: true });
+    const hideAgain = buildEditorCommands(on).find((command) => command.id === "reveal-private-session");
     expect(hideAgain?.label).toBe("Hide private notes again");
     hideAgain?.action();
-    expect(on.setRevealAllSensitive).toHaveBeenCalledWith(false);
-    expect(on.setRevealedSensitivePaths).toHaveBeenCalledWith(new Set());
+    expect(on.setRevealAllPrivate).toHaveBeenCalledWith(false);
+    expect(on.setRevealedPrivatePaths).toHaveBeenCalledWith(new Set());
   });
 });

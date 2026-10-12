@@ -7,7 +7,7 @@ const file = (path: string): FileResult => ({
   name: path.split("/").pop()!,
   handle: { kind: "file", name: path } as unknown as FileSystemFileHandle,
   tags: [],
-  isSensitive: false,
+  isPrivate: false,
 });
 
 describe("palette scopes", () => {

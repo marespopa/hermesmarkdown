@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { atom_openFiles } from "@/app/atoms/file-atoms";
-import { atom_revealedSensitivePaths } from "@/app/atoms/privacy-atoms";
+import { atom_revealedPrivatePaths } from "@/app/atoms/privacy-atoms";
 import { atom_workspaceLayout } from "@/app/atoms/workspace-atoms";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { exportActivePdf } from "../utils/open-helper-dialogs";
@@ -88,7 +88,7 @@ describe("useExportPdf", () => {
     expect(printHtml).not.toHaveBeenCalled();
     expect(toastError).toHaveBeenCalledWith(VEILED_REASON);
 
-    act(() => { store.set(atom_revealedSensitivePaths, new Set(["private/plan.md"])); });
+    act(() => { store.set(atom_revealedPrivatePaths, new Set(["private/plan.md"])); });
     hook.rerender();
     expect(registered?.disabledReason).toBeUndefined();
   });

@@ -1,9 +1,9 @@
-# SensitiveNoteVeil
+# PrivateNoteVeil
 
 Description: The centered `bg-surface` panel shown in place of the editor for a private note: a lock with "Private note", the note's title, a **Show note** button (`secondary`) and **Show all private notes this session** (`tertiary`). It never renders the note's text.
 
 ## Local State & Storage
-- State: None (controlled by `SensitiveNoteGate`).
+- State: None (controlled by `PrivateNoteGate`).
 - Persistence: None.
 
 ## Logic
@@ -11,12 +11,12 @@ Description: The centered `bg-surface` panel shown in place of the editor for a 
 - Buttons use the 44px mobile row height (`min-h-11`).
 
 ## Dependencies
-- Core: `Button`, `SensitiveBadge`.
+- Core: `Button`, `PrivateBadge`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage
 ```tsx
-<SensitiveNoteVeil title="Payroll" isActivePane onShowNote={reveal} onShowAll={revealAll} />
+<PrivateNoteVeil title="Payroll" isActivePane onShowNote={reveal} onShowAll={revealAll} />
 ```
 
 ## Props Overview

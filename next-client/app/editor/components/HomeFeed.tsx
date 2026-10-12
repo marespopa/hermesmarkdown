@@ -128,7 +128,7 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
 
   // The note list takes focus when the feed opens (and on Home), so j/k and
   // Enter work without a click first. The list, not a row: a focused row
-  // would unblur a sensitive preview, and Enter on a row button opens that
+  // would unblur a private preview, and Enter on a row button opens that
   // row rather than the selection. Never taken from a field or a dialog
   // (the palette): it waits for those to close. Retries each render until
   // the first notes are listed.

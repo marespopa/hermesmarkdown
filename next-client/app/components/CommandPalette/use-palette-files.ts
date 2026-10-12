@@ -8,7 +8,7 @@ import type { FileResult } from "./palette-model";
 
 // The palette's file list: every indexed file (minus _-prefixed paths unless
 // hidden files are shown), filtered through the display items so "hidden"
-// Privacy Mode drops sensitive notes from search, #tag, recent and pinned
+// Privacy Mode drops private notes from search, #tag, recent and pinned
 // rows. `existingFiles` ignores Privacy Mode; it only decides whether the
 // "Create '…'" row is offered, so a hidden note's name is never created twice.
 export function usePaletteFiles(showHiddenFiles: boolean) {
@@ -23,7 +23,7 @@ export function usePaletteFiles(showHiddenFiles: boolean) {
         name: metadata.name,
         handle: metadata.handle as FileSystemFileHandle,
         tags: metadata.tags,
-        isSensitive: displayItems.get(metadata.path)?.isSensitive ?? false,
+        isPrivate: displayItems.get(metadata.path)?.isPrivate ?? false,
       })),
     [displayItems, fileMetadata, showHiddenFiles],
   );

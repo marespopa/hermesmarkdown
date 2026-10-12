@@ -20,7 +20,7 @@ import {
   MARK_PUBLIC_SENTINEL,
 } from "../components/constants";
 import { FM_REGEX, updateFmFields } from "@/app/utils/frontmatter-utils";
-import { clearSensitiveMarkers, isSensitiveContent } from "@/app/utils/note-privacy";
+import { clearPrivateMarkers, isPrivateContent } from "@/app/utils/note-privacy";
 
 // Non-AI templates only — AI action entries (aiOnly: true) aren't ported in
 // this pass (that's a separate AI-subsystem port, not part of the CM6
@@ -121,7 +121,7 @@ export function setFrontmatterFlag(view: EditorView, key: string) {
 // Removes the private marker (flag and tag), the inverse of setFrontmatterFlag.
 export function clearFrontmatterPrivate(view: EditorView) {
   const match = FM_REGEX.exec(view.state.doc.toString());
-  if (match) replaceFrontmatter(view, match[0], clearSensitiveMarkers(match[0]));
+  if (match) replaceFrontmatter(view, match[0], clearPrivateMarkers(match[0]));
 }
 
 function replaceFrontmatter(view: EditorView, block: string, insert: string) {
@@ -240,7 +240,7 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
       ...(callbacksRef.current.onOpenAIChat ? TEMPLATES.filter((template) => template.content === AI_CHAT_SENTINEL) : []),
     ];
     // Offer only the privacy commands that would change this note.
-    const isPrivate = isSensitiveContent(context.state.doc.toString());
+    const isPrivate = isPrivateContent(context.state.doc.toString());
     const hidden = isPrivate ? [MARK_PRIVATE_SENTINEL] : [MARK_PUBLIC_SENTINEL];
     const matches = templates.filter((t) => !hidden.includes(t.content) && fuzzyMatch(t.label, query));
     if (matches.length === 0) return null;

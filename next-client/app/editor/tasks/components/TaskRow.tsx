@@ -4,7 +4,7 @@ import React from "react";
 import { HiDotsHorizontal } from "react-icons/hi";
 import type { DisplayTask } from "@/app/atoms/task-atoms";
 import Button from "@/app/components/Button";
-import SensitiveBadge from "@/app/components/SensitiveBadge";
+import PrivateBadge from "@/app/components/PrivateBadge";
 import { isOpenStatus, type TaskStatus } from "@/app/utils/task-status";
 import TaskStatusButton from "./TaskStatusButton";
 import { useTaskSwipe } from "./use-task-swipe";
@@ -93,7 +93,7 @@ export default function TaskRow({
               <>
                 <span aria-hidden="true" className="truncate">{task.text}</span>
                 <span className="sr-only">Private task</span>
-                <SensitiveBadge />
+                <PrivateBadge />
               </>
             ) : (
               <span className="truncate">{task.text || "(empty task)"}</span>

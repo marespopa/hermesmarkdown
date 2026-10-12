@@ -1,4 +1,4 @@
-# SensitiveBadge
+# PrivateBadge
 
 Description: A small lock icon that marks a private note in listings: home feed rows, command palette file and task rows, Tasks page rows and the editor veil.
 
@@ -16,9 +16,9 @@ Description: A small lock icon that marks a private note in listings: home feed 
 
 ## Quick Usage
 ```tsx
-import SensitiveBadge from "@/app/components/SensitiveBadge";
+import PrivateBadge from "@/app/components/PrivateBadge";
 
-{item.isSensitive && <SensitiveBadge />}
+{item.isPrivate && <PrivateBadge />}
 ```
 
 ## Props Overview

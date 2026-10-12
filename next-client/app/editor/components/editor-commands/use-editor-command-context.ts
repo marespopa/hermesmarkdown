@@ -17,8 +17,8 @@ import {
 import { atom_content, atom_activeFileHandle } from "@/app/atoms/file-atoms";
 import {
   atom_privacyLevel,
-  atom_revealAllSensitive,
-  atom_revealedSensitivePaths,
+  atom_revealAllPrivate,
+  atom_revealedPrivatePaths,
 } from "@/app/atoms/privacy-atoms";
 import {
   atom_taskSearchQuery,
@@ -102,8 +102,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [, setTaskView] = useAtom(atom_taskView);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const [privacyLevel, setPrivacyLevel] = useAtom(atom_privacyLevel);
-  const [revealAllSensitive, setRevealAllSensitive] = useAtom(atom_revealAllSensitive);
-  const setRevealedSensitivePaths = useSetAtom(atom_revealedSensitivePaths);
+  const [revealAllPrivate, setRevealAllPrivate] = useAtom(atom_revealAllPrivate);
+  const setRevealedPrivatePaths = useSetAtom(atom_revealedPrivatePaths);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
   const homePinnedPaths = useAtomValue(atom_homePinnedPaths);
   const toggleHomePin = useSetAtom(atom_toggleHomePin);
@@ -165,9 +165,9 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setIsWizardOpen,
     privacyLevel,
     setPrivacyLevel,
-    revealAllSensitive,
-    setRevealAllSensitive,
-    setRevealedSensitivePaths,
+    revealAllPrivate,
+    setRevealAllPrivate,
+    setRevealedPrivatePaths,
     activeFileHandle,
     activeEditorView,
     activeLeaf,

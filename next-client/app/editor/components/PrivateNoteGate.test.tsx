@@ -3,10 +3,10 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import { Provider, createStore } from "jotai";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
-import { atom_revealAllSensitive, atom_revealedSensitivePaths } from "@/app/atoms/privacy-atoms";
-import SensitiveNoteGate from "./SensitiveNoteGate";
+import { atom_revealAllPrivate, atom_revealedPrivatePaths } from "@/app/atoms/privacy-atoms";
+import PrivateNoteGate from "./PrivateNoteGate";
 
-const SENSITIVE = "---\nprivate: true\ntitle: Payroll\n---\n\nSalary figures";
+const PRIVATE = "---\nprivate: true\ntitle: Payroll\n---\n\nSalary figures";
 const PLAIN = "# Groceries\n\nMilk";
 
 // Stands in for MarkdownEditor: the gate only decides whether it mounts.
@@ -15,22 +15,22 @@ const Editor = ({ content }: { content: string }) => <div data-testid="editor">{
 function setup(store = createStore()) {
   const view = (filePath: string, content: string, key = filePath) => (
     <Provider store={store}>
-      <SensitiveNoteGate key={key} filePath={filePath} content={content} isActivePane>
+      <PrivateNoteGate key={key} filePath={filePath} content={content} isActivePane>
         <Editor content={content} />
-      </SensitiveNoteGate>
+      </PrivateNoteGate>
     </Provider>
   );
   const utils = render(view("a.md", ""));
   return { store, show: (filePath: string, content: string, key?: string) => utils.rerender(view(filePath, content, key)), unmount: utils.unmount };
 }
 
-describe("SensitiveNoteGate", () => {
+describe("PrivateNoteGate", () => {
   beforeEach(() => cleanup());
 
   it("veils private content without mounting the editor", () => {
     const { show } = setup();
-    show("a.md", SENSITIVE);
-    expect(screen.getByTestId("sensitive-note-veil")).toBeInTheDocument();
+    show("a.md", PRIVATE);
+    expect(screen.getByTestId("private-note-veil")).toBeInTheDocument();
     expect(screen.getByText("Payroll")).toBeInTheDocument();
     expect(screen.queryByTestId("editor")).not.toBeInTheDocument();
     expect(document.body.textContent).not.toContain("Salary figures");
@@ -38,25 +38,25 @@ describe("SensitiveNoteGate", () => {
 
   it("reveals the note on Show note and remembers it for the session", () => {
     const { store, show } = setup();
-    show("a.md", SENSITIVE);
+    show("a.md", PRIVATE);
     fireEvent.click(screen.getByRole("button", { name: "Show note" }));
     expect(screen.getByTestId("editor")).toHaveTextContent("Salary figures");
-    expect(store.get(atom_revealedSensitivePaths).has("a.md")).toBe(true);
+    expect(store.get(atom_revealedPrivatePaths).has("a.md")).toBe(true);
 
     // A fresh editor instance for the same path (switching tabs and back).
-    show("a.md", SENSITIVE, "a.md#2");
-    expect(screen.queryByTestId("sensitive-note-veil")).not.toBeInTheDocument();
+    show("a.md", PRIVATE, "a.md#2");
+    expect(screen.queryByTestId("private-note-veil")).not.toBeInTheDocument();
     expect(screen.getByTestId("editor")).toBeInTheDocument();
   });
 
   it("reveals every private note on Show all", () => {
     const { store, show } = setup();
-    show("a.md", SENSITIVE);
+    show("a.md", PRIVATE);
     fireEvent.click(screen.getByRole("button", { name: "Show all private notes this session" }));
-    expect(store.get(atom_revealAllSensitive)).toBe(true);
+    expect(store.get(atom_revealAllPrivate)).toBe(true);
 
-    show("b.md", SENSITIVE);
-    expect(screen.queryByTestId("sensitive-note-veil")).not.toBeInTheDocument();
+    show("b.md", PRIVATE);
+    expect(screen.queryByTestId("private-note-veil")).not.toBeInTheDocument();
     expect(screen.getByTestId("editor")).toBeInTheDocument();
   });
 
@@ -64,28 +64,28 @@ describe("SensitiveNoteGate", () => {
     const { show } = setup();
     show("a.md", PLAIN);
     expect(screen.getByTestId("editor")).toBeInTheDocument();
-    show("a.md", SENSITIVE);
-    expect(screen.queryByTestId("sensitive-note-veil")).not.toBeInTheDocument();
+    show("a.md", PRIVATE);
+    expect(screen.queryByTestId("private-note-veil")).not.toBeInTheDocument();
     expect(screen.getByTestId("editor")).toBeInTheDocument();
   });
 
   it("keeps a note marked private while shown revealed after a remount", () => {
     const { store, show } = setup();
     show("a.md", PLAIN);
-    show("a.md", SENSITIVE);
-    expect(store.get(atom_revealedSensitivePaths).has("a.md")).toBe(true);
+    show("a.md", PRIVATE);
+    expect(store.get(atom_revealedPrivatePaths).has("a.md")).toBe(true);
 
     // A fresh editor instance for the same path (switching tabs and back).
-    show("a.md", SENSITIVE, "a.md#2");
-    expect(screen.queryByTestId("sensitive-note-veil")).not.toBeInTheDocument();
+    show("a.md", PRIVATE, "a.md#2");
+    expect(screen.queryByTestId("private-note-veil")).not.toBeInTheDocument();
     expect(screen.getByTestId("editor")).toBeInTheDocument();
   });
 
   it("veils when the first content is empty and private content loads after", () => {
     const { show } = setup();
     // setup() rendered "a.md" with empty content first.
-    show("a.md", SENSITIVE);
-    expect(screen.getByTestId("sensitive-note-veil")).toBeInTheDocument();
+    show("a.md", PRIVATE);
+    expect(screen.getByTestId("private-note-veil")).toBeInTheDocument();
   });
 
   it("veils a note that is private only in the indexed metadata", () => {
@@ -97,7 +97,7 @@ describe("SensitiveNoteGate", () => {
     store.set(atom_fileMetadata, { "a.md": meta });
     const { show } = setup(store);
     show("a.md", "Body without frontmatter");
-    expect(screen.getByTestId("sensitive-note-veil")).toBeInTheDocument();
+    expect(screen.getByTestId("private-note-veil")).toBeInTheDocument();
     expect(screen.getByText("a")).toBeInTheDocument();
   });
 });

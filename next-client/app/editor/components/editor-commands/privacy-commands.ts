@@ -32,11 +32,11 @@ export function buildPrivacyCommands(context: EditorCommandContext): Command[] {
     action: () => context.setPrivacyLevel(level),
   }));
 
-  const revealAll = context.revealAllSensitive;
+  const revealAll = context.revealAllPrivate;
   return [
     ...levelCommands,
     {
-      id: "reveal-sensitive-session",
+      id: "reveal-private-session",
       label: revealAll ? "Hide private notes again" : "Show all private notes this session",
       description: revealAll
         ? "Veil private notes in the editor again"
@@ -46,10 +46,10 @@ export function buildPrivacyCommands(context: EditorCommandContext): Command[] {
       action: () => {
         if (revealAll) {
           // Also forget per-note reveals, so open private notes veil again on their next mount.
-          context.setRevealedSensitivePaths(new Set<string>());
-          context.setRevealAllSensitive(false);
+          context.setRevealedPrivatePaths(new Set<string>());
+          context.setRevealAllPrivate(false);
         } else {
-          context.setRevealAllSensitive(true);
+          context.setRevealAllPrivate(true);
         }
       },
     },

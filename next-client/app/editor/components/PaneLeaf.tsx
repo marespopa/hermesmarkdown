@@ -3,7 +3,7 @@
 import React from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
-import SensitiveNoteGate from "./SensitiveNoteGate";
+import PrivateNoteGate from "./PrivateNoteGate";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
@@ -211,7 +211,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         ) : leaf.type === "editor" ? (
           // The gate carries the editor's key, so its "already shown" latch
           // follows the editor instance (a draft saved as a file keeps both).
-          <SensitiveNoteGate key={editorKeyRef.current.key} filePath={filePath} content={content} isActivePane={isActive}>
+          <PrivateNoteGate key={editorKeyRef.current.key} filePath={filePath} content={content} isActivePane={isActive}>
             <MarkdownEditor
               value={content}
               onChange={setContent}
@@ -221,7 +221,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               isActivePane={isActive}
               isSplit={!isOnlyPane}
             />
-          </SensitiveNoteGate>
+          </PrivateNoteGate>
         ) : (
           <div className="flex flex-col items-center justify-center h-full opacity-20 space-y-2">
             {getIcon(leaf.type)}

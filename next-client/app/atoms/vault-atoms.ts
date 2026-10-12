@@ -3,7 +3,7 @@ import { atom_openFiles, atom_liveHandles } from "./file-atoms";
 import { atom_workspaceLayout } from "./workspace-atoms";
 import { atom_fileTreeExpansion, atom_homePins } from "./ui-atoms";
 import { atom_fileMetadata } from "./metadata";
-import { atom_revealedSensitivePaths } from "./privacy-atoms";
+import { atom_revealedPrivatePaths } from "./privacy-atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
 import { remapNoteContent } from "@/app/services/content-search-client";
 import { remapPath, remapPathsInLayout, removePathsFromLayout } from "./utils";
@@ -163,7 +163,7 @@ export const atom_rebindHandles = atom(
 // Follows a file or folder that was renamed or moved on disk: re-keys open
 // tabs (keeping unsaved edits), pane layouts, indexed metadata, the worker's
 // note-text index, the file tree's remembered expansion and Home pins (and
-// sensitive-note session reveals) from `oldPath` to `newPath`, for the item
+// private-note session reveals) from `oldPath` to `newPath`, for the item
 // and everything under it. Handles are path-based, so moving a folder leaves
 // its children's handles stale — each moved tab gets a fresh handle resolved
 // at its new path, so the next save lands in the moved file.
@@ -238,8 +238,8 @@ export const atom_remapVaultPaths = atom(
       prev.some((p) => remapPath(p, oldPath, newPath) !== null) ? prev.map(mapPath) : prev,
     );
 
-    // Keep session reveals of sensitive notes across rename / move.
-    set(atom_revealedSensitivePaths, (prev) => {
+    // Keep session reveals of private notes across rename / move.
+    set(atom_revealedPrivatePaths, (prev) => {
       if (![...prev].some((p) => remapPath(p, oldPath, newPath) !== null)) return prev;
       return new Set([...prev].map(mapPath));
     });

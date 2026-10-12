@@ -81,7 +81,7 @@ describe("CommandPalette / note text scope", () => {
     search.searchNoteContent.mockResolvedValue({ hits: [planHit], pending: 0, capped: false });
   });
 
-  it("switches to the scope and searches non-sensitive, listed notes", async () => {
+  it("switches to the scope and searches public, listed notes", async () => {
     renderPalette();
     const input = await type("/needle tests");
     expect(input).toHaveValue("/needle tests");
@@ -89,7 +89,7 @@ describe("CommandPalette / note text scope", () => {
     await waitFor(() => expect(search.searchNoteContent).toHaveBeenCalledWith("needle tests", ["projects/Plan.md"]));
   });
 
-  it("leaves sensitive notes out in hidden mode and lists _ paths when hidden files are shown", async () => {
+  it("leaves private notes out in hidden mode and lists _ paths when hidden files are shown", async () => {
     renderPalette([[atom_privacyLevel, "hidden"], [atom_showHiddenFiles, true]]);
     await type("/needle");
     await waitFor(() => expect(search.searchNoteContent).toHaveBeenCalled());

@@ -29,21 +29,21 @@ function isTrueFlag(flag: unknown): boolean {
 }
 
 /** True when the frontmatter has `private: true` or a `private` tag. */
-export function isSensitiveFrontmatter(frontmatter: Record<string, unknown> | undefined): boolean {
+export function isPrivateFrontmatter(frontmatter: Record<string, unknown> | undefined): boolean {
   if (!frontmatter) return false;
   if (isTrueFlag(frontmatter[PRIVATE_MARKER])) return true;
   return tagEntries(frontmatter.tags).some((tag) => normalizeToken(tag) === PRIVATE_MARKER);
 }
 
 /** Classifies raw note text (frontmatter included). Notes without frontmatter are never private. */
-export function isSensitiveContent(content: string): boolean {
-  return isSensitiveFrontmatter(parseFmFields(content));
+export function isPrivateContent(content: string): boolean {
+  return isPrivateFrontmatter(parseFmFields(content));
 }
 
 /** Strips the private marker from the frontmatter: the `private` key and
  *  `private` entries in `tags` (dropping `tags` when nothing else is left).
  *  Other fields and the body are untouched. */
-export function clearSensitiveMarkers(content: string): string {
+export function clearPrivateMarkers(content: string): string {
   if (!FM_REGEX.test(content)) return content;
   const fields = parseFmFields(content);
   const edits: Record<string, string | null> = {};

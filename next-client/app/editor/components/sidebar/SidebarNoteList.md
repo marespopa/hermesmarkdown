@@ -19,7 +19,7 @@ Description: A list of notes by display title for the sidebar's **Pinned** and *
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| items | `SidebarNoteItem[]` | | `{ path, title, meta?, isSensitive? }` |
+| items | `SidebarNoteItem[]` | | `{ path, title, meta?, isPrivate? }` |
 | currentPath | `string \| null` | | Marks the current row |
 | onOpen | `(path: string) => void` | | Row click |
 | menuItems? | `(path) => TabContextMenuItem[]` | | Right-click menu |

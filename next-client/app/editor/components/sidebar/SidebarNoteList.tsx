@@ -10,8 +10,8 @@ export interface SidebarNoteItem {
   title: string;
   /** Short trailing text, e.g. a day label. */
   meta?: string | null;
-  /** Locked (sensitive) note: no title tooltip. */
-  isSensitive?: boolean;
+  /** Locked (private) note: no title tooltip. */
+  isPrivate?: boolean;
 }
 
 interface SidebarNoteListProps {
@@ -52,7 +52,7 @@ export default function SidebarNoteList({ items, currentPath, onOpen, menuItems,
               setMenu({ x: event.clientX, y: event.clientY, path: item.path });
             } : undefined}
             aria-current={isCurrent ? "page" : undefined}
-            title={item.isSensitive ? undefined : item.title}
+            title={item.isPrivate ? undefined : item.title}
             className={`${SIDEBAR_ITEM_CLASS} ${isCurrent ? SIDEBAR_ITEM_CURRENT_CLASS : SIDEBAR_ITEM_IDLE_CLASS}`}
           >
             {icon ?? <HiOutlineDocumentText size={15} aria-hidden="true" className="shrink-0 opacity-70" />}

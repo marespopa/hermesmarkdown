@@ -116,7 +116,7 @@ describe("buildFeed", () => {
   it("passes the indexed preview through", () => {
     const [entry] = buildFeed({ a: meta("a.md", NOW, { preview: "Body text" }) }, NOW);
     expect(entry.preview).toBe("Body text");
-    expect(entry).toMatchObject({ isSensitive: false, previewStyle: "plain" });
+    expect(entry).toMatchObject({ isPrivate: false, previewStyle: "plain" });
   });
 
   it("puts pinned notes first, newest pin first, under one Pinned label", () => {
@@ -141,7 +141,7 @@ describe("buildFeed", () => {
     expect(feed.map((entry) => [entry.path, entry.dayLabel])).toEqual([["a.md", "Today"]]);
   });
 
-  it("gives every note its file name, except sensitive notes", () => {
+  it("gives every note its file name, except private notes", () => {
     const feed = buildFeed({
       titled: meta("notes/2026-09-28.md", NOW, { frontmatter: { title: "Weekly review" } }),
       plain: meta("notes/Plan.md", new Date(NOW.getTime() - 1000)),
@@ -150,9 +150,9 @@ describe("buildFeed", () => {
     expect(feed.map((entry) => entry.fileName)).toEqual(["2026-09-28.md", "Plan.md", null]);
   });
 
-  it("carries sensitivity and the preview style of sensitive notes", () => {
+  it("carries privacy and the preview style of private notes", () => {
     const notes = { s: meta("s.md", NOW, { preview: "Secret", frontmatter: { tags: "private" } }) };
-    expect(buildFeed(notes, NOW)[0]).toMatchObject({ isSensitive: true, previewStyle: "masked", preview: MASKED_PREVIEW });
+    expect(buildFeed(notes, NOW)[0]).toMatchObject({ isPrivate: true, previewStyle: "masked", preview: MASKED_PREVIEW });
   });
 
   it("leaves hidden notes out and recomputes day labels after exclusion", () => {
@@ -169,7 +169,7 @@ describe("buildFeed", () => {
 });
 
 describe("entry tags", () => {
-  it("never carries a sensitive note's tags", () => {
+  it("never carries a private note's tags", () => {
     const feed = buildFeed({
       a: meta("a.md", new Date(2026, 8, 28, 9), { tags: ["work"] }),
       s: meta("s.md", new Date(2026, 8, 28, 12), { tags: ["secret"], frontmatter: { private: "true" } }),
@@ -205,7 +205,7 @@ describe("openFeedTasks", () => {
     expect(openFeedTasks(buildFeed(metadata, NOW), metadata, NOW)).toHaveLength(1);
   });
 
-  it("leaves out sensitive notes and notes outside the feed", () => {
+  it("leaves out private notes and notes outside the feed", () => {
     const metadata = {
       "secret.md": withTasks("secret.md", day(0), "- [ ] hidden", { frontmatter: { private: true } }),
       ".hermes/x.md": withTasks(".hermes/x.md", day(0), "- [ ] meta"),

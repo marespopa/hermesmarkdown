@@ -1,6 +1,6 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
 import type { ContentHit } from "@/app/workers/content-search-protocol";
-import { isSensitiveContent, isSensitiveFrontmatter } from "@/app/utils/note-privacy";
+import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import type { TaskItem } from "@/app/utils/taskExtractor";
 
 // The pure half of AI Chat's tools (declared in app/api/ai/chat-tools.ts):
@@ -16,7 +16,7 @@ export const DEFAULT_SEARCH_LIMIT = 8;
 
 export const noteName = (path: string) => (path.split("/").pop() ?? path).replace(/\.md$/i, "");
 
-const isPrivate = (file: FileMetadata) => isSensitiveFrontmatter(file.frontmatter);
+const isPrivate = (file: FileMetadata) => isPrivateFrontmatter(file.frontmatter);
 
 /** The notes a tool may look at: not private, not skipped (templates, .hermes/). */
 export function searchablePaths(meta: Record<string, FileMetadata>, skip: (path: string) => boolean): string[] {
@@ -55,7 +55,7 @@ export function searchNotesOutput(
 // A note's text for read_note, capped, or why it can't be read.
 export function readNoteOutput(name: string, file: FileMetadata | null, text: string | null): string {
   if (!file) return `No note named "${name}".`;
-  if (isPrivate(file) || (text !== null && isSensitiveContent(text))) {
+  if (isPrivate(file) || (text !== null && isPrivateContent(text))) {
     return `[[${noteName(file.path)}]] is private, so it isn't shared. Ask the user to open it.`;
   }
   if (text === null) return `[[${noteName(file.path)}]] couldn't be read.`;

@@ -1,7 +1,7 @@
 "use client";
 
 import Button from "@/app/components/Button";
-import SensitiveBadge from "@/app/components/SensitiveBadge";
+import PrivateBadge from "@/app/components/PrivateBadge";
 import React from "react";
 import { HiOutlineRefresh } from "react-icons/hi";
 import { HighlightedText, parentFolder, type Row, type Scope } from "./palette-model";
@@ -33,10 +33,10 @@ export default function PaletteRow({ row, index, selected, scope, runningId, isM
   const context = resultContext(row, scope);
   const folder = row.kind === "file" || row.kind === "content" ? parentFolder(row.file.path) : "";
   const isMaskedTask = row.kind === "task" && row.isMasked;
-  const isSensitive = isMaskedTask || (row.kind === "file" && row.file.isSensitive);
+  const isPrivate = isMaskedTask || (row.kind === "file" && row.file.isPrivate);
   const accessibleLabel = [
     isMaskedTask ? "Private task" : row.label,
-    isSensitive && !isMaskedTask ? "(private)" : null,
+    isPrivate && !isMaskedTask ? "(private)" : null,
     context,
     row.kind === "content" ? row.detail : null,
     folder,
@@ -56,7 +56,7 @@ export default function PaletteRow({ row, index, selected, scope, runningId, isM
         {folder && <span title={folder} className="max-w-[45%] shrink-0 truncate text-right">{folder}</span>}
       </span>
     </> : <>
-      <span className="min-w-0 flex-1 truncate"><HighlightedText text={row.label} indices={row.titleIndices} />{isSensitive && <SensitiveBadge className="ml-1.5 align-[-2px]" />}{context && <span className="ml-2 text-ui-footnote text-fg-muted"><HighlightedText text={context} indices={row.detailIndices} /></span>}</span>
+      <span className="min-w-0 flex-1 truncate"><HighlightedText text={row.label} indices={row.titleIndices} />{isPrivate && <PrivateBadge className="ml-1.5 align-[-2px]" />}{context && <span className="ml-2 text-ui-footnote text-fg-muted"><HighlightedText text={context} indices={row.detailIndices} /></span>}</span>
       {folder && <span title={folder} className="max-w-[45%] shrink-0 truncate text-right text-ui-footnote text-fg-muted"><HighlightedText text={folder} indices={scope === "tag" ? [] : row.detailIndices} /></span>}
       {runningId === row.id
         ? <HiOutlineRefresh aria-label="Running" size={14} className="shrink-0 animate-spin text-fg-muted motion-reduce:animate-none" />

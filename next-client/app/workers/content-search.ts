@@ -90,7 +90,7 @@ interface RankedNote { path: string; score: number; hits: ContentHit[] }
 
 function rankNote(path: string, index: ContentIndex, query: ContentQuery): RankedNote | null {
   const entry = index.get(path);
-  if (!entry || entry.sensitive) return null;
+  if (!entry || entry.isPrivate) return null;
   const { text, folded, bodyStart, name } = entry;
   const { terms, phrase } = query;
   if (terms.some((term) => folded.indexOf(term, bodyStart) === -1)) return null;

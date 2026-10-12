@@ -1,5 +1,5 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
-import { isSensitiveFrontmatter } from "./note-privacy";
+import { isPrivateFrontmatter } from "./note-privacy";
 
 // The display factory: the one place that decides how a note appears in a
 // listing (home feed, command palette, Tasks page). Surfaces read the items
@@ -18,7 +18,7 @@ export function normalizePrivacyLevel(value: unknown): PrivacyLevel {
 /** Fixed length, so the bullet count can't reveal how long the preview is. */
 export const MASKED_PREVIEW = "•••• ••••••• ••••• •••••••• •••";
 export const MASKED_TEXT = "••••••••";
-export const UNTITLED_SENSITIVE_TITLE = "Untitled private note";
+export const UNTITLED_PRIVATE_TITLE = "Untitled private note";
 
 export type PreviewStyle = "plain" | "masked";
 
@@ -28,7 +28,7 @@ export interface NoteDisplayItem {
   title: string;
   /** MASKED_PREVIEW when masked; the real excerpt when plain. */
   preview: string;
-  isSensitive: boolean;
+  isPrivate: boolean;
   /** previewStyle === "masked". */
   isMasked: boolean;
   previewStyle: PreviewStyle;
@@ -43,26 +43,26 @@ export interface NoteDisplayItem {
  */
 export function noteDisplayTitle(
   meta: Pick<FileMetadata, "name" | "frontmatter">,
-  isSensitive: boolean,
+  isPrivate: boolean,
 ): string {
   const title = meta.frontmatter?.title;
   if (typeof title === "string" && title.trim()) return title.trim();
   const name = (meta.name ?? "").replace(/\.md$/i, "");
-  if (isSensitive && !name.trim()) return UNTITLED_SENSITIVE_TITLE;
+  if (isPrivate && !name.trim()) return UNTITLED_PRIVATE_TITLE;
   return name;
 }
 
 /** The display item for one note, or null when the privacy level excludes it. */
 export function createNoteDisplayItem(meta: FileMetadata, level: PrivacyLevel): NoteDisplayItem | null {
-  const isSensitive = isSensitiveFrontmatter(meta.frontmatter);
-  if (isSensitive && level === "hidden") return null;
-  const previewStyle: PreviewStyle = isSensitive ? "masked" : "plain";
+  const isPrivate = isPrivateFrontmatter(meta.frontmatter);
+  if (isPrivate && level === "hidden") return null;
+  const previewStyle: PreviewStyle = isPrivate ? "masked" : "plain";
   const isMasked = previewStyle === "masked";
   return {
     id: meta.path,
-    title: noteDisplayTitle(meta, isSensitive),
+    title: noteDisplayTitle(meta, isPrivate),
     preview: isMasked ? MASKED_PREVIEW : (meta.preview ?? ""),
-    isSensitive,
+    isPrivate,
     isMasked,
     previewStyle,
     isIndexed: meta.preview !== undefined,

@@ -43,7 +43,7 @@ Home` (the vault's home feed), from `hooks/use-home-feed.ts`.
   vault` while a browser vault is open.
 - `privacy-commands.ts` defines the `Privacy mode: …` commands (Mask in lists /
   Hide from lists, for notes with `private: true` or a `private` tag; the
-  current level is disabled with "Current mode") and `reveal-sensitive-session`,
+  current level is disabled with "Current mode") and `reveal-private-session`,
   which toggles the session-only editor reveal ("Show all private notes this
   session" / "Hide private notes again"; turning it off also clears per-note
   reveals). Registered right after
