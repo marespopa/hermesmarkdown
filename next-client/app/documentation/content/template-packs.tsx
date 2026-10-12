@@ -1,4 +1,4 @@
-import { Callout, Code, KV, type Subsection } from "../doc-primitives";
+import { Code, KV, type Subsection } from "../doc-primitives";
 
 const h4 = "text-[19px] font-semibold tracking-tight !mb-2 !mt-0";
 
@@ -18,8 +18,9 @@ export const templatePacksItem: Subsection = {
       </p>
       <h4 className={h4}>Your templates</h4>
       <p>
-        A pack is a folder inside your templates folder, like <code>templates/Journal/</code>. Templates
-        directly in the templates folder are listed first, as loose templates. For each template:
+        Templates live in <code>templates/</code> at the root of your vault. A pack is a folder inside
+        it, like <code>templates/Journal/</code>; templates directly in <code>templates/</code> are listed
+        first, as loose templates. For each template:
       </p>
       <KV
         rows={[
@@ -44,7 +45,7 @@ export const templatePacksItem: Subsection = {
         ]}
       />
       <p>
-        <strong>Add to vault</strong> copies a pack&apos;s templates into your templates folder as files
+        <strong>Add to vault</strong> copies a pack&apos;s templates into <code>templates/</code> as files
         you own. A file you already have is never replaced: the button says how many are missing, and{" "}
         <strong>Added</strong> once you have them all.
       </p>
@@ -59,15 +60,12 @@ export const templatePacksItem: Subsection = {
         <code>journal/2026-10-12.md</code>. Because its <code>file_name</code>{" "}
         doesn&apos;t use the title, no title is asked for, and using it again the same day opens the page
         you already started instead of making another. <strong>Weekly</strong>, <strong>Monthly</strong>{" "}
-        and <strong>Yearly</strong> work the same way with <code>{"{{weekSheet}}"}</code> (
-        <code>2026-W42</code>), <code>{"{{monthSheet}}"}</code> (<code>2026-10</code>) and{" "}
-        <code>{"{{yearSheet}}"}</code> (<code>2026-year</code>). Change the names in the template to
+        and <strong>Yearly</strong> work the same way with date formats: <code>{"{{date:GGGG-[W]ww}}"}</code>{" "}
+        (<code>2026-W42</code>), <code>{"{{date:YYYY-MM}}"}</code> (<code>2026-10</code>) and{" "}
+        <code>{"{{date:YYYY}}"}</code> (<code>2026</code>). The Weekly and Monthly notes link the one
+        before, like <code>{"[[{{date-1w:GGGG-[W]ww}}]]"}</code>. Change the names in the template to
         suit yourself.
       </p>
-      <Callout type="note">
-        Sheets you made with earlier versions (like <code>2026-10-09.md</code> or{" "}
-        <code>2026-W41.md</code>) are still ordinary notes in your vault. Nothing was moved or changed.
-      </Callout>
     </>
   ),
 };

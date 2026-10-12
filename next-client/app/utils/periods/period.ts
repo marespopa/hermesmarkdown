@@ -1,5 +1,7 @@
-// Calendar periods behind the `{{weekSheet}}`, `{{monthSheet}}`,
-// `{{quarterSheet}}` and `{{yearSheet}}` template tokens: ISO weeks (Monday
+// Calendar periods behind the legacy `{{weekSheet}}`, `{{monthSheet}}`,
+// `{{quarterSheet}}` and `{{yearSheet}}` template tokens (still expanded in
+// existing templates), and the ISO week behind the `ww` / `GGGG` date
+// formats: ISO weeks (Monday
 // to Sunday, named by the ISO week-year: `2026-W53`), calendar months
 // (`2026-10`), calendar quarters (`2026-Q4`) and years (`2026-year`; a bare
 // `2026` is too likely to be an ordinary note's name).

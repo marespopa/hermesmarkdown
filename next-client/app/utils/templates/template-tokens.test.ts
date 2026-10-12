@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  LEGACY_TEMPLATE_TOKENS,
+  TEMPLATE_TOKENS,
   expandTemplate,
   extractPromptLabels,
   offsetToLineColumn,
@@ -18,7 +20,11 @@ function ctx(overrides: Partial<TemplateContext> = {}): TemplateContext {
 }
 
 describe("expandTemplate", () => {
-  it("expands every temporal token with zero-padding and English names", () => {
+  it("lists only the documented tokens", () => {
+    expect([...TEMPLATE_TOKENS]).toEqual(["date", "time", "title", "clipboard", "selection", "cursor"]);
+  });
+
+  it("still expands every legacy temporal token with zero-padding and English names", () => {
     const { text } = expandTemplate(
       "{{date}} {{time}} {{weekday}} {{year}}/{{month}}/{{day}} {{monthName}}",
       ctx(),
@@ -149,7 +155,40 @@ describe("date formats, date math, selection and blanks", () => {
   });
 });
 
-describe("week, month, quarter and year name tokens", () => {
+describe("ISO week, week-year and quarter date formats", () => {
+  it("names periods with date formats", () => {
+    expect(expandTemplate("{{date:GGGG-[W]ww}} {{date:YYYY-MM}} {{date:YYYY-[Q]Q}} {{date:YYYY}}", ctx()).text)
+      .toBe("2026-W40 2026-10 2026-Q4 2026");
+  });
+
+  it("makes the same names the legacy period tokens did", () => {
+    for (const now of [NOW, new Date(2026, 9, 12), new Date(2027, 0, 1), new Date(2024, 11, 30), new Date(2026, 0, 1)]) {
+      expect(expandTemplate("{{date:GGGG-[W]ww}}|{{date:YYYY-MM}}|{{date:YYYY-[Q]Q}}", ctx({ now })).text)
+        .toBe(expandTemplate("{{weekSheet}}|{{monthSheet}}|{{quarterSheet}}", ctx({ now })).text);
+    }
+    expect(expandTemplate("{{date:GGGG-[W]ww}}", ctx({ now: new Date(2026, 9, 12) })).text).toBe("2026-W42");
+  });
+
+  it("uses the ISO week-year across the year boundary", () => {
+    expect(expandTemplate("{{date:GGGG-[W]ww}}", ctx({ now: new Date(2027, 0, 1) })).text).toBe("2026-W53");
+    expect(expandTemplate("{{date:YYYY}} {{date:GGGG}}", ctx({ now: new Date(2027, 0, 1) })).text).toBe("2027 2026");
+    expect(expandTemplate("{{date:GGGG-[W]ww}}", ctx({ now: new Date(2024, 11, 30) })).text).toBe("2025-W01");
+  });
+
+  it("combines with date math", () => {
+    expect(expandTemplate("{{date-1w:GGGG-[W]ww}} {{date+1w:GGGG-[W]ww}} {{date-1m:YYYY-MM}}", ctx()).text)
+      .toBe("2026-W39 2026-W41 2026-09");
+    expect(expandTemplate("{{date+3m:[Q]Q}}", ctx()).text).toBe("Q1");
+  });
+});
+
+describe("legacy week, month, quarter and year name tokens", () => {
+  it("are known but not listed", () => {
+    expect(LEGACY_TEMPLATE_TOKENS).toContain("weekSheet");
+    expect(TEMPLATE_TOKENS as readonly string[]).not.toContain("weekSheet");
+    expect(isValidToken("weekSheet")).toBe(true);
+  });
+
   it("names this week's, month's, quarter's and year's sheets", () => {
     expect(expandTemplate("[[{{weekSheet}}]] {{monthSheet}} {{quarterSheet}} {{yearSheet}}", ctx()).text)
       .toBe("[[2026-W40]] 2026-10 2026-Q4 2026-year");

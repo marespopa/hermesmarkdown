@@ -5,7 +5,6 @@ import { useAtomValue } from "jotai";
 import { atom_templateDialog, atom_templates, atom_templatesFolder } from "@/app/atoms/template-atoms";
 import TemplatePicker from "./TemplatePicker";
 import TemplatePromptForm from "./TemplatePromptForm";
-import { TEMPLATE_STARTERS } from "@/app/utils/templates/template-starter";
 import { useTemplateNotes } from "@/app/hooks/file-system/use-template-notes";
 import { useOpenFile } from "@/app/hooks/file-system/use-open-file";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
@@ -13,10 +12,8 @@ import type { TemplateEntry } from "@/app/utils/templates/template-registry";
 import toast from "react-hot-toast";
 import { useStore } from "jotai";
 
-const STARTER_BODIES = Object.fromEntries(TEMPLATE_STARTERS.map((starter) => [starter.name, starter.body]));
-
 // Renders the open template request (useTemplateDialog): the template
-// picker, the starter picker or the prompts form. Mounted once, next to GlobalDialog.
+// picker or the prompts form. Mounted once, next to GlobalDialog.
 export default function TemplateDialogHost() {
   const request = useAtomValue(atom_templateDialog);
   const templates = useAtomValue(atom_templates);
@@ -67,25 +64,10 @@ export default function TemplateDialogHost() {
         templates={templates}
         folder={folder}
         includeBlank={request.includeBlank}
+        preselect={request.preselect}
         bodies={bodies}
         onEdit={(entry) => { void editTemplate(entry, () => request.resolve(null)); }}
         onPick={(value) => request.resolve(value)}
-        onCancel={() => request.resolve(null)}
-      />
-    );
-  }
-
-  if (request.kind === "starter") {
-    return (
-      <TemplatePicker
-        key={key}
-        isOpen
-        title="New template"
-        templates={TEMPLATE_STARTERS}
-        bodies={STARTER_BODIES}
-        folder={folder}
-        includeBlank={false}
-        onPick={(value) => request.resolve(value === "blank" ? null : value)}
         onCancel={() => request.resolve(null)}
       />
     );

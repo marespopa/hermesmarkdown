@@ -6,10 +6,8 @@ import toast from "react-hot-toast";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_newNoteFolder, atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
-import { atom_templateFolderSettings } from "@/app/atoms/template-atoms";
 import { writeFileContent } from "@/app/services/file-writer";
-import { TEMPLATE_STARTER, TEMPLATE_STARTERS } from "@/app/utils/templates/template-starter";
-import { namesItsNote, useTemplateCreate } from "./use-template-create";
+import { NEW_TEMPLATE_BODY, namesItsNote, useTemplateCreate } from "./use-template-create";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("react-hot-toast", () => ({ default: { error: vi.fn(), success: vi.fn() } }));
@@ -20,8 +18,7 @@ const dialog = { confirm: vi.fn(), prompt: vi.fn() };
 vi.mock("@/app/hooks/use-dialog", () => ({ useDialog: () => dialog }));
 const pickTemplate = vi.fn();
 const askPrompts = vi.fn();
-const pickStarter = vi.fn();
-vi.mock("@/app/hooks/use-template-dialog", () => ({ useTemplateDialog: () => ({ pickTemplate, pickStarter, askPrompts }) }));
+vi.mock("@/app/hooks/use-template-dialog", () => ({ useTemplateDialog: () => ({ pickTemplate, askPrompts }) }));
 
 const notFound = () => Object.assign(new Error("missing"), { name: "NotFoundError" });
 
@@ -104,14 +101,20 @@ describe("createNoteFromMissingLink", () => {
     askPrompts.mockResolvedValue({ Owner: "Ana" });
   });
 
-  it("confirms a folder match, then creates the note at the link's path from the template body", async () => {
+  it("preselects the template the link's folder points to, then creates the note at the link's path", async () => {
+    pickTemplate.mockResolvedValue({ name: "rfc", path: "templates/rfc.md" });
     const { root, store, props, flows } = await setup();
     await act(() => flows.createNoteFromMissingLink("rfcs/auth-spec"));
 
-    expect(dialog.confirm).toHaveBeenCalledWith("Create rfcs/auth-spec from template rfc?", "New note", "Create", "Cancel");
+    expect(dialog.confirm).not.toHaveBeenCalled();
+    expect(pickTemplate).toHaveBeenCalledWith({
+      includeBlank: true,
+      title: "New note: rfcs/auth-spec",
+      preselect: { name: "rfc", path: "templates/rfc.md" },
+    });
     expect(askPrompts).toHaveBeenCalledWith(["Owner"], "Create");
     const created = root.at("rfcs/auth-spec.md");
-    // Routing keys ignored and removed; the link decided the path.
+    // Routing keys ignored and removed; the link named the note and decided the path.
     expect(created?.content).toBe("# auth-spec\nOwner: Ana\n\n");
     expect(root.dirs.has("docs")).toBe(false);
     expect(props.scanVault).toHaveBeenCalled();
@@ -120,20 +123,18 @@ describe("createNoteFromMissingLink", () => {
     expect(toast.success).toHaveBeenCalledWith("Created: rfcs/auth-spec.md");
   });
 
-  it("writes nothing when the confirm is declined", async () => {
-    dialog.confirm.mockResolvedValue(false);
+  it("writes Blank note even when a template was suggested", async () => {
+    pickTemplate.mockResolvedValue("blank");
     const { root, flows } = await setup();
     await act(() => flows.createNoteFromMissingLink("rfcs/auth-spec"));
-    expect(root.dirs.has("rfcs")).toBe(false);
-    expect(writeFileContent).not.toHaveBeenCalled();
+    expect(root.at("rfcs/auth-spec.md")?.content).toBe("\n");
   });
 
-  it("opens the picker with Blank note when no template matches; Blank writes a newline", async () => {
+  it("opens the picker with Blank note and nothing preselected when no template matches", async () => {
     pickTemplate.mockResolvedValue("blank");
     const { root, flows } = await setup();
     await act(() => flows.createNoteFromMissingLink("ideas/x"));
-    expect(dialog.confirm).not.toHaveBeenCalled();
-    expect(pickTemplate).toHaveBeenCalledWith(expect.objectContaining({ includeBlank: true }));
+    expect(pickTemplate).toHaveBeenCalledWith(expect.objectContaining({ includeBlank: true, preselect: null }));
     expect(root.at("ideas/x.md")?.content).toBe("\n");
   });
 
@@ -180,6 +181,7 @@ describe("createNoteFromMissingLink", () => {
 
   it("writes nothing when the prompts are cancelled", async () => {
     askPrompts.mockResolvedValue(null);
+    pickTemplate.mockResolvedValue({ name: "rfc", path: "templates/rfc.md" });
     const { root, flows } = await setup();
     await act(() => flows.createNoteFromMissingLink("rfcs/auth-spec"));
     expect(root.dirs.has("rfcs")).toBe(false);
@@ -198,15 +200,30 @@ describe("createNoteFromTemplate", () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it("puts the note in the New Notes Folder named by file_name, ignoring target_folder, never overwriting", async () => {
+  it("puts the note in the New Notes Folder named by file_name, ignoring target_folder", async () => {
     const { root, flows } = await setup({ newNoteFolder: "inbox" });
     await act(() => flows.createNoteFromTemplate());
     expect(pickTemplate).toHaveBeenCalledWith(expect.objectContaining({ includeBlank: false }));
     expect(root.at("inbox/rfc-2026-10-04-auth-spec.md")?.content).toBe("# Auth Spec\nOwner: Ana\n\n");
     expect(root.dirs.has("docs")).toBe(false);
+  });
 
+  it("opens a note of the same name as it is: never ` (1)`, never overwritten", async () => {
+    const { root, props, flows } = await setup({ templates: { "templates/rfc.md": "Body {{title}}\n" }, newNoteFolder: "inbox" });
+    await root.put("inbox/Auth Spec.md", "mine");
     await act(() => flows.createNoteFromTemplate());
-    expect(root.at("inbox/rfc-2026-10-04-auth-spec (1).md")).toBeDefined();
+    expect(writeFileContent).not.toHaveBeenCalled();
+    expect(root.at("inbox/Auth Spec.md")?.content).toBe("mine");
+    expect(root.at("inbox/Auth Spec (1).md")).toBeUndefined();
+    expect(props.openFile).toHaveBeenCalledWith(root.at("inbox/Auth Spec.md"), "inbox/Auth Spec.md", true);
+  });
+
+  it("names a weekly note by its date format", async () => {
+    const weekly = "---\nfile_name: {{date:GGGG-[W]ww}}\n---\n# Week {{date:ww}}\n";
+    const { root, flows } = await setup({ templates: { "templates/Weekly.md": weekly } });
+    await act(() => flows.createNoteFromTemplate({ name: "Weekly", path: "templates/Weekly.md" }));
+    expect(dialog.prompt).not.toHaveBeenCalled();
+    expect(root.at("2026-W40.md")?.content).toBe("# Week 40\n");
   });
 
   it("falls back to the New Notes Folder and the title", async () => {
@@ -265,34 +282,15 @@ describe("createTemplate", () => {
     vi.clearAllMocks();
     localStorage.clear();
     dialog.prompt.mockResolvedValue("Meeting");
-    pickStarter.mockResolvedValue(TEMPLATE_STARTERS[0]);
   });
 
-  it("writes the picked starter, with its name suggested", async () => {
-    const meeting = TEMPLATE_STARTERS.find((s) => s.name === "Meeting notes")!;
-    pickStarter.mockResolvedValue(meeting);
-    dialog.prompt.mockResolvedValue("Standup");
-    const { root, flows } = await setup({ templates: {} });
-    await act(() => flows.createTemplate());
-    expect(dialog.prompt).toHaveBeenCalledWith("Template name:", "Meeting notes", "New template");
-    expect(root.at("templates/Standup.md")?.content).toBe(meeting.body);
-  });
-
-  it("asks nothing more when the starter picker is cancelled", async () => {
-    pickStarter.mockResolvedValue(null);
-    const { props, flows } = await setup({ templates: {} });
-    await act(() => flows.createTemplate());
-    expect(dialog.prompt).not.toHaveBeenCalled();
-    expect(writeFileContent).not.toHaveBeenCalled();
-    expect(props.openFile).not.toHaveBeenCalled();
-  });
-
-  it("creates <templates folder>/<name>.md with the raw starter and opens it", async () => {
+  it("asks the name, then creates templates/<name>.md with a minimal body and opens it", async () => {
     const { root, props, flows } = await setup({ templates: {} });
     await act(() => flows.createTemplate());
     expect(dialog.prompt).toHaveBeenCalledWith("Template name:", "", "New template");
     const created = root.at("templates/Meeting.md");
-    expect(created?.content).toBe(TEMPLATE_STARTER);
+    expect(created?.content).toBe(NEW_TEMPLATE_BODY);
+    expect(NEW_TEMPLATE_BODY).toBe("# {{title}}\n\n{{cursor}}\n");
     expect(props.scanVault).toHaveBeenCalled();
     expect(props.openFile).toHaveBeenCalledWith(created, "templates/Meeting.md", true);
     expect(toast.success).toHaveBeenCalledWith("Created: templates/Meeting.md");
@@ -301,29 +299,22 @@ describe("createTemplate", () => {
   it("creates it inside a pack when given one, apart from a loose template of the same name", async () => {
     const { root, flows } = await setup({ templates: { "templates/Meeting.md": "loose\n" } });
     await act(() => flows.createTemplate("Work"));
-    expect(root.at("templates/Work/Meeting.md")?.content).toBe(TEMPLATE_STARTER);
+    expect(root.at("templates/Work/Meeting.md")?.content).toBe(NEW_TEMPLATE_BODY);
     expect(root.at("templates/Meeting.md")?.content).toBe("loose\n");
   });
 
-  it("uses the first existing default folder", async () => {
+  it("always uses templates/ at the vault root, even when _templates exists", async () => {
     const { root, flows } = await setup({ templates: { "_templates/x.md": "x\n" } });
     await act(() => flows.createTemplate());
-    expect(root.at("_templates/Meeting.md")?.content).toBe(TEMPLATE_STARTER);
-    expect(root.dirs.has("templates")).toBe(false);
-  });
-
-  it("uses the Templates Folder setting", async () => {
-    const { root, store, flows } = await setup({ templates: {} });
-    store.set(atom_templateFolderSettings, { "local:vault": "meta/tpl" });
-    await act(() => flows.createTemplate());
-    expect(root.at("meta/tpl/Meeting.md")?.content).toBe(TEMPLATE_STARTER);
+    expect(root.at("templates/Meeting.md")?.content).toBe(NEW_TEMPLATE_BODY);
+    expect(root.at("_templates/Meeting.md")).toBeUndefined();
   });
 
   it("keeps the base name only and never writes a dot-file", async () => {
     dialog.prompt.mockResolvedValue("../evil/.Rfc.md");
     const { root, flows } = await setup({ templates: {} });
     await act(() => flows.createTemplate());
-    expect(root.at("templates/Rfc.md")?.content).toBe(TEMPLATE_STARTER);
+    expect(root.at("templates/Rfc.md")?.content).toBe(NEW_TEMPLATE_BODY);
     expect(root.dirs.has("evil")).toBe(false);
   });
 
@@ -369,7 +360,6 @@ describe("createTemplate", () => {
     const { store, flows } = await setup({ templates: {} });
     store.set(atom_vaultHandle, null);
     await act(() => flows.createTemplate());
-    expect(pickStarter).not.toHaveBeenCalled();
     expect(dialog.prompt).not.toHaveBeenCalled();
   });
 
@@ -446,5 +436,44 @@ describe("createLinkedNoteFromTemplate", () => {
     await act(async () => { path = await flows.createLinkedNoteFromTemplate("Auth", rfc); });
     expect(path).toBeNull();
     expect(writeFileContent).not.toHaveBeenCalled();
+  });
+
+  it("links an existing note as it is, without asking or writing", async () => {
+    const { root, flows } = await setup({ newNoteFolder: "inbox" });
+    await root.put("inbox/Auth.md", "mine");
+    let path: string | null = null;
+    await act(async () => { path = await flows.createLinkedNoteFromTemplate("Auth", rfc); });
+    expect(path).toBe("inbox/Auth");
+    expect(askPrompts).not.toHaveBeenCalled();
+    expect(writeFileContent).not.toHaveBeenCalled();
+    expect(root.at("inbox/Auth.md")?.content).toBe("mine");
+    expect(root.at("inbox/Auth (1).md")).toBeUndefined();
+  });
+});
+
+describe("createWikiLinkFile", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it("creates a blank note in the New Notes Folder without asking for a folder", async () => {
+    const { root, props, flows } = await setup({ newNoteFolder: "inbox" });
+    let path: string | null = null;
+    await act(async () => { path = await flows.createWikiLinkFile("Idea"); });
+    expect(path).toBe("inbox/Idea");
+    expect(root.at("inbox/Idea.md")?.content).toBe("\n");
+    expect(dialog.prompt).not.toHaveBeenCalled();
+    expect(props.openFile).not.toHaveBeenCalled();
+  });
+
+  it("uses the folder in the name and links an existing note as it is", async () => {
+    const { root, flows } = await setup();
+    await root.put("ideas/Idea.md", "mine");
+    let path: string | null = null;
+    await act(async () => { path = await flows.createWikiLinkFile("ideas/Idea"); });
+    expect(path).toBe("ideas/Idea");
+    expect(writeFileContent).not.toHaveBeenCalled();
+    expect(root.at("ideas/Idea.md")?.content).toBe("mine");
   });
 });

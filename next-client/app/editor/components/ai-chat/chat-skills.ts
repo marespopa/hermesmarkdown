@@ -25,14 +25,14 @@ export const TEMPLATE_BLOCK_INFO = "hermes-template";
 
 const TEMPLATE_SKILL_BUILTIN = [
   "Skill: create HermesMarkdown note templates.",
-  "When the user asks for a template, write it as a template file the user can save into their templates folder.",
+  "When the user asks for a template, write it as a template file the user can save into the vault's templates/ folder.",
   "",
   TEMPLATE_SYNTAX_GUIDE,
   "",
   "Output format: put each template in its own block fenced with four tildes, with the file name after the info string, exactly like this:",
   "~~~~hermes-template rfc.md",
   "---",
-  "file_name: rfc-{{date}}-{{slug}}",
+  "file_name: rfc-{{date}}-{{title}}",
   "---",
   "# {{title}}",
   "Owner: {{prompt:Owner}}",

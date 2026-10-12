@@ -4,14 +4,17 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { createStore, Provider } from "jotai";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import EmptyNoteTemplates from "./EmptyNoteTemplates";
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+const push = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
 const meta = (path: string) => ({ path, name: path.split("/").pop()! }) as FileMetadata;
 
-function renderPills(props: Partial<React.ComponentProps<typeof EmptyNoteTemplates>> = {}, paths: string[] = []) {
+function renderPills(props: Partial<React.ComponentProps<typeof EmptyNoteTemplates>> = {}, paths: string[] = [], hasVault = true) {
   const store = createStore();
+  if (hasVault) store.set(atom_vaultHandle, { kind: "directory", name: "vault" } as unknown as FileSystemDirectoryHandle);
   store.set(atom_fileMetadata, Object.fromEntries(paths.map((p) => [p, meta(p)])));
   const onPick = vi.fn();
   const utils = render(
@@ -31,9 +34,17 @@ function renderPills(props: Partial<React.ComponentProps<typeof EmptyNoteTemplat
 const pillNames = () => screen.getAllByRole("button").map((b) => b.textContent);
 
 describe("EmptyNoteTemplates", () => {
-  it("offers the starters when the vault has no templates", () => {
+  it("offers a link to the template packs when the vault has no templates", () => {
+    push.mockClear();
     renderPills();
-    expect(pillNames()).toEqual(["Journal", "Meeting notes", "Spec", "Report"]);
+    expect(pillNames()).toEqual(["Browse template packs"]);
+    fireEvent.click(screen.getByText("Browse template packs"));
+    expect(push).toHaveBeenCalledWith("/editor/templates");
+  });
+
+  it("renders nothing without a vault", () => {
+    renderPills({}, [], false);
+    expect(screen.queryByRole("group")).not.toBeInTheDocument();
   });
 
   it("offers vault templates, at most four, with More… for the rest", () => {

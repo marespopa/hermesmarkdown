@@ -65,7 +65,7 @@ function setup(existing: Record<string, string> = {}) {
 describe("useTemplateSave", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("saves the note's text as <templates folder>/<name>.md, name prefilled", async () => {
+  it("saves the note's text as templates/<name>.md, name prefilled", async () => {
     dialog.prompt.mockResolvedValue("Weekly sync");
     const { templates, scanVault, save } = setup();
     await act(async () => { expect(await save("# Sync\n{{date}}\n", "Sync")).toBe(true); });

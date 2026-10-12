@@ -22,6 +22,11 @@ describe("lintTemplate", () => {
     expect(lintTemplate("{{two words}}")).toEqual([expect.stringContaining("{{two words}} isn't a field")]);
   });
 
+  it("doesn't warn about legacy tokens or the period formats", () => {
+    expect(lintTemplate("{{weekSheet}} {{weekday}} {{year}} {{slug}} {{monthSheet-1m}}")).toEqual([]);
+    expect(lintTemplate("---\nfile_name: {{date:GGGG-[W]ww}}\n---\n[[{{date-1w:GGGG-[W]ww}}]] {{date:YYYY-[Q]Q}}")).toEqual([]);
+  });
+
   it("warns about an empty prompt label", () => {
     expect(lintTemplate("{{prompt: }}")).toEqual([expect.stringContaining("has no question")]);
   });
@@ -49,5 +54,12 @@ describe("TEMPLATE_SYNTAX_GUIDE", () => {
     expect(TEMPLATE_SYNTAX_GUIDE).toContain("{{prompt:Label}}");
     expect(TEMPLATE_SYNTAX_GUIDE).not.toContain("target_folder");
     expect(TEMPLATE_SYNTAX_GUIDE).toContain("file_name");
+  });
+
+  it("documents the period formats, not the legacy tokens", () => {
+    for (const format of ["ww", "GGGG", "Q", "{{date:GGGG-[W]ww}}"]) expect(TEMPLATE_SYNTAX_GUIDE).toContain(format);
+    for (const legacy of ["weekSheet", "monthSheet", "yearSheet", "{{weekday}}", "{{year}}", "{{slug}}", "{{quarter}}"]) {
+      expect(TEMPLATE_SYNTAX_GUIDE).not.toContain(legacy);
+    }
   });
 });

@@ -52,12 +52,26 @@ describe("TemplatePicker", () => {
     expect(onPick).toHaveBeenCalledWith(templates[1]);
   });
 
-  it("shows a starter's description instead of a path and picks the starter", () => {
-    const starters = [{ name: "Spec", description: "Author, status, summary" }];
-    const { onPick } = renderPicker({ templates: starters, title: "New template" });
+  it("shows an entry's description instead of a path", () => {
+    const described = [{ name: "Spec", description: "Author, status, summary" }];
+    const { onPick } = renderPicker({ templates: described });
     expect(rowNames()).toEqual(["SpecAuthor, status, summary"]);
     fireEvent.click(screen.getByText("Spec"));
-    expect(onPick).toHaveBeenCalledWith(starters[0]);
+    expect(onPick).toHaveBeenCalledWith(described[0]);
+  });
+
+  it("lists a preselected template first, before Blank note, highlighted", () => {
+    const { onPick } = renderPicker({ includeBlank: true, preselect: "templates/rfc.md" });
+    expect(rowNames()).toEqual(["rfctemplates/rfc.md", "Blank note", "meetingtemplates/meeting.md"]);
+    expect(screen.getAllByRole("option")[0]).toHaveAttribute("aria-selected", "true");
+    fireEvent.keyDown(screen.getByLabelText("Search templates"), { key: "Enter" });
+    expect(onPick).toHaveBeenCalledWith(templates[1]);
+  });
+
+  it("still offers Blank note and every template with a preselection", () => {
+    const { onPick } = renderPicker({ includeBlank: true, preselect: "templates/rfc.md" });
+    fireEvent.click(screen.getByText("Blank note"));
+    expect(onPick).toHaveBeenCalledWith("blank");
   });
 
   it("picks a clicked row", () => {

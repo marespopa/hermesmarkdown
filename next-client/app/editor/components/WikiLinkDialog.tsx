@@ -49,6 +49,11 @@ export default function WikiLinkDialog({
     () => matchTemplateForName(templateNoteName, templates),
     [templateNoteName, templates],
   );
+  // The suggested template is listed first.
+  const orderedTemplates = useMemo(
+    () => (suggestedTemplate ? [suggestedTemplate, ...templates.filter((t) => t !== suggestedTemplate)] : templates),
+    [suggestedTemplate, templates],
+  );
   const selectedTemplate = pickedTemplatePath
     ? templates.find((t) => t.path === pickedTemplatePath) ?? null
     : suggestedTemplate;
@@ -301,7 +306,7 @@ export default function WikiLinkDialog({
               autoFocus
             />
             <div role="radiogroup" aria-label="Template" className="flex max-h-48 flex-col gap-0.5 overflow-y-auto">
-              {templates.map((template) => {
+              {orderedTemplates.map((template) => {
                 const isSelected = selectedTemplate?.path === template.path;
                 return (
                   <Button
@@ -326,7 +331,7 @@ export default function WikiLinkDialog({
               })}
             </div>
             <p className="text-ui-caption text-ink-muted dark:text-stone">
-              The note goes in the folder from its name or the template, else your New Notes folder.
+              The note goes in the folder from its name, else your New Notes folder. If it already exists there, it&apos;s linked as it is.
             </p>
             <Button
               variant="primary"
@@ -349,7 +354,7 @@ export default function WikiLinkDialog({
               autoFocus
             />
             <p className="text-ui-caption text-ink-muted dark:text-stone">
-              Choose a vault folder after entering the filename.
+              The note goes in the folder from its name, else your New Notes folder. If it already exists there, it&apos;s linked as it is.
             </p>
             <Button
               variant="primary"

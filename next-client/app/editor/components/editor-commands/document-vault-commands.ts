@@ -10,7 +10,6 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     activeLeaf,
     closeVault,
     createFolder,
-    createNewFile,
     createNoteFromTemplate,
     createTemplate,
     deleteFile,
@@ -52,20 +51,12 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     },
     ...(vaultHandle
       ? [{
-          id: "new-file-in-folder",
-          label: "New file in folder…",
-          keywords: "create note name folder",
-          // Folder picker + name prompt: the explicit alternative to the
-          // draft flow, which names the note from its first line.
-          action: () => { void createNewFile(); },
-        },
-        {
           id: "new-note-from-template",
           label: "New note from template…",
           category: "Vault" as const,
           keywords: "create template note",
-          // Template picker + title prompt; the note goes in the New Notes
-          // folder, named by the template's file_name when it has one.
+          // Template picker (+ title prompt unless file_name names the note);
+          // the note goes in the New Notes folder, or opens if it's there.
           action: () => { void createNoteFromTemplate(); },
         },
         {
@@ -81,7 +72,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           label: "Save as template…",
           category: "Vault" as const,
           keywords: "template save create from note preset",
-          // The active note's text becomes <templates folder>/<name>.md.
+          // The active note's text becomes templates/<name>.md.
           action: () => { document.dispatchEvent(new CustomEvent("hermes:save-as-template")); },
         },
         {
@@ -89,8 +80,8 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           label: "New template…",
           category: "Vault" as const,
           keywords: "create template add template new template",
-          // Name prompt; creates <templates folder>/<name>.md with a starter
-          // body, or opens the existing template of that name.
+          // Name prompt; creates templates/<name>.md with a minimal body, or
+          // opens the existing template of that name.
           action: () => { void createTemplate(); },
         }]
       : []),

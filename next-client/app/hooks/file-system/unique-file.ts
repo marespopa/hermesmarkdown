@@ -1,8 +1,10 @@
 import { withRetry } from "./shared";
-import { isStrayDocumentFolder } from "./vault-scan";
 
 // Creates `<baseName>.md` in `dir`, or `<baseName> (1).md`, `(2)`… when the
 // name is taken. Never overwrites. Returns the new (empty) file's handle.
+// Used where the text already exists and must not be lost (a draft's first
+// save, a file named in the file tree); notes made from templates or links
+// open the existing note instead.
 export async function createUniqueFile(
   dir: FileSystemDirectoryHandle,
   baseName: string,
@@ -43,21 +45,4 @@ export function normalizeFolderPath(folderPath: string): string {
     .map((part) => part.trim())
     .filter((part) => part && part !== "." && part !== "..")
     .join("/");
-}
-
-// Every folder in the vault as a vault-relative path, sorted, skipping
-// hidden ones (and everything under them). "" (the root) is not included.
-export async function listVaultFolders(vaultHandle: FileSystemDirectoryHandle): Promise<string[]> {
-  const folders: string[] = [];
-  const walk = async (dir: FileSystemDirectoryHandle, prefix: string) => {
-    for await (const entry of (dir as any).values() as AsyncIterable<FileSystemHandle>) {
-      if (entry.kind !== "directory" || entry.name.startsWith(".")) continue;
-      if (await isStrayDocumentFolder(entry, prefix)) continue;
-      const path = prefix ? `${prefix}/${entry.name}` : entry.name;
-      folders.push(path);
-      await walk(entry as FileSystemDirectoryHandle, path);
-    }
-  };
-  await walk(vaultHandle, "");
-  return folders.sort((a, b) => a.localeCompare(b));
 }

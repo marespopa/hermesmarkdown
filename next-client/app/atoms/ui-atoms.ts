@@ -136,22 +136,10 @@ export const atom_goHome = atom(null, (get, set) => {
   if (get(atom_homeFeedOpen)) set(atom_homeFeedTopRequest, (count) => count + 1);
   else set(atom_homeFeedOpen, true);
 });
-// Vault-relative folder that drafts are saved into on their first save
-// ("" = vault root). Created on demand.
+// The New Notes folder ("" = vault root; created on demand): where drafts are
+// saved on their first save, and where notes made from a template or a link
+// without a folder go.
 export const atom_newNoteFolder = atomWithStorage<string>("newNoteFolder", "");
-// Open while the "save note to…" folder picker asks where a draft's first
-// save goes; resolve(null) keeps the draft unsaved.
-export interface DraftFolderRequest {
-  folders: string[];
-  defaultFolder: string;
-  resolve: (folder: string | null) => void;
-}
-export const atom_draftFolderRequest = atom<DraftFolderRequest | null>(null);
-// Set when the picker is dismissed, so only Cmd+S asks again about the same
-// draft. Stored so a reload doesn't ask about a restored draft again (read
-// on init: it's only read from the store, never subscribed). Cleared when the
-// draft is saved or a new draft starts.
-export const atom_draftFolderDeclined = atomWithStorage<boolean>("draftFolderDeclined", false, undefined, { getOnInit: true });
 // Vault key the vault-open behavior last ran for, so returning to the editor
 // from another route doesn't replace the file just opened there. Kept in
 // sessionStorage: a refresh of the same tab reopens where you were (the note,

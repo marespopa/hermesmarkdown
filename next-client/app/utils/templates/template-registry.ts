@@ -2,10 +2,11 @@ import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
 
 // Where templates live and which files count as one. Pure: every input is a
 // list of indexed vault-relative paths (the keys of atom_fileMetadata).
-// A template is a `.md` file in the templates folder, or in one of its direct
-// subfolders: a template pack (`templates/Journal/Daily.md`).
+// Templates live in `templates/` at the vault root (created on first use). A
+// template is a `.md` file directly in it, or one folder down: a template
+// pack (`templates/Journal/Daily.md`).
 
-export const DEFAULT_TEMPLATE_FOLDERS = ["templates", "_templates", "Templates"] as const;
+export const TEMPLATES_FOLDER = "templates";
 
 export interface TemplateEntry {
   /** File name without `.md`. */
@@ -27,18 +28,11 @@ export interface TemplatePack {
 const folderOf = (path: string) => path.split("/").slice(0, -1).join("/");
 const isMarkdown = (path: string) => path.toLowerCase().endsWith(".md");
 
-// The setting wins when set. Otherwise the first default folder that holds at
-// least one indexed file, directly or in a pack, checked in order;
-// `templates` when none does.
-export function resolveTemplatesFolder(
-  setting: string | undefined,
-  paths: string[],
-): { folder: string; exists: boolean } {
-  const folders = new Set(paths.flatMap((path) => [folderOf(path), folderOf(folderOf(path))]).filter(Boolean));
-  const configured = normalizeFolderPath(setting ?? "");
-  if (configured) return { folder: configured, exists: folders.has(configured) };
-  const found = DEFAULT_TEMPLATE_FOLDERS.find((folder) => folders.has(folder));
-  return found ? { folder: found, exists: true } : { folder: DEFAULT_TEMPLATE_FOLDERS[0], exists: false };
+// Always `templates/` at the vault root; `exists` when it holds at least one
+// indexed file, directly or in a pack.
+export function resolveTemplatesFolder(paths: string[]): { folder: string; exists: boolean } {
+  const exists = paths.some((path) => folderOf(path) === TEMPLATES_FOLDER || folderOf(folderOf(path)) === TEMPLATES_FOLDER);
+  return { folder: TEMPLATES_FOLDER, exists };
 }
 
 // The pack a path's template belongs to: "" directly in the folder, the
@@ -93,7 +87,7 @@ const singular = (name: string) => name.toLowerCase().replace(/s$/, "");
 // Matches a link's folder segment to a template name, ignoring case and one
 // trailing `s` on either side (`rfcs` ↔ `rfc.md` / `rfcs.md`). An exact
 // (case-insensitive) name wins, then alphabetical order.
-export function matchTemplateForFolder(segment: string, templates: TemplateEntry[]): TemplateEntry | null {
+function matchTemplateForFolder(segment: string, templates: TemplateEntry[]): TemplateEntry | null {
   const key = singular(segment.trim());
   if (!key) return null;
   const candidates = templates.filter((template) => singular(template.name) === key);
@@ -152,8 +146,9 @@ export function suggestTemplateName(text: string, fallback: string): string {
 const words = (text: string) => text.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
 const JOURNAL_NAMES = /^(journal|daily|diary|day|today|daily note|daily notes)$/i;
 
-// The template a new note's name points to, for preselecting one: its folder
-// (`rfcs/auth` → `rfc`, as for missing links), else a template whose name
+// The template a new note's name points to, for preselecting one in the
+// template pickers (missing links, the WikiLink dialog): its folder
+// (`rfcs/auth` → `rfc`), else a template whose name
 // starts the note's name, word for word and ignoring one trailing `s`
 // (`Meeting notes 2026-10-05` → `Meeting notes`, `rfc-auth` → `rfc`; the
 // longest wins), else a journal-like template for a date name (`2026-10-05`).

@@ -42,7 +42,6 @@ import { useGitHubVaultActions } from "./hooks/use-github-vault-actions";
 import { useNavigateWithGuard } from "./hooks/use-navigate-with-guard";
 import { useSyncCurrentDirectory } from "./hooks/use-sync-current-directory";
 import DraftImportDialog from "./components/DraftImportDialog";
-import DraftFolderDialog from "./components/DraftFolderDialog";
 import { useDraftFlow } from "./hooks/use-draft-flow";
 import { useHomeFeed } from "./hooks/use-home-feed";
 import HomeFeed from "./components/HomeFeed";
@@ -255,7 +254,6 @@ export default function LiteEditor() {
         <PdfExport />
         
         <DraftImportDialog pendingDraft={pendingDraft} onConfirm={confirmPendingDraft} onCancel={cancelPendingDraft} />
-        {!isVaultLocked && <DraftFolderDialog />}
 
         <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".md,.txt,.markdown" className="hidden" />
 

@@ -197,41 +197,6 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
     [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, openFile],
   );
 
-  const createWikiLinkFile = useCallback(async (name: string) => {
-    const targetDir = await chooseTargetDirectory();
-    if (!targetDir) return null;
-
-    const baseName = name.endsWith(".md") ? name.slice(0, -3) : name;
-
-    try {
-      const { handle: newFileHandle, fileName } = await createUniqueFile(targetDir, baseName);
-      await withRetry(() => writeFileContent(newFileHandle, "\n"));
-      await scanVault(vaultHandle || currentDirectoryHandle || targetDir);
-      await indexVaultTags();
-
-      let path = fileName;
-      if (vaultHandle) {
-        let isRoot = false;
-        try {
-          isRoot = await (vaultHandle as any).isSameEntry(targetDir);
-        } catch {
-          isRoot = vaultHandle.name === targetDir.name;
-        }
-        if (!isRoot) {
-          const relativePath = await (vaultHandle as any).resolve(targetDir);
-          if (relativePath) path = [...relativePath, fileName].join("/");
-        }
-      }
-
-      toast.success("Created: " + fileName);
-      return path.replace(/\.md$/, "");
-    } catch (err: any) {
-      console.warn("File System Error:", err?.message || err);
-      toast.error("Failed to create file");
-      return null;
-    }
-  }, [chooseTargetDirectory, scanVault, indexVaultTags, vaultHandle, currentDirectoryHandle]);
-
   // A target directory (e.g. from a folder's menu in the file tree) skips the
   // folder picker. The kind check guards against callers that forward an
   // event object as the first argument.
@@ -265,7 +230,6 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
   return {
     chooseTargetDirectory,
     createFile,
-    createWikiLinkFile,
     createNewFile,
     createFolder,
   };

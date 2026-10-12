@@ -84,14 +84,6 @@ describe("useVaultTemplateInsert", () => {
     expect(view.state.doc.toString()).toBe(EXPANDED.text);
   });
 
-  it("uses a starter's text as is", async () => {
-    const { insert } = setup("");
-    await act(() => insert({ name: "Spec", body: "# {{title}}" }));
-
-    expect(readTemplate).not.toHaveBeenCalled();
-    expect(instantiate).toHaveBeenCalledWith("# {{title}}", "Auth", "Insert", "");
-  });
-
   it("uses an empty title in the draft", async () => {
     const { insert } = setup("", "draft");
     await act(() => insert());
