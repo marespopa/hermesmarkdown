@@ -9,7 +9,6 @@ import {
   HiOutlineCurrencyDollar,
   HiOutlineDocumentDownload,
   HiOutlineDotsHorizontal,
-  HiOutlinePuzzle,
   HiOutlineQuestionMarkCircle,
   HiOutlineSearch,
   HiOutlineViewBoards,
@@ -26,7 +25,7 @@ import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 // - Tools: command palette and AI chat.
 // - More: a pull-down menu with the secondary commands (Copy Markdown and
 //   Split Right for the focused pane, Token Cost of the focused note,
-//   Settings, Help, Free Tools, Hide Toolbar).
+//   Settings, Help, Hide Toolbar).
 export default function PaneWindowActions() {
   const actions = useWindowActions();
   const moreRef = useRef<HTMLButtonElement>(null);
@@ -92,7 +91,6 @@ export default function PaneWindowActions() {
             { label: "Token Cost", icon: <HiOutlineCurrencyDollar size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.openTokenCost },
             { label: "Settings", icon: <HiOutlineCog size={15} />, divider: true, onClick: actions.openSettings },
             { label: "Documentation and Help", icon: <HiOutlineQuestionMarkCircle size={15} />, onClick: actions.openHelp },
-            { label: "Free Tools", icon: <HiOutlinePuzzle size={15} />, onClick: actions.openTools },
             { label: "Hide Toolbar", icon: <HiOutlineChevronUp size={15} />, divider: true, shortcut: formatShortcut("T", { alt: true }), onClick: actions.hideToolbar },
           ]}
         />

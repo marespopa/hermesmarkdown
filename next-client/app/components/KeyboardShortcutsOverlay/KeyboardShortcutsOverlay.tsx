@@ -36,7 +36,6 @@ function getShortcutGroups(): ShortcutGroup[] {
         { label: "Hide / show toolbar", keys: formatShortcut("T", { alt: true }) },
         { label: "Show / hide sidebar", keys: formatShortcut("S", { alt: true }) },
         { label: "AI Chat (with an AI key)", keys: formatShortcut("B", { shift: true }) },
-        { label: "Voice input (supported browsers)", keys: formatShortcut("V", { shift: true }) },
         { label: "Pin / unpin in the command palette", keys: formatShortcut("D") },
         { label: "Home feed: move / open note", keys: "↑↓ or J/K / Enter" },
         { label: "Close dialog", keys: "Esc" },

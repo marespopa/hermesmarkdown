@@ -30,8 +30,8 @@ export interface AIReviewState {
   end: number;
 }
 
-// Global (not per-pane) — targets whichever CM6 view is currently registered
-// as active, same convention as useGlobalVoiceInput.
+// Global (not per-pane): targets whichever CM6 view is currently registered
+// as active (atom_activeEditorView).
 export function useAIEditorActions() {
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiReview, setAiReview] = useState<AIReviewState | null>(null);

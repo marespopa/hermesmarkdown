@@ -30,14 +30,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     onOpenDocumentation: vi.fn(),
     onRefreshVault: vi.fn(),
     onImport: vi.fn(),
-    onNewAIFile: vi.fn(),
     onRunAIAction: vi.fn(),
-    isVoiceSupported: true,
-    isVoiceListening: false,
-    onToggleVoice: vi.fn(),
-    onCommitVoice: vi.fn(),
-    onDiscardVoice: vi.fn(),
-    hasVoicePreview: true,
     router: { push: vi.fn() },
     openVault: vi.fn(),
     vaultHandle: {
@@ -66,7 +59,6 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     showHiddenFiles: false,
     setShowHiddenFiles: vi.fn(),
     setAiBuilderRequest: vi.fn(),
-    setRepurposeWizardOpen: vi.fn(),
     isAiConfigured: true,
     content: "Note content",
     workspaceLayout: {
@@ -181,8 +173,6 @@ describe("buildEditorCommands", () => {
       "export-vault-zip",
       "import-into-vault",
       "ai-builder",
-      "new-ai-file",
-      "repurpose-note",
       "focus-editor",
       "undo-edit",
       "redo-edit",
@@ -236,9 +226,6 @@ describe("buildEditorCommands", () => {
       "ai-title",
       "ai-continue",
       "ai-explain",
-      "toggle-voice-input",
-      "commit-voice-preview",
-      "discard-voice-preview",
     ]);
   });
 
@@ -246,18 +233,12 @@ describe("buildEditorCommands", () => {
     const context = createContext({
       activeEditorView: null,
       isAiConfigured: false,
-      isVoiceSupported: false,
-      hasVoicePreview: false,
     });
     const commands = buildEditorCommands(context);
     const command = (id: string) => commands.find((candidate) => candidate.id === id);
 
     expect(command("format-bold")?.disabledReason).toBe("Open and focus a note first");
     expect(command("ai-improve")?.disabledReason).toBe("Configure an AI provider in Settings");
-    expect(command("toggle-voice-input")?.disabledReason).toBe(
-      "Voice input is not supported by this browser",
-    );
-    expect(command("commit-voice-preview")?.disabledReason).toBe("No voice preview to insert");
 
     command("save-file")?.action();
     command("open-explorer")?.action();

@@ -32,7 +32,6 @@ export function useWindowActions() {
     openAIChat: () => setAiBuilderRequest((value) => value + 1),
     openSettings: () => router.push("/editor/settings"),
     openHelp: () => router.push("/documentation"),
-    openTools: () => router.push("/tools"),
     openTokenCost: openTokenCostDialog,
     toggleSidebar: () => setSidebarOpen(!sidebarOpen),
     hideToolbar: () => setToolbarHidden(true),

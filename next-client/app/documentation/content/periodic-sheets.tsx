@@ -44,9 +44,7 @@ export const periodicSheetsItem: Subsection = {
         and forward at the current level. Days skip to the nearest day that has a sheet, and stepping
         forward from your latest one goes to today. Nothing goes past today, and browsing never
         creates empty sheets for past days; a weekly, monthly, quarterly or yearly sheet that
-        doesn&apos;t exist yet is created when you open it. Sheet tabs carry the same coloured dot, and
-        the home feed has a <strong>Today · This week · This month · This quarter · This year</strong>{" "}
-        line under the stats.
+        doesn&apos;t exist yet is created when you open it. Sheet tabs carry the same coloured dot.
       </p>
       <p>
         You can also run them from the command palette. <strong>Last week&apos;s sheet</strong> on a Monday

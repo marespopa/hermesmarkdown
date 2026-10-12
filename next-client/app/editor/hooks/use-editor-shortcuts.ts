@@ -15,13 +15,11 @@ interface EditorShortcutOptions {
   /** File path of the active tab, closed by the close-tab shortcut. */
   activeTabPath: string | null | undefined;
   closeTabWithAutosave: (path: string) => Promise<void>;
-  isVoiceSupported: boolean;
-  toggleVoiceListening: () => void;
   flush: () => void;
 }
 
 // Window-level editor shortcuts (Explorer, search, new file, close/select tab,
-// hide toolbar, AI chat, voice, save, undo flush). Editor-local keys live in CodeMirror's
+// hide toolbar, AI chat, save, undo flush). Editor-local keys live in CodeMirror's
 // keymaps, which run first — so a key CodeMirror handled arrives here with
 // defaultPrevented set.
 export function useEditorShortcuts({
@@ -30,8 +28,6 @@ export function useEditorShortcuts({
   newFileRef,
   activeTabPath,
   closeTabWithAutosave,
-  isVoiceSupported,
-  toggleVoiceListening,
   flush,
 }: EditorShortcutOptions) {
   const { open: openCommandPalette } = useCommandPalette();
@@ -121,11 +117,6 @@ export function useEditorShortcuts({
         setAiBuilderRequest((v) => v + 1);
       }
 
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "v" && isVoiceSupported) {
-        e.preventDefault();
-        toggleVoiceListening();
-      }
-
       // Manual save (Ctrl/Cmd+S)
       if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "s") {
         e.preventDefault();
@@ -140,5 +131,5 @@ export function useEditorShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeEditorView, activateWorkspaceTab, setToolbarHidden, setSidebarOpen, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, isVoiceSupported, toggleVoiceListening, openCommandPalette, workspaceTabs, navigateWithGuard, saveRef, newFileRef]);
+  }, [activeEditorView, activateWorkspaceTab, setToolbarHidden, setSidebarOpen, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, workspaceTabs, navigateWithGuard, saveRef, newFileRef]);
 }

@@ -1,6 +1,6 @@
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { buildDocumentVaultCommandGroups } from "./document-vault-commands";
-import { buildEditorAiVoiceCommandGroups } from "./editor-ai-voice-commands";
+import { buildEditorAiCommandGroups } from "./editor-ai-commands";
 import type { EditorCommandContext } from "./use-editor-command-context";
 import { buildWorkspaceTaskViewCommandGroups } from "./workspace-task-view-commands";
 import { buildGitHubVaultCommands } from "./github-vault-commands";
@@ -9,7 +9,7 @@ import { buildVaultStorageCommands } from "./vault-storage-commands";
 
 export function buildEditorCommands(context: EditorCommandContext): Command[] {
   const documentVault = buildDocumentVaultCommandGroups(context);
-  const editorAiVoice = buildEditorAiVoiceCommandGroups(context);
+  const editorAi = buildEditorAiCommandGroups(context);
   const workspaceTasksViews = buildWorkspaceTaskViewCommandGroups(context);
   const githubVault = buildGitHubVaultCommands(context);
   const vaultStorage = buildVaultStorageCommands(context);
@@ -25,13 +25,12 @@ export function buildEditorCommands(context: EditorCommandContext): Command[] {
     ...documentVault.vaultActions,
     ...githubVault,
     ...vaultStorage,
-    ...editorAiVoice.aiEntryPoints,
-    ...editorAiVoice.focusAndHistory,
+    ...editorAi.aiEntryPoints,
+    ...editorAi.focusAndHistory,
     ...workspaceTasksViews.tabClosure,
-    ...editorAiVoice.editor,
-    ...editorAiVoice.templates,
+    ...editorAi.editor,
+    ...editorAi.templates,
     ...workspaceTasksViews.workspaceTasksAndViews,
-    ...editorAiVoice.aiActions,
-    ...editorAiVoice.voice,
+    ...editorAi.aiActions,
   ];
 }

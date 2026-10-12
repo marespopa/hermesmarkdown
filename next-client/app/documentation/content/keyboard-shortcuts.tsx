@@ -28,7 +28,6 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "Cycle task status", shortcut: "CTRL/CMD+ENTER" },
             { label: "Open helper at cursor (link, date, diagram, image)", shortcut: "CTRL/CMD+SHIFT+ENTER" },
             { label: "AI Chat", shortcut: "CTRL+SHIFT+B" },
-            { label: "Voice input", shortcut: "CTRL+SHIFT+V" },
             { label: "Dismiss / close", shortcut: "ESCAPE" },
           ],
         },

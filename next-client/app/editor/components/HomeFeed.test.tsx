@@ -306,53 +306,6 @@ describe("HomeFeed", () => {
     expect(store.get(atom_recentVaults)).toEqual([]);
   });
 
-  it("filters the feed by tag chips, narrowing with each tag", () => {
-    const store = createStore();
-    store.set(atom_fileMetadata, {
-      "a.md": { ...meta("a.md", 1), tags: ["work", "plan"] },
-      "b.md": { ...meta("b.md", 2), tags: ["work"] },
-      "c.md": { ...meta("c.md", 3), tags: [] },
-    });
-    store.set(atom_vaultHandle, { name: "Vault" } as FileSystemDirectoryHandle);
-    render(
-      <Provider store={store}>
-        <HomeFeed onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
-      </Provider>,
-    );
-    const chips = screen.getByRole("group", { name: "Filter by tag" });
-    // Most used first.
-    expect(within(chips).getAllByRole("button").map((b) => b.textContent)).toEqual(["#work", "#plan"]);
-
-    fireEvent.click(within(chips).getByRole("button", { name: "#work, 2 notes" }));
-    const rows = screen.getAllByRole("option");
-    expect(rows).toHaveLength(2);
-    expect(rows[0]).toHaveTextContent("a.md");
-    expect(rows[1]).toHaveTextContent("b.md");
-    expect(within(chips).getByRole("button", { name: "#work, 2 notes" })).toHaveAttribute("aria-pressed", "true");
-
-    fireEvent.click(within(chips).getByRole("button", { name: "#plan, 1 note" }));
-    expect(screen.getAllByRole("option")).toHaveLength(1);
-
-    fireEvent.click(within(chips).getByRole("button", { name: "× Clear" }));
-    expect(screen.getAllByRole("option")).toHaveLength(3);
-  });
-
-  it("shows the most used tags and hides the rest behind +N", () => {
-    const metadata: Record<string, FileMetadata> = {};
-    for (let i = 0; i < 10; i++) metadata[`n${i}.md`] = { ...meta(`n${i}.md`, i + 1), tags: [`t${i}`] };
-    renderFeed(metadata);
-    const chips = screen.getByRole("group", { name: "Filter by tag" });
-    expect(within(chips).getAllByRole("button", { name: /^#/ })).toHaveLength(8);
-    fireEvent.click(within(chips).getByRole("button", { name: "+2" }));
-    expect(within(chips).getAllByRole("button", { name: /^#/ })).toHaveLength(10);
-    expect(within(chips).getByRole("button", { name: "Fewer" })).toHaveAttribute("aria-expanded", "true");
-  });
-
-  it("has no tag row when no note is tagged", () => {
-    renderFeed(NOTES);
-    expect(screen.queryByRole("group", { name: "Filter by tag" })).not.toBeInTheDocument();
-  });
-
   it("pins a note to the top of the feed and unpins it", () => {
     localStorage.clear();
     const store = createStore();
@@ -588,10 +541,5 @@ describe("HomeFeed worklog", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("region", { name: "Open tasks" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "one, in log" })).not.toBeInTheDocument();
-  });
-
-  it("shows a quiet stats line", () => {
-    renderWorklog({ "log.md": withTasks("log.md", "- [ ] a\n- [ ] b"), "old.md": meta("old.md", 60 * 24 * 30) });
-    expect(screen.getByText(/^2 notes · 1 edited today/)).toHaveTextContent("2 notes · 1 edited today · 2 open tasks");
   });
 });

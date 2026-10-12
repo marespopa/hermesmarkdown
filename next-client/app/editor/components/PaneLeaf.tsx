@@ -7,7 +7,7 @@ import SensitiveNoteGate from "./SensitiveNoteGate";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
-import { atom_isVoicePreviewVisible, atom_sidebarOpen, atom_toolbarHidden } from "@/app/atoms/ui-atoms";
+import { atom_sidebarOpen, atom_toolbarHidden } from "@/app/atoms/ui-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
 import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineChevronDown } from "react-icons/hi";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
@@ -67,8 +67,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   }
 
   const isActive = activePaneId === leaf.id;
-  const isVoicePreviewVisible = useAtomValue(atom_isVoicePreviewVisible);
-  const isDimmed = isVoicePreviewVisible && !isActive;
 
   const { handleSave, handleCopy, closeTabWithAutosave, buildTabMenuItems } = usePaneFileActions(leaf);
 
@@ -117,7 +115,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       data-pane-id={leaf.id}
       className={`typing-page relative h-full flex flex-col transition-all duration-300 overflow-hidden bg-paper-pale dark:bg-paper-dark ${
         isActive ? "z-10" : ""
-      } ${isDimmed ? "opacity-40 saturate-50" : ""}`}
+      }`}
       onClick={() => setActivePaneId(leaf.id)}
     >
       {/* Pane tabs are the editor's desktop header, even for a single note. */}

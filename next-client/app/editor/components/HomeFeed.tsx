@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { atom_homePinnedPaths, atom_homeTagFilter, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
+import { atom_homePinnedPaths, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
 import { atom_homeFeedTopRequest, atom_indexerState, atom_newNoteFolder, atom_todayFolder, atom_userName } from "@/app/atoms/ui-atoms";
@@ -17,13 +17,9 @@ import FeedRow from "./home-feed/FeedRow";
 import FeedSkeleton from "./home-feed/FeedSkeleton";
 import FeedStart from "./home-feed/FeedStart";
 import FeedVault from "./home-feed/FeedVault";
-import FeedStats from "./home-feed/FeedStats";
 import FeedStatus from "./home-feed/FeedStatus";
-import FeedTags from "./home-feed/FeedTags";
 import FeedTasks from "./home-feed/FeedTasks";
-import FeedSheets from "./home-feed/FeedSheets";
-import type { SheetLevel } from "@/app/utils/sheet-nav";
-import { buildFeed, feedStats, feedTags, isFeedPath, openFeedTasks, withTodaySheet, type FeedEntry } from "./home-feed/feed-model";
+import { buildFeed, isFeedPath, openFeedTasks, withTodaySheet, type FeedEntry } from "./home-feed/feed-model";
 
 // Above this many notes only the rows in view (plus overscan) are rendered,
 // however far you scroll. Smaller vaults render every row.
@@ -45,8 +41,6 @@ interface HomeFeedProps {
   onOpenFile?: () => void;
   /** Opens today's worklog sheet, creating it when it doesn't exist. */
   onOpenToday?: () => void;
-  /** Opens today's, this week's or this month's sheet; shows the "Today · This week · This month" line. */
-  onOpenSheet?: (level: SheetLevel) => void;
   /** Opens a note with the caret on a line (0-indexed): an open task. */
   onOpenTask?: (path: string, line: number) => void;
 }
@@ -64,7 +58,7 @@ const GG_WINDOW_MS = 600;
 // vim-style: j/k or arrows move, gg/G jump to the top and end, Enter or o
 // opens, p pins, t opens today's sheet, / searches, Escape leaves; any other
 // printable key opens the command palette with that key typed.
-export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile, onOpenToday, onOpenSheet, onOpenTask }: HomeFeedProps) {
+export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isSearchOpen = false, hasVault = true, onOpenFile, onOpenToday, onOpenTask }: HomeFeedProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const indexerState = useAtomValue(atom_indexerState);
   const userName = useAtomValue(atom_userName);
@@ -74,15 +68,11 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
   const pinnedPaths = useAtomValue(atom_homePinnedPaths);
   const togglePin = useSetAtom(atom_toggleHomePin);
   const now = useMemo(() => new Date(), [fileMetadata, displayItems]); // eslint-disable-line react-hooks/exhaustive-deps
-  const [tagFilter, setTagFilter] = useAtom(atom_homeTagFilter);
   const allNotes = useMemo(
     () => buildFeed(fileMetadata, displayItems, now, templatesFolder, pinnedPaths),
     [fileMetadata, displayItems, now, templatesFolder, pinnedPaths],
   );
-  // Chips count the whole feed, so picking one never hides the others.
-  const tags = useMemo(() => feedTags(allNotes), [allNotes]);
   // Today's sheet: where it is, or where "Start today's sheet" will put it.
-  // The open tasks and the stats line read the whole feed, not the filtered one.
   const todayPattern = useAtomValue(atom_todayFolder);
   const newNoteFolder = useAtomValue(atom_newNoteFolder);
   const todayFolder = normalizeFolderPath(todayPattern === null ? newNoteFolder : resolveTodayFolder(todayPattern, now));
@@ -92,16 +82,12 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
     return { path: path ?? (todayFolder ? `${todayFolder}/${fileName}` : fileName), exists: !!path };
   }, [fileMetadata, now, todayFolder]);
   const showToday = hasVault && !!onOpenToday;
-  // The tag filter leaves today's sheet in its day, unmarked.
+  // An empty (or still loading) vault keeps its "Start writing" / skeleton.
   const feed = useMemo(
-    () => (tagFilter.length
-      ? buildFeed(fileMetadata, displayItems, now, templatesFolder, pinnedPaths, tagFilter)
-      // An empty (or still loading) vault keeps its "Start writing" / skeleton.
-      : showToday && allNotes.length > 0 ? withTodaySheet(allNotes, today, now) : allNotes),
-    [allNotes, fileMetadata, displayItems, now, templatesFolder, pinnedPaths, tagFilter, showToday, today],
+    () => (showToday && allNotes.length > 0 ? withTodaySheet(allNotes, today, now) : allNotes),
+    [allNotes, now, showToday, today],
   );
   const openTasks = useMemo(() => openFeedTasks(allNotes, fileMetadata, now), [allNotes, fileMetadata, now]);
-  const stats = useMemo(() => feedStats(allNotes, now), [allNotes, now]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -145,14 +131,6 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
     if (element.scrollTo) element.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
     else element.scrollTop = 0;
   }, [topRequest]);
-
-  // A new tag filter starts from the newest matching note.
-  const appliedFilter = useRef(tagFilter);
-  useEffect(() => {
-    if (appliedFilter.current === tagFilter) return;
-    appliedFilter.current = tagFilter;
-    setSelectedIndex(0);
-  }, [tagFilter]);
 
   // The "Start today's sheet" row isn't a note yet: it starts the sheet.
   const openEntry = (entry: FeedEntry) =>
@@ -273,18 +251,11 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
         {/* The open vault, in a bar at the very top, well clear of the greeting. */}
         {hasVault && <FeedVault />}
         <FeedHeader now={now} userName={userName}>
-          {hasVault && <FeedStats stats={stats} openTasks={openTasks.length} tasksToggle={!!onOpenTask} />}
-          {hasVault && onOpenSheet && <FeedSheets onOpenSheet={onOpenSheet} />}
           {hasVault && onOpenTask && <FeedTasks tasks={openTasks} onOpenTask={onOpenTask} />}
         </FeedHeader>
-        {hasVault && <FeedTags tags={tags} selected={tagFilter} onChange={setTagFilter} />}
         {isIndexing && hasVault && <FeedStatus />}
         {!hasVault ? (
           <FeedStart onNewNote={onNewNote} onOpenFile={() => onOpenFile?.()} />
-        ) : feed.length === 0 && tagFilter.length > 0 ? (
-          <p className="text-ui-body text-fg-muted">
-            No notes tagged {tagFilter.map((tag) => `#${tag}`).join(" and ")}.
-          </p>
         ) : feed.length === 0 && isIndexing ? (
           <FeedSkeleton />
         ) : feed.length === 0 ? (

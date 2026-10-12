@@ -17,8 +17,8 @@ without changing the public props contract or command behavior.
   `file_name` place and name the note) and `New template…` (with a vault open:
   name prompt, then `<templates folder>/<name>.md` with a starter body, or the
   existing template of that name opened unchanged).
-- `editor-ai-voice-commands.ts` defines editor formatting, templates, AI, and
-  voice commands. The `Insert: …` commands skip the slash menu's vault
+- `editor-ai-commands.ts` defines editor formatting, templates and AI
+  commands. The `Insert: …` commands skip the slash menu's vault
   **Template** entry (`vaultOnly`).
 - `workspace-task-view-commands.ts` defines panels, panes, tabs, preferences,
   tasks, views, and workspace navigation.

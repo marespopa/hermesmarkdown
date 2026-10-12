@@ -22,7 +22,6 @@ export const metadata: Metadata = {
     "local-first markdown editor",
     "markdown editor for engineers",
     "AI-readable notes",
-    "smart workspaces",
     "wikilinks",
     "offline markdown editor",
     "markdown editor pwa",

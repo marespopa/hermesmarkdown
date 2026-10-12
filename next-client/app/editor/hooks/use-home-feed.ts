@@ -15,8 +15,6 @@ import { useCommandPalette, useRegisterCommand } from "@/app/components/CommandP
 import type { MaterializeDraftOptions } from "./use-materialize-draft";
 import { useHomeFeedUrlSync } from "./use-home-feed-url";
 import { usePeriodSheetCommands } from "./use-period-sheet-commands";
-import { usePeriodSheets } from "./use-period-sheets";
-import type { SheetLevel } from "@/app/utils/sheet-nav";
 
 interface UseHomeFeedOptions {
   hasVault: boolean;
@@ -74,14 +72,6 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
     await beforeSheetOpen();
     await openTodayNote();
   }, [beforeSheetOpen, openTodayNote]);
-
-  // The feed's "Today · This week · This month" line.
-  const { openPeriodSheet } = usePeriodSheets();
-  const openSheet = useCallback(async (level: SheetLevel) => {
-    if (level === "day") return openToday();
-    await beforeSheetOpen();
-    await openPeriodSheet({ kind: level, offset: 0 });
-  }, [beforeSheetOpen, openPeriodSheet, openToday]);
 
   const startNewNote = useCallback(async () => {
     setIsOpen(false);
@@ -147,7 +137,6 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
       hasVault,
       onOpenFile: () => void openDeviceFile(),
       onOpenToday: () => void openToday(),
-      onOpenSheet: hasVault ? (level: SheetLevel) => void openSheet(level) : undefined,
       onOpenTask: (path: string, line: number) => void openTask(path, line),
     },
   };

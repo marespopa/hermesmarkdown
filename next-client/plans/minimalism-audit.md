@@ -8,7 +8,7 @@ Every visible feature gets one of three answers:
 - **Advanced**: kept, but only reachable through the palette, a setting or a plain file. No buttons, pills or menu entries of its own.
 - **Remove**: deleted, along with its code, docs and tests.
 
-The **Rec.** column is my recommendation. Fill in **Decision** (Core / Advanced / Remove / Keep as is); anything left blank follows the recommendation. The app has about 120 palette commands, 7 settings sections and 33 slash-menu entries today.
+**Decision (2026-10-12): every recommendation accepted.** Removals ship first, folds next.
 
 ## 1. Writing surface
 
@@ -79,7 +79,7 @@ The **Rec.** column is my recommendation. Fill in **Decision** (Core / Advanced 
 |---|---|---|---|---|
 | AI Chat (tools, skills `/review`, `/tasks`) | Panel, Ctrl/Cmd+Shift+B | Advanced | Off until a key is set; keep as is | |
 | 14 AI actions in the slash menu and palette | Improve, fix, shorten, expand, 4 tones, summarize, extract tasks, outline, title, continue, explain | Advanced: **one `/ai` entry** that opens a picker | 14 slash rows crowd the menu | |
-| Generate new note with AI, AI builder | Two more ways into AI | **Remove** (merge into AI Chat) | Duplicates AI Chat | |
+| Generate new note with AI | Another way into AI | **Remove** | Duplicates AI Chat. ("Open AI Chat", id `ai-builder`, is AI Chat itself and stays.) | |
 | Repurpose wizard (blog, social, newsletter) | Three-step wizard | **Remove** | Off-mission for a worklog | |
 | Token cost dialog | Cost of sending the note to models | Advanced | Palette only (already in More: move out) | |
 | AI provider commands (Claude, Gemini) | | Advanced | Settings already has it; drop the two palette commands | |
@@ -132,8 +132,13 @@ The **Rec.** column is my recommendation. Fill in **Decision** (Core / Advanced 
 
 ## If every recommendation is accepted
 
-- **Removed:** workflow pill, voice input, Repurpose wizard, Generate note with AI / AI builder, smart folders, home feed stats / tags / sheet links, AI provider palette commands, "Open Free Tools" in the app.
+- **Removed:** workflow pill, voice input, Repurpose wizard, Generate note with AI, smart folders, home feed stats / tags / sheet links, AI provider palette commands, "Open Free Tools" in the app.
 - **Folded:** 14 AI slash rows into `/ai`; 3 privacy slash rows into `/privacy`; Profile into Guide; privacy mode to two levels; the switcher hides Quarter/Year until used; the wizard goes to 2 steps.
 - **Rough effect:** the palette drops by about 25 commands and the slash menu from 33 to about 16 entries. The home feed becomes notes, pins and search.
 
 Ship it in two releases, removals first (each is mostly deletion), then the folds.
+
+## Status
+
+- **Removals: done (2026-10-12, release 6.13.0).** Workflow pill, voice input, Repurpose wizard, Generate new note with AI, smart folders, home feed stats line, tag chips and sheet links, AI provider palette commands, Free Tools in the editor's palette and More menu. The open-tasks list kept its fold: it moved from the stats line to its own "N open tasks" toggle.
+- **Folds: next.** `/ai`, `/privacy`, Profile into Guide, two privacy levels, switcher hiding Quarter/Year, a 2-step wizard, the open-tasks list folded by default, Token Cost out of the More menu.

@@ -17,23 +17,13 @@ import { formatShortcut } from "@/app/utils/platform";
 import { TEMPLATES } from "../constants";
 import type { EditorCommandContext } from "./use-editor-command-context";
 
-export function buildEditorAiVoiceCommandGroups(context: EditorCommandContext) {
+export function buildEditorAiCommandGroups(context: EditorCommandContext) {
   const {
     activeEditorView,
-    content,
-    hasVoicePreview = false,
     isAiConfigured,
-    isVoiceListening = false,
-    isVoiceSupported = false,
-    onCommitVoice,
-    onDiscardVoice,
-    onNewAIFile,
     onRunAIAction,
-    onToggleVoice,
     runEditorCommand,
     setAiBuilderRequest,
-    setRepurposeWizardOpen,
-    vaultHandle,
   } = context;
 
   const aiEntryPoints: Command[] = [
@@ -44,23 +34,6 @@ export function buildEditorAiVoiceCommandGroups(context: EditorCommandContext) {
           shortcut: formatShortcut("B", { shift: true }),
           keywords: "ai chat generate create revise section ask",
           action: () => setAiBuilderRequest((value) => value + 1),
-        }]
-      : []),
-    ...(isAiConfigured && vaultHandle
-      ? [{
-          id: "new-ai-file",
-          label: "Generate new note with AI",
-          category: "AI" as const,
-          keywords: "create write draft prompt",
-          action: onNewAIFile,
-        }]
-      : []),
-    ...(isAiConfigured && content.trim()
-      ? [{
-          id: "repurpose-note",
-          label: "Repurpose note into blog / social / newsletter draft…",
-          keywords: "repurpose content creator blog social newsletter draft format",
-          action: () => setRepurposeWizardOpen(true),
         }]
       : []),
   ];
@@ -160,34 +133,5 @@ export function buildEditorAiVoiceCommandGroups(context: EditorCommandContext) {
     action: () => onRunAIAction(id),
   }));
 
-  const voice: Command[] = [
-    {
-      id: "toggle-voice-input",
-      label: isVoiceListening ? "Stop voice input" : "Start voice input",
-      category: "Voice",
-      shortcut: formatShortcut("V", { shift: true }),
-      keywords: "dictation microphone speech",
-      disabledReason: isVoiceSupported ? undefined : "Voice input is not supported by this browser",
-      action: onToggleVoice ?? (() => undefined),
-    },
-    {
-      id: "commit-voice-preview",
-      label: "Insert voice preview",
-      category: "Voice",
-      keywords: "commit dictation transcript",
-      disabledReason: hasVoicePreview ? undefined : "No voice preview to insert",
-      action: onCommitVoice ?? (() => undefined),
-    },
-    {
-      id: "discard-voice-preview",
-      label: "Discard voice preview",
-      category: "Voice",
-      keywords: "clear cancel dictation transcript",
-      danger: true,
-      disabledReason: hasVoicePreview ? undefined : "No voice preview to discard",
-      action: onDiscardVoice ?? (() => undefined),
-    },
-  ];
-
-  return { aiEntryPoints, focusAndHistory, editor, templates, aiActions, voice };
+  return { aiEntryPoints, focusAndHistory, editor, templates, aiActions };
 }

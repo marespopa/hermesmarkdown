@@ -162,7 +162,6 @@ export const mobileGroup: Group = {
           <KV
             rows={[
               { label: "Explorer", value: "Full-screen file-management view" },
-              { label: "Smart Workspaces", value: "Views tab in the file overlay" },
               { label: "Selection toolbar", value: "Bold, Italic, Link only" },
               { label: "Vaults", value: "Browser vaults on iPhone/iPad; see Vaults on phones and tablets" },
             ]}
@@ -170,7 +169,7 @@ export const mobileGroup: Group = {
           <p>
             Selecting text shows the same toolbar on both: Turn into (text, headings, lists, quote), Bold, Italic, Link, and Ask AI
             when AI is set up. On desktop it sits above the selection; on mobile it sits at the bottom
-            of the screen, above the keyboard, clear of the phone&apos;s own Copy/Paste bar. AI Chat and Repurpose Note are also in the
+            of the screen, above the keyboard, clear of the phone&apos;s own Copy/Paste bar. AI Chat is also in the
             command palette.
           </p>
         </>

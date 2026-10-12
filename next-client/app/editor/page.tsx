@@ -23,7 +23,6 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileWatcher } from "@/app/hooks/use-file-watcher";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useAutoSave } from "@/app/hooks/use-auto-save";
-import RepurposeNoteWizard from "./components/RepurposeNoteWizard";
 import MermaidDialog from "./components/MermaidDialog";
 import RenderedBlockSourceDialog from "./components/RenderedBlockSourceDialog";
 import ImageDialog from "./components/ImageDialog";
@@ -33,8 +32,6 @@ import { useAIEditorActions } from "./hooks/useAIEditorActions";
 import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
 import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
-import VoicePreviewPanel from "./components/VoicePreviewPanel";
-import { useGlobalVoiceInput } from "./hooks/use-global-voice-input";
 import { useRouter } from "next/navigation";
 import { OPEN_TODAY_SHEET_EVENT } from "./utils/worklog-events";
 import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
@@ -42,7 +39,6 @@ import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useToolHandoff } from "./hooks/use-tool-handoff";
 import { useEditorShortcuts } from "./hooks/use-editor-shortcuts";
-import { useGenerateAiNote } from "./hooks/use-generate-ai-note";
 import { useGitHubVaultActions } from "./hooks/use-github-vault-actions";
 import { useNavigateWithGuard } from "./hooks/use-navigate-with-guard";
 import { useSyncCurrentDirectory } from "./hooks/use-sync-current-directory";
@@ -71,36 +67,19 @@ export default function LiteEditor() {
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const aiBuilderRequest = useAtomValue(atom_aiBuilderRequest);
-  // Single dictation session shared by the whole app (not one per pane), so
-  // switching the active pane mid-dictation never drops the in-progress
-  // preview — "Insert" lands wherever the active pane currently is.
   // Single AI-chat/actions session shared by the whole app (not one per
-  // pane) — targets whichever CM6 view is currently active, same convention
-  // as useGlobalVoiceInput.
+  // pane): targets whichever CM6 view is currently active.
   const aiActions = useAIEditorActions();
-  const {
-    isVoiceSupported,
-    isVoiceListening,
-    toggleVoiceListening,
-    voicePreviewText,
-    setVoicePreviewText,
-    voiceInterimText,
-    commitVoicePreview,
-    discardVoicePreview,
-  } = useGlobalVoiceInput();
   const isMobileChrome = useIsMobileChrome();
   const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
   const {
     vaultHandle,
-    vaultFiles,
     activeFileHandle,
     isVaultPending,
     saveFile,
     exportFile,
     importFile,
-    createFile,
     openFile,
-    chooseTargetDirectory,
     scanVault,
     indexVaultTags,
     syncCurrentDirectoryToPath,
@@ -200,8 +179,6 @@ export default function LiteEditor() {
     newFileRef: handleNewFileRef,
     activeTabPath: mobileLeaf.activeFilePath,
     closeTabWithAutosave,
-    isVoiceSupported,
-    toggleVoiceListening,
     flush,
   });
 
@@ -219,7 +196,6 @@ export default function LiteEditor() {
     vaultDisabledReason: isVaultLocked ? "Vault is loading" : !vaultHandle ? "Open a vault first" : undefined,
   });
 
-  const handleNewAIFile = useGenerateAiNote({ vaultHandle, vaultFiles, chooseTargetDirectory, createFile });
 
   const handleExport = async () => {
     if (!content.trim()) return;
@@ -266,14 +242,7 @@ export default function LiteEditor() {
         onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
         onRefreshVault={handleRefreshVault}
         onImport={handleImport}
-        onNewAIFile={handleNewAIFile}
         onRunAIAction={aiActions.runAIActionById}
-        isVoiceSupported={isVoiceSupported}
-        isVoiceListening={isVoiceListening}
-        onToggleVoice={toggleVoiceListening}
-        onCommitVoice={commitVoicePreview}
-        onDiscardVoice={discardVoicePreview}
-        hasVoicePreview={voicePreviewText.length > 0 || voiceInterimText !== null}
       />
       {/* On the feed, its skeleton (gate, then the main area) leads straight into it. */}
       <LoadingOverlay isVisible={(isMounting && !isHomeFeedOpen) || !!navigatingLabel} text={navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
@@ -291,7 +260,6 @@ export default function LiteEditor() {
         <GitHubVaultDialog />
         <BrowserVaultDialog />
         <ConflictDialog />
-        <RepurposeNoteWizard />
         {/* Before MermaidDialog, so its "Open viewer" stacks on top. */}
         <RenderedBlockSourceDialog />
         <MermaidDialog />
@@ -372,17 +340,6 @@ export default function LiteEditor() {
           onInsertBelow={aiActions.applyInsertBelow}
         />
         {aiActions.isAiLoading && <AIThinkingOverlay />}
-        <VoicePreviewPanel
-          isListening={isVoiceListening}
-          previewText={voicePreviewText}
-          onPreviewTextChange={setVoicePreviewText}
-          interimText={voiceInterimText}
-          onCommit={commitVoicePreview}
-          onDiscard={() => {
-            discardVoicePreview();
-            if (isVoiceListening) toggleVoiceListening();
-          }}
-        />
 
         {isMobileChrome && (
           <>

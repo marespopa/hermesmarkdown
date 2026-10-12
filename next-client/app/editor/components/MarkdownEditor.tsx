@@ -57,7 +57,7 @@ interface MarkdownEditorProps {
 // The CM6 editor pane. Editing behavior lives in CodeMirror extensions
 // (app/editor/codemirror/) — including tables, which render as an inline
 // editable grid — while this component owns the floating React helpers
-// (link/date/workflow pills, language picker, dialogs). Mermaid and math
+// (link/date pills, language picker, dialogs). Mermaid and math
 // blocks render inline via codemirror/rendered-block.ts.
 export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { onChange } = props;
@@ -258,10 +258,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   useScrollToPendingTarget(editorView, filePath);
 
-  // The global voice-input hook (use-global-voice-input.ts) is a single
-  // instance shared by the whole app, not one per pane. It inserts a
-  // committed dictation into whichever view this atom currently points at,
-  // so this pane only needs to claim that slot while it's the active one.
+  // AI actions and palette editor commands are single app-wide instances,
+  // not one per pane: they act on whichever view this atom points at, so
+  // this pane claims that slot while it's the active one.
   useEffect(() => {
     if (props.isActivePane === false) return;
     const view = viewRef.current;
@@ -269,8 +268,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       registeredActiveViewRef.current = view;
       setActiveEditorView(view);
     }
-    // Cleared on unmount/deactivation so a later dictation commit can't
-    // target a torn-down view.
+    // Cleared on unmount/deactivation so a later command can't target a
+    // torn-down view.
     return () => {
       const registeredView = registeredActiveViewRef.current;
       if (registeredView) {

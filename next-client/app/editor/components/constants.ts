@@ -9,18 +9,6 @@ export const TAG_COLORS: Record<string, string> = {
   active:   "text-emerald-600 dark:text-emerald-400",
   archived: "text-ink-muted dark:text-stone",
 };
-export const TAG_CYCLE: Record<string, string> = {
-  draft:    "review",
-  review:   "active",
-  active:   "archived",
-  archived: "draft",
-};
-export const TAG_CYCLE_PREV: Record<string, string> = {
-  draft:    "archived",
-  review:   "draft",
-  active:   "review",
-  archived: "active",
-};
 
 export const SHORTCODES: Record<string, () => string> = {
   // --- Absolute Dates ---

@@ -166,58 +166,6 @@ tags: []
     ),
   },
   {
-    id: "voice-input",
-    title: "Voice input",
-    lead: "Dictate straight into a note — transcription only, with a small set of spoken commands to control the session, not to format the note.",
-    keywords: "voice mic microphone dictation speech speech-to-text talk grammar commands",
-    body: (
-      <>
-        <p>
-          Start voice input from the command palette (Start voice input) or with{" "}
-          <code>CTRL+SHIFT+V</code> to start listening. Speech
-          accumulates in an editable preview box instead of the document itself, so
-          you can fix a mishear before it ever touches your note. Say <code>&quot;insert this&quot;</code>{" "}
-          (or press <code>Enter</code>) to commit the reviewed text at the cursor, <code>Shift+Enter</code>{" "}
-          to add a line break within the preview, or <code>Escape</code> to discard it.
-        </p>
-        <Callout type="warning">
-          Voice input uses the browser's built-in Web Speech API, which only Chromium-based browsers
-          implement — see{" "}
-          <a href="#installation" className="text-accent hover:underline">Installation</a>.
-          On unsupported browsers the Start voice input command is disabled and explains why.
-        </Callout>
-        <p>
-          Dictation is transcription only — it never inserts Markdown syntax or otherwise formats the
-          note from speech. A small set of session-control phrases works instead, since those act on
-          the preview buffer rather than the document:
-        </p>
-        <KV
-          rows={[
-            { label: '"new paragraph" / "new line" / "new row"', value: "Blank line / line break" },
-            { label: '"period" / "comma" / "question mark" / "exclamation point"', value: "Punctuation, mid-sentence or standalone" },
-            { label: '"colon" / "semicolon"', value: "Punctuation" },
-            { label: '"scratch that" / "delete last" / "undo that"', value: "Remove the previous dictated phrase" },
-            { label: '"scratch all text" / "clear all text" / "clear everything"', value: "Clear the whole preview" },
-            { label: '"insert this/it/text" / "commit this/it/text"', value: "Commit the preview into the document" },
-            { label: '"insert this and stop listening"', value: "Commit, then turn the mic off" },
-            { label: '"stop listening" / "done listening"', value: "Discard the preview and turn the mic off" },
-          ]}
-        />
-        <Callout type="tip">
-          Everything else is transcribed as plain text, so ordinary dictation always works. Sentences
-          capitalize themselves automatically after a spoken &quot;period&quot;, &quot;question
-          mark&quot;, or &quot;exclamation point&quot; (a comma or colon doesn&apos;t count).
-        </Callout>
-        <p>
-          Listening stops automatically when the pane loses focus, the tab is backgrounded, or you
-          toggle voice input off again. If the browser denies microphone access, loses its network
-          connection mid-session, or can&apos;t find a microphone, a toast explains why and listening
-          stops rather than retrying silently.
-        </p>
-      </>
-    ),
-  },
-  {
     id: "command-palette",
     title: "Command palette",
     lead: "A fuzzy-searchable list of every app-level action — open it instead of hunting for a menu.",
@@ -253,8 +201,8 @@ tags: []
         </Callout>
         <p>
           Matching is fuzzy and deterministic. Recently opened files and recently run commands
-          receive a ranking boost. Commands that need a vault, active note, selection, AI provider,
-          voice support, or another pane remain visible when useful and explain why they are disabled.
+          receive a ranking boost. Commands that need a vault, active note, selection, AI provider
+          or another pane remain visible when useful and explain why they are disabled.
           Async commands show a running state and cannot be submitted twice. Press{" "}
           <code>CTRL/CMD+D</code> to pin the selected file or command (up to five) to the top of the
           palette.
@@ -265,7 +213,7 @@ tags: []
             { label: "Files", value: "New, import, export, copy, rename, duplicate, move, move to Trash" },
             { label: "Folders", value: "New folder (one level at a time)" },
             { label: "Editing", value: "Undo, redo, focus, formatting, tasks, and templates" },
-            { label: "AI", value: "Chat, generate note, repurpose, and selection/document actions" },
+            { label: "AI", value: "Chat and selection/document actions" },
           ]}
         />
         <KV
@@ -294,8 +242,6 @@ tags: []
             { label: "New file", value: "Blank note, named from its first line" },
             { label: "New file in folder… / New folder", value: "Choose a vault folder, then enter a name" },
             { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },
-            { label: "Start / Stop voice input", value: "CTRL+SHIFT+V" },
-            { label: "Insert / discard voice preview", value: "When a preview exists" },
             { label: "Open AI Chat", value: "CTRL+SHIFT+B · when AI is configured" },
             { label: "Navigate", value: "Home, editor, settings, documentation, and welcome tour" },
           ]}
