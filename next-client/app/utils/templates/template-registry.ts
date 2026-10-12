@@ -1,4 +1,5 @@
 import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
+import type { PeriodKind } from "@/app/utils/periods/period";
 
 // Where templates live and which files count as one. Pure: every input is a
 // list of indexed vault-relative paths (the keys of atom_fileMetadata).
@@ -130,4 +131,18 @@ export function matchTemplateForName(name: string, templates: TemplateEntry[]): 
     return templates.find((template) => JOURNAL_NAMES.test(template.name.trim())) ?? null;
   }
   return null;
+}
+
+const PERIOD_TEMPLATE_NAMES: Record<PeriodKind, RegExp> = {
+  week: /^(weekly|week|weekly (note|notes|review|sheet)|journal[ -]weekly)$/i,
+  month: /^(monthly|month|monthly (note|notes|review|sheet)|journal[ -]monthly)$/i,
+  quarter: /^(quarterly|quarter|quarterly (note|notes|review|sheet)|journal[ -]quarterly)$/i,
+  year: /^(yearly|year|annual|yearly (note|notes|review|sheet)|annual review|journal[ -]yearly)$/i,
+};
+
+// The template for a new periodic sheet of `kind`, by name: Weekly, Monthly,
+// Quarterly, Yearly (or Week, Weekly review, Journal-weekly, …). Null when
+// there's none.
+export function matchPeriodTemplate(kind: PeriodKind, templates: TemplateEntry[]): TemplateEntry | null {
+  return templates.find((template) => PERIOD_TEMPLATE_NAMES[kind].test(template.name.trim())) ?? null;
 }
