@@ -6,8 +6,9 @@ import Button from "@/app/components/Button";
 const UNDO_TOAST_MS = 6000;
 
 // A success toast with an Undo button, for file actions that can be taken
-// back (move to Trash, move). Undo dismisses the toast.
-export function showUndoToast(message: string, onUndo: () => void) {
+// back (move to Trash, move, a task's status). Undo dismisses the toast.
+// Toasts sharing an `id` replace each other, so only the latest offers Undo.
+export function showUndoToast(message: string, onUndo: () => void, options: { id?: string } = {}) {
   return toast.success(
     (t) => (
       <span className="flex items-center gap-3">
@@ -24,6 +25,6 @@ export function showUndoToast(message: string, onUndo: () => void) {
         </Button>
       </span>
     ),
-    { duration: UNDO_TOAST_MS },
+    { duration: UNDO_TOAST_MS, id: options.id },
   );
 }

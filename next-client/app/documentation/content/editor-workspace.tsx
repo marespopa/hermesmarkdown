@@ -65,6 +65,12 @@ export const editorWorkspaceItems: Subsection[] = [
           it first. Click the task text instead to open its note and jump to that line.
         </p>
         <p>
+          After a change, the task stays where it is for a moment, already showing its new status,
+          so you can tick off several in a row without the list moving under you; then it moves to
+          its new place. A toast says what changed, with <strong>Undo</strong> to put the line back
+          exactly as it was, dates included.
+        </p>
+        <p>
           On a touch screen, swipe a task. Swipe right to move it forward: Start a to-do, Complete a
           task in progress, Resume one on hold, or Reopen a done or cancelled one. Swipe left to set
           it aside: Hold, or Cancel a task already on hold. The action runs once the row passes the

@@ -15,12 +15,14 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_tasksGroupBy, atom_taskView, type TaskView } from "@/app/atoms/ui-atoms";
 import { TaskItem } from "@/app/utils/taskExtractor";
 import { useTaskWriteback } from "@/app/hooks/use-task-writeback";
-import { TASK_STATUS_LABEL, type TaskStatus } from "@/app/utils/task-status";
+import { showUndoToast } from "@/app/hooks/file-system/undo-toast";
+import { TASK_STATUS_LABEL, toggledStatus, type TaskStatus } from "@/app/utils/task-status";
 import { sortTasks, type TaskSortDirection, type TaskSortField } from "../task-sort";
-import { buildViewSections, localISODate, viewCounts } from "../task-views";
+import { buildViewSections, localISODate, viewCounts, type TaskSectionData } from "../task-views";
 import TaskRow from "./TaskRow";
 import TaskSection from "./TaskSection";
 import TasksToolbar, { type TaskSort } from "./TasksToolbar";
+import { useTaskLinger } from "./use-task-linger";
 
 interface TasksListProps {
   onFileSelect: (handle: FileSystemFileHandle, path: string, line: number) => void;
@@ -28,6 +30,26 @@ interface TasksListProps {
 
 // All's status groups, in the order they're shown: what's under way first.
 const GROUP_ORDER: TaskStatus[] = ["prog", "todo", "hold", "done", "cancelled"];
+
+// What the Undo toast says was done.
+const STATUS_VERB: Record<TaskStatus, string> = {
+  todo: "Reopened",
+  prog: "Started",
+  hold: "Put on hold",
+  done: "Completed",
+  cancelled: "Cancelled",
+};
+
+const quoted = (text: string) => `“${text.length > 40 ? `${text.slice(0, 39).trimEnd()}…` : text}”`;
+
+// One section on screen, whichever list or grouping made it. `collapse`
+// names which collapsed-state map folds it (All's groups only).
+interface ListGroup extends TaskSectionData<DisplayTask> {
+  caps?: boolean;
+  collapse?: "status" | "file";
+  /** Rows show their note's title (not when grouped by note). */
+  subtitles: boolean;
+}
 
 const EMPTY_VIEW: Record<TaskView, string> = {
   now: "Nothing in progress or up next",
@@ -43,13 +65,13 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
   const tasks = useAtomValue(atom_filteredTasks);
   const allTags = useAtomValue(atom_allTaskTags);
   const fileMetadata = useAtomValue(atom_fileMetadata);
-  const { toggleTask, setTaskStatus } = useTaskWriteback();
+  const { setTaskStatus, restoreTaskLine } = useTaskWriteback();
   const [view, setView] = useAtom(atom_taskView);
   const [groupBy, setGroupBy] = useAtom(atom_tasksGroupBy);
   const [searchQuery, setSearchQuery] = useAtom(atom_taskSearchQuery);
   const [tagFilter, setTagFilter] = useAtom(atom_taskTagFilter);
   const [sort, setSort] = React.useState<TaskSort>("dueDate:asc");
-  const [collapsed, setCollapsed] = React.useState<Record<TaskStatus, boolean>>({
+  const [collapsedGroups, setCollapsedGroups] = React.useState<Record<TaskStatus, boolean>>({
     todo: false,
     prog: false,
     hold: false,
@@ -57,7 +79,7 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
     cancelled: true,
   });
   const [collapsedFiles, setCollapsedFiles] = React.useState<Record<string, boolean>>({});
-  const toggleCollapsed = (g: TaskStatus) => setCollapsed((prev) => ({ ...prev, [g]: !prev[g] }));
+  const toggleCollapsed = (g: TaskStatus) => setCollapsedGroups((prev) => ({ ...prev, [g]: !prev[g] }));
   const toggleCollapsedFile = (path: string) => setCollapsedFiles((prev) => ({ ...prev, [path]: !prev[path] }));
 
   const noteTitle = React.useCallback(
@@ -73,33 +95,57 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
   const today = localISODate();
   const counts = React.useMemo(() => viewCounts(tasks, today, noteTitle), [tasks, today, noteTitle]);
 
-  const smartSections = React.useMemo(
-    () => (view === "all" ? [] : buildViewSections(view, tasks, today, noteTitle)),
-    [view, tasks, today, noteTitle],
-  );
-
-  const statusGroups = React.useMemo(() => {
-    const out: Record<TaskStatus, DisplayTask[]> = { todo: [], prog: [], hold: [], done: [], cancelled: [] };
-    for (const t of tasks) out[t.status].push(t);
-    const [field, direction] = sort.split(":") as [TaskSortField, TaskSortDirection];
-    for (const [group, groupTasks] of Object.entries(out) as [TaskStatus, DisplayTask[]][]) {
-      out[group] = sortTasks(groupTasks, field, direction, noteTitle);
+  const groups = React.useMemo((): ListGroup[] => {
+    if (view !== "all") {
+      return buildViewSections(view, tasks, today, noteTitle).map((section) => ({ ...section, subtitles: true }));
     }
-    return out;
-  }, [tasks, noteTitle, sort]);
-
-  const fileGroups = React.useMemo(() => {
+    const [field, direction] = sort.split(":") as [TaskSortField, TaskSortDirection];
+    if (groupBy === "status") {
+      const byStatus: Record<TaskStatus, DisplayTask[]> = { todo: [], prog: [], hold: [], done: [], cancelled: [] };
+      for (const t of tasks) byStatus[t.status].push(t);
+      return GROUP_ORDER.filter((g) => byStatus[g].length > 0).map((g) => ({
+        id: g,
+        title: TASK_STATUS_LABEL[g],
+        status: g,
+        collapse: "status" as const,
+        subtitles: true,
+        tasks: sortTasks(byStatus[g], field, direction, noteTitle),
+      }));
+    }
     const byPath = new Map<string, DisplayTask[]>();
     for (const t of tasks) {
       const list = byPath.get(t.path);
       if (list) list.push(t);
       else byPath.set(t.path, [t]);
     }
-    const [field, direction] = sort.split(":") as [TaskSortField, TaskSortDirection];
     return Array.from(byPath.entries())
-      .map(([path, list]) => [path, sortTasks(list, field, direction, noteTitle)] as const)
-      .sort(([a], [b]) => noteTitle(a).localeCompare(noteTitle(b)));
-  }, [tasks, noteTitle, sort]);
+      .sort(([a], [b]) => noteTitle(a).localeCompare(noteTitle(b)))
+      .map(([path, list]) => ({
+        id: path,
+        title: noteTitle(path),
+        caps: false,
+        collapse: "file" as const,
+        subtitles: false,
+        tasks: sortTasks(list, field, direction, noteTitle),
+      }));
+  }, [view, tasks, today, noteTitle, sort, groupBy]);
+
+  // A status change holds the list still for a beat (use-task-linger.ts),
+  // writes the line back, then offers Undo, which puts the line back
+  // exactly as it was, stamps included. A masked task isn't named.
+  const layoutKey = [view, groupBy, sort, searchQuery, tagFilter.join(" ")].join("|");
+  const linger = useTaskLinger(groups, tasks, layoutKey);
+  const changeStatus = async (task: DisplayTask, status: TaskStatus) => {
+    if (task.status === status) return;
+    linger.hold(task, status);
+    const change = await setTaskStatus(task, status);
+    if (!change) return;
+    showUndoToast(
+      `${STATUS_VERB[status]} ${task.isMasked ? "a task" : quoted(task.text || "(empty task)")}`,
+      () => void restoreTaskLine(change),
+      { id: "task-status" },
+    );
+  };
 
   const handleNavigate = (task: TaskItem) => {
     const meta = fileMetadata[task.path];
@@ -112,14 +158,14 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
       key={task.id}
       task={task}
       subtitle={subtitle}
-      onToggle={() => toggleTask(task)}
-      onSetStatus={(status) => setTaskStatus(task, status)}
+      onToggle={() => changeStatus(task, toggledStatus(task.status))}
+      onSetStatus={(status) => changeStatus(task, status)}
       onNavigate={() => handleNavigate(task)}
     />
   );
 
   const isEmpty = allTasks.length === 0;
-  const viewIsEmpty = view === "all" ? tasks.length === 0 : smartSections.length === 0;
+  const shown = linger.groups;
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-paper-pale/40 dark:bg-paper-dark/30">
@@ -145,48 +191,37 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
             <HiOutlineCheckCircle size={20} className="mx-auto mb-1 opacity-60" />
             No outstanding tasks
           </div>
-        ) : viewIsEmpty ? (
+        ) : shown.length === 0 ? (
           <div className="px-3 py-6 text-ui-footnote italic opacity-40 text-center">{EMPTY_VIEW[view]}</div>
-        ) : view !== "all" ? (
-          smartSections.map((section) => (
-            <TaskSection
-              key={section.id}
-              title={section.title}
-              count={section.tasks.length}
-              status={section.status}
-              overdue={section.overdue}
-            >
-              {section.tasks.map((task) => renderRow(task, noteTitle(task.path)))}
-            </TaskSection>
-          ))
-        ) : groupBy === "status" ? (
-          GROUP_ORDER.map((g) =>
-            statusGroups[g].length === 0 ? null : (
-              <TaskSection
-                key={g}
-                title={TASK_STATUS_LABEL[g]}
-                count={statusGroups[g].length}
-                status={g}
-                collapsed={collapsed[g]}
-                onToggle={() => toggleCollapsed(g)}
-              >
-                {statusGroups[g].map((task) => renderRow(task, noteTitle(task.path)))}
-              </TaskSection>
-            ),
-          )
         ) : (
-          fileGroups.map(([path, fileTasks]) => (
-            <TaskSection
-              key={path}
-              title={noteTitle(path)}
-              count={fileTasks.length}
-              caps={false}
-              collapsed={!!collapsedFiles[path]}
-              onToggle={() => toggleCollapsedFile(path)}
-            >
-              {fileTasks.map((task) => renderRow(task))}
-            </TaskSection>
-          ))
+          shown.map((group) => {
+            const collapsed =
+              group.collapse === "status"
+                ? collapsedGroups[group.id as TaskStatus]
+                : group.collapse === "file"
+                  ? !!collapsedFiles[group.id]
+                  : false;
+            const onToggle =
+              group.collapse === "status"
+                ? () => toggleCollapsed(group.id as TaskStatus)
+                : group.collapse === "file"
+                  ? () => toggleCollapsedFile(group.id)
+                  : undefined;
+            return (
+              <TaskSection
+                key={group.id}
+                title={group.title}
+                count={group.tasks.length}
+                status={group.status}
+                overdue={group.overdue}
+                caps={group.caps}
+                collapsed={collapsed}
+                onToggle={onToggle}
+              >
+                {group.tasks.map((task) => renderRow(task, group.subtitles ? noteTitle(task.path) : undefined))}
+              </TaskSection>
+            );
+          })
         )}
       </div>
     </div>

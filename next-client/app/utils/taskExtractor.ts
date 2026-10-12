@@ -89,28 +89,43 @@ function findNearbyLine(lines: string[], expectedLine: number, raw: string): num
   return -1;
 }
 
-// Surgically sets a task's line to `status` (by default a click's toggle:
-// open → done, closed → to do), with its @started/@done stamps
-// (task-line.ts), guarding against the file
-// having drifted since the task was scanned. Returns null (no-op) rather than
-// risk corrupting an unrelated line if the target can't be located with
-// confidence, or when the line already has that status.
+// Where a task line is now: the line it was scanned at, or (when lines
+// were inserted or removed above it since) the nearest exact match of its
+// raw text; -1 when it can't be located with confidence.
+export type TaskLineRef = Pick<TaskItem, "line" | "raw" | "lineHash">;
+
+function locateTaskLine(lines: string[], task: TaskLineRef): number {
+  const current = lines[task.line];
+  if (current !== undefined && simpleHash(current) === task.lineHash) return task.line;
+  return findNearbyLine(lines, task.line, task.raw);
+}
+
+// Rewrites a task's line with `next`, guarding against the file having
+// drifted since the task was scanned. Returns null (no-op) rather than risk
+// corrupting an unrelated line if the target can't be located, or when
+// `next` leaves the line as it was.
+export function replaceTaskLine(
+  content: string,
+  task: TaskLineRef,
+  next: (line: string) => string,
+): { content: string; line: number; before: string; after: string } | null {
+  const lines = content.split("\n");
+  const target = locateTaskLine(lines, task);
+  if (target === -1) return null;
+  const before = lines[target];
+  const after = next(before);
+  if (after === before) return null;
+  lines[target] = after;
+  return { content: lines.join("\n"), line: target, before, after };
+}
+
+// Sets a task's line to `status` (by default a click's toggle: open → done,
+// closed → to do), with its @started/@done stamps (task-line.ts). Null when
+// the line can't be located or already has that status.
 export function patchLineInContent(
   content: string,
   task: TaskItem,
   status: TaskStatus = toggledStatus(task.status),
 ): string | null {
-  const lines = content.split("\n");
-  let targetLine = task.line;
-  const current = lines[targetLine];
-  if (current === undefined || simpleHash(current) !== task.lineHash) {
-    const found = findNearbyLine(lines, task.line, task.raw);
-    if (found === -1) return null;
-    targetLine = found;
-  }
-
-  const toggled = REGEX_TASK_LINE.test(lines[targetLine]) ? withTaskStatus(lines[targetLine], status) : lines[targetLine];
-  if (toggled === lines[targetLine]) return null;
-  lines[targetLine] = toggled;
-  return lines.join("\n");
+  return replaceTaskLine(content, task, (line) => (REGEX_TASK_LINE.test(line) ? withTaskStatus(line, status) : line))?.content ?? null;
 }

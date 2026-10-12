@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import { extractTasks, patchLineInContent } from "./taskExtractor";
+import { extractTasks, patchLineInContent, replaceTaskLine, simpleHash } from "./taskExtractor";
 
 describe("extractTasks", () => {
   it("reads the status from the box character", () => {
@@ -103,6 +103,14 @@ describe("patchLineInContent", () => {
     expect(patchLineInContent(content, task, "prog")).toBe("- [/] Task #infra @started(2026-10-12)\n");
     expect(patchLineInContent(content, task, "hold")).toBe("- [!] Task #infra\n");
     expect(patchLineInContent(content, task, "cancelled")).toBe("- [-] Task #infra\n");
+  });
+
+  it("replaceTaskLine finds a line by its exact text and reports what changed", () => {
+    const after = "- [x] Ship @done(2026-10-12)";
+    const content = `# Log\n${after}\n`;
+    const result = replaceTaskLine(content, { line: 1, raw: after, lineHash: simpleHash(after) }, () => "- [ ] Ship");
+    expect(result).toEqual({ content: "# Log\n- [ ] Ship\n", line: 1, before: after, after: "- [ ] Ship" });
+    expect(replaceTaskLine(content, { line: 1, raw: "- [ ] Other", lineHash: simpleHash("- [ ] Other") }, () => "x")).toBeNull();
   });
 
   it("returns null when the task's line can no longer be located", () => {
