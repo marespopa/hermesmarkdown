@@ -26,8 +26,8 @@ git checkout -b release/<version>
 From `next-client/`:
 
 ```bash
-node scripts/bump-version.mjs --minor   # new features
-node scripts/bump-version.mjs --patch   # fixes only
+corepack yarn run version --minor   # new features
+corepack yarn run version --patch   # fixes only and small tweaks
 ```
 
 `release/<version>` must match the new `package.json` version. Bump once per release, not per commit.
@@ -71,4 +71,4 @@ gh pr checks <number> --watch --interval 30
 
 ## 6. Follow-up work for the same release
 
-Until the PR merges, more changes go on the same branch: commit, push, update the PR body (`gh pr edit <number> --body-file -`) so it still describes the whole release, then watch CI again. After it merges, the next change starts again at step 1.
+Until the PR merges, more changes go on the same branch: commit, push, update the PR body so it still describes the whole release. `gh pr edit` fails on this repo (a Projects classic GraphQL error), so edit through REST: `gh api -X PATCH repos/{owner}/{repo}/pulls/<number> -F body=@body.md` (labels: `gh api repos/{owner}/{repo}/issues/<number>/labels -f 'labels[]=release'`), then watch CI again. After it merges, the next change starts again at step 1.
