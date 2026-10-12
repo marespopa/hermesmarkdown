@@ -19,9 +19,6 @@ interface UnifiedSearchInputProps {
 function TagDot({ tag }: { tag: string }) {
   return (
     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-      tag === "todo" ? "bg-sage"   :
-      tag === "prog" ? "bg-amber-500"  :
-      tag === "done" ? "bg-green-500"  :
       tag === "urgn" ? "bg-red-500"    :
       TAG_COLORS[tag] ? "bg-sage" : "bg-sage"
     }`} />

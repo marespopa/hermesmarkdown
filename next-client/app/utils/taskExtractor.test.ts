@@ -3,83 +3,33 @@ import { describe, it, expect } from "vitest";
 import { extractTasks, patchLineInContent } from "./taskExtractor";
 
 describe("extractTasks", () => {
-  it("treats #blocked as a status tag, like #hold", () => {
-    const [task] = extractTasks("note.md", "- [ ] Deploy billing #blocked\n");
-    expect(task.onHold).toBe(true);
-    expect(task.tags).not.toContain("blocked");
-    expect(task.text).toBe("Deploy billing");
-  });
-
-  it("strips (#blocked) without leaving empty parens", () => {
-    const [task] = extractTasks("note.md", "- [ ] Deploy billing (#blocked) #infra\n");
-    expect(task.text).toBe("Deploy billing");
-    expect(task.tags).toEqual(["infra"]);
-  });
-
-  it("doesn't read #blockedby as a status tag", () => {
-    const [task] = extractTasks("note.md", "- [ ] Review spec #blockedby\n");
-    expect(task.onHold).toBe(false);
-    expect(task.tags).toEqual(["blockedby"]);
-  });
-
-  it("never puts a checked #blocked task on hold", () => {
-    const [task] = extractTasks("note.md", "- [x] Deploy billing #blocked\n");
-    expect(task.onHold).toBe(false);
+  it("reads the status from the box character", () => {
+    const content = "- [ ] Draft\n- [/] Build\n- [!] Wait\n- [x] Ship\n- [X] Ship too\n- [-] Drop\n";
+    const tasks = extractTasks("note.md", content);
+    expect(tasks.map((t) => t.status)).toEqual(["todo", "prog", "hold", "done", "done", "cancelled"]);
+    expect(tasks.map((t) => t.checked)).toEqual([false, false, false, true, true, false]);
   });
 
   it("finds plain checklist items with no metadata", () => {
     const content = "- [ ] Plain task\n- [x] Done task\n";
     const tasks = extractTasks("note.md", content);
     expect(tasks).toHaveLength(2);
-    expect(tasks[0]).toMatchObject({ checked: false, inProgress: false, text: "Plain task" });
-    expect(tasks[1]).toMatchObject({ checked: true, inProgress: false, text: "Done task" });
+    expect(tasks[0]).toMatchObject({ checked: false, status: "todo", text: "Plain task" });
+    expect(tasks[1]).toMatchObject({ checked: true, status: "done", text: "Done task" });
   });
 
-  it("parses inline #prog metadata and strips it from display text", () => {
-    const content = "- [ ] Ship report #prog\n";
-    const [task] = extractTasks("note.md", content);
-    expect(task.inProgress).toBe(true);
-    expect(task.text).toBe("Ship report");
-  });
-
-  it("treats a [/] marker as in-progress, same as #prog", () => {
-    const content = "- [/] In-progress item (#prog)\n";
-    const [task] = extractTasks("note.md", content);
-    expect(task.checked).toBe(false);
-    expect(task.inProgress).toBe(true);
-    expect(task.text).toBe("In-progress item");
-  });
-
-  it("does not mark a checked task as in progress even if tagged #prog", () => {
-    const content = "- [x] Ship report #prog\n";
-    const [task] = extractTasks("note.md", content);
-    expect(task.inProgress).toBe(false);
-  });
-
-  it("parses inline #hold metadata and strips it from display text", () => {
-    const content = "- [ ] Ship report #hold\n";
-    const [task] = extractTasks("note.md", content);
-    expect(task.onHold).toBe(true);
-    expect(task.text).toBe("Ship report");
-  });
-
-  it("does not mark a checked task as on hold even if tagged #hold", () => {
-    const content = "- [x] Ship report #hold\n";
-    const [task] = extractTasks("note.md", content);
-    expect(task.onHold).toBe(false);
-  });
-
-  it("strips #todo and #done tags from display text too, not just #prog/#hold", () => {
-    const content = "- [ ] Ship report #todo\n- [x] Ship report #done\n";
+  it("treats former status tags as plain tags that never change the status", () => {
+    const content = "- [ ] Ship report #prog\n- [ ] Deploy billing #blocked\n- [x] Fix login #todo\n";
     const tasks = extractTasks("note.md", content);
-    expect(tasks[0].text).toBe("Ship report");
-    expect(tasks[1].text).toBe("Ship report");
+    expect(tasks.map((t) => t.status)).toEqual(["todo", "todo", "done"]);
+    expect(tasks.map((t) => t.tags)).toEqual([["prog"], ["blocked"], ["todo"]]);
+    expect(tasks.map((t) => t.text)).toEqual(["Ship report", "Deploy billing", "Fix login"]);
   });
 
   it("strips a tag wrapped in parens without leaving an empty () behind", () => {
-    const content = "- [ ] Uncompleted task (#todo)\n";
-    const [task] = extractTasks("note.md", content);
-    expect(task.text).toBe("Uncompleted task");
+    const [task] = extractTasks("note.md", "- [ ] Deploy billing (#infra) #web\n");
+    expect(task.text).toBe("Deploy billing");
+    expect(task.tags).toEqual(["infra", "web"]);
   });
 
   it("preserves numeric ticket references in display text", () => {
@@ -124,6 +74,22 @@ describe("patchLineInContent", () => {
     const driftedContent = "New line inserted\n" + content;
     const patched = patchLineInContent(driftedContent, task);
     expect(patched).toBe("New line inserted\n- [x] Task A\n");
+  });
+
+  it("completes an in-progress or on-hold task, and reopens a cancelled one", () => {
+    const content = "- [/] Build\n- [!] Wait\n- [-] Drop\n";
+    const [prog, hold, cancelled] = extractTasks("note.md", content);
+    expect(patchLineInContent(content, prog)).toBe("- [x] Build\n- [!] Wait\n- [-] Drop\n");
+    expect(patchLineInContent(content, hold)).toBe("- [/] Build\n- [x] Wait\n- [-] Drop\n");
+    expect(patchLineInContent(content, cancelled)).toBe("- [/] Build\n- [!] Wait\n- [ ] Drop\n");
+  });
+
+  it("sets an explicit status", () => {
+    const content = "- [ ] Task #infra\n";
+    const [task] = extractTasks("note.md", content);
+    expect(patchLineInContent(content, task, "prog")).toBe("- [/] Task #infra\n");
+    expect(patchLineInContent(content, task, "hold")).toBe("- [!] Task #infra\n");
+    expect(patchLineInContent(content, task, "cancelled")).toBe("- [-] Task #infra\n");
   });
 
   it("returns null when the task's line can no longer be located", () => {

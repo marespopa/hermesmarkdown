@@ -7,9 +7,8 @@ const task = (id: string, overrides: Partial<TaskItem> = {}): TaskItem => ({
   id,
   path: "note.md",
   line: 0,
+  status: "todo",
   checked: false,
-  inProgress: false,
-  onHold: false,
   dueDate: null,
   priority: null,
   tags: [],
@@ -33,6 +32,23 @@ describe("sortTasks", () => {
       "high-priority",
       "low-priority",
       "no-date",
+    ]);
+  });
+
+  it("orders by status: to do, in progress, on hold, done, cancelled", () => {
+    const tasks = [
+      task("cancelled", { status: "cancelled" }),
+      task("done", { status: "done", checked: true }),
+      task("hold", { status: "hold" }),
+      task("prog", { status: "prog" }),
+      task("todo"),
+    ];
+    expect(sortTasks(tasks, "status", "asc", (path) => path).map(({ id }) => id)).toEqual([
+      "todo",
+      "prog",
+      "hold",
+      "done",
+      "cancelled",
     ]);
   });
 

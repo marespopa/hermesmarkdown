@@ -1,6 +1,7 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { noteDisplayTitle, type NoteDisplayItem, type PreviewStyle } from "@/app/utils/note-display";
 import { isTemplatePath } from "@/app/utils/templates/template-registry";
+import { isOpenStatus } from "@/app/utils/task-status";
 
 // Pure model behind the home feed: which notes appear, their order, titles,
 // and the labels in the left gutter (days, and "Pinned").
@@ -238,7 +239,7 @@ export function openFeedTasks(
     .filter((entry) => !entry.isSensitive && entry.modifiedAt >= since)
     .sort((a, b) => b.modifiedAt - a.modifiedAt || a.path.localeCompare(b.path))
     .flatMap((entry) => (metadata[entry.path]?.tasks ?? [])
-      .filter((task) => !task.checked)
+      .filter((task) => isOpenStatus(task.status))
       .sort((a, b) => a.line - b.line)
       .map((task) => ({ id: task.id, path: entry.path, line: task.line, text: task.text, noteTitle: entry.title })));
 }

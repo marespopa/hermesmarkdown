@@ -1,4 +1,6 @@
-export type TaskStatus = "todo" | "prog" | "hold" | "done";
+import { TASK_STATUS_CHAR, type TaskStatus } from "@/app/utils/task-status";
+
+export type { TaskStatus };
 export type TaskPriority = "high" | "med" | "low";
 
 export interface TaskTemplateValues {
@@ -11,7 +13,8 @@ export interface TaskTemplateValues {
 
 export function buildTaskText({ title, status, dueDate, priority, tags }: TaskTemplateValues): string {
   const cleanTitle = title.trim();
-  if (!cleanTitle) return "- [ ] ";
+  const box = `- [${TASK_STATUS_CHAR[status]}]`;
+  if (!cleanTitle) return `${box} `;
 
   const due = dueDate.trim();
   const normalizedTags = tags
@@ -19,7 +22,7 @@ export function buildTaskText({ title, status, dueDate, priority, tags }: TaskTe
     .filter(Boolean)
     .filter((tag, index, array) => array.indexOf(tag) === index);
 
-  const segments = [`- [ ] ${cleanTitle}`];
+  const segments = [`${box} ${cleanTitle}`];
 
   if (due) {
     segments.push(`@due(${due})`);
@@ -28,9 +31,6 @@ export function buildTaskText({ title, status, dueDate, priority, tags }: TaskTe
   if (priority) {
     segments.push(`@priority(${priority})`);
   }
-
-  const statusTag = `#${status}`;
-  segments.push(statusTag);
 
   for (const tag of normalizedTags) {
     segments.push(`#${tag}`);

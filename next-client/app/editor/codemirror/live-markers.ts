@@ -36,8 +36,9 @@ const REGEX_CALLOUT_START = /^(>\s*)+\[!\w+\]/;
 const REGEX_CALLOUT_PREFIX = /^>(?:[ \t]*>)*[ \t]*\[!(\w+)\][+-]?[ \t]?/;
 // A run of `>`s from a line's first QuoteMark: "> ", "> > ", ">>".
 const REGEX_QUOTE_PREFIX = /^>(?:[ \t]*>)*[ \t]?/;
-// A task box right after a bullet: " [ ] ", " [x] ", " [/] " (in progress), " [-] " (cancelled).
-const REGEX_TASK_BOX = /^[ \t]\[([ xX/-])\](?=[ \t\n]|$)/;
+// A task box right after a bullet: " [ ] ", " [x] ", " [/] " (in progress),
+// " [!] " (on hold), " [-] " (cancelled).
+const REGEX_TASK_BOX = /^[ \t]\[([ xX/!-])\](?=[ \t\n]|$)/;
 
 function listIndent(columns: number) {
   return Decoration.mark({ class: "cm-listIndent", attributes: { style: `width: ${em(columns)}` } });

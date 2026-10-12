@@ -24,30 +24,21 @@ import {
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_tasksGroupBy } from "@/app/atoms/ui-atoms";
 import { TaskItem } from "@/app/utils/taskExtractor";
+import { TASK_STATUS_LABEL, type TaskStatus } from "@/app/utils/task-status";
 import { useTaskWriteback } from "@/app/hooks/use-task-writeback";
 import { SelectControl } from "@/app/editor/settings/components/SettingControls";
 import { sortTasks, type TaskSortDirection, type TaskSortField } from "../task-sort";
 import Button from "@/app/components/Button";
 import { BareInput } from "@/app/components/Input";
 import TaskRow from "./TaskRow";
+import { TaskStatusIcon } from "./TaskStatusButton";
 
 interface TasksListProps {
   onFileSelect: (handle: FileSystemFileHandle, path: string, line: number) => void;
 }
 
-type Group = "todo" | "prog" | "hold" | "done";
-
-const GROUP_LABEL: Record<Group, string> = { todo: "To Do", prog: "In Progress", hold: "On Hold", done: "Done" };
-
-// Shared status dot color per group, kept consistent with task search
-// results. Explicit dark: variants since these are plain Tailwind hues,
-// not the app's CSS-var-backed semantic colors.
-const GROUP_ACCENT: Record<Group, { dot: string }> = {
-  todo: { dot: "bg-sage" },
-  prog: { dot: "bg-amber-500 dark:bg-amber-400" },
-  hold: { dot: "bg-sky-500 dark:bg-sky-400" },
-  done: { dot: "bg-emerald-500 dark:bg-emerald-400" },
-};
+// Status groups, in the order they're shown: what's under way first.
+const GROUP_ORDER: TaskStatus[] = ["prog", "todo", "hold", "done", "cancelled"];
 
 const DUE_FILTER_OPTIONS: { value: TaskDueFilter; label: string }[] = [
   { value: "all", label: "All dates" },
@@ -70,14 +61,6 @@ const SORT_OPTIONS: { value: `${TaskSortField}:${TaskSortDirection}`; label: str
   { value: "text:desc", label: "Task · Z–A" },
 ];
 
-function groupOf(task: TaskItem): Group {
-  if (task.checked) return "done";
-  if (task.inProgress) return "prog";
-  if (task.onHold) return "hold";
-
-  return "todo";
-}
-
 export default function TasksList({ onFileSelect }: TasksListProps) {
   // Tasks from sensitive notes arrive masked, or are left out (and not
   // counted) in "hidden" Privacy Mode.
@@ -85,20 +68,21 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
   const tasks = useAtomValue(atom_filteredTasks);
   const allTags = useAtomValue(atom_allTaskTags);
   const fileMetadata = useAtomValue(atom_fileMetadata);
-  const { toggleTask } = useTaskWriteback();
+  const { toggleTask, setTaskStatus } = useTaskWriteback();
   const [groupBy, setGroupBy] = useAtom(atom_tasksGroupBy);
   const [searchQuery, setSearchQuery] = useAtom(atom_taskSearchQuery);
   const [tagFilter, setTagFilter] = useAtom(atom_taskTagFilter);
   const [dueFilter, setDueFilter] = useAtom(atom_taskDueFilter);
   const [sort, setSort] = React.useState<`${TaskSortField}:${TaskSortDirection}`>("dueDate:asc");
-  const [collapsed, setCollapsed] = React.useState<Record<Group, boolean>>({
+  const [collapsed, setCollapsed] = React.useState<Record<TaskStatus, boolean>>({
     todo: false,
     prog: false,
     hold: false,
     done: true,
+    cancelled: true,
   });
   const [collapsedFiles, setCollapsedFiles] = React.useState<Record<string, boolean>>({});
-  const toggleCollapsed = (g: Group) =>
+  const toggleCollapsed = (g: TaskStatus) =>
     setCollapsed((prev) => ({ ...prev, [g]: !prev[g] }));
   const toggleCollapsedFile = (path: string) =>
     setCollapsedFiles((prev) => ({ ...prev, [path]: !prev[path] }));
@@ -121,10 +105,10 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
   );
 
   const statusGroups = React.useMemo(() => {
-    const out: Record<Group, DisplayTask[]> = { todo: [], prog: [], hold: [], done: [] };
-    for (const t of tasks) out[groupOf(t)].push(t);
+    const out: Record<TaskStatus, DisplayTask[]> = { todo: [], prog: [], hold: [], done: [], cancelled: [] };
+    for (const t of tasks) out[t.status].push(t);
     const [field, direction] = sort.split(":") as [TaskSortField, TaskSortDirection];
-    for (const [group, groupTasks] of Object.entries(out) as [Group, DisplayTask[]][]) {
+    for (const [group, groupTasks] of Object.entries(out) as [TaskStatus, DisplayTask[]][]) {
       out[group] = sortTasks(groupTasks, field, direction, noteTitle);
     }
     return out;
@@ -149,7 +133,6 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
     onFileSelect(meta.handle, task.path, task.line);
   };
 
-  const visibleGroups: Group[] = ["todo", "prog", "hold", "done"];
   const isEmpty = allTasks.length === 0;
   const noMatches = !isEmpty && tasks.length === 0;
 
@@ -253,7 +236,7 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
           <div className="px-3 py-6 text-ui-footnote italic opacity-40 text-center">No tasks match the current filters</div>
         )}
         {!isEmpty && !noMatches && groupBy === "status" &&
-          visibleGroups.map((g) =>
+          GROUP_ORDER.map((g) =>
             statusGroups[g].length === 0 ? null : (
               <div key={g}>
                 <Button variant="unstyled"
@@ -261,8 +244,8 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
                   className="flex w-full items-center gap-1.5 px-2 pb-1.5 text-left text-ui-footnote font-semibold uppercase tracking-wide text-ink-muted transition-opacity hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
                 >
                   {collapsed[g] ? <HiChevronRight size={12} /> : <HiChevronDown size={12} />}
-                  <span className={`h-1.5 w-1.5 rounded-full shadow-[0_0_0_2px_rgba(255,255,255,0.45)] dark:shadow-[0_0_0_2px_rgba(42,38,34,0.6)] ${GROUP_ACCENT[g].dot}`} />
-                  {GROUP_LABEL[g]}
+                  <TaskStatusIcon status={g} size={11} />
+                  {TASK_STATUS_LABEL[g]}
                   <span className="font-normal normal-case opacity-70">({statusGroups[g].length})</span>
                 </Button>
                 {!collapsed[g] && (
@@ -273,6 +256,7 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
                         task={task}
                         subtitle={noteTitle(task.path)}
                         onToggle={() => toggleTask(task)}
+                        onSetStatus={(status) => setTaskStatus(task, status)}
                         onNavigate={() => handleNavigate(task)}
                       />
                     ))}
@@ -299,6 +283,7 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
                       key={task.id}
                       task={task}
                       onToggle={() => toggleTask(task)}
+                      onSetStatus={(status) => setTaskStatus(task, status)}
                       onNavigate={() => handleNavigate(task)}
                     />
                   ))}

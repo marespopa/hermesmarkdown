@@ -5,6 +5,7 @@ import {
   insertChildInContent,
   moveSubtreeInContent,
   outdentSubtreeInContent,
+  setTaskStatusInContent,
   toggleTaskStatusInContent,
 } from "./lineMutations";
 
@@ -25,6 +26,18 @@ describe("outline line mutations", () => {
     expect(doing).toBe("- [/] Task");
     expect(done).toBe("- [x] Task");
     expect(toggleTaskStatusInContent(done, 0)).toBe(todo);
+  });
+
+  it("re-enters the cycle from on hold at in progress, from cancelled at to do", () => {
+    expect(toggleTaskStatusInContent("- [!] Task", 0)).toBe("- [/] Task");
+    expect(toggleTaskStatusInContent("- [-] Task", 0)).toBe("- [ ] Task");
+  });
+
+  it("sets a task line to one status, leaving other lines alone", () => {
+    const content = "- [ ] Task #infra\nplain text";
+    expect(setTaskStatusInContent(content, 0, "hold")).toBe("- [!] Task #infra\nplain text");
+    expect(setTaskStatusInContent(content, 0, "cancelled")).toBe("- [-] Task #infra\nplain text");
+    expect(setTaskStatusInContent(content, 1, "done")).toBe(content);
   });
 
   it("inserts a child using the parent's list style and indentation", () => {

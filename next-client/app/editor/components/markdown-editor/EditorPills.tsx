@@ -23,7 +23,7 @@ interface EditorPillsProps {
 }
 
 // The floating helpers drawn over the editor next to the caret: date picker,
-// link pill, workflow/task status pills, the image viewer button, and the
+// link pill, workflow status pill, the image viewer button, and the
 // code-block language picker. Positions come from the CodeMirror feature
 // hooks; this component only renders them.
 export default function EditorPills({ features, languagePicker, image, containerRef, onWikiLinkClick }: EditorPillsProps) {
@@ -31,7 +31,6 @@ export default function EditorPills({ features, languagePicker, image, container
     pillUrl, pillLabel, pillPos, pillType, dismissPill, handleSaveLink,
     dateMatch, isDateExpanded, setIsDateExpanded, dateMenuPos, handleDateSelect,
     workflowMatch, workflowMenuPos, handleWorkflowCycle,
-    todoMatch, todoMenuPos, handleTodoCycle,
   } = features;
   const { languagePickerInfo, pickerPos, query, pickerRef, changeQuery, selectLanguage, deactivate } = languagePicker;
 
@@ -92,15 +91,6 @@ export default function EditorPills({ features, languagePicker, image, container
           onPrev={() => handleWorkflowCycle("prev")}
           onNext={() => handleWorkflowCycle("next")}
           noHash={workflowMatch.isFmStatus}
-        />
-      )}
-
-      {todoMatch && (
-        <WorkflowPill
-          tag={todoMatch.tag}
-          pos={todoMenuPos}
-          onPrev={() => handleTodoCycle("prev")}
-          onNext={() => handleTodoCycle("next")}
         />
       )}
 

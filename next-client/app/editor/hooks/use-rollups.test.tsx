@@ -133,7 +133,7 @@ describe("useRollups", () => {
       const { rollups } = setup({
         files: {
           "journal/2026/10/2026-10-06.md": "- [x] Fix login redirect #bug\n- [ ] Draft roadmap",
-          "old/2026-10-08.md": "- [ ] Deploy billing service #blocked",
+          "old/2026-10-08.md": "- [!] Deploy billing service",
           "journal/2026/10/2026-10-12.md": "- [ ] Next week's task",
         },
       });

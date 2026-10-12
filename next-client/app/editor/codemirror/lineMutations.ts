@@ -1,8 +1,9 @@
 import { ChangeSet, EditorSelection } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
+import { cycledStatus, TASK_STATUS_CHAR, taskStatusFromChar, type TaskStatus } from "@/app/utils/task-status";
 
 const LIST_LINE = /^(\s*)([-*+]\s+|\d+[.)]\s+)(.*)$/;
-const TASK_LINE = /^(\s*)(?:[-*+]\s+|\d+[.)]\s+)\[([ xX/-])\]/;
+const TASK_LINE = /^(\s*)(?:[-*+]\s+|\d+[.)]\s+)\[([ xX/!-])\]/;
 const INDENT = "  ";
 
 function subtreeEnd(lines: string[], lineNumber: number): number {
@@ -46,17 +47,26 @@ export function outdentSubtreeInContent(content: string, lineNumber: number): st
   );
 }
 
-export function toggleTaskStatusInContent(content: string, lineNumber: number): string {
+// Sets a task line's box to `status`, or to the next one in the Mod-Enter
+// cycle (task-status.ts) when `status` is a function of the current one.
+export function setTaskStatusInContent(
+  content: string,
+  lineNumber: number,
+  status: TaskStatus | ((current: TaskStatus) => TaskStatus),
+): string {
   const lines = content.split("\n");
   const line = lines[lineNumber];
   const match = line?.match(TASK_LINE);
   if (!match) return content;
 
   const markerOffset = (match.index ?? 0) + match[0].lastIndexOf("[") + 1;
-  const current = line[markerOffset]?.toLowerCase();
-  const next = current === " " ? "/" : current === "/" ? "x" : " ";
-  lines[lineNumber] = `${line.slice(0, markerOffset)}${next}${line.slice(markerOffset + 1)}`;
+  const next = typeof status === "function" ? status(taskStatusFromChar(line[markerOffset])) : status;
+  lines[lineNumber] = `${line.slice(0, markerOffset)}${TASK_STATUS_CHAR[next]}${line.slice(markerOffset + 1)}`;
   return lines.join("\n");
+}
+
+export function toggleTaskStatusInContent(content: string, lineNumber: number): string {
+  return setTaskStatusInContent(content, lineNumber, cycledStatus);
 }
 
 export function insertChildInContent(content: string, lineNumber: number): string {
@@ -165,6 +175,10 @@ export function outdentSubtree(view: EditorView, lineNumber: number): boolean {
     "input.outline.outdent",
     selection,
   );
+}
+
+export function setTaskStatus(view: EditorView, lineNumber: number, status: TaskStatus): boolean {
+  return dispatchContentMutation(view, setTaskStatusInContent(view.state.doc.toString(), lineNumber - 1, status), "input.outline.task");
 }
 
 export function toggleTaskStatus(view: EditorView, lineNumber: number): boolean {

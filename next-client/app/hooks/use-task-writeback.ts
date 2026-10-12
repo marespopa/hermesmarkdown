@@ -10,13 +10,15 @@ import { isPathInLayout } from "@/app/atoms/utils";
 import { useSaveFile } from "@/app/hooks/file-system/use-save-file";
 import { TaskItem, patchLineInContent } from "@/app/utils/taskExtractor";
 import { contentStore } from "@/app/atoms/atoms";
+import { toggledStatus, type TaskStatus } from "@/app/utils/task-status";
 
 export function useTaskWriteback() {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const { saveFile } = useSaveFile();
 
-  const toggleTask = useCallback(
-    async (task: TaskItem) => {
+  const setTaskStatus = useCallback(
+    async (task: TaskItem, status: TaskStatus) => {
+      if (task.status === status) return;
       const meta = fileMetadata[task.path];
       const handle = meta?.handle;
       if (!handle) {
@@ -32,7 +34,7 @@ export function useTaskWriteback() {
         ? contentStore.get(atom_fileContent(task.path))
         : await (await handle.getFile()).text();
 
-      const patched = patchLineInContent(currentContent, task);
+      const patched = patchLineInContent(currentContent, task, status);
       if (patched === null) {
         toast.error("This task's line changed since it was last scanned — refresh and try again.");
         return;
@@ -49,5 +51,11 @@ export function useTaskWriteback() {
     [fileMetadata, saveFile],
   );
 
-  return { toggleTask };
+  // A click on the box: open → done, done or cancelled → to do.
+  const toggleTask = useCallback(
+    (task: TaskItem) => setTaskStatus(task, toggledStatus(task.status)),
+    [setTaskStatus],
+  );
+
+  return { toggleTask, setTaskStatus };
 }

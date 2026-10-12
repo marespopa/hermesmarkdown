@@ -9,13 +9,13 @@ import TaskRow from "./TaskRow";
 const SECRET = "Wire the secret payment";
 
 const task: DisplayTask = {
-  id: "Payroll.md#2", path: "Payroll.md", line: 2, checked: false, inProgress: false, onHold: false,
+  id: "Payroll.md#2", path: "Payroll.md", line: 2, status: "todo", checked: false,
   dueDate: "2026-10-10", priority: null, tags: ["money"], text: SECRET, raw: `- [ ] ${SECRET} #money`, lineHash: "h",
   isMasked: false,
 };
 
 function renderRow(row: DisplayTask) {
-  const handlers = { onToggle: vi.fn(), onNavigate: vi.fn() };
+  const handlers = { onToggle: vi.fn(), onSetStatus: vi.fn(), onNavigate: vi.fn() };
   render(
     <Provider>
       <TaskRow task={row} subtitle="Payroll" {...handlers} />
@@ -54,7 +54,34 @@ describe("TaskRow", () => {
 
     fireEvent.click(screen.getByRole("checkbox"));
     expect(onToggle).toHaveBeenCalledOnce();
-    fireEvent.click(screen.getByRole("button"));
+    fireEvent.click(screen.getByText("Payroll"));
     expect(onNavigate).toHaveBeenCalledOnce();
+  });
+
+  it("sets any status from the row's menu, with the current one checked", () => {
+    const { onSetStatus, onToggle } = renderRow({ ...task, status: "prog" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Change status" }));
+    expect(screen.getByRole("menuitemcheckbox", { name: "In Progress" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "On Hold" }));
+
+    expect(onSetStatus).toHaveBeenCalledWith("hold");
+    expect(onToggle).not.toHaveBeenCalled();
+    expect(screen.queryByRole("menu")).toBeNull();
+  });
+
+  it("opens the status menu on a right-click of the ring", () => {
+    const { onSetStatus } = renderRow(task);
+
+    fireEvent.contextMenu(screen.getByRole("checkbox"));
+    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "Cancelled" }));
+
+    expect(onSetStatus).toHaveBeenCalledWith("cancelled");
+  });
+
+  it("never flags a cancelled task's past due date as overdue", () => {
+    renderRow({ ...task, status: "cancelled", dueDate: "2026-09-01" });
+    expect(screen.getByText("Due: 2026-09-01")).toBeInTheDocument();
+    expect(screen.queryByText(/Overdue/)).toBeNull();
   });
 });

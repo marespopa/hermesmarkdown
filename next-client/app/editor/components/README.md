@@ -66,7 +66,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [WelcomeWizard](WelcomeWizard.md) | Eight-step onboarding that covers opening, creating, or connecting a vault, then theme, fonts, editor options, autosave, optional AI key, and shortcuts. |
 | [welcome-wizard/](welcome-wizard/README.md) | `WelcomeWizard` steps and shared step layout. |
 | [WikiLinkDialog](WikiLinkDialog.md) | Picks or creates a `[[WikiLink]]` target, with substring-matched suggestions from vault file metadata. |
-| [WorkflowPill](WorkflowPill.md) | Floating pill on a workflow tag (for example `#todo`) with prev/next arrows to cycle its state. |
+| [WorkflowPill](WorkflowPill.md) | Floating pill on a workflow tag (for example `#draft`) with prev/next arrows to cycle its state. |
 | [WorkspaceBuilder](WorkspaceBuilder.md) | Dialog for creating or editing a custom workspace (a saved, rule-based file query over vault metadata). |
 | [WorkspaceSidebar](WorkspaceSidebar.md) | The window's sidebar (desktop): open notes and the vault's file tree, on the leading edge; hideable and resizable. |
 | [WorkspaceSplitter](WorkspaceSplitter.md) | Recursively renders the workspace layout tree as resizable panel groups, with a `PaneLeaf` at each leaf. |

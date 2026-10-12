@@ -29,7 +29,7 @@ const OTHER = "Other";
 
 // A text that itself starts like a task box ("[ ] …") is escaped, so the
 // item can never read as a task.
-const safeText = (text: string) => text.replace(/^\[([ xX/-])\]/, "\\[$1]");
+const safeText = (text: string) => text.replace(/^\[([ xX/!-])\]/, "\\[$1]");
 
 // `- <text>[ #tag …][ · in progress][ · due YYYY-MM-DD] · [[YYYY-MM-DD]]`
 function itemLine(item: RollupItem, { omitTag, details }: ItemOptions): string {

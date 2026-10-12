@@ -252,9 +252,6 @@ export const baseTheme = EditorView.theme({
   ".cm-tag-pill.cm-tag-pill-workflow": {
     color: "var(--sage)",
   },
-  ".cm-tag-pill.cm-tag-pill-todo": {
-    color: "var(--clay)",
-  },
   ".cm-tag-pill.cm-tag-pill-custom": {
     color: "var(--fg-muted)",
   },

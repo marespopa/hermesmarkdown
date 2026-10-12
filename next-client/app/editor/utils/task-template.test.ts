@@ -9,7 +9,7 @@ describe("buildTaskText", () => {
       status: "todo",
       dueDate: "2026-08-27",
       tags: ["work", "urgent"],
-    })).toBe("- [ ] Ship report @due(2026-08-27) #todo #work #urgent");
+    })).toBe("- [ ] Ship report @due(2026-08-27) #work #urgent");
   });
 
   it("includes priority metadata when provided", () => {
@@ -19,15 +19,14 @@ describe("buildTaskText", () => {
       dueDate: "2026-08-29",
       priority: "high",
       tags: ["code"],
-    })).toBe("- [ ] Review PR @due(2026-08-29) @priority(high) #prog #code");
+    })).toBe("- [/] Review PR @due(2026-08-29) @priority(high) #code");
   });
 
-  it("builds an in-progress task without due date and without a duplicate status tag", () => {
-    expect(buildTaskText({
-      title: "Draft outline",
-      status: "prog",
-      dueDate: "",
-      tags: ["writing"],
-    })).toBe("- [ ] Draft outline #prog #writing");
+  it("writes the status as the box character, never as a tag", () => {
+    const build = (status: "todo" | "prog" | "hold" | "done") =>
+      buildTaskText({ title: "Draft outline", status, dueDate: "", tags: ["writing"] });
+    expect(build("prog")).toBe("- [/] Draft outline #writing");
+    expect(build("hold")).toBe("- [!] Draft outline #writing");
+    expect(build("done")).toBe("- [x] Draft outline #writing");
   });
 });

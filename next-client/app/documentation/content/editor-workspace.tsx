@@ -7,7 +7,7 @@ export const editorWorkspaceItems: Subsection[] = [
     title: "Tasks page",
     lead: "A vault-wide checklist — every checkbox task across every note, grouped by status or note.",
     keywords:
-      "task tasks checkbox todo prog hold blocked done pane explorer aggregate due date priority tags filter",
+      "task tasks checkbox status todo in progress hold blocked done cancelled pane explorer aggregate due date priority tags filter",
     body: (
       <>
         <p>
@@ -16,18 +16,17 @@ export const editorWorkspaceItems: Subsection[] = [
         <KV
           rows={[
             { label: "- [ ] task", value: "To Do" },
-            { label: "- [ ] task #prog  /  - [/] task", value: "In Progress" },
-            { label: "- [ ] task #hold", value: "On Hold" },
-            { label: "- [ ] task #blocked", value: "On Hold" },
+            { label: "- [/] task", value: "In Progress" },
+            { label: "- [!] task", value: "On Hold" },
             { label: "- [x] task", value: "Done" },
+            { label: "- [-] task", value: "Cancelled" },
           ]}
         />
         <p>
-          A task counts as In Progress when it's unchecked and either tagged <code>#prog</code>{" "}
-          anywhere on the line or uses the <code>[/]</code> checkbox marker. It counts as On Hold
-          when it's unchecked and tagged <code>#hold</code> or <code>#blocked</code>. The{" "}
-          <code>#prog</code>/<code>#hold</code>/<code>#blocked</code> tags — along with <code>#todo</code> and <code>#done</code>, which are purely cosmetic — are
-          stripped from the text shown on the page.
+          A task's status is the character in its box, and nothing else: tags on the line never
+          change it. In the editor, a click on the box completes the task (or reopens a done or
+          cancelled one), <code>Ctrl/Cmd+Enter</code> cycles To Do → In Progress → Done, and the
+          command palette has Task: Start, Task: Put on hold, Task: Cancel and Task: Reset to To Do.
         </p>
         <p>
           A task can also carry a due date (<code>@due(2026-01-31)</code>), a priority (
@@ -43,14 +42,15 @@ export const editorWorkspaceItems: Subsection[] = [
           Clear button appears once any filter is active.
         </p>
         <p>
-          Click a task's checkbox to toggle it — the change writes straight back to the source line
-          in the file, no need to open it first. Click the task text instead to open its note and
-          jump to that line.
+          Click a task's status ring to complete it, or to reopen a done or cancelled one. For any
+          other status, right-click the ring (long-press on touch) or use the ⋯ button at the end of
+          the row. The change writes straight back to the source line in the file, no need to open
+          it first. Click the task text instead to open its note and jump to that line.
         </p>
         <Callout type="note">
-          The Done group starts collapsed so completed work doesn't crowd out what's still
-          outstanding; To Do, In Progress, and On Hold start expanded. Click a group header to fold
-          or unfold it.
+          In Progress comes first, then To Do and On Hold. Done and Cancelled start collapsed so
+          finished work doesn't crowd out what's still outstanding. Click a group header to fold or
+          unfold it.
         </Callout>
       </>
     ),

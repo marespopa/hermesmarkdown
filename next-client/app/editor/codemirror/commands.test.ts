@@ -64,16 +64,24 @@ describe("toggleCheckboxOnLine", () => {
     expect(view.state.doc.toString()).toBe("- [ ] Task");
   });
 
-  it("syncs a #todo/#done status tag on the same line when checking", () => {
-    const view = makeView("- [ ] Task #todo");
-    toggleCheckboxOnLine(view, 1);
-    expect(view.state.doc.toString()).toBe("- [x] Task #done");
+  it("completes an in-progress or on-hold task", () => {
+    for (const box of ["/", "!"]) {
+      const view = makeView(`- [${box}] Task`);
+      toggleCheckboxOnLine(view, 1);
+      expect(view.state.doc.toString()).toBe("- [x] Task");
+    }
   });
 
-  it("syncs the status tag back to #todo when unchecking", () => {
-    const view = makeView("- [x] Task #done");
+  it("reopens a cancelled task", () => {
+    const view = makeView("- [-] Task");
     toggleCheckboxOnLine(view, 1);
-    expect(view.state.doc.toString()).toBe("- [ ] Task #todo");
+    expect(view.state.doc.toString()).toBe("- [ ] Task");
+  });
+
+  it("leaves tags on the line alone", () => {
+    const view = makeView("- [ ] Task #todo");
+    toggleCheckboxOnLine(view, 1);
+    expect(view.state.doc.toString()).toBe("- [x] Task #todo");
   });
 
   it("returns false for a line with no checkbox", () => {

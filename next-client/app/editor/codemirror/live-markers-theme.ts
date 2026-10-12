@@ -63,7 +63,17 @@ export const liveMarkersTheme = EditorView.theme({
     },
   },
   ".cm-liveTask[data-state=progress] .cm-liveTask-box": {
-    backgroundImage: "linear-gradient(to right, var(--fg-faint) 50%, transparent 50%)",
+    borderColor: "var(--task-prog)",
+    backgroundImage: "linear-gradient(to right, var(--task-prog) 50%, transparent 50%)",
+  },
+  // On hold: two short bars, a pause sign.
+  ".cm-liveTask[data-state=hold] .cm-liveTask-box": {
+    borderColor: "var(--task-hold)",
+    backgroundImage:
+      "linear-gradient(var(--task-hold), var(--task-hold)), linear-gradient(var(--task-hold), var(--task-hold))",
+    backgroundSize: "1.5px 45%, 1.5px 45%",
+    backgroundPosition: "35% center, 65% center",
+    backgroundRepeat: "no-repeat",
   },
   ".cm-liveTask[data-state=cancelled] .cm-liveTask-box": {
     backgroundImage: "linear-gradient(var(--fg-faint), var(--fg-faint))",

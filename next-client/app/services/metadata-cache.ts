@@ -12,7 +12,9 @@ const STORE_NAME = "vaults";
 // Bump when the worker's output changes shape or meaning (e.g. the preview
 // rules), so stale entries are re-parsed instead of trusted.
 // 2: `#blocked` became a status tag (onHold, no longer a custom tag).
-export const METADATA_CACHE_VERSION = 2;
+// 3: task status comes from the box character only (`status`), status tags
+//    are plain tags again.
+export const METADATA_CACHE_VERSION = 3;
 
 export type CachedMetadata = Omit<FileMetadata, "handle">;
 

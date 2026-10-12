@@ -67,7 +67,7 @@ export const rollupsItem: Subsection = {
           <code>#meeting</code>, …), with untagged ones last under Other.
         </li>
         <li>
-          <strong>Blocked</strong>: open tasks tagged <code>#blocked</code> or <code>#hold</code>.
+          <strong>Blocked</strong>: tasks on hold (<code>- [!]</code>). Cancelled tasks (<code>- [-]</code>) are left out.
         </li>
         <li>
           <strong>Still open</strong>: the other unchecked tasks, marked <em>in progress</em> when

@@ -5,8 +5,8 @@ import type { EditorView } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 import { findLinkAtPos } from "../utils/link-detection";
 import { findDateAtPos } from "../utils/date-detection";
-import { REGEX_TODO_TAGS, REGEX_TODO_STATUS_TAGS, REGEX_CHECKBOX } from "../components/regex";
-import { TAG_CYCLE, TAG_CYCLE_PREV, TODO_CYCLE, TODO_CYCLE_PREV } from "../components/constants";
+import { REGEX_TODO_TAGS } from "../components/regex";
+import { TAG_CYCLE, TAG_CYCLE_PREV } from "../components/constants";
 import { DateMatch } from "../types";
 
 interface Pos {
@@ -19,12 +19,6 @@ interface WorkflowMatch {
   start: number;
   end: number;
   isFmStatus?: boolean;
-}
-
-interface TodoMatch {
-  tag: string;
-  start: number;
-  end: number;
 }
 
 interface LinkPillState {
@@ -41,7 +35,7 @@ interface UseCodeMirrorFeaturesOptions {
   onWikiLinkClick?: (name: string) => void;
 }
 
-// Positioned-widget layer (Step 4): link pill, date picker, workflow/todo tag
+// Positioned-widget layer (Step 4): link pill, date picker, workflow tag
 // cycling. Detection is cursor-driven, not hover-driven; positions come from
 // `view.coordsAtPos`, converted to containerRef-relative coordinates for the
 // existing LinkPill/WorkflowPill/DatePickerCallout components.
@@ -56,8 +50,6 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
 
   const [workflowMatch, setWorkflowMatch] = useState<WorkflowMatch | null>(null);
   const [workflowMenuPos, setWorkflowMenuPos] = useState<Pos>({ top: 0, left: 0 });
-  const [todoMatch, setTodoMatch] = useState<TodoMatch | null>(null);
-  const [todoMenuPos, setTodoMenuPos] = useState<Pos>({ top: 0, left: 0 });
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -142,22 +134,6 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
         setWorkflowMatch(null);
       }
     }
-
-    REGEX_TODO_STATUS_TAGS.lastIndex = 0;
-    let tdMatch: RegExpExecArray | null;
-    let foundTodo = false;
-    while ((tdMatch = REGEX_TODO_STATUS_TAGS.exec(currentLine)) !== null) {
-      const tagStart = tdMatch.index;
-      const tagEnd = tagStart + tdMatch[0].length;
-      if (localPos >= tagStart && localPos <= tagEnd) {
-        const p = posToXY(view, lineStart + tagStart);
-        setTodoMatch({ tag: tdMatch[1].toLowerCase(), start: lineStart + tagStart, end: lineStart + tagEnd });
-        setTodoMenuPos({ top: p.top - 34, left: Math.max(0, p.left - 4) });
-        foundTodo = true;
-        break;
-      }
-    }
-    if (!foundTodo) setTodoMatch(null);
   }, [posToXY, buildLinkPill]);
 
   const onCursorActivity = useCallback((view: EditorView) => {
@@ -248,35 +224,6 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
     dispatchReplace(workflowMatch.start, workflowMatch.end, nextTag);
   }, [workflowMatch, dispatchReplace]);
 
-  const handleTodoCycle = useCallback((direction: "prev" | "next") => {
-    const view = viewRef.current;
-    if (!todoMatch || !view) return;
-    const cycle = direction === "next" ? TODO_CYCLE : TODO_CYCLE_PREV;
-    const nextTagName = cycle[todoMatch.tag];
-    const nextTag = `#${nextTagName}`;
-
-    // If the tag sits on a checkbox task line, keep the checkbox state in
-    // sync with the #done status (and revert it otherwise).
-    const line = view.state.doc.lineAt(todoMatch.start);
-    const checkboxMatch = REGEX_CHECKBOX.exec(line.text);
-
-    if (checkboxMatch) {
-      const charIdx = line.from + checkboxMatch[1].length;
-      const desiredState = nextTagName === "done" ? "x" : " ";
-      view.dispatch(view.state.update({
-        changes: [
-          { from: charIdx, to: charIdx + 1, insert: desiredState },
-          { from: todoMatch.start, to: todoMatch.end, insert: nextTag },
-        ],
-        userEvent: "input.replace",
-      }));
-      view.focus();
-      return;
-    }
-
-    dispatchReplace(todoMatch.start, todoMatch.end, nextTag);
-  }, [todoMatch, dispatchReplace, viewRef]);
-
   return {
     pillUrl: linkPill?.url ?? null,
     pillLabel: linkPill?.label ?? "",
@@ -286,7 +233,6 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
     handleSaveLink,
     dateMatch, setDateMatch, isDateExpanded, setIsDateExpanded, dateMenuPos, handleDateSelect,
     workflowMatch, workflowMenuPos, handleWorkflowCycle,
-    todoMatch, todoMenuPos, handleTodoCycle,
     onCursorActivity,
   };
 }

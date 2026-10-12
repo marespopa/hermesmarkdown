@@ -497,8 +497,7 @@ describe("CommandPalette", () => {
             path: "Work.md",
             line: 0,
             checked: false,
-            inProgress: false,
-            onHold: false,
+            status: "todo",
             dueDate: null,
             priority: null,
             tags: [],
@@ -659,7 +658,7 @@ describe("CommandPalette", () => {
         path: "Payroll.md", name: "Payroll.md", handle: { kind: "file", name: "Payroll.md" },
         tags: ["finance"], links: [], frontmatter: { sensitive: "true" }, modifiedAt: 2, wordCount: 3,
         tasks: [{
-          id: "Payroll.md#4", path: "Payroll.md", line: 4, checked: false, inProgress: false, onHold: false,
+          id: "Payroll.md#4", path: "Payroll.md", line: 4, status: "todo", checked: false,
           dueDate: null, priority: null, tags: ["money"], text: SECRET_TASK, raw: `- [ ] ${SECRET_TASK}`, lineHash: "hash",
         }],
       },

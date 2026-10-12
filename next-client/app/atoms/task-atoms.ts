@@ -6,6 +6,7 @@ import { isSensitiveFrontmatter } from "../utils/note-privacy";
 import { maskTask, normalizePrivacyLevel } from "../utils/note-display";
 import { isTemplatePath } from "../utils/templates/template-registry";
 import { atom_templatesFolder } from "./template-atoms";
+import { isOpenStatus } from "../utils/task-status";
 
 export const atom_allTasks = atom<TaskItem[]>((get) => {
   const meta = get(atom_fileMetadata);
@@ -75,7 +76,7 @@ export const atom_filteredTasks = atom<DisplayTask[]>((get) => {
     if (query && !t.text.toLowerCase().includes(query)) return false;
     if (tagFilter.length > 0 && !tagFilter.every((tag) => t.tags.includes(tag))) return false;
     if (dueFilter === "none") return !t.dueDate;
-    if (dueFilter === "overdue") return !!t.dueDate && t.dueDate < today && !t.checked;
+    if (dueFilter === "overdue") return !!t.dueDate && t.dueDate < today && isOpenStatus(t.status);
     if (dueFilter === "today") return t.dueDate === today;
     if (dueFilter === "upcoming") return !!t.dueDate && t.dueDate > today;
     return true;

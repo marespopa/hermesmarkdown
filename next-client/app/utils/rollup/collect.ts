@@ -1,7 +1,7 @@
 // Collects a period's task lines from its daily sheets into the three
 // rollup lists. Pure and predictable: no AI, task lines only.
 
-import { extractTasks, REGEX_TASK_HOLD } from "../taskExtractor";
+import { extractTasks } from "../taskExtractor";
 
 export interface RollupItem {
   key: string; // dedup key: text lowercased, whitespace collapsed
@@ -33,9 +33,10 @@ const byDateThenLine = (a: RollupItem, b: RollupItem) =>
   a.date < b.date ? -1 : a.date > b.date ? 1 : a.line - b.line;
 
 // One entry per task text: the occurrence from the latest day wins (state,
-// tags, link), and within a day the last one. Done = checked; Blocked =
-// unchecked and tagged #blocked / #hold (even when also in progress); every
-// other unchecked task is Still open. Each list runs oldest first.
+// tags, link), and within a day the last one. Done = `[x]`; Blocked = on
+// hold (`[!]`); to do and in progress are Still open; a cancelled task
+// (`[-]`) is left out, and drops an earlier occurrence of itself too. Each
+// list runs oldest first.
 export function collectRollup(sheets: { date: string; text: string }[]): RollupData {
   const latest = new Map<string, { item: RollupItem; state: State }>();
   const ordered = [...sheets].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
@@ -43,7 +44,11 @@ export function collectRollup(sheets: { date: string; text: string }[]): RollupD
     for (const task of extractTasks(sheet.date, sheet.text)) {
       if (!task.text) continue;
       const key = rollupKey(task.text);
-      const state: State = task.checked ? "done" : REGEX_TASK_HOLD.test(task.raw) ? "blocked" : "open";
+      if (task.status === "cancelled") {
+        latest.delete(key);
+        continue;
+      }
+      const state: State = task.status === "done" ? "done" : task.status === "hold" ? "blocked" : "open";
       latest.set(key, {
         state,
         item: {
@@ -52,7 +57,7 @@ export function collectRollup(sheets: { date: string; text: string }[]): RollupD
           line: task.line,
           text: task.text,
           tags: task.tags,
-          inProgress: task.inProgress,
+          inProgress: task.status === "prog",
           dueDate: task.dueDate,
         },
       });

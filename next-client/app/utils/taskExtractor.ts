@@ -1,32 +1,30 @@
+import { TASK_STATUS_CHAR, taskStatusFromChar, toggledStatus, type TaskStatus } from "./task-status";
+
 export type TaskPriority = "high" | "med" | "low";
 
 export interface TaskItem {
   id: string; // `${path}#${line}`
   path: string;
   line: number; // 0-indexed
-  checked: boolean;
-  inProgress: boolean; // unchecked task tagged #prog
-  onHold: boolean; // unchecked task tagged #hold or #blocked (and not in progress)
+  status: TaskStatus; // from the box character (see task-status.ts)
+  checked: boolean; // status === "done"
   dueDate: string | null; // from @due(YYYY-MM-DD), verbatim string
   priority: TaskPriority | null; // from @priority(high|med|low)
-  tags: string[]; // non-status #tags, lowercase, de-duplicated, in appearance order
+  tags: string[]; // #tags, lowercase, de-duplicated, in appearance order
   text: string; // display text, checkbox marker + tags + @due()/@priority() stripped
   raw: string; // full original line, used for write-back
   lineHash: string; // fingerprint of `raw`, staleness guard for write-back
 }
 
-export const REGEX_TASK_LINE = /^(\s*[-*]\s*\[)([ xX/])(\]\s*)(.*)$/;
-export const REGEX_TASK_PROG = /#prog\b/i;
-export const REGEX_TASK_HOLD = /#(?:hold|blocked)\b/i;
+export const REGEX_TASK_LINE = /^(\s*[-*]\s*\[)([ xX/!-])(\]\s*)(.*)$/;
 export const REGEX_TASK_DUE = /@due\(\s*([^)]+?)\s*\)/i;
 export const REGEX_TASK_PRIORITY = /@priority\(\s*(high|med|low)\s*\)/i;
-const STATUS_TAG_NAMES = new Set(["todo", "prog", "hold", "blocked", "done"]);
 const REGEX_TASK_TAG = /#([a-z][\w-]*)/gi;
-// Strips @due()/@priority() metadata plus every #tag (status and custom
-// alike — custom tags are surfaced separately as pills, not left inline) from
-// the displayed text. Also swallows an enclosing pair of parens (e.g.
-// "(#todo)") so stripping doesn't leave a bare "()" behind.
-const REGEX_TASK_CLEANUP = /@(?:due|priority)\([^)]*\)|\(\s*#(?:todo|prog|hold|blocked|done)\s*\)|#[a-z][\w-]*/gi;
+// Strips @due()/@priority() metadata plus every #tag (tags are surfaced
+// separately as pills, not left inline) from the displayed text. Also
+// swallows parens around a lone tag (e.g. "(#infra)") so stripping doesn't
+// leave a bare "()" behind.
+const REGEX_TASK_CLEANUP = /@(?:due|priority)\([^)]*\)|\(\s*#[a-z][\w-]*\s*\)|#[a-z][\w-]*/gi;
 
 export function simpleHash(s: string): string {
   let h = 0;
@@ -40,20 +38,14 @@ export function extractTasks(path: string, content: string): TaskItem[] {
   lines.forEach((raw, i) => {
     const m = raw.match(REGEX_TASK_LINE);
     if (!m) return;
-    const checked = m[2].toLowerCase() === "x";
-    // "/" is the widely-used Obsidian-style in-progress marker, in addition
-    // to the existing #prog tag convention.
-    const inProgress = !checked && (m[2] === "/" || REGEX_TASK_PROG.test(raw));
-    const onHold = !checked && !inProgress && REGEX_TASK_HOLD.test(raw);
+    const status = taskStatusFromChar(m[2]);
     const dueMatch = m[4].match(REGEX_TASK_DUE);
     const dueDate = dueMatch ? dueMatch[1].trim() : null;
     const priorityMatch = m[4].match(REGEX_TASK_PRIORITY);
     const priority = priorityMatch ? (priorityMatch[1].toLowerCase() as TaskPriority) : null;
     const tags = Array.from(
       new Set(
-        Array.from(m[4].matchAll(REGEX_TASK_TAG))
-          .map((tm) => tm[1].toLowerCase())
-          .filter((tag) => !STATUS_TAG_NAMES.has(tag)),
+        Array.from(m[4].matchAll(REGEX_TASK_TAG)).map((tm) => tm[1].toLowerCase()),
       ),
     );
     const text = m[4].replace(REGEX_TASK_CLEANUP, "").replace(/\s+/g, " ").trim();
@@ -61,9 +53,8 @@ export function extractTasks(path: string, content: string): TaskItem[] {
       id: `${path}#${i}`,
       path,
       line: i,
-      checked,
-      inProgress,
-      onHold,
+      status,
+      checked: status === "done",
       dueDate,
       priority,
       tags,
@@ -89,11 +80,16 @@ function findNearbyLine(lines: string[], expectedLine: number, raw: string): num
   return -1;
 }
 
-// Surgically flips the checkbox character on a task's line, guarding against
-// the file having drifted since the task was scanned. Returns null (no-op)
-// rather than risk corrupting an unrelated line if the target can't be
-// located with confidence.
-export function patchLineInContent(content: string, task: TaskItem): string | null {
+// Surgically sets the box character on a task's line to `status` (by default
+// a click's toggle: open → done, closed → to do), guarding against the file
+// having drifted since the task was scanned. Returns null (no-op) rather than
+// risk corrupting an unrelated line if the target can't be located with
+// confidence, or when the line already has that status.
+export function patchLineInContent(
+  content: string,
+  task: TaskItem,
+  status: TaskStatus = toggledStatus(task.status),
+): string | null {
   const lines = content.split("\n");
   let targetLine = task.line;
   const current = lines[targetLine];
@@ -105,7 +101,7 @@ export function patchLineInContent(content: string, task: TaskItem): string | nu
 
   const toggled = lines[targetLine].replace(
     REGEX_TASK_LINE,
-    (_m, pre, _box, post, rest) => `${pre}${task.checked ? " " : "x"}${post}${rest}`,
+    (_m, pre, _box, post, rest) => `${pre}${TASK_STATUS_CHAR[status]}${post}${rest}`,
   );
   if (toggled === lines[targetLine]) return null;
   lines[targetLine] = toggled;
