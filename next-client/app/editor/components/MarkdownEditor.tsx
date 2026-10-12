@@ -39,6 +39,7 @@ import VimStatusPill from "./markdown-editor/VimStatusPill";
 import { useVimStatus } from "../hooks/use-vim-status";
 import TemplateStrip from "./TemplateStrip";
 import SheetSwitcher from "./SheetSwitcher";
+import SheetSkeleton from "./SheetSkeleton";
 import { useRollupEditorContext } from "../hooks/use-rollup-editor-context";
 import { useRollupLinkClick } from "../hooks/use-rollup-link-click";
 import { parseSheetName } from "@/app/utils/sheet-nav";
@@ -78,6 +79,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const sheet = useMemo(() => parseSheetName(filePath.split("/").pop() ?? ""), [filePath]);
   const rollupSummary = useMemo(() => (sheet?.period ? summaryOf(props.value, REGEX_ROLLUP_START) : null), [sheet, props.value]);
   const [editorView, setEditorView] = useState<EditorView | null>(null);
+  // The sheet switcher is opening another sheet: a skeleton covers the text.
+  const [isSheetOpening, setIsSheetOpening] = useState(false);
 
   const editorValue = props.value;
   const editorOnChange = useCallback((newVal: string) => {
@@ -314,13 +317,14 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         } as React.CSSProperties}
       >
         {isTemplateNote && <TemplateStrip name={filePath.split("/").pop()!.replace(/\.md$/i, "")} doc={editorValue} view={editorView} onAddField={insertTemplateField} />}
-        {!isTemplateNote && sheet && vaultHandle && <SheetSwitcher sheet={sheet} summary={rollupSummary} />}
+        {!isTemplateNote && sheet && vaultHandle && <SheetSwitcher sheet={sheet} summary={rollupSummary} onPendingChange={(level) => setIsSheetOpening(level !== null)} />}
         <div className="editor-measure relative h-full">
+          {isSheetOpening && <SheetSkeleton />}
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div
             id="md-editor"
             ref={containerRef}
-            className={`h-full ${wordWrap ? "" : "editor-no-wrap-viewport"}`}
+            className={`h-full ${wordWrap ? "" : "editor-no-wrap-viewport"} ${isSheetOpening ? "opacity-0 transition-opacity duration-0 delay-150" : ""}`}
             tabIndex={0}
           />
 

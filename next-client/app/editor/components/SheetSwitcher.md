@@ -8,10 +8,10 @@ Where the controls lead (`levelTarget` / `stepTarget`):
 - **‹ ›**: days skip to the nearest day that has a sheet, and › from the latest one goes to today; other levels move by one.
 - Never past today, and a day is only ever today or a day that already has a sheet, so browsing never creates empty past sheets. A control with nowhere to go is disabled. Rollup sheets are generated when missing, as the rollup commands do.
 
-Days open through Today's sheet (`openTodayNote(date)`), weeks and months through `openRollup` (`use-sheet-navigation.ts`). Clicks are ignored while a sheet is opening. The line carries `typing-chrome`, so it fades with the rest of the chrome while typing. Rendered by `MarkdownEditor` above the text column, only with a vault open and not on template notes.
+Days open through Today's sheet (`openTodayNote(date)`), weeks and months through `openRollup` (`use-sheet-navigation.ts`). A rollup can take a moment to build, so the tapped level takes its colour and underline at once, pulsing while the sheet opens (the date label pulses on ‹ ›), and the line is `aria-busy`. `onPendingChange` reports the level being opened, then `null`, so `MarkdownEditor` can cover the old text with a [SheetSkeleton](SheetSkeleton.md). Clicks are ignored while a sheet is opening. The line carries `typing-chrome`, so it fades with the rest of the chrome while typing. Rendered by `MarkdownEditor` above the text column, only with a vault open and not on template notes.
 
 ## Local State & Storage
-- State: `busy` while a sheet opens; daily sheet dates from `atom_fileMetadata` (via `useSheetNavigation`).
+- State: `pending`, the level being opened, while a sheet opens; daily sheet dates from `atom_fileMetadata` (via `useSheetNavigation`).
 - Persistence: None.
 
 ## Dependencies
@@ -29,3 +29,4 @@ const sheet = parseSheetName("2026-W41.md");
 |---|---|---|---|
 | sheet | `Sheet` |  | The sheet the editor shows, from `parseSheetName` |
 | summary? | `RollupSummary \| null` |  | A rollup sheet's counts (`summaryOf`); shows the done bar |
+| onPendingChange? | `(level: SheetLevel \| null) => void` |  | Called with the level being opened, then `null` once it's open or failed |

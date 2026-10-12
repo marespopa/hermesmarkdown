@@ -13,6 +13,8 @@ interface SheetSwitcherProps {
   sheet: Sheet;
   /** A rollup sheet's counts (its summary line): a small done bar by the date. */
   summary?: RollupSummary | null;
+  /** Called with the level being opened, then `null` once it's open (or failed). */
+  onPendingChange?: (level: SheetLevel | null) => void;
 }
 
 const LEVEL_NAME: Record<SheetLevel, string> = { day: "Day", week: "Week", month: "Month", quarter: "Quarter", year: "Year" };
@@ -28,20 +30,27 @@ const CURRENT_NAME: Record<SheetLevel, string> = {
 // Year, each with its colour, the current level underlined, then ‹ date › to
 // step through time at that level (a rollup sheet adds a thin done bar). A control with nowhere to go (no daily sheet in the
 // week, the future) is disabled. Fades with the rest of the chrome while
-// typing.
-export default function SheetSwitcher({ sheet, summary }: SheetSwitcherProps) {
+// typing. A rollup can take a moment to build, so a tapped level takes the
+// underline at once (pulsing) and `onPendingChange` lets the editor cover
+// the old text with a skeleton until the new sheet is open.
+export default function SheetSwitcher({ sheet, summary, onPendingChange }: SheetSwitcherProps) {
   const { openSheet, targets } = useSheetNavigation();
-  const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<SheetLevel | null>(null);
   const to = targets(sheet);
   const isCurrent = isCurrentSheet(sheet, new Date());
+  const shownLevel = pending ?? sheet.level;
 
   const go = async (level: SheetLevel, date: Date | null) => {
-    if (!date || busy) return;
-    setBusy(true);
+    if (!date || pending) return;
+    setPending(level);
+    onPendingChange?.(level);
     try {
       await openSheet(level, date);
+    } catch (err) {
+      console.warn("Sheet switcher: couldn't open the sheet", err);
     } finally {
-      setBusy(false);
+      setPending(null);
+      onPendingChange?.(null);
     }
   };
 
@@ -50,11 +59,13 @@ export default function SheetSwitcher({ sheet, summary }: SheetSwitcherProps) {
   return (
     <nav
       aria-label="Worklog sheets"
+      aria-busy={pending ? true : undefined}
       className="typing-chrome mb-4 flex flex-wrap items-center justify-between gap-x-3 font-sans text-ui-caption select-none"
     >
       <div role="group" aria-label="Level" className="flex items-center">
         {SHEET_LEVELS.map((level) => {
           const active = level === sheet.level;
+          const shown = level === shownLevel;
           const classes = SHEET_LEVEL_CLASSES[level];
           return (
             <Button
@@ -67,10 +78,11 @@ export default function SheetSwitcher({ sheet, summary }: SheetSwitcherProps) {
                 "relative min-h-11 gap-1.5 px-2.5 active:scale-100",
                 "after:absolute after:inset-x-2.5 after:bottom-2 after:h-0.5 after:rounded-full after:transition-opacity",
                 classes.underline,
-                active ? `${classes.text} after:opacity-100` : "after:opacity-0 hover:after:opacity-40",
+                shown ? `${classes.text} after:opacity-100` : "after:opacity-0 hover:after:opacity-40",
+                pending === level ? "motion-safe:after:animate-pulse" : "",
               ].join(" ")}
             >
-              <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${classes.dot} ${active ? "" : "opacity-60"}`} />
+              <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${classes.dot} ${shown ? "" : "opacity-60"}`} />
               {LEVEL_NAME[level]}
             </Button>
           );
@@ -87,7 +99,7 @@ export default function SheetSwitcher({ sheet, summary }: SheetSwitcherProps) {
         >
           <HiChevronLeft size={16} aria-hidden />
         </Button>
-        <span className="tabular-nums" aria-live="polite">
+        <span className={`tabular-nums ${pending ? "motion-safe:animate-pulse motion-reduce:opacity-50" : ""}`} aria-live="polite">
           {sheetLabel(sheet)}
           {isCurrent && <span className={`ml-1.5 ${SHEET_LEVEL_CLASSES[sheet.level].text}`}>· {CURRENT_NAME[sheet.level]}</span>}
         </span>

@@ -1,6 +1,6 @@
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { todayNoteName } from "@/app/utils/today-note";
@@ -10,10 +10,10 @@ import SheetSwitcher from "./SheetSwitcher";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 const openTodayNote = vi.fn<(date?: Date) => Promise<void>>(async () => {});
 vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => ({ openTodayNote }) }));
-const openRollup = vi.fn(async () => {});
+const openRollup = vi.fn<(...args: unknown[]) => Promise<void>>(async () => {});
 vi.mock("../hooks/use-rollups", () => ({ useRollups: () => ({ openRollup }) }));
 
-function renderSheet(name: string, dailySheets: string[] = []) {
+function renderSheet(name: string, dailySheets: string[] = [], onPendingChange?: (level: string | null) => void) {
   const store = createStore();
   const metadata: Record<string, FileMetadata> = {};
   for (const date of dailySheets) {
@@ -23,7 +23,7 @@ function renderSheet(name: string, dailySheets: string[] = []) {
   store.set(atom_fileMetadata, metadata);
   render(
     <Provider store={store}>
-      <SheetSwitcher sheet={parseSheetName(name)!} />
+      <SheetSwitcher sheet={parseSheetName(name)!} onPendingChange={onPendingChange} />
     </Provider>,
   );
 }
@@ -62,5 +62,36 @@ describe("SheetSwitcher", () => {
     renderSheet("2026-W38.md");
     expect(screen.getByRole("button", { name: "Day" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Month" })).toBeEnabled();
+  });
+
+  it("marks the tapped level at once and reports it until the sheet is open", async () => {
+    let finish!: () => void;
+    openRollup.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));
+    const onPendingChange = vi.fn();
+    renderSheet("2026-10-11.md", ["2026-10-11"], onPendingChange);
+
+    fireEvent.click(screen.getByRole("button", { name: "Year" }));
+    expect(onPendingChange).toHaveBeenLastCalledWith("year");
+    expect(screen.getByRole("navigation", { name: "Worklog sheets" })).toHaveAttribute("aria-busy", "true");
+    // A second tap while it opens does nothing.
+    fireEvent.click(screen.getByRole("button", { name: "Week" }));
+    expect(openRollup).toHaveBeenCalledTimes(1);
+
+    await act(async () => finish());
+    expect(onPendingChange).toHaveBeenLastCalledWith(null);
+    expect(screen.getByRole("navigation", { name: "Worklog sheets" })).not.toHaveAttribute("aria-busy");
+  });
+
+  it("lets go of the pending level when opening fails", async () => {
+    openRollup.mockRejectedValueOnce(new Error("unreadable"));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const onPendingChange = vi.fn();
+    renderSheet("2026-10-11.md", ["2026-10-11"], onPendingChange);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Month" }));
+    });
+    expect(onPendingChange).toHaveBeenLastCalledWith(null);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 });
