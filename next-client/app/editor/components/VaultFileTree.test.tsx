@@ -449,6 +449,26 @@ describe("VaultFileTree selection, keyboard and menus", () => {
     expect(trashItems.mock.calls[0][0].map((item: any) => item.path)).toEqual(["a.md", "b.md"]);
   });
 
+  it("offers New Note from Template… in a folder's menu (that folder) and on empty space (the template decides)", () => {
+    const createNoteFromTemplate = vi.fn();
+    renderFiles({
+      treeView: true,
+      folderPaths: ["Folder"],
+      processedFiles: [{ name: "nested.md", path: "Folder/nested.md", handle: { kind: "file", name: "nested.md" } }],
+      createNewFile: vi.fn(),
+      createFolder: vi.fn(),
+      createNoteFromTemplate,
+    });
+    fireEvent.click(screen.getByLabelText("Folder options"));
+    expect(screen.getAllByRole("menuitem").slice(0, 3).map((item) => item.textContent)).toEqual(["New Note", "New Note from Template…", "New Folder"]);
+    fireEvent.click(screen.getByRole("menuitem", { name: "New Note from Template…" }));
+    expect(createNoteFromTemplate).toHaveBeenCalledWith("Folder");
+
+    fireEvent.contextMenu(screen.getByRole("tree"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New Note from Template…" }));
+    expect(createNoteFromTemplate).toHaveBeenLastCalledWith("");
+  });
+
   it("offers New Note and New Folder when right-clicking empty space", () => {
     renderFiles({ treeView: true, processedFiles: files, createNewFile: vi.fn(), createFolder: vi.fn() });
     fireEvent.contextMenu(screen.getByRole("tree"));

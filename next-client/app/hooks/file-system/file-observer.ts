@@ -2,10 +2,12 @@
 // records for observed handles instead of making us poll them. The API isn't
 // in TypeScript's DOM lib yet, so the minimal shape we use is declared here.
 
-type FileSystemChangeRecord = {
+export type FileSystemChangeRecord = {
   type: "appeared" | "disappeared" | "errored" | "modified" | "moved" | "unknown";
   changedHandle: FileSystemHandle | null;
   root: FileSystemHandle;
+  /** Path of the changed entry under the observed root. */
+  relativePathComponents?: string[];
 };
 
 type FileSystemObserverInstance = {
@@ -91,4 +93,31 @@ export function createFileObserver(onChange: () => void): FileObserver | null {
       observer.disconnect();
     },
   };
+}
+
+// Whether a change under an observed vault changes its file list: a file or
+// folder appeared, went away or moved (or the browser can't say what
+// happened). Edits to a file's text don't (the open-file watcher and the
+// focus re-index cover those), nor does anything in a hidden folder such as
+// `.hermes/` (the Trash).
+export function changesFileList(record: FileSystemChangeRecord): boolean {
+  if (record.type === "modified" || record.type === "errored") return false;
+  return !(record.relativePathComponents ?? []).some((part) => part.startsWith("."));
+}
+
+// Watches a whole vault folder (recursively) and calls `onChange` when its
+// file list changes (changesFileList). Returns a stop function, or null when
+// the browser has no FileSystemObserver or can't observe this folder.
+export async function observeVault(root: FileSystemDirectoryHandle, onChange: () => void): Promise<(() => void) | null> {
+  const Observer = getObserverConstructor();
+  if (!Observer) return null;
+  try {
+    const observer = new Observer((records) => {
+      if (records.some(changesFileList)) onChange();
+    });
+    await observer.observe(root, { recursive: true });
+    return () => observer.disconnect();
+  } catch {
+    return null;
+  }
 }

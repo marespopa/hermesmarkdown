@@ -2,7 +2,7 @@
 
 import React, { useCallback, useRef, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { HiChevronRight, HiOutlineCheckCircle, HiOutlineDocumentAdd, HiOutlineDocumentText, HiOutlineDotsHorizontal, HiOutlineFolderAdd, HiOutlineHome, HiOutlineTemplate } from "react-icons/hi";
+import { HiChevronRight, HiOutlineCheckCircle, HiOutlineDocumentText, HiOutlineDotsHorizontal, HiOutlineHome, HiOutlineTemplate } from "react-icons/hi";
 import { atom_activeFilePath, atom_activePaneId, atom_openFiles, atom_workspaceLayout, findLeaf, getWorkspaceTabs } from "@/app/atoms/atoms";
 import { VscLayoutSidebarLeft } from "react-icons/vsc";
 import { atom_vaultName } from "@/app/atoms/vault-atoms";
@@ -16,6 +16,7 @@ import PaneToolbarButton from "./PaneToolbarButton";
 import TabContextMenu from "./TabContextMenu";
 import { statusDot } from "./PaneTab";
 import VaultFileTree from "./VaultFileTree";
+import { fileCreateActions } from "./vault-tree/file-create-actions";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
 
 const NO_TAGS: string[] = [];
@@ -118,7 +119,7 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
   const vaultName = useAtomValue(atom_vaultName);
   const {
     vaultHandle, openFile, renameFile, deleteFile, trashItems, duplicateFile, moveItem, moveItems,
-    createNewFile, createFolder, undoFileOperation,
+    createNewFile, createFolder, undoFileOperation, createNoteFromTemplate,
   } = useFileSystem();
   const treeController = useRef<VaultFileTreeController | null>(null);
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
@@ -250,10 +251,11 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
         {vaultHandle && (
           <Section
             title="Files"
-            menu={[
-              { label: "New Note", icon: <HiOutlineDocumentAdd size={14} className="opacity-80" />, onSelect: () => createAtRoot("file") },
-              { label: "New Folder", icon: <HiOutlineFolderAdd size={14} className="opacity-80" />, onSelect: () => createAtRoot("folder") },
-            ]}
+            menu={fileCreateActions({
+              newNote: () => createAtRoot("file"),
+              newFromTemplate: () => void createNoteFromTemplate(),
+              newFolder: () => createAtRoot("folder"),
+            })}
           >
             <VaultFileTree
               processedFiles={allFiles}
@@ -276,6 +278,7 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
               resolveFolderHandle={resolveFolderHandle}
               createNewFile={createNewFile}
               createFolder={createFolder}
+              createNoteFromTemplate={(folder) => createNoteFromTemplate(undefined, folder)}
               moveItem={moveItem}
               moveItems={moveItems}
             />
