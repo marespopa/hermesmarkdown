@@ -7,7 +7,7 @@ export const editorWorkspaceItems: Subsection[] = [
     title: "Tasks page",
     lead: "A vault-wide checklist — every checkbox task across every note, in four lists: Now, Today, Upcoming and All.",
     keywords:
-      "task tasks checkbox status todo in progress hold blocked done cancelled pane explorer aggregate due date priority tags filter now today upcoming overdue smart list",
+      "task tasks checkbox status todo in progress hold blocked done cancelled pane explorer aggregate due date priority tags filter now today upcoming overdue smart list swipe started done date stamp",
     body: (
       <>
         <p>
@@ -27,6 +27,14 @@ export const editorWorkspaceItems: Subsection[] = [
           change it. In the editor, a click on the box completes the task (or reopens a done or
           cancelled one), <code>Ctrl/Cmd+Enter</code> cycles To Do → In Progress → Done, and the
           command palette has Task: Start, Task: Put on hold, Task: Cancel and Task: Reset to To Do.
+        </p>
+        <p>
+          Status changes date the task for you. Starting it adds <code>@started(2026-10-12)</code>{" "}
+          (once: pausing and resuming keeps the first date), and completing it adds{" "}
+          <code>@done(2026-10-12)</code>, both at the end of the line. Reopening a done task removes{" "}
+          <code>@done</code>; resetting it to To Do removes both, as if it was never started. The
+          Tasks page shows them under the task, like <em>Started 2 days ago</em> or{" "}
+          <em>Done today</em>, and you can edit or delete them like any other text.
         </p>
         <p>
           A task can also carry a due date (<code>@due(2026-01-31)</code>), a priority (
@@ -55,6 +63,12 @@ export const editorWorkspaceItems: Subsection[] = [
           other status, right-click the ring (long-press on touch) or use the ⋯ button at the end of
           the row. The change writes straight back to the source line in the file, no need to open
           it first. Click the task text instead to open its note and jump to that line.
+        </p>
+        <p>
+          On a touch screen, swipe a task. Swipe right to move it forward: Start a to-do, Complete a
+          task in progress, Resume one on hold, or Reopen a done or cancelled one. Swipe left to set
+          it aside: Hold, or Cancel a task already on hold. The action runs once the row passes the
+          point where its label brightens; let go before that to leave the task as it was.
         </p>
         <Callout type="note">
           In All grouped by status, In Progress comes first, then To Do and On Hold. Done and

@@ -11,6 +11,8 @@ const task = (id: string, overrides: Partial<TaskItem> = {}): TaskItem => ({
   checked: false,
   dueDate: null,
   priority: null,
+  startedDate: null,
+  doneDate: null,
   tags: [],
   text: id,
   raw: "",

@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TaskItem } from "@/app/utils/taskExtractor";
 import type { TaskStatus } from "@/app/utils/task-status";
-import { buildViewSections, localISODate, UP_NEXT_LIMIT, upcomingLabel, viewCounts } from "./task-views";
+import { buildViewSections, localISODate, sinceLabel, UP_NEXT_LIMIT, upcomingLabel, viewCounts, workDateLabel } from "./task-views";
 
 const TODAY = "2026-10-12"; // a Monday
 
@@ -14,6 +14,8 @@ const task = (id: string, status: TaskStatus = "todo", dueDate: string | null = 
   checked: status === "done",
   dueDate,
   priority: null,
+  startedDate: null,
+  doneDate: null,
   tags: [],
   text: id,
   raw: "",
@@ -84,6 +86,35 @@ describe("upcomingLabel", () => {
     expect(upcomingLabel("2026-10-18", TODAY)).toBe("Sunday");
     expect(upcomingLabel("2026-10-19", TODAY)).toBe("Mon 19 Oct");
     expect(upcomingLabel("2027-01-04", TODAY)).toBe("Mon 4 Jan 2027");
+  });
+});
+
+describe("sinceLabel", () => {
+  it("says how long ago a stamp's day was", () => {
+    expect(sinceLabel(TODAY, TODAY)).toBe("today");
+    expect(sinceLabel("2026-10-11", TODAY)).toBe("yesterday");
+    expect(sinceLabel("2026-10-08", TODAY)).toBe("4 days ago");
+    expect(sinceLabel("2026-10-05", TODAY)).toBe("5 Oct");
+    expect(sinceLabel("2025-12-30", TODAY)).toBe("30 Dec 2025");
+  });
+
+  it("has nothing for a future or non-ISO date", () => {
+    expect(sinceLabel("2026-10-13", TODAY)).toBeNull();
+    expect(sinceLabel("last week", TODAY)).toBeNull();
+  });
+});
+
+describe("workDateLabel", () => {
+  it("shows the start while under way or on hold, the finish once done", () => {
+    expect(workDateLabel({ ...task("a", "prog"), startedDate: "2026-10-10" }, TODAY)).toBe("Started 2 days ago");
+    expect(workDateLabel({ ...task("b", "hold"), startedDate: TODAY }, TODAY)).toBe("Started today");
+    expect(workDateLabel({ ...task("c", "done"), startedDate: "2026-10-01", doneDate: "2026-10-11" }, TODAY)).toBe("Done yesterday");
+  });
+
+  it("shows nothing without a stamp, or for to do and cancelled tasks", () => {
+    expect(workDateLabel(task("d", "prog"), TODAY)).toBeNull();
+    expect(workDateLabel({ ...task("e", "cancelled"), startedDate: "2026-10-10" }, TODAY)).toBeNull();
+    expect(workDateLabel({ ...task("f", "todo"), startedDate: "2026-10-10" }, TODAY)).toBeNull();
   });
 });
 

@@ -60,6 +60,34 @@ export function upcomingLabel(due: string, today: string): string {
   return due.slice(0, 4) === today.slice(0, 4) ? label : `${label} ${date.getFullYear()}`;
 }
 
+// How long ago a work stamp's day was: "today", "yesterday", "3 days ago"
+// within the week, then "5 Oct" (with the year when it isn't this one).
+// Null for a date that isn't ISO or lies ahead.
+export function sinceLabel(iso: string, today: string): string | null {
+  if (!REGEX_ISO_DATE.test(iso) || iso > today) return null;
+  const date = parseISO(iso);
+  const days = Math.round((parseISO(today).getTime() - date.getTime()) / 86_400_000);
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days} days ago`;
+  const label = `${date.getDate()} ${MONTHS[date.getMonth()]}`;
+  return iso.slice(0, 4) === today.slice(0, 4) ? label : `${label} ${date.getFullYear()}`;
+}
+
+// The row's work-date note: "Started 2 days ago" while a task is under way
+// or on hold, "Done today" once done; null otherwise or without a stamp.
+export function workDateLabel(task: TaskItem, today: string): string | null {
+  if ((task.status === "prog" || task.status === "hold") && task.startedDate) {
+    const since = sinceLabel(task.startedDate, today);
+    return since && `Started ${since}`;
+  }
+  if (task.status === "done" && task.doneDate) {
+    const since = sinceLabel(task.doneDate, today);
+    return since && `Done ${since}`;
+  }
+  return null;
+}
+
 const isDated = (task: TaskItem) => !!task.dueDate && REGEX_ISO_DATE.test(task.dueDate);
 
 export function buildViewSections<T extends TaskItem>(

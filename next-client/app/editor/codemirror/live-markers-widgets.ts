@@ -2,7 +2,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { IconType } from "react-icons";
 import { EditorView, WidgetType } from "@codemirror/view";
-import { TASK_STATUS_CHAR, taskStatusFromChar, toggledStatus, type TaskStatus } from "@/app/utils/task-status";
+import { taskStatusFromChar, toggledStatus, type TaskStatus } from "@/app/utils/task-status";
+import { statusLineEdits } from "@/app/utils/task-line";
 
 // Widgets live-markers.ts draws in place of Markdown syntax.
 
@@ -93,15 +94,17 @@ export class TaskBoxWidget extends WidgetType {
 }
 
 // Ticks the task whose widget starts at `markerFrom` (to do, in progress or
-// on hold), or reopens a done or cancelled one.
+// on hold), or reopens a done or cancelled one, with its @started/@done
+// stamps (task-line.ts).
 export function toggleTaskBox(view: EditorView, markerFrom: number): boolean {
   const line = view.state.doc.lineAt(markerFrom);
   const bracket = line.text.indexOf("[", markerFrom - line.from);
   if (bracket < 0) return false;
-  const at = line.from + bracket + 1;
-  const current = view.state.doc.sliceString(at, at + 1);
+  const current = line.text.charAt(bracket + 1);
+  const edits = statusLineEdits(line.text, toggledStatus(taskStatusFromChar(current)));
+  if (!edits) return false;
   view.dispatch({
-    changes: { from: at, to: at + 1, insert: TASK_STATUS_CHAR[toggledStatus(taskStatusFromChar(current))] },
+    changes: edits.map((edit) => ({ from: line.from + edit.from, to: line.from + edit.to, insert: edit.insert })),
     userEvent: "input.outline.task",
   });
   return true;

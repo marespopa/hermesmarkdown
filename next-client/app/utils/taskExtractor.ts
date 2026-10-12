@@ -1,4 +1,5 @@
-import { TASK_STATUS_CHAR, taskStatusFromChar, toggledStatus, type TaskStatus } from "./task-status";
+import { taskStatusFromChar, toggledStatus, type TaskStatus } from "./task-status";
+import { withTaskStatus } from "./task-line";
 
 export type TaskPriority = "high" | "med" | "low";
 
@@ -10,6 +11,8 @@ export interface TaskItem {
   checked: boolean; // status === "done"
   dueDate: string | null; // from @due(YYYY-MM-DD), verbatim string
   priority: TaskPriority | null; // from @priority(high|med|low)
+  startedDate: string | null; // from @started(YYYY-MM-DD), stamped when started (task-line.ts)
+  doneDate: string | null; // from @done(YYYY-MM-DD), stamped when completed
   tags: string[]; // #tags, lowercase, de-duplicated, in appearance order
   text: string; // display text, checkbox marker + tags + @due()/@priority() stripped
   raw: string; // full original line, used for write-back
@@ -19,12 +22,14 @@ export interface TaskItem {
 export const REGEX_TASK_LINE = /^(\s*[-*]\s*\[)([ xX/!-])(\]\s*)(.*)$/;
 export const REGEX_TASK_DUE = /@due\(\s*([^)]+?)\s*\)/i;
 export const REGEX_TASK_PRIORITY = /@priority\(\s*(high|med|low)\s*\)/i;
+export const REGEX_TASK_STARTED = /@started\(\s*([^)]+?)\s*\)/i;
+export const REGEX_TASK_DONE = /@done\(\s*([^)]+?)\s*\)/i;
 const REGEX_TASK_TAG = /#([a-z][\w-]*)/gi;
-// Strips @due()/@priority() metadata plus every #tag (tags are surfaced
+// Strips @due()/@priority()/@started()/@done() metadata plus every #tag (tags are surfaced
 // separately as pills, not left inline) from the displayed text. Also
 // swallows parens around a lone tag (e.g. "(#infra)") so stripping doesn't
 // leave a bare "()" behind.
-const REGEX_TASK_CLEANUP = /@(?:due|priority)\([^)]*\)|\(\s*#[a-z][\w-]*\s*\)|#[a-z][\w-]*/gi;
+const REGEX_TASK_CLEANUP = /@(?:due|priority|started|done)\([^)]*\)|\(\s*#[a-z][\w-]*\s*\)|#[a-z][\w-]*/gi;
 
 export function simpleHash(s: string): string {
   let h = 0;
@@ -43,6 +48,8 @@ export function extractTasks(path: string, content: string): TaskItem[] {
     const dueDate = dueMatch ? dueMatch[1].trim() : null;
     const priorityMatch = m[4].match(REGEX_TASK_PRIORITY);
     const priority = priorityMatch ? (priorityMatch[1].toLowerCase() as TaskPriority) : null;
+    const startedDate = m[4].match(REGEX_TASK_STARTED)?.[1].trim() ?? null;
+    const doneDate = m[4].match(REGEX_TASK_DONE)?.[1].trim() ?? null;
     const tags = Array.from(
       new Set(
         Array.from(m[4].matchAll(REGEX_TASK_TAG)).map((tm) => tm[1].toLowerCase()),
@@ -57,6 +64,8 @@ export function extractTasks(path: string, content: string): TaskItem[] {
       checked: status === "done",
       dueDate,
       priority,
+      startedDate,
+      doneDate,
       tags,
       text,
       raw,
@@ -80,8 +89,9 @@ function findNearbyLine(lines: string[], expectedLine: number, raw: string): num
   return -1;
 }
 
-// Surgically sets the box character on a task's line to `status` (by default
-// a click's toggle: open → done, closed → to do), guarding against the file
+// Surgically sets a task's line to `status` (by default a click's toggle:
+// open → done, closed → to do), with its @started/@done stamps
+// (task-line.ts), guarding against the file
 // having drifted since the task was scanned. Returns null (no-op) rather than
 // risk corrupting an unrelated line if the target can't be located with
 // confidence, or when the line already has that status.
@@ -99,10 +109,7 @@ export function patchLineInContent(
     targetLine = found;
   }
 
-  const toggled = lines[targetLine].replace(
-    REGEX_TASK_LINE,
-    (_m, pre, _box, post, rest) => `${pre}${TASK_STATUS_CHAR[status]}${post}${rest}`,
-  );
+  const toggled = REGEX_TASK_LINE.test(lines[targetLine]) ? withTaskStatus(lines[targetLine], status) : lines[targetLine];
   if (toggled === lines[targetLine]) return null;
   lines[targetLine] = toggled;
   return lines.join("\n");

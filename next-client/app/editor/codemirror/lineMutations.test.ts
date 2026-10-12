@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   indentSubtreeInContent,
   insertChildInContent,
@@ -10,6 +10,12 @@ import {
 } from "./lineMutations";
 
 describe("outline line mutations", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 12, 9, 0));
+  });
+  afterEach(() => vi.useRealTimers());
+
   it("indents and outdents a complete subtree", () => {
     const content = "- [ ] Parent\n  - [ ] Child\n- [ ] Sibling";
     const indented = indentSubtreeInContent(content, 0);
@@ -18,24 +24,25 @@ describe("outline line mutations", () => {
     expect(outdentSubtreeInContent(indented, 0)).toBe(content);
   });
 
-  it("cycles task state from todo to in-progress to done", () => {
+  it("cycles task state from todo to in-progress to done, stamping each step", () => {
     const todo = "- [ ] Task";
     const doing = toggleTaskStatusInContent(todo, 0);
     const done = toggleTaskStatusInContent(doing, 0);
 
-    expect(doing).toBe("- [/] Task");
-    expect(done).toBe("- [x] Task");
+    expect(doing).toBe("- [/] Task @started(2026-10-12)");
+    expect(done).toBe("- [x] Task @started(2026-10-12) @done(2026-10-12)");
     expect(toggleTaskStatusInContent(done, 0)).toBe(todo);
   });
 
   it("re-enters the cycle from on hold at in progress, from cancelled at to do", () => {
-    expect(toggleTaskStatusInContent("- [!] Task", 0)).toBe("- [/] Task");
+    expect(toggleTaskStatusInContent("- [!] Task @started(2026-10-01)", 0)).toBe("- [/] Task @started(2026-10-01)");
     expect(toggleTaskStatusInContent("- [-] Task", 0)).toBe("- [ ] Task");
   });
 
   it("sets a task line to one status, leaving other lines alone", () => {
     const content = "- [ ] Task #infra\nplain text";
     expect(setTaskStatusInContent(content, 0, "hold")).toBe("- [!] Task #infra\nplain text");
+    expect(setTaskStatusInContent(content, 0, "prog")).toBe("- [/] Task #infra @started(2026-10-12)\nplain text");
     expect(setTaskStatusInContent(content, 0, "cancelled")).toBe("- [-] Task #infra\nplain text");
     expect(setTaskStatusInContent(content, 1, "done")).toBe(content);
   });

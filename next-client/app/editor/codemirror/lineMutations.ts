@@ -1,6 +1,7 @@
 import { ChangeSet, EditorSelection } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { cycledStatus, TASK_STATUS_CHAR, taskStatusFromChar, type TaskStatus } from "@/app/utils/task-status";
+import { cycledStatus, taskStatusFromChar, type TaskStatus } from "@/app/utils/task-status";
+import { withTaskStatus } from "@/app/utils/task-line";
 
 const LIST_LINE = /^(\s*)([-*+]\s+|\d+[.)]\s+)(.*)$/;
 const TASK_LINE = /^(\s*)(?:[-*+]\s+|\d+[.)]\s+)\[([ xX/!-])\]/;
@@ -47,8 +48,9 @@ export function outdentSubtreeInContent(content: string, lineNumber: number): st
   );
 }
 
-// Sets a task line's box to `status`, or to the next one in the Mod-Enter
-// cycle (task-status.ts) when `status` is a function of the current one.
+// Sets a task line to `status` (box and @started/@done stamps, task-line.ts),
+// or to the next one in the Mod-Enter cycle (task-status.ts) when `status`
+// is a function of the current one.
 export function setTaskStatusInContent(
   content: string,
   lineNumber: number,
@@ -61,7 +63,7 @@ export function setTaskStatusInContent(
 
   const markerOffset = (match.index ?? 0) + match[0].lastIndexOf("[") + 1;
   const next = typeof status === "function" ? status(taskStatusFromChar(line[markerOffset])) : status;
-  lines[lineNumber] = `${line.slice(0, markerOffset)}${TASK_STATUS_CHAR[next]}${line.slice(markerOffset + 1)}`;
+  lines[lineNumber] = withTaskStatus(line, next);
   return lines.join("\n");
 }
 

@@ -10,7 +10,7 @@ const SECRET = "Wire the secret payment";
 
 const task: DisplayTask = {
   id: "Payroll.md#2", path: "Payroll.md", line: 2, status: "todo", checked: false,
-  dueDate: "2026-10-10", priority: null, tags: ["money"], text: SECRET, raw: `- [ ] ${SECRET} #money`, lineHash: "h",
+  dueDate: "2026-10-10", priority: null, startedDate: null, doneDate: null, tags: ["money"], text: SECRET, raw: `- [ ] ${SECRET} #money`, lineHash: "h",
   isMasked: false,
 };
 

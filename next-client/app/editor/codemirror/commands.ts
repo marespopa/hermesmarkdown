@@ -6,7 +6,8 @@ import {
   REGEX_QUOTE_PREFIX,
   REGEX_URL_PASTE,
 } from "../components/regex";
-import { TASK_STATUS_CHAR, taskStatusFromChar, toggledStatus, type TaskStatus } from "@/app/utils/task-status";
+import { taskStatusFromChar, toggledStatus, type TaskStatus } from "@/app/utils/task-status";
+import { statusLineEdits } from "@/app/utils/task-line";
 import { detectDelimitedTable, delimitedTextToMarkdownTable } from "../utils/table-manipulation";
 import { indentSubtree, outdentSubtree, setTaskStatus, toggleTaskStatus } from "./lineMutations";
 import { breakLineInListItem, continueListOnEnter, indentListOrLines, outdentListOrLines, removeListMarkerOnBackspace } from "./list-commands";
@@ -53,16 +54,16 @@ export function setTaskStatusOnCurrentLine(status: TaskStatus) {
 }
 
 // Toggle the checkbox on the current line: an open task ([ ], [/], [!])
-// becomes [x], a done or cancelled one [ ].
+// becomes [x], a done or cancelled one [ ], with the stamps (task-line.ts).
 export function toggleCheckboxOnLine(view: EditorView, lineNumber?: number): boolean {
   const line = view.state.doc.line(lineNumber ?? view.state.doc.lineAt(view.state.selection.main.head).number);
   const match = REGEX_CHECKBOX.exec(line.text);
   if (!match) return false;
 
-  const charIdx = line.from + match[1].length;
-  const next = TASK_STATUS_CHAR[toggledStatus(taskStatusFromChar(match[2]))];
+  const edits = statusLineEdits(line.text, toggledStatus(taskStatusFromChar(match[2])));
+  if (!edits) return false;
   view.dispatch(view.state.update({
-    changes: { from: charIdx, to: charIdx + 1, insert: next },
+    changes: edits.map((edit) => ({ from: line.from + edit.from, to: line.from + edit.to, insert: edit.insert })),
     userEvent: "input.format.checkbox",
   }));
   return true;

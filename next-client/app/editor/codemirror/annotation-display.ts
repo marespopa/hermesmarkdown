@@ -2,15 +2,19 @@ import { Range } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import {
   REGEX_DATE_DOTTED,
+  REGEX_DATE_DONE,
   REGEX_DATE_DUE,
   REGEX_DATE_ISO,
   REGEX_DATE_SLASHED,
+  REGEX_DATE_STARTED,
   REGEX_DATE_WIKI,
 } from "../components/regex";
 import { REGEX_TASK_PRIORITY, type TaskPriority } from "@/app/utils/taskExtractor";
 import { collectLinkDisplayMatches } from "./link-display";
 
-type DateKind = "iso" | "slashed" | "dotted" | "wiki" | "due";
+type DateKind = "iso" | "slashed" | "dotted" | "wiki" | "due" | "started" | "done";
+
+const STAMP_LABEL: Partial<Record<DateKind, string>> = { due: "Due", started: "Started", done: "Done" };
 
 export interface AnnotationDisplayMatch {
   from: number;
@@ -57,7 +61,7 @@ export function collectAnnotationDisplayMatches(doc: string): AnnotationDisplayM
         from,
         to,
         raw: match[0],
-        label: kind === "due" ? `Due ${value}` : value,
+        label: STAMP_LABEL[kind] ? `${STAMP_LABEL[kind]} ${value}` : value,
         type: "date",
         kind,
       });
@@ -65,6 +69,8 @@ export function collectAnnotationDisplayMatches(doc: string): AnnotationDisplayM
   };
 
   addDate(REGEX_DATE_DUE, "due", (raw) => raw.slice(5, -1));
+  addDate(REGEX_DATE_STARTED, "started", (raw) => raw.slice(9, -1));
+  addDate(REGEX_DATE_DONE, "done", (raw) => raw.slice(6, -1));
   addDate(REGEX_DATE_WIKI, "wiki", (raw) => raw.slice(2, -2));
   addDate(REGEX_DATE_ISO, "iso");
   addDate(REGEX_DATE_SLASHED, "slashed");

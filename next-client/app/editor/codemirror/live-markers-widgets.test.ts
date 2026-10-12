@@ -1,7 +1,7 @@
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { HiOutlineLightBulb } from "react-icons/hi";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { CalloutLabelWidget, TaskBoxWidget, toggleTaskBox } from "./live-markers-widgets";
 
 const view = (doc = "- [ ] task") => new EditorView({ state: EditorState.create({ doc }) });
@@ -37,11 +37,21 @@ describe("TaskBoxWidget", () => {
 });
 
 describe("toggleTaskBox", () => {
-  it("completes open tasks and reopens closed ones", () => {
-    for (const [box, next] of [[" ", "x"], ["/", "x"], ["!", "x"], ["x", " "], ["-", " "]]) {
-      const v = view(`- [${box}] task`);
+  afterEach(() => vi.useRealTimers());
+
+  it("completes open tasks and reopens closed ones, with the done stamp", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 12, 9, 0));
+    for (const [box, after] of [
+      [" ", "x] task @done(2026-10-12)"],
+      ["/", "x] task @done(2026-10-12)"],
+      ["!", "x] task @done(2026-10-12)"],
+      ["x", " ] task"],
+      ["-", " ] task"],
+    ]) {
+      const v = view(box === "x" ? "- [x] task @done(2026-10-09)" : `- [${box}] task`);
       toggleTaskBox(v, 0);
-      expect(v.state.doc.toString()).toBe(`- [${next}] task`);
+      expect(v.state.doc.toString()).toBe(`- [${after}`);
     }
   });
 });

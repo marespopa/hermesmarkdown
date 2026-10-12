@@ -367,6 +367,10 @@ export const baseTheme = EditorView.theme({
   ".cm-date-display-due": {
     color: "var(--clay)",
   },
+  // Work stamps read quieter than a due date: a record, not a deadline.
+  ".cm-date-display-started, .cm-date-display-done": {
+    color: "var(--fg-faint)",
+  },
   ".cm-priority-display": {
     borderRadius: "9999px",
   },

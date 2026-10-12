@@ -23,7 +23,8 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <p>
           Dates (<code>2026-09-27</code>, <code>27/09/2026</code>, <code>[[2026-09-27]]</code>,{" "}
-          <code>@due(…)</code>) and <code>@priority</code> annotations show as pills around
+          <code>@due(…)</code>, a task's <code>@started(…)</code> and <code>@done(…)</code>) and{" "}
+          <code>@priority</code> annotations show as pills around
           their text. CTRL+Click a date to open the date picker.
         </p>
         <p>
