@@ -153,6 +153,39 @@ export type ApiMessage = {
   content: string | ApiPart[];
 };
 
+// With tools: what the model asked the client to run.
+export type AIToolCall = { toolCallId: string; toolName: string; input: unknown };
+
+// A message of a tool exchange, passed through as the AI SDK shaped it
+// (assistant tool calls from `responseMessages`, or a 'tool' result).
+export type ToolExchangeMessage = { role: 'assistant' | 'tool'; content: unknown };
+
+export type AIChatTurn = {
+  text: string;
+  toolCalls?: AIToolCall[];
+  /** The assistant's turn as the AI SDK shaped it; send back before the tool results. */
+  responseMessages?: ToolExchangeMessage[];
+};
+
+/**
+ * One chat request with AI Chat's tools on (app/api/ai/chat-tools.ts): the
+ * reply's text, or the tool calls for the client to run and answer.
+ */
+export async function callAIChatTurn(system: string, messages: (ApiMessage | ToolExchangeMessage)[]): Promise<AIChatTurn> {
+  const seq = beginAiAction("Thinking…");
+  try {
+    const config = getAIConfig();
+    const data = await postAI({ action: 'chat', ...config, system, messages, tools: true }, "Failed to generate response");
+    finishAiActionSuccess(seq, "Done");
+    return { text: data.text ?? "", toolCalls: data.toolCalls, responseMessages: data.responseMessages };
+  } catch (error: any) {
+    console.error("AI Chat Error:", error);
+    const message = beautifyAIError(error.message || "An unexpected error occurred.");
+    finishAiActionError(seq, message);
+    throw new Error(message);
+  }
+}
+
 export async function callAIChat(system: string, messages: ApiMessage[]) {
   const seq = beginAiAction("Thinking…");
 

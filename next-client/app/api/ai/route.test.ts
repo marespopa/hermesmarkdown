@@ -140,4 +140,33 @@ describe('AI route', () => {
     expect(response.status).toBe(502);
     expect(body.error).toMatch(/ran out of output/);
   });
+
+  it('passes the chat tools when asked and returns tool calls for the client to run', async () => {
+    const responseMessages = [{ role: 'assistant', content: [{ type: 'tool-call', toolCallId: 'call-1', toolName: 'list_open_tasks', input: {} }] }];
+    generateTextMock.mockResolvedValue({
+      text: '',
+      finishReason: 'tool-calls',
+      toolCalls: [{ toolCallId: 'call-1', toolName: 'list_open_tasks', input: {} }],
+      response: { messages: responseMessages },
+    });
+    const request = new Request('http://localhost/api/ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'chat',
+        provider: 'claude',
+        apiKey: 'claude-key',
+        modelKey: 'sonnet-5',
+        system: 'Be brief',
+        tools: true,
+        messages: [{ role: 'user', content: 'What is due today?' }],
+      }),
+    });
+
+    const response = await (await import('./route')).POST(request);
+    const body = await response.json();
+
+    expect(Object.keys(generateTextMock.mock.calls[0][0].tools)).toEqual(['search_notes', 'read_note', 'list_open_tasks', 'add_to_today']);
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ text: '', toolCalls: [{ toolCallId: 'call-1', toolName: 'list_open_tasks', input: {} }], responseMessages });
+  });
 });

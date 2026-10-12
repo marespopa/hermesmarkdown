@@ -86,7 +86,7 @@ const TASKS_SKILL_BUILTIN = [
   "- Keep #tags the user already uses for the same topic.",
   "- Use [/] only for work the text says is under way, [!] for work it says is blocked.",
   "When asked to plan a day or pick what's next, prefer in-progress and overdue tasks, then those due soon, then high priority, and say why in a few words.",
-  "You can't change tasks in the vault. To change one, give the revised task line so the user can apply it in its note.",
+  "You can't edit existing tasks. To change one, give the revised task line so the user can apply it in its note. New tasks can go into today's sheet with add_to_today, when that tool is available and the user asks.",
 ].join("\n");
 
 export const TASKS_SKILL: ChatSkill = {

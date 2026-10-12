@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { HiOutlineCheck, HiOutlineClipboardCheck, HiOutlineDocumentDuplicate, HiOutlinePencil, HiOutlineSparkles } from "react-icons/hi";
+import { HiOutlineCheck, HiOutlineClipboardCheck, HiOutlineDocumentDuplicate, HiOutlinePencil, HiOutlineSearch, HiOutlineSparkles } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import type { ChatMessage } from "./chat-helpers";
 import type { TemplateBlock } from "./chat-skills";
@@ -68,6 +68,15 @@ export default function ChatMessageItem({
       .then(() => setCopied(true))
       .catch(() => {});
   };
+  if (message.kind === "activity") {
+    return (
+      <p className="ml-8 -my-2 flex items-center gap-1.5 text-ui-caption text-fg-faint">
+        <HiOutlineSearch size={12} aria-hidden="true" className="shrink-0" />
+        {message.displayContent}
+      </p>
+    );
+  }
+
   return (
     <div className={`flex gap-2.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
       {!isUser && (
