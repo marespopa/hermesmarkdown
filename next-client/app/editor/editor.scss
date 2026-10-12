@@ -153,8 +153,8 @@ html[data-chrome-faded] .editor-sheet.editor-container {
    the column slides left by half its width (--typing-shift, page.tsx) to
    centre on the window — never past the page margin, so a narrow pane keeps
    its text where it is. `left`, not a transform: a transform would become
-   the containing block of the editor's fixed-position menus. In Full Width
-   the measure is `none`, the calc is invalid and the column stays put. */
+   the containing block of the editor's fixed-position menus. Full Width
+   leaves exactly that room (editor-typography.scss), so it re-centres too. */
 .editor-measure {
   left: 0;
   transition: left 150ms ease-out;
