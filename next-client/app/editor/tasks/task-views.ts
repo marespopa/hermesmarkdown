@@ -1,6 +1,7 @@
 import type { TaskView } from "@/app/atoms/ui-atoms";
 import type { TaskItem } from "@/app/utils/taskExtractor";
 import { isOpenStatus, type TaskStatus } from "@/app/utils/task-status";
+import { localISODate } from "@/app/utils/task-line";
 import { sortTasks } from "./task-sort";
 
 // The Tasks page's smart lists. Each is a fixed set of sections built from
@@ -34,32 +35,29 @@ export interface TaskSectionData<T extends TaskItem = TaskItem> {
 
 const REGEX_ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-// Today as "YYYY-MM-DD" in local time, the format @due() dates are written in.
-export function localISODate(date = new Date()): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
+export { localISODate };
 
 const parseISO = (iso: string) => {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d);
 };
 
+const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 // An Upcoming section title: "Tomorrow", a weekday within the week
 // ("Friday"), then "Mon 20 Oct" (with the year when it isn't this one).
+// Built by hand rather than with toLocaleDateString, whose punctuation
+// varies between ICU versions.
 export function upcomingLabel(due: string, today: string): string {
   if (!REGEX_ISO_DATE.test(due)) return due;
   const date = parseISO(due);
   const days = Math.round((date.getTime() - parseISO(today).getTime()) / 86_400_000);
+  const weekday = WEEKDAYS[date.getDay()];
   if (days === 1) return "Tomorrow";
-  if (days < 7) return date.toLocaleDateString("en-GB", { weekday: "long" });
-  const sameYear = due.slice(0, 4) === today.slice(0, 4);
-  return date.toLocaleDateString("en-GB", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    ...(sameYear ? {} : { year: "numeric" }),
-  });
+  if (days < 7) return weekday;
+  const label = `${weekday.slice(0, 3)} ${date.getDate()} ${MONTHS[date.getMonth()]}`;
+  return due.slice(0, 4) === today.slice(0, 4) ? label : `${label} ${date.getFullYear()}`;
 }
 
 const isDated = (task: TaskItem) => !!task.dueDate && REGEX_ISO_DATE.test(task.dueDate);
