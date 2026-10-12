@@ -9,11 +9,7 @@ import { tidyPastedHtml } from "./html-tidy";
 // lists, <pre> without <code>, and data: images reduced to their alt text.
 // The result still goes through the clean pass (clean-markdown.ts).
 
-// Elements that carry Markdown structure. HTML without any (a code editor's
-// coloured <div>/<span> copy) isn't worth converting.
-const STRUCTURE = /<(p|h[1-6]|ul|ol|li|table|a|strong|b|em|i|img|blockquote|pre|code|del|s)[\s>]/i;
-
-export const hasMarkdownStructure = (html: string) => STRUCTURE.test(html);
+export { hasMarkdownStructure } from "./html-structure";
 
 // Turndown's escapes, except `_` only at word edges: GFM ignores an
 // intraword underscore, so snake_case stays readable.

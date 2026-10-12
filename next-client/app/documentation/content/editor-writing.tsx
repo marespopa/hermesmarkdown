@@ -6,7 +6,7 @@ export const editorWritingItems: Subsection[] = [
     id: "writing",
     title: "Writing",
     lead: "Write Markdown with inline highlighting and click actions.",
-    keywords: "find replace search regex heading shortcut link code block rendering source inline wysiwyg full width wide column reading width word wrap line numbers invisibles whitespace empty lines pills dates priority shortcode images paste calc",
+    keywords: "find replace search regex heading shortcut link code block rendering source inline wysiwyg full width wide column reading width word wrap line numbers invisibles whitespace empty lines pills dates priority shortcode images paste calc html rich text google docs word convert markdown",
     body: (
       <>
         <p>
@@ -37,6 +37,13 @@ export const editorWritingItems: Subsection[] = [
           Paste or drop an image and it&apos;s saved to the vault&apos;s <code>assets/</code>{" "}
           folder and linked with <code>![](assets/…)</code>. Paste comma- or tab-separated
           data outside a table and HermesMarkdown offers to convert it into a Markdown table.
+        </p>
+        <p>
+          Paste rich text from a web page, Google Docs, Word or an email and it arrives as Markdown:
+          headings, lists, links, tables, bold and italics, converted the same way as the Markdown
+          Cleaner in Free Tools. A toast offers <strong>Paste as plain text</strong> if you wanted the
+          bare text instead, and <code>CTRL/CMD+SHIFT+V</code> always pastes plain text. Pastes into
+          code blocks, bare URLs and copies with no formatting paste as usual.
         </p>
         <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Shortcodes</h4>
         <p>Type a shortcode and it expands in place.</p>

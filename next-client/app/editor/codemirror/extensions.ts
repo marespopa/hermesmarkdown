@@ -10,6 +10,7 @@ import { searchKeymap } from "@codemirror/search";
 import { loadedVim } from "./vim-loader";
 import { editorTheme } from "./theme";
 import { formatKeymap, toggleCheckboxOnLine, handlePasteTransform, insertPastedImage } from "./commands";
+import { handleHtmlPaste } from "./html-paste";
 import { getImageFile, getImageFromClipboardItems } from "@/app/utils/paste-image";
 import { REGEX_CHECKBOX } from "../components/regex";
 import { horizontalRuleCursorPlugin, markdownHighlightPlugin } from "./highlight";
@@ -139,6 +140,8 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
           insertPastedImage(view, imageFile, saveImage);
           return true;
         }
+        // Rich text (a web page, Docs, Word) arrives as Markdown (html-paste.ts).
+        if (handleHtmlPaste(view, event)) return true;
         return handlePasteTransform(view, event, opts.csvConfirmRef?.current ?? undefined);
       },
       drop: (event, view) => {
