@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import type { EditorView } from "@codemirror/view";
+import { atomWithChoiceStorage } from "./choice-storage";
 import { tabSessionStorage } from "./session-storage";
 
 // Theme & appearance
@@ -29,16 +30,14 @@ export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 // Lets the editor's text column fill the sheet instead of stopping at the
 // reading width (--editor-measure, editor-typography.scss). Off by default.
 export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", false);
-// Flow mode: fades everything but the caret's paragraph and keeps the caret
-// line centred while typing. Opt-in, off by default.
-export const atom_flowMode = atomWithStorage<boolean>("flowMode", false);
-// Fades the pane header, sidebar and mobile file bar while you type; moving
-// the mouse brings them back (hooks/use-fade-chrome-while-typing.ts). On by
-// default.
-export const atom_hideChromeWhileTyping = atomWithStorage<boolean>("hideChromeWhileTyping", true);
-// Hides the desktop pane header (tabs and toolbar) for an immersive view.
-// Window-wide, like the toolbar's own controls.
-export const atom_toolbarHidden = atomWithStorage<boolean>("toolbarHidden", false);
+// Focus (Settings → Editor): "hide" fades the pane header, sidebar and
+// mobile file bar while you type, and moving the mouse brings them back
+// (hooks/use-fade-chrome-while-typing.ts); "dim" does that too, and also
+// fades every paragraph but the caret's and keeps the caret line centred
+// (codemirror/flow-mode.ts). "hide" by default.
+export const FOCUS_MODES = ["off", "hide", "dim"] as const;
+export type FocusMode = (typeof FOCUS_MODES)[number];
+export const atom_focusMode = atomWithChoiceStorage<FocusMode>("focusMode", FOCUS_MODES, "hide");
 // The window's sidebar (desktop): open notes and the vault's file tree, on the
 // leading edge. Hidden by default; toggled from the toolbar or Ctrl/Cmd+Alt+S.
 export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
@@ -174,12 +173,11 @@ export const atom_vaultOpenBehaviorAppliedFor = atomWithStorage<string | null>(
   { getOnInit: true },
 );
 
-export type AutosaveMode = "afterDelay" | "onFocusChange" | "manual";
+export const AUTOSAVE_MODES = ["afterDelay", "manual"] as const;
+export type AutosaveMode = (typeof AUTOSAVE_MODES)[number];
 
-export const atom_autosaveMode = atomWithStorage<AutosaveMode>(
-  "autosaveMode",
-  "afterDelay",
-);
+// A stored mode this version no longer offers reads as "afterDelay".
+export const atom_autosaveMode = atomWithChoiceStorage<AutosaveMode>("autosaveMode", AUTOSAVE_MODES, "afterDelay");
 
 // Whether to record local/remote snapshots when a conflict is detected.
 // Enabled by default to protect user edits; users can opt out in Settings.

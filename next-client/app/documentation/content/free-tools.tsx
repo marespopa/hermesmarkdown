@@ -38,7 +38,7 @@ export const freeToolsItems: Subsection[] = [
           reason.
         </p>
         <p>
-          To price a note you already have, run <strong>Token cost of this note</strong> from the
+          To price a note you already have, run <strong>Show Token Cost</strong> from the
           editor&apos;s command palette. It counts the
           note in the focused pane and shows what sending it costs on each model.
         </p>

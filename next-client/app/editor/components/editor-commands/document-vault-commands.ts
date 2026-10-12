@@ -21,10 +21,8 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     isVaultSupported,
     moveItem,
     onExport,
-    onHome,
     onImport,
     onNewFile,
-    onOpenDocumentation,
     onRefreshVault,
     onSave,
     openVault,
@@ -46,8 +44,8 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     },
     {
       id: "new-file",
-      label: "New file",
-      keywords: "create note draft",
+      label: "New Note",
+      keywords: "create note draft new file",
       action: onNewFile,
     },
     ...(vaultHandle
@@ -96,15 +94,17 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
       : []),
     {
       id: "export-file",
-      label: "Export current file",
-      keywords: "save download",
+      label: "Download as Markdown",
+      keywords: "export download save copy md file note",
       action: onExport,
     },
     {
       id: "import-file",
-      label: "Import file",
+      label: "Open Note from Disk…",
       category: "Vault",
-      keywords: "open upload markdown text",
+      // Opens a Markdown or text file from the device as a draft; Import
+      // Files into Vault… (vault-storage-commands) copies files in instead.
+      keywords: "open import upload markdown text file device draft",
       action: onImport,
     },
   ];
@@ -113,18 +113,18 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     ...(activeFileHandle
       ? [{
           id: "duplicate-current-file",
-          label: "Duplicate current file",
+          label: "Duplicate Note",
           category: "Document" as const,
-          keywords: "copy clone file",
+          keywords: "copy clone note file current",
           action: () => duplicateFile(activeFileHandle),
         }]
       : []),
     ...(activeFileHandle && vaultHandle
       ? [{
           id: "move-current-file",
-          label: "Move current file",
+          label: "Move Note…",
           category: "Document" as const,
-          keywords: "relocate folder file",
+          keywords: "relocate folder note file current",
           action: async () => {
             const directories: FileSystemDirectoryHandle[] = [];
             for await (const entry of (vaultHandle as any).values()) {
@@ -137,7 +137,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
                 { label: `/ ${vaultDisplayName(vaultDescriptor, vaultHandle.name)} (root)`, value: "__root__" },
                 ...directories.map((directory) => ({ label: directory.name, value: directory.name })),
               ],
-              "Move File",
+              "Move Note",
             );
             if (!destination) return;
             const target = destination === "__root__"
@@ -150,12 +150,6 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
   ];
 
   const vaultActions: Command[] = [
-    {
-      id: "go-home",
-      label: "Home",
-      keywords: "home vault switcher",
-      action: onHome,
-    },
     ...(vaultHandle && activeFileHandle && activeFilePath
       ? [{
           id: "toggle-home-pin",
@@ -164,16 +158,10 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           action: () => toggleHomePin(activeFilePath),
         }]
       : []),
-    {
-      id: "open-documentation",
-      label: "Documentation",
-      keywords: "docs help guide",
-      action: onOpenDocumentation,
-    },
     ...(vaultHandle
       ? [{
           id: "close-vault",
-          label: "Close vault",
+          label: "Close Vault",
           keywords: "disconnect vault switch exit",
           action: async () => {
             const confirmed = await dialog.confirm(
@@ -197,30 +185,30 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     ...(activeFileHandle
       ? [{
           id: "rename-current-file",
-          label: "Rename current file",
-          keywords: "rename move file",
+          label: "Rename Note",
+          keywords: "rename move note file current title",
           action: () => renameFile(activeFileHandle, undefined, activeFilePath ?? undefined),
         }]
       : []),
     ...(activeFileHandle
       ? [{
           id: "delete-current-file",
-          label: "Delete current file",
-          keywords: "delete remove trash file",
+          label: "Delete Note",
+          keywords: "delete remove trash note file current",
           action: () => deleteFile(activeFileHandle, activeFilePath),
         }]
       : []),
     ...(vaultHandle && onRefreshVault
       ? [{
           id: "refresh-vault",
-          label: "Refresh vault",
+          label: "Refresh Vault",
           keywords: "rescan reload vault files",
           action: () => onRefreshVault(),
         }]
       : []),
     {
       id: "create-new-vault",
-      label: "Create new vault",
+      label: "Create New Vault",
       keywords: "vault new folder",
       // Without disk folder access, new vaults live in browser storage.
       action: () => (isVaultSupported ? setNewVaultFlowOpen(true) : setBrowserVaultDialogOpen(true)),
@@ -234,7 +222,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     ...(vaultHandle
       ? [{
           id: "new-folder",
-          label: "New folder",
+          label: "New Folder",
           keywords: "create directory",
           action: createFolder,
         }]

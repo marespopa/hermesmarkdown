@@ -32,13 +32,12 @@ export const keyboardShortcutsItem: Subsection = {
           ],
         },
         {
-          context: "Tabs & files",
+          context: "Tabs & notes",
           rows: [
             { label: "Show Files", shortcut: "CTRL/CMD+SHIFT+E" },
-            { label: "New file", shortcut: "CTRL+ALT+N" },
+            { label: "New note", shortcut: "CTRL+ALT+N" },
             { label: "Close current tab", shortcut: "CTRL/CMD+ALT+W" },
             { label: "Select workspace tab", shortcut: "CTRL/CMD+1–9" },
-            { label: "Hide / show toolbar", shortcut: "CTRL/CMD+ALT+T" },
             { label: "Show / hide sidebar", shortcut: "CTRL/CMD+ALT+S" },
           ],
         },

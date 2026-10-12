@@ -18,8 +18,8 @@ export const editorWritingItems: Subsection[] = [
           The text sits in a column about as wide as a page, so lines stay easy to read on a wide
           screen. Changing the text size never moves the column&apos;s edges; it only changes how
           much fits on a line. To use the whole editor instead, turn on{" "}
-          <strong>Full Width</strong> under Settings → Editor, or run{" "}
-          <strong>Enable full width</strong> from the command palette.
+          <strong>Full Width</strong> under Settings → Editor → Layout, or run{" "}
+          <strong>Toggle Full Width</strong> from the command palette.
         </p>
         <p>
           Dates (<code>2026-09-27</code>, <code>27/09/2026</code>, <code>[[2026-09-27]]</code>,{" "}
@@ -77,7 +77,7 @@ export const editorWritingItems: Subsection[] = [
       <>
         <p>
           Turn on Vim mode under Settings → Editor
-          (or the <strong>Enable Vim mode</strong> command). Outside Insert mode, a small pill at the
+          (or the <strong>Toggle Vim Mode</strong> command). Outside Insert mode, a small pill at the
           bottom right of the note shows the current mode and any keys of a command you haven&apos;t
           finished. Typing <code>:</code> or <code>/</code> opens the command line in that pill.
         </p>
@@ -88,50 +88,37 @@ export const editorWritingItems: Subsection[] = [
     ),
   },
   {
-    id: "flow-mode",
-    title: "Flow mode",
-    lead: "Fade everything but the paragraph you're writing and keep the current line centered.",
-    keywords: "flow focus typewriter scrolling dim fade paragraph distraction free writing settings setup",
+    id: "focus",
+    title: "Focus",
+    lead: "Let the interface fade while you type, and optionally dim everything but the paragraph you're writing.",
+    keywords: "focus hide interface chrome toolbar tabs sidebar fade typing distraction free minimal typewriter scrolling dim paragraph flow writing settings setup",
     body: (
       <>
         <p>
-          Turn on flow mode under Settings → Editor
-          (or the <strong>Enable flow mode</strong> command). It&apos;s off by default.
+          Choose a level under Settings → Editor → Focus, or run one of the{" "}
+          <strong>Focus: …</strong> commands from the command palette.
         </p>
         <KV
           rows={[
-            { label: "Paragraph focus", value: "Other paragraphs fade while you write" },
-            { label: "Typewriter scrolling", value: "The caret line stays centered" },
+            { label: "Off", value: "The interface stays put while you type" },
+            { label: "Hide interface while typing", value: "The toolbar, tabs and sidebar fade once you start typing (default)" },
+            { label: "Hide interface and dim other paragraphs", value: "The same, plus other paragraphs fade and the caret line stays centered" },
           ]}
         />
         <p>
-          The current paragraph is the run of non-blank lines around the caret. Everything else
-          dims while the editor has focus and returns to full strength when you click away.
-          Typing, deleting, undo/redo and moving with the keyboard keep the line centered; clicking
-          or selecting with the mouse never scrolls the view.
+          While the interface is hidden, move the mouse over the tabs or the sidebar and everything
+          comes back; moving it over the text leaves the page alone. On a phone, tap anywhere
+          outside the text. The layout never moves, so the line you&apos;re typing stays where it is.
+        </p>
+        <p>
+          At the strongest level, the current paragraph is the run of non-blank lines around the
+          caret. Everything else dims while the editor has focus and returns to full strength when
+          you click away. Typing, deleting, undo/redo and moving with the keyboard keep the line
+          centered; clicking or selecting with the mouse never scrolls the view.
         </p>
         <Callout type="note">
-          Flow mode only changes how the note looks. The Markdown in your file stays the same.
+          Focus only changes how the editor looks. The Markdown in your file stays the same.
         </Callout>
-      </>
-    ),
-  },
-  {
-    id: "hide-interface-while-typing",
-    title: "Hide interface while typing",
-    lead: "Once you start typing, the toolbar, tabs and sidebar fade away and only the page is left.",
-    keywords: "hide interface chrome toolbar tabs sidebar fade typing distraction free minimal focus settings",
-    body: (
-      <>
-        <p>
-          Move the mouse over the tabs or the sidebar and everything comes back; moving it over the
-          text leaves the page alone. On a phone, tap anywhere outside the text. The
-          layout never moves, so the line you&apos;re typing stays where it is.
-        </p>
-        <p>
-          It&apos;s on by default. Turn it off under Settings → Editor, or with the{" "}
-          <strong>Keep interface visible while typing</strong> command.
-        </p>
       </>
     ),
   },

@@ -3,7 +3,7 @@ import type React from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_activateWorkspaceTab, atom_workspaceTabs } from "@/app/atoms/atoms";
 import { openSearchPanel } from "@codemirror/search";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen, atom_toolbarHidden, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { useShowFiles } from "@/app/hooks/use-show-files";
 import { focusPaneEditor } from "../utils/focus-pane-editor";
@@ -19,8 +19,8 @@ interface EditorShortcutOptions {
   flush: () => void;
 }
 
-// Window-level editor shortcuts (Show Files, search, new file, close/select tab,
-// hide toolbar, AI chat, save, undo flush). Editor-local keys live in CodeMirror's
+// Window-level editor shortcuts (Show Files, search, new note, close/select tab,
+// show/hide sidebar, AI chat, save, undo flush). Editor-local keys live in CodeMirror's
 // keymaps, which run first — so a key CodeMirror handled arrives here with
 // defaultPrevented set.
 export function useEditorShortcuts({
@@ -38,7 +38,6 @@ export function useEditorShortcuts({
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const workspaceTabs = useAtomValue(atom_workspaceTabs);
   const activateWorkspaceTab = useSetAtom(atom_activateWorkspaceTab);
-  const setToolbarHidden = useSetAtom(atom_toolbarHidden);
   const setSidebarOpen = useSetAtom(atom_sidebarOpen);
   // Desktop shows the sidebar's Files tree; mobile leaves for the Files page
   // through the unsaved-changes guard.
@@ -103,13 +102,6 @@ export function useEditorShortcuts({
         }
       }
 
-      // Hide / show toolbar: Ctrl/Cmd+Alt+T. Matched on `code` because Option+T
-      // types "†" on macOS.
-      if ((e.ctrlKey || e.metaKey) && e.altKey && !e.shiftKey && e.code === "KeyT") {
-        e.preventDefault();
-        setToolbarHidden((hidden) => !hidden);
-      }
-
       // Show / hide the sidebar (Ctrl/Cmd+Alt+S); `code`, since Alt changes `key` on macOS.
       if ((e.ctrlKey || e.metaKey) && e.altKey && !e.shiftKey && e.code === "KeyS") {
         e.preventDefault();
@@ -136,5 +128,5 @@ export function useEditorShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeEditorView, activateWorkspaceTab, setToolbarHidden, setSidebarOpen, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, workspaceTabs, showFiles, saveRef, newFileRef]);
+  }, [activeEditorView, activateWorkspaceTab, setSidebarOpen, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, workspaceTabs, showFiles, saveRef, newFileRef]);
 }

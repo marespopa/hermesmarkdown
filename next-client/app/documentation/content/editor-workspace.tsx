@@ -210,7 +210,7 @@ tags: []
         <KV
           rows={[
             { label: "Save", value: "CTRL+S" },
-            { label: "Files", value: "New, import, export, copy, rename, duplicate, move, move to Trash" },
+            { label: "Notes", value: "New Note, Open Note from Disk…, Download as Markdown (always a .md download, never a save), Copy Markdown, Rename / Duplicate / Move / Delete Note" },
             { label: "Folders", value: "New folder (one level at a time)" },
             { label: "Editing", value: "Undo, redo, focus, formatting, tasks, and templates" },
             { label: "AI", value: "Chat and selection/document actions" },
@@ -218,7 +218,7 @@ tags: []
         />
         <KV
           rows={[
-            { label: "Home feed", value: "Your recent notes" },
+            { label: "Open Home", value: "Your vault's home feed: recent notes" },
             { label: "Export as PDF…", value: "Print the note, or save it as a PDF" },
             { label: "Show Files", value: "CTRL/CMD+SHIFT+E" },
             { label: "Open Tasks", value: "—" },
@@ -226,21 +226,23 @@ tags: []
             { label: "Panes", value: "Open in pane, split down, next/previous, close" },
             { label: "Tabs", value: "Next/previous, close current/other/all" },
             { label: "Tasks", value: "Grouping, due-date filters, and clear filters" },
-            { label: "Show / hide hidden files", value: "—" },
-            { label: "Appearance", value: "Theme, full width, word wrap, and line numbers" },
-            { label: "Settings", value: "Editor font, autosave, Vim, and AI provider" },
+            { label: "Toggle Hidden Files / Toggle Sidebar", value: "—" },
+            { label: "Theme: Light / Dark / System", value: "—" },
+            { label: "Toggle Full Width / Word Wrap / Line Numbers / Invisibles / Vim Mode", value: "—" },
+            { label: "Focus: …", value: "Off, hide interface while typing, or also dim other paragraphs" },
+            { label: "Settings", value: "Editor Font, Text Size, Autosave, Open Settings" },
             { label: "GitHub", value: "Commit, push, sync, pull — GitHub vaults only" },
           ]}
         />
         <KV
           rows={[
             { label: "Open Vault / Close Vault / Refresh Vault", value: "—" },
-            { label: "Create new vault", value: "—" },
-            { label: "New file", value: "Blank note, named from its first line" },
+            { label: "Create New Vault", value: "—" },
+            { label: "New Note", value: "Blank note, named from its first line" },
             { label: "New file in folder… / New folder", value: "Choose a vault folder, then enter a name" },
             { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },
             { label: "Open AI Chat", value: "CTRL+SHIFT+B · when AI is configured" },
-            { label: "Navigate", value: "Home, editor, settings, documentation, and welcome tour" },
+            { label: "Navigate", value: "Open Home, Open Settings, Open Documentation, Show Keyboard Shortcuts, Start Welcome Tour" },
           ]}
         />
         <p>

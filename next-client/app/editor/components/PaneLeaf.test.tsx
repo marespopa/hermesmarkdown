@@ -194,7 +194,7 @@ describe("PaneLeaf Tab Indicators", () => {
     expect(screen.getByRole("button", { name: /^Save/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Command palette" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sidebar" })).toBeInTheDocument();
-    for (const name of ["Copy Markdown", "Split Right", "Settings", "Hide toolbar"]) {
+    for (const name of ["Copy Markdown", "Split Right", "Settings", "Show toolbar"]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
     }
 
@@ -203,10 +203,10 @@ describe("PaneLeaf Tab Indicators", () => {
     fireEvent.click(more);
     expect(more).toHaveAttribute("aria-expanded", "true");
     const menu = screen.getByRole("menu", { name: "More" });
-    for (const name of ["Copy Markdown", "Export as PDF…", "Settings", "Documentation and Help", "Hide Toolbar"]) {
+    for (const name of ["Copy Markdown", "Export as PDF…", "Settings", "Documentation and Help"]) {
       expect(within(menu).getByRole("menuitem", { name: new RegExp(`^${name}`) })).toBeInTheDocument();
     }
-    for (const name of ["Split Right", "Token Cost"]) {
+    for (const name of ["Split Right", "Token Cost", "Hide Toolbar"]) {
       expect(within(menu).queryByRole("menuitem", { name })).not.toBeInTheDocument();
     }
 
@@ -359,15 +359,12 @@ describe("PaneLeaf toolbar menu and sidebar toggle", () => {
       </TestProvider>
     );
 
-  it("shows icon-only buttons, and offers just Hide Toolbar on right-click", () => {
+  it("shows icon-only buttons, and no toolbar menu on right-click", () => {
     renderSolo();
     expect(screen.getByRole("button", { name: /^Save/ })).not.toHaveTextContent("Save");
 
     fireEvent.contextMenu(screen.getByRole("toolbar", { name: "Pane" }));
-    const menu = screen.getByRole("menu", { name: "Toolbar" });
-    expect(within(menu).queryAllByRole("menuitemcheckbox")).toHaveLength(0);
-    expect(within(menu).getAllByRole("menuitem")).toHaveLength(1);
-    expect(within(menu).getByRole("menuitem", { name: /Hide Toolbar/ })).toBeInTheDocument();
+    expect(screen.queryByRole("menu", { name: "Toolbar" })).not.toBeInTheDocument();
   });
 
   it("shows the sidebar from a toolbar button that only appears while it's hidden", () => {
@@ -377,35 +374,4 @@ describe("PaneLeaf toolbar menu and sidebar toggle", () => {
     expect(screen.queryByRole("button", { name: "Sidebar" })).not.toBeInTheDocument();
   });
 
-});
-
-describe("PaneLeaf toolbar hiding", () => {
-  const leaf = { id: "solo", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
-
-  beforeEach(() => {
-    cleanup();
-    localStorage.removeItem("toolbarHidden");
-  });
-
-  it("hides the toolbar and brings it back from the handle", () => {
-    render(
-      <TestProvider initialValues={[
-        [atom_activePaneId, "solo"],
-        [atom_openFiles, { "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" } }],
-        [atom_workspaceLayout, { rootContainer: leaf }],
-      ]}>
-        <PaneLeaf leaf={leaf} />
-      </TestProvider>
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: /^Hide Toolbar/ }));
-    // inert takes the header's controls out of the accessibility tree.
-    expect(screen.getByRole("button", { name: "Show toolbar" })).toBeInTheDocument();
-    expect(screen.getByLabelText("Close tab").closest("[inert]")).not.toBeNull();
-
-    fireEvent.click(screen.getByRole("button", { name: "Show toolbar" }));
-    expect(screen.queryByRole("button", { name: "Show toolbar" })).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Close tab").closest("[inert]")).toBeNull();
-  });
 });

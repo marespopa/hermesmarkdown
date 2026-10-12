@@ -112,10 +112,10 @@ export default function AiSettings() {
     availableModels.length > 0 ? availableModels : provider.fallbackModels;
 
   return (
-    <SettingGroup title="Provider Config">
+    <SettingGroup>
       <SettingItem
         label="AI Provider"
-        description="Choose the model used for AI features."
+        description="Choose which company's AI powers the AI features. Each provider uses its own API key."
         control={
           <SelectControl
             value={aiProvider}
@@ -132,7 +132,7 @@ export default function AiSettings() {
         }
       />
       <SettingItem
-        label="Model Tier"
+        label="Model"
         description={
           isFetchingModels
             ? "Fetching available models..."

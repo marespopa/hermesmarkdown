@@ -7,23 +7,30 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_flowMode, atom_fullWidth, atom_hideChromeWhileTyping, atom_showInvisibles } from "@/app/atoms/ui-atoms";
+import { atom_focusMode, atom_fullWidth, atom_showInvisibles, atom_sidebarOpen, type FocusMode } from "@/app/atoms/ui-atoms";
 import Toggle from "@/app/components/Toggle";
-import { SettingGroup, SettingItem } from "../components/SettingControls";
+import { SelectControl, SettingGroup, SettingItem } from "../components/SettingControls";
+import { FOCUS_OPTIONS } from "../focus-options";
 
-// Settings → Editor: Layout (full width, word wrap, line numbers, invisibles) and Writing (Vim, flow mode, hide interface while typing) groups.
+// Settings → Editor: Layout (sidebar, full width, word wrap, line numbers,
+// invisibles) and Writing (Vim mode, Focus) groups.
 export default function EditorSettings() {
+  const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
   const [fullWidth, setFullWidth] = useAtom(atom_fullWidth);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [showInvisibles, setShowInvisibles] = useAtom(atom_showInvisibles);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
-  const [flowMode, setFlowMode] = useAtom(atom_flowMode);
-  const [hideChrome, setHideChrome] = useAtom(atom_hideChromeWhileTyping);
+  const [focusMode, setFocusMode] = useAtom(atom_focusMode);
 
   return (
     <>
       <SettingGroup title="Layout">
+        <SettingItem
+          label="Show Sidebar"
+          description="Your open notes and the vault's files on the left edge of the window. Also the first toolbar button and Ctrl/Cmd+Alt+S. Desktop only."
+          control={<Toggle variant="soft" active={sidebarOpen} onChange={setSidebarOpen} label="Show sidebar" />}
+        />
         <SettingItem
           label="Full Width"
           description="Let the text fill the whole editor instead of stopping at a comfortable reading width."
@@ -52,14 +59,15 @@ export default function EditorSettings() {
           control={<Toggle variant="soft" active={vimMode} onChange={setVimMode} />}
         />
         <SettingItem
-          label="Flow Mode"
-          description="While you write, fade everything except the current paragraph and keep the line you're typing on centered on screen."
-          control={<Toggle variant="soft" active={flowMode} onChange={setFlowMode} />}
-        />
-        <SettingItem
-          label="Hide Interface While Typing"
-          description="Fade the toolbar, tabs and sidebar once you start typing, leaving only the page. Move the mouse over them to bring them back."
-          control={<Toggle variant="soft" active={hideChrome} onChange={setHideChrome} />}
+          label="Focus"
+          description="Fade the toolbar, tabs and sidebar once you start typing, leaving only the page; move the mouse to bring them back. The strongest level also dims every paragraph but the one you're in and keeps your line centered."
+          control={
+            <SelectControl value={focusMode} onChange={(value) => setFocusMode(value as FocusMode)} ariaLabel="Focus">
+              {FOCUS_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </SelectControl>
+          }
         />
       </SettingGroup>
     </>

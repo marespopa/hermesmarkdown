@@ -1,6 +1,6 @@
 # ProfileSettings
 
-Description: The first groups of the Settings → Guide section (rendered above `GuideSettings`). **Profile** sets the name the home feed greets you with; it's trimmed on blur. **Your Data** notes that everything is stored in this browser (there's no account), and **Command History** clears the command palette's recent commands, recent files, usage counts, and pins after a confirm dialog.
+Description: The first groups of the Settings → General section (rendered above `GuideSettings`). **Profile** sets the name the home feed greets you with; it's trimmed on blur. **Your Data** notes, as static text (`SettingNote`), that everything is stored in this browser (there's no account), and **Command History** clears the command palette's recent commands, recent files, usage counts, and pins after a confirm dialog.
 
 ## Local State & Storage
 - State: `atom_userName`, `atom_recentCommandIds`, `atom_recentFilePaths`, `atom_commandUseCounts`, `atom_palettePinnedItems`.

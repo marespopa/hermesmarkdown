@@ -8,6 +8,7 @@ import {
   atom_lastSavedContent,
   atom_fileConflict,
 } from "@/app/atoms/atoms";
+import { markdownFileName } from "@/app/utils/download-markdown";
 import { withPickerLock } from "./shared";
 
 interface UseExportFileProps {
@@ -23,16 +24,7 @@ export function useExportFile({ saveFile }: UseExportFileProps) {
     async (content: string, fileName: string) => {
       if (!content.trim()) return false;
 
-      const baseName =
-        fileName.trim() ||
-        content
-          .split("\n")[0]
-          .replace(/[^\w\s]/gi, "")
-          .slice(0, 20)
-          .trim() ||
-        "untitled";
-
-      const finalName = baseName.endsWith(".md") ? baseName : `${baseName}.md`;
+      const finalName = markdownFileName(fileName, content);
 
       // 1. Try Desktop File System Access API
       if ("showSaveFilePicker" in window) {

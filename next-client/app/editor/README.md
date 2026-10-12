@@ -37,13 +37,13 @@ The editor route (`page.tsx`) composes these:
 | `use-editor-shortcuts.ts` | Window-level shortcuts: Show Files (`Ctrl/Cmd+Shift+E`, or `Ctrl/Cmd+B` outside a note's text), search (`Ctrl/Cmd+Shift+F` opens the palette in the `/` note-text scope), new file, close/select tab, AI chat, save, undo flush. |
 | `use-navigate-with-guard.ts` | Leaves the editor with a Save / Discard prompt when the note is dirty. |
 | `use-github-vault-actions.ts` | `GitHub: Commit / Pull` command handlers. |
-| `use-draft-import.ts` | Import into the draft, never the active tab (with `DraftImportDialog` for overwrite confirmation): `offerDraft` fills an empty draft and opens it, or asks first when the draft has text. Used by "Import file" and tool handoffs. |
+| `use-draft-import.ts` | Import into the draft, never the active tab (with `DraftImportDialog` for overwrite confirmation): `offerDraft` fills an empty draft and opens it, or asks first when the draft has text. Used by "Open Note from Disk…" and tool handoffs. |
 | `use-tool-handoff.ts` | Work handed over from a tool page (`app/utils/tool-handoff.ts`, `sessionStorage["hermes_tool_handoff"]`): read once on mount (deferring the welcome tour), offered to the draft once the vault has settled and the vault-open behavior has run, then cleared. |
 | `use-sync-current-directory.ts` | Points the vault's current directory at the active file's folder. |
 | `use-editor-paste-handlers.ts`, `use-scroll-to-pending-target.ts` | `MarkdownEditor` helpers: CSV-to-table confirm and image saving on paste; jump-to-line requests (`atom_pendingScrollTarget`; the caret goes to the optional `column`). |
-| `use-fade-chrome-while-typing.ts` | Hide interface while typing (`atom_hideChromeWhileTyping`): typing in an editor sets `<html data-chrome-faded>`, which fades every `.typing-chrome` element (pane header, sidebar, mobile file bar; `editor.scss`) and turns the pane, the canvas and the sheet's edge into one plain page (`.typing-page`); with the sidebar open, a single pane's text column slides left by up to half the sidebar's width (`--typing-shift`, set in `page.tsx`) so it centres on the window; moving the mouse over where the chrome sits (after 8px of travel; moving over the text leaves it hidden), or a tap or focus outside the editor, brings it back. |
+| `use-fade-chrome-while-typing.ts` | Hide interface while typing (on for every Focus level but Off, `atom_focusMode`): typing in an editor sets `<html data-chrome-faded>`, which fades every `.typing-chrome` element (pane header, sidebar, mobile file bar; `editor.scss`) and turns the pane, the canvas and the sheet's edge into one plain page (`.typing-page`); with the sidebar open, a single pane's text column slides left by up to half the sidebar's width (`--typing-shift`, set in `page.tsx`) so it centres on the window; moving the mouse over where the chrome sits (after 8px of travel; moving over the text leaves it hidden), or a tap or focus outside the editor, brings it back. |
 | `use-tab-drag-drop.ts` | Tab drag-and-drop between panes (`PaneLeaf`). |
-| `use-home-feed.ts` | The home feed's wiring: opening notes and open tasks (the feed closes and a draft with text is saved first), the new-note button, the palette's "Create '…'" row and the "Home feed" command. |
+| `use-home-feed.ts` | The home feed's wiring: opening notes and open tasks (the feed closes and a draft with text is saved first), the new-note button, the palette's "Create '…'" row and the "Open Home" command (the editor's only Home command). |
 | `use-export-pdf.ts` | **Export as PDF…** (palette, and the More menu's `hermes:export-pdf` event): the active note through `noteToHtml` (`app/utils/print/`), vault images as object URLs (`vaultImagePath`), Mermaid (light theme) and MathML rendered in, then `utils/print-note.ts` prints it from a hidden iframe. Disabled for an empty note or a veiled private one. |
 | `useAIEditorActions.ts` + `ai-action-prompts.ts` | AI Chat state and the one-click AI actions (prompt table keyed by action id). |
 
@@ -57,9 +57,9 @@ The editor route (`page.tsx`) composes these:
     - **Conflict Resolution**: If local changes exist and the file was modified externally, a **Conflict Dialog** appears with **Accept Incoming** (reload from disk), **Keep Current** (overwrite on next save), or **Resolve in Merge Editor** (current, incoming and merged result side by side).
 5. **Folder Management**: Creating a folder uses `targetDir.getDirectoryHandle(name, { create: true })` and refreshes the directory listing.
 
-## Flow mode
+## Flow mode (Focus: dim)
 
-`codemirror/flow-mode.ts` is an opt-in writing mode (Settings → Editor, or **Enable flow mode** in the command palette), stored in `atom_flowMode` and toggled through a CodeMirror compartment.
+`codemirror/flow-mode.ts` is the strongest level of the Focus setting (**Hide interface and dim other paragraphs**, Settings → Editor or **Focus: …** in the command palette), read from `atom_focusMode` (`"dim"`) and toggled through a CodeMirror compartment.
 
 `codemirror/bullet-autospace.ts` (an `EditorView.inputHandler`) turns a `-` typed at the start of a line (after any indent or `> `) into `- `. A space typed right after that bare bullet is swallowed, and a second `-` turns it back into `--`, so `---` still types as a rule or frontmatter fence. Code blocks and multi-cursor edits are left alone.
 

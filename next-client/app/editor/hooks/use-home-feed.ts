@@ -89,11 +89,13 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
     await importFile();
   }, [importFile, setIsOpen]);
 
+  // The editor's one Home command: the vault's home feed (outside the
+  // editor, "Open HermesMarkdown Website" goes to the landing page).
   useRegisterCommand({
     id: "open-home-feed",
-    label: "Home feed",
+    label: "Open Home",
     category: "Navigation",
-    keywords: "recent notes feed start home",
+    keywords: "home feed recent notes start vault",
     action: () => goHome(),
   });
 

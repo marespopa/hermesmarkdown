@@ -1,14 +1,14 @@
 # SettingsCommands
 
-Description: Renders nothing visible. It registers command-palette entries for editor settings (full width, word wrap, line numbers, vim, fonts, text size, autosave, AI provider and model). It is mounted globally in `MainPage`.
+Description: Renders nothing visible. It registers the command-palette entries for editor settings, once for the whole app (it is mounted globally in `MainPage`; the editor doesn't register its own copies): Toggle Full Width / Word Wrap / Line Numbers / Invisibles / Vim Mode, `Focus: …` (one per level from `FOCUS_OPTIONS`; the current level is disabled with "Current setting"), `Editor Font: …`, `Text Size: …`, `Autosave: After Delay` / `Manual Only` and `Autosave Delay: …`. Theme, Open Settings and Show Keyboard Shortcuts live in `AppCommands`.
 
 ## Local State & Storage
-- State: `atom_fullWidth`, `atom_wordWrap`, `atom_lineNumbers`, `atom_vimMode`, `atom_editorFontFamily`, `atom_autosaveMode`, `atom_autosaveDelay`, `atom_aiProvider`, `atom_selectedAiModel`, `useRegisterCommand`.
-- Persistence: The matching `localStorage` keys (`fullWidth`, `wordWrap`, `lineNumbers`, `vimMode`, `editorFontFamily`, `autosaveMode`, `autosaveDelay`, `hermes_ai_provider`, `selectedAiModel`).
+- State: `atom_fullWidth`, `atom_wordWrap`, `atom_lineNumbers`, `atom_showInvisibles`, `atom_vimMode`, `atom_focusMode`, `atom_editorFontFamily`, `atom_renderedFontSize`, `atom_autosaveMode`, `atom_autosaveDelay`, `useRegisterCommand`.
+- Persistence: The matching `localStorage` keys (`fullWidth`, `wordWrap`, `lineNumbers`, `showInvisibles`, `vimMode`, `focusMode`, `editorFontFamily`, `renderedFontSize`, `autosaveMode`, `autosaveDelay`).
 
 ## Dependencies
-- Core: `CommandPaletteContext`, `settings/font-options`.
-- Zero-Cloud: No network or telemetry side effects. Switching the AI provider or model only changes local settings.
+- Core: `CommandPaletteContext`, `settings/font-options`, `settings/focus-options`.
+- Zero-Cloud: No network or telemetry side effects. Every command only changes local settings.
 
 ## Quick Usage
 ```tsx

@@ -7,7 +7,7 @@ Shared command and quick-open surface. See [CommandPalette.md](./CommandPalette.
 | `CommandPaletteContext.tsx` | `CommandPaletteProvider`, `useCommandPalette`, `useRegisterCommand`, `Command` type |
 | `CommandPalette.tsx` | Palette UI: search, ranking, execution; theme / settings actions in the footer |
 | `PaletteSearchBar.tsx` | The search field, drawn as the same pill as the home feed's search bar: icon, input, clear, ⌘K hint, and a `>` button that toggles command mode |
-| `AppCommands.tsx` | Global app commands: home, editor, docs, free tools, settings, theme, shortcuts |
+| `AppCommands.tsx` | App-wide commands, registered once for every route: Open HermesMarkdown Website (the landing page; not offered inside the editor, where Home is the vault's home feed, `open-home-feed`), Open Editor, Open Documentation, Open Free Tools (not in the editor), Open Settings, `Theme: Light` / `Dark` / `System` (the current one disabled), Show Keyboard Shortcuts. Editor preferences are in `editor/settings/components/SettingsCommands.tsx` |
 | `command-search.ts` | Client-side matching and ranking |
 | `palette-model.tsx` | Constants, row / scope types, `buildCreateRow`, `buildTaskRows` (masked tasks only for the empty `!` query), `buildContentRows` (`/` hits → rows, dropping notes the palette doesn't list), and small helpers |
 | `PaletteRow.tsx` | One result row (`Button variant="menu-item"`): label with highlights, lock, context, folder, shortcut / spinner; content rows take two lines. See [PaletteRow.md](./PaletteRow.md) |
@@ -15,7 +15,8 @@ Shared command and quick-open surface. See [CommandPalette.md](./CommandPalette.
 | `use-palette-files.ts` | `usePaletteFiles(showHiddenFiles)`: the file list filtered through `atom_noteDisplayItems` (Privacy Mode), `filesByTag`, and `existingFiles` (unfiltered, used only to decide the Create row) |
 
 ## Command contract
-- Register with `useRegisterCommand`. IDs must be stable and globally unique.
+- Register with `useRegisterCommand`. IDs must be stable and globally unique. Register each command once: app-wide ones in `AppCommands` / `SettingsCommands`, editor ones in `editor/components/editor-commands`.
+- Labels are "Verb Object" in title case (Open Settings, Toggle Word Wrap, Download as Markdown), or "Group: Choice" for a set of choices (`Theme: Dark`, `Focus: Off`). Say "note", not "file", for notes.
 - Register thin adapters over shared actions, so that buttons, menus, shortcuts, and commands share confirmation and error handling.
 - When a command is relevant but unavailable, keep it visible with a `disabledReason` rather than hiding it.
 
