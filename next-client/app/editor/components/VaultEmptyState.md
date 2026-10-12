@@ -1,6 +1,6 @@
 # VaultEmptyState
 
-Description: Empty state of the file views (Explorer page and mobile file overlay) shown when no vault is open. It offers open, create, browser vault, import/export, and connect GitHub. The "Local vaults require Desktop" warning only shows when neither disk folder access nor browser vaults are available.
+Description: Empty state of the file views (Explorer page and mobile file overlay) shown when no vault is open. It offers open, create, browser vault, Open Note from Disk… (`onImport`: a file from the device opens as a draft), Download as Markdown (`onExport`), and connect GitHub. The "Local vaults require Desktop" warning only shows when neither disk folder access nor browser vaults are available.
 
 ## Local State & Storage
 - State: None (controlled).

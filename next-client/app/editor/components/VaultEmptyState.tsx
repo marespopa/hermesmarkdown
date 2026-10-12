@@ -109,14 +109,14 @@ export default function VaultEmptyState({
           className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors text-ui-footnote text-ink-muted dark:text-stone font-medium"
         >
           <HiOutlineCloudDownload size={18} />
-          <span>Import Markdown</span>
+          <span>Open Note from Disk…</span>
         </div>
         <div
           onClick={onExport}
           className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/40 transition-colors text-ui-footnote text-ink-muted dark:text-stone font-medium"
         >
           <HiOutlineCloudUpload size={18} />
-          <span>Export Markdown</span>
+          <span>Download as Markdown</span>
         </div>
       </div>
     </div>

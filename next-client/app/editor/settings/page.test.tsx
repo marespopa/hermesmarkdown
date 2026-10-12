@@ -34,7 +34,8 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
 });
 
 import { useAtom } from "jotai";
-import { UI_FONT_STACK } from "@/app/atoms/ui-atoms";
+import { UI_FONT_STACK, atom_focusMode } from "@/app/atoms/ui-atoms";
+import { atom_aiProvider, atom_availableClaudeModels } from "@/app/atoms/atoms";
 
 // Helper: switch to the "Editor" category so its controls render.
 // The page has two "Editor" texts: the back-button breadcrumb and the nav item.
@@ -127,6 +128,72 @@ describe("SettingsPage", () => {
     const select = screen.getByDisplayValue("2s");
     fireEvent.change(select, { target: { value: "5000" } });
     expect(setAutosaveDelay).toHaveBeenCalledWith(5000);
+  });
+
+  it("offers one Focus setting with three levels, and Show Sidebar under Layout", () => {
+    const setFocusMode = vi.fn();
+    (useAtom as any).mockImplementation((atom: any) => {
+      if (atom === atom_focusMode) return ["hide", setFocusMode];
+      return ["", vi.fn()];
+    });
+    render(<SettingsPage />);
+    openEditorSection();
+
+    expect(screen.getByText("Show Sidebar")).toBeInTheDocument();
+    expect(screen.queryByText("Flow Mode")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hide Interface While Typing")).not.toBeInTheDocument();
+    const focus = screen.getByRole("combobox", { name: "Focus" });
+    expect(focus).toHaveValue("hide");
+    expect(Array.from((focus as HTMLSelectElement).options).map((option) => option.text)).toEqual([
+      "Off",
+      "Hide interface while typing",
+      "Hide interface and dim other paragraphs",
+    ]);
+    fireEvent.change(focus, { target: { value: "dim" } });
+    expect(setFocusMode).toHaveBeenCalledWith("dim");
+  });
+
+  it("has no Toolbar group under Appearance", () => {
+    render(<SettingsPage />);
+    expect(screen.queryByText("Toolbar")).not.toBeInTheDocument();
+    expect(screen.queryByText("Show Sidebar")).not.toBeInTheDocument();
+  });
+
+  it("offers only After Delay and Manual autosave", () => {
+    render(<SettingsPage />);
+    openFilesSection();
+
+    const mode = screen.getByDisplayValue("After Delay") as HTMLSelectElement;
+    expect(Array.from(mode.options).map((option) => option.value)).toEqual(["afterDelay", "manual"]);
+  });
+
+  it("names the AI settings plainly", () => {
+    (useAtom as any).mockImplementation((atom: any) => {
+      if (atom === atom_aiProvider) return ["claude", vi.fn()];
+      if (atom === atom_availableClaudeModels) return [[], vi.fn()];
+      return ["", vi.fn()];
+    });
+    render(<SettingsPage />);
+    fireEvent.click(screen.getByText("AI Features"));
+
+    expect(screen.getByText("Model")).toBeInTheDocument();
+    expect(screen.queryByText("Model Tier")).not.toBeInTheDocument();
+    expect(screen.queryByText("Provider Config")).not.toBeInTheDocument();
+    expect(screen.getByText(/Choose which company's AI powers the AI features/)).toBeInTheDocument();
+  });
+
+  it("puts profile and data first and help and about last in General", () => {
+    render(<SettingsPage />);
+    expect(screen.queryByText("Guide")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("General"));
+
+    const text = document.querySelector("main")!.textContent!;
+    const order = ["Profile", "Your Data", "Onboarding", "Help", "About"].map((title) => text.indexOf(title));
+    expect(order.every((index) => index >= 0)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    // A row with no control is plain text, not a setting.
+    expect(screen.queryByText("Stored on This Device")).not.toBeInTheDocument();
+    expect(screen.getByText(/There's no account/)).toBeInTheDocument();
   });
 
   it("navigates back to the editor when back button is clicked", () => {

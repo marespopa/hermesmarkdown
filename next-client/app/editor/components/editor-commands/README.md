@@ -11,8 +11,12 @@ without changing the public props contract or command behavior.
   are called once and unconditionally.
 - `build-editor-commands.ts` combines contributor groups in their original
   registration order.
-- `document-vault-commands.ts` defines document lifecycle, file operations, and
-  vault commands, including `New note from template…` (with a vault open:
+- `document-vault-commands.ts` defines document lifecycle, note operations, and
+  vault commands: `New Note` (a draft named from its first line),
+  `Download as Markdown` (always a .md download of the note, vault note or
+  draft; it never saves), `Open Note from Disk…` (a file from the device opens
+  as a draft; distinct from `Import files into vault…`), Duplicate / Move /
+  Rename / Delete Note, and `New note from template…` (with a vault open:
   template picker, title prompt, then the note goes in the New Notes folder,
   named by the template's `file_name` when it has one) and `New template…` (with a vault open:
   name prompt, then `<templates folder>/<name>.md` with a starter body, or the
@@ -20,8 +24,16 @@ without changing the public props contract or command behavior.
 - `editor-ai-commands.ts` defines editor formatting, templates and AI
   commands. The `Insert: …` commands skip the slash menu's vault
   **Template** entry (`vaultOnly`).
-- `workspace-task-view-commands.ts` defines panels, panes, tabs, preferences,
-  tasks, views, and workspace navigation.
+- `workspace-task-view-commands.ts` defines panels, panes, tabs, the editor-only
+  toggles (Toggle Hidden Files, Toggle Sidebar), Show Token Cost, the welcome
+  tour, tasks and views.
+
+App-wide commands are not registered here, so each command exists once: Open
+Settings, Open Documentation, `Theme: …` and Show Keyboard Shortcuts come from
+`components/CommandPalette/AppCommands.tsx`; word wrap, line numbers, Focus and
+the other editor preferences from `settings/components/SettingsCommands.tsx`;
+Open Explorer from the palette itself; and the editor's Home command, `Open
+Home` (the vault's home feed), from `hooks/use-home-feed.ts`.
 - `github-vault-commands.ts` defines the `GitHub: Commit / Push / Sync / Pull`
   commands, registered only while a GitHub vault is open.
 - `vault-storage-commands.ts` defines `Browser vaults…` (where browser storage

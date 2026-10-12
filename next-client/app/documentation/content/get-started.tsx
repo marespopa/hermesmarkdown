@@ -144,7 +144,7 @@ export const getStartedGroup: Group = {
         <>
           <p>
             Press <code>CTRL+ALT+N</code>, click <strong>+</strong> on the home feed, or choose{" "}
-            <strong>New file</strong> from the command palette. A blank note opens, ready to type,
+            <strong>New Note</strong> from the command palette. A blank note opens, ready to type,
             with no name prompt.
           </p>
           <p>
@@ -162,12 +162,12 @@ export const getStartedGroup: Group = {
           </p>
           <p>
             A note you leave empty is never saved, so no empty files pile up in your vault. Renaming
-            the first line later does not rename the file; use <strong>Rename current file</strong>{" "}
+            the first line later does not rename the file; use <strong>Rename Note</strong>{" "}
             for that.
           </p>
           <KV
             rows={[
-              { label: "Default folder for new notes", value: "Vault root · Settings → New Notes Folder" },
+              { label: "Default folder for new notes", value: "Vault root · Settings → Files → Vault → New Notes Folder" },
               { label: "Pick a folder and name first", value: "New file in folder… command" },
               { label: "Create from a search", value: 'Type a title in the palette, then Create "…"' },
             ]}
@@ -177,8 +177,11 @@ export const getStartedGroup: Group = {
             insert a starter block. See{" "}
             <a href="#frontmatter" className="text-accent hover:underline">Frontmatter</a>.
             Autosave can be changed under{" "}
-            <a href="#appearance" className="text-accent hover:underline">Settings → Autosave</a>.
-            With autosave set to manual, a new note is saved only when you press <code>CTRL/CMD+S</code>.
+            Settings → Files → Autosave: <strong>After Delay</strong> (the default) or{" "}
+            <strong>Manual Only</strong>. With autosave set to manual, a new note is saved only when you
+            press <code>CTRL/CMD+S</code>. To get a copy of a note outside your vault, run{" "}
+            <strong>Download as Markdown</strong>: it always downloads the note as a <code>.md</code> file
+            and never changes the saved note.
           </p>
         </>
       ),
@@ -200,7 +203,7 @@ export const getStartedGroup: Group = {
             Each row shows a note's title, the first few lines of its text and its file name. The column on the
             left groups notes by the day they were last changed: <em>Today</em>,{" "}
             <em>Yesterday</em>, the weekday for the rest of the week, then the date. If you add
-            your name in Settings → Guide, the feed greets you with it.
+            your name in Settings → General, the feed greets you with it.
           </p>
           <p>
             To keep a note at the top, hover its row and click the pin. On a phone or tablet,
@@ -233,7 +236,7 @@ export const getStartedGroup: Group = {
               { label: "Open the selected note", value: "ENTER" },
               { label: "Search", value: "Start typing" },
               { label: "Back to your open notes", value: "ESCAPE" },
-              { label: "Come back to the feed", value: "Home at the top of the sidebar" },
+              { label: "Come back to the feed", value: "Home at the top of the sidebar, or the Open Home command" },
               { label: "Back to the top of the feed", value: "Home again while the feed is open" },
             ]}
           />
@@ -280,17 +283,16 @@ export const getStartedGroup: Group = {
             changes. On the left:
             the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Search (the
             command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
-            Markdown, Export as PDF, Settings, Help and Hide Toolbar — every one of them is also in the command palette.
+            Markdown, Export as PDF, Settings and Help — every one of them is also in the command palette.
           </p>
           <p>
-            Toolbar buttons are icons; hover one to see its name and shortcut. Right-click the
-            toolbar to hide it.
+            Toolbar buttons are icons; hover one to see its name and shortcut.
           </p>
           <p>
             The <strong>sidebar</strong> starts with Home and lists your open notes across every pane. With a vault it adds
             Templates and Tasks below Home, and ends with the file tree. Show
             it with the Sidebar button at the toolbar's far left and hide it with the button in its own header, or toggle it with{" "}
-            <code>CTRL/CMD+ALT+S</code> or the <strong>Show sidebar</strong>{" "}
+            <code>CTRL/CMD+ALT+S</code> or the <strong>Toggle Sidebar</strong>{" "}
             command, and drag its edge to resize it (double-click the edge to
             reset; with the edge focused, the arrow keys resize it too). Folded sections stay folded. The Explorer below remains the place for bigger file work.
           </p>
@@ -310,7 +312,7 @@ export const getStartedGroup: Group = {
           </p>
           <KV
             rows={[
-              { label: "Home feed", value: "Home button in the toolbar" },
+              { label: "Home feed", value: "Home in the sidebar / Open Home command" },
               { label: "Sidebar", value: "Show: Sidebar button at the toolbar's far left / Hide: button in the sidebar's header / CTRL/CMD+ALT+S" },
               { label: "Explorer", value: "Dedicated files view / CTRL/CMD+SHIFT+E" },
               { label: "Quick switcher", value: "CTRL/CMD+K or CTRL/CMD+P" },
@@ -320,17 +322,17 @@ export const getStartedGroup: Group = {
               { label: "Commands on or off", value: "The > button in the search field" },
               { label: "Explorer controls", value: "New note, new note from template, new folder, and file actions" },
               { label: "AI Chat", value: "CTRL+SHIFT+B" },
-              { label: "Keyboard shortcuts", value: "Show keyboard shortcuts command" },
+              { label: "Keyboard shortcuts", value: "Show Keyboard Shortcuts command" },
             ]}
           />
           <p>
-            Open several files side by side: run <strong>Split pane right</strong> from the command palette (or <strong>Open in pane</strong> on a tab),
+            Open several files side by side: run <strong>Split Pane Right</strong> from the command palette (or <strong>Open in pane</strong> on a tab),
             drag tabs between panes, and resize with the divider.
           </p>
           <p>
-            To be alone with the text, choose <strong>Hide Toolbar</strong> from the More menu (or press{" "}
-            <code>Ctrl/Cmd+Alt+T</code>, or run <strong>Hide toolbar</strong>) and
-            the tabs and toolbar slide away. A small chevron in the top-right corner brings them back.
+            To be alone with the text, set{" "}
+            <a href="#focus" className="text-accent hover:underline">Focus</a> under Settings →
+            Editor: the toolbar, tabs and sidebar fade while you type and come back when you move the mouse.
           </p>
         </>
       ),

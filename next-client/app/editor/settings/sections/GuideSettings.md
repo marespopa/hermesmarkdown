@@ -1,6 +1,6 @@
 # GuideSettings
 
-Description: The Settings → Guide section, after the Profile and Your Data groups (`ProfileSettings`). **Onboarding** restarts the Welcome tour (opens the wizard and returns to `/editor`). **Help** opens the global keyboard shortcuts overlay or the `/documentation` page. **About** shows the app version (from `package.json`) and links to the What is HermesMarkdown, Contact, Privacy, and Terms pages.
+Description: The rest of the Settings → General section, after the Profile and Your Data groups (`ProfileSettings`). **Onboarding** restarts the Welcome tour (opens the wizard and returns to `/editor`). **Help** opens the global keyboard shortcuts overlay or the `/documentation` page. **About** shows the app version (from `package.json`) and links to the What is HermesMarkdown, Contact, Privacy, and Terms pages.
 
 ## Local State & Storage
 - State: writes `atom_isWizardOpen` and `atom_keyboardShortcutsOpen` (both ephemeral).

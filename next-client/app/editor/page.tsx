@@ -33,7 +33,7 @@ import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
 import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_hideChromeWhileTyping, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_focusMode, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useToolHandoff } from "./hooks/use-tool-handoff";
@@ -50,6 +50,8 @@ import { HomeFeedSkeleton } from "./components/EditorSkeleton";
 import { useVaultOpenBehavior } from "./hooks/use-vault-open-behavior";
 import { useRecentVaultTracker } from "./hooks/use-recent-vaults";
 import { useFadeChromeWhileTyping } from "./hooks/use-fade-chrome-while-typing";
+import { showSuccessToast } from "@/app/components/Toastr";
+import { downloadMarkdown } from "@/app/utils/download-markdown";
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -98,7 +100,8 @@ export default function LiteEditor() {
   useVaultSync();
   useVaultOpenBehavior();
   useRecentVaultTracker();
-  const hideChromeWhileTyping = useAtomValue(atom_hideChromeWhileTyping);
+  // Both Focus levels above Off hide the interface while typing.
+  const hideChromeWhileTyping = useAtomValue(atom_focusMode) !== "off";
   useFadeChromeWhileTyping(hideChromeWhileTyping);
   const sidebarOpen = useAtomValue(atom_sidebarOpen);
   const sidebarWidth = useAtomValue(atom_sidebarWidth);
@@ -193,14 +196,12 @@ export default function LiteEditor() {
   });
 
 
-  const handleExport = async () => {
+  // Download as Markdown: always a .md download of the note, vault note or
+  // draft alike. It never saves; Save stays its own command.
+  const handleExport = () => {
     if (!content.trim()) return;
-
-    if (activeFileHandle) {
-      const success = await saveFile(content);
-      if (success) return;
-    }
-    await exportFile(content, fileName);
+    downloadMarkdown(content, fileName);
+    showSuccessToast("Download started");
   };
 
   // Once the chrome fades, a single pane's text re-centres on the window
@@ -225,8 +226,6 @@ export default function LiteEditor() {
         onOpenMobileFiles={() => setIsMobileFileOverlayOpen(true)}
         onOpenTasks={() => navigateWithGuard("/editor/tasks", "Tasks")}
         onOpenTemplates={() => navigateWithGuard("/editor/templates", "Templates")}
-        onHome={() => navigateWithGuard("/", "Home")}
-        onOpenDocumentation={() => navigateWithGuard("/documentation", "Documentation")}
         onRefreshVault={handleRefreshVault}
         onImport={handleImport}
         onRunAIAction={aiActions.runAIActionById}

@@ -60,7 +60,6 @@ export default function FilesSettings() {
           control={
             <SelectControl value={autosaveMode} onChange={(v) => setAutosaveMode(v as any)}>
               <option value="afterDelay">After Delay</option>
-              <option value="onFocusChange">On Focus Change</option>
               <option value="manual">Manual Only (⌘S)</option>
             </SelectControl>
           }

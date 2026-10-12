@@ -27,8 +27,6 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     onOpenMobileFiles: vi.fn(),
     onOpenTasks: vi.fn(),
     onOpenTemplates: vi.fn(),
-    onHome: vi.fn(),
-    onOpenDocumentation: vi.fn(),
     onRefreshVault: vi.fn(),
     onImport: vi.fn(),
     onRunAIAction: vi.fn(),
@@ -55,8 +53,6 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
       prompt: vi.fn(),
       select: vi.fn(),
     },
-    themeCycle: "light",
-    setTheme: vi.fn(),
     showHiddenFiles: false,
     setShowHiddenFiles: vi.fn(),
     setAiBuilderRequest: vi.fn(),
@@ -77,14 +73,6 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     setNewVaultFlowOpen: vi.fn(),
     splitPane: vi.fn(),
     closePane: vi.fn(),
-    wordWrap: true,
-    setWordWrap: vi.fn(),
-    lineNumbers: true,
-    setLineNumbers: vi.fn(),
-    flowMode: false,
-    setFlowMode: vi.fn(),
-    toolbarHidden: false,
-    setToolbarHidden: vi.fn(),
     sidebarOpen: false,
     setSidebarOpen: vi.fn(),
     setTasksGroupBy: vi.fn(),
@@ -92,7 +80,6 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     setTaskTagFilter: vi.fn(),
     setTaskView: vi.fn(),
     setIsWizardOpen: vi.fn(),
-    setKeyboardShortcutsOpen: vi.fn(),
     privacyLevel: "show_title",
     setPrivacyLevel: vi.fn(),
     revealAllSensitive: false,
@@ -138,7 +125,6 @@ describe("buildEditorCommands", () => {
       "new-template",
       "export-file",
       "import-file",
-      "open-explorer",
       "open-tasks-panel",
       "open-templates",
       "split-pane-right",
@@ -146,23 +132,14 @@ describe("buildEditorCommands", () => {
       "move-current-file",
       "close-pane",
       "close-other-tabs",
-      "toggle-theme",
       "toggle-hidden-files",
-      "show-keyboard-shortcuts",
       "token-cost",
-      "open-settings",
-      "toggle-word-wrap",
-      "toggle-line-numbers",
-      "toggle-flow-mode",
-      "toggle-toolbar",
       "toggle-sidebar",
       "start-welcome-tour",
       "privacy-mode-show-title",
       "privacy-mode-hidden",
       "reveal-sensitive-session",
-      "go-home",
       "toggle-home-pin",
-      "open-documentation",
       "close-vault",
       "copy-markdown",
       "rename-current-file",
@@ -230,6 +207,32 @@ describe("buildEditorCommands", () => {
     ]);
   });
 
+  it("leaves app-wide commands to AppCommands and SettingsCommands", () => {
+    const ids = buildEditorCommands(createContext()).map((command) => command.id);
+    for (const id of [
+      "open-explorer", "open-settings", "open-documentation", "show-keyboard-shortcuts",
+      "toggle-theme", "toggle-word-wrap", "toggle-line-numbers", "go-home",
+    ]) {
+      expect(ids).not.toContain(id);
+    }
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("names note commands with notes, and Download as Markdown runs the export", () => {
+    const context = createContext();
+    const commands = buildEditorCommands(context);
+    const label = (id: string) => commands.find((command) => command.id === id)?.label;
+
+    expect(label("new-file")).toBe("New Note");
+    expect(label("import-file")).toBe("Open Note from Disk…");
+    expect(label("rename-current-file")).toBe("Rename Note");
+    expect(label("delete-current-file")).toBe("Delete Note");
+    expect(label("export-file")).toBe("Download as Markdown");
+    commands.find((command) => command.id === "export-file")?.action();
+    expect(context.onExport).toHaveBeenCalledOnce();
+    expect(context.onSave).not.toHaveBeenCalled();
+  });
+
   it("preserves availability reasons and action callbacks", () => {
     const context = createContext({
       activeEditorView: null,
@@ -242,18 +245,14 @@ describe("buildEditorCommands", () => {
     expect(command("ai-improve")?.disabledReason).toBe("Configure an AI provider in Settings");
 
     command("save-file")?.action();
-    command("open-explorer")?.action();
     command("open-tasks-panel")?.action();
-    command("toggle-theme")?.action();
     command("ai-improve")?.action();
     command("new-folder")?.action();
     command("rename-current-file")?.action();
     command("delete-current-file")?.action();
 
     expect(context.onSave).toHaveBeenCalledOnce();
-    expect(context.router.push).toHaveBeenCalledWith("/editor/files");
     expect(context.onOpenTasks).toHaveBeenCalledOnce();
-    expect(context.setTheme).toHaveBeenCalledWith("light");
     expect(context.onRunAIAction).toHaveBeenCalledWith("improve");
     expect(context.createFolder).toHaveBeenCalledOnce();
     expect(context.renameFile).toHaveBeenCalledWith(context.activeFileHandle, undefined, context.activeFilePath);

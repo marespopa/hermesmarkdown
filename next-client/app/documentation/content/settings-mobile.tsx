@@ -9,20 +9,24 @@ export const settingsGroup: Group = {
       id: "appearance",
       title: "Appearance",
       lead: "Theme and a small editorial typeface pair shape the editor's paper-like writing surface.",
-      keywords: "theme dark light font typography sidebar",
+      keywords: "theme dark light font typography text size sidebar layout full width focus",
       body: (
         <>
           <p>
             System/light/dark theme controls are available in Settings → Appearance and from the
-            command palette. System follows your operating system automatically. The editor font is
-            set under Settings → Typography and applies to every pane in a split workspace. Word
-            wrap, line numbers, Show Invisibles (¶ on empty lines, dots for spaces), Vim mode, flow
-            mode and Hide Interface While Typing live under Settings → Editor.
+            command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
+            <strong>Theme: System</strong>). System follows your operating system automatically. The
+            editor font and text size are set under Settings → Appearance → Typography and apply to
+            every pane in a split workspace. Show Sidebar, Full Width, word wrap, line numbers and
+            Show Invisibles (¶ on empty lines, dots for spaces) live under Settings → Editor → Layout;
+            Vim mode and{" "}
+            <a href="#focus" className="text-accent hover:underline">Focus</a> under Settings →
+            Editor → Writing.
           </p>
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
-              { label: "Sidebar", value: "Show Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
+              { label: "Sidebar", value: "Settings → Editor → Layout → Show Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
               { label: "Typeface", value: "Plus Jakarta Sans by default, with Source Serif 4, Inter, and Geist Mono options" },
             ]}
           />
@@ -94,7 +98,7 @@ export const mobileGroup: Group = {
             A thin bar stays fixed at the top of the screen showing the active file's name and save
             status — there's no keyboard shortcut for the command palette on mobile, so tapping this
             bar is the one always-present way to open it. From there, Open Explorer, Search, Open Tasks,
-            New file, and every other command work exactly as they do on desktop.
+            New Note, and every other command work exactly as they do on desktop.
           </p>
           <p>
             The <strong>Home</strong> button at the left of that bar takes you back to the{" "}
@@ -162,7 +166,6 @@ export const mobileGroup: Group = {
           <KV
             rows={[
               { label: "Explorer", value: "Full-screen file-management view" },
-              { label: "Selection toolbar", value: "Bold, Italic, Link only" },
               { label: "Vaults", value: "Browser vaults on iPhone/iPad; see Vaults on phones and tablets" },
             ]}
           />

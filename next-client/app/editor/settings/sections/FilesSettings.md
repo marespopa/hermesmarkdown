@@ -1,6 +1,6 @@
 # FilesSettings
 
-Description: The Settings → Files section: Vault (the new notes folder, normalized on blur; the templates folder, per vault, see [TemplatesFolderSetting](TemplatesFolderSetting.md); show hidden files) and Autosave (mode and delay).
+Description: The Settings → Files section: Vault (the new notes folder, normalized on blur; the templates folder, per vault, see [TemplatesFolderSetting](TemplatesFolderSetting.md); show hidden files) and Autosave (mode: After Delay or Manual Only; the delay shows for After Delay).
 
 ## Local State & Storage
 - State: `atom_newNoteFolder`, `atom_showHiddenFiles`, `atom_autosaveMode`, `atom_autosaveDelay` (the templates folder lives in `TemplatesFolderSetting`).

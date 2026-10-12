@@ -112,17 +112,28 @@ export const SettingItem = ({
     </div>
   );
 
+// A row of plain information inside a group: no control, nothing to change.
+export const SettingNote = ({ children }: { children: React.ReactNode }) => (
+  <p className="border-b border-edge-subtle py-3 text-ui-footnote leading-snug text-ink-muted last:border-0 dark:text-stone">
+    {children}
+  </p>
+);
+
+// A titled card of settings. A section with one group can leave the title
+// out: the section heading already names it.
 export const SettingGroup = ({
   title,
   children,
 }: {
-  title: string;
+  title?: string;
   children: React.ReactNode;
 }) => (
   <div className="mb-5 last:mb-0">
-    <p className="mb-2 px-1 text-ui-caption font-semibold uppercase tracking-wider text-fg-muted/45">
-      {title}
-    </p>
+    {title && (
+      <p className="mb-2 px-1 text-ui-caption font-semibold uppercase tracking-wider text-fg-muted/45">
+        {title}
+      </p>
+    )}
     <div className="rounded-xl border border-edge-subtle bg-chrome/60 px-4 py-0.5 backdrop-blur-xl">
       {children}
     </div>

@@ -7,17 +7,15 @@ import SensitiveNoteGate from "./SensitiveNoteGate";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
-import { atom_sidebarOpen, atom_toolbarHidden } from "@/app/atoms/ui-atoms";
+import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineChevronDown } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards } from "react-icons/hi";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import PaneTab, { TabSaveState } from "./PaneTab";
 import PaneActions from "./PaneActions";
 import PaneToolbarButton from "./PaneToolbarButton";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
-import Button from "../../components/Button";
-import Tooltip from "@/app/components/Tooltip";
 import { formatShortcut } from "@/app/utils/platform";
 import { getFirstLeaf, getTopTrailingLeaf } from "@/app/atoms/utils";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
@@ -26,7 +24,7 @@ import { useTabDragDrop } from "../hooks/use-tab-drag-drop";
 import PaneEmptyState from "./PaneEmptyState";
 import PaneWindowActions from "./PaneWindowActions";
 import TabStripScroller from "./TabStripScroller";
-import { PANE_HEADER_CLASS, PANE_HEADER_HEIGHT, PANE_HEADER_HIDDEN, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
+import { PANE_HEADER_CLASS, PANE_HEADER_HEIGHT, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -51,7 +49,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const { openOrCreateLink } = useFileSystem();
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
-  const [toolbarHidden, setToolbarHidden] = useAtom(atom_toolbarHidden);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
 
   // The editor remounts on every tab switch, except when the draft was just
@@ -92,8 +89,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   };
 
   const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string } | null>(null);
-  // Right-clicking the toolbar offers Hide Toolbar, as a native toolbar does.
-  const [toolbarMenu, setToolbarMenu] = React.useState<{ x: number; y: number } | null>(null);
   const tabShortcutNumbers = React.useMemo(
     () => new Map(
       getWorkspaceTabs(workspaceLayout.rootContainer)
@@ -118,20 +113,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       onClick={() => setActivePaneId(leaf.id)}
     >
       {/* Pane tabs are the editor's desktop header, even for a single note. */}
-      {/* Hidden toolbar slides up under the pane's top edge (the pane clips
-          it); `inert` keeps its controls out of the tab order meanwhile. */}
       {!isMobileChrome && (
-      <div
-        className={`shrink-0 relative transition-[margin-top] duration-200 ease-out motion-reduce:transition-none ${toolbarHidden ? PANE_HEADER_HIDDEN : "mt-0"}`}
-        inert={toolbarHidden}
-      >
-      <div
-        className={`typing-chrome ${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT}`}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          setToolbarMenu({ x: e.clientX, y: e.clientY });
-        }}
-      >
+      <div className="shrink-0 relative">
+      <div className={`typing-chrome ${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT}`}>
         {/* Show sidebar sits at the far left while the sidebar is hidden; once
             it's open, the sidebar's own header carries the hide button. Its
             right margin matches the header's left padding (px-2 sm:px-3), so it
@@ -220,23 +204,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       </div>
       )}
 
-      {/* While hidden, the top-right pane (home of the window actions) keeps a
-          small handle to bring the toolbar back. */}
-      {!isMobileChrome && toolbarHidden && hostsWindowActions && (
-        <div className="typing-chrome absolute top-1.5 right-3 z-30">
-          <Tooltip label="Show toolbar" shortcut={formatShortcut("T", { alt: true })} position="bottom-end">
-            <Button
-              variant="icon"
-              onClick={() => setToolbarHidden(false)}
-              aria-label="Show toolbar"
-              className="w-8 h-6 flex items-center justify-center rounded-full bg-surface-raised text-fg-faint opacity-60 hover:opacity-100 hover:text-fg focus-visible:opacity-100 transition-opacity"
-            >
-              <HiOutlineChevronDown size={14} />
-            </Button>
-          </Tooltip>
-        </div>
-      )}
-
       {/* Pane Content */}
       <div className="flex-1 min-h-0 overscroll-none overflow-auto">
         {leaf.openFilePaths.length === 0 ? (
@@ -282,18 +249,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             return [...menuActions, ...closeItems];
           })()}
           onClose={() => setTabMenu(null)}
-        />
-      )}
-
-      {toolbarMenu && (
-        <TabContextMenu
-          x={toolbarMenu.x}
-          y={toolbarMenu.y}
-          label="Toolbar"
-          items={[
-            { label: "Hide Toolbar", shortcut: formatShortcut("T", { alt: true }), onClick: () => setToolbarHidden(true) },
-          ]}
-          onClose={() => setToolbarMenu(null)}
         />
       )}
     </div>

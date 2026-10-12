@@ -21,7 +21,7 @@ React hooks organized by concern: UI primitives, sync orchestration, and the fil
 |------|---------|
 | `use-vault-sync.ts` | Keeps the vault tree in step with the disk: watches the vault folder recursively where the browser has `FileSystemObserver` (`observeVault` in `file-system/file-observer.ts`; files appearing, going away or moving, not edits or hidden folders) and rescans the whole vault `VAULT_WATCH_DEBOUNCE` (500ms) after a burst; also rescans on window focus and every 5min (1min for cloud-synced vaults). Mounted by the editor page and the Explorer; `syncVault(true)` is the palette's Refresh vault |
 | `use-file-watcher.ts` | Reloads open files changed outside the app: near-instant via `FileSystemObserver` where supported (Chromium), plus polling as fallback (backoff up to 5min, immediate on window focus). Changed open tabs' disk text also goes to the note-text index (`indexNoteContent`) |
-| `use-auto-save.ts` | Debounced / on-blur / manual save modes; flushes pending writes on tab switch |
+| `use-auto-save.ts` | After-delay (debounced) and manual save modes; flushes pending writes on tab switch |
 | `use-task-writeback.ts` | Writes Tasks page status changes back to the source line (`setTaskStatus`, `toggleTask`, with @started/@done stamps) and puts a changed line back for Undo (`restoreTaskLine`); an open tab (`isPathInLayout` from `atoms/utils.ts`) gets the change in its buffer too |
 
 `Ctrl/Cmd+S` is handled by the editor page's global key handler (`app/editor/page.tsx`).

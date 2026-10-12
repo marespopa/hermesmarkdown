@@ -3,7 +3,6 @@
 import React, { useRef, useState } from "react";
 import {
   HiOutlineChatAlt2,
-  HiOutlineChevronUp,
   HiOutlineClipboardCopy,
   HiOutlineCog,
   HiOutlineDocumentDownload,
@@ -22,7 +21,7 @@ import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 // stay put while focus moves between panes. Each section is its own capsule:
 // - Tools: command palette and AI chat.
 // - More: a pull-down menu with the secondary commands (Copy Markdown and
-//   Export as PDF for the focused pane, Settings, Help, Hide Toolbar). Split
+//   Export as PDF for the focused pane, Settings, Help). Split
 //   panes and Token Cost are palette commands.
 export default function PaneWindowActions() {
   const actions = useWindowActions();
@@ -87,7 +86,6 @@ export default function PaneWindowActions() {
             { label: "Export as PDF…", icon: <HiOutlineDocumentDownload size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.exportActivePdf },
             { label: "Settings", icon: <HiOutlineCog size={15} />, divider: true, onClick: actions.openSettings },
             { label: "Documentation and Help", icon: <HiOutlineQuestionMarkCircle size={15} />, onClick: actions.openHelp },
-            { label: "Hide Toolbar", icon: <HiOutlineChevronUp size={15} />, divider: true, shortcut: formatShortcut("T", { alt: true }), onClick: actions.hideToolbar },
           ]}
         />
       )}

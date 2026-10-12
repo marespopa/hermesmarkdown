@@ -19,8 +19,8 @@ export const aiFeaturesGroup: Group = {
             ]}
           />
           <p>
-            Settings → Provider Config → choose a provider → paste your API key → Test Connection,
-            then pick a model (use the refresh button to reload the list). Once a key validates, AI
+            Settings → AI Features → choose an AI Provider (Claude or Gemini) → paste your API key → Test Connection,
+            then pick a Model (use the refresh button to reload the list). Once a key validates, AI
             Chat, the Ask AI toolbar, and the AI items in the slash menu appear. The palette&apos;s <code>AI: …</code> actions are always listed and explain
             that a key is needed until one is set.
           </p>
@@ -31,7 +31,7 @@ export const aiFeaturesGroup: Group = {
             for the full picture.
           </p>
           <Callout type="note">
-            Remove a key with the <strong>Remove AI key</strong> button in Settings → Provider Config.
+            Remove a key with the <strong>Remove AI key</strong> button in Settings → AI Features.
             AI features are disabled again until a new key is set.
           </Callout>
         </>

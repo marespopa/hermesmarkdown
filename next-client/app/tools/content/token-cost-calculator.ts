@@ -37,7 +37,7 @@ export const TOKEN_COST_CALCULATOR: ToolEntry = {
     },
     {
       q: "Can I see what a note in my vault costs?",
-      a: "Yes. In the editor, choose More → Token Cost, or run Token cost of this note from the command palette, to price the note you have open.",
+      a: "Yes. In the editor, choose More → Token Cost, or run Show Token Cost from the command palette, to price the note you have open.",
     },
     {
       q: "Is my text uploaded?",

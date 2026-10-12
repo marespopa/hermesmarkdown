@@ -1,6 +1,6 @@
 # TokenCostDialog
 
-Description: What sending the note in the focused pane to an AI model costs. Shows the file name, its token count (o200k) and a `TokenCostTable` with one input-only Cost column per model; a reply's length can't be known here, so it isn't priced. Opened with the `hermes:open-token-cost` document event (`openTokenCostDialog` in `utils/open-helper-dialogs.ts`), sent by the palette's **Token cost of this note**. The count follows the note live while the dialog is open.
+Description: What sending the note in the focused pane to an AI model costs. Shows the file name, its token count (o200k) and a `TokenCostTable` with one input-only Cost column per model; a reply's length can't be known here, so it isn't priced. Opened with the `hermes:open-token-cost` document event (`openTokenCostDialog` in `utils/open-helper-dialogs.ts`), sent by the palette's **Show Token Cost**. The count follows the note live while the dialog is open.
 
 ## Local State & Storage
 - State: local `open`; reads `atom_content` and `atom_fileName` (the active tab). Persistence: none.
