@@ -3,12 +3,12 @@
 Description: One option in the command palette's result list (`role="option"`, `id="command-palette-option-<index>"`), drawn as a `Button variant="menu-item"`. Extracted from `CommandPalette.tsx`.
 
 ## Layout
-- Single-line rows (files, commands, tasks, headings, create): the label with `HighlightedText`, a `SensitiveBadge` lock for sensitive files and masked tasks, optional context (a command's `disabledReason`, a task's `path:line`, a `#tag` result's matched tags), the parent folder right-aligned, and a command's shortcut or a spinner while it runs.
+- Single-line rows (files, commands, tasks, headings, create): the label with `HighlightedText`, a `SensitiveBadge` lock for private files and masked tasks, optional context (a command's `disabledReason`, a task's `path:line`, a `#tag` result's matched tags), the parent folder right-aligned, and a command's shortcut or a spinner while it runs.
 - Content rows (`/` note text): two lines. First the snippet of the matching line, with every term occurrence highlighted. Second, `name:line` with the parent folder right-aligned. They grow to fit both lines (`min-h-10`, `min-h-11` on mobile chrome).
 - Selected rows use `bg-chrome` / `border-edge`; tokens only.
 
 ## Accessibility
-- Accessible name: the label (or "Sensitive task"), "(sensitive)" for sensitive files, the context, `name:line` for content rows, and the folder.
+- Accessible name: the label (or "Private task"), "(private)" for private files, the context, `name:line` for content rows, and the folder.
 - `aria-selected`, `aria-disabled` for disabled commands, `aria-busy` while a command runs.
 
 ## Props

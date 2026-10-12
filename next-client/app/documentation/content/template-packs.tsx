@@ -31,7 +31,7 @@ export const templatePacksItem: Subsection = {
         Each pack has <strong>New</strong> (a template in that pack), <strong>Duplicate</strong> (copy the
         pack under a new name, to change it without touching the original) and <strong>Delete</strong>{" "}
         (move it to the Trash, with Undo). <strong>New pack</strong> at the top makes an empty one. Packs
-        are ordinary folders, so you can also rename or move them in the file tree, sync them, or copy one
+        are ordinary folders, so you can also rename or move them in Files, sync them, or copy one
         into another vault to reuse it there.
       </p>
       <h4 className={h4}>Packs to add</h4>

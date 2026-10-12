@@ -10,6 +10,7 @@ React hooks organized by concern: UI primitives, sync orchestration, and the fil
 | `use-template-dialog.ts` | Promise-based `pickTemplate({ includeBlank, title })` / `askPrompts(labels, confirmLabel)` over `atom_templateDialog` (rendered by `components/TemplateDialog`); null = cancelled |
 | `use-is-mobile.tsx` | Breakpoint detection (default 1052px) |
 | `use-mobile-chrome.tsx` | 768px breakpoint for the mobile chrome (file indicator bar, full-screen overlays) |
+| `use-show-files.ts` | **Show Files**: on desktop sets `atom_showFiles` (sidebar shown, its Files section unfolded, home feed closed, tree focus requested) and returns to `/editor` from other routes; on mobile opens `/editor/files`. Takes an optional `navigate` (the editor page's unsaved-changes guard) |
 | `use-keyboard-inset.tsx` | On-screen keyboard height via `visualViewport`, so fixed elements can stay clear of it |
 | `use-back-button-close.ts` | Makes the device/browser back action close the open overlay instead of leaving the editor |
 | `use-resolved-theme.ts` | Resolves `"system"` theme to `"light"` / `"dark"`, live with OS changes |
@@ -19,7 +20,7 @@ React hooks organized by concern: UI primitives, sync orchestration, and the fil
 
 | Hook | Purpose |
 |------|---------|
-| `use-vault-sync.ts` | Keeps the vault tree in step with the disk: watches the vault folder recursively where the browser has `FileSystemObserver` (`observeVault` in `file-system/file-observer.ts`; files appearing, going away or moving, not edits or hidden folders) and rescans the whole vault `VAULT_WATCH_DEBOUNCE` (500ms) after a burst; also rescans on window focus and every 5min (1min for cloud-synced vaults). Mounted by the editor page and the Explorer; `syncVault(true)` is the palette's Refresh vault |
+| `use-vault-sync.ts` | Keeps the vault tree in step with the disk: watches the vault folder recursively where the browser has `FileSystemObserver` (`observeVault` in `file-system/file-observer.ts`; files appearing, going away or moving, not edits or hidden folders) and rescans the whole vault `VAULT_WATCH_DEBOUNCE` (500ms) after a burst; also rescans on window focus and every 5min (1min for cloud-synced vaults). Mounted by the editor page and the Files page; `syncVault(true)` is the palette's Refresh vault |
 | `use-file-watcher.ts` | Reloads open files changed outside the app: near-instant via `FileSystemObserver` where supported (Chromium), plus polling as fallback (backoff up to 5min, immediate on window focus). Changed open tabs' disk text also goes to the note-text index (`indexNoteContent`) |
 | `use-auto-save.ts` | Debounced / on-blur / manual save modes; flushes pending writes on tab switch |
 | `use-task-writeback.ts` | Writes Tasks page status changes back to the source line (`setTaskStatus`, `toggleTask`, with @started/@done stamps) and puts a changed line back for Undo (`restoreTaskLine`); an open tab (`isPathInLayout` from `atoms/utils.ts`) gets the change in its buffer too |

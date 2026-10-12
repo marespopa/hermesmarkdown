@@ -26,7 +26,7 @@ export const COMMAND_MODE_DEFAULT_ORDER = [
   "open-home-feed",
   "new-file",
   "save-file",
-  "open-explorer",
+  "show-files",
   "open-vault",
   "open-documentation",
 ];

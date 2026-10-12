@@ -6,7 +6,7 @@ import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_revealAllSensitive, atom_revealedSensitivePaths } from "@/app/atoms/privacy-atoms";
 import SensitiveNoteGate from "./SensitiveNoteGate";
 
-const SENSITIVE = "---\nsensitive: true\ntitle: Payroll\n---\n\nSalary figures";
+const SENSITIVE = "---\nprivate: true\ntitle: Payroll\n---\n\nSalary figures";
 const PLAIN = "# Groceries\n\nMilk";
 
 // Stands in for MarkdownEditor: the gate only decides whether it mounts.
@@ -27,7 +27,7 @@ function setup(store = createStore()) {
 describe("SensitiveNoteGate", () => {
   beforeEach(() => cleanup());
 
-  it("veils sensitive content without mounting the editor", () => {
+  it("veils private content without mounting the editor", () => {
     const { show } = setup();
     show("a.md", SENSITIVE);
     expect(screen.getByTestId("sensitive-note-veil")).toBeInTheDocument();
@@ -49,10 +49,10 @@ describe("SensitiveNoteGate", () => {
     expect(screen.getByTestId("editor")).toBeInTheDocument();
   });
 
-  it("reveals every sensitive note on Show all", () => {
+  it("reveals every private note on Show all", () => {
     const { store, show } = setup();
     show("a.md", SENSITIVE);
-    fireEvent.click(screen.getByRole("button", { name: "Show all sensitive notes this session" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show all private notes this session" }));
     expect(store.get(atom_revealAllSensitive)).toBe(true);
 
     show("b.md", SENSITIVE);
@@ -60,7 +60,7 @@ describe("SensitiveNoteGate", () => {
     expect(screen.getByTestId("editor")).toBeInTheDocument();
   });
 
-  it("stays shown when an open note becomes sensitive mid-edit", () => {
+  it("stays shown when an open note becomes private mid-edit", () => {
     const { show } = setup();
     show("a.md", PLAIN);
     expect(screen.getByTestId("editor")).toBeInTheDocument();
@@ -69,7 +69,7 @@ describe("SensitiveNoteGate", () => {
     expect(screen.getByTestId("editor")).toBeInTheDocument();
   });
 
-  it("keeps a note marked sensitive while shown revealed after a remount", () => {
+  it("keeps a note marked private while shown revealed after a remount", () => {
     const { store, show } = setup();
     show("a.md", PLAIN);
     show("a.md", SENSITIVE);
@@ -81,14 +81,14 @@ describe("SensitiveNoteGate", () => {
     expect(screen.getByTestId("editor")).toBeInTheDocument();
   });
 
-  it("veils when the first content is empty and sensitive content loads after", () => {
+  it("veils when the first content is empty and private content loads after", () => {
     const { show } = setup();
     // setup() rendered "a.md" with empty content first.
     show("a.md", SENSITIVE);
     expect(screen.getByTestId("sensitive-note-veil")).toBeInTheDocument();
   });
 
-  it("veils a note that is sensitive only in the indexed metadata", () => {
+  it("veils a note that is private only in the indexed metadata", () => {
     const store = createStore();
     const meta: FileMetadata = {
       path: "a.md", name: "a.md", tags: [], links: [], frontmatter: { tags: "private" },

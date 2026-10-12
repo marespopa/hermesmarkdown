@@ -119,7 +119,7 @@ export default function WhatIsHermesMd() {
                 </li>
                 <li>
                   Dotfiles and <InlineCode>_</InlineCode>-prefixed files (for example agent skill files)
-                  can be shown in the file tree with the <em>Show Hidden Files</em> setting.
+                  can be shown in Files with the <em>Show Hidden Files</em> setting.
                 </li>
               </ul>
               <p>

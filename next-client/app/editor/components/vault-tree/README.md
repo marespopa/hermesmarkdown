@@ -1,6 +1,6 @@
 # vault-tree
 
-Building blocks of [`VaultFileTree`](../VaultFileTree.md), the file tree used by the sidebar, the Explorer page (`/editor/files`) and the mobile file overlay.
+Building blocks of [`VaultFileTree`](../VaultFileTree.md), the tree behind Files: the sidebar's Files section and the mobile Files page (`/editor/files`).
 
 | File | Purpose |
 |---|---|

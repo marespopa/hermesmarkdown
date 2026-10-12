@@ -11,7 +11,7 @@ Shared command and quick-open surface. See [CommandPalette.md](./CommandPalette.
 | `command-search.ts` | Client-side matching and ranking |
 | `palette-model.tsx` | Constants, row / scope types, `buildCreateRow`, `buildTaskRows` (masked tasks only for the empty `!` query), `buildContentRows` (`/` hits → rows, dropping notes the palette doesn't list), and small helpers |
 | `PaletteRow.tsx` | One result row (`Button variant="menu-item"`): label with highlights, lock, context, folder, shortcut / spinner; content rows take two lines. See [PaletteRow.md](./PaletteRow.md) |
-| `use-palette-content-search.ts` | `usePaletteContentSearch(active, query, files)`: the `/` scope — 150 ms debounced search in the metadata worker over non-sensitive palette files; rows, status, `pending` / `capped` |
+| `use-palette-content-search.ts` | `usePaletteContentSearch(active, query, files)`: the `/` scope — 150 ms debounced search in the metadata worker over non-private palette files; rows, status, `pending` / `capped` |
 | `use-palette-files.ts` | `usePaletteFiles(showHiddenFiles)`: the file list filtered through `atom_noteDisplayItems` (Privacy Mode), `filesByTag`, and `existingFiles` (unfiltered, used only to decide the Create row) |
 
 ## Command contract
@@ -26,5 +26,5 @@ Shared command and quick-open surface. See [CommandPalette.md](./CommandPalette.
 - The empty query lists pinned items (max 5, toggled with `Ctrl/Cmd+D`), up to 5 recent files, top actions, and up to 3 frequently used commands.
 - Ranking order: title prefix, then title fuzzy/substring, then path. No network requests. File, tag, command, task and heading search runs in memory; note-text search runs in the metadata worker.
 - A file query with no exact title match ends with a `Create "<query>"` row when the editor has registered a create handler (`setCreateNote`).
-- Sensitive notes (frontmatter `sensitive: true`, `private: true` or a `sensitive` / `private` tag) get a lock on their file rows; their `!` tasks show as `••••••••` with a lock, only for the empty `!` query, never matched by text. In Privacy Mode "hidden" they're left out of search, `#tag`, recent and pinned rows (stored pins and recents are untouched).
+- Private notes (frontmatter `private: true` or a `private` tag) get a lock on their file rows; their `!` tasks show as `••••••••` with a lock, only for the empty `!` query, never matched by text. In Privacy Mode "Hide from lists" (`hidden`) they're left out of search, `#tag`, recent and pinned rows (stored pins and recents are untouched).
 - Arrow keys move the selection, Enter runs, Escape closes. Uses combobox/listbox semantics.

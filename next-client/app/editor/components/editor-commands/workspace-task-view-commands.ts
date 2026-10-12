@@ -49,14 +49,8 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     workspaceLayout,
   } = context;
 
+  // "Show Files" is registered once, by the palette itself (every route).
   const panels: Command[] = [
-    {
-      id: "open-explorer",
-      label: "Open Explorer",
-      shortcut: formatShortcut("E", { shift: true }),
-      keywords: "files browse explorer",
-      action: () => router.push("/editor/files"),
-    },
     {
       id: "open-tasks-panel",
       label: "Open Tasks",

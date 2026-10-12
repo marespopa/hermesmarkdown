@@ -1,6 +1,6 @@
 # SensitiveNoteVeil
 
-Description: The centered `bg-surface` panel shown in place of the editor for a sensitive note: a lock with "Sensitive note", the note's title, a **Show note** button (`secondary`) and **Show all sensitive notes this session** (`tertiary`). It never renders the note's text.
+Description: The centered `bg-surface` panel shown in place of the editor for a private note: a lock with "Private note", the note's title, a **Show note** button (`secondary`) and **Show all private notes this session** (`tertiary`). It never renders the note's text.
 
 ## Local State & Storage
 - State: None (controlled by `SensitiveNoteGate`).
@@ -25,4 +25,4 @@ Description: The centered `bg-surface` panel shown in place of the editor for a 
 | title | `string` |  | Display title (never body text) |
 | isActivePane | `boolean` |  | Focus "Show note" when true |
 | onShowNote | `() => void` |  | Reveal this note for the session |
-| onShowAll | `() => void` |  | Reveal every sensitive note for the session |
+| onShowAll | `() => void` |  | Reveal every private note for the session |

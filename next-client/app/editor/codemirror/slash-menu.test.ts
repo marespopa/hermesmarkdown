@@ -109,35 +109,35 @@ describe("createSlashMenuSource", () => {
     expect(getResult("/AI", callbacks).result?.options.map(({ label }) => label)).not.toContain("AI Chat");
   });
 
-  it("finds the one privacy entry by /privacy, /sensitive, /private, /public or a hyphenated label", () => {
+  it("finds the one privacy entry by /privacy, /private, /public or a hyphenated label", () => {
     const labels = (doc: string) => getResult(doc).result?.options.map(({ label }) => label) ?? [];
-    for (const query of ["/privacy", "/sensitive", "/private", "/mark-as-sensitive"]) {
-      expect(labels(query)).toEqual(["Privacy: mark as sensitive"]);
+    for (const query of ["/privacy", "/private", "/mark-as-private"]) {
+      expect(labels(query)).toEqual(["Privacy: mark as private"]);
     }
-    expect(labels("---\nsensitive: true\n---\n/public")).toEqual(["Privacy: mark as public"]);
+    expect(labels("---\nprivate: true\n---\n/public")).toEqual(["Privacy: mark as public"]);
   });
 
   it("adds a frontmatter block with the flag when the note has none", () => {
-    const { view } = applyOption("Body\n/privacy", "Privacy: mark as sensitive");
+    const { view } = applyOption("Body\n/privacy", "Privacy: mark as private");
 
-    expect(view.state.doc.toString()).toBe("---\nsensitive: true\n---\n\nBody\n");
+    expect(view.state.doc.toString()).toBe("---\nprivate: true\n---\n\nBody\n");
   });
 
   it("sets the flag in existing frontmatter and leaves other fields alone", () => {
-    const { view } = applyOption('---\ntitle: "Note"\nsensitive: false\n---\nBody /privacy', "Privacy: mark as sensitive");
+    const { view } = applyOption('---\ntitle: "Note"\nprivate: false\n---\nBody /privacy', "Privacy: mark as private");
 
-    expect(view.state.doc.toString()).toBe('---\ntitle: "Note"\nsensitive: true\n---\nBody ');
+    expect(view.state.doc.toString()).toBe('---\ntitle: "Note"\nprivate: true\n---\nBody ');
   });
 
-  it("offers mark as public only on sensitive notes, and mark as sensitive only on the others", () => {
+  it("offers mark as public only on private notes, and mark as private only on the others", () => {
     const labels = (doc: string) => getResult(doc).result?.options.map(({ label }) => label) ?? [];
 
-    expect(labels("/privacy")).toEqual(["Privacy: mark as sensitive"]);
+    expect(labels("/privacy")).toEqual(["Privacy: mark as private"]);
     expect(labels("---\ntags: [private]\n---\n/privacy")).toEqual(["Privacy: mark as public"]);
   });
 
-  it("mark as public clears every sensitive marker", () => {
-    const doc = '---\ntitle: "Note"\nsensitive: true\ntags: [work, private]\n---\nBody /privacy';
+  it("mark as public clears both spellings of the private marker", () => {
+    const doc = '---\ntitle: "Note"\nprivate: true\ntags: [work, private]\n---\nBody /privacy';
     const { view } = applyOption(doc, "Privacy: mark as public");
 
     expect(view.state.doc.toString()).toBe('---\ntitle: "Note"\ntags: [work]\n---\nBody ');

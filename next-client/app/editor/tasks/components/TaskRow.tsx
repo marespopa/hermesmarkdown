@@ -36,7 +36,7 @@ const TEXT_CLASS: Record<TaskStatus, string> = {
   cancelled: "line-through text-fg-faint opacity-60",
 };
 
-// One task on the Tasks page. A task from a sensitive note (isMasked) shows
+// One task on the Tasks page. A task from a private note (isMasked) shows
 // bullets and a lock instead of its text and tags; the status ring, due date
 // and file subtitle still work. On touch, the row swipes (use-task-swipe.ts):
 // right to move the task forward, left to set it aside.
@@ -92,7 +92,7 @@ export default function TaskRow({
             {task.isMasked ? (
               <>
                 <span aria-hidden="true" className="truncate">{task.text}</span>
-                <span className="sr-only">Sensitive task</span>
+                <span className="sr-only">Private task</span>
                 <SensitiveBadge />
               </>
             ) : (

@@ -29,7 +29,7 @@ export default function SensitiveNoteGate({ filePath, content, isActivePane, chi
   const [revealAll, setRevealAll] = useAtom(atom_revealAllSensitive);
   const revealed = useAtomValue(atom_revealedSensitivePaths);
   const revealPath = useSetAtom(atom_revealSensitivePath);
-  // Set once the editor has shown non-empty content: typing `sensitive: true`
+  // Set once the editor has shown non-empty content: typing `private: true`
   // into an open note, or saving a draft as a file, never hides it mid-edit.
   const shownRef = useRef(false);
 

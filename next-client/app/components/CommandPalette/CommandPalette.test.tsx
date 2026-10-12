@@ -1,6 +1,6 @@
 import React from "react";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { Provider } from "jotai";
+import { createStore, Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { version } from "../../../package.json";
@@ -12,8 +12,12 @@ import { MASKED_TEXT } from "@/app/utils/note-display";
 import {
   atom_activeEditorView,
   atom_commandUseCounts,
+  atom_filesFocusRequested,
+  atom_homeFeedOpen,
   atom_palettePinnedItems,
   atom_recentFilePaths,
+  atom_sidebarCollapsed,
+  atom_sidebarOpen,
   atom_theme,
 } from "@/app/atoms/ui-atoms";
 
@@ -24,12 +28,15 @@ vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: () => ({ openFile }),
 }));
 
+let isMobileChrome = false;
+let pathname = "/editor";
+
 vi.mock("@/app/hooks/use-mobile-chrome", () => ({
-  default: () => false,
+  default: () => isMobileChrome,
 }));
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/editor",
+  usePathname: () => pathname,
   useRouter: () => ({ push }),
 }));
 
@@ -81,6 +88,8 @@ describe("CommandPalette", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.localStorage.clear();
+    isMobileChrome = false;
+    pathname = "/editor";
   });
 
   it("clears the search input without closing the palette", async () => {
@@ -119,11 +128,11 @@ describe("CommandPalette", () => {
     }
   });
 
-  it("shows a unified default list with the Explorer action", async () => {
+  it("shows a unified default list with the Show Files action", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    expect(await screen.findByRole("option", { name: /Open Explorer/ })).toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: /Show Files/ })).toBeInTheDocument();
     expect(screen.queryByText("Recently Opened Files")).not.toBeInTheDocument();
     expect(screen.queryByText("Frequently Used Commands")).not.toBeInTheDocument();
   });
@@ -229,12 +238,59 @@ describe("CommandPalette", () => {
     expect(screen.queryByRole("button", { name: "Explorer" })).not.toBeInTheDocument();
   });
 
-  it("opens Explorer from the initial unified action list", async () => {
-    renderPalette();
+  function renderPaletteWithStore() {
+    const store = createStore();
+    store.set(atom_homeFeedOpen, true);
+    store.set(atom_sidebarCollapsed, { Files: true });
+    render(
+      <Provider store={store}>
+        <CommandPaletteProvider>
+          <CommandPalette />
+        </CommandPaletteProvider>
+      </Provider>,
+    );
+    return store;
+  }
+
+  it("Show Files on desktop shows the sidebar's Files tree instead of navigating", async () => {
+    const store = renderPaletteWithStore();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    fireEvent.click(await screen.findByRole("option", { name: /Open Explorer/ }));
+    fireEvent.click(await screen.findByRole("option", { name: /Show Files/ }));
+    await waitFor(() => expect(store.get(atom_sidebarOpen)).toBe(true));
+    expect(store.get(atom_sidebarCollapsed).Files).toBe(false);
+    expect(store.get(atom_homeFeedOpen)).toBe(false);
+    expect(store.get(atom_filesFocusRequested)).toBe(true);
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("Show Files from another route comes back to the editor", async () => {
+    pathname = "/editor/tasks";
+    const store = renderPaletteWithStore();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+    fireEvent.click(await screen.findByRole("option", { name: /Show Files/ }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/editor"));
+    expect(store.get(atom_sidebarOpen)).toBe(true);
+  });
+
+  it("Show Files on mobile opens the Files page", async () => {
+    isMobileChrome = true;
+    const store = renderPaletteWithStore();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+    fireEvent.click(await screen.findByRole("option", { name: /Show Files/ }));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/editor/files"));
+    expect(store.get(atom_sidebarOpen)).toBe(false);
+  });
+
+  it("lists Show Files once", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">files" } });
+
+    expect(screen.getAllByRole("option", { name: /Show Files/ })).toHaveLength(1);
+    expect(screen.queryByRole("option", { name: /Explorer/ })).not.toBeInTheDocument();
   });
 
   it("closes before a slow file open finishes, so the palette never looks frozen", async () => {
@@ -297,7 +353,7 @@ describe("CommandPalette", () => {
 
     expect(await screen.findByRole("option", { name: "Roadmap.md Projects" })).toBeInTheDocument();
     expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
-    expect(screen.getByRole("listbox")).toHaveTextContent("Open Explorer");
+    expect(screen.getByRole("listbox")).toHaveTextContent("Show Files");
     expect(screen.queryByText("Pinned")).not.toBeInTheDocument();
     expect(screen.queryByText("Frequently Used Commands")).not.toBeInTheDocument();
   });
@@ -424,7 +480,7 @@ describe("CommandPalette", () => {
     expect(screen.getByRole("option", { name: "Roadmap.md #planning Projects/2026" })).toBeInTheDocument();
   });
 
-  it("does not route to Explorer when choosing a fuzzy tag match", async () => {
+  it("does not route to the Files page when choosing a fuzzy tag match", async () => {
     const handle = { kind: "file", name: "Roadmap.md" };
     renderPalette([
       [atom_fileMetadata, {
@@ -653,12 +709,12 @@ describe("CommandPalette", () => {
     });
   });
 
-  describe("sensitive notes", () => {
+  describe("private notes", () => {
     const SECRET_TASK = "Wire the secret payment";
     const privateNotes = {
       "Payroll.md": {
         path: "Payroll.md", name: "Payroll.md", handle: { kind: "file", name: "Payroll.md" },
-        tags: ["finance"], links: [], frontmatter: { sensitive: "true" }, modifiedAt: 2, wordCount: 3,
+        tags: ["finance"], links: [], frontmatter: { private: "true" }, modifiedAt: 2, wordCount: 3,
         tasks: [{
           id: "Payroll.md#4", path: "Payroll.md", line: 4, status: "todo", checked: false,
           dueDate: null, priority: null, startedDate: null, doneDate: null, tags: ["money"], text: SECRET_TASK, raw: `- [ ] ${SECRET_TASK}`, lineHash: "hash",
@@ -675,16 +731,16 @@ describe("CommandPalette", () => {
       fireEvent.change(await screen.findByRole("combobox"), { target: { value } });
     }
 
-    it("marks a sensitive file row with a lock", async () => {
+    it("marks a private file row with a lock", async () => {
       renderPalette([[atom_fileMetadata, privateNotes]]);
       await search("md");
       const row = screen.getByRole("option", { name: /Payroll\.md/ });
-      expect(row).toHaveAccessibleName(/\(sensitive\)/);
-      expect(within(row).getByLabelText("Sensitive note")).toBeInTheDocument();
-      expect(within(screen.getByRole("option", { name: /Planning\.md/ })).queryByLabelText("Sensitive note")).toBeNull();
+      expect(row).toHaveAccessibleName(/\(private\)/);
+      expect(within(row).getByLabelText("Private note")).toBeInTheDocument();
+      expect(within(screen.getByRole("option", { name: /Planning\.md/ })).queryByLabelText("Private note")).toBeNull();
     });
 
-    it("leaves sensitive files out of search, #tag, recent and pinned rows in hidden mode", async () => {
+    it("leaves private files out of search, #tag, recent and pinned rows in hidden mode", async () => {
       renderPalette([
         [atom_fileMetadata, privateNotes],
         [atom_privacyLevel, "hidden"],
@@ -707,7 +763,7 @@ describe("CommandPalette", () => {
     it("lists a masked task for an empty ! query, never its text", async () => {
       renderPalette([[atom_fileMetadata, privateNotes]]);
       await search("!");
-      const row = screen.getByRole("option", { name: /Sensitive task/ });
+      const row = screen.getByRole("option", { name: /Private task/ });
       expect(row).toHaveTextContent(MASKED_TEXT);
       expect(row).toHaveTextContent("Payroll.md:5");
       expect(document.body.textContent).not.toContain(SECRET_TASK);
@@ -716,7 +772,7 @@ describe("CommandPalette", () => {
     it("never matches a masked task by its text", async () => {
       renderPalette([[atom_fileMetadata, privateNotes]]);
       await search("!secret");
-      expect(screen.queryByRole("option", { name: /Sensitive task/ })).not.toBeInTheDocument();
+      expect(screen.queryByRole("option", { name: /Private task/ })).not.toBeInTheDocument();
       expect(screen.getByText("No matches found")).toBeInTheDocument();
     });
   });

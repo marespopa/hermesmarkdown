@@ -32,7 +32,7 @@ const note = (path: string, frontmatter: Record<string, string> = {}) => ({
 
 const notes = {
   "projects/Plan.md": note("projects/Plan.md"),
-  "Payroll.md": note("Payroll.md", { sensitive: "true" }),
+  "Payroll.md": note("Payroll.md", { private: "true" }),
   "_templates/Template.md": note("_templates/Template.md"),
 };
 

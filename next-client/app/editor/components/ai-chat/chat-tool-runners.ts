@@ -5,7 +5,7 @@ import type { TaskItem } from "@/app/utils/taskExtractor";
 
 // The pure half of AI Chat's tools (declared in app/api/ai/chat-tools.ts):
 // what each one answers, from the vault's index and the text the client read.
-// use-chat-tools.ts runs them. Private notes (sensitive or private) are never
+// use-chat-tools.ts runs them. Private notes (`private: true` or tag) are never
 // returned: searching skips them, and reading one says it's private.
 
 export const CHAT_TOOL_NAMES = ["search_notes", "read_note", "list_open_tasks"] as const;

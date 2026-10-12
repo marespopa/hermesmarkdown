@@ -6,8 +6,8 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultFiles, atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
-// Which view is searching: the Explorer page shows the full tree, the mobile
-// overlay's search tab shows a short result list.
+// Which view is searching: "files" (the Files page, the sidebar's Files
+// section) shows the full tree; "search" caps the results at a short list.
 export type FileSearchView = "files" | "search";
 
 interface UseVaultFileSearchProps {

@@ -2,19 +2,19 @@ import type { Command } from "@/app/components/CommandPalette/CommandPaletteCont
 import { normalizePrivacyLevel, type PrivacyLevel } from "@/app/utils/note-display";
 import type { EditorCommandContext } from "./use-editor-command-context";
 
-const KEYWORDS = "privacy sensitive private screen share recording mask";
+const KEYWORDS = "privacy private screen share recording mask hide";
 
 const PRIVACY_MODE_COMMANDS: { id: string; label: string; description: string; level: PrivacyLevel }[] = [
   {
     id: "privacy-mode-show-title",
-    label: "Privacy mode: Show titles only",
-    description: "Show sensitive notes by title with a lock; mask their previews",
+    label: "Privacy mode: Mask in lists",
+    description: "List private notes by title with a lock; mask their previews and tasks",
     level: "show_title",
   },
   {
     id: "privacy-mode-hidden",
-    label: "Privacy mode: Hide sensitive notes",
-    description: "Leave sensitive notes out of the home feed, search and tasks",
+    label: "Privacy mode: Hide from lists",
+    description: "Leave private notes out of the home feed, quick open and tasks",
     level: "hidden",
   },
 ];
@@ -37,15 +37,15 @@ export function buildPrivacyCommands(context: EditorCommandContext): Command[] {
     ...levelCommands,
     {
       id: "reveal-sensitive-session",
-      label: revealAll ? "Hide sensitive notes again" : "Show all sensitive notes this session",
+      label: revealAll ? "Hide private notes again" : "Show all private notes this session",
       description: revealAll
-        ? "Veil sensitive notes in the editor again"
-        : "Open sensitive notes without the veil until reload",
+        ? "Veil private notes in the editor again"
+        : "Open private notes without the veil until reload",
       category: "Privacy",
       keywords: `${KEYWORDS} reveal veil unlock`,
       action: () => {
         if (revealAll) {
-          // Also forget per-note reveals, so open sensitive notes veil again on their next mount.
+          // Also forget per-note reveals, so open private notes veil again on their next mount.
           context.setRevealedSensitivePaths(new Set<string>());
           context.setRevealAllSensitive(false);
         } else {

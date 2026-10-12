@@ -193,7 +193,7 @@ export const getStartedGroup: Group = {
           <p>
             <strong>Tasks</strong> lists the unchecked <code>- [ ]</code> tasks from notes you
             changed in the last 7 days. Click one to open its note with the cursor on that task.
-            The list starts folded: click <strong>N open tasks</strong> to open it, and it stays the way you leave it. Tasks from sensitive notes aren&apos;t
+            The list starts folded: click <strong>N open tasks</strong> to open it, and it stays the way you leave it. Tasks from private notes aren&apos;t
             listed.
           </p>
           <p>
@@ -267,7 +267,7 @@ export const getStartedGroup: Group = {
       id: "editor-layout",
       title: "Editor layout",
       lead: "A full-screen editor with a slim header. Everything else is in the command palette and a few dedicated views.",
-      keywords: "explorer files search views tags tasks settings theme pane split toolbar sidebar command palette",
+      keywords: "files show files search views tags tasks settings theme pane split toolbar sidebar command palette",
       body: (
         <>
           <p>
@@ -288,20 +288,20 @@ export const getStartedGroup: Group = {
           </p>
           <p>
             The <strong>sidebar</strong> starts with Home and lists your open notes across every pane. With a vault it adds
-            Templates and Tasks below Home, and ends with the file tree. Show
+            Templates and Tasks below Home, and ends with <strong>Files</strong>, the vault&apos;s tree. Show
             it with the Sidebar button at the toolbar's far left and hide it with the button in its own header, or toggle it with{" "}
             <code>CTRL/CMD+ALT+S</code> or the <strong>Show sidebar</strong>{" "}
             command, and drag its edge to resize it (double-click the edge to
-            reset; with the edge focused, the arrow keys resize it too). Folded sections stay folded. The Explorer below remains the place for bigger file work.
+            reset; with the edge focused, the arrow keys resize it too). Folded sections stay folded.
           </p>
           <p>
-            Open the dedicated Explorer with <code>CTRL/CMD+SHIFT+E</code> (or <code>CTRL/CMD+B</code>{" "}
-            when the cursor isn&apos;t in a note, where it means Bold) or the <strong>Open Explorer</strong> command.
-            It provides a full workspace view for browsing, organizing, renaming, moving, and deleting files and folders without
-            covering the editor. Tasks uses a matching dedicated view; file search, tags, and headings are available through the command palette.
+            <strong>Show Files</strong> (<code>CTRL/CMD+SHIFT+E</code>, or <code>CTRL/CMD+B</code>{" "}
+            when the cursor isn&apos;t in a note, where it means Bold) shows the sidebar if it&apos;s hidden and puts the
+            keyboard in Files, ready to browse, rename, move or delete. On a phone, where there&apos;s no sidebar, it opens
+            Files full screen. Tasks has its own view; file search, tags, and headings are available through the command palette.
           </p>
           <p>
-            The Explorer and the sidebar&apos;s Files section offer the same actions in the same order:{" "}
+            Files offers the same actions everywhere, in the same order:{" "}
             <strong>New Note</strong>, <strong>New Note from Template…</strong> and <strong>New Folder</strong>, at
             the top and in every folder&apos;s right-click (or ⋯) menu. From a folder, a note from a template goes in
             that folder; from the top, the template&apos;s own folder decides. There&apos;s no Refresh button: files
@@ -312,13 +312,13 @@ export const getStartedGroup: Group = {
             rows={[
               { label: "Home feed", value: "Home button in the toolbar" },
               { label: "Sidebar", value: "Show: Sidebar button at the toolbar's far left / Hide: button in the sidebar's header / CTRL/CMD+ALT+S" },
-              { label: "Explorer", value: "Dedicated files view / CTRL/CMD+SHIFT+E" },
+              { label: "Show Files", value: "The sidebar's Files (full screen on a phone) / CTRL/CMD+SHIFT+E" },
               { label: "Quick switcher", value: "CTRL/CMD+K or CTRL/CMD+P" },
               { label: "Command palette", value: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },
               { label: "Search note text", value: "CTRL/CMD+SHIFT+F" },
               { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings · / note text" },
               { label: "Commands on or off", value: "The > button in the search field" },
-              { label: "Explorer controls", value: "New note, new note from template, new folder, and file actions" },
+              { label: "Files controls", value: "New note, new note from template, new folder, and file actions" },
               { label: "AI Chat", value: "CTRL+SHIFT+B" },
               { label: "Keyboard shortcuts", value: "Show keyboard shortcuts command" },
             ]}

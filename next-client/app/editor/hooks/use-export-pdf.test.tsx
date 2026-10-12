@@ -81,8 +81,8 @@ describe("useExportPdf", () => {
     expect(printHtml.mock.calls[0][0]).toContain("<title>note</title>");
   });
 
-  it("is disabled for a veiled sensitive note until it's shown", async () => {
-    const { store, hook } = setup("private/plan.md", "---\nsensitive: true\n---\n# Plan");
+  it("is disabled for a veiled private note until it's shown", async () => {
+    const { store, hook } = setup("private/plan.md", "---\nprivate: true\n---\n# Plan");
     expect(registered?.disabledReason).toBe(VEILED_REASON);
     await act(async () => { exportActivePdf(); await Promise.resolve(); });
     expect(printHtml).not.toHaveBeenCalled();

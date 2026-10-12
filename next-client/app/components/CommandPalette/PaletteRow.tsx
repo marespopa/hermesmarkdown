@@ -35,8 +35,8 @@ export default function PaletteRow({ row, index, selected, scope, runningId, isM
   const isMaskedTask = row.kind === "task" && row.isMasked;
   const isSensitive = isMaskedTask || (row.kind === "file" && row.file.isSensitive);
   const accessibleLabel = [
-    isMaskedTask ? "Sensitive task" : row.label,
-    isSensitive && !isMaskedTask ? "(sensitive)" : null,
+    isMaskedTask ? "Private task" : row.label,
+    isSensitive && !isMaskedTask ? "(private)" : null,
     context,
     row.kind === "content" ? row.detail : null,
     folder,

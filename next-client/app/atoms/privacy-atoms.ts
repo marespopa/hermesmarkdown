@@ -8,8 +8,8 @@ import {
   type PrivacyLevel,
 } from "@/app/utils/note-display";
 
-// Privacy Mode: how sensitive notes appear in listings. Read on init, so a
-// reload in "hidden" never flashes sensitive titles with the default level
+// Privacy Mode: how private notes appear in listings. Read on init, so a
+// reload in "hidden" never flashes private titles with the default level
 // for a frame (that would show up in a screen share).
 export const atom_privacyLevel = atomWithStorage<PrivacyLevel>(
   "hermes_privacy_mode",

@@ -14,7 +14,6 @@ import PaneLeaf from "./components/PaneLeaf";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import LoadingBar from "@/app/components/LoadingBar";
 import EditorCommands from "./components/EditorCommands";
-import MobileFileOverlay from "./components/MobileFileOverlay";
 import MobileFileIndicator from "./components/MobileFileIndicator";
 import WorkspaceSidebar from "./components/WorkspaceSidebar";
 import SelectionToolbar from "./components/SelectionToolbar";
@@ -70,7 +69,6 @@ export default function LiteEditor() {
   // pane): targets whichever CM6 view is currently active.
   const aiActions = useAIEditorActions();
   const isMobileChrome = useIsMobileChrome();
-  const [isMobileFileOverlayOpen, setIsMobileFileOverlayOpen] = useState(false);
   const {
     vaultHandle,
     activeFileHandle,
@@ -222,7 +220,6 @@ export default function LiteEditor() {
         onGitHubPull={() => void runGitHubPullCommand()}
         onSave={() => handleSaveRef.current()}
         isMobileChrome={isMobileChrome}
-        onOpenMobileFiles={() => setIsMobileFileOverlayOpen(true)}
         onOpenTasks={() => navigateWithGuard("/editor/tasks", "Tasks")}
         onOpenTemplates={() => navigateWithGuard("/editor/templates", "Templates")}
         onHome={() => navigateWithGuard("/", "Home")}
@@ -327,17 +324,6 @@ export default function LiteEditor() {
           onInsertBelow={aiActions.applyInsertBelow}
         />
         {aiActions.isAiLoading && <AIThinkingOverlay />}
-
-        {isMobileChrome && (
-          <>
-            <MobileFileOverlay
-              isOpen={isMobileFileOverlayOpen}
-              onClose={() => setIsMobileFileOverlayOpen(false)}
-              onImport={handleImport}
-              onExport={handleExport}
-            />
-          </>
-        )}
       </div>
     </ErrorBoundary>
   );

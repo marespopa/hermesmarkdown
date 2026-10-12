@@ -29,7 +29,7 @@ function meta(path: string, extra: Partial<FileMetadata> = {}): FileMetadata {
 }
 
 const sensitive = (path: string, extra: Partial<FileMetadata> = {}) =>
-  meta(path, { frontmatter: { sensitive: "true" }, ...extra });
+  meta(path, { frontmatter: { private: "true" }, ...extra });
 
 describe("createNoteDisplayItem", () => {
   it("passes non-sensitive notes through unchanged at every level", () => {

@@ -21,10 +21,10 @@ describe("KeyboardShortcutsOverlay", () => {
   afterEach(cleanup);
 
   // Opened outside /editor (e.g. Settings → Guide), no editor commands are registered.
-  it("lists save, Explorer, and AI shortcuts without registered commands", () => {
+  it("lists save, Show Files, and AI shortcuts without registered commands", () => {
     renderOpen();
     expect(screen.getByText("Save")).toBeTruthy();
-    expect(screen.getByText("Open Explorer")).toBeTruthy();
+    expect(screen.getByText("Show Files")).toBeTruthy();
     expect(screen.getByText("AI Chat (with an AI key)")).toBeTruthy();
   });
 

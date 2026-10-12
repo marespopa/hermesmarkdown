@@ -4,7 +4,7 @@ Description: Mounts **Export as PDF…** once per editor page and renders nothin
 
 ## Behavior
 - Palette command **Export as PDF…** (Document; keywords pdf, print, export, share, archive) and the toolbar's More → **Export as PDF…** (`exportActivePdf()` dispatches `hermes:export-pdf`) run the same export.
-- Disabled, with the reason, for an empty note or a sensitive note that's still veiled (`atom_revealAllSensitive` / `atom_revealedSensitivePaths`, the same check as `SensitiveNoteGate`); the More menu's event shows the reason as an error toast instead.
+- Disabled, with the reason, for an empty note or a private note that's still veiled (`atom_revealAllSensitive` / `atom_revealedSensitivePaths`, the same check as `SensitiveNoteGate`); the More menu's event shows the reason as an error toast instead.
 - Rendering (`app/utils/print/note-html.ts`, `noteToHtml`): the editor's Lezer Markdown parser, everything escaped; frontmatter, raw HTML and comments are left out; wikilinks print as their text; folded callouts print expanded; only web and mail links stay links.
 - Images: `![alt](src)` paths are resolved against the note's folder (or the vault root for `/…`, `vaultImagePath`) and read into object URLs, revoked after printing; web and `data:image/` URLs are kept; a missing image prints its alt text.
 - Mermaid (light `default` theme) and display math (`renderMathMl`: MathML, so no KaTeX stylesheet is needed) are rendered into their placeholders; an invalid one prints its error and source.

@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import type React from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_activateWorkspaceTab, atom_workspaceTabs } from "@/app/atoms/atoms";
 import { openSearchPanel } from "@codemirror/search";
 import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen, atom_toolbarHidden, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { useShowFiles } from "@/app/hooks/use-show-files";
 import { focusPaneEditor } from "../utils/focus-pane-editor";
 import { isCloseTabShortcut, isNewFileShortcut } from "../utils/tab-shortcuts";
 
@@ -18,7 +19,7 @@ interface EditorShortcutOptions {
   flush: () => void;
 }
 
-// Window-level editor shortcuts (Explorer, search, new file, close/select tab,
+// Window-level editor shortcuts (Show Files, search, new file, close/select tab,
 // hide toolbar, AI chat, save, undo flush). Editor-local keys live in CodeMirror's
 // keymaps, which run first — so a key CodeMirror handled arrives here with
 // defaultPrevented set.
@@ -39,6 +40,10 @@ export function useEditorShortcuts({
   const activateWorkspaceTab = useSetAtom(atom_activateWorkspaceTab);
   const setToolbarHidden = useSetAtom(atom_toolbarHidden);
   const setSidebarOpen = useSetAtom(atom_sidebarOpen);
+  // Desktop shows the sidebar's Files tree; mobile leaves for the Files page
+  // through the unsaved-changes guard.
+  const navigateToFiles = useCallback((path: string) => void navigateWithGuard(path, "Files"), [navigateWithGuard]);
+  const showFiles = useShowFiles(navigateToFiles);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -48,16 +53,16 @@ export function useEditorShortcuts({
       // Prevent tablet/mobile browsers from navigating back on ESC.
       if (e.key === "Escape") e.preventDefault();
 
-      // Explorer: Ctrl/Cmd+Shift+E anywhere. Plain Ctrl/Cmd+B only when the
+      // Show Files: Ctrl/Cmd+Shift+E anywhere. Plain Ctrl/Cmd+B only when the
       // editor didn't already handle it as Bold (CodeMirror runs first and
       // prevents default).
-      const isExplorerShortcut =
+      const isShowFilesShortcut =
         (e.ctrlKey || e.metaKey) && !e.altKey &&
         ((e.shiftKey && e.key.toLowerCase() === "e") ||
           (!e.shiftKey && e.key.toLowerCase() === "b" && !e.defaultPrevented));
-      if (isExplorerShortcut) {
+      if (isShowFilesShortcut) {
         e.preventDefault();
-        void navigateWithGuard("/editor/files", "Files");
+        showFiles();
       }
 
       // Find and replace in the active note (Ctrl/Cmd+F). The editor's own
@@ -131,5 +136,5 @@ export function useEditorShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeEditorView, activateWorkspaceTab, setToolbarHidden, setSidebarOpen, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, workspaceTabs, navigateWithGuard, saveRef, newFileRef]);
+  }, [activeEditorView, activateWorkspaceTab, setToolbarHidden, setSidebarOpen, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, workspaceTabs, showFiles, saveRef, newFileRef]);
 }

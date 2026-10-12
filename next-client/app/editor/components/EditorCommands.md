@@ -27,6 +27,6 @@ import EditorCommands from "./EditorCommands";
 | onOpenTasks / onHome / onOpenDocumentation | `() => void` |  | Navigation |
 | githubVault? | `boolean` |  | Enables the GitHub commands |
 | onGitHubCommit? / onGitHubPush? / onGitHubPull? / onGitHubSync? | `() => void` |  | GitHub actions |
-| isMobileChrome? / onOpenMobileFiles? / onRefreshVault? |  |  | Mobile and vault helpers |
+| isMobileChrome? / onRefreshVault? |  |  | Mobile and vault helpers |
 
 `RegisteredCommands` takes `commands: Command[]`. See `editor-commands/README.md`.

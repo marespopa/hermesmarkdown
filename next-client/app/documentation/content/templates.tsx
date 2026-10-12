@@ -32,7 +32,7 @@ export const templatesItems: Subsection[] = [
           folder as a plain <code>.md</code> file.
         </p>
         <p>
-          Edit a template like any note: open it from the file tree, or hover it in the template
+          Edit a template like any note: open it from Files, or hover it in the template
           list and press the pencil (⌘E / Ctrl+E). The line at the top says{" "}
           <strong>Editing template</strong>. Changes save as you type and apply the next time you
           use it.

@@ -26,7 +26,7 @@ describe("ContentIndex", () => {
 
   it("flags notes marked sensitive in frontmatter", () => {
     const index = new ContentIndex();
-    index.upsert("s.md", "s.md", "---\nsensitive: true\n---\nsecret", 1);
+    index.upsert("s.md", "s.md", "---\nprivate: true\n---\nsecret", 1);
     index.upsert("t.md", "t.md", "---\ntags: [private]\n---\nsecret", 1);
     index.upsert("p.md", "p.md", "plain #private", 1);
     expect(index.get("s.md")!.sensitive).toBe(true);

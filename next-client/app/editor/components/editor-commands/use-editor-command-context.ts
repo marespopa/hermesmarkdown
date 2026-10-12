@@ -56,7 +56,6 @@ export type EditorCommandsProps = {
   onGitHubPull?: () => void;
   onSave: () => void;
   isMobileChrome?: boolean;
-  onOpenMobileFiles?: () => void;
   onOpenTasks: () => void;
   onOpenTemplates: () => void;
   onHome: () => void;

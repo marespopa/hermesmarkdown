@@ -112,6 +112,17 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Delay")).toBeInTheDocument();
   });
 
+  it("has no Privacy section: Privacy Mode is the last group in Files", () => {
+    render(<SettingsPage />);
+    expect(screen.queryByText("Privacy")).not.toBeInTheDocument();
+
+    openFilesSection();
+    expect(screen.getByText("Privacy")).toBeInTheDocument();
+    expect(screen.getByText("Privacy Mode")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Mask in lists" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Hide from lists" })).toBeInTheDocument();
+  });
+
   it("calls setter when autosave delay is changed", () => {
     const setAutosaveDelay = vi.fn();
     (useAtom as any).mockImplementation((atom: any) => {

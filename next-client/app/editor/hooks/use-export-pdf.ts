@@ -15,7 +15,7 @@ import { printDocument, printHtml } from "../utils/print-note";
 import { renderMermaid } from "../utils/render-mermaid";
 import { renderMathMl } from "../utils/render-math";
 
-export const VEILED_REASON = "Show the note first: it's marked sensitive";
+export const VEILED_REASON = "Show the note first: it's marked private";
 
 const REGEX_IMAGE_SRC = /!\[[^\]]*\]\(\s*<?([^)\s>]+)>?/g;
 
@@ -54,7 +54,7 @@ async function renderBlock(block: PrintBlock): Promise<string> {
 // Export as PDF: the focused note, rendered and printed through the
 // browser's print dialog (Save as PDF), all on the device. Registers the
 // palette command and answers the toolbar's More → Export as PDF… event. A
-// sensitive note that's still veiled can't be exported until it's shown.
+// private note that's still veiled can't be exported until it's shown.
 export function useExportPdf() {
   const store = useStore();
   const content = useAtomValue(atom_content);

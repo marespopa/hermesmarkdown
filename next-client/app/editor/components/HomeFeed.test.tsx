@@ -431,7 +431,7 @@ describe("HomeFeed privacy", () => {
   const SECRET = "Revenue was 42,246RON";
   const PRIVATE_NOTES = {
     "plain.md": meta("plain.md", 10, "Plain body"),
-    "secret.md": { ...meta("secret.md", 5, SECRET), frontmatter: { sensitive: "true" } },
+    "secret.md": { ...meta("secret.md", 5, SECRET), frontmatter: { private: "true" } },
   };
 
   function renderWithLevel(level: PrivacyLevel) {
@@ -451,21 +451,21 @@ describe("HomeFeed privacy", () => {
     const rows = screen.getAllByRole("option");
     expect(rows).toHaveLength(2);
     expect(rows[0]).toHaveTextContent("secret");
-    expect(screen.getByLabelText("Sensitive note")).toBeInTheDocument();
+    expect(screen.getByLabelText("Private note")).toBeInTheDocument();
     expect(rows[0]).toHaveTextContent(MASKED_PREVIEW);
     expect(rows[0]).toHaveTextContent("Preview hidden");
     expect(document.body.textContent).not.toContain(SECRET);
     expect(rows[1]).toHaveTextContent("Plain body");
-    expect(screen.getByRole("button", { name: "secret (sensitive)" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "secret (private)" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "plain" })).toBeInTheDocument();
   });
 
-  it("leaves sensitive notes out in hidden mode", () => {
+  it("leaves private notes out in hidden mode", () => {
     renderWithLevel("hidden");
     const rows = screen.getAllByRole("option");
     expect(rows).toHaveLength(1);
     expect(rows[0]).toHaveTextContent("plain");
-    expect(screen.queryByLabelText("Sensitive note")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Private note")).not.toBeInTheDocument();
     expect(document.body.textContent).not.toContain("secret");
   });
 });

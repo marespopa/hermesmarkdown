@@ -86,14 +86,14 @@ export const mobileGroup: Group = {
     {
       id: "mobile-layout",
       title: "Mobile layout",
-      lead: "Below a 768px viewport, the tab bar is replaced by a fixed file indicator bar and full-screen overlays.",
+      lead: "Below a 768px viewport, the tab bar is replaced by a fixed file indicator bar, and Files opens full screen.",
       keywords: "mobile overlay breakpoint chrome command palette file indicator",
       body: (
         <>
           <p>
             A thin bar stays fixed at the top of the screen showing the active file's name and save
             status — there's no keyboard shortcut for the command palette on mobile, so tapping this
-            bar is the one always-present way to open it. From there, Open Explorer, Search, Open Tasks,
+            bar is the one always-present way to open it. From there, Show Files, Search, Open Tasks,
             New file, and every other command work exactly as they do on desktop.
           </p>
           <p>
@@ -102,7 +102,7 @@ export const mobileGroup: Group = {
             On the feed, the search bar and the <strong>+</strong> button sit at the bottom, within
             reach of your thumb.
           </p>
-          <p>Explorer and Search open as full-screen overlays rather than docked panels.</p>
+          <p>Files and Search open full screen rather than as docked panels.</p>
         </>
       ),
     },
@@ -121,7 +121,7 @@ export const mobileGroup: Group = {
             ]}
           />
           <p>
-            Open the file overlay (or the command palette) and choose <strong>Browser Vault</strong>{" "}
+            From the home feed&apos;s vault menu (or the command palette), choose <strong>Browser vaults…</strong>{" "}
             to create or reopen one. On iOS, use <em>Share → Add to Home Screen</em>: the installed
             app opens full-screen and starts without a connection.
           </p>
@@ -161,7 +161,7 @@ export const mobileGroup: Group = {
         <>
           <KV
             rows={[
-              { label: "Explorer", value: "Full-screen file-management view" },
+              { label: "Files", value: "Full screen instead of the sidebar" },
               { label: "Selection toolbar", value: "Bold, Italic, Link only" },
               { label: "Vaults", value: "Browser vaults on iPhone/iPad; see Vaults on phones and tablets" },
             ]}

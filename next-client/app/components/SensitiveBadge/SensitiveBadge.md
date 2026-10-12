@@ -1,6 +1,6 @@
 # SensitiveBadge
 
-Description: A small lock icon that marks a sensitive note in listings: home feed rows, command palette file and task rows, Tasks page rows and the editor veil.
+Description: A small lock icon that marks a private note in listings: home feed rows, command palette file and task rows, Tasks page rows and the editor veil.
 
 ## Local State & Storage
 - State: None (presentational).
@@ -12,7 +12,7 @@ Description: A small lock icon that marks a sensitive note in listings: home fee
 
 ## Logic
 - Renders a 14px lock in `text-fg-faint`, `shrink-0` so it isn't squeezed out of a truncated row.
-- Exposed to assistive tech as `role="img"` with `aria-label="Sensitive note"`; the SVG itself is `aria-hidden`.
+- Exposed to assistive tech as `role="img"` with `aria-label="Private note"`; the SVG itself is `aria-hidden`.
 
 ## Quick Usage
 ```tsx

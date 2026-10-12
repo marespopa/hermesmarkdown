@@ -29,7 +29,7 @@ function storeWith(level: PrivacyLevel) {
   const store = createStore();
   store.set(atom_fileMetadata, {
     "plain.md": file("plain.md", [task("plain.md", "Buy milk", ["home"])]),
-    "secret.md": file("secret.md", [task("secret.md", "Wire the secret payment", ["money"])], { sensitive: "true" }),
+    "secret.md": file("secret.md", [task("secret.md", "Wire the secret payment", ["money"])], { private: "true" }),
   });
   store.set(atom_privacyLevel, level);
   return store;

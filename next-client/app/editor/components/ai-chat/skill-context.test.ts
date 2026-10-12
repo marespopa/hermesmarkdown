@@ -30,7 +30,7 @@ describe("openTasksBlock", () => {
         "- [x] Ship billing export",
         "- [!] Migrate the database @due(2026-10-09)",
       ].join("\n")),
-      "private.md": note("private.md", "- [ ] Private task", { sensitive: true }),
+      "private.md": note("private.md", "- [ ] Private task", { private: true }),
       "templates/standup.md": note("templates/standup.md", "- [ ] {{prompt:Task}}"),
     };
     const block = openTasksBlock(meta, NOW, (path) => path.startsWith("templates/"));

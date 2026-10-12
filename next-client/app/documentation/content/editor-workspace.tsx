@@ -7,7 +7,7 @@ export const editorWorkspaceItems: Subsection[] = [
     title: "Tasks page",
     lead: "A vault-wide checklist — every checkbox task across every note, in four lists: Now, Today, Upcoming and All.",
     keywords:
-      "task tasks checkbox status todo in progress hold blocked done cancelled pane explorer aggregate due date priority tags filter now today upcoming overdue smart list swipe started done date stamp",
+      "task tasks checkbox status todo in progress hold blocked done cancelled pane aggregate due date priority tags filter now today upcoming overdue smart list swipe started done date stamp files",
     body: (
       <>
         <p>
@@ -192,7 +192,7 @@ tags: []
           Note text search ignores case and finds notes that contain every word you type, in any
           order (at least 2 characters; no fuzzy matching). Frontmatter isn&apos;t searched; code
           blocks are. Exact phrases rank first, and each note shows up to three matching lines.
-          Sensitive notes never appear in note text results, whatever the Privacy Mode. Right after
+          Private notes never appear in note text results, whatever the Privacy Mode. Right after
           a vault opens, a footnote shows how many notes are still being indexed.
         </p>
         <Callout type="tip">
@@ -220,7 +220,7 @@ tags: []
           rows={[
             { label: "Home feed", value: "Your recent notes" },
             { label: "Export as PDF…", value: "Print the note, or save it as a PDF" },
-            { label: "Open Explorer", value: "CTRL/CMD+SHIFT+E" },
+            { label: "Show Files", value: "CTRL/CMD+SHIFT+E" },
             { label: "Open Tasks", value: "—" },
             { label: "Open Templates", value: "Your templates and template packs" },
             { label: "Panes", value: "Open in pane, split down, next/previous, close" },

@@ -25,4 +25,4 @@ Typed messages (`content-search-protocol.ts`), sent through `app/services/conten
 - `content:remap { oldPath, newPath }`: follow a renamed or moved file or folder. No reply.
 - `content:search { searchId, query, paths, limit }` → `{ type: "content:results", searchId, hits, pending, capped }`. Replies carry no `results` or `requestId`, so the parse listeners ignore them.
 
-Upserts older than the stored copy (by `modifiedAt`) are ignored, so the active tab's unsaved text isn't replaced by a stale disk read. Sensitive notes (frontmatter) are stored but never returned. Memory: about 2 bytes per ASCII character (text plus folded copy), e.g. ≈40 MB for 5,000 notes of 4 KB; past 32M characters, further notes are skipped and `capped` is reported.
+Upserts older than the stored copy (by `modifiedAt`) are ignored, so the active tab's unsaved text isn't replaced by a stale disk read. Private notes (frontmatter `private: true` or a `private` tag) are stored but never returned. Memory: about 2 bytes per ASCII character (text plus folded copy), e.g. ≈40 MB for 5,000 notes of 4 KB; past 32M characters, further notes are skipped and `capped` is reported.

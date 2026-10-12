@@ -492,6 +492,15 @@ describe("VaultFileTree selection, keyboard and menus", () => {
     await waitFor(() => expect(createNewFile).toHaveBeenCalledWith(folderHandle, "Ideas"));
   });
 
+  it("lets its host give it keyboard focus (Show Files)", () => {
+    const controllerRef = { current: null } as React.MutableRefObject<any>;
+    renderFiles({ treeView: true, processedFiles: files, controllerRef });
+
+    act(() => controllerRef.current.focus());
+
+    expect(screen.getByRole("tree", { name: "Files" })).toHaveFocus();
+  });
+
   it("drags the whole selection into a folder as one move", async () => {
     const folderHandle = { kind: "directory", name: "Folder" };
     const resolveFolderHandle = vi.fn().mockResolvedValue(folderHandle);

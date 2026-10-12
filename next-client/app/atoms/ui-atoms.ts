@@ -136,6 +136,17 @@ export const atom_goHome = atom(null, (get, set) => {
   if (get(atom_homeFeedOpen)) set(atom_homeFeedTopRequest, (count) => count + 1);
   else set(atom_homeFeedOpen, true);
 });
+// Set by "Show Files" (desktop); WorkspaceSidebar focuses its Files tree and
+// clears it. In memory: it only has to survive a navigation to /editor.
+export const atom_filesFocusRequested = atom<boolean>(false);
+// "Show Files" on desktop: shows the sidebar with its Files section unfolded,
+// leaves the home feed (which has no sidebar) and asks for the tree's focus.
+export const atom_showFiles = atom(null, (get, set) => {
+  set(atom_sidebarOpen, true);
+  if (get(atom_sidebarCollapsed).Files) set(atom_sidebarCollapsed, (previous) => ({ ...previous, Files: false }));
+  set(atom_homeFeedOpen, false);
+  set(atom_filesFocusRequested, true);
+});
 // Vault-relative folder that drafts are saved into on their first save
 // ("" = vault root). Created on demand.
 export const atom_newNoteFolder = atomWithStorage<string>("newNoteFolder", "");

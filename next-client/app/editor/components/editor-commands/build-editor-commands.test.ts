@@ -24,7 +24,6 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     onExport: vi.fn(),
     onSave: vi.fn(),
     isMobileChrome: true,
-    onOpenMobileFiles: vi.fn(),
     onOpenTasks: vi.fn(),
     onOpenTemplates: vi.fn(),
     onHome: vi.fn(),
@@ -138,7 +137,6 @@ describe("buildEditorCommands", () => {
       "new-template",
       "export-file",
       "import-file",
-      "open-explorer",
       "open-tasks-panel",
       "open-templates",
       "split-pane-right",
@@ -242,7 +240,6 @@ describe("buildEditorCommands", () => {
     expect(command("ai-improve")?.disabledReason).toBe("Configure an AI provider in Settings");
 
     command("save-file")?.action();
-    command("open-explorer")?.action();
     command("open-tasks-panel")?.action();
     command("toggle-theme")?.action();
     command("ai-improve")?.action();
@@ -251,7 +248,7 @@ describe("buildEditorCommands", () => {
     command("delete-current-file")?.action();
 
     expect(context.onSave).toHaveBeenCalledOnce();
-    expect(context.router.push).toHaveBeenCalledWith("/editor/files");
+    expect(commands.some((candidate) => candidate.id === "open-explorer" || candidate.id === "show-files")).toBe(false);
     expect(context.onOpenTasks).toHaveBeenCalledOnce();
     expect(context.setTheme).toHaveBeenCalledWith("light");
     expect(context.onRunAIAction).toHaveBeenCalledWith("improve");
@@ -306,6 +303,8 @@ describe("buildEditorCommands", () => {
     expect(command("privacy-mode-hidden")?.disabledReason).toBe("Current mode");
     expect(command("privacy-mode-show-title")?.disabledReason).toBeUndefined();
     expect(command("privacy-mode-blurred")).toBeUndefined();
+    expect(command("privacy-mode-show-title")?.label).toBe("Privacy mode: Mask in lists");
+    expect(command("privacy-mode-hidden")?.label).toBe("Privacy mode: Hide from lists");
 
     command("privacy-mode-show-title")?.action();
     expect(context.setPrivacyLevel).toHaveBeenCalledWith("show_title");
@@ -314,14 +313,14 @@ describe("buildEditorCommands", () => {
   it("toggles the session reveal and clears per-note reveals when turned off", () => {
     const off = createContext({ revealAllSensitive: false });
     const showAll = buildEditorCommands(off).find((command) => command.id === "reveal-sensitive-session");
-    expect(showAll?.label).toBe("Show all sensitive notes this session");
+    expect(showAll?.label).toBe("Show all private notes this session");
     showAll?.action();
     expect(off.setRevealAllSensitive).toHaveBeenCalledWith(true);
     expect(off.setRevealedSensitivePaths).not.toHaveBeenCalled();
 
     const on = createContext({ revealAllSensitive: true });
     const hideAgain = buildEditorCommands(on).find((command) => command.id === "reveal-sensitive-session");
-    expect(hideAgain?.label).toBe("Hide sensitive notes again");
+    expect(hideAgain?.label).toBe("Hide private notes again");
     hideAgain?.action();
     expect(on.setRevealAllSensitive).toHaveBeenCalledWith(false);
     expect(on.setRevealedSensitivePaths).toHaveBeenCalledWith(new Set());

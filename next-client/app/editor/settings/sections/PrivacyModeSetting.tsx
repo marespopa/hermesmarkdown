@@ -7,20 +7,20 @@ import { normalizePrivacyLevel, type PrivacyLevel } from "@/app/utils/note-displ
 import { SegmentedControl, SettingGroup, SettingItem } from "../components/SettingControls";
 
 const PRIVACY_OPTIONS: { label: string; value: PrivacyLevel }[] = [
-  { label: "Show titles", value: "show_title" },
-  { label: "Hide notes", value: "hidden" },
+  { label: "Mask in lists", value: "show_title" },
+  { label: "Hide from lists", value: "hidden" },
 ];
 
-// Settings → Privacy: how sensitive notes appear in the home feed, the
-// command palette and the Tasks page.
-export default function PrivacySettings() {
+// Settings → Files → Privacy: how private notes appear in the home feed, the
+// command palette's quick open and the Tasks page.
+export default function PrivacyModeSetting() {
   const [privacyLevel, setPrivacyLevel] = useAtom(atom_privacyLevel);
 
   return (
     <SettingGroup title="Privacy">
       <SettingItem
         label="Privacy Mode"
-        description="How sensitive notes appear in the home feed, search and tasks. Mark a note with sensitive: true or a private tag in its frontmatter."
+        description="How private notes appear in the home feed, quick open and Tasks: masked (title and a lock, no preview or task text) or left out. A note is private when its frontmatter has private: true or a private tag. Files and tabs still show file names."
         layout="stack"
         control={
           <SegmentedControl

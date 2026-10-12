@@ -90,7 +90,7 @@ export const AI_CHAT_SENTINEL = "__OPEN_AI_CHAT__";
 export const VAULT_TEMPLATE_SENTINEL = "__OPEN_VAULT_TEMPLATE__";
 export const TEMPLATE_FIELD_SENTINEL = "__OPEN_TEMPLATE_FIELD__";
 export const SAVE_AS_TEMPLATE_SENTINEL = "__SAVE_AS_TEMPLATE__";
-export const MARK_SENSITIVE_SENTINEL = "__MARK_SENSITIVE__";
+export const MARK_PRIVATE_SENTINEL = "__MARK_PRIVATE__";
 export const MARK_PUBLIC_SENTINEL = "__MARK_PUBLIC__";
 export const AI_ACTION_SENTINEL_PREFIX = "__AI_ACTION__:";
 export const aiActionSentinel = (id: string) => `${AI_ACTION_SENTINEL_PREFIX}${id}`;
@@ -282,17 +282,17 @@ export const TEMPLATES: Template[] = [
   },
   // --- Privacy ---
   // One privacy entry at a time: the slash menu offers whichever would
-  // change the note (/privacy, /sensitive, /private, /public all find it).
+  // change the note (/privacy, /private, /public all find it).
   {
-    label: "Privacy: mark as sensitive",
+    label: "Privacy: mark as private",
     icon: "🔒",
-    description: "Add sensitive: true to the frontmatter",
-    content: MARK_SENSITIVE_SENTINEL,
+    description: "Add private: true to the frontmatter",
+    content: MARK_PRIVATE_SENTINEL,
   },
   {
     label: "Privacy: mark as public",
     icon: "🔓",
-    description: "Remove the sensitive / private markers from the frontmatter",
+    description: "Remove private: true and the private tag from the frontmatter",
     content: MARK_PUBLIC_SENTINEL,
   },
 ];

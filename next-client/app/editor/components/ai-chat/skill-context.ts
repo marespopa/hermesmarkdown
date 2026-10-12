@@ -6,7 +6,7 @@ import type { TaskItem } from "@/app/utils/taskExtractor";
 
 // The data the tasks chat skill sends with their
 // instructions (chat-skills.ts). Pure: use-chat-skills.ts gathers the inputs.
-// Private notes (sensitive frontmatter or content) are left out and only
+// Private notes (private frontmatter or content) are left out and only
 // counted, like everywhere else note text could leave the device.
 
 // A cap, so a big vault can't crowd out the conversation.

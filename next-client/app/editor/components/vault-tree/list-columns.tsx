@@ -1,6 +1,6 @@
 "use client";
 
-// Explorer list-view columns beside the name: Date Modified and Kind. Shown
+// Files page list-view columns beside the name: Date Modified and Kind. Shown
 // from `sm` (Date Modified) and `md` (Kind) up; the name column takes the rest.
 
 const DATE_COLUMN = "hidden sm:block w-44 shrink-0 truncate";

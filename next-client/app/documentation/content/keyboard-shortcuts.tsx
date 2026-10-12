@@ -34,7 +34,7 @@ export const keyboardShortcutsItem: Subsection = {
         {
           context: "Tabs & files",
           rows: [
-            { label: "Open Explorer", shortcut: "CTRL/CMD+SHIFT+E" },
+            { label: "Show Files", shortcut: "CTRL/CMD+SHIFT+E" },
             { label: "New file", shortcut: "CTRL+ALT+N" },
             { label: "Close current tab", shortcut: "CTRL/CMD+ALT+W" },
             { label: "Select workspace tab", shortcut: "CTRL/CMD+1–9" },

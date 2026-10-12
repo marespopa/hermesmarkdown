@@ -18,7 +18,7 @@ export function normalizePrivacyLevel(value: unknown): PrivacyLevel {
 /** Fixed length, so the bullet count can't reveal how long the preview is. */
 export const MASKED_PREVIEW = "•••• ••••••• ••••• •••••••• •••";
 export const MASKED_TEXT = "••••••••";
-export const UNTITLED_SENSITIVE_TITLE = "Untitled sensitive note";
+export const UNTITLED_SENSITIVE_TITLE = "Untitled private note";
 
 export type PreviewStyle = "plain" | "masked";
 
@@ -38,7 +38,7 @@ export interface NoteDisplayItem {
 
 /**
  * Frontmatter `title` (the worker stores the first H1 there), else the file
- * name without `.md`. A sensitive note with neither gets a generic title; it
+ * name without `.md`. A private note with neither gets a generic title; it
  * never falls back to body text.
  */
 export function noteDisplayTitle(

@@ -124,7 +124,7 @@ export const aiFeaturesGroup: Group = {
             apply its lines yourself.
           </p>
           <Callout type="tip">
-            Private notes (marked sensitive or private) are never sent. Their tasks are left out and
+            Private notes (<code>private: true</code> or a <code>private</code> tag) are never sent. Their tasks are left out and
             only counted. To change how the skill writes, put your own instructions in{" "}
             <code>.hermes/skills/tasks.md</code>. The app still adds the task list.
           </Callout>
@@ -151,7 +151,7 @@ export const aiFeaturesGroup: Group = {
           </p>
           <Callout type="tip">
             The tools run in your browser, against your vault. Only what they find for a question goes
-            to the AI, in the same request. Private notes (marked sensitive or private) are never
+            to the AI, in the same request. Private notes are never
             searched or read.
           </Callout>
         </>
