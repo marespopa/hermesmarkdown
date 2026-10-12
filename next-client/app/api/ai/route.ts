@@ -43,6 +43,18 @@ const createAIModel = (provider: string, apiKey: string, modelKey: string) => {
   }
 };
 
+// A reply with no text (a thinking model that spent its whole output budget
+// before answering, or a filtered response) is an error, not an empty answer:
+// the chat would otherwise show nothing and no error.
+const emptyReplyError = (finishReason?: string) =>
+  NextResponse.json({
+    error: finishReason === 'length'
+      ? 'The model ran out of output before it answered. Try a shorter request or another model.'
+      : finishReason === 'content-filter'
+      ? 'The model declined to answer this request.'
+      : `The model returned an empty reply${finishReason ? ` (${finishReason})` : ''}. Try again or pick another model.`,
+  }, { status: 502 });
+
 export async function POST(req: Request) {
   try {
     const { action, provider, apiKey, modelKey, system, prompt, noteBody, messages } = await req.json();
@@ -74,10 +86,11 @@ export async function POST(req: Request) {
       // Gemini's content-safety filtering behaves more reliably when the
       // system instructions are folded into the user prompt rather than
       // passed as a separate system message.
-      const { text } = provider === 'gemini'
+      const { text, finishReason } = provider === 'gemini'
         ? await generateText({ model, prompt: `${system}\n\n--- TASK ---\n\n${prompt}` })
         : await generateText({ model, system, prompt });
 
+      if (!text?.trim()) return emptyReplyError(finishReason);
       return NextResponse.json({ text });
     }
     
@@ -112,17 +125,19 @@ export async function POST(req: Request) {
           ? [{ type: 'text' as const, text: `${system}\n\n${firstContent}` }]
           : [{ type: 'text' as const, text: `${system}\n\n${firstText}` }, ...(firstContent as any[]).filter((p: any) => p.type !== 'text')];
 
-        const { text } = await generateText({
+        const { text, finishReason } = await generateText({
           model,
           messages: [
             { role: 'user' as const, content: firstParts },
             ...msgs.slice(1),
           ],
         });
+        if (!text?.trim()) return emptyReplyError(finishReason);
         return NextResponse.json({ text });
       }
 
-      const { text } = await generateText({ model, system, messages: msgs });
+      const { text, finishReason } = await generateText({ model, system, messages: msgs });
+      if (!text?.trim()) return emptyReplyError(finishReason);
       return NextResponse.json({ text });
     }
 

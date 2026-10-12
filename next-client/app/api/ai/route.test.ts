@@ -119,4 +119,25 @@ describe('AI route', () => {
     });
     expect(generateObjectMock).toHaveBeenCalledTimes(1);
   });
+
+  it('reports an empty chat reply as an error instead of returning no text', async () => {
+    generateTextMock.mockResolvedValue({ text: '', finishReason: 'length' });
+    const request = new Request('http://localhost/api/ai', {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'chat',
+        provider: 'claude',
+        apiKey: 'claude-key',
+        modelKey: 'sonnet-5',
+        system: 'Be brief',
+        messages: [{ role: 'user', content: 'Summarize the release notes' }],
+      }),
+    });
+
+    const response = await (await import('./route')).POST(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(502);
+    expect(body.error).toMatch(/ran out of output/);
+  });
 });
