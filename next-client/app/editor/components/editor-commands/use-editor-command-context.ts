@@ -22,7 +22,6 @@ import {
   atom_revealedSensitivePaths,
 } from "@/app/atoms/privacy-atoms";
 import {
-  atom_taskDueFilter,
   atom_taskSearchQuery,
   atom_taskTagFilter,
 } from "@/app/atoms/task-atoms";
@@ -40,6 +39,7 @@ import {
   atom_repurposeWizardOpen,
   atom_showHiddenFiles,
   atom_tasksGroupBy,
+  atom_taskView,
   atom_theme,
 } from "@/app/atoms/ui-atoms";
 import { useDialog } from "@/app/hooks/use-dialog";
@@ -124,7 +124,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
   const [, setTaskTagFilter] = useAtom(atom_taskTagFilter);
-  const [, setTaskDueFilter] = useAtom(atom_taskDueFilter);
+  const [, setTaskView] = useAtom(atom_taskView);
   const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
   const [privacyLevel, setPrivacyLevel] = useAtom(atom_privacyLevel);
@@ -199,7 +199,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setTasksGroupBy,
     setTaskSearchQuery,
     setTaskTagFilter,
-    setTaskDueFilter,
+    setTaskView,
     setIsWizardOpen,
     setKeyboardShortcutsOpen,
     privacyLevel,

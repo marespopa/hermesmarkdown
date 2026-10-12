@@ -5,9 +5,9 @@ export const editorWorkspaceItems: Subsection[] = [
   {
     id: "tasks-page",
     title: "Tasks page",
-    lead: "A vault-wide checklist — every checkbox task across every note, grouped by status or note.",
+    lead: "A vault-wide checklist — every checkbox task across every note, in four lists: Now, Today, Upcoming and All.",
     keywords:
-      "task tasks checkbox status todo in progress hold blocked done cancelled pane explorer aggregate due date priority tags filter",
+      "task tasks checkbox status todo in progress hold blocked done cancelled pane explorer aggregate due date priority tags filter now today upcoming overdue smart list",
     body: (
       <>
         <p>
@@ -34,12 +34,21 @@ export const editorWorkspaceItems: Subsection[] = [
           stripped from the display text and shown separately under the task. Due dates are
           color-coded: overdue tasks are flagged in red, tasks due today in amber.
         </p>
+        <KV
+          rows={[
+            { label: "Now", value: "In Progress, then Up Next: the next five to-dos by due date" },
+            { label: "Today", value: "Overdue, then due today" },
+            { label: "Upcoming", value: "Later due dates, one section per day" },
+            { label: "All", value: "Every task, grouped by status or by note" },
+          ]}
+        />
         <p>
-          The toolbar above the list lets you switch between grouping by status and grouping by
-          file, filter by search text, due-date bucket (overdue, due today, upcoming, no due date),
-          or one or more custom tags. Combine tag filters to show only tasks carrying every selected
-          tag. Sort tasks by due date, priority, status, note, or task text in either direction. A
-          Clear button appears once any filter is active.
+          Switch lists with the control under the title; each shows how many tasks it holds, and
+          the page remembers the last one. Now, Today and Upcoming list only open tasks (to do, in
+          progress, on hold). Type in the search field to filter by text, or type <code>#</code> to
+          pick a tag; picked tags show as chips under the field, and a task must carry every one.
+          Search and tags apply to every list. In All, the ⋯ menu groups by status or by note and
+          sorts by due date, priority, status, note or title, ascending or descending.
         </p>
         <p>
           Click a task's status ring to complete it, or to reopen a done or cancelled one. For any
@@ -48,9 +57,9 @@ export const editorWorkspaceItems: Subsection[] = [
           it first. Click the task text instead to open its note and jump to that line.
         </p>
         <Callout type="note">
-          In Progress comes first, then To Do and On Hold. Done and Cancelled start collapsed so
-          finished work doesn't crowd out what's still outstanding. Click a group header to fold or
-          unfold it.
+          In All grouped by status, In Progress comes first, then To Do and On Hold. Done and
+          Cancelled start collapsed so finished work doesn't crowd out what's still outstanding.
+          Click a group header to fold or unfold it.
         </Callout>
       </>
     ),

@@ -268,11 +268,17 @@ export const atom_showCommandPaletteFab = atomWithStorage<boolean>(
   true,
 );
 
-// Tasks panel grouping mode ("status" or "file"), remembered across sessions
+// Tasks panel grouping mode ("status" or "file") for the All list,
+// remembered across sessions
 export const atom_tasksGroupBy = atomWithStorage<"status" | "file">(
   "tasksGroupBy",
   "status",
 );
+
+// The Tasks page's smart list (see app/editor/tasks/task-views.ts),
+// remembered across sessions
+export type TaskView = "now" | "today" | "upcoming" | "all";
+export const atom_taskView = atomWithStorage<TaskView>("tasksView", "now");
 
 
 // Set when navigating to a line in a note (a task from the Tasks view, a

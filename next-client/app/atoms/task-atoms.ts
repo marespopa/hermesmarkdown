@@ -6,7 +6,6 @@ import { isSensitiveFrontmatter } from "../utils/note-privacy";
 import { maskTask, normalizePrivacyLevel } from "../utils/note-display";
 import { isTemplatePath } from "../utils/templates/template-registry";
 import { atom_templatesFolder } from "./template-atoms";
-import { isOpenStatus } from "../utils/task-status";
 
 export const atom_allTasks = atom<TaskItem[]>((get) => {
   const meta = get(atom_fileMetadata);
@@ -50,35 +49,23 @@ export const atom_allTaskTags = atom<string[]>((get) => {
   return Array.from(tags).sort();
 });
 
-export type TaskDueFilter = "all" | "overdue" | "today" | "upcoming" | "none";
-
 // Transient filter state for the Tasks page — not persisted, since it's
 // meant to help focus on the current session rather than survive as a
-// hidden, easily-forgotten leftover filter next time the app opens.
+// hidden, easily-forgotten leftover filter next time the app opens. Which
+// smart list shows (Now, Today, …) is atom_taskView, which is remembered.
 export const atom_taskSearchQuery = atom<string>("");
 export const atom_taskTagFilter = atom<string[]>([]);
-export const atom_taskDueFilter = atom<TaskDueFilter>("all");
-
-function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export const atom_filteredTasks = atom<DisplayTask[]>((get) => {
   const tasks = get(atom_visibleTasks);
   const query = get(atom_taskSearchQuery).trim().toLowerCase();
   const tagFilter = get(atom_taskTagFilter);
-  const dueFilter = get(atom_taskDueFilter);
-  const today = todayStr();
 
   return tasks.filter((t) => {
     // A masked task never matches by text or tag.
     if (t.isMasked && (query || tagFilter.length > 0)) return false;
     if (query && !t.text.toLowerCase().includes(query)) return false;
     if (tagFilter.length > 0 && !tagFilter.every((tag) => t.tags.includes(tag))) return false;
-    if (dueFilter === "none") return !t.dueDate;
-    if (dueFilter === "overdue") return !!t.dueDate && t.dueDate < today && isOpenStatus(t.status);
-    if (dueFilter === "today") return t.dueDate === today;
-    if (dueFilter === "upcoming") return !!t.dueDate && t.dueDate > today;
     return true;
   });
 });

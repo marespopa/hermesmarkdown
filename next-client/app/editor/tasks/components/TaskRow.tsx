@@ -7,10 +7,11 @@ import Button from "@/app/components/Button";
 import SensitiveBadge from "@/app/components/SensitiveBadge";
 import { isOpenStatus, type TaskStatus } from "@/app/utils/task-status";
 import TaskStatusButton from "./TaskStatusButton";
+import { localISODate } from "../task-views";
 
 // `closed`: the task is done or cancelled, so its date no longer warns.
 export function formatDueDate(dueDate: string, closed: boolean): { label: string; className: string } {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localISODate();
   if (closed) return { label: `Due: ${dueDate}`, className: "text-ink-muted dark:text-stone" };
   if (dueDate < today) return { label: `Overdue · ${dueDate}`, className: "text-red-600 dark:text-red-400" };
   if (dueDate === today) return { label: "Due: Today", className: "text-amber-600 dark:text-amber-400" };
