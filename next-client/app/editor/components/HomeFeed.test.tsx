@@ -11,7 +11,6 @@ import { atom_homeFeedTopRequest, atom_indexerState, atom_userName, type Indexer
 import HomeFeed from "./HomeFeed";
 import { INDEXING_VERBS, ROTATE_MS } from "./home-feed/FeedStatus";
 import { extractTasks } from "@/app/utils/taskExtractor";
-import { todayNoteName } from "@/app/utils/today-note";
 
 const vault = vi.hoisted(() => ({ closeVault: vi.fn(), openVault: vi.fn(), confirm: vi.fn() }));
 vi.mock("@/app/hooks/use-file-system", () => ({
@@ -471,14 +470,14 @@ describe("HomeFeed privacy", () => {
   });
 });
 
-describe("HomeFeed worklog", () => {
+describe("HomeFeed open tasks", () => {
   beforeEach(() => {
     cleanup();
     localStorage.clear();
   });
 
-  function renderWorklog(metadata: Record<string, FileMetadata>) {
-    const handlers = { onOpenNote: vi.fn(), onNewNote: vi.fn(), onSearch: vi.fn(), onClose: vi.fn(), onOpenToday: vi.fn(), onOpenTask: vi.fn() };
+  function renderFeed(metadata: Record<string, FileMetadata>) {
+    const handlers = { onOpenNote: vi.fn(), onNewNote: vi.fn(), onSearch: vi.fn(), onClose: vi.fn(), onOpenTask: vi.fn() };
     render(
       <Provider>
         <Hydrate metadata={metadata}>
@@ -490,35 +489,15 @@ describe("HomeFeed worklog", () => {
   }
 
   const withTasks = (path: string, body: string) => ({ ...meta(path, 0), tasks: extractTasks(path, body) });
-  const sheet = `${todayNoteName(new Date())}.md`;
-
-  it("heads Today with a row that starts today's sheet, also on t", () => {
-    const { onOpenToday, onOpenNote, onSearch } = renderWorklog(NOTES);
-    const rows = screen.getAllByRole("option");
-    expect(rows[0]).toHaveTextContent("Start today's sheet");
-    expect(rows[0]).toHaveTextContent(sheet);
-    expect(screen.getAllByText("Today")).toHaveLength(1);
-    expect(within(rows[0]).queryByRole("button", { name: "Pin to Home" })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Start today's sheet" }));
-    fireEvent.keyDown(window, { key: "Enter" });
-    fireEvent.keyDown(window, { key: "t" });
-    expect(onOpenToday).toHaveBeenCalledTimes(3);
-    expect(onOpenNote).not.toHaveBeenCalled();
-    expect(onSearch).not.toHaveBeenCalled();
-  });
-
-  it("puts today's sheet first under Today once it exists, shown once", () => {
-    const { onOpenNote } = renderWorklog({ ...NOTES, [sheet]: meta(sheet, 10, "Standup") });
-    const rows = screen.getAllByRole("option");
-    expect(rows).toHaveLength(3);
-    const title = sheet.replace(/\.md$/, "");
-    fireEvent.click(within(rows[0]).getByRole("button", { name: `${title}, today's sheet` }));
-    expect(onOpenNote).toHaveBeenCalledWith(sheet);
+  it("has no Today row, and t searches like any other letter", () => {
+    const { onSearch } = renderFeed(NOTES);
     expect(screen.queryByText("Start today's sheet")).not.toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "t" });
+    expect(onSearch).toHaveBeenCalledWith("t");
   });
 
   it("lists open tasks and opens one at its line", () => {
-    const { onOpenTask } = renderWorklog({ "log.md": withTasks("log.md", "# Log\n- [x] shipped\n- [ ] write the review") });
+    const { onOpenTask } = renderFeed({ "log.md": withTasks("log.md", "# Log\n- [x] shipped\n- [ ] write the review") });
     fireEvent.click(screen.getByRole("button", { name: "1 open task" }));
     const tasks = screen.getByRole("region", { name: "Open tasks" });
     fireEvent.click(within(tasks).getByRole("button", { name: "write the review, in log" }));
@@ -527,7 +506,7 @@ describe("HomeFeed worklog", () => {
   });
 
   it("starts the open tasks folded and unfolds and folds them", () => {
-    renderWorklog({ "log.md": withTasks("log.md", "- [ ] one") });
+    renderFeed({ "log.md": withTasks("log.md", "- [ ] one") });
     const toggle = screen.getByRole("button", { name: "1 open task" });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(screen.queryByRole("region", { name: "Open tasks" })).not.toBeInTheDocument();

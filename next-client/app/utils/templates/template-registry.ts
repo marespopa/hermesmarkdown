@@ -1,8 +1,9 @@
 import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
-import type { PeriodKind } from "@/app/utils/periods/period";
 
 // Where templates live and which files count as one. Pure: every input is a
 // list of indexed vault-relative paths (the keys of atom_fileMetadata).
+// A template is a `.md` file in the templates folder, or in one of its direct
+// subfolders: a template pack (`templates/Journal/Daily.md`).
 
 export const DEFAULT_TEMPLATE_FOLDERS = ["templates", "_templates", "Templates"] as const;
 
@@ -11,35 +12,81 @@ export interface TemplateEntry {
   name: string;
   /** Vault-relative path. */
   path: string;
+  /** The pack (subfolder of the templates folder) it belongs to; none for a loose template. */
+  pack?: string;
+}
+
+export interface TemplatePack {
+  /** The subfolder's name; "" for the loose templates directly in the folder. */
+  name: string;
+  /** Vault-relative folder. */
+  folder: string;
+  templates: TemplateEntry[];
 }
 
 const folderOf = (path: string) => path.split("/").slice(0, -1).join("/");
 const isMarkdown = (path: string) => path.toLowerCase().endsWith(".md");
 
 // The setting wins when set. Otherwise the first default folder that holds at
-// least one indexed file directly, checked in order; `templates` when none does.
+// least one indexed file, directly or in a pack, checked in order;
+// `templates` when none does.
 export function resolveTemplatesFolder(
   setting: string | undefined,
   paths: string[],
 ): { folder: string; exists: boolean } {
-  const folders = new Set(paths.map(folderOf));
+  const folders = new Set(paths.flatMap((path) => [folderOf(path), folderOf(folderOf(path))]).filter(Boolean));
   const configured = normalizeFolderPath(setting ?? "");
   if (configured) return { folder: configured, exists: folders.has(configured) };
   const found = DEFAULT_TEMPLATE_FOLDERS.find((folder) => folders.has(folder));
   return found ? { folder: found, exists: true } : { folder: DEFAULT_TEMPLATE_FOLDERS[0], exists: false };
 }
 
-// A template is a `.md` file directly inside the templates folder; subfolders don't count.
-export function isTemplatePath(path: string, folder: string): boolean {
-  return !!folder && isMarkdown(path) && folderOf(path) === folder;
+// The pack a path's template belongs to: "" directly in the folder, the
+// subfolder's name one level down, null when it isn't a template at all.
+function packOf(path: string, folder: string): string | null {
+  if (!folder || !isMarkdown(path) || !path.startsWith(`${folder}/`)) return null;
+  const rest = path.slice(folder.length + 1).split("/");
+  if (rest.length === 1) return "";
+  return rest.length === 2 && rest[0] && !rest[0].startsWith(".") ? rest[0] : null;
 }
 
+// A `.md` file directly inside the templates folder or one of its packs
+// (direct subfolders); anything deeper doesn't count.
+export function isTemplatePath(path: string, folder: string): boolean {
+  return packOf(path, folder) !== null;
+}
+
+const byName = (a: string, b: string) => a.toLowerCase().localeCompare(b.toLowerCase()) || a.localeCompare(b);
+
+// Loose templates first, then each pack in name order; by name within each.
 export function listTemplates(folder: string, paths: string[]): TemplateEntry[] {
   return paths
-    .filter((path) => isTemplatePath(path, folder))
-    .map((path) => ({ name: path.split("/").pop()!.replace(/\.md$/i, ""), path }))
-    .sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()) || a.name.localeCompare(b.name));
+    .flatMap((path): TemplateEntry[] => {
+      const pack = packOf(path, folder);
+      if (pack === null) return [];
+      const name = path.split("/").pop()!.replace(/\.md$/i, "");
+      return [pack ? { name, path, pack } : { name, path }];
+    })
+    .sort((a, b) => byName(a.pack ?? "", b.pack ?? "") || byName(a.name, b.name));
 }
+
+// Templates grouped by pack: the loose ones first (name ""), then every pack
+// folder, including empty ones from `folderPaths` (the vault's folders).
+export function groupTemplatePacks(folder: string, templates: TemplateEntry[], folderPaths: string[] = []): TemplatePack[] {
+  const packs = new Map<string, TemplatePack>();
+  const packFor = (name: string) => {
+    if (!packs.has(name)) packs.set(name, { name, folder: name ? `${folder}/${name}` : folder, templates: [] });
+    return packs.get(name)!;
+  };
+  for (const path of folderPaths) {
+    if (folderOf(path) === folder && !path.split("/").pop()!.startsWith(".")) packFor(path.split("/").pop()!);
+  }
+  for (const template of templates) packFor(template.pack ?? "").templates.push(template);
+  return [...packs.values()]
+    .filter((pack) => pack.name || pack.templates.length > 0)
+    .sort((a, b) => (a.name === "" ? -1 : b.name === "" ? 1 : byName(a.name, b.name)));
+}
+
 
 const singular = (name: string) => name.toLowerCase().replace(/s$/, "");
 
@@ -131,18 +178,4 @@ export function matchTemplateForName(name: string, templates: TemplateEntry[]): 
     return templates.find((template) => JOURNAL_NAMES.test(template.name.trim())) ?? null;
   }
   return null;
-}
-
-const PERIOD_TEMPLATE_NAMES: Record<PeriodKind, RegExp> = {
-  week: /^(weekly|week|weekly (note|notes|review|sheet)|journal[ -]weekly)$/i,
-  month: /^(monthly|month|monthly (note|notes|review|sheet)|journal[ -]monthly)$/i,
-  quarter: /^(quarterly|quarter|quarterly (note|notes|review|sheet)|journal[ -]quarterly)$/i,
-  year: /^(yearly|year|annual|yearly (note|notes|review|sheet)|annual review|journal[ -]yearly)$/i,
-};
-
-// The template for a new periodic sheet of `kind`, by name: Weekly, Monthly,
-// Quarterly, Yearly (or Week, Weekly review, Journal-weekly, …). Null when
-// there's none.
-export function matchPeriodTemplate(kind: PeriodKind, templates: TemplateEntry[]): TemplateEntry | null {
-  return templates.find((template) => PERIOD_TEMPLATE_NAMES[kind].test(template.name.trim())) ?? null;
 }

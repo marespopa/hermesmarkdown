@@ -12,10 +12,12 @@ import TemplatePreview from "./TemplatePreview";
 
 export const BLANK_NOTE_LABEL = "Blank note";
 
-/** A vault template ({ name, path }) or a starter ({ name, description }). */
+/** A vault template ({ name, path, pack? }) or a starter ({ name, description }). */
 export interface TemplatePickerEntry {
   name: string;
   path?: string;
+  /** The template pack (subfolder) it's in: shown before the name and searched. */
+  pack?: string;
   description?: string;
 }
 
@@ -46,7 +48,8 @@ const SHORTCUT_COUNT = 9;
 
 // Searchable list of vault templates or starters (plus "Blank note" first
 // when asked). Each row has an icon, the name and a muted summary (the
-// entry's description, else its structure, else its path). With `bodies`,
+// entry's description, else its structure, else its path); a pack template's
+// name follows its pack ("Journal / Daily"). With `bodies`,
 // a read-only preview of the selected template sits beside the list (under
 // it below 640px): a click selects a row to preview it, and **Use template**,
 // a double-click, Enter or ⌘/Ctrl+1…9 use it. Without `bodies`, a click uses
@@ -73,7 +76,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
     const matches = (label: string) => !q || label.toLowerCase().includes(q);
     return [
       ...(includeBlank && matches(BLANK_NOTE_LABEL) ? [{ kind: "blank" } as Row<T>] : []),
-      ...templates.filter((t) => matches(t.name)).map((entry) => ({ kind: "template", entry }) as Row<T>),
+      ...templates.filter((t) => matches(t.pack ? `${t.pack} ${t.name}` : t.name)).map((entry) => ({ kind: "template", entry }) as Row<T>),
     ];
   }, [includeBlank, query, templates]);
 
@@ -181,6 +184,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                     )}
                     <span className="flex min-w-0 flex-col">
                       <span className="truncate text-ui-subhead text-fg">
+                        {row.kind === "template" && row.entry.pack && <span className="text-fg-faint">{row.entry.pack} / </span>}
                         {row.kind === "blank" ? BLANK_NOTE_LABEL : row.entry.name}
                       </span>
                       {row.kind === "template" && (

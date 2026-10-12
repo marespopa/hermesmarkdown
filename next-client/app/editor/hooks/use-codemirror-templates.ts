@@ -21,7 +21,6 @@ interface UseCodeMirrorTemplatesOptions {
   onInsertTemplateField?: () => void;
   onAskTemplateQuestion?: (kind: "question" | "blank") => Promise<string | null>;
   onSaveAsTemplate?: () => void;
-  onOpenDailySheet?: () => void;
 }
 
 // Step 5: slash/template menu insertion targets. The actual menu UI is
@@ -39,7 +38,6 @@ export function useCodeMirrorTemplates({
   onInsertTemplateField,
   onAskTemplateQuestion,
   onSaveAsTemplate,
-  onOpenDailySheet,
 }: UseCodeMirrorTemplatesOptions) {
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const linkRangeRef = useRef<Range | null>(null);
@@ -121,7 +119,6 @@ export function useCodeMirrorTemplates({
     onInsertTemplateField,
     onAskTemplateQuestion,
     onSaveAsTemplate,
-    onOpenDailySheet,
     onFrontmatterWizard: () => onFrontmatterWizard(),
     onCodeBlockInserted: () => {},
   });
@@ -133,7 +130,6 @@ export function useCodeMirrorTemplates({
   slashMenuCallbacksRef.current.onInsertTemplateField = onInsertTemplateField;
   slashMenuCallbacksRef.current.onAskTemplateQuestion = onAskTemplateQuestion;
   slashMenuCallbacksRef.current.onSaveAsTemplate = onSaveAsTemplate;
-  slashMenuCallbacksRef.current.onOpenDailySheet = onOpenDailySheet;
 
   const wikiLinkTriggerRef = useRef<WikiLinkTriggerCallback | null>((_view, from, to) => {
     wikiLinkRangeRef.current = { from, to };

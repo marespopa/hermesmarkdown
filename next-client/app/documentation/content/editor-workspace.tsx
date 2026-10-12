@@ -219,13 +219,10 @@ tags: []
         <KV
           rows={[
             { label: "Home feed", value: "Your recent notes" },
-            { label: "This week's / Last week's sheet", value: "Open or create the week's sheet" },
-            { label: "This month's / Last month's sheet", value: "Open or create the month's sheet" },
-            { label: "This quarter's / Last quarter's sheet", value: "Open or create the quarter's sheet" },
-            { label: "This year's / Last year's sheet", value: "Open or create the year's sheet" },
             { label: "Export as PDF…", value: "Print the note, or save it as a PDF" },
             { label: "Open Explorer", value: "CTRL/CMD+SHIFT+E" },
             { label: "Open Tasks", value: "—" },
+            { label: "Open Templates", value: "Your templates and template packs" },
             { label: "Panes", value: "Open in pane, split down, next/previous, close" },
             { label: "Tabs", value: "Next/previous, close current/other/all" },
             { label: "Tasks", value: "Grouping, due-date filters, and clear filters" },

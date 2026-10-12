@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { CALLOUT_META } from "@/app/editor/constants/callouts";
-import { parseSheetName } from "@/app/utils/sheet-nav";
 import { TASK_STATUSES, TASK_STATUS_CHAR } from "@/app/utils/task-status";
 import { extractTasks } from "@/app/utils/taskExtractor";
 import { SYSTEM_PROMPT } from "@/app/editor/components/ai-chat/chat-helpers";
@@ -21,11 +20,9 @@ describe("HermesMarkdown syntax guide", () => {
     expect(task.tags).toContain("release");
   });
 
-  it("names worklog sheets the app recognizes", () => {
-    for (const name of ["2026-10-12.md", "2026-W42.md", "2026-10.md", "2026-Q4.md", "2026-year.md"]) {
-      expect(HERMES_SYNTAX_GUIDE).toContain(name);
-      expect(parseSheetName(name)).not.toBeNull();
-    }
+  it("gives dated notes no special meaning", () => {
+    expect(HERMES_SYNTAX_GUIDE).not.toMatch(/sheet/i);
+    expect(HERMES_SYNTAX_GUIDE).toContain("templates");
   });
 
   it("lists the real callout types", () => {

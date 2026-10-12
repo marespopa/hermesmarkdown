@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback } from "react";
 import { useAtomValue, useStore } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_templatesFolder } from "@/app/atoms/template-atoms";
@@ -10,7 +10,6 @@ import { resolveFileMetaByName } from "@/app/hooks/file-system/resolve-file-by-n
 import { callAIChatTurn, type AIToolCall, type ApiMessage, type ToolExchangeMessage } from "@/app/services/ai";
 import { searchNoteContent } from "@/app/services/content-search-client";
 import { isTemplatePath } from "@/app/utils/templates/template-registry";
-import { useTodayAppend } from "../../hooks/use-today-append";
 import {
   DEFAULT_SEARCH_LIMIT,
   readNoteOutput,
@@ -25,41 +24,17 @@ import { openTasksBlock } from "./skill-context";
 // A turn makes at most this many rounds of tool calls before it stops.
 export const MAX_TOOL_ROUNDS = 6;
 
-export interface ToolApproval {
-  lines: string[];
-  approve: () => void;
-  decline: () => void;
-}
-
 const STOPPED = "I stopped after several lookups without an answer. Try asking more specifically.";
 
 // AI Chat's tools, run in the browser against the open vault: search_notes
-// (content index, plus names and tags), read_note, list_open_tasks, and
-// add_to_today, which waits for the user's Add / Don't add (`approval`)
-// before useTodayAppend appends the lines. `converse` runs one user turn: ask,
+// (content index, plus names and tags), read_note and list_open_tasks, all
+// read-only. `converse` runs one user turn: ask,
 // run the tools the model calls, send their results, until it answers.
 // Each tool run is reported through `onActivity`, for the thread.
 export function useChatTools() {
   const store = useStore();
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const { readCurrentText } = useNoteBuffer();
-  const { appendToToday } = useTodayAppend();
-  const [approval, setApproval] = useState<ToolApproval | null>(null);
-  const pending = useRef<((ok: boolean) => void) | null>(null);
-
-  const askApproval = useCallback((lines: string[]) => new Promise<boolean>((resolve) => {
-    const settle = (ok: boolean) => {
-      pending.current = null;
-      setApproval(null);
-      resolve(ok);
-    };
-    pending.current = settle;
-    setApproval({ lines, approve: () => settle(true), decline: () => settle(false) });
-  }), []);
-
-  // Closing the chat declines a pending approval, so a turn never hangs.
-  const cancelApproval = useCallback(() => pending.current?.(false), []);
-  useEffect(() => cancelApproval, [cancelApproval]);
 
   const skip = useCallback((path: string) => {
     const folder = store.get(atom_templatesFolder).folder;
@@ -96,27 +71,8 @@ export function useChatTools() {
       const filter = taskFilter({ view: input.view as TaskView | undefined, tag: input.tag as string | undefined, query: input.query as string | undefined });
       return { output: openTasksBlock(meta, new Date(), skip, filter), activity: toolActivity(toolName, input) };
     }
-    if (toolName === "add_to_today") {
-      const lines = (Array.isArray(input.lines) ? input.lines : []).map(String).map((line) => line.trim()).filter(Boolean);
-      if (!lines.length) return { output: "No lines to add.", activity: toolActivity(toolName, input, "nothing to add") };
-      if (!(await askApproval(lines))) {
-        return { output: "The user declined; nothing was added. Don't ask again unless they do.", activity: toolActivity(toolName, input, "not added") };
-      }
-      let added = 0;
-      let sheet = "";
-      for (const line of lines) {
-        const outcome = await appendToToday(line);
-        if (outcome.result !== "added") break;
-        added++;
-        sheet = outcome.sheetName ?? sheet;
-      }
-      const output = added === lines.length
-        ? `Added ${added} line${added === 1 ? "" : "s"} to [[${sheet}]].`
-        : `Added ${added} of ${lines.length} lines; the rest couldn't be written.`;
-      return { output, activity: toolActivity(toolName, input, `${added} line${added === 1 ? "" : "s"} added`) };
-    }
     return { output: `Unknown tool ${toolName}.`, activity: toolActivity(toolName, input) };
-  }, [store, skip, readCurrentText, appendToToday, askApproval]);
+  }, [store, skip, readCurrentText]);
 
   const converse = useCallback(async (
     system: string,
@@ -138,5 +94,5 @@ export function useChatTools() {
     return STOPPED;
   }, [runTool]);
 
-  return { available: !!vaultHandle, converse, approval, cancelApproval };
+  return { available: !!vaultHandle, converse };
 }

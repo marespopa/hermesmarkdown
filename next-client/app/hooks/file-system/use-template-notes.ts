@@ -20,8 +20,10 @@ export interface InstantiatedTemplate {
   expanded: ExpandedTemplate;
 }
 
-export interface InstantiateOptions extends Pick<TemplateContext, "period"> {
+export interface InstantiateOptions {
   now?: Date;
+  /** No title was asked for: `{{title}}` is the expanded `file_name` (a named note such as `2026-10-12`). */
+  titleFromFileName?: boolean;
 }
 
 async function readClipboard(): Promise<string> {
@@ -50,15 +52,13 @@ export function useTemplateNotes() {
   }, [store]);
 
   // null = the prompts form was cancelled. `selection` fills `{{selection}}`
-  // (inserting over selected text); new notes have none. A periodic sheet
-  // passes its `period` (and its first day as `now`, so `{{monthName}}` in
-  // last month's sheet is last month).
+  // (inserting over selected text); new notes have none.
   const instantiate = useCallback(async (
     raw: string,
     title: string,
     confirmLabel: string,
     selection = "",
-    { now = new Date(), period }: InstantiateOptions = {},
+    { now = new Date(), titleFromFileName = false }: InstantiateOptions = {},
   ): Promise<InstantiatedTemplate | null> => {
     const { routing, content } = splitTemplate(raw);
     const routingText = [routing.targetFolder ?? "", routing.fileName ?? ""].join("\n");
@@ -72,7 +72,10 @@ export function useTemplateNotes() {
     const clipboard = usesToken(content, "clipboard") || usesToken(routingText, "clipboard")
       ? await readClipboard()
       : "";
-    const context: TemplateContext = { now, title, clipboard, prompts, selection, period };
+    let context: TemplateContext = { now, title, clipboard, prompts, selection };
+    if (titleFromFileName && routing.fileName) {
+      context = { ...context, title: expandTemplate(routing.fileName, { ...context, title: "" }).text.trim() };
+    }
     const expandValue = (value: string | undefined) =>
       value === undefined ? undefined : expandTemplate(value, context).text;
     return {

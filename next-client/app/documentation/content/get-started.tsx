@@ -1,6 +1,5 @@
 import { Callout, KV, type Group } from "../doc-primitives";
 import { keyboardShortcutsItem } from "./keyboard-shortcuts";
-import { periodicSheetsItem } from "./periodic-sheets";
 
 // Documentation content: Get Started group.
 export const getStartedGroup: Group = {
@@ -188,20 +187,9 @@ export const getStartedGroup: Group = {
       id: "home-feed",
       title: "Home feed",
       lead: "Your recent notes, newest first. It's where a vault opens.",
-      keywords: "home feed vim keys keyboard j k gg recent notes pin pinned unpin start screen today yesterday preview search create new note welcome no vault open vault create vault browser vault open file daily sheet worklog journal open tasks todo",
+      keywords: "home feed vim keys keyboard j k gg recent notes pin pinned unpin start screen today yesterday preview search create new note welcome no vault open vault create vault browser vault open file open tasks todo",
       body: (
         <>
-          <p>
-            The first note under <em>Today</em> is always today&apos;s sheet, a note
-            named after the date (like <code>2026-10-09.md</code>), marked with a small dot. Until
-            you write it, that row reads <strong>Start today&apos;s sheet</strong>. The first time, you choose its folder: <code>journal/{"{{year}}"}</code> keeps one
-            folder per year, and <code>{"{{month}}"}</code> works too. Change it later in Settings
-            → Files → <strong>Daily Sheets Folder</strong>. If you have a template named Journal or
-            Daily, new sheets use it. Press <code>t</code>, or run <strong>Today&apos;s sheet</strong>{" "}
-            from the command palette, to get there from the keyboard, or type{" "}
-            <code>/daily</code> in any note. For a timestamped line, make a template from the{" "}
-            <strong>Log entry</strong> starter and insert it with <code>/template</code>.
-          </p>
           <p>
             <strong>Tasks</strong> lists the unchecked <code>- [ ]</code> tasks from notes you
             changed in the last 7 days. Click one to open its note with the cursor on that task.
@@ -225,8 +213,7 @@ export const getStartedGroup: Group = {
           <p>
             The feed works from the keyboard, Vim-style, as soon as it opens: <code>j</code> and{" "}
             <code>k</code> move, <code>gg</code> and <code>G</code> jump to the newest and last
-            note, <code>o</code> or Enter opens, <code>p</code> pins, <code>t</code> opens
-            today&apos;s sheet, <code>/</code> searches and Escape goes back to your open notes.
+            note, <code>o</code> or Enter opens, <code>p</code> pins, <code>/</code> searches and Escape goes back to your open notes.
           </p>
           <p>
             With no vault open, the feed is where you start. It offers <strong>Open Vault</strong>,{" "}
@@ -244,7 +231,6 @@ export const getStartedGroup: Group = {
             rows={[
               { label: "Move between notes", value: "↑ / ↓ or J / K" },
               { label: "Open the selected note", value: "ENTER" },
-              { label: "Open today's sheet", value: "T" },
               { label: "Search", value: "Start typing" },
               { label: "Back to your open notes", value: "ESCAPE" },
               { label: "Come back to the feed", value: "Home at the top of the sidebar" },
@@ -277,7 +263,6 @@ export const getStartedGroup: Group = {
         </>
       ),
     },
-    periodicSheetsItem,
     {
       id: "editor-layout",
       title: "Editor layout",
@@ -292,8 +277,7 @@ export const getStartedGroup: Group = {
           <p>
             The toolbar at the top shows your open notes as tabs, even when only one is open. Each pane keeps
             up to 20 open: opening another closes the one you looked at least recently, never one with unsaved
-            changes. Worklog sheets share one tab: opening a day, week, month, quarter or year replaces the
-            sheet already open in that pane, so the sheet switcher never piles up tabs. On the left:
+            changes. On the left:
             the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Search (the
             command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
             Markdown, Export as PDF, Settings, Help and Hide Toolbar — every one of them is also in the command palette.
@@ -304,7 +288,7 @@ export const getStartedGroup: Group = {
           </p>
           <p>
             The <strong>sidebar</strong> starts with Home and lists your open notes across every pane. With a vault it adds
-            Today (today&apos;s sheet) and Tasks below Home, and ends with the file tree. Show
+            Templates and Tasks below Home, and ends with the file tree. Show
             it with the Sidebar button at the toolbar's far left and hide it with the button in its own header, or toggle it with{" "}
             <code>CTRL/CMD+ALT+S</code> or the <strong>Show sidebar</strong>{" "}
             command, and drag its edge to resize it (double-click the edge to

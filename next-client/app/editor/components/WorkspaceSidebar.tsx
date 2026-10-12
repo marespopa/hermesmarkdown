@@ -2,7 +2,7 @@
 
 import React, { useCallback, useRef, useState } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { HiChevronRight, HiOutlineCalendar, HiOutlineCheckCircle, HiOutlineDocumentAdd, HiOutlineDocumentText, HiOutlineDotsHorizontal, HiOutlineFolderAdd, HiOutlineHome } from "react-icons/hi";
+import { HiChevronRight, HiOutlineCheckCircle, HiOutlineDocumentAdd, HiOutlineDocumentText, HiOutlineDotsHorizontal, HiOutlineFolderAdd, HiOutlineHome, HiOutlineTemplate } from "react-icons/hi";
 import { atom_activeFilePath, atom_activePaneId, atom_openFiles, atom_workspaceLayout, findLeaf, getWorkspaceTabs } from "@/app/atoms/atoms";
 import { VscLayoutSidebarLeft } from "react-icons/vsc";
 import { atom_vaultName } from "@/app/atoms/vault-atoms";
@@ -11,8 +11,6 @@ import Button from "@/app/components/Button";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import { formatShortcut } from "@/app/utils/platform";
-import { parseSheetName } from "@/app/utils/sheet-nav";
-import { todayNoteName } from "@/app/utils/today-note";
 import { PANE_HEADER_HEIGHT, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 import PaneToolbarButton from "./PaneToolbarButton";
 import TabContextMenu from "./TabContextMenu";
@@ -102,13 +100,13 @@ function Section({ title, menu, children }: { title: string; menu?: SectionMenuI
 }
 
 // The window's sidebar (desktop): navigation only — Home, then with a vault
-// Today (today's sheet; current on any worklog sheet) and Tasks (the Tasks
-// page, through the page's unsaved-changes guard), the open notes across
+// Templates and Tasks (their pages, through the page's unsaved-changes
+// guard), the open notes across
 // every pane, then the vault's file tree. Commands stay in the toolbar.
 // Sits on the window's leading edge; slides out when hidden
 // (`atom_sidebarOpen`: hidden from its header's button, shown again from the toolbar's) and resizes by dragging its trailing edge
 // (`atom_sidebarWidth`, double-click to reset).
-export default function WorkspaceSidebar({ onOpenTasks }: { onOpenTasks?: () => void } = {}) {
+export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onOpenTasks?: () => void; onOpenTemplates?: () => void } = {}) {
   const [open, setOpen] = useAtom(atom_sidebarOpen);
   const [width, setWidth] = useAtom(atom_sidebarWidth);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
@@ -120,7 +118,7 @@ export default function WorkspaceSidebar({ onOpenTasks }: { onOpenTasks?: () => 
   const vaultName = useAtomValue(atom_vaultName);
   const {
     vaultHandle, openFile, renameFile, deleteFile, trashItems, duplicateFile, moveItem, moveItems,
-    createNewFile, createFolder, undoFileOperation, openTodayNote,
+    createNewFile, createFolder, undoFileOperation,
   } = useFileSystem();
   const treeController = useRef<VaultFileTreeController | null>(null);
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
@@ -128,10 +126,6 @@ export default function WorkspaceSidebar({ onOpenTasks }: { onOpenTasks?: () => 
   const tabs = getWorkspaceTabs(workspaceLayout.rootContainer);
   const activeLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId);
   const activeTabPath = activeLeaf?.activeFilePath ?? null;
-  // Today is current on any worklog sheet: the sheets are one place, moved
-  // through with the sheet switcher.
-  const onWorklogSheet = !homeFeedOpen && !!activeTabPath && !!parseSheetName(activeTabPath.split("/").pop() ?? "");
-  const todayName = `${todayNoteName(new Date())}.md`;
 
   const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
     if (!path) return vaultHandle;
@@ -208,19 +202,10 @@ export default function WorkspaceSidebar({ onOpenTasks }: { onOpenTasks?: () => 
             <HiOutlineHome size={15} aria-hidden="true" className="shrink-0 opacity-70" />
             <span className="flex-1 min-w-0 truncate">Home</span>
           </Button>
-          {vaultHandle && (
-            <Button
-              variant="unstyled"
-              onClick={() => {
-                setHomeFeedOpen(false);
-                void openTodayNote();
-              }}
-              aria-current={onWorklogSheet ? "page" : undefined}
-              title={onWorklogSheet && !activeTabPath?.endsWith(todayName) ? "Back to today's sheet" : "Today's sheet"}
-              className={`${ITEM_CLASS} ${onWorklogSheet ? ITEM_CURRENT_CLASS : ITEM_IDLE_CLASS}`}
-            >
-              <HiOutlineCalendar size={15} aria-hidden="true" className="shrink-0 opacity-70" />
-              <span className="flex-1 min-w-0 truncate">Today</span>
+          {vaultHandle && onOpenTemplates && (
+            <Button variant="unstyled" onClick={onOpenTemplates} className={`${ITEM_CLASS} ${ITEM_IDLE_CLASS}`}>
+              <HiOutlineTemplate size={15} aria-hidden="true" className="shrink-0 opacity-70" />
+              <span className="flex-1 min-w-0 truncate">Templates</span>
             </Button>
           )}
           {vaultHandle && onOpenTasks && (

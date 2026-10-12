@@ -2,7 +2,7 @@ import { CALLOUT_META } from "@/app/editor/constants/callouts";
 import { TASK_STATUSES, TASK_STATUS_CHAR, TASK_STATUS_LABEL } from "@/app/utils/task-status";
 
 // What the AI features need to know about HermesMarkdown's own Markdown:
-// tasks, worklog sheets, links, tags and callouts. Like formula-ai-guide.ts,
+// tasks, links, tags and callouts. Like formula-ai-guide.ts,
 // the parts that can drift (status characters, callout types) are read from the app's constants, so the prompts can't advertise
 // syntax the app doesn't read.
 
@@ -30,6 +30,4 @@ Links and tags:
 Frontmatter: optional YAML between --- lines at the very top (title, tags, status, …). Keep any that exists.
 Callouts: > [!type] Title on the first line, then > before every line of the body. Types: ${CALLOUT_TYPE_NAMES.join(", ")}. Add - after the type (> [!tip]- Title) to fold it.
 Diagrams and math: \`\`\`mermaid fences render as diagrams; $$ … $$ blocks render as display math (KaTeX).
-Worklog:
-- Daily sheets are notes named by date (2026-10-12.md). They hold the day's tasks and notes.
-- Weeks (2026-W42.md), months (2026-10.md), quarters (2026-Q4.md) and years (2026-year.md) have their own sheets, written by the user like any note.`;
+Templates: notes are often made from the user's templates (in the templates folder, grouped into packs by subfolder). A dated note such as 2026-10-12.md is just a note a template named; the app gives it no special meaning.`;

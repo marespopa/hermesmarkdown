@@ -28,7 +28,7 @@ export const TEMPLATE_STARTER = [
   "",
 ].join("\n");
 
-const MEETING_NOTES = [
+export const MEETING_NOTES = [
   ...frontmatter(["date: {{date}}", "attendees: {{prompt:Attendees}}"]),
   "# {{title}}",
   "",
@@ -49,7 +49,7 @@ const MEETING_NOTES = [
   "",
 ].join("\n");
 
-const SPEC = [
+export const SPEC = [
   ...frontmatter(["author: {{prompt:Author}}", "status: Draft", "version: 0.1", "date: {{date}}"]),
   "# {{title}}",
   "",
@@ -72,7 +72,7 @@ const SPEC = [
 
 // A dated page: today as the heading, the caret ready to write, and one
 // gentle closing prompt.
-const JOURNAL = [
+export const JOURNAL = [
   "# {{date:dddd, D MMMM}}",
   "",
   "{{cursor}}",
@@ -82,7 +82,7 @@ const JOURNAL = [
   "",
 ].join("\n");
 
-const REPORT = [
+export const REPORT = [
   ...frontmatter(["author: {{prompt:Author}}", "date: {{date}}"]),
   "# {{title}}",
   "",
@@ -99,13 +99,13 @@ const REPORT = [
 ].join("\n");
 
 // One timestamped line, inserted with /template wherever you are (for
-// example at the end of today's sheet): a log entry, not a page.
-const LOG_ENTRY = "- {{time}} {{cursor}}\n";
+// example at the end of a journal page): a log entry, not a page.
+export const LOG_ENTRY = "- {{time}} {{cursor}}\n";
 
 export const TEMPLATE_STARTERS: TemplateStarter[] = [
   { name: "Basic", suggestedName: "", description: "Title, date, one prompt", body: TEMPLATE_STARTER },
   { name: "Journal", suggestedName: "Journal", description: "Today's date, free writing, grateful for", body: JOURNAL },
-  { name: "Log entry", suggestedName: "Log entry", description: "One line starting with the time, for your daily sheet", body: LOG_ENTRY, snippet: true },
+  { name: "Log entry", suggestedName: "Log entry", description: "One line starting with the time, to insert into any note", body: LOG_ENTRY, snippet: true },
   { name: "Meeting notes", suggestedName: "Meeting notes", description: "Agenda, decisions, action items", body: MEETING_NOTES },
   { name: "Spec", suggestedName: "Spec", description: "Author, status, summary, design", body: SPEC },
   { name: "Report", suggestedName: "Report", description: "Summary, findings, next steps", body: REPORT },

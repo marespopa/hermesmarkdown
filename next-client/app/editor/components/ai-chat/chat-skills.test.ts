@@ -5,7 +5,6 @@ import {
   parseTemplateBlocks,
   TASKS_SKILL,
   TEMPLATE_SKILL,
-  WEEKLY_REVIEW_SKILL,
 } from "./chat-skills";
 
 const notFound = () => Object.assign(new Error("missing"), { name: "NotFoundError" });
@@ -36,13 +35,7 @@ describe("isSkillActive", () => {
   });
 });
 
-describe("weekly review and tasks skills", () => {
-  it("turns the review on for a weekly review or its command", () => {
-    for (const text of ["Write my weekly review", "recap last week please", "summarize this week", "/review"]) {
-      expect(isSkillActive(WEEKLY_REVIEW_SKILL, [text])).toBe(true);
-    }
-    expect(isSkillActive(WEEKLY_REVIEW_SKILL, ["review this paragraph", "a week in Lisbon"])).toBe(false);
-  });
+describe("tasks skill", () => {
 
   it("turns tasks on for tasks, to-dos and action items, or /tasks", () => {
     for (const text of ["what tasks are due?", "make to-dos from this", "list the action items", "/Tasks"]) {

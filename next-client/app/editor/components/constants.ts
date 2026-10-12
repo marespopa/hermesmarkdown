@@ -92,7 +92,6 @@ export const TEMPLATE_FIELD_SENTINEL = "__OPEN_TEMPLATE_FIELD__";
 export const SAVE_AS_TEMPLATE_SENTINEL = "__SAVE_AS_TEMPLATE__";
 export const MARK_SENSITIVE_SENTINEL = "__MARK_SENSITIVE__";
 export const MARK_PUBLIC_SENTINEL = "__MARK_PUBLIC__";
-export const DAILY_SHEET_SENTINEL = "__OPEN_DAILY_SHEET__";
 export const AI_ACTION_SENTINEL_PREFIX = "__AI_ACTION__:";
 export const aiActionSentinel = (id: string) => `${AI_ACTION_SENTINEL_PREFIX}${id}`;
 export const CURSOR_SENTINEL = "\0";
@@ -114,8 +113,6 @@ export interface Template {
   templateOnly?: boolean;
   /** Only shown when the note can be saved as a template (onSaveAsTemplate). */
   saveTemplateOnly?: boolean;
-  /** Only shown with a vault, where today's sheet exists (onOpenDailySheet). */
-  worklogOnly?: boolean;
 }
 
 export const TEMPLATES: Template[] = [
@@ -135,14 +132,6 @@ export const TEMPLATES: Template[] = [
     icon: "⎇",
     description: "Insert a Mermaid diagram block",
     content: `\n\`\`\`mermaid\n${CURSOR_SENTINEL}\n\`\`\`\n`,
-  },
-  // --- Worklog ---
-  {
-    label: "Daily",
-    icon: "📆",
-    description: "Open today's sheet",
-    content: DAILY_SHEET_SENTINEL,
-    worklogOnly: true,
   },
   // --- Structure ---
   {

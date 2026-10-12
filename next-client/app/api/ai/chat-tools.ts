@@ -33,11 +33,4 @@ export const CHAT_TOOLS: Record<string, Tool> = {
       query: z.string().optional().describe('Only tasks whose text contains this'),
     }),
   },
-  add_to_today: {
-    description:
-      "Add lines to the end of today's daily sheet, e.g. tasks (- [ ] …) or notes. The user is asked to approve first; if they decline, don't retry, just say so.",
-    inputSchema: z.object({
-      lines: z.array(z.string().min(1)).min(1).max(20).describe('One line each, in HermesMarkdown syntax'),
-    }),
-  },
 };

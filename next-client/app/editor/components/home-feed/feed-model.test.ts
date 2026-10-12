@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { buildNoteDisplayItems, MASKED_PREVIEW, type PrivacyLevel } from "@/app/utils/note-display";
 import { extractTasks } from "@/app/utils/taskExtractor";
-import { buildFeed as buildFeedWith, dayLabel, feedTitle, isFeedPath, openFeedTasks, withTodaySheet } from "./feed-model";
+import { buildFeed as buildFeedWith, dayLabel, feedTitle, isFeedPath, openFeedTasks } from "./feed-model";
 
 // Builds the feed through the display factory, as HomeFeed does.
 function buildFeed(
@@ -84,14 +84,15 @@ describe("buildFeed", () => {
     expect(feed[2].dayLabel).toBeNull();
   });
 
-  it("leaves template files out, but not notes in its subfolders", () => {
+  it("leaves templates and template packs out, but not notes deeper down", () => {
     const metadata = {
       a: meta("a.md", new Date(2026, 8, 28, 9)),
       t: meta("templates/rfc.md", new Date(2026, 8, 28, 10)),
-      s: meta("templates/archive/old.md", new Date(2026, 8, 28, 8)),
+      p: meta("templates/Journal/Daily.md", new Date(2026, 8, 28, 11)),
+      s: meta("templates/archive/2025/old.md", new Date(2026, 8, 28, 8)),
     };
     const feed = buildFeedWith(metadata, buildNoteDisplayItems(metadata, "show_title"), NOW, "templates");
-    expect(feed.map((entry) => entry.path)).toEqual(["a.md", "templates/archive/old.md"]);
+    expect(feed.map((entry) => entry.path)).toEqual(["a.md", "templates/archive/2025/old.md"]);
   });
 
   it("orders stat-dated notes by date and undated ones last, without a label", () => {
@@ -210,40 +211,5 @@ describe("openFeedTasks", () => {
       ".hermes/x.md": withTasks(".hermes/x.md", day(0), "- [ ] meta"),
     };
     expect(openFeedTasks(buildFeed(metadata, NOW), metadata, NOW)).toEqual([]);
-  });
-});
-
-describe("withTodaySheet", () => {
-  const SHEET = "journal/2026-09-28.md";
-
-  it("adds a row that starts the sheet, heading Today after the pins", () => {
-    const metadata = { "a.md": meta("a.md", new Date(2026, 8, 28, 14)), "p.md": meta("p.md", new Date(2026, 8, 1)) };
-    const feed = withTodaySheet(buildFeed(metadata, NOW, "show_title", ["p.md"]), { path: SHEET, exists: false }, NOW);
-    expect(feed.map((entry) => [entry.path, entry.dayLabel, entry.todaySheet])).toEqual([
-      ["p.md", "Pinned", undefined],
-      [SHEET, "Today", "missing"],
-      ["a.md", null, undefined],
-    ]);
-    expect(feed[1].fileName).toBe("2026-09-28.md");
-  });
-
-  it("moves the existing sheet to the top of Today, marked", () => {
-    const metadata = {
-      [SHEET]: meta(SHEET, new Date(2026, 8, 28, 9)),
-      "b.md": meta("b.md", new Date(2026, 8, 28, 14)),
-    };
-    const feed = withTodaySheet(buildFeed(metadata, NOW), { path: SHEET, exists: true }, NOW);
-    expect(feed.map((entry) => [entry.path, entry.dayLabel, entry.todaySheet])).toEqual([
-      [SHEET, "Today", "existing"],
-      ["b.md", null, undefined],
-    ]);
-  });
-
-  it("leaves a pinned sheet pinned, and adds nothing for a sheet the feed hides", () => {
-    const metadata = { [SHEET]: meta(SHEET, new Date(2026, 8, 28, 9)) };
-    const pinned = buildFeed(metadata, NOW, "show_title", [SHEET]);
-    expect(withTodaySheet(pinned, { path: SHEET, exists: true }, NOW)).toBe(pinned);
-    const hidden = buildFeed({}, NOW);
-    expect(withTodaySheet(hidden, { path: SHEET, exists: true }, NOW)).toBe(hidden);
   });
 });

@@ -409,7 +409,6 @@ graph TD
             { label: "Callout · Collapse", value: "Callout / collapsed callout" },
             { label: "Frontmatter", value: "Insert or reveal the YAML block" },
             { label: "Template (/template, /tpl)", value: "Insert a template from your vault" },
-            { label: "Daily (/daily)", value: "Open today's sheet (with a vault)" },
             { label: "AI Chat & AI actions", value: "Only when AI is configured" },
           ]}
         />

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
 import { atom_activeEditorView, atom_aiBuilderRequest, atom_flowMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_vimMode } from "@/app/atoms/ui-atoms";
@@ -31,16 +31,12 @@ import { insertOrRevealFrontmatter } from "../codemirror/frontmatter-fold";
 import { useEditorPasteHandlers } from "../hooks/use-editor-paste-handlers";
 import { useScrollToPendingTarget } from "../hooks/use-scroll-to-pending-target";
 import { openImageDialog } from "../utils/open-helper-dialogs";
-import { requestOpenTodaySheet } from "../utils/worklog-events";
 import EditorPills from "./markdown-editor/EditorPills";
 import FoldChevrons from "./markdown-editor/FoldChevrons";
 import LinkInsertDialog from "./markdown-editor/LinkInsertDialog";
 import VimStatusPill from "./markdown-editor/VimStatusPill";
 import { useVimStatus } from "../hooks/use-vim-status";
 import TemplateStrip from "./TemplateStrip";
-import SheetSwitcher from "./SheetSwitcher";
-import SheetSkeleton from "./SheetSkeleton";
-import { parseSheetName } from "@/app/utils/sheet-nav";
 import EmptyNoteTemplates from "./EmptyNoteTemplates";
 import { useTemplateNote } from "../hooks/use-template-note";
 
@@ -71,11 +67,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
-  // A worklog sheet gets the level switcher.
-  const sheet = useMemo(() => parseSheetName(filePath.split("/").pop() ?? ""), [filePath]);
   const [editorView, setEditorView] = useState<EditorView | null>(null);
-  // The sheet switcher is opening another sheet: a skeleton covers the text.
-  const [isSheetOpening, setIsSheetOpening] = useState(false);
 
   const editorValue = props.value;
   const editorOnChange = useCallback((newVal: string) => {
@@ -134,7 +126,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onInsertTemplateField: isTemplateNote ? insertTemplateField : undefined,
     onAskTemplateQuestion: askTemplateQuestion,
     onSaveAsTemplate: saveNoteAsTemplate,
-    onOpenDailySheet: vaultHandle ? requestOpenTodaySheet : undefined,
   });
 
   useEffect(() => {
@@ -308,14 +299,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         } as React.CSSProperties}
       >
         {isTemplateNote && <TemplateStrip name={filePath.split("/").pop()!.replace(/\.md$/i, "")} doc={editorValue} view={editorView} onAddField={insertTemplateField} />}
-        {!isTemplateNote && sheet && vaultHandle && <SheetSwitcher sheet={sheet} onPendingChange={(level) => setIsSheetOpening(level !== null)} />}
         <div className="editor-measure relative h-full">
-          {isSheetOpening && <SheetSkeleton />}
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div
             id="md-editor"
             ref={containerRef}
-            className={`h-full ${wordWrap ? "" : "editor-no-wrap-viewport"} ${isSheetOpening ? "opacity-0 transition-opacity duration-0 delay-150" : ""}`}
+            className={`h-full ${wordWrap ? "" : "editor-no-wrap-viewport"}`}
             tabIndex={0}
           />
 

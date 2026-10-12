@@ -32,12 +32,6 @@ body {
   --clay:           #A2563E;  /* primary accent — active states, focus, links, unsaved dot */
   --moss:           #626F54;  /* secondary accent — icons, muted interactive */
   --moss-hover:     #5C6A4E;  /* moss, darkened — hover/active state for sage buttons */
-  /* Worklog sheet levels (SheetSwitcher, tab dots, home feed): day → week → month → quarter → year. */
-  --sheet-day:      var(--clay);
-  --sheet-week:     var(--moss);
-  --sheet-month:    #4F6684;  /* muted slate — the third accent, for months */
-  --sheet-quarter:  #7B5878;  /* muted plum, for quarters */
-  --sheet-year:     #85692F;  /* ochre, for years */
   /* Task status (box character): in progress, on hold, done. To do and
      cancelled stay neutral (--fg-faint). */
   --task-prog:      var(--clay);
@@ -87,9 +81,6 @@ html.dark {
   --frontmatter-bg-active: rgba(214, 207, 198, 0.1);
   --frontmatter-label-opacity: 0.5;
   --moss-hover:     #A3B58C;  /* moss, brightened — hover/active state for sage buttons */
-  --sheet-month:    #93A9C6;
-  --sheet-quarter:  #C2A0BE;
-  --sheet-year:     #CDB173;
   --task-hold:      #CDB173;
   --row-stripe:     rgba(214, 207, 198, 0.035);
   --glass-surface:  rgba(28, 28, 30, 0.75);

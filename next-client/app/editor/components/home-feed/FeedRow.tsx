@@ -1,7 +1,7 @@
 "use client";
 
 import React, { forwardRef, useState } from "react";
-import { HiOutlineDocumentText, HiOutlinePlus } from "react-icons/hi";
+import { HiOutlineDocumentText } from "react-icons/hi";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import Button from "@/app/components/Button";
 import SensitiveBadge from "@/app/components/SensitiveBadge";
@@ -42,15 +42,12 @@ function FeedPreview({ entry }: { entry: FeedEntry }) {
 // where a long press opens the row's menu (Open, Pin / Unpin) instead; a right-click or the context-menu key opens it
 // everywhere. "Touch-only" is `any-hover: none`: `hover: none` only reads
 // the primary pointer, so it also hid the pin from a mouse on a tablet or
-// phone. Today's sheet carries
-// the header's accent dot; before it exists its row reads "Start today's
-// sheet" in muted type, with no pin.
+// phone.
 const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
   { entry, isSelected, onOpen, onHover, onTogglePin },
   ref,
 ) {
   const pinLabel = entry.isPinned ? "Unpin from Home" : "Pin to Home";
-  const isMissing = entry.todaySheet === "missing";
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   // Just below the finger, so lifting it doesn't land on the first item.
   const longPress = useLongPress(({ x, y }) => setMenu({ x, y: y + 12 }));
@@ -78,15 +75,14 @@ const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
         onMouseEnter={onHover}
         onContextMenu={handleContextMenu}
         {...longPress.handlers}
-        aria-label={entry.isSensitive ? `${entry.title} (sensitive)` : entry.todaySheet === "existing" ? `${entry.title}, today's sheet` : entry.title}
+        aria-label={entry.isSensitive ? `${entry.title} (sensitive)` : entry.title}
         // No text selection or callout on a long press (iOS).
         className={`group block w-full min-w-0 select-none rounded-lg py-3 pl-3 pr-10 text-left [@media(any-hover:none)]:pr-3 transition-colors [-webkit-touch-callout:none] ${
           isSelected ? "bg-surface-raised" : "hover:bg-surface-raised"
         }`}
       >
         <span className="flex items-center gap-1.5">
-          <span className={`block truncate text-ui-body font-medium ${isMissing ? "text-fg-muted group-hover:text-fg" : "text-fg"}`}>{entry.title}</span>
-          {entry.todaySheet && <span aria-hidden="true" className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />}
+          <span className="block truncate text-ui-body font-medium text-fg">{entry.title}</span>
           {entry.isSensitive && <SensitiveBadge />}
         </span>
         {entry.isIndexed ? (
@@ -102,7 +98,7 @@ const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
           <span className="mt-1.5 block truncate text-ui-caption text-fg-faint">{entry.fileName}</span>
         )}
       </Button>
-      {!isMissing && <Button
+      <Button
         variant="unstyled"
         onClick={onTogglePin}
         onMouseEnter={onHover}
@@ -113,23 +109,21 @@ const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
         }`}
       >
         {entry.isPinned ? <TbPinnedFilled size={15} aria-hidden="true" /> : <TbPinned size={15} aria-hidden="true" />}
-      </Button>}
+      </Button>
       {menu && (
         <TabContextMenu
           x={menu.x}
           y={menu.y}
           label={entry.title}
           onClose={() => setMenu(null)}
-          items={isMissing
-            ? [{ label: "Start", icon: <HiOutlinePlus size={15} />, onClick: onOpen }]
-            : [
-                { label: "Open", icon: <HiOutlineDocumentText size={15} />, onClick: onOpen },
-                {
-                  label: pinLabel,
-                  icon: entry.isPinned ? <TbPinnedFilled size={15} /> : <TbPinned size={15} />,
-                  onClick: onTogglePin,
-                },
-              ]}
+          items={[
+            { label: "Open", icon: <HiOutlineDocumentText size={15} />, onClick: onOpen },
+            {
+              label: pinLabel,
+              icon: entry.isPinned ? <TbPinnedFilled size={15} /> : <TbPinned size={15} />,
+              onClick: onTogglePin,
+            },
+          ]}
         />
       )}
     </div>

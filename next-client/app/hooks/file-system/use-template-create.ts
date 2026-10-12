@@ -3,9 +3,8 @@
 import { useCallback } from "react";
 import { useStore } from "jotai";
 import toast from "react-hot-toast";
-import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
-import { atom_newNoteFolder, atom_pendingScrollTarget, atom_todayFolder } from "@/app/atoms/ui-atoms";
+import { atom_newNoteFolder, atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
 import { atom_templates, atom_templatesFolder } from "@/app/atoms/template-atoms";
 import { writeFileContent } from "@/app/services/file-writer";
 import { useDialog } from "../use-dialog";
@@ -15,14 +14,13 @@ import { createUniqueFile, ensureVaultFolder, normalizeFolderPath } from "./uniq
 import { useTemplateNotes } from "./use-template-notes";
 import {
   matchTemplateForFolder,
-  matchTemplateForName,
   parseMissingLink,
   sanitizeNoteName,
   sanitizeTemplateFileName,
   type TemplateEntry,
 } from "@/app/utils/templates/template-registry";
-import { offsetToLineColumn, type ExpandedTemplate } from "@/app/utils/templates/template-tokens";
-import { DEFAULT_TODAY_FOLDER, findTodayNote, preferredSheetFolder, resolveTodayFolder, todayNoteHeading, todayNoteName } from "@/app/utils/today-note";
+import { splitTemplate } from "@/app/utils/templates/template-frontmatter";
+import { offsetToLineColumn, usesToken, type ExpandedTemplate } from "@/app/utils/templates/template-tokens";
 
 interface UseTemplateCreateProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -32,6 +30,12 @@ interface UseTemplateCreateProps {
 
 const BLANK_NOTE: ExpandedTemplate = { text: "\n", cursor: null };
 const joinPath = (folder: string, name: string) => (folder ? `${folder}/${name}` : name);
+
+// A `file_name` that names the note by itself (a date, a week, an answer),
+// not from its title: such a note is opened again rather than duplicated.
+export function namesItsNote(fileName: string | undefined): boolean {
+  return !!fileName?.trim() && !usesToken(fileName, "title") && !usesToken(fileName, "slug");
+}
 
 // Fresh handle for a vault path, or null when it doesn't exist.
 export async function findExisting(vaultHandle: FileSystemDirectoryHandle, path: string) {
@@ -63,7 +67,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   // `{{cursor}}`. `unique` adds ` (1)`… on a name clash; otherwise an existing
   // file on disk is opened unchanged (what's on disk wins) and `onExisting`
   // is told its path. With `open: false` nothing is opened and no toast is
-  // shown (adding to today's sheet from AI Chat). Resolves to the note's path and a fresh handle, or
+  // shown. Resolves to the note's path and a fresh handle, or
   // null on error.
   const writeNewNote = useCallback(async (
     folder: string,
@@ -166,114 +170,67 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     await writeNewNote(folder, parsed.baseName, expanded, { unique: false });
   }, [store, dialog, pickTemplate, readOrReport, instantiate, writeNewNote, scanVault, openFile]);
 
-  const createNoteFromTemplate = useCallback(async () => {
-    if (!store.get(atom_vaultHandle)) return;
-    const chosen = await pickTemplate({ includeBlank: false, title: "New note from template" });
-    if (!chosen || chosen === "blank") return;
-    const title = String((await dialog.prompt("Note title:", "", "New note from template")) ?? "").trim();
-    if (!title) return;
+  // A template that names its note without the title (`file_name` such as
+  // `{{date}}` for a journal page) asks for no title, and opens that note
+  // unchanged when it already exists. Otherwise the title is asked for and a
+  // clash gets ` (1)`. `picked` skips the picker (the Templates page's
+  // Use). True once the note is open.
+  const createNoteFromTemplate = useCallback(async (picked?: TemplateEntry): Promise<boolean> => {
+    if (!store.get(atom_vaultHandle)) return false;
+    const chosen = picked ?? (await pickTemplate({ includeBlank: false, title: "New note from template" }));
+    if (!chosen || chosen === "blank") return false;
     const raw = await readOrReport(chosen);
-    if (raw === null) return;
-    const result = await instantiate(raw, title, "Create");
-    if (!result) return;
+    if (raw === null) return false;
+    const named = namesItsNote(splitTemplate(raw).routing.fileName);
+    let title = "";
+    if (!named) {
+      title = String((await dialog.prompt("Note title:", "", "New note from template")) ?? "").trim();
+      if (!title) return false;
+    }
+    const result = await instantiate(raw, title, "Create", "", { titleFromFileName: named });
+    if (!result) return false;
     const folder =
       normalizeFolderPath(result.routing.targetFolder ?? "") || normalizeFolderPath(store.get(atom_newNoteFolder));
     const baseName = sanitizeNoteName(result.routing.fileName || title);
-    await writeNewNote(folder, baseName, result.expanded, { unique: true });
+    return (await writeNewNote(folder, baseName, result.expanded, { unique: !named })) !== null;
   }, [store, dialog, pickTemplate, readOrReport, instantiate, writeNewNote]);
 
-  // The Daily Sheets folder for `date` (`{{year}}` / `{{month}}` expanded,
-  // normalized), asking for the pattern the first time; `title` heads that
-  // prompt. Null when it was cancelled.
-  const resolveSheetFolder = useCallback(async (date: Date, title = "Today's sheet"): Promise<string | null> => {
-    let pattern = store.get(atom_todayFolder);
-    if (pattern === null) {
-      const answer = await dialog.prompt(
-        "Folder for daily sheets. {{year}} and {{month}} make one per year or month; leave empty for the vault root. Change it later in Settings → Files.",
-        DEFAULT_TODAY_FOLDER,
-        title,
-      );
-      if (answer === null || answer === undefined) return null;
-      pattern = normalizeFolderPath(String(answer));
-      store.set(atom_todayFolder, pattern);
-    }
-    return normalizeFolderPath(resolveTodayFolder(pattern, date));
-  }, [store, dialog]);
-
-  // Today's worklog sheet (`<date>.md`): found in the index (in the Daily
-  // Sheets folder, else anywhere), otherwise created in that folder — asked
-  // for the first time, with `{{year}}` / `{{month}}` allowed — from a
-  // journal-like template when one exists, else as a dated heading with the
-  // caret below it. A sheet on disk that the index hasn't seen yet is used
-  // unchanged. `open` opens it (Today's sheet); AI Chat's add to today only needs it to
-  // exist. Null when a prompt was cancelled or the write failed.
-  const resolveTodayNote = useCallback(async (now: Date, open: boolean) => {
-    if (!store.get(atom_vaultHandle)) return null;
-    const preferredFolder = normalizeFolderPath(preferredSheetFolder(store.get(atom_todayFolder), store.get(atom_newNoteFolder), now));
-    const baseName = todayNoteName(now);
-    const text = `# ${todayNoteHeading(now)}\n\n`;
-    const dated: ExpandedTemplate = { text, cursor: text.length };
-    const existingPath = findTodayNote(Object.keys(store.get(atom_fileMetadata)), now, preferredFolder);
-    if (existingPath) {
-      // Used as is; the dated sheet is only written if the file is gone.
-      const folder = existingPath.split("/").slice(0, -1).join("/");
-      return writeNewNote(folder, baseName, dated, { unique: false, open });
-    }
-    const folder = await resolveSheetFolder(now);
-    if (folder === null) return null;
-    // The folder setting decides the path; a template only gives the body.
-    const template = matchTemplateForName(baseName, store.get(atom_templates));
-    if (template) {
-      const raw = await readOrReport(template);
-      if (raw === null) return null;
-      const result = await instantiate(raw, baseName, "Create", "", { now });
-      if (!result) return null;
-      return writeNewNote(folder, baseName, result.expanded, { unique: false, open });
-    }
-    return writeNewNote(folder, baseName, dated, { unique: false, open });
-  }, [store, readOrReport, instantiate, writeNewNote, resolveSheetFolder]);
-
-  const openTodayNote = useCallback(
-    (now: Date = new Date()) => resolveTodayNote(now, true).then(() => undefined),
-    [resolveTodayNote],
-  );
-  // Today's sheet, created if needed, without opening it: `{ path, handle }`
-  // or null (cancelled or failed).
-  const ensureTodayNote = useCallback((now: Date = new Date()) => resolveTodayNote(now, false), [resolveTodayNote]);
-
-  // "New template…": pick a starter, then `<templates folder>/<name>.md` with
-  // its raw body. The name prompt is prefilled from the starter. A
-  // template with the same name (any case) is opened unchanged instead.
-  const createTemplate = useCallback(async () => {
+  // "New template…": pick a starter, then `<templates folder>/<name>.md` (in
+  // `<pack>/` when given) with its raw body. The name prompt is prefilled from the starter. A
+  // template with the same name (any case) in the same place is opened
+  // unchanged instead. True once a template is open.
+  const createTemplate = useCallback(async (pack?: string): Promise<boolean> => {
     const vaultHandle = store.get(atom_vaultHandle);
-    if (!vaultHandle) return;
+    if (!vaultHandle) return false;
     const starter = await pickStarter();
-    if (!starter) return;
+    if (!starter) return false;
     const name = String((await dialog.prompt("Template name:", starter.suggestedName, "New template")) ?? "").trim();
-    if (!name) return;
+    if (!name) return false;
     const baseName = sanitizeTemplateFileName(name).slice(0, -".md".length);
-    const folder = store.get(atom_templatesFolder).folder;
+    const root = store.get(atom_templatesFolder).folder;
+    const folder = pack ? `${root}/${pack}` : root;
     const openedExisting = (path: string) => toast.success(`Opened existing template: ${path}`);
     // The registry check catches `RFC` vs `rfc.md` on case-sensitive backends (OPFS).
-    const indexed = store.get(atom_templates).find((t) => t.name.toLowerCase() === baseName.toLowerCase());
+    const indexed = store.get(atom_templates)
+      .find((t) => (t.pack ?? "") === (pack ?? "") && t.name.toLowerCase() === baseName.toLowerCase());
     if (indexed) {
       try {
         const handle = await findExisting(vaultHandle, indexed.path);
         if (handle) {
           await openFile(handle, indexed.path, true);
           openedExisting(indexed.path);
-          return;
+          return true;
         }
       } catch (err) {
         reportCreateError(err);
-        return;
+        return false;
       }
       // A stale index entry falls through to the create.
     }
-    await writeNewNote(folder, baseName, { text: starter.body, cursor: null }, {
+    return (await writeNewNote(folder, baseName, { text: starter.body, cursor: null }, {
       unique: false,
       onExisting: openedExisting,
-    });
+    })) !== null;
   }, [store, dialog, pickStarter, openFile, writeNewNote]);
 
   // The WikiLink dialog's "From template": creates the linked note from
@@ -313,12 +270,9 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
 
   return {
     writeNewNote,
-    resolveSheetFolder,
     createNoteFromMissingLink,
     createNoteFromTemplate,
     createTemplate,
     createLinkedNoteFromTemplate,
-    openTodayNote,
-    ensureTodayNote,
   };
 }

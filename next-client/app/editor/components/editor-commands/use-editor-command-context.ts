@@ -58,6 +58,7 @@ export type EditorCommandsProps = {
   isMobileChrome?: boolean;
   onOpenMobileFiles?: () => void;
   onOpenTasks: () => void;
+  onOpenTemplates: () => void;
   onHome: () => void;
   onOpenDocumentation: () => void;
   onRefreshVault?: () => void;
