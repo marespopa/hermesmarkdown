@@ -67,7 +67,7 @@ describe("WelcomeWizard", () => {
         <WelcomeWizard />
       </TestProvider>
     );
-    expect(screen.queryByRole("button", { name: "Open Existing Vault" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Open Existing Vault")).not.toBeInTheDocument();
     unmount();
 
     render(
@@ -75,7 +75,7 @@ describe("WelcomeWizard", () => {
         <WelcomeWizard />
       </TestProvider>
     );
-    expect(screen.getByRole("button", { name: "Open Existing Vault" })).toBeInTheDocument();
+    expect(screen.getByText("Open Existing Vault")).toBeInTheDocument();
   });
 
   it("starts on the vault step, with GitHub among the options", () => {
@@ -153,7 +153,7 @@ describe("WelcomeWizard", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Skip" }));
-    expect(screen.queryByRole("button", { name: "Open Existing Vault" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Open Existing Vault")).not.toBeInTheDocument();
   });
 
   it("stays in the editor after opening an existing vault", async () => {
