@@ -17,7 +17,6 @@ import {
   CURSOR_SENTINEL,
   CODE_BLOCK_TEMPLATE_CONTENT,
   MARK_SENSITIVE_SENTINEL,
-  MARK_PRIVATE_SENTINEL,
   MARK_PUBLIC_SENTINEL,
   DAILY_SHEET_SENTINEL,
 } from "../components/constants";
@@ -136,7 +135,6 @@ function replaceFrontmatter(view: EditorView, block: string, insert: string) {
 
 const FRONTMATTER_FLAG_SENTINELS: Record<string, string> = {
   [MARK_SENSITIVE_SENTINEL]: "sensitive",
-  [MARK_PRIVATE_SENTINEL]: "private",
 };
 
 const DEFAULT_TABLE =
@@ -253,7 +251,7 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
     ];
     // Offer only the privacy commands that would change this note.
     const sensitive = isSensitiveContent(context.state.doc.toString());
-    const hidden = sensitive ? [MARK_SENSITIVE_SENTINEL, MARK_PRIVATE_SENTINEL] : [MARK_PUBLIC_SENTINEL];
+    const hidden = sensitive ? [MARK_SENSITIVE_SENTINEL] : [MARK_PUBLIC_SENTINEL];
     const matches = templates.filter((t) => !hidden.includes(t.content) && fuzzyMatch(t.label, query));
     if (matches.length === 0) return null;
 

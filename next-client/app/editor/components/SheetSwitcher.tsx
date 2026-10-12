@@ -5,7 +5,7 @@ import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { useSheetNavigation } from "../hooks/use-sheet-navigation";
 import { SHEET_LEVEL_CLASSES } from "./sheet-level-classes";
-import { isCurrentSheet, SHEET_LEVELS, sheetLabel, type Sheet, type SheetLevel } from "@/app/utils/sheet-nav";
+import { isCurrentSheet, sheetLabel, type Sheet, type SheetLevel } from "@/app/utils/sheet-nav";
 
 interface SheetSwitcherProps {
   /** The worklog sheet the editor shows (from its file name). */
@@ -23,15 +23,16 @@ const CURRENT_NAME: Record<SheetLevel, string> = {
   year: "this year",
 };
 
-// One quiet line at the top of a worklog sheet: Day · Week · Month · Quarter ·
-// Year, each with its colour, the current level underlined, then ‹ date › to
-// step through time at that level. A control with nowhere to go (no daily
+// One quiet line at the top of a worklog sheet: Day · Week · Month (and
+// Quarter · Year once the vault has such a sheet, `switcherLevels`), each
+// with its colour, the current level underlined, then ‹ date › to step
+// through time at that level. A control with nowhere to go (no daily
 // sheet in the week, the future) is disabled. Fades with the rest of the
 // chrome while typing. Opening a sheet can take a moment (a folder prompt, a
 // template's questions), so a tapped level takes the underline at once (pulsing) and `onPendingChange` lets the editor cover
 // the old text with a skeleton until the new sheet is open.
 export default function SheetSwitcher({ sheet, onPendingChange }: SheetSwitcherProps) {
-  const { openSheet, targets } = useSheetNavigation();
+  const { openSheet, targets, levels } = useSheetNavigation();
   const [pending, setPending] = useState<SheetLevel | null>(null);
   const to = targets(sheet);
   const isCurrent = isCurrentSheet(sheet, new Date());
@@ -60,7 +61,7 @@ export default function SheetSwitcher({ sheet, onPendingChange }: SheetSwitcherP
       className="typing-chrome mb-4 flex flex-wrap items-center justify-between gap-x-3 font-sans text-ui-caption select-none"
     >
       <div role="group" aria-label="Level" className="flex items-center">
-        {SHEET_LEVELS.map((level) => {
+        {levels(sheet).map((level) => {
           const active = level === sheet.level;
           const shown = level === shownLevel;
           const classes = SHEET_LEVEL_CLASSES[level];

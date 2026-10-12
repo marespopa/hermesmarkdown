@@ -5,18 +5,13 @@ import { Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import WelcomeWizard from "./WelcomeWizard";
 import { atom_renderedFontSize } from "@/app/atoms/atoms";
-import { atom_flowMode, atom_fullWidth, atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_sidebarOpen, atom_userName, atom_welcomeDeferred } from "@/app/atoms/ui-atoms";
+import { atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_welcomeDeferred } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { testAIConnection } from "@/app/services/ai";
 
 // Mock hooks
 vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: vi.fn(),
-}));
-
-vi.mock("@/app/services/ai", () => ({
-  testAIConnection: vi.fn(),
 }));
 
 const mockPush = vi.fn();
@@ -39,22 +34,6 @@ const FontSizeValue = () => (
   <output data-testid="font-size-value">{useAtomValue(atom_renderedFontSize)}</output>
 );
 
-const SidebarValue = () => (
-  <output data-testid="sidebar-value">{String(useAtomValue(atom_sidebarOpen))}</output>
-);
-
-const FlowModeValue = () => (
-  <output data-testid="flow-mode-value">{String(useAtomValue(atom_flowMode))}</output>
-);
-
-const FullWidthValue = () => (
-  <output data-testid="full-width-value">{String(useAtomValue(atom_fullWidth))}</output>
-);
-
-const UserNameValue = () => (
-  <output data-testid="user-name-value">{useAtomValue(atom_userName)}</output>
-);
-
 const HomeFeedValue = () => (
   <output data-testid="home-feed-value">{String(useAtomValue(atom_homeFeedOpen))}</output>
 );
@@ -66,6 +45,11 @@ describe("WelcomeWizard", () => {
     [atom_hasCompletedOnboarding, false],
     [atom_isWizardOpen, true],
     [atom_vaultHandle, null],
+  ];
+  const connectedValues: any = [
+    [atom_hasCompletedOnboarding, false],
+    [atom_isWizardOpen, true],
+    [atom_vaultHandle, { name: "TestVault" }],
   ];
 
   beforeEach(() => {
@@ -83,7 +67,7 @@ describe("WelcomeWizard", () => {
         <WelcomeWizard />
       </TestProvider>
     );
-    expect(screen.queryByRole("textbox", { name: "Your name" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Open Existing Vault")).not.toBeInTheDocument();
     unmount();
 
     render(
@@ -91,101 +75,43 @@ describe("WelcomeWizard", () => {
         <WelcomeWizard />
       </TestProvider>
     );
-    expect(screen.getByRole("textbox", { name: "Your name" })).toBeInTheDocument();
+    expect(screen.getByText("Open Existing Vault")).toBeInTheDocument();
   });
 
-  it("starts by asking for a name and stores it trimmed", () => {
-    render(
-      <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard />
-        <UserNameValue />
-      </TestProvider>
-    );
-
-    const input = screen.getByRole("textbox", { name: "Your name" });
-    fireEvent.change(input, { target: { value: "  Ada  " } });
-    fireEvent.keyDown(input, { key: "Enter" });
-
-    expect(screen.getByTestId("user-name-value")).toHaveTextContent(/^Ada$/);
-    expect(screen.getByText("Connect Your Vault")).toBeInTheDocument();
-  });
-
-  it("lets the name be skipped", () => {
+  it("starts on the vault step, with GitHub among the options", () => {
     render(
       <TestProvider initialValues={defaultInitialValues}>
         <WelcomeWizard />
       </TestProvider>
     );
 
-    fireEvent.click(screen.getByText("Continue"));
-    expect(screen.getByText("Connect Your Vault")).toBeInTheDocument();
-  });
-
-  it("advances preference steps when Enter is pressed", () => {
-    render(
-      <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={2} />
-      </TestProvider>
-    );
-
-    fireEvent.keyDown(window, { key: "Enter" });
-
-    expect(screen.getByText("Lay out the page")).toBeInTheDocument();
-  });
-
-  it("offers GitHub vault connection during vault setup", () => {
-    render(
-      <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={1} />
-      </TestProvider>
-    );
-
-    expect(screen.getByRole("button", { name: "Connect GitHub Vault" })).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "Your name" })).not.toBeInTheDocument();
     expect(screen.getAllByRole("button").slice(-3).map((button) => button.textContent))
       .toEqual(expect.arrayContaining([
         expect.stringContaining("Create New Vault"),
         expect.stringContaining("Open Existing Vault"),
         expect.stringContaining("Connect GitHub Vault"),
       ]));
-    expect(screen.getAllByRole("button").at(-1)).toHaveAccessibleName("Connect GitHub Vault");
   });
 
-  it("advances to the look step automatically if a vault is already connected", async () => {
-    const connectedValues = [
-      ...defaultInitialValues.filter(([a]: any) => a !== atom_vaultHandle),
-      [atom_vaultHandle, { name: "TestVault" }],
-    ];
-
+  it("goes straight to the last step once a vault is connected", async () => {
     render(
       <TestProvider initialValues={connectedValues}>
-        <WelcomeWizard initialStep={1} />
+        <WelcomeWizard />
       </TestProvider>
     );
 
     await waitFor(() => {
-      expect(screen.getByText("Make it yours")).toBeInTheDocument();
+      expect(screen.getByText("You're ready to write.")).toBeInTheDocument();
     });
   });
 
-  it("shows showcase step when finishing preferences", async () => {
-    const connectedValues = [
-      ...defaultInitialValues.filter(([a]: any) => a !== atom_vaultHandle),
-      [atom_vaultHandle, { name: "TestVault" }],
-    ];
-
+  it("lands an old, longer tour's saved step on the last step", async () => {
     render(
       <TestProvider initialValues={connectedValues}>
-        <WelcomeWizard initialStep={2} />
+        <WelcomeWizard initialStep={6} />
       </TestProvider>
     );
-
-    expect(screen.getByText("Make it yours")).toBeInTheDocument();
-
-    // Steps 2-5 (Look, Layout, Writing, AI Features) advance one step at a
-    // time before the final step.
-    for (let i = 0; i < 4; i++) {
-      fireEvent.click(screen.getByText("Continue"));
-    }
 
     await waitFor(() => {
       expect(screen.getByText("You're ready to write.")).toBeInTheDocument();
@@ -193,14 +119,9 @@ describe("WelcomeWizard", () => {
   });
 
   it("lands on the home feed when the wizard finishes with a vault open", () => {
-    const connectedValues = [
-      ...defaultInitialValues.filter(([a]: any) => a !== atom_vaultHandle),
-      [atom_vaultHandle, { name: "TestVault" }],
-    ];
-
     render(
       <TestProvider initialValues={connectedValues}>
-        <WelcomeWizard initialStep={6} />
+        <WelcomeWizard initialStep={1} />
         <HomeFeedValue />
       </TestProvider>
     );
@@ -213,11 +134,33 @@ describe("WelcomeWizard", () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  it("finishes with Enter on the last step", () => {
+    render(
+      <TestProvider initialValues={connectedValues}>
+        <WelcomeWizard initialStep={1} />
+      </TestProvider>
+    );
+
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(screen.queryByText("You're ready to write.")).not.toBeInTheDocument();
+  });
+
+  it("lets you skip the vault and just write", () => {
+    render(
+      <TestProvider initialValues={defaultInitialValues}>
+        <WelcomeWizard />
+      </TestProvider>
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Skip" }));
+    expect(screen.queryByText("Open Existing Vault")).not.toBeInTheDocument();
+  });
+
   it("stays in the editor after opening an existing vault", async () => {
     mockOpenVault.mockResolvedValue(true);
     render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={1} />
+        <WelcomeWizard />
       </TestProvider>
     );
 
@@ -227,97 +170,23 @@ describe("WelcomeWizard", () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it("lets the user choose and saves the rendered text size", () => {
-    render(
+  it("starts first-run text at Medium, but keeps a size already chosen", () => {
+    const { unmount } = render(
       <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={2} />
+        <WelcomeWizard />
         <FontSizeValue />
       </TestProvider>
     );
+    expect(screen.getByTestId("font-size-value")).toHaveTextContent("17px");
+    unmount();
 
-    const fontSize = screen.getByRole("combobox", { name: "Text size" });
-    // First-run onboarding starts at Medium.
-    expect(fontSize).toHaveValue("17px");
-
-    fireEvent.change(fontSize, { target: { value: "21px" } });
-
-    expect(screen.getByTestId("font-size-value")).toHaveTextContent("21px");
-  });
-
-  it("keeps a text size the user already chose", () => {
     window.localStorage.setItem("renderedFontSize", JSON.stringify("21px"));
     render(
       <TestProvider initialValues={[...defaultInitialValues, [atom_renderedFontSize, "21px"]]}>
-        <WelcomeWizard initialStep={2} />
+        <WelcomeWizard />
         <FontSizeValue />
       </TestProvider>
     );
-
     expect(screen.getByTestId("font-size-value")).toHaveTextContent("21px");
-  });
-
-  it("lets the user turn on flow mode", () => {
-    render(
-      <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={4} />
-        <FlowModeValue />
-      </TestProvider>
-    );
-
-    expect(screen.getByText("How you write")).toBeInTheDocument();
-    expect(screen.getByTestId("flow-mode-value")).toHaveTextContent("false");
-
-    fireEvent.click(screen.getByRole("switch", { name: "Flow mode" }));
-
-    expect(screen.getByTestId("flow-mode-value")).toHaveTextContent("true");
-  });
-
-  it("lets the user turn on the sidebar", () => {
-    localStorage.removeItem("sidebarOpen");
-    render(
-      <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={3} />
-        <SidebarValue />
-      </TestProvider>
-    );
-
-    expect(screen.getByText("Lay out the page")).toBeInTheDocument();
-    expect(screen.getByTestId("sidebar-value")).toHaveTextContent("false");
-
-    fireEvent.click(screen.getByRole("switch", { name: "Sidebar" }));
-
-    expect(screen.getByTestId("sidebar-value")).toHaveTextContent("true");
-  });
-
-  it("lets the user choose a full-width editor", () => {
-    render(
-      <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={3} />
-        <FullWidthValue />
-      </TestProvider>
-    );
-
-    expect(screen.getByTestId("full-width-value")).toHaveTextContent("false");
-
-    fireEvent.click(screen.getByRole("button", { name: "Full" }));
-
-    expect(screen.getByTestId("full-width-value")).toHaveTextContent("true");
-  });
-
-  it("replaces the test button with a connection confirmation after success", async () => {
-    render(
-      <TestProvider initialValues={defaultInitialValues}>
-        <WelcomeWizard initialStep={5} />
-      </TestProvider>
-    );
-
-    fireEvent.change(screen.getByLabelText("welcome-ai-key"), { target: { value: "test-key" } });
-    (testAIConnection as any).mockResolvedValue({ success: true });
-    fireEvent.click(screen.getByText("Test Connection"));
-
-    await waitFor(() => {
-      expect(screen.getByRole("status")).toHaveTextContent("Connection successful.");
-    });
-    expect(screen.queryByText("Test Connection")).not.toBeInTheDocument();
   });
 });

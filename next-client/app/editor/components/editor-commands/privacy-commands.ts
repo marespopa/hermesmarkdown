@@ -12,12 +12,6 @@ const PRIVACY_MODE_COMMANDS: { id: string; label: string; description: string; l
     level: "show_title",
   },
   {
-    id: "privacy-mode-blurred",
-    label: "Privacy mode: Blur previews",
-    description: "Blur sensitive note previews until hovered or focused",
-    level: "blurred",
-  },
-  {
     id: "privacy-mode-hidden",
     label: "Privacy mode: Hide sensitive notes",
     description: "Leave sensitive notes out of the home feed, search and tasks",

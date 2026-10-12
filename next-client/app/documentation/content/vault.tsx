@@ -179,7 +179,7 @@ export const vaultGroup: Group = {
       id: "sensitive-notes",
       title: "Sensitive notes",
       lead: "Keep notes with revenue figures, keys or personal details off the screen while you share or record it.",
-      keywords: "sensitive private mark-as-sensitive mark-as-private mark-as-public public privacy mode screen share recording hide blur mask lock reveal",
+      keywords: "sensitive private mark as sensitive mark as public /privacy public privacy mode screen share recording hide mask lock reveal",
       body: (
         <>
           <p>
@@ -195,10 +195,11 @@ or
 tags: [finance, private]
 ---`}</Code>
           <p>
-            Or type <code>/mark-as-sensitive</code> or <code>/mark-as-private</code> in a note: the
-            slash menu adds <code>sensitive: true</code> or <code>private: true</code> to its
-            frontmatter, creating the frontmatter block if the note has none. On a sensitive note,{" "}
-            <code>/mark-as-public</code> removes every marker: both keys and any{" "}
+            Or type <code>/privacy</code> in a note: on a normal note the slash menu offers{" "}
+            <strong>Privacy: mark as sensitive</strong>, which adds <code>sensitive: true</code> to
+            its frontmatter, creating the frontmatter block if the note has none. On a sensitive note
+            it offers <strong>Privacy: mark as public</strong> instead, which removes every marker:
+            the <code>sensitive</code> and <code>private</code> keys and any{" "}
             <code>sensitive</code> / <code>private</code> tag.
           </p>
           <p>
@@ -215,7 +216,6 @@ tags: [finance, private]
           <KV
             rows={[
               { label: "Show titles (default)", value: "Title with a lock; preview and task text replaced by bullets" },
-              { label: "Blur previews", value: "Preview blurred until you hover or focus the row; task text masked" },
               { label: "Hide notes", value: "Left out of the home feed, search results and the Tasks page" },
             ]}
           />

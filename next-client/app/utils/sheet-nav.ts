@@ -100,6 +100,18 @@ export function stepTarget(sheet: Sheet, direction: -1 | 1, today: Date, dailyDa
 }
 
 // Every date with a daily sheet, from vault paths.
+// The levels the switcher offers: Day, Week and Month always; Quarter and
+// Year only once the vault has a sheet at that level, or the open sheet is
+// one, so most worklogs see three levels, not five.
+export function switcherLevels(sheet: Sheet, paths: Iterable<string>): SheetLevel[] {
+  const used = new Set<SheetLevel>([sheet.level]);
+  for (const path of paths) {
+    const level = parseSheetName(path.split("/").pop() ?? path)?.level;
+    if (level === "quarter" || level === "year") used.add(level);
+  }
+  return SHEET_LEVELS.filter((level) => level === "day" || level === "week" || level === "month" || used.has(level));
+}
+
 export function dailySheetDates(paths: Iterable<string>): Set<string> {
   const dates = new Set<string>();
   for (const path of paths) {

@@ -20,8 +20,8 @@ interface FeedTasksProps {
 }
 
 // "Open tasks": the unchecked tasks of the last week's notes, under the
-// greeting. A faint "5 open tasks" line folds them in and out (folded state
-// remembered across launches). Each task is an open circle and its text,
+// greeting. A faint "5 open tasks" line folds them in and out (folded at
+// first; the state is remembered across launches). Each task is an open circle and its text,
 // with the note's title in faint type after it; it opens the note at its
 // line. Nothing shows when there are none.
 export default function FeedTasks({ tasks, onOpenTask }: FeedTasksProps) {

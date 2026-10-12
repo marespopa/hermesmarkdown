@@ -38,8 +38,8 @@ function TokenCostBody() {
   );
 }
 
-// Opened with `hermes:open-token-cost` (More → Token Cost, or the command
-// palette's "Token cost of this note").
+// Opened with `hermes:open-token-cost` (the command palette's "Token cost
+// of this note").
 export default function TokenCostDialog() {
   const [open, setOpen] = useState(false);
 

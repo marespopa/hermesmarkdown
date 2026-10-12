@@ -1,6 +1,6 @@
 # PrivacySettings
 
-Description: The Settings → Privacy section. **Privacy Mode** chooses how notes marked sensitive in frontmatter (`sensitive: true`, `private: true`, or a `sensitive` / `private` tag) appear in listings: **Show titles** (title + lock, masked preview), **Blur previews** (title + lock, preview blurred until hover / focus) or **Hide notes** (left out of the home feed, the command palette and the Tasks page). The same levels are available as palette commands (`privacy-commands.ts`).
+Description: The Settings → Privacy section. **Privacy Mode** chooses how notes marked sensitive in frontmatter (`sensitive: true`, `private: true`, or a `sensitive` / `private` tag) appear in listings: **Show titles** (title + lock, masked preview) or **Hide notes** (left out of the home feed, the command palette and the Tasks page). The same levels are available as palette commands (`privacy-commands.ts`).
 
 ## Local State & Storage
 - State: `atom_privacyLevel` (`app/atoms/privacy-atoms.ts`).

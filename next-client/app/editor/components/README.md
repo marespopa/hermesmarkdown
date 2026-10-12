@@ -41,7 +41,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [PaneWindowActions](PaneWindowActions.md) | Window-wide toolbar sections (Mode, Tools, More menu), shown once in the top-right pane. |
 | [PaneTab](PaneTab.md) | Draggable file tab with a leading close button, unsaved-changes dot, and shortcut hint; exports `SaveStateIcon`. |
 | [PdfExport](PdfExport.md) | Mounts **Export as PDF…** (palette and More menu): the focused note rendered and printed through the browser's dialog, on the device. |
-| [TokenCostDialog](TokenCostDialog.md) | What sending the focused note to each AI model costs (o200k count, input prices); opened from More → Token Cost or the palette. |
+| [TokenCostDialog](TokenCostDialog.md) | What sending the focused note to each AI model costs (o200k count, input prices); opened from the palette. |
 | [RenderedBlockSourceDialog](RenderedBlockSourceDialog.md) | Source editor with live preview for an inline-rendered Mermaid diagram or math block; Save writes the body back as one undo step. |
 | [SectionHeader](SectionHeader.md) | Collapsible section header with a title, a chevron toggle, and an optional trailing action. |
 | [SelectionToolbar](SelectionToolbar.md) | Floating toolbar on a text selection, desktop and mobile: Turn into menu, Bold, Italic, Link, and Ask AI when AI is configured. |
@@ -60,7 +60,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [VaultEmptyState](VaultEmptyState.md) | Empty state of the file views shown when no vault is open. |
 | [VaultFileTree](VaultFileTree.md) | Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves. |
 | [vault-tree/](vault-tree/README.md) | `VaultFileTree` building blocks: tree model, `FileRow`, `FolderRow`, `TreeNodes`. |
-| [WelcomeWizard](WelcomeWizard.md) | Eight-step onboarding that covers opening, creating, or connecting a vault, then theme, fonts, editor options, autosave, optional AI key, and shortcuts. |
+| [WelcomeWizard](WelcomeWizard.md) | Two-step onboarding: open, create or connect a vault (or skip), then ready to write. Everything else stays in Settings. |
 | [welcome-wizard/](welcome-wizard/README.md) | `WelcomeWizard` steps and shared step layout. |
 | [WikiLinkDialog](WikiLinkDialog.md) | Picks or creates a `[[WikiLink]]` target, with substring-matched suggestions from vault file metadata. |
 | [WorkspaceSidebar](WorkspaceSidebar.md) | The window's sidebar (desktop): open notes and the vault's file tree, on the leading edge; hideable and resizable. |

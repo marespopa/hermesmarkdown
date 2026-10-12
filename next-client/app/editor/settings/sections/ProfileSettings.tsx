@@ -15,7 +15,7 @@ import { showSuccessToast } from "@/app/components/Toastr";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { SettingGroup, SettingItem } from "../components/SettingControls";
 
-// The Settings → Profile section: the name first asked for in the Welcome
+// Settings → Guide, first groups: the name first asked for in the Welcome
 // wizard (trimmed on blur like the wizard does), a note on where data lives,
 // and clearing the command palette's history.
 export default function ProfileSettings() {

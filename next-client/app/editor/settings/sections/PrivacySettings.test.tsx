@@ -24,7 +24,8 @@ describe("PrivacySettings", () => {
     expect(store.get(atom_privacyLevel)).toBe("hidden");
     expect(JSON.parse(window.localStorage.getItem("hermes_privacy_mode") ?? "null")).toBe("hidden");
 
-    fireEvent.click(screen.getByRole("button", { name: "Blur previews" }));
-    expect(store.get(atom_privacyLevel)).toBe("blurred");
+    expect(screen.queryByRole("button", { name: "Blur previews" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Show titles" }));
+    expect(store.get(atom_privacyLevel)).toBe("show_title");
   });
 });

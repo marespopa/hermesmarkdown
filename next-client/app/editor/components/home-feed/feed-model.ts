@@ -27,7 +27,7 @@ export interface FeedEntry {
   isIndexed: boolean;
   /** Marked sensitive in frontmatter (shows a lock). */
   isSensitive: boolean;
-  /** How the preview renders: as is, masked bullets, or blurred until hover / focus. */
+  /** How the preview renders: as is, or masked bullets. */
   previewStyle: PreviewStyle;
   /** Frontmatter tags and inline #hashtags; empty for sensitive notes, whose tags may say more than their title. */
   tags: string[];

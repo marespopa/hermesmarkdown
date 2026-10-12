@@ -91,7 +91,6 @@ export const VAULT_TEMPLATE_SENTINEL = "__OPEN_VAULT_TEMPLATE__";
 export const TEMPLATE_FIELD_SENTINEL = "__OPEN_TEMPLATE_FIELD__";
 export const SAVE_AS_TEMPLATE_SENTINEL = "__SAVE_AS_TEMPLATE__";
 export const MARK_SENSITIVE_SENTINEL = "__MARK_SENSITIVE__";
-export const MARK_PRIVATE_SENTINEL = "__MARK_PRIVATE__";
 export const MARK_PUBLIC_SENTINEL = "__MARK_PUBLIC__";
 export const DAILY_SHEET_SENTINEL = "__OPEN_DAILY_SHEET__";
 export const AI_ACTION_SENTINEL_PREFIX = "__AI_ACTION__:";
@@ -293,20 +292,16 @@ export const TEMPLATES: Template[] = [
     content: FRONTMATTER_WIZARD_SENTINEL,
   },
   // --- Privacy ---
+  // One privacy entry at a time: the slash menu offers whichever would
+  // change the note (/privacy, /sensitive, /private, /public all find it).
   {
-    label: "Mark as sensitive",
+    label: "Privacy: mark as sensitive",
     icon: "🔒",
     description: "Add sensitive: true to the frontmatter",
     content: MARK_SENSITIVE_SENTINEL,
   },
   {
-    label: "Mark as private",
-    icon: "🔒",
-    description: "Add private: true to the frontmatter",
-    content: MARK_PRIVATE_SENTINEL,
-  },
-  {
-    label: "Mark as public",
+    label: "Privacy: mark as public",
     icon: "🔓",
     description: "Remove the sensitive / private markers from the frontmatter",
     content: MARK_PUBLIC_SENTINEL,

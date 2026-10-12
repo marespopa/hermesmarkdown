@@ -141,4 +141,5 @@ Ship it in two releases, removals first (each is mostly deletion), then the fold
 ## Status
 
 - **Removals: done (2026-10-12, release 6.13.0).** Workflow pill, voice input, Repurpose wizard, Generate new note with AI, smart folders, home feed stats line, tag chips and sheet links, AI provider palette commands, Free Tools in the editor's palette and More menu. The open-tasks list kept its fold: it moved from the stats line to its own "N open tasks" toggle.
-- **Folds: next.** `/ai`, `/privacy`, Profile into Guide, two privacy levels, switcher hiding Quarter/Year, a 2-step wizard, the open-tasks list folded by default, Token Cost out of the More menu.
+- **Folds: done (2026-10-12, release 6.14.0).** Open tasks folded by default; Split Right and Token Cost out of the More menu (palette only); Quarter and Year in the sheet switcher only once used; Profile merged into Settings → Guide; privacy mode down to Show titles / Hide notes (a saved "Blur previews" reads as Show titles); one privacy slash entry (Privacy: mark as sensitive / mark as public); the welcome wizard down to two steps (vault, ready).
+- **Correction:** the 14 AI actions were never in the slash menu (it only offers AI Chat); they're palette commands and the selection toolbar's Ask AI, both already out of the way. No `/ai` fold was needed.

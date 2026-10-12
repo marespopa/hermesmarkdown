@@ -33,7 +33,7 @@ const sensitive = (path: string, extra: Partial<FileMetadata> = {}) =>
 
 describe("createNoteDisplayItem", () => {
   it("passes non-sensitive notes through unchanged at every level", () => {
-    for (const level of ["show_title", "blurred", "hidden"] as const) {
+    for (const level of ["show_title", "hidden"] as const) {
       expect(createNoteDisplayItem(meta("notes/Plan.md"), level)).toEqual({
         id: "notes/Plan.md",
         title: "Plan",
@@ -51,9 +51,8 @@ describe("createNoteDisplayItem", () => {
     expect(item).toMatchObject({ title: "a", preview: MASKED_PREVIEW, isSensitive: true, isMasked: true, previewStyle: "masked" });
   });
 
-  it("keeps the real preview, styled blurred, in blurred", () => {
-    const item = createNoteDisplayItem(sensitive("a.md"), "blurred");
-    expect(item).toMatchObject({ preview: "Secret body", isSensitive: true, isMasked: false, previewStyle: "blurred" });
+  it("reads the retired blurred level as show_title", () => {
+    expect(normalizePrivacyLevel("blurred")).toBe("show_title");
   });
 
   it("excludes sensitive notes in hidden", () => {

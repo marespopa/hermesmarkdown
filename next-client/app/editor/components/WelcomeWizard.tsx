@@ -10,17 +10,14 @@ import DialogModal from "@/app/components/DialogModal/DialogModal";
 import Button from "@/app/components/Button";
 import { HiOutlineArrowLeft } from "react-icons/hi";
 import { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
-import AiKeyStep from "./welcome-wizard/AiKeyStep";
-import { LayoutStep, LookStep, WritingStep } from "./welcome-wizard/PreferenceSteps";
-import NameStep from "./welcome-wizard/NameStep";
 import ReadyStep from "./welcome-wizard/ReadyStep";
 import VaultStep from "./welcome-wizard/VaultStep";
 
-// Step order: 0 name, 1 vault, 2 look, 3 layout, 4 writing, 5 AI key, 6 ready.
-const NAME_STEP = 0;
-const VAULT_STEP = 1;
-const FIRST_PREFERENCE_STEP = 2;
-const TOTAL_STEPS = 6;
+// Two steps: 0 vault, 1 ready to write. Everything else (name, look,
+// layout, writing, AI) has a sensible default and lives in Settings.
+const VAULT_STEP = 0;
+const READY_STEP = 1;
+const STEP_COUNT = 2;
 // "Medium" in the text size step.
 const ONBOARDING_TEXT_SIZE = "17px";
 
@@ -59,14 +56,14 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   // The vault step moves on by itself once a vault is connected.
   useEffect(() => {
     if (step === VAULT_STEP && vaultHandle) {
-      setStep(FIRST_PREFERENCE_STEP);
+      setStep(READY_STEP);
     }
   }, [step, vaultHandle, setStep]);
 
   // A step saved by an older, longer tour lands on the last step instead of
   // a blank one.
   useEffect(() => {
-    if (step > TOTAL_STEPS) setStep(TOTAL_STEPS);
+    if (step > READY_STEP) setStep(READY_STEP);
   }, [step, setStep]);
 
   const showWizard = isMounted && (isWizardOpen || (!hasCompleted && !welcomeDeferred));
@@ -76,7 +73,7 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const finish = () => {
     setHasCompleted(true);
     setIsWizardOpen(false);
-    setStep(NAME_STEP);
+    setStep(VAULT_STEP);
     if (vaultHandle) setHomeFeedOpen(true);
   };
 
@@ -92,11 +89,8 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
         return;
       }
 
-      // The name step handles Enter in its own field; the vault step has no default action.
-      if (step >= FIRST_PREFERENCE_STEP && step < TOTAL_STEPS) {
-        event.preventDefault();
-        setStep(step + 1);
-      } else if (step === TOTAL_STEPS) {
+      // The vault step has no default action.
+      if (step === READY_STEP) {
         event.preventDefault();
         finish();
       }
@@ -110,33 +104,18 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
 
   const handleFinish = () => finish();
 
-  const next = (to: number) => () => setStep(to);
-  const renderStep = () => {
-    switch (step) {
-      case 0: return <NameStep onContinue={next(1)} />;
-      case 1: return <VaultStep createVaultFlow={createVaultFlow} />;
-      case 2: return <LookStep onContinue={next(3)} />;
-      case 3: return <LayoutStep onContinue={next(4)} />;
-      case 4: return <WritingStep onContinue={next(5)} />;
-      case 5: return <AiKeyStep onContinue={next(6)} />;
-      case 6: return <ReadyStep onFinish={handleFinish} />;
-      default: return null;
-    }
-  };
+  const renderStep = () =>
+    step === READY_STEP
+      ? <ReadyStep onFinish={handleFinish} />
+      : <VaultStep createVaultFlow={createVaultFlow} />;
 
-  // The first preference step is reached by auto-advancing from the vault step
-  // once a vault is connected, so going back there would bounce forward again —
-  // disable the back arrow on that landing. Within the vault step's creation
-  // sub-flow, the back arrow navigates sub-steps instead.
+  // Back only exists inside the vault step's creation sub-flow: the ready
+  // step is reached by connecting a vault, so going back would bounce forward.
   const inCreationSubStep = step === VAULT_STEP && !!createVaultFlow.subStep && createVaultFlow.subStep !== "installing";
-  const canGoBack = inCreationSubStep || (step > NAME_STEP && step !== FIRST_PREFERENCE_STEP);
+  const canGoBack = inCreationSubStep;
 
   const handleBack = () => {
-    if (inCreationSubStep) {
-      createVaultFlow.goBack();
-    } else if (canGoBack) {
-      setStep(step - 1);
-    }
+    if (inCreationSubStep) createVaultFlow.goBack();
   };
 
   return (
@@ -148,44 +127,43 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
       hideCloseButton
     >
       <div className="relative">
-        {step > 0 && (
-          <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-5">
+          <Button
+            variant="unstyled"
+            onClick={handleBack}
+            aria-label="Back"
+            tabIndex={canGoBack ? 0 : -1}
+            className={`p-1.5 -ml-1.5 rounded-full transition-all active:scale-90 ${
+              canGoBack
+                ? "opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"
+                : "opacity-0 pointer-events-none"
+            }`}
+          >
+            <HiOutlineArrowLeft size={18} />
+          </Button>
+
+          <div className="flex gap-1.5">
+            {Array.from({ length: STEP_COUNT }, (_, i) => i).map((i) => (
+              <div
+                key={i}
+                className={`h-1 rounded-full transition-all duration-300 ${i <= step ? "w-4 bg-sage" : "w-1 bg-neutral-200 dark:bg-neutral-800"}`}
+              />
+            ))}
+          </div>
+
+          {/* Writing without a vault (a draft) is fine: Skip finishes the tour. */}
+          {step === VAULT_STEP ? (
             <Button
               variant="unstyled"
-              onClick={handleBack}
-              aria-label="Back"
-              tabIndex={canGoBack ? 0 : -1}
-              className={`p-1.5 -ml-1.5 rounded-full transition-all active:scale-90 ${
-                canGoBack
-                  ? "opacity-60 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"
-                  : "opacity-0 pointer-events-none"
-              }`}
+              onClick={handleFinish}
+              className="text-ui-caption font-bold uppercase tracking-wider opacity-40 hover:opacity-100 transition-opacity"
             >
-              <HiOutlineArrowLeft size={18} />
+              Skip
             </Button>
-
-            <div className="flex gap-1.5">
-              {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((i) => (
-                <div
-                  key={i}
-                  className={`h-1 rounded-full transition-all duration-300 ${i <= step ? "w-4 bg-sage" : "w-1 bg-neutral-200 dark:bg-neutral-800"}`}
-                />
-              ))}
-            </div>
-
-            {step > VAULT_STEP && step < TOTAL_STEPS ? (
-              <Button
-                variant="unstyled"
-                onClick={handleFinish}
-                className="text-ui-caption font-bold uppercase tracking-wider opacity-40 hover:opacity-100 transition-opacity"
-              >
-                Skip
-              </Button>
-            ) : (
-              <span className="w-[18px]" />
-            )}
-          </div>
-        )}
+          ) : (
+            <span className="w-[18px]" />
+          )}
+        </div>
 
         <div key={step} className="animate-in fade-in slide-in-from-right-2 duration-300">
           {renderStep()}

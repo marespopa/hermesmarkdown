@@ -8,7 +8,6 @@ import { SegmentedControl, SettingGroup, SettingItem } from "../components/Setti
 
 const PRIVACY_OPTIONS: { label: string; value: PrivacyLevel }[] = [
   { label: "Show titles", value: "show_title" },
-  { label: "Blur previews", value: "blurred" },
   { label: "Hide notes", value: "hidden" },
 ];
 

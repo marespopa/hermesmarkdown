@@ -76,7 +76,7 @@ export const editorWritingItems: Subsection[] = [
     body: (
       <>
         <p>
-          Turn on Vim mode during the welcome setup, or enable it later under Settings → Appearance
+          Turn on Vim mode under Settings → Editor
           (or the <strong>Enable Vim mode</strong> command). Outside Insert mode, a small pill at the
           bottom right of the note shows the current mode and any keys of a command you haven&apos;t
           finished. Typing <code>:</code> or <code>/</code> opens the command line in that pill.
@@ -95,7 +95,7 @@ export const editorWritingItems: Subsection[] = [
     body: (
       <>
         <p>
-          Turn on flow mode during the welcome setup, or enable it later under Settings → Appearance
+          Turn on flow mode under Settings → Editor
           (or the <strong>Enable flow mode</strong> command). It&apos;s off by default.
         </p>
         <KV
