@@ -3,7 +3,7 @@ import { atomWithStorage } from "jotai/utils";
 import { atomFamily } from "jotai-family";
 import { atom_workspaceLayout, atom_activePaneId } from "./workspace-atoms";
 import { findLeaf, getFirstLeaf, updateLeaf } from "./utils";
-import { forgetClosedFiles, tabsToEvict, touchRecent } from "./tab-limit";
+import { forgetClosedFiles, tabsToEvict, touchRecent, worklogTabToReplace } from "./tab-limit";
 import { PanelLeaf } from "../types/workspace";
 
 // File contents & metadata
@@ -135,9 +135,16 @@ export const atom_activeFilePath = atom(
             p === "draft" ? newValue : p,
           );
         } else {
-          // At the pane's tab limit, the least recently viewed notes close (tab-limit.ts).
-          evicted = tabsToEvict(leaf.openFilePaths, leaf.recentFilePaths, newValue, get(atom_openFiles));
-          updates.openFilePaths = [...leaf.openFilePaths.filter((p) => !evicted.includes(p)), newValue];
+          // A worklog sheet takes over the pane's sheet tab, in place (tab-limit.ts).
+          const sheetTab = worklogTabToReplace(leaf.openFilePaths, leaf.activeFilePath, newValue, get(atom_openFiles));
+          if (sheetTab) {
+            evicted = [sheetTab];
+            updates.openFilePaths = leaf.openFilePaths.map((p) => (p === sheetTab ? newValue : p));
+          } else {
+            // At the pane's tab limit, the least recently viewed notes close (tab-limit.ts).
+            evicted = tabsToEvict(leaf.openFilePaths, leaf.recentFilePaths, newValue, get(atom_openFiles));
+            updates.openFilePaths = [...leaf.openFilePaths.filter((p) => !evicted.includes(p)), newValue];
+          }
         }
       }
       if (newValue) {

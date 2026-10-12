@@ -3,12 +3,26 @@ import { createStore } from "jotai";
 import { beforeEach, describe, expect, it } from "vitest";
 import { atom_activeFilePath, atom_closeTab, atom_openFiles, atom_workspaceLayout, findLeaf } from "./atoms";
 import type { FileState } from "./file-atoms";
-import { forgetClosedFiles, MAX_TABS_PER_PANE, tabsToEvict, touchRecent } from "./tab-limit";
+import { forgetClosedFiles, MAX_TABS_PER_PANE, tabsToEvict, touchRecent, worklogTabToReplace } from "./tab-limit";
 import type { PanelLeaf } from "../types/workspace";
 
 const clean = (content = "text"): FileState => ({ content, lastSavedContent: content, fileName: "n", activeFilePath: null });
 const dirty = (): FileState => ({ content: "edited", lastSavedContent: "text", fileName: "n", activeFilePath: null });
 const notes = (count: number) => Array.from({ length: count }, (_, i) => `n${i}.md`);
+
+describe("worklogTabToReplace", () => {
+  const open = ["journal/2026-10-11.md", "notes.md", "journal/2026-W41.md"];
+
+  it("replaces the active sheet tab, else the pane's first one", () => {
+    expect(worklogTabToReplace(open, "journal/2026-W41.md", "journal/2026-10.md", {})).toBe("journal/2026-W41.md");
+    expect(worklogTabToReplace(open, "notes.md", "journal/2026-year.md", {})).toBe("journal/2026-10-11.md");
+  });
+
+  it("leaves ordinary notes and unsaved sheets alone", () => {
+    expect(worklogTabToReplace(open, "notes.md", "ideas.md", {})).toBeNull();
+    expect(worklogTabToReplace(["journal/2026-10-11.md"], undefined, "journal/2026-W42.md", { "journal/2026-10-11.md": dirty() })).toBeNull();
+  });
+});
 
 describe("tabsToEvict", () => {
   it("closes nothing below the limit", () => {
@@ -84,6 +98,17 @@ describe("tab limit in the workspace", () => {
     open(paths[MAX_TABS_PER_PANE]);
 
     expect(paneTabs()).toHaveLength(MAX_TABS_PER_PANE + 1);
+  });
+
+  it("opens worklog sheets in one tab, in place", () => {
+    open("notes.md");
+    open("journal/2026-10-12.md");
+    open("ideas.md");
+    store.set(atom_activeFilePath, "journal/2026-10-12.md");
+    open("journal/2026-W42.md");
+
+    expect(paneTabs()).toEqual(["notes.md", "journal/2026-W42.md", "ideas.md"]);
+    expect(store.get(atom_openFiles)["journal/2026-10-12.md"]).toBeUndefined();
   });
 
   it("forgets a closed note's cached text", () => {
