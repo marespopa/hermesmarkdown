@@ -117,15 +117,17 @@ describe("useRollups", () => {
       expect(saveFile).not.toHaveBeenCalled();
     });
 
-    it("rebuilds an existing sheet's generated part before opening it, quietly", async () => {
+    it("opens an existing sheet at once, then rebuilds its generated part quietly", async () => {
       const sheet = `# Week 41\n\n${ROLLUP_START}\nstale\n${ROLLUP_END}\n\n## Notes\n\nKeep me\n`;
       const { handles, rollups } = setup({
         files: { "reviews/2026-W41.md": sheet, "journal/2026/10/2026-10-06.md": "- [x] Ship billing export" },
       });
       await act(() => rollups.openRollup({ kind: "week", offset: 0 }));
+      expect(openFile).toHaveBeenCalledWith(handles["reviews/2026-W41.md"], "reviews/2026-W41.md", true);
+      await act(() => vi.waitFor(() => expect(saveFile).toHaveBeenCalled()));
       expect(handles["reviews/2026-W41.md"].content).toContain("- Ship billing export · [[2026-10-06]]");
       expect(handles["reviews/2026-W41.md"].content).toContain("## Notes\n\nKeep me\n");
-      expect(saveFile.mock.invocationCallOrder[0]).toBeLessThan(openFile.mock.invocationCallOrder[0]);
+      expect(openFile.mock.invocationCallOrder[0]).toBeLessThan(saveFile.mock.invocationCallOrder[0]);
       expect(toast.success).not.toHaveBeenCalled();
     });
 
@@ -245,6 +247,17 @@ describe("useRollups", () => {
       expect(saveFile).toHaveBeenCalledTimes(1);
       expect(handles[SHEET].content).toBe(refreshed);
       expect(toast).toHaveBeenCalledWith("Rollup is up to date", expect.anything());
+    });
+
+    it("joins a quiet refresh already running for the same sheet", async () => {
+      const { rollups } = setup({ files: { [SHEET]: weekly("stale", "Notes"), [DAY]: "- [ ] Draft roadmap" } });
+      let first!: Promise<void>, second!: Promise<void>;
+      await act(() => {
+        first = rollups.refreshRollup(SHEET, { quiet: true });
+        second = rollups.refreshRollup(SHEET, { quiet: true });
+        return Promise.all([first, second]);
+      });
+      expect(second).toBe(first);
     });
 
     it("refreshes quietly on open: writes the new region with no toast", async () => {

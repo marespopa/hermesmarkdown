@@ -17,10 +17,10 @@ const SECTIONS = [
   { heading: "w-28", lines: ["66%", "74%"] },
 ];
 
-// Covers the text column while the sheet switcher opens another sheet
-// (a rollup is built from every daily sheet in its period, which can take a
-// moment), after a short delay. Sits over the editor in its own column, on
-// the same paper, so the new sheet replaces it in place.
+// Covers the text column while the sheet switcher opens another sheet (a
+// new rollup is built from every daily sheet in its period before it opens,
+// which can take a moment), after a short delay. Sits over the editor in its
+// own column, on the same paper, so the new sheet replaces it in place.
 export default function SheetSkeleton({ delay = SHEET_SKELETON_DELAY_MS }: { delay?: number }) {
   const [visible, setVisible] = useState(delay <= 0);
   useEffect(() => {

@@ -30,7 +30,7 @@ const CURRENT_NAME: Record<SheetLevel, string> = {
 // Year, each with its colour, the current level underlined, then ‹ date › to
 // step through time at that level (a rollup sheet adds a thin done bar). A control with nowhere to go (no daily sheet in the
 // week, the future) is disabled. Fades with the rest of the chrome while
-// typing. A rollup can take a moment to build, so a tapped level takes the
+// typing. A new rollup can take a moment to build, so a tapped level takes the
 // underline at once (pulsing) and `onPendingChange` lets the editor cover
 // the old text with a skeleton until the new sheet is open.
 export default function SheetSwitcher({ sheet, summary, onPendingChange }: SheetSwitcherProps) {

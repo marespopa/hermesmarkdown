@@ -31,6 +31,12 @@ const SHEET_TITLE: Record<RollupKind, string> = {
   year: "Yearly sheet",
 };
 
+// Quiet refreshes in flight, by path, shared by every useRollups: opening a
+// sheet refreshes it, and so does it becoming the active tab
+// (useRollupLiveRefresh), so the second call joins the first instead of
+// rebuilding the same sheet twice at once.
+const quietRefreshes = new Map<string, Promise<void>>();
+
 const unreadable = (count: number) => `${count} daily sheet${count === 1 ? "" : "s"} couldn't be read`;
 
 const bodyFor = (period: RollupPeriod, sources: RollupSources) =>
@@ -43,8 +49,10 @@ const bodyFor = (period: RollupPeriod, sources: RollupSources) =>
 // rollup:end lines of an existing sheet, through the open tab's buffer when
 // it's open (disk wins, no conflict prompt), keeping every other byte.
 // `quiet` (the refresh on open) shows no toasts and leaves a sheet without
-// markers alone. An existing sheet opened through `openRollup` is refreshed
-// before it shows, so it never flashes stale numbers. Every rebuild records
+// markers alone. An existing sheet opened through `openRollup` opens at once
+// and is refreshed quietly right after, through the open tab's buffer (a
+// year's rollup reads every daily sheet, too slow to wait for); new lines
+// glow as they come in. Every rebuild records
 // its time and the item lines it added in atom_rollupStatus.
 export function useRollups() {
   const store = useStore();
@@ -56,7 +64,7 @@ export function useRollups() {
     store.set(atom_rollupStatus, (prev) => ({ ...prev, [path]: { at: Date.now(), fresh } }));
   }, [store]);
 
-  const refreshRollup = useCallback(async (path: string, { quiet = false }: { quiet?: boolean } = {}) => {
+  const rebuild = useCallback(async (path: string, quiet: boolean) => {
     const period = parseRollupName(path.split("/").pop() ?? path);
     const vaultHandle = store.get(atom_vaultHandle);
     if (!period || !vaultHandle) return;
@@ -95,6 +103,15 @@ export function useRollups() {
     }
   }, [store, writeThrough, loadSources, indexVaultTags, markRefreshed]);
 
+  const refreshRollup = useCallback((path: string, { quiet = false }: { quiet?: boolean } = {}) => {
+    if (!quiet) return rebuild(path, false);
+    const running = quietRefreshes.get(path);
+    if (running) return running;
+    const run = rebuild(path, true).finally(() => quietRefreshes.delete(path));
+    quietRefreshes.set(path, run);
+    return run;
+  }, [rebuild]);
+
   const openRollup = useCallback(async ({ kind, offset }: RollupTarget, now: Date = new Date()) => {
     const vaultHandle = store.get(atom_vaultHandle);
     if (!vaultHandle) return;
@@ -105,8 +122,8 @@ export function useRollups() {
       try {
         const handle = await findExisting(vaultHandle, existingPath);
         if (handle) {
-          await refreshRollup(existingPath, { quiet: true });
           await openFile(handle, existingPath, true);
+          void refreshRollup(existingPath, { quiet: true });
           return;
         }
       } catch (err) {
