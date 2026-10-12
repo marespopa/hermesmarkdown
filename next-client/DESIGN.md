@@ -35,11 +35,6 @@ These change between light and dark mode. Always prefer these over static colors
 | `accent-hover` | `--clay` | same as `accent` | same as `accent` | Alias; no distinct hover value today |
 | `sage` | `--moss` | `#626F54` | `#8FA178` | Secondary accent — icons, muted interactive |
 | `sage-hover` | `--moss-hover` | `#5C6A4E` | `#A3B58C` | Hover / active state for sage buttons |
-| `sheet-day` | `--sheet-day` | = `--clay` | = `--clay` | Worklog level colour: daily sheets (dots, switcher underline) |
-| `sheet-week` | `--sheet-week` | = `--moss` | = `--moss` | Worklog level colour: weekly sheets |
-| `sheet-month` | `--sheet-month` | `#4F6684` | `#93A9C6` | Worklog level colour: monthly sheets (muted slate). Only for level dots, underlines and the switcher's active label |
-| `sheet-quarter` | `--sheet-quarter` | `#7B5878` | `#C2A0BE` | Worklog level colour: quarterly sheets (muted plum). Same limited use as `sheet-month` |
-| `sheet-year` | `--sheet-year` | `#85692F` | `#CDB173` | Worklog level colour: yearly sheets (ochre). Same limited use as `sheet-month` |
 
 `sage-subtle`, `sage-light` and `sage-dark` still exist for backwards compatibility but all resolve to `var(--moss)` — they are **not** distinct shades. Use `sage` with an opacity modifier (`bg-sage/10`, `ring-sage/20`) instead.
 

@@ -1,4 +1,5 @@
 import { Callout, Code, KV, type Subsection } from "../doc-primitives";
+import { templatePacksItem } from "./template-packs";
 
 const h4 = "text-[19px] font-semibold tracking-tight !mb-2 !mt-0";
 
@@ -8,7 +9,7 @@ export const templatesItems: Subsection[] = [
     id: "templates",
     title: "Templates",
     lead: "A template is a note you start other notes from. Fields like Today's date or Ask: Owner fill in each time you use it.",
-    keywords: "template templates save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet starter log entry timestamp meeting notes spec report token field add field placeholder prompt question ask cursor clipboard date slug new note missing link folder new notes go in target_folder file_name new template create template week sheet weekly monthly quarterly yearly",
+    keywords: "template templates save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet starter log entry timestamp meeting notes spec report token field add field placeholder prompt question ask cursor clipboard date slug new note missing link folder new notes go in target_folder file_name new template create template week name weekly monthly quarterly yearly pack packs",
     body: (
       <>
         <h4 className={h4}>Make a template</h4>
@@ -19,7 +20,7 @@ export const templatesItems: Subsection[] = [
         <ul>
           <li><strong>Basic</strong>: a title, today&apos;s date and one question.</li>
           <li><strong>Journal</strong>: today&apos;s date as the heading, room to write, and what you&apos;re grateful for.</li>
-          <li><strong>Log entry</strong>: one line starting with the time (<code>- 14:20 </code>). Insert it with <code>/template</code> to log something in today&apos;s sheet.</li>
+          <li><strong>Log entry</strong>: one line starting with the time (<code>- 14:20 </code>). Insert it with <code>/template</code> to log something in any note.</li>
           <li><strong>Meeting notes</strong>: agenda, decisions, action items, open questions, next steps.</li>
           <li><strong>Spec</strong>: author, status and version, then summary, objective, prerequisites, design, open questions and references.</li>
           <li><strong>Report</strong>: summary, findings, next steps and notes.</li>
@@ -84,8 +85,11 @@ export const templatesItems: Subsection[] = [
             as you type.
           </li>
           <li>
-            <strong>New note from template…</strong> in the command palette: pick a template, type a
-            title, answer its questions, and the note opens.
+            <strong>New note from template…</strong> in the command palette, or <strong>Use</strong> on
+            the Templates page: pick a template, type a title, answer its questions, and the note
+            opens. A template whose <code>file_name</code> names the note without its title (like{" "}
+            <code>{"{{date}}"}</code>) asks no title, and opens that note again if it&apos;s already
+            there; see Template packs.
           </li>
           <li>
             <strong><code>/template</code></strong> in a note: inserts a template where you&apos;re
@@ -112,7 +116,7 @@ export const templatesItems: Subsection[] = [
         <p>
           Templates are the <code>.md</code> files in your templates folder (the first of{" "}
           <code>templates/</code>, <code>_templates/</code> or <code>Templates/</code>, or the one
-          set in Settings → Files → Templates Folder). They stay plain text: a field is written{" "}
+          set in Settings → Files → Templates Folder) and in its packs, one folder down. They stay plain text: a field is written{" "}
           <code>{"{{date}}"}</code>, a question <code>{"{{prompt:Owner}}"}</code>, and the folder
           is a <code>target_folder</code> line in the frontmatter. You can also type these by hand.
           Typing <code>{"{{"}</code> opens the same field list. An optional{" "}
@@ -127,11 +131,10 @@ export const templatesItems: Subsection[] = [
           Any other name, like <code>{"{{task_1}}"}</code>, is a blank.
         </p>
         <p>
-          Worklog sheet names have fields too: <code>{"{{weekSheet}}"}</code> (<code>2026-W42</code>),{" "}
-          <code>{"{{monthSheet}}"}</code>, <code>{"{{quarterSheet}}"}</code> and{" "}
+          Weeks, months, quarters and years have name fields too: <code>{"{{weekSheet}}"}</code> (
+          <code>2026-W42</code>), <code>{"{{monthSheet}}"}</code>, <code>{"{{quarterSheet}}"}</code> and{" "}
           <code>{"{{yearSheet}}"}</code>, with date math, so <code>{"[[{{weekSheet-1w}}]]"}</code> links
-          last week. Templates named Weekly, Monthly, Quarterly or Yearly shape new weekly, monthly,
-          quarterly and yearly sheets; see Daily to yearly.
+          last week&apos;s note. Use them in <code>file_name</code> for weekly or monthly notes.
         </p>
         <Code>
           {"---\ntarget_folder: rfcs\nfile_name: rfc-{{date}}-{{slug}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}"}
@@ -144,4 +147,5 @@ export const templatesItems: Subsection[] = [
       </>
     ),
   },
+  templatePacksItem,
 ];

@@ -71,7 +71,6 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "Newest / last note", shortcut: "G G / SHIFT+G" },
             { label: "Open the selected note", shortcut: "ENTER or O" },
             { label: "Pin or unpin the selected note", shortcut: "P" },
-            { label: "Open or start today's sheet", shortcut: "T" },
             { label: "Search", shortcut: "/ or start typing" },
             { label: "Back to your open notes", shortcut: "ESCAPE" },
           ],

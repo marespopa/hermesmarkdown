@@ -38,18 +38,18 @@ export const settingsGroup: Group = {
       id: "vault-home-settings",
       title: "New notes & templates",
       lead: "Choose where new notes go and where templates live.",
-      keywords: "new notes folder daily sheets folder journal today weekly monthly templates folder settings vault",
+      keywords: "new notes folder templates folder template packs settings vault",
       body: (
         <>
           <KV
             rows={[
               { label: "New Notes Folder", value: "Empty = vault root, or a folder like inbox" },
-              { label: "Daily Sheets Folder", value: "Where Today's sheet and the weekly and monthly sheets go, e.g. journal/{{year}}" },
               { label: "Templates Folder", value: "Per vault. Empty = templates, _templates or Templates" },
             ]}
           />
           <p>
-            Every <code>.md</code> file directly in the Templates Folder is a{" "}
+            Every <code>.md</code> file directly in the Templates Folder, or in one of its folders
+            (a <a href="#template-packs" className="text-accent hover:underline">template pack</a>), is a{" "}
             <a href="#templates" className="text-accent hover:underline">template</a>.
             Folders starting with <code>.</code> can&apos;t be used, because they aren&apos;t
             indexed.

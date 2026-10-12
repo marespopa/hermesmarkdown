@@ -110,18 +110,11 @@ export const aiFeaturesGroup: Group = {
     },
     {
       id: "ai-weekly-review-tasks",
-      title: "Weekly review and tasks in AI Chat",
-      lead: "Ask AI Chat for a weekly review, or about your tasks, and it works from your own daily sheets and open tasks.",
-      keywords: "ai weekly review recap retro status report tasks todo action items plan day next skill review command",
+      title: "Tasks in AI Chat",
+      lead: "Ask AI Chat about your tasks, and it works from your own open tasks.",
+      keywords: "ai tasks todo action items plan day next skill command",
       body: (
         <>
-          <p>
-            Ask for a <strong>weekly review</strong> (&ldquo;write my weekly review&rdquo;, &ldquo;recap
-            last week&rdquo;) or start a message with <code>/review</code>. The chat reads this
-            week&apos;s daily sheets, or last week&apos;s when you say so. It sees what got done, what
-            is blocked and what is still open, and drafts Highlights, Blocked, Carry over and Next
-            week. The draft links each day, ready to paste into the weekly sheet&apos;s Notes.
-          </p>
           <p>
             Mention <strong>tasks</strong>, to-dos or action items, or start with{" "}
             <code>/tasks</code>, and the chat sees your open tasks: in progress, to do and on hold,
@@ -131,20 +124,18 @@ export const aiFeaturesGroup: Group = {
             apply its lines yourself.
           </p>
           <Callout type="tip">
-            Private notes (marked sensitive or private) are never sent. Their tasks and daily sheets
-            are left out and only counted. To change how either skill writes, put your own
-            instructions in <code>.hermes/skills/weekly-review.md</code> or{" "}
-            <code>.hermes/skills/tasks.md</code>. The app still adds the week&apos;s data or the task
-            list.
+            Private notes (marked sensitive or private) are never sent. Their tasks are left out and
+            only counted. To change how the skill writes, put your own instructions in{" "}
+            <code>.hermes/skills/tasks.md</code>. The app still adds the task list.
           </Callout>
         </>
       ),
     },
     {
       id: "ai-chat-tools",
-      title: "AI Chat tools: search, tasks and today's sheet",
-      lead: "With a vault open, AI Chat can look things up in your notes and tasks, and add to today's sheet once you say yes.",
-      keywords: "ai tools search notes read note open tasks overdue due today add to today daily sheet approve agent",
+      title: "AI Chat tools: search and tasks",
+      lead: "With a vault open, AI Chat can look things up in your notes and tasks.",
+      keywords: "ai tools search notes read note open tasks overdue due today agent",
       body: (
         <>
           <p>
@@ -155,10 +146,8 @@ export const aiFeaturesGroup: Group = {
             <em>Searched notes for &ldquo;pricing&rdquo; · 3 found</em>.
           </p>
           <p>
-            It can also <strong>add to today&apos;s sheet</strong>, for example the tasks from a meeting
-            you pasted. It shows you the lines first, and nothing is written until you click{" "}
-            <strong>Add</strong>. <strong>Don&apos;t add</strong>, or closing the chat, leaves your sheet
-            as it was.
+            The tools only read. To put what the chat writes into a note, use{" "}
+            <strong>Insert at cursor</strong> or <strong>Copy</strong> under its reply.
           </p>
           <Callout type="tip">
             The tools run in your browser, against your vault. Only what they find for a question goes
@@ -198,8 +187,8 @@ export const aiFeaturesGroup: Group = {
     {
       id: "ai-hermes-syntax",
       title: "AI & your notes' syntax",
-      lead: "The AI writes tasks, links, callouts and worklog sheets the way HermesMarkdown reads them, and keeps them intact when it rewrites text.",
-      keywords: "ai tasks status box due priority started done wiki link tag callout daily sheet worklog syntax",
+      lead: "The AI writes tasks, links and callouts the way HermesMarkdown reads them, and keeps them intact when it rewrites text.",
+      keywords: "ai tasks status box due priority started done wiki link tag callout syntax",
       body: (
         <>
           <p>
@@ -209,10 +198,6 @@ export const aiFeaturesGroup: Group = {
             <code>@due()</code> and <code>@priority()</code> at the end of the line. Links to other
             notes are <code>[[wiki links]]</code>, and callouts use the <code>&gt; [!tip]</code>{" "}
             form.
-          </p>
-          <p>
-            It also knows the worklog: daily sheets, and the weekly, monthly, quarterly and yearly
-            sheets you keep alongside them.
           </p>
           <p>
             Every action that rewrites text keeps task boxes, their <code>@started()</code> and{" "}
