@@ -92,7 +92,7 @@ function touchesLine(state: EditorState, selection: EditorSelection | null, pos:
   return touches(selection, line.from, line.to);
 }
 
-interface ListMarker {
+export interface ListMarker {
   kind: "bullet" | "task" | "ordered";
   /** End of the marker, its following space and any task box. */
   to: number;
@@ -102,7 +102,7 @@ interface ListMarker {
   task?: string;
 }
 
-function listMarker(state: EditorState, mark: SyntaxNode): ListMarker | null {
+export function listMarker(state: EditorState, mark: SyntaxNode): ListMarker | null {
   const list = mark.parent?.parent?.name;
   const to = withTrailingSpace(state, mark.to);
   if (list === "OrderedList") return { kind: "ordered", to, columns: to - mark.from };
