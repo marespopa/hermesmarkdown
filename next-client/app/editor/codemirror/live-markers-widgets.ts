@@ -15,6 +15,32 @@ export const BULLET_COLUMNS = 2;
 
 export const em = (columns: number) => `${columns * LIST_INDENT_EM_PER_COLUMN}em`;
 
+// A nested item's indent, drawn as an empty box rather than as its spaces:
+// with the spaces left as text, the caret on an empty nested item ("  - ")
+// had no text after the bullet, so the browser typed into the indent and the
+// text came out in front of the bullet.
+export class ListIndentWidget extends WidgetType {
+  constructor(readonly columns: number) {
+    super();
+  }
+
+  eq(other: ListIndentWidget) {
+    return other.columns === this.columns;
+  }
+
+  toDOM() {
+    const node = document.createElement("span");
+    node.className = "cm-listIndent";
+    node.style.width = em(this.columns);
+    node.setAttribute("aria-hidden", "true");
+    return node;
+  }
+
+  ignoreEvent() {
+    return false;
+  }
+}
+
 export class BulletWidget extends WidgetType {
   constructor(readonly depth: number) {
     super();
