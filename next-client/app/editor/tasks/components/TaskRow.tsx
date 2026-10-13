@@ -84,7 +84,7 @@ export default function TaskRow({
         className={`group relative flex items-start gap-2.5 rounded-xl px-2.5 py-2 [@media(pointer:coarse)]:py-2.5 ${
           swiping
             ? "bg-paper-pale dark:bg-paper-dark"
-            : "transition-[transform,background-color] duration-300 ease-[var(--ease-spring)] hover:bg-paper-light dark:hover:bg-paper-dark-surface/70"
+            : "transition-[transform,background-color] duration-300 ease-spring hover:bg-paper-light dark:hover:bg-paper-dark-surface/70"
         }`}
       >
         <TaskStatusButton
