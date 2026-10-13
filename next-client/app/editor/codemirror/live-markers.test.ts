@@ -2,6 +2,7 @@ import { EditorSelection, EditorState } from "@codemirror/state";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { describe, expect, it } from "vitest";
 import { buildLiveMarkerDecorations } from "./live-markers";
+import { em } from "./live-markers-widgets";
 
 function stateFor(doc: string, caret?: number) {
   return EditorState.create({
@@ -31,10 +32,10 @@ function markers(doc: string, caret?: number, focused = true): string[] {
     else if (cls === "cm-codeFenceRow") out.push("fence-row");
     else if (cls === "cm-marginOnly") out.push("strut");
     else if (widget === "CodeLanguageWidget") out.push(`lang:${deco.spec.widget.language}`);
+    else if (widget === "ListIndentWidget") out.push(`indent:width: ${em(deco.spec.widget.columns)}`);
     else if (widget === "CalloutLabelWidget") out.push(`callout:${text}`);
     else if (cls === "cm-fenceHidden") out.push(`fence:${text}`);
     else if (from === to) out.push("line");
-    else if (cls === "cm-listIndent") out.push(`indent:${style}`);
     else if (cls === "cm-listNumber") out.push(`number:${text}`);
     // Invisible margin marks read as hidden: the text sees no difference.
     else if (cls === "cm-marginMarks cm-marginMarks-off") out.push(`hide:${text}`);

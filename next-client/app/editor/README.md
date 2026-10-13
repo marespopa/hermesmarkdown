@@ -89,7 +89,7 @@ There's one mode: the note is always editable, and Markdown syntax stays out of 
 - **Heading `#`s and quote `>`s** are hidden unless the caret is on their line. Quoted lines get a left border (`cm-liveQuote`).
 - **Bullets** (`-`, `*`, `+`) read as • (◦ when nested) unless the caret touches the marker.
 - **List caret** (`codemirror/list-caret.ts`, a transaction filter): an empty caret that lands in a bullet's or task's marker or its indent (click, tap, Home, Up/Down) moves to the start of the item's text, so typing never goes in before the •. Left from there goes on to the end of the line above. Selections and ordered markers are left alone.
-- **Nested list items** have their leading indent drawn 0.75em per column (`cm-listIndent`), caret or not, so Tab's two or three spaces show as a clear indent step rather than one space's width.
+- **Nested list items** have their leading indent drawn 0.75em per column, caret or not, so Tab's two or three spaces show as a clear indent step rather than one space's width. The indent is an empty spacer widget (`ListIndentWidget`, `cm-listIndent`), not styled spaces: with the spaces left as text, typing on an empty nested item went into the indent, in front of the bullet.
 - **Left alone**: callouts (they keep their own styling), task items, ordered lists, fenced code, tables, setext headings and frontmatter.
 - **Unfocused editors** reveal nothing, so an unfocused split pane reads clean.
 

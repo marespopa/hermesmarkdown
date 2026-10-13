@@ -14,9 +14,15 @@ ROOT=$(git rev-parse --show-toplevel)
 PLANS="$ROOT/next-client/plans"
 CLAUDE_BIN=${FACTORY_CLAUDE:-claude}
 PERMISSION_MODE=${FACTORY_PERMISSION_MODE:-acceptEdits}
+# Design gets the strongest model; implementing a settled PRD and reviewing it
+# against that PRD run on a cheaper one. Override per stage with these vars.
+MODEL_ARCHITECT=${FACTORY_MODEL_ARCHITECT:-opus}
+MODEL_ENGINEER=${FACTORY_MODEL_ENGINEER:-sonnet}
+MODEL_REVIEW=${FACTORY_MODEL_REVIEW:-sonnet}
 MAX_REJECTIONS=2
-MAX_ATTEMPTS=3
+MAX_ATTEMPTS=2
 COMMIT=0
+SMALL=0
 
 die() { echo "factory: $*" >&2; exit 1; }
 now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
@@ -25,13 +31,18 @@ usage() {
   cat <<'EOF'
 Usage: scripts/factory <command> [args] [--commit]
 
-  new <slug> [title...]   Scaffold next-client/plans/NNN-<slug>/brief.md (state: new)
-  list                    Show every factory plan with its state
+  new <slug> [title...] [--small]
+                          Scaffold next-client/plans/NNN-<slug>/brief.md (state: new);
+                          --small skips the architect: the brief is the spec
+  list                    Show every factory plan with its state and spend
   run [NNN] [--commit]    Advance one plan (or every runnable plan) by one stage
   unblock NNN [--commit]  Fold answers in blocked.md back into the PRD and resume
   set NNN <state>         Set a state by hand (e.g. merged after you merge the PR)
 
 Without --commit, run and unblock only print what they would do.
+
+Models: FACTORY_MODEL_ARCHITECT (opus), FACTORY_MODEL_ENGINEER (sonnet),
+FACTORY_MODEL_REVIEW (sonnet).
 EOF
 }
 
@@ -67,9 +78,35 @@ rel() { echo "${1#"$ROOT"/}"; }
 
 run_attempts() { [ -f "$1/.run.json" ] && sed -n 's/.*"attempts": *\([0-9]*\).*/\1/p' "$1/.run.json" || echo 0; }
 
-write_run() { # dir stage agent attempts exit
-  printf '{\n  "stage": "%s",\n  "agent": "%s",\n  "attempts": %s,\n  "lastExit": %s,\n  "finishedAt": "%s",\n  "log": ".run.log"\n}\n' \
-    "$2" "$3" "$4" "$5" "$(now)" >"$1/.run.json"
+run_field() { # dir key — a string field from .run.json
+  [ -f "$1/.run.json" ] && sed -n "s/.*\"$2\": *\"\([^\"]*\)\".*/\1/p" "$1/.run.json" || true
+}
+
+write_run() { # dir stage agent attempts exit [session]
+  printf '{\n  "stage": "%s",\n  "agent": "%s",\n  "attempts": %s,\n  "lastExit": %s,\n  "session": "%s",\n  "finishedAt": "%s",\n  "log": ".run.log"\n}\n' \
+    "$2" "$3" "$4" "$5" "${6:-}" "$(now)" >"$1/.run.json"
+}
+
+# --- usage (usage.tsv is committed so spend can be compared across plans) ----
+
+log_num() { # log key — first numeric value of "key" in the JSON result
+  grep -o "\"$2\": *[0-9.]*" "$1" 2>/dev/null | head -n1 | sed 's/.*: *//' || true
+}
+
+log_session() { grep -o '"session_id": *"[^"]*"' "$1" 2>/dev/null | head -n1 | sed 's/.*"\([^"]*\)"$/\1/' || true; }
+
+record_usage() { # dir from agent model attempt exit
+  local dir=$1 log="$1/.run.log" f="$1/usage.tsv"
+  [ -f "$f" ] || printf 'finished\tfrom\tagent\tmodel\tattempt\texit\tcost_usd\tturns\tduration_ms\tinput\tcache_write\tcache_read\toutput\n' >"$f"
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' "$(now)" "$2" "$3" "$4" "$5" "$6" \
+    "$(log_num "$log" total_cost_usd)" "$(log_num "$log" num_turns)" "$(log_num "$log" duration_ms)" \
+    "$(log_num "$log" input_tokens)" "$(log_num "$log" cache_creation_input_tokens)" \
+    "$(log_num "$log" cache_read_input_tokens)" "$(log_num "$log" output_tokens)" >>"$f"
+}
+
+total_cost() { # dir
+  [ -f "$1/usage.tsv" ] || return 0
+  awk -F'\t' 'NR>1{s+=$7} END{if(NR>1) printf "$%.2f", s}' "$1/usage.tsv"
 }
 
 mailbox() { # dir message
@@ -94,32 +131,60 @@ check_branch() {
 
 # --- stages -----------------------------------------------------------------
 
+is_small() { [ "$(fm_get "$1/brief.md" size)" = small ]; }
+
+# The spec the engineer and reviewer work from: prd.md, or brief.md for small plans.
+spec_for() { # dir
+  if is_small "$1" && [ ! -f "$1/prd.md" ]; then echo brief.md; else echo prd.md; fi
+}
+
+model_for() { # agent
+  case "$1" in
+    hermes-architect) echo "$MODEL_ARCHITECT" ;;
+    hermes-engineer) echo "$MODEL_ENGINEER" ;;
+    *) echo "$MODEL_REVIEW" ;;
+  esac
+}
+
 # Prints "agent|expected next states|prompt" for a plan state, or nothing if idle.
 stage_for() { # state dir
-  local r; r=$(rel "$2")
+  local r spec; r=$(rel "$2"); spec=$(spec_for "$2")
+  local small=""
+  [ "$spec" = brief.md ] && small=" Small plan: there is no prd.md — $r/brief.md is the whole spec."
   case "$1" in
-    new) echo "hermes-architect|specced blocked|Factory mode. Plan folder: $r. Read $r/brief.md (the product brief) and $r/mailbox.md, then write the engineering PRD to $r/prd.md and your report to $r/reports/architect.md. If a design-changing decision is missing, write the questions to $r/blocked.md instead and set state: blocked. Otherwise set state: specced in $r/brief.md frontmatter as your last action." ;;
-    specced|building|changes-requested) echo "hermes-engineer|review blocked|Factory mode. Plan folder: $r. Implement $r/prd.md (all phases unless the brief limits them). Read $r/mailbox.md first: it holds RESUME notes from interrupted runs and the reviewer's fix list after a rejection — address those. Write your report to $r/reports/engineer.md and a one-line handoff to $r/mailbox.md. If the PRD is missing a design-changing decision, write it to $r/blocked.md and set state: blocked. Otherwise set state: review in $r/brief.md frontmatter as your last action." ;;
-    review) echo "hermes-review|approved changes-requested blocked|Factory mode. Plan folder: $r. Review the uncommitted working-tree change against $r/prd.md. Write the review to $r/reports/review.md. On Approve or Approve with nits set state: approved; on Changes requested append the fix list to $r/mailbox.md and set state: changes-requested — both in $r/brief.md frontmatter as your last action." ;;
+    new) if [ -n "$small" ]; then
+           echo "hermes-engineer|review blocked|Factory mode. Plan folder: $r.$small Implement it. Read $r/mailbox.md first: it holds RESUME notes from interrupted runs. Write your report to $r/reports/engineer.md and a one-line handoff to $r/mailbox.md. If the brief is missing a design-changing decision, write it to $r/blocked.md and set state: blocked. Otherwise set state: review in $r/brief.md frontmatter as your last action."
+           return
+         fi
+         echo "hermes-architect|specced blocked|Factory mode. Plan folder: $r. Read $r/brief.md (the product brief) and $r/mailbox.md, then write the engineering PRD to $r/prd.md and your report to $r/reports/architect.md. If a design-changing decision is missing, write the questions to $r/blocked.md instead and set state: blocked. Otherwise set state: specced in $r/brief.md frontmatter as your last action." ;;
+    specced|building|changes-requested) echo "hermes-engineer|review blocked|Factory mode. Plan folder: $r.$small Implement $r/$spec (all phases unless the brief limits them). Read $r/mailbox.md first: it holds RESUME notes from interrupted runs and the reviewer's fix list after a rejection — address those. Write your report to $r/reports/engineer.md and a one-line handoff to $r/mailbox.md. If the spec is missing a design-changing decision, write it to $r/blocked.md and set state: blocked. Otherwise set state: review in $r/brief.md frontmatter as your last action." ;;
+    review) echo "hermes-review|approved changes-requested blocked|Factory mode. Plan folder: $r.$small Review the uncommitted working-tree change against $r/$spec. Write the review to $r/reports/review.md. On Approve or Approve with nits set state: approved; on Changes requested append the fix list to $r/mailbox.md and set state: changes-requested — both in $r/brief.md frontmatter as your last action." ;;
     *) ;;
   esac
 }
 
 run_stage() { # dir agent expected prompt from_state
   local dir=$1 agent=$2 expected=$3 prompt=$4 from=$5
-  local head0 branch0 attempts code=0 state
+  local head0 branch0 attempts code=0 state model session resume=()
   attempts=$(( $(run_attempts "$dir") + 1 ))
+  model=$(model_for "$agent")
+  # A retry of the same stage picks up the failed session instead of re-exploring cold.
+  session=$(run_field "$dir" session)
+  if [ "$attempts" -gt 1 ] && [ -n "$session" ] && [ "$(run_field "$dir" agent)" = "$agent" ]; then
+    resume=(--resume "$session")
+  fi
   head0=$(git -C "$ROOT" rev-parse HEAD); branch0=$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)
-  if [ "$from" = specced ] || [ "$from" = changes-requested ]; then fm_set "$dir/brief.md" state building; fi
+  if [ "$agent" = hermes-engineer ] && [ "$from" != building ]; then fm_set "$dir/brief.md" state building; fi
   mkdir -p "$dir/reports"
 
-  echo "  running $agent (attempt $attempts, log $(rel "$dir")/.run.log)"
-  (cd "$ROOT" && HERMES_FACTORY=1 "$CLAUDE_BIN" -p "$prompt" --agent "$agent" \
-      --permission-mode "$PERMISSION_MODE" \
+  echo "  running $agent on $model (attempt $attempts${resume[*]:+, resuming}, log $(rel "$dir")/.run.log)"
+  (cd "$ROOT" && HERMES_FACTORY=1 "$CLAUDE_BIN" -p "$prompt" --agent "$agent" --model "$model" \
+      ${resume[@]+"${resume[@]}"} --permission-mode "$PERMISSION_MODE" \
       --allowedTools "Bash(corepack yarn *)" "Bash(git status*)" "Bash(git diff*)" "Bash(git log*)" "Bash(git ls-files*)" "Bash(git show*)" "Bash(wc *)" "Bash(ls *)" \
       --disallowedTools "Bash(git commit *)" "Bash(git push *)" "Bash(git reset *)" "Bash(git checkout *)" "Bash(git rebase *)" "Bash(git stash *)" \
       --output-format json) >"$dir/.run.log" 2>&1 || code=$?
-  write_run "$dir" "$from" "$agent" "$attempts" "$code"
+  write_run "$dir" "$from" "$agent" "$attempts" "$code" "$(log_session "$dir/.run.log")"
+  record_usage "$dir" "$from" "$agent" "$model" "$attempts" "$code"
 
   if [ "$(git -C "$ROOT" rev-parse HEAD)" != "$head0" ] || [ "$(git -C "$ROOT" rev-parse --abbrev-ref HEAD)" != "$branch0" ]; then
     block "$dir" "$from" "HEAD or branch moved during the $agent stage ($head0 on $branch0). Agents must not commit; inspect git log/reflog before resuming."
@@ -157,12 +222,12 @@ advance() { # dir
   echo "$(basename "$dir") [$state]"
   if [ -z "$stage" ]; then echo "  idle (needs a human: ${state})"; return; fi
   IFS='|' read -r agent expected prompt <<<"$stage"
-  if [ "$state" = specced ] && code_dirty; then
+  if { [ "$state" = specced ] || { [ "$state" = new ] && is_small "$dir"; }; } && code_dirty; then
     echo "  skipped: uncommitted code changes outside plans/ (another plan's work?) — commit or stash them first"
     return
   fi
   if [ "$COMMIT" -eq 0 ]; then
-    echo "  would run $agent → expects: ${expected// / | }   (dry run; add --commit)"
+    echo "  would run $agent on $(model_for "$agent") → expects: ${expected// / | }   (dry run; add --commit)"
     return
   fi
   run_stage "$dir" "$agent" "$expected" "$prompt" "$state"
@@ -184,6 +249,7 @@ cmd_new() {
   cat >"$dir/brief.md" <<EOF
 ---
 state: new
+size: $([ "$SMALL" -eq 1 ] && echo small || echo normal)
 blocked_from:
 rejections: 0
 created: $(now)
@@ -205,7 +271,7 @@ EOF
 }
 
 cmd_list() {
-  printf '%-4s %-34s %-18s %s\n' NNN SLUG STATE NOTE
+  printf '%-4s %-34s %-18s %-8s %s\n' NNN SLUG STATE SPENT NOTE
   local d s note
   for d in $(plan_dirs); do
     s=$(fm_get "$d/brief.md" state)
@@ -213,7 +279,8 @@ cmd_list() {
     [ "$s" = blocked ] && note="from $(fm_get "$d/brief.md" blocked_from); see blocked.md"
     [ "$(fm_get "$d/brief.md" rejections)" -gt 0 ] 2>/dev/null && note="${note:+$note; }rejections $(fm_get "$d/brief.md" rejections)"
     local b; b=$(basename "$d")
-    printf '%-4s %-34s %-18s %s\n' "${b%%-*}" "${b#*-}" "$s" "$note"
+    is_small "$d" && note="${note:+$note; }small"
+    printf '%-4s %-34s %-18s %-8s %s\n' "${b%%-*}" "${b#*-}" "$s" "$(total_cost "$d")" "$note"
   done
 }
 
@@ -226,7 +293,7 @@ cmd_run() {
 cmd_unblock() {
   [ $# -ge 1 ] || die "usage: factory unblock NNN [--commit]"
   check_branch
-  local dir from r; dir=$(plan_dir "$1"); r=$(rel "$dir")
+  local dir from r spec; dir=$(plan_dir "$1"); r=$(rel "$dir"); spec=$(spec_for "$dir")
   [ "$(fm_get "$dir/brief.md" state)" = blocked ] || die "$(basename "$dir") is not blocked"
   from=$(fm_get "$dir/brief.md" blocked_from); from=${from:-new}
   if grep -Eq '^Answer:[[:space:]]*$' "$dir/blocked.md" 2>/dev/null; then
@@ -235,7 +302,7 @@ cmd_unblock() {
   echo "$(basename "$dir") [blocked from $from]"
   if [ "$COMMIT" -eq 0 ]; then echo "  would run hermes-architect to fold answers, then resume at '$from' (dry run; add --commit)"; return; fi
   run_stage "$dir" hermes-architect "$from" \
-    "Factory mode, unblock. Plan folder: $r. The human answered the questions in $r/blocked.md. Fold each answer into $r/prd.md (Decisions, and any affected Behavior/Design/Phase sections), append the answered questions to $r/mailbox.md, then empty $r/blocked.md. As your last action set state: $from and clear blocked_from in $r/brief.md frontmatter." \
+    "Factory mode, unblock. Plan folder: $r. The human answered the questions in $r/blocked.md. Fold each answer into $r/$spec (Decisions, and any affected Behavior/Design/Phase sections; in brief.md add a ## Decisions section and leave the frontmatter alone), append the answered questions to $r/mailbox.md, then empty $r/blocked.md. As your last action set state: $from and clear blocked_from in $r/brief.md frontmatter." \
     blocked
   if [ "$(fm_get "$dir/brief.md" state)" != blocked ]; then
     fm_set "$dir/brief.md" blocked_from ""
@@ -253,7 +320,9 @@ cmd_set() {
 }
 
 args=()
-for a in "$@"; do [ "$a" = --commit ] && COMMIT=1 || args+=("$a"); done
+for a in "$@"; do
+  case "$a" in --commit) COMMIT=1 ;; --small) SMALL=1 ;; *) args+=("$a") ;; esac
+done
 set -- "${args[@]+"${args[@]}"}"
 
 cmd=${1:-help}; shift || true

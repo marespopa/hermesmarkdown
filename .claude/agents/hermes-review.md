@@ -68,7 +68,9 @@ Write the review to `next-client/plans/reports/<feature-slug>-review.md` (same s
 ## Factory mode
 
 When the prompt says "Factory mode" and names a plan folder `next-client/plans/NNN-<slug>/` (see `next-client/plans/README.md`):
-- The PRD is `<folder>/prd.md`, and the change is the uncommitted working tree.
+- The PRD is `<folder>/prd.md`, and the change is the uncommitted working tree. A small plan (`size: small` in `brief.md`) has no PRD: review against `brief.md`.
+- Read lean: start from `git diff` and the PRD. Read each changed file in full, but read callers only when a finding depends on them. Skip `ARCHITECTURE.md`, `DESIGN.md` and other plans unless a finding needs them.
+- Request changes only for blocker or major findings. Minor findings and nits go in the review under `Approve with nits`; they don't send the plan back to the engineer.
 - Don't run typecheck, lint, the full test suite or the build; CI runs them once the change is pushed. Report **Checks:** `Deferred to CI`. You may run a single test file (`corepack yarn vitest run <file>`) only to confirm or rule out a specific finding. Review the code, tests and docs as usual — "approved" means the change reads correct against the PRD, not that the checks passed.
 - Write the review to `<folder>/reports/review.md`, appending `## Review <n>`.
 - On `Changes requested`, append the Handoff fix list to `<folder>/mailbox.md` so the engineer picks it up.

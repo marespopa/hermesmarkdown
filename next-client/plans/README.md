@@ -11,14 +11,15 @@ This folder holds engineering plans. There are two kinds:
 ```
 NNN-<slug>/
 ├── brief.md          # human: the product idea + frontmatter state (committed)
-├── prd.md            # hermes-architect: engineering PRD (committed)
+├── prd.md            # hermes-architect: engineering PRD; absent for small plans (committed)
 ├── blocked.md        # any agent: questions for the human (committed)
 ├── mailbox.md        # agents + factory: handoffs, fix lists, RESUME notes (committed)
 ├── reports/
 │   ├── architect.md
 │   ├── engineer.md
 │   └── review.md     # committed
-├── .run.json         # factory bookkeeping: stage, attempts, last exit (gitignored)
+├── usage.tsv         # factory: cost, turns and tokens per stage run (committed)
+├── .run.json         # factory bookkeeping: stage, attempts, last exit, session (gitignored)
 └── .run.log          # last headless session output (gitignored)
 ```
 
@@ -27,6 +28,7 @@ NNN-<slug>/
 ```yaml
 ---
 state: new              # see States
+size: normal            # small: skip the architect, brief.md is the spec
 blocked_from:           # state to resume at after unblock
 rejections: 0           # review rejections since the last unblock
 created: 2026-10-01T00:00:00Z
@@ -37,7 +39,7 @@ created: 2026-10-01T00:00:00Z
 
 | State | Set by | Next stage |
 |---|---|---|
-| `new` | `factory new` | hermes-architect writes `prd.md` |
+| `new` | `factory new` | hermes-architect writes `prd.md` (small plans: hermes-engineer implements `brief.md`) |
 | `specced` | architect | hermes-engineer implements |
 | `building` | factory (engineer running or interrupted) | engineer resumes |
 | `review` | engineer | hermes-review reviews the working tree |
@@ -62,7 +64,7 @@ Answer:
 ## Commands
 
 ```bash
-scripts/factory new <slug> [title...]
+scripts/factory new <slug> [title...] [--small]
 scripts/factory list
 scripts/factory run [NNN] [--commit]      # dry run unless --commit
 scripts/factory unblock NNN [--commit]
@@ -76,4 +78,12 @@ scripts/factory set NNN <state>
   - The script records HEAD and the branch before each stage. If either moved, it blocks the plan.
 - **No runs on `trunk`/`main`.**
 - **One build at a time.** A fresh build (`specced`) won't start while code outside `plans/` is uncommitted.
-- **Retries.** A stage that ends without a valid state change leaves a `RESUME:` note in `mailbox.md` and keeps the old state. After 3 failed attempts in a row, the plan is blocked.
+- **Retries.** A stage that ends without a valid state change leaves a `RESUME:` note in `mailbox.md` and keeps the old state. The retry resumes the failed session (`--resume`) rather than starting cold. After 2 failed attempts in a row, the plan is blocked.
+
+## Cost
+
+- **Models per stage.** The architect runs on `opus`; the engineer and reviewer run on `sonnet`. Override with `FACTORY_MODEL_ARCHITECT`, `FACTORY_MODEL_ENGINEER` and `FACTORY_MODEL_REVIEW`.
+- **Small plans** (`factory new <slug> --small`, or `size: small` in `brief.md`) skip the architect. Use them for changes a short brief fully describes.
+- **Lean reading.** In factory mode the engineer and reviewer work from the PRD's citations, not `ARCHITECTURE.md`/`DESIGN.md`, so the PRD must cite everything they need.
+- **Fewer loops.** The reviewer only requests changes for blocker or major findings.
+- **Spend.** Each stage run appends a row to `usage.tsv`, and `factory list` shows each plan's total.

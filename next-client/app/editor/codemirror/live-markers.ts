@@ -5,7 +5,7 @@ import type { SyntaxNode } from "@lezer/common";
 import { CALLOUT_ALIASES, CALLOUT_META } from "../constants/callouts";
 import { findFrontmatterFoldRange } from "./frontmatter-fold";
 import { liveMarkersTheme } from "./live-markers-theme";
-import { BULLET_COLUMNS, BulletWidget, CalloutLabelWidget, CodeLanguageWidget, em, TaskBoxWidget } from "./live-markers-widgets";
+import { BULLET_COLUMNS, BulletWidget, CalloutLabelWidget, CodeLanguageWidget, em, ListIndentWidget, TaskBoxWidget } from "./live-markers-widgets";
 
 // Live markers: Markdown syntax stays out of sight until the caret reaches
 // it, so a note reads like a page while it stays editable, and nothing moves
@@ -41,7 +41,7 @@ const REGEX_QUOTE_PREFIX = /^>(?:[ \t]*>)*[ \t]?/;
 const REGEX_TASK_BOX = /^[ \t]\[([ xX/!-])\](?=[ \t\n]|$)/;
 
 function listIndent(columns: number) {
-  return Decoration.mark({ class: "cm-listIndent", attributes: { style: `width: ${em(columns)}` } });
+  return Decoration.replace({ widget: new ListIndentWidget(columns) });
 }
 
 function orderedMarker(columns: number) {
