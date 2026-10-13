@@ -7,7 +7,8 @@
 // Everything is HTML-escaped; the only markup is what this file emits. Raw
 // HTML in the note is dropped (comments, such as the rollup markers, too),
 // frontmatter is left out, wikilinks print as their text, folded callouts
-// print expanded, and links only keep web and mail URLs.
+// print expanded, and links only keep web and mail URLs. A top-level line
+// that is exactly the page-break marker becomes `<div class="page-break">`.
 
 import { markdownLanguage } from "@codemirror/lang-markdown";
 import type { SyntaxNode } from "@lezer/common";
@@ -31,7 +32,11 @@ export interface NoteHtmlOptions {
   // An image's `src` as written in the note → a URL to print it from, or
   // null to print its alt text instead. Defaults to keeping web URLs only.
   imageSrc?: (src: string) => string | null;
+  // A line that starts a new page (`<!-- pagebreak -->`, `---`, …); none by default.
+  pageBreak?: string;
 }
+
+export const PAGE_BREAK_HTML = '<div class="page-break"></div>';
 
 // Wikilinks become `WIKI_OPEN label WIKI_CLOSE` before parsing (private-use
 // characters, so the parser sees plain text) and a span after escaping.
@@ -53,6 +58,7 @@ interface Context {
   src: string;
   imageSrc: (src: string) => string | null;
   blocks: PrintBlock[];
+  pageBreak?: string;
 }
 
 const text = (ctx: Context, from: number, to: number) => ctx.src.slice(from, to);
@@ -255,10 +261,14 @@ function block(ctx: Context, node: SyntaxNode): string {
 }
 
 // Renders `source` (already wikilink-marked) as blocks, sharing `ctx.blocks`.
-function renderInto(ctx: Context, source: string): string {
+// Page breaks only count at the top level, not inside a list or quote.
+function renderInto(ctx: Context, source: string, top = false): string {
   const inner: Context = { ...ctx, src: source };
   const tree = markdownLanguage.parser.parse(source);
-  return children(tree.topNode).map((node) => block(inner, node)).join("\n");
+  const marker = top ? ctx.pageBreak?.trim() : undefined;
+  return children(tree.topNode)
+    .map((node) => (marker && text(inner, node.from, node.to).trim() === marker ? PAGE_BREAK_HTML : block(inner, node)))
+    .join("\n");
 }
 
 const REGEX_H1 = /^#[ \t]+(.+?)[ \t#]*$/m;
@@ -266,8 +276,8 @@ const REGEX_H1 = /^#[ \t]+(.+?)[ \t#]*$/m;
 export function noteToHtml(markdown: string, options: NoteHtmlOptions = {}): NoteHtml {
   const body = markdown.replace(FM_REGEX, "").replace(/\r\n?/g, "\n");
   const marked = body.replace(REGEX_WIKILINK, (_whole, target: string, label?: string) => `${WIKI_OPEN}${(label ?? target).trim()}${WIKI_CLOSE}`);
-  const ctx: Context = { src: marked, imageSrc: options.imageSrc ?? webUrl, blocks: [] };
-  const html = renderInto(ctx, marked);
+  const ctx: Context = { src: marked, imageSrc: options.imageSrc ?? webUrl, blocks: [], pageBreak: options.pageBreak };
+  const html = renderInto(ctx, marked, true);
   const h1 = REGEX_H1.exec(body.replace(/^```[\s\S]*?^```/gm, ""));
   const title = h1 ? h1[1].replace(REGEX_WIKILINK, (_w, target: string, label?: string) => (label ?? target).trim()).replace(/[*_`~]/g, "").trim() : null;
   return { html, title: title || null, blocks: ctx.blocks };

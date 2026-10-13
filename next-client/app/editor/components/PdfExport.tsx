@@ -1,10 +1,11 @@
 "use client";
 
 import { useExportPdf } from "../hooks/use-export-pdf";
+import PdfExportDialog from "./PdfExportDialog";
 
 // Mounts Export as PDF (palette command and the toolbar's More menu event)
-// once per editor page. Renders nothing; the print dialog is the UI.
+// once per editor page, and the export dialog it opens.
 export default function PdfExport() {
-  useExportPdf();
-  return null;
+  const { job, close, print } = useExportPdf();
+  return <PdfExportDialog job={job} onClose={close} onPrint={() => void print()} />;
 }

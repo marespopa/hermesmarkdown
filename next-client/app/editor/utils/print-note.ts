@@ -4,11 +4,12 @@
 // reach the printout, and Ctrl/Cmd+P keeps opening the palette.
 
 import { escapeHtml } from "@/app/utils/print/note-html";
+import { DEFAULT_PRINT_SETTINGS, printDate, templateSlots, type PrintSettings, type SlotPart, type Slots } from "@/app/utils/print/print-settings";
 
 // Always light, whatever the app theme. Breaks avoid splitting a table row,
 // a code block, a diagram or a callout, and keep headings with what follows.
+// The page's size and margins come from pageCss().
 export const PRINT_CSS = `
-@page { margin: 18mm 16mm; }
 * { box-sizing: border-box; }
 html { color: #1f1d1a; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body { margin: 0; font: 11pt/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
@@ -44,10 +45,48 @@ a { color: #2c66d1; text-decoration: none; }
 .rendered { text-align: center; }
 .render-error { color: #a2563e; font-size: 9.5pt; text-align: left; }
 hr { border: 0; border-top: 1px solid #e3ded6; margin: 1.5em 0; }
+.page-break { break-after: page; page-break-after: always; height: 0; margin: 0; }
 `;
 
-export function printDocument(title: string, body: string): string {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>${PRINT_CSS}</style></head><body>${body}</body></html>`;
+const MARGIN_BOX_CSS = 'font: 8.5pt -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #6d6b67;';
+
+// A CSS string literal. `<` is escaped too: the rule sits in a <style>, and a
+// title holding "</style>" must not end it.
+const cssString = (value: string) =>
+  `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/</g, "\\3c ").replace(/\s*\n\s*/g, " ")}"`;
+
+// A slot as a CSS `content` value: strings and page counters.
+function slotContent(parts: SlotPart[]): string {
+  return parts.map((part) => ("counter" in part ? `counter(${part.counter})` : cssString(part.text))).join(" ");
+}
+
+function marginBoxes(edge: "top" | "bottom", slots: Slots): string {
+  return (["left", "center", "right"] as const)
+    .map((slot) => {
+      const parts = slots[slot];
+      return parts ? `@${edge}-${slot} { content: ${slotContent(parts)}; ${MARGIN_BOX_CSS} }` : "";
+    })
+    .join(" ");
+}
+
+export interface PageValues {
+  title: string;
+  /** What {date} prints as; today by default. */
+  date?: string;
+}
+
+// The `@page` rule: size, margins, and the header and footer as page-margin
+// boxes (Chrome and Edge print them; browsers without margin boxes leave
+// them out, the rest of the page is the same).
+export function pageCss(settings: PrintSettings, values: PageValues): string {
+  const filled = { title: values.title, date: values.date ?? printDate() };
+  const header = settings.header ? marginBoxes("top", templateSlots(settings.header, filled)) : "";
+  const footer = settings.footer ? marginBoxes("bottom", templateSlots(settings.footer, filled)) : "";
+  return `@page { size: ${settings.pageSize}; margin: ${settings.margins}; ${header} ${footer} }`;
+}
+
+export function printDocument(title: string, body: string, settings: PrintSettings = DEFAULT_PRINT_SETTINGS, date?: string): string {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>${pageCss(settings, { title, date })}${PRINT_CSS}</style></head><body>${body}</body></html>`;
 }
 
 const waitForImages = (doc: Document) =>

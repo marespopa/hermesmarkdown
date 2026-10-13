@@ -56,12 +56,17 @@ describe("useExportPdf", () => {
     localStorage.clear();
   });
 
-  it("registers Export as PDF… and prints the rendered note under its H1 title", async () => {
-    setup("reviews/2026-Q4.md", "---\nowner: product\n---\n# Q4 review\n\n- [x] Ship billing\n\n```mermaid\ngraph TD; A-->B\n```\n\n$$\nx^\n$$");
+  it("registers Export as PDF…, opens the dialog, and prints the rendered note under its H1 title", async () => {
+    const { hook } = setup("reviews/2026-Q4.md", "---\nowner: product\n---\n# Q4 review\n\n- [x] Ship billing\n\n```mermaid\ngraph TD; A-->B\n```\n\n$$\nx^\n$$");
     expect(registered).toMatchObject({ id: "export-pdf", label: "Export as PDF…", category: "Document" });
     expect(registered?.disabledReason).toBeUndefined();
 
     await act(async () => { await registered!.action(); });
+    await vi.waitFor(() => expect(hook.result.current.job?.title).toBe("Q4 review"));
+    expect(printHtml).not.toHaveBeenCalled();
+
+    await act(async () => { await hook.result.current.print(); });
+    expect(hook.result.current.job).toBeNull();
     expect(printHtml).toHaveBeenCalledOnce();
     const html = printHtml.mock.calls[0][0];
     expect(html).toContain("<title>Q4 review</title>");
@@ -72,13 +77,38 @@ describe("useExportPdf", () => {
   });
 
   it("answers the toolbar's More menu event", async () => {
-    setup("note.md", "Plain note");
+    const { hook } = setup("note.md", "Plain note");
     await act(async () => {
       exportActivePdf();
       await Promise.resolve();
     });
-    await vi.waitFor(() => expect(printHtml).toHaveBeenCalledOnce());
-    expect(printHtml.mock.calls[0][0]).toContain("<title>note</title>");
+    await vi.waitFor(() => expect(hook.result.current.job?.title).toBe("note"));
+  });
+
+  it("reads the page setup from frontmatter and breaks pages at the marker", async () => {
+    const { hook } = setup(
+      "specs/billing.md",
+      '---\npdf_page_size: Letter\npdf_margins: 1in\npdf_footer: "{page} / {pages}"\npdf_page_break: "---"\n---\n# Billing\n\nPart one\n\n---\n\nPart two',
+    );
+    await act(async () => { await registered!.action(); });
+    await vi.waitFor(() => expect(hook.result.current.job).not.toBeNull());
+    const job = hook.result.current.job!;
+    expect(job.settings).toMatchObject({ pageSize: "Letter", margins: "1in", footer: "{page} / {pages}", pageBreak: "---" });
+    expect(job.body).toContain('<div class="page-break"></div>');
+
+    await act(async () => { await hook.result.current.print(); });
+    const html = printHtml.mock.calls[0][0];
+    expect(html).toContain("size: Letter; margin: 1in;");
+    expect(html).toContain('@bottom-center { content: counter(page) " / " counter(pages);');
+  });
+
+  it("closes the dialog without printing on cancel", async () => {
+    const { hook } = setup("note.md", "Plain note");
+    await act(async () => { await registered!.action(); });
+    await vi.waitFor(() => expect(hook.result.current.job).not.toBeNull());
+    act(() => hook.result.current.close());
+    expect(hook.result.current.job).toBeNull();
+    expect(printHtml).not.toHaveBeenCalled();
   });
 
   it("is disabled for a veiled private note until it's shown", async () => {

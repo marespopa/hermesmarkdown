@@ -1,18 +1,19 @@
-import { KV, type Subsection } from "../doc-primitives";
+import { Callout, Code, KV, type Subsection } from "../doc-primitives";
 
 // Documentation content: Export as PDF (Editor group, after the workspace items).
 export const exportPdfItem: Subsection = {
   id: "export-pdf",
   title: "Export as PDF",
   lead: "Save a clean, printable PDF of any note. It's made on your device; the note never leaves it.",
-  keywords: "pdf export print save share archive download offline report",
+  keywords: "pdf export print save share archive download offline report page size a4 letter margins header footer page numbers page break preview",
   body: (
     <>
       <p>
         Run <strong>Export as PDF…</strong> from the command palette, or choose it from the
-        toolbar&apos;s <strong>More</strong> menu. Your browser&apos;s print dialog opens with the
-        note laid out for paper; choose <strong>Save as PDF</strong> as the destination (on iPhone
-        and iPad, share the preview or save it to Files).
+        toolbar&apos;s <strong>More</strong> menu. A dialog shows the note&apos;s page setup and a
+        preview of its pages. <strong>Save as PDF…</strong> opens your browser&apos;s print dialog;
+        choose <strong>Save as PDF</strong> as the destination (on iPhone and iPad, share the
+        preview or save it to Files).
       </p>
       <KV
         rows={[
@@ -22,6 +23,28 @@ export const exportPdfItem: Subsection = {
           { label: "Look", value: "Always light, whatever your theme, with page breaks that keep rows, code blocks and headings together" },
         ]}
       />
+      <p>
+        Set the page up in the note&apos;s frontmatter. Every key is optional; leave one out for
+        the default.
+      </p>
+      <Code>{`---
+pdf_page_size: Letter            # A4 (default) or Letter
+pdf_margins: 20mm 15mm           # like CSS margins; a bare number is mm
+pdf_header: "{title} | {date}"
+pdf_footer: "{page} / {pages}"
+pdf_page_break: "<!-- pagebreak -->"
+---`}</Code>
+      <KV
+        rows={[
+          { label: "Header and footer", value: <>Text with <code>{"{title}"}</code>, <code>{"{date}"}</code> (the export day), <code>{"{page}"}</code> and <code>{"{pages}"}</code>. On its own it&apos;s centred; <code>|</code> splits it into left | right, or left | centre | right. Put it in quotes.</> },
+          { label: "Page breaks", value: <>A line that&apos;s exactly the marker starts a new page. The default is <code>{"<!-- pagebreak -->"}</code>; set <code>pdf_page_break: &quot;---&quot;</code> to break at every horizontal rule.</> },
+          { label: "Preview", value: "Each page break starts a new sheet. Long sections run onto more pages when printed; faint lines show roughly where" },
+        ]}
+      />
+      <Callout type="note">
+        Headers and footers print in Chrome and Edge. Firefox and Safari leave them out; the rest
+        of the page is the same.
+      </Callout>
       <p>
         The PDF&apos;s title comes from the note&apos;s first heading, or its file name. A note marked
         private can only be exported once you&apos;ve shown it. <code>CTRL/CMD+P</code> still

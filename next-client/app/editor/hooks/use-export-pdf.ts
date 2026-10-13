@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useStore } from "jotai";
 import toast from "react-hot-toast";
 import { atom_activeFilePath, atom_content, atom_fileName } from "@/app/atoms/file-atoms";
@@ -10,6 +10,7 @@ import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-ato
 import { useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { escapeHtml, noteToHtml, type PrintBlock } from "@/app/utils/print/note-html";
+import { printDate, printSettingsFrom, type PrintSettings } from "@/app/utils/print/print-settings";
 import { EXPORT_PDF_EVENT } from "../utils/open-helper-dialogs";
 import { printDocument, printHtml } from "../utils/print-note";
 import { renderMermaid } from "../utils/render-mermaid";
@@ -51,8 +52,21 @@ async function renderBlock(block: PrintBlock): Promise<string> {
   }
 }
 
-// Export as PDF: the focused note, rendered and printed through the
-// browser's print dialog (Save as PDF), all on the device. Registers the
+// A rendered note waiting in the export dialog. `urls` are its images'
+// object URLs, revoked once it's printed or the dialog closes.
+export interface PdfJob {
+  title: string;
+  body: string;
+  settings: PrintSettings;
+  date: string;
+  urls: string[];
+}
+
+const revoke = (urls: string[]) => urls.forEach((url) => URL.revokeObjectURL(url));
+
+// Export as PDF: the focused note, rendered with its frontmatter's page setup
+// (print-settings.ts) and shown in the export dialog; printing goes through
+// the browser's print dialog (Save as PDF), all on the device. Registers the
 // palette command and answers the toolbar's More → Export as PDF… event. A
 // private note that's still veiled can't be exported until it's shown.
 export function useExportPdf() {
@@ -63,6 +77,17 @@ export function useExportPdf() {
   const revealAll = useAtomValue(atom_revealAllPrivate);
   const revealed = useAtomValue(atom_revealedPrivatePaths);
   const busy = useRef(false);
+  const [job, setJobState] = useState<PdfJob | null>(null);
+  // The job on show, so a replaced or dropped one's images are let go.
+  const shown = useRef<PdfJob | null>(null);
+  const setJob = useCallback((next: PdfJob | null, release = true) => {
+    if (release && shown.current && shown.current !== next) revoke(shown.current.urls);
+    shown.current = next;
+    setJobState(next);
+  }, []);
+  useEffect(() => () => {
+    if (shown.current) revoke(shown.current.urls);
+  }, []);
 
   const path = activeFilePath ?? "draft";
   const isPrivate = isPrivateContent(content) || isPrivateFrontmatter(metadata[path]?.frontmatter);
@@ -96,21 +121,40 @@ export function useExportPdf() {
           }
         }
       }
+      const settings = printSettingsFrom(text);
       const result = noteToHtml(text, {
         imageSrc: (src) => images.get(src) ?? (/^(https?:|data:image\/)/i.test(src) ? src : null),
+        pageBreak: settings.pageBreak,
       });
       const rendered = await Promise.all(result.blocks.map(renderBlock));
       const body = result.html.replace(/(<div class="rendered [a-z]+") data-render="(\d+)"><\/div>/g, (_whole, open: string, index: string) => `${open}>${rendered[Number(index)] ?? ""}</div>`);
       const title = result.title ?? (store.get(atom_fileName) || "Untitled").replace(/\.md$/i, "");
-      await printHtml(printDocument(title, body), () => urls.forEach((url) => URL.revokeObjectURL(url)));
+      setJob({ title, body, settings, date: printDate(), urls });
     } catch (err) {
       console.warn("Export as PDF failed:", err);
-      urls.forEach((url) => URL.revokeObjectURL(url));
+      revoke(urls);
       toast.error("Couldn't export the note as PDF");
     } finally {
       busy.current = false;
     }
-  }, [store, disabledReason]);
+  }, [store, disabledReason, setJob]);
+
+  // Cancel: the dialog closes and the images are let go.
+  const close = useCallback(() => setJob(null), [setJob]);
+
+  // Save as PDF…: the dialog closes and the browser's print dialog opens;
+  // the images are let go once it's done.
+  const print = useCallback(async () => {
+    if (!job) return;
+    setJob(null, false);
+    try {
+      await printHtml(printDocument(job.title, job.body, job.settings, job.date), () => revoke(job.urls));
+    } catch (err) {
+      console.warn("Export as PDF failed:", err);
+      revoke(job.urls);
+      toast.error("Couldn't export the note as PDF");
+    }
+  }, [job, setJob]);
 
   useRegisterCommand({
     id: "export-pdf",
@@ -128,4 +172,6 @@ export function useExportPdf() {
     document.addEventListener(EXPORT_PDF_EVENT, handle);
     return () => document.removeEventListener(EXPORT_PDF_EVENT, handle);
   }, []);
+
+  return { job, close, print };
 }

@@ -39,7 +39,8 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [PaneToolbarButton](PaneToolbarButton.md) | Icon-only toolbar button with a tooltip. |
 | [PaneWindowActions](PaneWindowActions.md) | Window-wide toolbar sections (Mode, Tools, More menu), shown once in the top-right pane. |
 | [PaneTab](PaneTab.md) | Draggable file tab with a leading close button, unsaved-changes dot, and shortcut hint; exports `SaveStateIcon`. |
-| [PdfExport](PdfExport.md) | Mounts **Export as PDF…** (palette and More menu): the focused note rendered and printed through the browser's dialog, on the device. |
+| [PdfExport](PdfExport.md) | Mounts **Export as PDF…** (palette and More menu): the focused note rendered with its `pdf_*` page setup, shown in the export dialog, and printed through the browser's dialog, on the device. |
+| [PdfExportDialog](PdfExportDialog.md) | The export dialog: the note's page setup beside a preview of its pages; Save as PDF… opens the print dialog. |
 | [TokenCostDialog](TokenCostDialog.md) | What sending the focused note to each AI model costs (o200k count, input prices); opened from the palette. |
 | [RenderedBlockSourceDialog](RenderedBlockSourceDialog.md) | Source editor with live preview for an inline-rendered Mermaid diagram or math block; Save writes the body back as one undo step. |
 | [SectionHeader](SectionHeader.md) | Collapsible section header with a title, a chevron toggle, and an optional trailing action. |
