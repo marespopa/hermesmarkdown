@@ -17,7 +17,7 @@ Description: One task on the Tasks page: a status ring ([`TaskStatusButton`](Tas
 ```tsx
 import TaskRow from "@/app/editor/tasks/components/TaskRow";
 
-<TaskRow task={task} subtitle={noteTitle(task.path)} onToggle={() => toggleTask(task)} onSetStatus={(status) => setTaskStatus(task, status)} onNavigate={() => open(task)} />
+<TaskRow task={task} subtitle={noteTitle(task.path)} onToggle={() => setTaskStatus(task, cycledStatus(task.status))} onSetStatus={(status) => setTaskStatus(task, status)} onNavigate={() => open(task)} />
 ```
 
 ## Props Overview
@@ -25,6 +25,6 @@ import TaskRow from "@/app/editor/tasks/components/TaskRow";
 |---|---|---|---|
 | task | `DisplayTask` |  | The task (masked when `isMasked`) |
 | subtitle? | `string` |  | Note title, shown when grouped by status |
-| onToggle | `() => void` |  | Click on the ring: complete, or reopen a done/cancelled task |
+| onToggle | `() => void` |  | Click on the ring: the next status in the cycle (to do → in progress → done → to do) |
 | onSetStatus | `(status: TaskStatus) => void` |  | A status picked from the menu |
 | onNavigate | `() => void` |  | Opens the task's source line |

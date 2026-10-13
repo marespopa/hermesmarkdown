@@ -18,7 +18,7 @@ import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-ato
 import { TaskItem } from "@/app/utils/taskExtractor";
 import { useTaskWriteback } from "@/app/hooks/use-task-writeback";
 import { showUndoToast } from "@/app/hooks/file-system/undo-toast";
-import { TASK_STATUS_LABEL, toggledStatus, type TaskStatus } from "@/app/utils/task-status";
+import { cycledStatus, TASK_STATUS_LABEL, type TaskStatus } from "@/app/utils/task-status";
 import { sortTasks, type TaskSortDirection, type TaskSortField } from "../task-sort";
 import { buildBoardColumns, buildViewSections, localISODate, viewCounts, type TaskSectionData } from "../task-views";
 import TaskBoard from "./TaskBoard";
@@ -180,7 +180,7 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
       key={task.id}
       task={task}
       subtitle={subtitle}
-      onToggle={() => changeStatus(task, toggledStatus(task.status))}
+      onToggle={() => changeStatus(task, cycledStatus(task.status))}
       onSetStatus={(status) => changeStatus(task, status)}
       onNavigate={() => void handleNavigate(task)}
     />
