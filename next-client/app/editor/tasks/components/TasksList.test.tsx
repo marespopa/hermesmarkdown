@@ -57,7 +57,7 @@ describe("TasksList status changes", () => {
     vi.useRealTimers();
   });
 
-  it("completes a task in place, then offers Undo that restores its line", async () => {
+  it("starts a task in place from its ring, then offers Undo that restores its line", async () => {
     renderList();
     const toDo = screen.getByRole("region", { name: "To Do" });
     const ring = within(toDo).getAllByRole("checkbox")[0];
@@ -66,12 +66,12 @@ describe("TasksList status changes", () => {
       fireEvent.click(ring);
     });
 
-    expect(writeback.setTaskStatus).toHaveBeenCalledWith(expect.objectContaining({ text: "Ship report" }), "done");
-    // Still in To Do, now showing as done, until the beat is over.
-    expect(within(toDo).getAllByRole("checkbox")[0]).toHaveAttribute("aria-checked", "true");
+    expect(writeback.setTaskStatus).toHaveBeenCalledWith(expect.objectContaining({ text: "Ship report" }), "prog");
+    // Still in To Do, now showing as in progress, until the beat is over.
+    expect(within(toDo).getAllByRole("checkbox")[0]).toHaveAttribute("aria-checked", "mixed");
     expect(within(toDo).getByText("Ship report")).toBeInTheDocument();
 
-    expect(showUndoToast).toHaveBeenCalledWith("Completed “Ship report”", expect.any(Function), { id: "task-status" });
+    expect(showUndoToast).toHaveBeenCalledWith("Started “Ship report”", expect.any(Function), { id: "task-status" });
     showUndoToast.mock.calls[0][1]();
     expect(writeback.restoreTaskLine).toHaveBeenCalledWith(CHANGE);
 

@@ -47,8 +47,9 @@ export const isOpenStatus = (status: TaskStatus) => status !== "done" && status 
 // A click on the box: an open task is done, a closed one opens again.
 export const toggledStatus = (status: TaskStatus): TaskStatus => (isOpenStatus(status) ? "done" : "todo");
 
-// Mod-Enter in the editor: to do → in progress → done → to do. On hold and
-// cancelled re-enter the cycle at in progress and to do.
+// Mod-Enter, or Mod-click on a task's marker, in the editor: to do → in
+// progress → done → to do. On hold and cancelled re-enter the cycle at in
+// progress and to do.
 export function cycledStatus(status: TaskStatus): TaskStatus {
   if (status === "todo" || status === "hold") return "prog";
   if (status === "prog") return "done";

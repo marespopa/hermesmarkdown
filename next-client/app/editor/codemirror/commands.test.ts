@@ -123,8 +123,8 @@ describe("outline indentation commands", () => {
     const view = makeView("- Parent\n  - Child\n- Sibling", { anchor: 2 });
 
     expect(indentCurrentSubtree(view)).toBe(true);
-    expect(view.state.doc.toString()).toBe("  - Parent\n    - Child\n- Sibling");
-    expect(view.state.selection.main.head).toBe(4);
+    expect(view.state.doc.toString()).toBe("    - Parent\n      - Child\n- Sibling");
+    expect(view.state.selection.main.head).toBe(6);
     expect(outdentCurrentSubtree(view)).toBe(true);
     expect(view.state.doc.toString()).toBe("- Parent\n  - Child\n- Sibling");
     expect(view.state.selection.main.head).toBe(2);

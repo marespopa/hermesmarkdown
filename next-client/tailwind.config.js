@@ -145,6 +145,11 @@ module.exports = {
         'overlay-backdrop': '150ms', // OverlayLayer backdrop opacity fade
         'overlay-panel':    '200ms', // OverlayLayer sheet/edge-panel/popover slide
       },
+      // `ease-spring`: the --ease-spring curve from globals.scss. An arbitrary
+      // `ease-[var(--ease-spring)]` is ambiguous to Tailwind and warns on build.
+      transitionTimingFunction: {
+        spring: 'var(--ease-spring)',
+      },
     }
   },
   plugins: [require("@tailwindcss/typography"), require("tailwindcss-animate")],

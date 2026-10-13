@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import { EditorView } from "@codemirror/view";
 import { EditorState, EditorSelection } from "@codemirror/state";
 import {
-  breakLineInListItem,
   continueListOnEnter,
   indentListOrLines,
   outdentListOrLines,
@@ -65,7 +64,7 @@ describe("continueListOnEnter", () => {
     expect(view.state.doc.toString()).toBe("");
   });
 
-  it("starts the next item from a line typed after Shift+Enter", () => {
+  it("starts the next item from a continuation line lined up with the item's text", () => {
     const view = makeView("1. a\n   more");
     expect(continueListOnEnter(view)).toBe(true);
     expect(view.state.doc.toString()).toBe("1. a\n   more\n2. ");
@@ -82,39 +81,26 @@ describe("continueListOnEnter", () => {
   });
 });
 
-describe("breakLineInListItem", () => {
-  it("starts a line inside the item, lined up with its text", () => {
-    const view = makeView("1. one");
-    expect(breakLineInListItem(view)).toBe(true);
-    expect(view.state.doc.toString()).toBe("1. one\n   ");
-    expect(view.state.selection.main.head).toBe(view.state.doc.length);
-  });
-
-  it("lines up after a task box", () => {
-    const view = makeView("  - [ ] task");
-    breakLineInListItem(view);
-    expect(view.state.doc.toString()).toBe("  - [ ] task\n        ");
-  });
-
-  it("falls through on plain lines", () => {
-    expect(breakLineInListItem(makeView("plain"))).toBe(false);
-  });
-});
-
 describe("indentListOrLines / outdentListOrLines", () => {
-  it("nests a list item with its children", () => {
+  it("nests a list item with its children, four spaces in", () => {
     const view = makeView("- a\n- b\n  - c", 6);
     expect(indentListOrLines(view)).toBe(true);
-    expect(view.state.doc.toString()).toBe("- a\n  - b\n    - c");
-    expect(view.state.selection.main.head).toBe(8);
+    expect(view.state.doc.toString()).toBe("- a\n    - b\n      - c");
+    expect(view.state.selection.main.head).toBe(10);
     expect(outdentListOrLines(view)).toBe(true);
     expect(view.state.doc.toString()).toBe("- a\n- b\n  - c");
   });
 
-  it("nests an ordered item under the text of the item above and restarts its numbering", () => {
+  it("nests at the level the item above's children already use", () => {
+    const view = makeView("- a\n  - x\n- b");
+    indentListOrLines(view);
+    expect(view.state.doc.toString()).toBe("- a\n  - x\n  - b");
+  });
+
+  it("nests an ordered item one level in and restarts its numbering", () => {
     const view = makeView("1. a\n2. b\n3. ");
     indentListOrLines(view);
-    expect(view.state.doc.toString()).toBe("1. a\n2. b\n   1. ");
+    expect(view.state.doc.toString()).toBe("1. a\n2. b\n    1. ");
     expect(view.state.selection.main.head).toBe(view.state.doc.length);
   });
 

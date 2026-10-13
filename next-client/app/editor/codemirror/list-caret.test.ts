@@ -23,9 +23,13 @@ describe("listCaretGuard", () => {
     expect(moveTo(stateFor(doc), 7)).toBe(8);
   });
 
-  it("keeps the caret out of a nested item's indent and a task's box", () => {
+  it("keeps the caret out of a nested item's indent", () => {
     expect(moveTo(stateFor("- top\n  - nested"), 6)).toBe(10);
-    expect(moveTo(stateFor("- [ ] ship release"), 0)).toBe(6);
+  });
+
+  it("keeps the caret out of a task's hidden dash but lets it into the box", () => {
+    expect(moveTo(stateFor("- [ ] ship release"), 0)).toBe(2);
+    expect(moveTo(stateFor("- [ ] ship release"), 3)).toBe(3);
   });
 
   it("puts the caret after the bullet of an empty item", () => {
@@ -42,6 +46,7 @@ describe("listCaretGuard", () => {
 
   it("leaves ordered markers, selections and other lines alone", () => {
     expect(moveTo(stateFor("1. step"), 0)).toBe(0);
+    expect(moveTo(stateFor("1. [ ] step"), 0)).toBe(0);
     expect(moveTo(stateFor("plain text", 5), 0)).toBe(0);
     expect(moveTo(stateFor("```\n- code\n```"), 4)).toBe(4);
     const range = stateFor("- groceries").update({ selection: EditorSelection.range(0, 11) }).state.selection.main;

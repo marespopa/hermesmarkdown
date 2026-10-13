@@ -83,15 +83,14 @@ Math typed on its own line gets a faint `= result` label at the end of the line:
 
 ## Live markers
 
-There's one mode: the note is always editable, and Markdown syntax stays out of sight until the caret reaches it (`codemirror/live-markers.ts`, a `ViewPlugin` over the visible ranges that reads the Lezer tree):
+There's one mode: every Markdown character stays as typed, so writing is plain typing and what's on screen is what's in the file. Syntax is dimmed, never hidden, and nothing changes with the caret, so text never moves (`codemirror/live-markers.ts`, a `ViewPlugin` over the visible ranges that reads the Lezer tree, plus the dimming in `highlight.ts`):
 
-- **Inline marks** (`**`, `*`/`_`, `~~`, inline-code backticks) are hidden unless a caret or selection touches their span.
-- **Heading `#`s and quote `>`s** are hidden unless the caret is on their line. Quoted lines get a left border (`cm-liveQuote`).
-- **Bullets** (`-`, `*`, `+`) read as • (◦ when nested) unless the caret touches the marker.
-- **List caret** (`codemirror/list-caret.ts`, a transaction filter): an empty caret that lands in a bullet's or task's marker or its indent (click, tap, Home, Up/Down) moves to the start of the item's text, so typing never goes in before the •. Left from there goes on to the end of the line above. Selections and ordered markers are left alone.
-- **Nested list items** have their leading indent drawn 0.75em per column, caret or not, so Tab's two or three spaces show as a clear indent step rather than one space's width. The indent is an empty spacer widget (`ListIndentWidget`, `cm-listIndent`), not styled spaces: with the spaces left as text, typing on an empty nested item went into the indent, in front of the bullet.
-- **Left alone**: callouts (they keep their own styling), task items, ordered lists, fenced code, tables, setext headings and frontmatter.
-- **Unfocused editors** reveal nothing, so an unfocused split pane reads clean.
+- **Inline marks** (`**`, `*`/`_`, `~~`, inline-code backticks) stay as typed, dimmed (`highlight.ts`).
+- **Heading `#`s and quote `>`s** hang in the margin (`cm-marginMarks`, out of the flow), always visible and faint; a callout's `> [!type]` shows as typed too. Quoted lines get a left border (`cm-liveQuote`).
+- **List markers** (`- `, `1. `, `- [ ] `) stay inline, as typed, muted (`cm-listMarker`), whatever the caret does: a list looks just like its Markdown, so copying it gives what's on screen. Nested items are indented by their own spaces, nothing added or hung; those leading spaces are set in the monospace face (`cm-listIndent`), so each is as wide as a letter and two or four spaces read as a clear step, as in a fixed-width editor. Tab nests an item four spaces in, or at the column the item above's children already use, so a list keeps one indent per level (`list-commands.ts`; the palette's Indent/Outdent current item use four spaces too).
+- **Tasks** (`- [ ]`, or numbered, `1. [ ]`): the status can be typed in the box (`[/]` in progress, `[!]` on hold, `[-]` cancelled, `[x]` done). The marker carries the status (`cm-listTask`, `data-state`); coloured like the Tasks page's status ring: to do and cancelled faint, in progress `--task-prog`, on hold `--task-hold`, done `--task-done`. Mod-click on the marker moves the task on a status, like Mod-Enter (to do → in progress → done → to do; on hold resumes, cancelled reopens), with its stamps (`cycleTaskBox`); a plain click places the caret.
+- **List caret** (`codemirror/list-caret.ts`, a transaction filter): an empty caret that lands before a bullet's or task's `- `, or in the indent (click, tap, Home, Up/Down), moves to the start of the item's text (a task's `[`), so typing never goes in before the marker or into the indent. Left from there goes on to the end of the line above. Selections, ordered markers and a task's `[ ]` are left alone.
+- **Left alone**: callouts keep their card styling, fenced code shows its fences as typed, and tables, setext headings and frontmatter keep their own display.
 
 ## Rendered blocks (Mermaid and math)
 

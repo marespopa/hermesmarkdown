@@ -5,7 +5,10 @@ import { withTaskStatus } from "@/app/utils/task-line";
 
 const LIST_LINE = /^(\s*)([-*+]\s+|\d+[.)]\s+)(.*)$/;
 const TASK_LINE = /^(\s*)(?:[-*+]\s+|\d+[.)]\s+)\[([ xX/!-])\]/;
-const INDENT = "  ";
+// One nesting level, as in most Markdown editors: four spaces.
+const INDENT = "    ";
+// What outdenting a line removes: up to one level of spaces, or a tab.
+const REGEX_ONE_LEVEL = /^( {1,4}|\t)/;
 
 function subtreeEnd(lines: string[], lineNumber: number): number {
   const source = lines[lineNumber]?.match(LIST_LINE);
@@ -44,7 +47,7 @@ export function outdentSubtreeInContent(content: string, lineNumber: number): st
   const lines = content.split("\n");
   if (!lines[lineNumber]?.match(LIST_LINE)) return content;
   return replaceLines(content, lineNumber, subtreeEnd(lines, lineNumber), (line) =>
-    line.startsWith(INDENT) ? line.slice(INDENT.length) : line.replace(/^\t/, ""),
+    line.replace(REGEX_ONE_LEVEL, ""),
   );
 }
 
@@ -161,7 +164,7 @@ export function indentSubtree(view: EditorView, lineNumber: number): boolean {
 
 export function outdentSubtree(view: EditorView, lineNumber: number): boolean {
   const line = view.state.doc.line(lineNumber);
-  const removableIndent = line.text.startsWith(INDENT) ? INDENT.length : line.text.startsWith("\t") ? 1 : 0;
+  const removableIndent = REGEX_ONE_LEVEL.exec(line.text)?.[0].length ?? 0;
   const selection = EditorSelection.create(
     view.state.selection.ranges.map((range) =>
       EditorSelection.range(

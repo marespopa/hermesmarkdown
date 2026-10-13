@@ -1,6 +1,7 @@
 import { EditorView } from "@codemirror/view";
 import { KeyBinding } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
+import { insertNewline } from "@codemirror/commands";
 import {
   REGEX_CHECKBOX,
   REGEX_QUOTE_PREFIX,
@@ -10,7 +11,7 @@ import { taskStatusFromChar, toggledStatus, type TaskStatus } from "@/app/utils/
 import { statusLineEdits } from "@/app/utils/task-line";
 import { detectDelimitedTable, delimitedTextToMarkdownTable } from "../utils/table-manipulation";
 import { indentSubtree, outdentSubtree, setTaskStatus, toggleTaskStatus } from "./lineMutations";
-import { breakLineInListItem, continueListOnEnter, indentListOrLines, outdentListOrLines, removeListMarkerOnBackspace } from "./list-commands";
+import { continueListOnEnter, indentListOrLines, outdentListOrLines, removeListMarkerOnBackspace } from "./list-commands";
 import { setHeading, toggleCodeBlock, wrapAsLink } from "./format-shortcuts";
 
 function wrapSelection(marker: string, userEvent: string) {
@@ -228,6 +229,7 @@ export const formatKeymap: readonly KeyBinding[] = [
   { key: "Mod-Alt-c", run: toggleCodeBlock, preventDefault: true },
   { key: "Enter", run: continueQuoteOnEnter },
   { key: "Enter", run: continueListOnEnter },
-  { key: "Shift-Enter", run: breakLineInListItem },
+  // A plain line break: the caret goes to the start of the next row.
+  { key: "Shift-Enter", run: insertNewline },
   { key: "Backspace", run: removeListMarkerOnBackspace },
 ];

@@ -62,8 +62,8 @@ export const editorWritingItems: Subsection[] = [
           <a href="#inline-calculator" className="text-accent hover:underline">inline calculator</a> instead.
         </p>
         <Callout type="tip">
-          Click actions work without touching raw syntax — checkboxes toggle, lifecycle tags cycle on
-          click, and wikilinks open with CTRL+Click.
+          Click actions work without touching raw syntax — CTRL+Click on a task&apos;s box moves it on a status,
+          lifecycle tags cycle on click, and wikilinks open with CTRL+Click.
         </Callout>
       </>
     ),
@@ -125,29 +125,30 @@ export const editorWritingItems: Subsection[] = [
   {
     id: "markdown-marks",
     title: "Markdown marks",
-    lead: "Notes read like a page: Markdown marks appear only where you're editing.",
+    lead: "Plain typing: every Markdown character stays on screen, dimmed, exactly as it is in the file.",
     keywords: "markdown syntax hidden marks bold italic strikethrough heading quote bullet list task checkbox numbered callout code block fence language tag date chip live preview",
     body: (
       <>
         <p>
-          Bold, italic, strikethrough and inline-code marks are hidden until the caret touches the
-          text they wrap. A heading&apos;s <code>#</code> and a quote&apos;s <code>&gt;</code> show
-          faintly in the margin while the caret is on their line, so the words never move. Lists
-          look the same whether you&apos;re editing them or not, and a long item wraps under its
-          own text. Typing <code>-</code> at the start of a line adds the space after it, so
+          Every Markdown character stays on screen as you typed it, dimmed, and nothing changes
+          when the caret moves, so the words never shift. Bold, italic, strikethrough and
+          inline-code marks sit in the text. A heading&apos;s <code>#</code> and a quote&apos;s{" "}
+          <code>&gt;</code> hang faintly in the margin. Lists look just like their Markdown: the
+          marker before the text, nested items indented by their own spaces, drawn as wide as a letter (Tab adds four), so
+          copying a list gives you what you see. A task&apos;s marker takes its status colour. Typing <code>-</code> at the start of a line adds the space after it, so
           you can go straight to the item; keep typing dashes for a <code>---</code> rule. Tags and
           dates keep their chip while you edit the text inside it.
         </p>
         <KV
           rows={[
-            { label: "**bold**, *italic*, ~~strike~~, `code`", value: "Marks show while the caret is inside" },
-            { label: "# Heading, > Quote", value: "Marks show in the margin while the caret is on the line" },
-            { label: "- List item", value: "Always shown as • (◦ when nested)" },
-            { label: "- [ ] Task", value: "Always shown as a checkbox; click it to tick the task" },
-            { label: "1. Numbered item", value: "The number sits in a muted column" },
-            { label: "> [!note] Title", value: "Shown as a rounded card with the type's icon and label; press Home on the line to edit the type" },
+            { label: "**bold**, *italic*, ~~strike~~, `code`", value: "Marks stay as typed, dimmed" },
+            { label: "# Heading, > Quote", value: "Marks stay as typed, faint, in the margin" },
+            { label: "- List item", value: "Stays as typed: a faint marker before the text, nested items indented by their spaces" },
+            { label: "- [ ] Task, 1. [ ] Task", value: "Stays as typed, the marker coloured by its status as on the Tasks page, so you can write the status ([/], [!], [x]); CTRL+Click it to go To Do → In Progress → Done" },
+            { label: "1. Numbered item", value: "Stays as typed, the number faint" },
+            { label: "> [!note] Title", value: "Shown as a rounded, tinted card; the [!note] stays as typed, so edit the type in place" },
             { label: "> [!note]- Title", value: "Starts collapsed when the note opens (+ starts expanded); folding with the chevron writes the sign for you" },
-            { label: "```js … ```", value: "Fences fade out away from the caret; the language shows in the corner" },
+            { label: "```js … ```", value: "Fences stay as typed, language included" },
             { label: "#tag, 2026-10-08", value: "Stay chips while you edit them" },
             { label: "Other editor", value: "A split pane you're not typing in shows no marks" },
           ]}

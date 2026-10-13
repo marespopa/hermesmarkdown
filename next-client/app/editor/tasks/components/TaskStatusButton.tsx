@@ -39,6 +39,15 @@ export function TaskStatusIcon({ status, size = 16 }: { status: TaskStatus; size
   );
 }
 
+// What a click does from each status (cycledStatus).
+const CLICK_VERB: Record<TaskStatus, string> = {
+  todo: "start",
+  prog: "complete",
+  hold: "resume",
+  done: "reopen",
+  cancelled: "reopen",
+};
+
 const MENU_ORDER: TaskStatus[] = ["todo", "prog", "hold", "done", "cancelled"];
 
 export function taskStatusMenuItems(current: TaskStatus, onSetStatus: (status: TaskStatus) => void): TabContextMenuItem[] {
@@ -51,8 +60,9 @@ export function taskStatusMenuItems(current: TaskStatus, onSetStatus: (status: T
   }));
 }
 
-// A task's status control. A click completes an open task or reopens a
-// closed one; right-click (a long press on touch) opens the menu of every
+// A task's status control. A click moves the task on a status, as Mod-Enter
+// does in the editor (to do → in progress → done → to do; on hold resumes,
+// cancelled reopens); right-click (a long press on touch) opens the menu of every
 // status, after any `extraItems` (the row's Open Note). `menuAt` lets the
 // row open the same menu from its own button (`menuAnchorRef`, so pressing
 // that button again closes it).
@@ -86,7 +96,7 @@ export default function TaskStatusButton({
         variant="unstyled"
         role="checkbox"
         aria-checked={status === "done" ? true : status === "prog" ? "mixed" : false}
-        aria-label={`${TASK_STATUS_LABEL[status]}. Click to ${status === "done" || status === "cancelled" ? "reopen" : "complete"}, right-click for more`}
+        aria-label={`${TASK_STATUS_LABEL[status]}. Click to ${CLICK_VERB[status]}, right-click for more`}
         title={TASK_STATUS_LABEL[status]}
         onClick={onToggle}
         onContextMenu={(e) => {
