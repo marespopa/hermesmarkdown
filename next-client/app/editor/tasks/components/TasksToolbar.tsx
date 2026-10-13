@@ -43,7 +43,7 @@ export function taskListMenuItems(
 }
 
 // The Tasks page's one toolbar: the title and count with the list menu (All
-// only: grouping and sort), the Now · Today · Upcoming · All switcher with
+// only: grouping and sort), the Board · Now · Today · Upcoming · All switcher with
 // each list's count, and one search field where `#` picks tag filters.
 export default function TasksToolbar({
   view,
@@ -106,7 +106,7 @@ export default function TasksToolbar({
       <div
         role="tablist"
         aria-label="Task lists"
-        className="grid grid-cols-4 rounded-lg bg-paper-softgray/70 p-0.5 dark:bg-paper-dark-surface/60"
+        className="grid grid-cols-5 rounded-lg bg-paper-softgray/70 p-0.5 dark:bg-paper-dark-surface/60"
       >
         {TASK_VIEWS.map(({ id, label }) => {
           const selected = view === id;

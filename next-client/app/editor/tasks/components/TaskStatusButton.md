@@ -1,6 +1,6 @@
 # TaskStatusButton
 
-Description: A task's status control on the Tasks page: a ring that shows the status (empty for to do, half-filled for in progress, pause bars for on hold, filled with a check for done, dashed for cancelled). A click completes an open task or reopens a done or cancelled one. Right-click (a long press on touch, which fires `contextmenu`) opens a menu of every status, the current one checked. Also exports `TaskStatusIcon` (the ring alone, used in the Tasks page group headers and the menu) and `taskStatusMenuItems`.
+Description: A task's status control on the Tasks page: a ring that shows the status (empty for to do, half-filled for in progress, pause bars for on hold, filled with a check for done, dashed for cancelled). A click completes an open task or reopens a done or cancelled one. Right-click (a long press on touch, which fires `contextmenu`) opens a menu of every status, the current one checked, after any `extraItems` (TaskRow's Open Note), set off by a divider. Also exports `TaskStatusIcon` (the ring alone, used in the Tasks page group headers and the menu) and `taskStatusMenuItems`.
 
 ## Local State & Storage
 - State: `ownMenu`, where a right-click opened the menu. A parent can open the same menu with `menuAt` instead.
@@ -32,3 +32,4 @@ import TaskStatusButton from "@/app/editor/tasks/components/TaskStatusButton";
 | menuAt? | `{ x: number; y: number } \| null` |  | Opens the menu at this point (parent-controlled) |
 | menuAnchorRef? | `RefObject<HTMLElement \| null>` |  | The parent button that opened `menuAt` |
 | onMenuClose? | `() => void` |  | Called when the menu closes |
+| extraItems? | `TabContextMenuItem[]` |  | Items shown above the statuses |

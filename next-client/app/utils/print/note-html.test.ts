@@ -76,4 +76,14 @@ describe("noteToHtml", () => {
     );
     expect(html("![chart](assets/chart.png)")).toBe('<p><span class="image-alt">[chart]</span></p>');
   });
+
+  it("breaks pages at a top-level line that is exactly the marker", () => {
+    const comment = noteToHtml("One\n\n<!-- pagebreak -->\n\nTwo", { pageBreak: "<!-- pagebreak -->" }).html;
+    expect(comment).toBe('<p>One</p>\n<div class="page-break"></div>\n<p>Two</p>');
+    expect(noteToHtml("One\n\n---\n\nTwo", { pageBreak: "---" }).html).toContain('<div class="page-break"></div>');
+    expect(noteToHtml("One\n\n\\newpage\n\nTwo", { pageBreak: "\\newpage" }).html).toContain('<div class="page-break"></div>');
+    // Inside a quote, in a sentence, or without a marker set, it's not a break.
+    expect(noteToHtml("> ---\n\nA --- in text", { pageBreak: "---" }).html).not.toContain("page-break");
+    expect(noteToHtml("One\n\n<!-- pagebreak -->\n\nTwo").html).not.toContain("page-break");
+  });
 });

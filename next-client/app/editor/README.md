@@ -18,7 +18,8 @@ Vault files are browsed through the command palette (`Ctrl/Cmd+K`) and Files: th
 
 ### Tasks page
 The Tasks page (`app/editor/tasks`) is a vault-wide view over the derived task index.
-- **Navigation**: Selecting a task opens its source file and queues the editor to focus its source line.
+- **Navigation**: Selecting a task (its text, a double-click on the row, or Open Note in its menu) opens its source file and queues the editor to focus its source line. A note indexed without a handle is resolved from the vault by path.
+- **Board**: the default view, first in the switcher, lays the same tasks out in a column per status (`[ ]`, `[/]`, `[!]`, `[x]`); dragging a card to another column writes that status back. No new data.
 - **Filtering and grouping**: Task text, custom tags, due-date buckets, status/file grouping, and configurable sorting are client-side derived state.
 - **Write-back**: Toggling a checkbox patches the original Markdown source line and saves it through the normal file-save path, which refreshes the task index.
 
@@ -87,6 +88,7 @@ There's one mode: the note is always editable, and Markdown syntax stays out of 
 - **Inline marks** (`**`, `*`/`_`, `~~`, inline-code backticks) are hidden unless a caret or selection touches their span.
 - **Heading `#`s and quote `>`s** are hidden unless the caret is on their line. Quoted lines get a left border (`cm-liveQuote`).
 - **Bullets** (`-`, `*`, `+`) read as • (◦ when nested) unless the caret touches the marker.
+- **List caret** (`codemirror/list-caret.ts`, a transaction filter): an empty caret that lands in a bullet's or task's marker or its indent (click, tap, Home, Up/Down) moves to the start of the item's text, so typing never goes in before the •. Left from there goes on to the end of the line above. Selections and ordered markers are left alone.
 - **Nested list items** have their leading indent drawn 0.75em per column (`cm-listIndent`), caret or not, so Tab's two or three spaces show as a clear indent step rather than one space's width.
 - **Left alone**: callouts (they keep their own styling), task items, ordered lists, fenced code, tables, setext headings and frontmatter.
 - **Unfocused editors** reveal nothing, so an unfocused split pane reads clean.

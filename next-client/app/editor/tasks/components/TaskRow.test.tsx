@@ -84,4 +84,16 @@ describe("TaskRow", () => {
     expect(screen.getByText("Due: 2026-09-01")).toBeInTheDocument();
     expect(screen.queryByText(/Overdue/)).toBeNull();
   });
+  it("opens its note from the menu and on a double-click, but not from the ring", () => {
+    const handlers = renderRow(task);
+    fireEvent.click(screen.getByRole("button", { name: "Change status" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Open Note" }));
+    expect(handlers.onNavigate).toHaveBeenCalledTimes(1);
+
+    fireEvent.doubleClick(screen.getByText("Due: 2026-10-10").closest(".group")!);
+    expect(handlers.onNavigate).toHaveBeenCalledTimes(2);
+
+    fireEvent.doubleClick(screen.getByRole("checkbox"));
+    expect(handlers.onNavigate).toHaveBeenCalledTimes(2);
+  });
 });

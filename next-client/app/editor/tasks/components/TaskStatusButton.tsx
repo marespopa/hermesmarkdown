@@ -53,8 +53,9 @@ export function taskStatusMenuItems(current: TaskStatus, onSetStatus: (status: T
 
 // A task's status control. A click completes an open task or reopens a
 // closed one; right-click (a long press on touch) opens the menu of every
-// status. `menuAt` lets the row open the same menu from its own button
-// (`menuAnchorRef`, so pressing that button again closes it).
+// status, after any `extraItems` (the row's Open Note). `menuAt` lets the
+// row open the same menu from its own button (`menuAnchorRef`, so pressing
+// that button again closes it).
 export default function TaskStatusButton({
   status,
   onToggle,
@@ -62,6 +63,7 @@ export default function TaskStatusButton({
   menuAt,
   menuAnchorRef,
   onMenuClose,
+  extraItems,
 }: {
   status: TaskStatus;
   onToggle: () => void;
@@ -69,6 +71,7 @@ export default function TaskStatusButton({
   menuAt?: { x: number; y: number } | null;
   menuAnchorRef?: React.RefObject<HTMLElement | null>;
   onMenuClose?: () => void;
+  extraItems?: TabContextMenuItem[];
 }) {
   const [ownMenu, setOwnMenu] = React.useState<{ x: number; y: number } | null>(null);
   const menu = menuAt ?? ownMenu;
@@ -100,7 +103,10 @@ export default function TaskStatusButton({
           y={menu.y}
           label="Task status"
           anchorRef={menuAt ? menuAnchorRef : undefined}
-          items={taskStatusMenuItems(status, onSetStatus)}
+          items={[
+            ...(extraItems ?? []),
+            ...taskStatusMenuItems(status, onSetStatus).map((item, i) => (i === 0 && extraItems?.length ? { ...item, divider: true } : item)),
+          ]}
           onClose={closeMenu}
         />
       )}

@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TaskItem } from "@/app/utils/taskExtractor";
 import type { TaskStatus } from "@/app/utils/task-status";
-import { buildViewSections, localISODate, sinceLabel, UP_NEXT_LIMIT, upcomingLabel, viewCounts, workDateLabel } from "./task-views";
+import { buildBoardColumns, buildViewSections, localISODate, sinceLabel, UP_NEXT_LIMIT, upcomingLabel, viewCounts, workDateLabel } from "./task-views";
 
 const TODAY = "2026-10-12"; // a Monday
 
@@ -120,8 +120,27 @@ describe("workDateLabel", () => {
 
 describe("viewCounts", () => {
   it("counts what each list shows", () => {
-    const tasks = [task("a", "prog", TODAY), task("b", "todo", "2026-10-14"), task("c", "done")];
-    expect(viewCounts(tasks, TODAY, (p) => p)).toEqual({ now: 2, today: 1, upcoming: 1, all: 3 });
+    const tasks = [task("a", "prog", TODAY), task("b", "todo", "2026-10-14"), task("c", "done"), task("d", "cancelled")];
+    expect(viewCounts(tasks, TODAY, (p) => p)).toEqual({ now: 2, today: 1, upcoming: 1, all: 4, board: 3 });
+  });
+});
+
+describe("buildBoardColumns", () => {
+  it("has a column per box, [ ] [/] [!] [x], empty ones included, cards by due date", () => {
+    const tasks = [
+      task("late", "todo", "2026-10-20"),
+      task("soon", "todo", "2026-10-13"),
+      task("doing", "prog"),
+      task("shipped", "done"),
+      task("dropped", "cancelled"),
+    ];
+    const columns = buildBoardColumns(tasks, (p) => p);
+    expect(columns.map((c) => [c.title, c.tasks.map((t) => t.id)])).toEqual([
+      ["To Do", ["soon", "late"]],
+      ["In Progress", ["doing"]],
+      ["On Hold", []],
+      ["Done", ["shipped"]],
+    ]);
   });
 });
 
