@@ -117,7 +117,6 @@ describe("buildEditorCommands", () => {
     expect(commands.map((command) => command.id)).toEqual([
       "save-file",
       "new-file",
-      "new-note-from-template",
       "insert-template",
       "save-as-template",
       "new-template",
