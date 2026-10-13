@@ -24,10 +24,9 @@ import {
 // covers static syntax coloring.
 
 const FADED = "opacity-40 dark:opacity-50 transition-opacity duration-500 hover:opacity-100";
-// Emphasis and inline-code marks, shown only while the caret touches their
-// span (live-markers.ts): fainter than other syntax, so the word they wrap
-// stays what you read.
-const FADED_MARK = "opacity-25 dark:opacity-30";
+// Emphasis and inline-code marks, always shown as typed: dimmed like other
+// syntax, so the word they wrap stays what you read.
+const FADED_MARK = "opacity-40 dark:opacity-50";
 
 const REGEX_OBSIDIAN_CALLOUT = /^(>\s*)+\[!(\w+)\]([+-]?)\s*(.*)$/i;
 const REGEX_OBSIDIAN_QUOTE_DEPTH = /^(>\s*)+/;
@@ -35,8 +34,8 @@ const REGEX_THEMATIC_BREAK = /^( {0,3}([-*_])(?:\s*\2){2,}\s*)$/;
 const REGEX_HEADING = /^#{1,6}\s/;
 const REGEX_HEADING_PARTS = /^(#{1,6}\s+)(.*)$/;
 const REGEX_BLOCKQUOTE_PARTS = /^(>\s?)(.*)$/;
-const REGEX_LIST_ITEM = /^\s*[-*+]\s+/;
-const REGEX_LIST_PARTS = /^(\s*[-*+]\s+)(\[[ xX/!-]\]\s+)?(.*)$/;
+const REGEX_LIST_ITEM = /^\s*(?:[-*+]|\d+[.)])\s+/;
+const REGEX_LIST_PARTS = /^(\s*(?:[-*+]|\d+[.)])\s+)(\[[ xX/!-]\]\s+)?(.*)$/;
 const REGEX_TABLE_LINE = /^\s*\|/;
 const REGEX_TABLE_SEPARATOR = /^\s*\|[\s:|-]+\|/;
 
@@ -263,12 +262,10 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       const bull = m[1];
       const check = m[2];
       const label = m[3];
-      mark(ranges, base, base + bull.length, FADED);
+      // The marker itself is styled by live-markers.ts (muted, or a task's
+      // status colour), so it isn't faded here.
       let cursor = bull.length;
-      if (check) {
-        mark(ranges, base + cursor, base + cursor + check.length, FADED);
-        cursor += check.length;
-      }
+      if (check) cursor += check.length;
       const state = check?.[1].toLowerCase();
       if (state === "x") mark(ranges, base + cursor, line.to, "cm-task-done");
       else if (state === "-") mark(ranges, base + cursor, line.to, "cm-task-cancelled");

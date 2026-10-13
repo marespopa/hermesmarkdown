@@ -20,8 +20,13 @@ describe("outline line mutations", () => {
     const content = "- [ ] Parent\n  - [ ] Child\n- [ ] Sibling";
     const indented = indentSubtreeInContent(content, 0);
 
-    expect(indented).toBe("  - [ ] Parent\n    - [ ] Child\n- [ ] Sibling");
+    expect(indented).toBe("    - [ ] Parent\n      - [ ] Child\n- [ ] Sibling");
     expect(outdentSubtreeInContent(indented, 0)).toBe(content);
+  });
+
+  it("outdents a two-space or tab level too", () => {
+    expect(outdentSubtreeInContent("- a\n  - b", 1)).toBe("- a\n- b");
+    expect(outdentSubtreeInContent("- a\n\t- b", 1)).toBe("- a\n- b");
   });
 
   it("cycles task state from todo to in-progress to done, stamping each step", () => {
@@ -48,7 +53,7 @@ describe("outline line mutations", () => {
   });
 
   it("inserts a child using the parent's list style and indentation", () => {
-    expect(insertChildInContent("* Parent\n* Sibling", 0)).toBe("* Parent\n  * [ ] \n* Sibling");
+    expect(insertChildInContent("* Parent\n* Sibling", 0)).toBe("* Parent\n    * [ ] \n* Sibling");
   });
 
   it("moves only the selected subtree among same-level siblings", () => {

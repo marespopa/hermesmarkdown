@@ -70,13 +70,13 @@ describe("computeMarkdownDecorations", () => {
     }
   });
 
-  it("marks bold text with font-bold, keeping markers fainter than other syntax", () => {
+  it("marks bold text with font-bold, its markers dimmed like other syntax", () => {
     const doc = "a **bold** word";
     const decos = decorationsFor(doc);
     const innerFrom = doc.indexOf("bold");
     expect(decos.some((d) => d.from === innerFrom && d.to === innerFrom + 4 && d.class.includes("font-bold"))).toBe(true);
     const markerFrom = doc.indexOf("**");
-    expect(decos.some((d) => d.from === markerFrom && d.class.includes("opacity-25"))).toBe(true);
+    expect(decos.some((d) => d.from === markerFrom && d.class.includes("opacity-40"))).toBe(true);
   });
 
   it("styles a task's label by its state", () => {
@@ -87,6 +87,13 @@ describe("computeMarkdownDecorations", () => {
     expect(classAt("dropped")).toContain("cm-task-cancelled");
     expect(classAt("going")).not.toMatch(/cm-task-/);
     expect(classAt("open")).not.toMatch(/cm-task-/);
+  });
+
+  it("styles a numbered task's label by its state too", () => {
+    const doc = "1. [x] shipped\n2. [ ] pending";
+    const decos = decorationsFor(doc);
+    expect(decos.some((d) => d.from === doc.indexOf("shipped") && d.class.includes("cm-task-done"))).toBe(true);
+    expect(decos.some((d) => d.from === doc.indexOf("pending") && d.class.includes("cm-task-"))).toBe(false);
   });
 
   it("leaves currency amounts undecorated", () => {

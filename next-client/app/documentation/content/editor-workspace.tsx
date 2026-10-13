@@ -24,12 +24,15 @@ export const editorWorkspaceItems: Subsection[] = [
         />
         <p>
           A task's status is the character in its box, and nothing else: tags on the line never
-          change it. In the editor, a click on the box completes the task (or reopens a done or
-          cancelled one), <code>Ctrl/Cmd+Enter</code> cycles To Do → In Progress → Done, and the
-          command palette has Task: Start, Task: Put on hold, Task: Cancel and Task: Reset to To Do.
+          change it. In the editor the box shows as typed, so you can write the status by hand, like{" "}
+          <code>[/]</code> for In Progress (keep one character between the brackets).{" "}
+          <code>Ctrl/Cmd+Click</code> on the box or <code>Ctrl/Cmd+Enter</code> cycles To Do → In
+          Progress → Done → To Do (on hold resumes, cancelled reopens), and the command palette has
+          Task: Start, Task: Put on hold, Task: Cancel and Task: Reset to To Do.
         </p>
         <p>
-          Status changes date the task for you. Starting it adds <code>@started(2026-10-12)</code>{" "}
+          Status changes from the box, the shortcut, the palette or the Tasks page date the task for
+          you (a status typed by hand doesn&apos;t). Starting it adds <code>@started(2026-10-12)</code>{" "}
           (once: pausing and resuming keeps the first date), and completing it adds{" "}
           <code>@done(2026-10-12)</code>, both at the end of the line. Reopening a done task removes{" "}
           <code>@done</code>; resetting it to To Do removes both, as if it was never started. The
@@ -60,8 +63,8 @@ export const editorWorkspaceItems: Subsection[] = [
           sorts by due date, priority, status, note or title, ascending or descending.
         </p>
         <p>
-          Click a task's status ring to complete it, or to reopen a done or cancelled one. For any
-          other status, right-click the ring (long-press on touch) or use the ⋯ button at the end of
+          Click a task&apos;s status ring to move it on, as in the editor: To Do → In Progress →
+          Done → To Do (on hold resumes, cancelled reopens). For any other status, right-click the ring (long-press on touch) or use the ⋯ button at the end of
           the row. The change writes straight back to the source line in the file, no need to open
           it first. To open its note at that line, click the task text, double-click the row, or
           choose <strong>Open Note</strong> from the same menu.
@@ -132,9 +135,8 @@ tags: []
         <p>
           Insert one from the slash menu: <code>/callout</code> adds a plain <code>[!note]</code>{" "}
           callout and <code>/collapse</code> adds a foldable one that starts collapsed. A menu of
-          types opens right away; pick one, or press Esc to keep note. To change it later, click
-          the callout&apos;s type label. You can also type any type below in place of{" "}
-          <code>note</code>.
+          types opens right away; pick one, or press Esc to keep note. To change it later, type
+          any type below in place of <code>note</code>.
         </p>
         <p>
           Add <code>+</code> or <code>-</code> after the type to make it foldable: <code>+</code>{" "}

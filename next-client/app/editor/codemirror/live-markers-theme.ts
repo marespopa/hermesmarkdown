@@ -1,4 +1,5 @@
 import { EditorView } from "@codemirror/view";
+import { MONO_FONT_STACK } from "@/app/atoms/ui-atoms";
 
 // Styles for live-markers.ts and the chips that stay in place while edited.
 export const liveMarkersTheme = EditorView.theme({
@@ -7,86 +8,37 @@ export const liveMarkersTheme = EditorView.theme({
     paddingLeft: "0.9em !important",
     fontStyle: "italic",
   },
-  // Hanging indent: a transparent border, not padding (drawSelection() reads
-  // the first line's padding-left for every selection rect), pulled back on
-  // the first row by a negative text-indent.
-  ".cm-listLine": {
-    borderLeft: "var(--list-hang) solid transparent",
-    textIndent: "calc(-1 * var(--list-hang))",
-  },
-  ".cm-listLine *": {
-    textIndent: "0",
-  },
+  // A nested list item's leading spaces in the monospace face: each as wide as
+  // a letter, so nesting reads as it would in a fixed-width editor.
   ".cm-listIndent": {
-    display: "inline-block",
-    overflow: "hidden",
-    verticalAlign: "top",
-  },
-  ".cm-liveBullet": {
-    display: "inline-block",
-    color: "var(--fg-muted)",
-  },
-  ".cm-liveBullet::before": {
-    content: "attr(data-glyph)",
-  },
-  ".cm-listNumber": {
-    display: "inline-block",
+    fontFamily: MONO_FONT_STACK,
     whiteSpace: "pre",
-    color: "var(--fg-muted)",
+    letterSpacing: "0",
+  },
+  // List markers stay as typed, inline and muted.
+  ".cm-listMarker": {
+    whiteSpace: "pre",
+    color: "var(--fg-faint)",
     fontVariantNumeric: "tabular-nums",
   },
-  ".cm-liveTask": {
-    display: "inline-block",
-    cursor: "pointer",
-    verticalAlign: "baseline",
+  // The syntax highlighter colours parts of a marker on its own (a task's
+  // `[x]` as clay); the marker's colour wins.
+  ".cm-listMarker *": {
+    color: "inherit",
   },
-  ".cm-liveTask-box": {
-    display: "inline-block",
-    boxSizing: "border-box",
-    width: "0.85em",
-    height: "0.85em",
-    verticalAlign: "-0.1em",
-    border: "1.5px solid var(--fg-faint)",
-    borderRadius: "0.25em",
-    transition: "background-color 120ms ease, border-color 120ms ease",
+  // A task's marker takes its status colour, as on the Tasks page: to do and
+  // cancelled stay faint, in progress clay, on hold ochre, done moss.
+  ".cm-listTask[data-state=progress]": {
+    color: "var(--task-prog)",
   },
-  ".cm-liveTask[data-state=done] .cm-liveTask-box": {
-    borderColor: "var(--fg-muted)",
-    backgroundColor: "var(--fg-muted)",
-    backgroundImage:
-      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.5l2.5 2.5L12 5.5' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")",
-    backgroundSize: "100% 100%",
+  ".cm-listTask[data-state=hold]": {
+    color: "var(--task-hold)",
   },
-  // Ticking a box: a springy pop (keyframes in editor-typography.scss).
-  ".cm-liveTask-ticked .cm-liveTask-box": {
-    animation: "cm-task-tick 360ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+  ".cm-listTask[data-state=done]": {
+    color: "var(--task-done)",
   },
-  "@media (prefers-reduced-motion: reduce)": {
-    ".cm-liveTask-ticked .cm-liveTask-box": {
-      animation: "none",
-    },
-  },
-  ".cm-liveTask[data-state=progress] .cm-liveTask-box": {
-    borderColor: "var(--task-prog)",
-    backgroundImage: "linear-gradient(to right, var(--task-prog) 50%, transparent 50%)",
-  },
-  // On hold: two short bars, a pause sign.
-  ".cm-liveTask[data-state=hold] .cm-liveTask-box": {
-    borderColor: "var(--task-hold)",
-    backgroundImage:
-      "linear-gradient(var(--task-hold), var(--task-hold)), linear-gradient(var(--task-hold), var(--task-hold))",
-    backgroundSize: "1.5px 45%, 1.5px 45%",
-    backgroundPosition: "35% center, 65% center",
-    backgroundRepeat: "no-repeat",
-  },
-  ".cm-liveTask[data-state=cancelled] .cm-liveTask-box": {
-    backgroundImage: "linear-gradient(var(--fg-faint), var(--fg-faint))",
-    backgroundSize: "60% 1.5px",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
-  },
-  // Out of the text flow entirely, so revealing the marks can't move a word,
-  // grow the line or re-balance a heading's wrap. With left/top unset it
+  // Out of the text flow entirely, so the marks can't move a word, grow the
+  // line or re-balance a heading's wrap. With left/top unset it
   // sits at its static position, the start of the line's first row, at the
   // line's own size, so it shares the text's baseline; the transform then
   // shrinks it and moves it into the margin, which layout never sees.
@@ -98,36 +50,12 @@ export const liveMarkersTheme = EditorView.theme({
     color: "var(--fg-faint)",
     transform: "translateX(-100%) scale(0.6)",
     transformOrigin: "right 70%",
-    transition: "opacity 120ms ease",
-  },
-  ".cm-marginMarks-off": {
-    opacity: "0",
   },
   // A zero-width space gives a marks-only row a line box at its own size.
   ".cm-marginOnly::after": {
     content: '"\\200b"',
   },
 
-  // A callout's type, in place of `> [!type]` away from the caret.
-  ".cm-calloutLabel": {
-    fontSize: "0.85em",
-    fontWeight: "600",
-    letterSpacing: "0.06em",
-    textTransform: "uppercase",
-    marginRight: "0.6em",
-    cursor: "pointer",
-  },
-  // The label's dropdown sign: faint until the label is hovered.
-  ".cm-calloutChevron": {
-    display: "inline-flex",
-    verticalAlign: "-0.15em",
-    marginLeft: "0.2em",
-    opacity: "0.45",
-    transition: "opacity 120ms ease",
-  },
-  ".cm-calloutLabel:hover .cm-calloutChevron": {
-    opacity: "1",
-  },
   // A callout reads as one rounded, tinted card (lines tagged in highlight.ts),
   // its text inset from the card's edge.
   ".cm-line.cm-callout": {
@@ -143,34 +71,6 @@ export const liveMarkersTheme = EditorView.theme({
     borderBottomLeftRadius: "12px",
     borderBottomRightRadius: "12px",
     paddingBottom: "0.4em",
-  },
-  ".cm-calloutIcon": {
-    display: "inline-flex",
-    verticalAlign: "-0.2em",
-    marginRight: "0.35em",
-    fontSize: "1.3em",
-  },
-  ".cm-calloutIcon svg": {
-    width: "1em",
-    height: "1em",
-  },
-  // A fenced block's opening row while its fences are hidden: the language
-  // sits in the row's top-right corner.
-  ".cm-fenceHidden, .cm-fenceHidden *": {
-    color: "transparent !important",
-  },
-  ".cm-codeFenceRow": {
-    position: "relative",
-  },
-  ".cm-codeLanguage": {
-    position: "absolute",
-    right: "0",
-    top: "0",
-    fontSize: "0.85em",
-    lineHeight: "inherit",
-    color: "var(--fg-muted)",
-    letterSpacing: "0.02em",
-    pointerEvents: "none",
   },
   // A blank line between list items: kept, but at half height, so a loose
   // list still reads as one list.

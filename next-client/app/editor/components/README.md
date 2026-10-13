@@ -12,7 +12,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [ai-chat/](ai-chat/README.md) | `AIChatDialog` building blocks: helpers, model and @mention hooks, message item, mention menu, context chips. |
 | [AIReviewDialog](AIReviewDialog.md) | Word-level diff review of an AI suggestion against the original text, with an editable suggestion and replace or insert-below actions. |
 | [AIThinkingOverlay](AIThinkingOverlay.md) | Portaled busy indicator with rotating status messages, shown while an AI request is in flight. |
-| [CalloutTypeMenu](CalloutTypeMenu.md) | Dropdown of callout types under a callout's title label (and right after inserting one); picking one rewrites `[!type]`. |
+| [CalloutTypeMenu](CalloutTypeMenu.md) | Dropdown of callout types, opened right after inserting a callout from the slash menu; picking one rewrites `[!type]`. |
 | [ConflictDialog](ConflictDialog.md) | Resolves an on-disk change to the open file by reloading from disk, keeping the current text, or merging manually (conflict markers, with per-side resolution). |
 | [DraftImportDialog](DraftImportDialog.md) | Confirms before an imported file replaces a non-empty draft. |
 | [CreateVaultSubSteps](CreateVaultSubSteps.md) | Presentational steps for vault creation: a name input with validation, a parent-folder picker, and an "installing" spinner. |

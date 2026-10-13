@@ -1,81 +1,67 @@
 import { syntaxTree } from "@codemirror/language";
-import { EditorSelection, EditorState, type Range } from "@codemirror/state";
+import { EditorState, type Range } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import type { SyntaxNode } from "@lezer/common";
-import { CALLOUT_ALIASES, CALLOUT_META } from "../constants/callouts";
 import { findFrontmatterFoldRange } from "./frontmatter-fold";
 import { liveMarkersTheme } from "./live-markers-theme";
-import { BULLET_COLUMNS, BulletWidget, CalloutLabelWidget, CodeLanguageWidget, em, ListIndentWidget, TaskBoxWidget } from "./live-markers-widgets";
+import { taskStatusFromChar, type TaskStatus } from "@/app/utils/task-status";
+import { cycleTaskBox } from "./live-markers-widgets";
 
-// Live markers: Markdown syntax stays out of sight until the caret reaches
-// it, so a note reads like a page while it stays editable, and nothing moves
-// when the syntax appears. Inline marks (`**`, `_`, `~~`, inline-code
-// backticks) show while a caret or selection touches their span. A heading's
-// `#`s and a quote's or callout's `>` hang in the margin left of the text,
-// visible only while the caret is on their line. A callout's `[!type]` reads as the
-// type's name until the caret moves before its title. A fenced block's
-// fences fade out (keeping their rows) while the caret is outside it, with
-// its language in the corner. List markers never change with the caret: a
-// bullet's `-` always reads as • (◦ when nested), a task's `- [ ]` as a
-// checkbox that ticks on a click, and an ordered item's `1.` sits in a muted,
-// fixed-width box. Blank lines inside a list are half height. An unfocused
-// editor reveals nothing. Tables and frontmatter keep their own display.
-//
-// List geometry is in columns of 0.75em: a two-space indent is as wide as a
-// bullet's box ("- "), a three-space one as "1. ", so a nested item starts
-// exactly under its parent's text. An item's wrapped lines hang at that same
-// text edge.
+// Live markers: every Markdown character stays as typed, so writing is plain
+// typing and what you see is what's in the file. Syntax is dimmed rather than
+// hidden (inline marks by highlight.ts), and nothing changes with the caret,
+// so the text never moves. A heading's `#`s and a quote's or callout's `>`
+// hang in the margin left of the text. List markers stay inline, as typed,
+// with their real spaces; a task's marker takes its status colour, and
+// Mod-click on it moves the task on a status. Blank lines inside a list are
+// half height. Tables and frontmatter keep their own display.
 
-const hidden = Decoration.replace({});
 const quoteLine = Decoration.line({ class: "cm-liveQuote" });
-const fenceHidden = Decoration.mark({ class: "cm-fenceHidden" });
-const fenceRow = Decoration.line({ class: "cm-codeFenceRow" });
 const listGap = Decoration.line({ class: "cm-listGap" });
 const REGEX_CALLOUT_START = /^(>\s*)+\[!\w+\]/;
-// A callout title's prefix from its first `>`: "> [!note]- ".
-const REGEX_CALLOUT_PREFIX = /^>(?:[ \t]*>)*[ \t]*\[!(\w+)\][+-]?[ \t]?/;
 // A run of `>`s from a line's first QuoteMark: "> ", "> > ", ">>".
 const REGEX_QUOTE_PREFIX = /^>(?:[ \t]*>)*[ \t]?/;
-// A task box right after a bullet: " [ ] ", " [x] ", " [/] " (in progress),
+// A task box right after a bullet or number: " [ ] ", " [x] ", " [/] " (in progress),
 // " [!] " (on hold), " [-] " (cancelled).
 const REGEX_TASK_BOX = /^[ \t]\[([ xX/!-])\](?=[ \t\n]|$)/;
 
-function listIndent(columns: number) {
-  return Decoration.replace({ widget: new ListIndentWidget(columns) });
+// A list marker (`- `, `1. `, `- [ ] `) stays where it's typed, before the
+// item's text, muted; a task's takes its status colour. Nested items are
+// indented by their own spaces (drawn letter-wide), so a list looks just like
+// its Markdown.
+const listMarkerMark = Decoration.mark({ class: "cm-listMarker" });
+// A nested item's leading spaces, set in the monospace face so each is as
+// wide as a letter: two or four typed spaces read as a clear step, as in a
+// fixed-width editor. They stay the spaces in the file.
+const listIndent = Decoration.mark({ class: "cm-listIndent" });
+
+function taskMarker(task: string) {
+  return Decoration.mark({
+    class: "cm-listMarker cm-listTask",
+    attributes: { "data-state": TASK_DATA_STATE[taskStatusFromChar(task)] },
+  });
 }
 
-function orderedMarker(columns: number) {
-  return Decoration.mark({ class: "cm-listNumber", attributes: { style: `width: ${em(columns)}` } });
-}
+const TASK_DATA_STATE: Record<TaskStatus, string> = {
+  todo: "open",
+  prog: "progress",
+  hold: "hold",
+  done: "done",
+  cancelled: "cancelled",
+};
 
-// The item's first line: wrapped rows start at its text, not under the marker.
-function hangingLine(columns: number) {
-  return Decoration.line({ class: "cm-listLine", attributes: { style: `--list-hang: ${em(columns)}` } });
-}
-
-// Structural marks (`## `, `> `) always sit in the margin, out of the text
-// flow; off the caret's line they're only made invisible. Both states lay
-// out identically, so the caret arriving never moves a word (hiding them
-// with a replace on other lines nudged the text whenever they came back).
+// Structural marks (`## `, `> `) sit in the margin, out of the text flow, so
+// a heading or quote's text lines up with the paragraphs around it.
 const marginMarks = Decoration.mark({ class: "cm-marginMarks" });
-const marginMarksOff = Decoration.mark({ class: "cm-marginMarks cm-marginMarks-off" });
 // A row holding only margin marks (`## ` before its first letter) has no text
 // in the flow and would collapse; a strut keeps it at its own height.
 const marginOnlyLine = Decoration.line({ class: "cm-marginOnly" });
 
-function marginMarkRanges(state: EditorState, shown: boolean, from: number, to: number): Range<Decoration>[] {
-  const out = [(shown ? marginMarks : marginMarksOff).range(from, to)];
+function marginMarkRanges(state: EditorState, from: number, to: number): Range<Decoration>[] {
+  const out = [marginMarks.range(from, to)];
   const line = state.doc.lineAt(from);
   if (to === line.to) out.push(marginOnlyLine.range(line.from));
   return out;
-}
-
-function bulletDepth(node: SyntaxNode): number {
-  let depth = 0;
-  for (let parent = node.parent; parent; parent = parent.parent) {
-    if (parent.name === "BulletList") depth++;
-  }
-  return Math.max(0, depth - 1);
 }
 
 // Extends a marker's range over one following space ("# ", "> ", "- ").
@@ -83,83 +69,39 @@ function withTrailingSpace(state: EditorState, to: number): number {
   return state.doc.sliceString(to, to + 1) === " " ? to + 1 : to;
 }
 
-function touches(selection: EditorSelection | null, from: number, to: number): boolean {
-  return selection?.ranges.some((range) => range.to >= from && range.from <= to) ?? false;
-}
-
-function touchesLine(state: EditorState, selection: EditorSelection | null, pos: number): boolean {
-  const line = state.doc.lineAt(pos);
-  return touches(selection, line.from, line.to);
-}
-
 export interface ListMarker {
   kind: "bullet" | "task" | "ordered";
   /** End of the marker, its following space and any task box. */
   to: number;
-  /** Columns the marker box takes. */
-  columns: number;
   /** Task state: the character between the brackets. */
   task?: string;
+  /** Where a task's `[` starts. */
+  boxFrom?: number;
+  /** A numbered task ("1. [ ] "). */
+  ordered?: boolean;
 }
 
 export function listMarker(state: EditorState, mark: SyntaxNode): ListMarker | null {
   const list = mark.parent?.parent?.name;
   const to = withTrailingSpace(state, mark.to);
-  if (list === "OrderedList") return { kind: "ordered", to, columns: to - mark.from };
-  if (list !== "BulletList") return null;
+  if (list !== "OrderedList" && list !== "BulletList") return null;
+  const ordered = list === "OrderedList";
+  // A task box after either marker: "- [ ] " or "1. [ ] ".
   const box = REGEX_TASK_BOX.exec(state.doc.sliceString(mark.to, mark.to + 5));
-  if (!box) return { kind: "bullet", to, columns: BULLET_COLUMNS };
-  return { kind: "task", to: withTrailingSpace(state, mark.to + box[0].length), columns: BULLET_COLUMNS, task: box[1].toLowerCase() };
-}
-
-// A fenced block away from the caret: its fences turn transparent rather than
-// disappear, so their rows keep their height and nothing moves when the
-// caret comes in. The language shows in the opening row's corner.
-function fadedFences(state: EditorState, block: SyntaxNode): Range<Decoration>[] {
-  const { doc } = state;
-  const open = block.firstChild;
-  if (open?.name !== "CodeMark") return [];
-  const openLine = doc.lineAt(open.from);
-  const out = [fenceHidden.range(open.from, openLine.to)];
-  const info = block.getChild("CodeInfo");
-  if (info) {
-    out.push(fenceRow.range(openLine.from));
-    const widget = new CodeLanguageWidget(doc.sliceString(info.from, info.to));
-    out.push(Decoration.widget({ widget, side: 1 }).range(openLine.to));
-  }
-  const close = block.lastChild;
-  if (close && close !== open && close.name === "CodeMark" && doc.lineAt(close.from).number !== openLine.number) {
-    out.push(fenceHidden.range(close.from, doc.lineAt(close.from).to));
-  }
-  return out;
-}
-
-// A callout's title line: `> [!type]` reads as the type's name unless the
-// selection reaches before the title (Home). Pressing the label opens the
-// type menu (callout-type.ts).
-function calloutTitle(state: EditorState, selection: EditorSelection | null, from: number): Range<Decoration> | null {
-  const line = state.doc.lineAt(from);
-  const match = REGEX_CALLOUT_PREFIX.exec(state.doc.sliceString(from, line.to));
-  if (!match) return null;
-  const to = from + match[0].length;
-  if (selection?.ranges.some((range) => range.from < to && range.to >= line.from)) return null;
-  const type = match[1].toLowerCase();
-  const meta = CALLOUT_META[CALLOUT_ALIASES[type] ?? type] ?? CALLOUT_META.note;
-  return Decoration.replace({ widget: new CalloutLabelWidget(type, meta.text, meta.Icon) }).range(from, to);
+  if (!box) return { kind: ordered ? "ordered" : "bullet", to };
+  const taskTo = withTrailingSpace(state, mark.to + box[0].length);
+  return { kind: "task", to: taskTo, task: box[1].toLowerCase(), boxFrom: mark.to + 1, ordered };
 }
 
 export function buildLiveMarkerDecorations(
   state: EditorState,
   visibleRanges: readonly { from: number; to: number }[],
-  focused: boolean,
 ): DecorationSet {
   const ranges: Range<Decoration>[] = [];
   const { doc } = state;
-  const selection = focused ? state.selection : null;
   // Frontmatter's closing `---` parses as a setext underline; leave it alone.
   const frontmatterEnd = findFrontmatterFoldRange(doc.toString())?.closeTo ?? -1;
   const quotedLines = new Set<number>();
-  const calloutTitles = new Set<number>();
   const calloutLines = new Set<number>();
   const listGapLines = new Set<number>();
 
@@ -173,9 +115,7 @@ export function buildLiveMarkerDecorations(
         switch (ref.name) {
           case "Table":
           case "CodeBlock":
-            return false;
           case "FencedCode":
-            if (!touches(selection, ref.from, ref.to)) ranges.push(...fadedFences(state, node));
             return false;
           case "BulletList":
           case "OrderedList": {
@@ -189,7 +129,6 @@ export function buildLiveMarkerDecorations(
             // Callouts keep their tint and bar (highlight.ts) instead of a quote's.
             const first = doc.lineAt(ref.from);
             if (!REGEX_CALLOUT_START.test(first.text)) return;
-            calloutTitles.add(first.number);
             for (let n = first.number; n <= doc.lineAt(ref.to).number; n++) calloutLines.add(n);
             return;
           }
@@ -197,7 +136,7 @@ export function buildLiveMarkerDecorations(
             // Setext underlines and closing `#`s stay as typed.
             if (ref.from !== node.parent?.from || !node.parent.name.startsWith("ATXHeading")) return;
             const to = withTrailingSpace(state, ref.to);
-            ranges.push(...marginMarkRanges(state, touchesLine(state, selection, ref.from), ref.from, to));
+            ranges.push(...marginMarkRanges(state, ref.from, to));
             return;
           }
           case "QuoteMark": {
@@ -205,52 +144,18 @@ export function buildLiveMarkerDecorations(
             const line = doc.lineAt(ref.from);
             if (quotedLines.has(line.number)) return;
             quotedLines.add(line.number);
-            if (calloutTitles.has(line.number)) {
-              const title = calloutTitle(state, selection, ref.from);
-              if (title) ranges.push(title);
-              return;
-            }
             const prefix = REGEX_QUOTE_PREFIX.exec(doc.sliceString(ref.from, line.to))![0];
-            const shown = touches(selection, line.from, line.to);
-            ranges.push(...marginMarkRanges(state, shown, ref.from, ref.from + prefix.length));
-            return;
-          }
-          case "EmphasisMark":
-          case "StrikethroughMark": {
-            const span = node.parent;
-            if (!span || touches(selection, span.from, span.to)) return;
-            ranges.push(hidden.range(ref.from, ref.to));
-            return;
-          }
-          case "CodeMark": {
-            const span = node.parent;
-            if (span?.name !== "InlineCode" || touches(selection, span.from, span.to)) return;
-            ranges.push(hidden.range(ref.from, ref.to));
-            return;
-          }
-          case "ListItem": {
-            // Only plain indentation before the marker (not a quote's `>`).
-            const line = doc.lineAt(ref.from);
-            const leading = doc.sliceString(line.from, ref.from);
-            if (leading && !/^[ \t]+$/.test(leading)) return;
-            const mark = node.getChild("ListMark");
-            const marker = mark && listMarker(state, mark);
-            if (!marker) return;
-            const columns = leading.replace(/\t/g, "    ").length;
-            ranges.push(hangingLine(columns + marker.columns).range(line.from));
-            if (columns) ranges.push(listIndent(columns).range(line.from, ref.from));
+            ranges.push(...marginMarkRanges(state, ref.from, ref.from + prefix.length));
             return;
           }
           case "ListMark": {
             const marker = listMarker(state, node);
             if (!marker) return;
-            if (marker.kind === "ordered") {
-              ranges.push(orderedMarker(marker.columns).range(ref.from, marker.to));
-            } else if (marker.kind === "task") {
-              ranges.push(Decoration.replace({ widget: new TaskBoxWidget(marker.task!) }).range(ref.from, marker.to));
-            } else {
-              ranges.push(Decoration.replace({ widget: new BulletWidget(bulletDepth(node)) }).range(ref.from, marker.to));
+            const line = doc.lineAt(ref.from);
+            if (ref.from > line.from && /^[ \t]+$/.test(doc.sliceString(line.from, ref.from))) {
+              ranges.push(listIndent.range(line.from, ref.from));
             }
+            ranges.push((marker.kind === "task" ? taskMarker(marker.task!) : listMarkerMark).range(ref.from, marker.to));
             return;
           }
         }
@@ -270,19 +175,31 @@ export const liveMarkersPlugin = ViewPlugin.fromClass(
     decorations: DecorationSet;
 
     constructor(view: EditorView) {
-      this.decorations = buildLiveMarkerDecorations(view.state, view.visibleRanges, view.hasFocus);
+      this.decorations = buildLiveMarkerDecorations(view.state, view.visibleRanges);
     }
 
     update(update: ViewUpdate) {
       if (
-        update.docChanged || update.selectionSet || update.viewportChanged || update.focusChanged
-        || syntaxTree(update.startState) !== syntaxTree(update.state)
+        update.docChanged || update.viewportChanged || syntaxTree(update.startState) !== syntaxTree(update.state)
       ) {
-        this.decorations = buildLiveMarkerDecorations(update.state, update.view.visibleRanges, update.view.hasFocus);
+        this.decorations = buildLiveMarkerDecorations(update.state, update.view.visibleRanges);
       }
     }
   },
-  { decorations: (value) => value.decorations },
+  {
+    decorations: (value) => value.decorations,
+    eventHandlers: {
+      // Mod-click on a task's marker moves it on a status, like Mod-Enter, with
+      // its stamps; a plain click places the caret, so the status can be typed.
+      mousedown(event, view) {
+        if (!(event.metaKey || event.ctrlKey) || event.button !== 0) return false;
+        const box = (event.target as HTMLElement | null)?.closest?.(".cm-listTask");
+        if (!box) return false;
+        event.preventDefault();
+        return cycleTaskBox(view, view.posAtDOM(box));
+      },
+    },
+  },
 );
 
 export const liveMarkers = [liveMarkersPlugin, liveMarkersTheme];

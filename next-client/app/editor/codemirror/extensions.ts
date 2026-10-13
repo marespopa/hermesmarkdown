@@ -9,10 +9,9 @@ import { codeFolding } from "@codemirror/language";
 import { searchKeymap } from "@codemirror/search";
 import { loadedVim } from "./vim-loader";
 import { editorTheme } from "./theme";
-import { formatKeymap, toggleCheckboxOnLine, handlePasteTransform, insertPastedImage } from "./commands";
+import { formatKeymap, handlePasteTransform, insertPastedImage } from "./commands";
 import { handleHtmlPaste } from "./html-paste";
 import { getImageFile, getImageFromClipboardItems } from "@/app/utils/paste-image";
-import { REGEX_CHECKBOX } from "../components/regex";
 import { horizontalRuleCursorPlugin, markdownHighlightPlugin } from "./highlight";
 import { tagPillPlugin } from "./tag-pills";
 import { linkDisplayPlugin } from "./link-display";
@@ -150,19 +149,6 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
         if (pos == null) return false;
         event.preventDefault();
         insertPastedImage(view, imageFile, saveImage, pos);
-        return true;
-      },
-      mousedown: (event, view) => {
-        const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
-        if (pos == null) return false;
-        const line = view.state.doc.lineAt(pos);
-        const match = REGEX_CHECKBOX.exec(line.text);
-        if (!match) return false;
-        const boxStart = line.from + match[0].indexOf("[");
-        const boxEnd = line.from + match[0].indexOf("]") + 1;
-        if (pos < boxStart || pos > boxEnd) return false;
-        event.preventDefault();
-        toggleCheckboxOnLine(view, line.number);
         return true;
       },
       focus: () => {

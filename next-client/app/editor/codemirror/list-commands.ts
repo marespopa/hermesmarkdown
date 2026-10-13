@@ -4,7 +4,8 @@ import { indentLess, indentMore } from "@codemirror/commands";
 
 // indent, bullet or "1." / "1)", spacing, optional task box.
 const LIST_ITEM = /^(\s*)([-*+]|(\d+)([.)]))(\s+)(\[[ xX/!-]\]\s+)?/;
-const INDENT = "  ";
+// One nesting level, as in most Markdown editors: four spaces.
+const INDENT = "    ";
 
 interface ListItem {
   line: Line;
@@ -110,10 +111,22 @@ function reindent(view: EditorView, item: ListItem, delta: number, number: numbe
   });
 }
 
-// Tab on a list item nests it, with its children, under the item above: it
-// lines up with that item's text (two columns under "- ", three under "1. ")
-// and an ordered item continues the numbering at its new level. The first
-// item of a list has nothing to nest under, so it just moves two columns.
+// The column `sibling`'s children start at: where its existing children
+// already are, so a list keeps one indent per level, else one level (four
+// spaces) in, and never short of the sibling's text, which a child needs to
+// stay in the item ("100. " is five wide).
+function childColumn(state: EditorState, sibling: ListItem, item: ListItem): number {
+  for (let n = sibling.line.number + 1; n < item.line.number; n++) {
+    const child = parseItem(state.doc.line(n));
+    if (child && child.indent > sibling.indent) return child.indent;
+  }
+  return Math.max(sibling.indent + INDENT.length, sibling.contentColumn);
+}
+
+// Tab on a list item nests it, with its children, under the item above, one
+// level (four spaces) in, and an ordered item continues the numbering at its
+// new level. The first item of a list has nothing to nest under, so it just
+// moves one level.
 function indentListItem(view: EditorView, item: ListItem): boolean {
   const { state } = view;
   const sibling = findPrevious(state, item, (indent) => indent <= item.indent, item.indent);
@@ -121,7 +134,7 @@ function indentListItem(view: EditorView, item: ListItem): boolean {
     reindent(view, item, INDENT.length, undefined, "input.indent.list");
     return true;
   }
-  const target = sibling.contentColumn;
+  const target = childColumn(state, sibling, item);
   let number: number | undefined;
   if (item.number !== undefined) {
     const before = findPrevious(state, item, (indent) => indent <= target, target);
@@ -189,8 +202,8 @@ export function continueListOnEnter(view: EditorView): boolean {
   return true;
 }
 
-// The item a marker-less line belongs to: a line typed after Shift+Enter,
-// lined up with the text of the item above it.
+// The item a marker-less line belongs to: a continuation line lined up with
+// the text of the item above it.
 function owningItem(state: EditorState, line: Line): ListItem | null {
   const indent = lineIndent(line.text);
   if (line.text.trim() === "" || indent === 0) return null;
@@ -214,23 +227,6 @@ function continueFromItemText(view: EditorView): boolean {
   const indent = /^\s*/.exec(item.line.text)![0];
   const marker = item.number !== undefined ? `${item.number + 1}${item.delimiter}` : item.bullet;
   const insert = `\n${indent}${marker}${item.spacing}${item.task ? "[ ] " : ""}`;
-  view.dispatch({
-    changes: { from, to, insert },
-    selection: EditorSelection.cursor(from + insert.length),
-    userEvent: "input.format.list",
-    scrollIntoView: true,
-  });
-  return true;
-}
-
-// Shift+Enter on a list item breaks the line inside the item: no new marker,
-// and the new line lines up with the item's text so it stays in the item.
-export function breakLineInListItem(view: EditorView): boolean {
-  const item = currentItem(view);
-  if (!item) return false;
-  const { from, to } = view.state.selection.main;
-  if (from < item.line.from + item.prefixLength) return false;
-  const insert = `\n${" ".repeat(width(item.line.text.slice(0, item.prefixLength)))}`;
   view.dispatch({
     changes: { from, to, insert },
     selection: EditorSelection.cursor(from + insert.length),
