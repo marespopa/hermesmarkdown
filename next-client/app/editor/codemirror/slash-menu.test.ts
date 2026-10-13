@@ -12,6 +12,7 @@ import {
   WIKILINK_EDITOR_SENTINEL,
 } from "../components/constants";
 import { createSlashMenuSource, insertExpandedTemplate, type SlashMenuCallbacks } from "./slash-menu";
+import { CALLOUT_TYPE_MENU_EVENT } from "./callout-type";
 
 function makeCallbacks(): SlashMenuCallbacks {
   return {
@@ -93,6 +94,24 @@ describe("createSlashMenuSource", () => {
     expect(code.view.state.doc.toString()).toBe(CODE_BLOCK_TEMPLATE_CONTENT.replace(CURSOR_SENTINEL, ""));
     expect(code.view.state.selection.main.head).toBe(4);
     expect(code.callbacks.onCodeBlockInserted).toHaveBeenCalledWith(4);
+  });
+
+  it("offers the callout type menu once the key press that inserted a callout is over", () => {
+    vi.useFakeTimers();
+    const { result } = getResult("/Callout");
+    const view = makeView("/Callout");
+    document.body.appendChild(view.dom);
+    const listener = vi.fn();
+    view.dom.addEventListener(CALLOUT_TYPE_MENU_EVENT, listener);
+    const option = result?.options.find((entry) => entry.label === "Callout");
+    (option?.apply as (view: EditorView, completion: unknown, from: number, to: number) => void)(view, option, 0, 8);
+    expect(view.state.doc.toString()).toBe("> [!note]\n> ");
+    expect(listener).not.toHaveBeenCalled();
+    vi.runAllTimers();
+    expect(listener).toHaveBeenCalledOnce();
+    expect((listener.mock.calls[0][0] as CustomEvent).detail).toEqual({ pos: 9 });
+    view.destroy();
+    vi.useRealTimers();
   });
 
   it("opens configured AI Chat and removes the quick command", () => {

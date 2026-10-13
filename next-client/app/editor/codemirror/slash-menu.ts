@@ -20,6 +20,7 @@ import {
   MARK_PUBLIC_SENTINEL,
 } from "../components/constants";
 import { FM_REGEX, updateFmFields } from "@/app/utils/frontmatter-utils";
+import { requestCalloutTypeMenu } from "./callout-type";
 import { clearPrivateMarkers, isPrivateContent } from "@/app/utils/note-privacy";
 
 // Non-AI templates only — AI action entries (aiOnly: true) aren't ported in
@@ -204,6 +205,13 @@ export function applyTemplate(
   }
   const cursorPos = insertPlainContent(view, from, to, content);
   if (content === CODE_BLOCK_TEMPLATE_CONTENT) callbacks.onCodeBlockInserted(cursorPos);
+  // A new callout offers its type straight away, once the key press that
+  // picked it is over: the menu takes focus, and must not take that key.
+  if (content.startsWith("> [!")) {
+    setTimeout(() => {
+      if (view.dom.isConnected) requestCalloutTypeMenu(view, { pos: view.state.selection.main.head });
+    }, 0);
+  }
 }
 
 // A "path-like" trigger (e.g. "/Users/name", "./foo") shouldn't pop the

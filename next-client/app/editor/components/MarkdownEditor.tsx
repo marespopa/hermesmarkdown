@@ -7,6 +7,7 @@ import { atom_activeEditorView, atom_aiBuilderRequest, atom_focusMode, atom_full
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
 import DatePickerCallout from "./DatePickerCallout";
+import CalloutTypeMenu from "./CalloutTypeMenu";
 import WikiLinkDialog from "./WikiLinkDialog";
 import TaskDialog from "./TaskDialog";
 import { TEMPLATES } from "./constants";
@@ -24,6 +25,7 @@ import { formulaFileTablesField, setFormulaFileTables } from "../codemirror/tabl
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { openRenderedBlockAtCaret } from "../codemirror/rendered-block";
 import { useCodeMirrorCodeLanguagePicker } from "../hooks/use-codemirror-code-language-picker";
+import { useCodeMirrorCalloutType } from "../hooks/use-codemirror-callout-type";
 import { useCodeMirrorImage } from "../hooks/use-codemirror-image";
 import { useCodeMirrorCalloutFold } from "../hooks/use-codemirror-callout-fold";
 import { useCodeMirrorFrontmatterFold } from "../hooks/use-codemirror-frontmatter-fold";
@@ -102,6 +104,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const languagePicker = useCodeMirrorCodeLanguagePicker({ viewRef, containerRef });
   const { activate: activateCodeLanguagePicker, onCursorActivity: onCodeLanguagePickerCursorActivity } = languagePicker;
+
+  const calloutType = useCodeMirrorCalloutType({ viewRef, containerRef });
 
   const handleCodeBlockInserted = useCallback((pos: number) => {
     const view = viewRef.current;
@@ -349,6 +353,16 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             onSelectDate={insertTemplateDate}
             onClose={() => setTemplateDatePickerOpen(false)}
           />
+
+          {calloutType.menu && (
+            <CalloutTypeMenu
+              x={calloutType.menu.x}
+              y={calloutType.menu.y}
+              current={calloutType.menu.current}
+              onSelect={calloutType.select}
+              onClose={calloutType.close}
+            />
+          )}
 
           <TaskDialog
             isOpen={taskDialogOpen}

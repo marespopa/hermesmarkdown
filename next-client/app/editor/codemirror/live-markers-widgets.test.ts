@@ -2,9 +2,19 @@ import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { HiOutlineLightBulb } from "react-icons/hi";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CalloutLabelWidget, TaskBoxWidget, toggleTaskBox } from "./live-markers-widgets";
+import { BulletWidget, CalloutLabelWidget, TaskBoxWidget, toggleTaskBox } from "./live-markers-widgets";
+import { CALLOUT_TYPE_MENU_EVENT } from "./callout-type";
 
 const view = (doc = "- [ ] task") => new EditorView({ state: EditorState.create({ doc }) });
+
+describe("BulletWidget", () => {
+  it("draws its glyph without any text the caret could land in", () => {
+    const top = new BulletWidget(0).toDOM();
+    expect(top.textContent).toBe("");
+    expect(top.dataset.glyph).toBe("•");
+    expect(new BulletWidget(1).toDOM().dataset.glyph).toBe("◦");
+  });
+});
 
 describe("TaskBoxWidget", () => {
   it("draws a new box without the tick animation", () => {
@@ -61,5 +71,18 @@ describe("CalloutLabelWidget", () => {
     const dom = new CalloutLabelWidget("tip", "text-emerald-600", HiOutlineLightBulb).toDOM(view());
     expect(dom.querySelector(".cm-calloutIcon svg")).not.toBeNull();
     expect(dom.textContent).toBe("tip");
+  });
+
+  it("asks for the type menu on press, under the label", () => {
+    const v = view("> [!tip] Title");
+    const dom = new CalloutLabelWidget("tip", "text-emerald-600", HiOutlineLightBulb).toDOM(v);
+    v.contentDOM.firstChild?.appendChild(dom);
+    const listener = vi.fn();
+    v.dom.addEventListener(CALLOUT_TYPE_MENU_EVENT, listener);
+    dom.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+    const detail = (listener.mock.calls[0][0] as CustomEvent).detail;
+    expect(detail.pos).toBeGreaterThanOrEqual(0);
+    expect(detail.anchor).toBeDefined();
+    expect(dom.querySelector(".cm-calloutChevron svg")).not.toBeNull();
   });
 });

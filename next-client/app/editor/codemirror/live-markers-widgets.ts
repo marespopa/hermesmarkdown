@@ -1,9 +1,11 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { IconType } from "react-icons";
+import { HiChevronDown } from "react-icons/hi";
 import { EditorView, WidgetType } from "@codemirror/view";
 import { taskStatusFromChar, toggledStatus, type TaskStatus } from "@/app/utils/task-status";
 import { statusLineEdits } from "@/app/utils/task-line";
+import { requestCalloutTypeMenu } from "./callout-type";
 
 // Widgets live-markers.ts draws in place of Markdown syntax.
 
@@ -26,7 +28,10 @@ export class BulletWidget extends WidgetType {
     const node = document.createElement("span");
     node.className = "cm-liveBullet";
     node.style.width = em(BULLET_COLUMNS);
-    node.textContent = this.depth % 2 === 0 ? "•" : "◦";
+    // Drawn by CSS (::before), not as text: a text node in the widget lets
+    // the browser put its caret inside it, so typing at the start of the
+    // item went in before the caret and came out reversed.
+    node.dataset.glyph = this.depth % 2 === 0 ? "•" : "◦";
     node.setAttribute("aria-hidden", "true");
     return node;
   }
@@ -140,11 +145,15 @@ export class CalloutLabelWidget extends WidgetType {
     icon.className = "cm-calloutIcon";
     icon.innerHTML = calloutIconMarkup(this.icon);
     node.appendChild(document.createTextNode(this.label));
+    const chevron = node.appendChild(document.createElement("span"));
+    chevron.className = "cm-calloutChevron";
+    chevron.setAttribute("aria-hidden", "true");
+    chevron.innerHTML = calloutIconMarkup(HiChevronDown);
+    node.title = "Change callout type";
+    // Opens the type menu; Home (or the arrow keys) still reveals `> [!type]`.
     node.addEventListener("mousedown", (event) => {
       event.preventDefault();
-      const from = view.state.doc.lineAt(view.posAtDOM(node)).from;
-      view.dispatch({ selection: { anchor: from }, userEvent: "select.callout" });
-      view.focus();
+      requestCalloutTypeMenu(view, { pos: view.posAtDOM(node), anchor: node.getBoundingClientRect() });
     });
     return node;
   }
