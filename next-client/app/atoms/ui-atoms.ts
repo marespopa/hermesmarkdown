@@ -266,8 +266,8 @@ export const atom_tasksGroupBy = atomWithStorage<"status" | "file">(
 
 // The Tasks page's smart list (see app/editor/tasks/task-views.ts),
 // remembered across sessions
-export type TaskView = "now" | "today" | "upcoming" | "all";
-export const atom_taskView = atomWithStorage<TaskView>("tasksView", "now");
+export type TaskView = "now" | "today" | "upcoming" | "all" | "board";
+export const atom_taskView = atomWithStorage<TaskView>("tasksView", "board");
 
 
 // Set when navigating to a line in a note (a task from the Tasks view, a

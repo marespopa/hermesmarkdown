@@ -183,6 +183,7 @@ describe("buildEditorCommands", () => {
       "tasks-group-status",
       "tasks-group-file",
       "tasks-clear-filters",
+      "tasks-view-board",
       "tasks-view-now",
       "tasks-view-today",
       "tasks-view-upcoming",

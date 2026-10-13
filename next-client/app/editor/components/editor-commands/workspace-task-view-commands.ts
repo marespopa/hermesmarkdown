@@ -234,6 +234,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       },
     },
     ...([
+      ["board", "Board", "kanban columns status"],
       ["now", "Now", "in progress up next focus"],
       ["today", "Today", "due today overdue"],
       ["upcoming", "Upcoming", "due later scheduled"],

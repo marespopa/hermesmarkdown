@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { HiDotsHorizontal } from "react-icons/hi";
+import { HiDotsHorizontal, HiOutlineDocumentText } from "react-icons/hi";
 import type { DisplayTask } from "@/app/atoms/task-atoms";
 import Button from "@/app/components/Button";
 import PrivateBadge from "@/app/components/PrivateBadge";
@@ -39,7 +39,9 @@ const TEXT_CLASS: Record<TaskStatus, string> = {
 // One task on the Tasks page. A task from a private note (isMasked) shows
 // bullets and a lock instead of its text and tags; the status ring, due date
 // and file subtitle still work. On touch, the row swipes (use-task-swipe.ts):
-// right to move the task forward, left to set it aside.
+// right to move the task forward, left to set it aside. Its note opens from
+// a click on the text, a double-click anywhere on the row, or Open Note in
+// the status menu (⋯ or right-click on the ring).
 export default function TaskRow({
   task,
   subtitle,
@@ -61,6 +63,7 @@ export default function TaskRow({
   const tags = task.isMasked ? [] : task.tags;
   const swipe = useTaskSwipe(task.status, onSetStatus);
   const swiping = swipe.offset !== 0;
+  const openItems = [{ label: "Open Note", icon: <HiOutlineDocumentText size={14} />, onClick: onNavigate }];
   return (
     <div className="relative overflow-hidden rounded-xl touch-pan-y" {...swipe.handlers}>
       {swipe.action && (
@@ -73,6 +76,11 @@ export default function TaskRow({
       )}
       <div
         style={swiping ? { transform: `translateX(${swipe.offset}px)` } : undefined}
+        onDoubleClick={(e) => {
+          // The ring and ⋯ handle their own clicks; the text already opened the note.
+          if ((e.target as HTMLElement).closest("button")) return;
+          onNavigate();
+        }}
         className={`group relative flex items-start gap-2.5 rounded-xl px-2.5 py-2 [@media(pointer:coarse)]:py-2.5 ${
           swiping
             ? "bg-paper-pale dark:bg-paper-dark"
@@ -86,6 +94,7 @@ export default function TaskRow({
           menuAt={menuAt}
           menuAnchorRef={menuButtonRef}
           onMenuClose={closeMenu}
+          extraItems={openItems}
         />
         <Button variant="unstyled" className="min-w-0 flex-1 cursor-pointer text-left" onClick={onNavigate}>
           <div className={`flex min-w-0 items-center gap-1.5 text-ui-caption ${TEXT_CLASS[task.status]}`}>

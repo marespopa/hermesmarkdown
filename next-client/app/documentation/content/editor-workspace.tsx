@@ -5,9 +5,9 @@ export const editorWorkspaceItems: Subsection[] = [
   {
     id: "tasks-page",
     title: "Tasks page",
-    lead: "A vault-wide checklist — every checkbox task across every note, in four lists: Now, Today, Upcoming and All.",
+    lead: "A vault-wide checklist — every checkbox task across every note, on a Board or in four lists: Now, Today, Upcoming and All.",
     keywords:
-      "task tasks checkbox status todo in progress hold blocked done cancelled pane aggregate due date priority tags filter now today upcoming overdue smart list swipe started done date stamp files",
+      "task tasks checkbox status todo in progress hold blocked done cancelled pane aggregate due date priority tags filter now today upcoming overdue smart list swipe started done date stamp files board kanban columns drag",
     body: (
       <>
         <p>
@@ -44,6 +44,7 @@ export const editorWorkspaceItems: Subsection[] = [
         </p>
         <KV
           rows={[
+            { label: "Board", value: "A column per status: To Do [ ], In Progress [/], On Hold [!], Done [x]. The page opens on it" },
             { label: "Now", value: "In Progress, then Up Next: the next five to-dos by due date" },
             { label: "Today", value: "Overdue, then due today" },
             { label: "Upcoming", value: "Later due dates, one section per day" },
@@ -62,7 +63,13 @@ export const editorWorkspaceItems: Subsection[] = [
           Click a task's status ring to complete it, or to reopen a done or cancelled one. For any
           other status, right-click the ring (long-press on touch) or use the ⋯ button at the end of
           the row. The change writes straight back to the source line in the file, no need to open
-          it first. Click the task text instead to open its note and jump to that line.
+          it first. To open its note at that line, click the task text, double-click the row, or
+          choose <strong>Open Note</strong> from the same menu.
+        </p>
+        <p>
+          On the Board, drag a card to another column to give it that status; it moves at once.
+          Cancelled tasks stay off the board. On a narrow screen the columns scroll sideways; the
+          ring, the menu and swiping work there too.
         </p>
         <p>
           After a change, the task stays where it is for a moment, already showing its new status,

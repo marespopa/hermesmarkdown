@@ -1,6 +1,6 @@
 # TasksToolbar
 
-Description: The Tasks page's one toolbar. The top row holds the "Tasks" title, the total count, and (in All only) a ⋯ button whose menu groups by status or by note and sorts by due date, priority, status, note or title, ascending or descending. Below it sits a segmented control switching between Now · Today · Upcoming · All, each with its count, then one search field (`UnifiedSearchInput`) where typing `#` picks tag filters, shown as chips under the field. Also exports `taskListMenuItems` (the menu's items).
+Description: The Tasks page's one toolbar. The top row holds the "Tasks" title, the total count, and (in All only) a ⋯ button whose menu groups by status or by note and sorts by due date, priority, status, note or title, ascending or descending. Below it sits a segmented control switching between Board · Now · Today · Upcoming · All (Board first, the default), each with its count, then one search field (`UnifiedSearchInput`) where typing `#` picks tag filters, shown as chips under the field. Also exports `taskListMenuItems` (the menu's items).
 
 ## Local State & Storage
 - State: `menuAt`, where the ⋯ menu is open (null while closed).

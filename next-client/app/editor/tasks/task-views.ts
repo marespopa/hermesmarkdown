@@ -1,6 +1,6 @@
 import type { TaskView } from "@/app/atoms/ui-atoms";
 import type { TaskItem } from "@/app/utils/taskExtractor";
-import { isOpenStatus, type TaskStatus } from "@/app/utils/task-status";
+import { isOpenStatus, TASK_STATUS_LABEL, type TaskStatus } from "@/app/utils/task-status";
 import { localISODate } from "@/app/utils/task-line";
 import { sortTasks } from "./task-sort";
 
@@ -11,15 +11,22 @@ import { sortTasks } from "./task-sort";
 //   Now:      In Progress, then the next few to-dos (Up Next) by due date.
 //   Today:    Overdue, then due today.
 //   Upcoming: one section per later due date.
+// Board lays every task out in one column per status (buildBoardColumns).
 
-export type SmartView = Exclude<TaskView, "all">;
+export type SmartView = Exclude<TaskView, "all" | "board">;
 
+// Board first: it's the page's default view.
 export const TASK_VIEWS: { id: TaskView; label: string }[] = [
+  { id: "board", label: "Board" },
   { id: "now", label: "Now" },
   { id: "today", label: "Today" },
   { id: "upcoming", label: "Upcoming" },
   { id: "all", label: "All" },
 ];
+
+// The board's columns, one per task box: [ ] [/] [!] [x]. Cancelled tasks
+// ([-]) stay off the board.
+export const BOARD_STATUSES: TaskStatus[] = ["todo", "prog", "hold", "done"];
 
 export const UP_NEXT_LIMIT = 5;
 
@@ -122,6 +129,19 @@ export function buildViewSections<T extends TaskItem>(
   return sections;
 }
 
+// The board: every column, empty or not, its cards by due date.
+export function buildBoardColumns<T extends TaskItem>(
+  tasks: T[],
+  noteTitle: (path: string) => string,
+): TaskSectionData<T>[] {
+  return BOARD_STATUSES.map((status) => ({
+    id: status,
+    title: TASK_STATUS_LABEL[status],
+    status,
+    tasks: sortTasks(tasks.filter((t) => t.status === status), "dueDate", "asc", noteTitle),
+  }));
+}
+
 // How many tasks each list shows, for the view switcher's counts.
 export function viewCounts(
   tasks: TaskItem[],
@@ -130,5 +150,6 @@ export function viewCounts(
 ): Record<TaskView, number> {
   const count = (view: SmartView) =>
     buildViewSections(view, tasks, today, noteTitle).reduce((n, section) => n + section.tasks.length, 0);
-  return { now: count("now"), today: count("today"), upcoming: count("upcoming"), all: tasks.length };
+  const board = tasks.filter((t) => BOARD_STATUSES.includes(t.status)).length;
+  return { now: count("now"), today: count("today"), upcoming: count("upcoming"), all: tasks.length, board };
 }
