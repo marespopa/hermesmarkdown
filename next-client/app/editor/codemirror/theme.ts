@@ -445,7 +445,9 @@ export const markdownHighlightStyle = HighlightStyle.define([
   { tag: t.link, color: "var(--clay)", textDecoration: "underline" },
   { tag: t.url, color: "var(--clay)" },
   { tag: t.monospace, fontFamily: MONO_FONT_STACK },
-  { tag: t.quote, color: "var(--fg-muted)", fontStyle: "italic" },
+  // Plain quotes are italic through their line (.cm-liveQuote); callouts,
+  // also quotes in Markdown, stay upright.
+  { tag: t.quote, color: "var(--fg-muted)" },
   { tag: t.list, color: "var(--fg)" },
   { tag: t.meta, color: "var(--fg-faint)" },
   { tag: t.processingInstruction, color: "var(--fg-faint)" },

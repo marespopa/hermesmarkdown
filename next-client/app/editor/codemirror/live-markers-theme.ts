@@ -5,6 +5,7 @@ export const liveMarkersTheme = EditorView.theme({
   ".cm-liveQuote": {
     borderLeft: "3px solid var(--border)",
     paddingLeft: "0.9em !important",
+    fontStyle: "italic",
   },
   // Hanging indent: a transparent border, not padding (drawSelection() reads
   // the first line's padding-left for every selection rect), pulled back on
