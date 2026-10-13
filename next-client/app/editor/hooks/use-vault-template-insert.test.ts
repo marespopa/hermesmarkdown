@@ -55,7 +55,7 @@ describe("useVaultTemplateInsert", () => {
     vi.clearAllMocks();
     pickTemplate.mockResolvedValue(RFC);
     readTemplate.mockResolvedValue("raw");
-    instantiate.mockResolvedValue({ routing: {}, expanded: EXPANDED });
+    instantiate.mockResolvedValue({ expanded: EXPANDED });
   });
 
   it("inserts the whole template, frontmatter included, into a blank note", async () => {
@@ -110,7 +110,7 @@ describe("useVaultTemplateInsert", () => {
     instantiate.mockImplementation(async () => {
       view.destroy();
       viewRef.current = null;
-      return { routing: {}, expanded: EXPANDED };
+      return { expanded: EXPANDED };
     });
     await act(() => insert());
     expect(view.state.doc.toString()).toBe("Intro");

@@ -5,6 +5,7 @@ export const liveMarkersTheme = EditorView.theme({
   ".cm-liveQuote": {
     borderLeft: "3px solid var(--border)",
     paddingLeft: "0.9em !important",
+    fontStyle: "italic",
   },
   // Hanging indent: a transparent border, not padding (drawSelection() reads
   // the first line's padding-left for every selection rect), pulled back on
@@ -24,6 +25,9 @@ export const liveMarkersTheme = EditorView.theme({
   ".cm-liveBullet": {
     display: "inline-block",
     color: "var(--fg-muted)",
+  },
+  ".cm-liveBullet::before": {
+    content: "attr(data-glyph)",
   },
   ".cm-listNumber": {
     display: "inline-block",
@@ -111,7 +115,18 @@ export const liveMarkersTheme = EditorView.theme({
     letterSpacing: "0.06em",
     textTransform: "uppercase",
     marginRight: "0.6em",
-    cursor: "text",
+    cursor: "pointer",
+  },
+  // The label's dropdown sign: faint until the label is hovered.
+  ".cm-calloutChevron": {
+    display: "inline-flex",
+    verticalAlign: "-0.15em",
+    marginLeft: "0.2em",
+    opacity: "0.45",
+    transition: "opacity 120ms ease",
+  },
+  ".cm-calloutLabel:hover .cm-calloutChevron": {
+    opacity: "1",
   },
   // A callout reads as one rounded, tinted card (lines tagged in highlight.ts),
   // its text inset from the card's edge.

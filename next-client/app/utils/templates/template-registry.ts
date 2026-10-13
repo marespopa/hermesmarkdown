@@ -97,15 +97,6 @@ function matchTemplateForFolder(segment: string, templates: TemplateEntry[]): Te
   return [...candidates].sort((a, b) => a.name.localeCompare(b.name))[0];
 }
 
-const FORBIDDEN_NAME_CHARS = /[\\/:*?"<>|]/g;
-
-// A file base name from a typed title or an expanded `file_name`: forbidden
-// characters become `-`, `.md` is stripped, empty becomes `untitled`.
-export function sanitizeNoteName(name: string): string {
-  const clean = name.replace(FORBIDDEN_NAME_CHARS, "-").trim().replace(/\.md$/i, "").trim();
-  return clean || "untitled";
-}
-
 // A template file name (AI chat save card and "New template…"): base name
 // only, `..` and leading dots stripped (dot-files aren't indexed), forbidden
 // characters become `-`, `.md` added; empty becomes `template.md`.

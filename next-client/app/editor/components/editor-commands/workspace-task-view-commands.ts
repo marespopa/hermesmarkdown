@@ -49,7 +49,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     {
       id: "open-templates",
       label: "Open Templates",
-      keywords: "templates template packs journal daily weekly meeting new note from template manage",
+      keywords: "templates template packs journal daily weekly meeting manage",
       action: onOpenTemplates,
     },
   ];

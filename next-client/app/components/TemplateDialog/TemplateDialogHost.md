@@ -1,6 +1,6 @@
 # TemplateDialogHost
 
-Description: Renders the open template request from `atom_templateDialog`: a `TemplatePicker` of vault templates (`kind: "pick"`, with its `preselect` passed on) or a `TemplatePromptForm` (`kind: "prompts"`). Each request gets a fresh dialog (empty search and fields), even when two arrive back to back. Requests come from `useTemplateDialog()` (`pickTemplate`, `askPrompts`), used by `/template`, missing-link creation and "New note from template…".
+Description: Renders the open template request from `atom_templateDialog`: a `TemplatePicker` of vault templates (`kind: "pick"`, with its `preselect` passed on) or a `TemplatePromptForm` (`kind: "prompts"`). Each request gets a fresh dialog (empty search and fields), even when two arrive back to back. Requests come from `useTemplateDialog()` (`pickTemplate`, `askPrompts`), used by `/template`, missing-link creation and the WikiLink dialog's From template.
 
 ## Local State & Storage
 - State: reads `atom_templateDialog`, `atom_templates` and `atom_templatesFolder`; a ref maps each request to a React key. When a template picker opens, every template's text is read (`readTemplate`, failures become empty) for the picker's summaries and preview. **Edit** in the template picker cancels the request and opens the template's file (fresh handle, `useOpenFile`).

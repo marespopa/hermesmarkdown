@@ -303,9 +303,9 @@ export const getStartedGroup: Group = {
           </p>
           <p>
             Files offers the same actions everywhere, in the same order:{" "}
-            <strong>New Note</strong>, <strong>New Note from Template…</strong> and <strong>New Folder</strong>, at
-            the top and in every folder&apos;s right-click (or ⋯) menu. From a folder, a note from a template goes in
-            that folder; from the top, it goes in your New Notes folder. There&apos;s no Refresh button: files
+            <strong>New Note</strong> and <strong>New Folder</strong>, at the top and in every folder&apos;s
+            right-click (or ⋯) menu. To start from a template, type <code>/template</code> in the new note.
+            There&apos;s no Refresh button: files
             you add, delete or move outside HermesMarkdown show up on their own (straight away in Chrome and Edge,
             otherwise when you come back to the window).
           </p>
@@ -319,7 +319,7 @@ export const getStartedGroup: Group = {
               { label: "Search note text", value: "CTRL/CMD+SHIFT+F" },
               { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings · / note text" },
               { label: "Commands on or off", value: "The > button in the search field" },
-              { label: "Files controls", value: "New note, new note from template, new folder, and file actions" },
+              { label: "Files controls", value: "New note, new folder, and file actions" },
               { label: "AI Chat", value: "CTRL+SHIFT+B" },
               { label: "Keyboard shortcuts", value: "Show Keyboard Shortcuts command" },
             ]}

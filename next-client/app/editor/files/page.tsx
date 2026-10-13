@@ -32,7 +32,6 @@ export default function FilesPage() {
     undoFileOperation,
     openFile,
     renameFile,
-    createNoteFromTemplate,
     vaultHandle,
   } = useFileSystem();
   const vaultName = useAtomValue(atom_vaultName);
@@ -79,15 +78,8 @@ export default function FilesPage() {
     void (kind === "file" ? createNewFile() : createFolder());
   }, [isFiltered, createNewFile, createFolder]);
 
-  // A note from a template opens in the editor; "" lets the template's own
-  // folder decide (the header), a folder's menu passes that folder.
-  const createFromTemplate = useCallback(async (folder = "") => {
-    if (await createNoteFromTemplate(undefined, folder)) router.push("/editor");
-  }, [createNoteFromTemplate, router]);
-
   const createActions = fileCreateActions({
     newNote: () => startCreate("file"),
-    newFromTemplate: () => void createFromTemplate(),
     newFolder: () => startCreate("folder"),
   });
 
@@ -173,7 +165,6 @@ export default function FilesPage() {
                 resolveFolderHandle={resolveFolderHandle}
                 createNewFile={createNewFile}
                 createFolder={createFolder}
-                createNoteFromTemplate={(folder) => createFromTemplate(folder)}
                 moveItem={moveItem}
                 moveItems={moveItems}
               />

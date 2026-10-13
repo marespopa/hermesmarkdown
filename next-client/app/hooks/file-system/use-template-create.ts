@@ -15,12 +15,10 @@ import { useTemplateNotes } from "./use-template-notes";
 import {
   matchTemplateForName,
   parseMissingLink,
-  sanitizeNoteName,
   sanitizeTemplateFileName,
   type TemplateEntry,
 } from "@/app/utils/templates/template-registry";
-import { splitTemplate } from "@/app/utils/templates/template-frontmatter";
-import { offsetToLineColumn, usesToken, type ExpandedTemplate } from "@/app/utils/templates/template-tokens";
+import { offsetToLineColumn, type ExpandedTemplate } from "@/app/utils/templates/template-tokens";
 
 interface UseTemplateCreateProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -33,12 +31,6 @@ export const NEW_TEMPLATE_BODY = "# {{title}}\n\n{{cursor}}\n";
 
 const BLANK_NOTE: ExpandedTemplate = { text: "\n", cursor: null };
 const joinPath = (folder: string, name: string) => (folder ? `${folder}/${name}` : name);
-
-// A `file_name` that names the note by itself (a date, a week, an answer),
-// not from its title: no title is asked for.
-export function namesItsNote(fileName: string | undefined): boolean {
-  return !!fileName?.trim() && !usesToken(fileName, "title") && !usesToken(fileName, "slug");
-}
 
 // Fresh handle for a vault path, or null when it doesn't exist.
 export async function findExisting(vaultHandle: FileSystemDirectoryHandle, path: string) {
@@ -56,12 +48,12 @@ function reportCreateError(err: any) {
   toast.error(isInvalidState ? "Google Drive is syncing. Please wait a moment and try again." : "Failed to create file");
 }
 
-// Note creation from templates and links. One rule everywhere: the note goes
-// in the link's folder when it has one, else the folder whose menu was used,
-// else the New Notes folder; a note of that name already there is opened (or
-// linked) as it is, never duplicated or overwritten. A template's file_name
-// names the note, except in link flows, where the link already names it.
-// Also "New template…", which creates a template file with a minimal body.
+// Note creation from links (a missing [[link]], the WikiLink dialog), with or
+// without a template: the note goes in the link's folder when it has one,
+// else the New Notes folder, and the link names it; a note of that name
+// already there is opened (or linked) as it is, never duplicated or
+// overwritten. Also "New template…", which creates a template file with a
+// minimal body.
 export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTemplateCreateProps) {
   const store = useStore();
   const dialog = useDialog();
@@ -123,7 +115,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   }, [readTemplate]);
 
   // Note text for a link-named note: blank, or `entry` expanded with the
-  // link's name as the title (its file_name is ignored). null = cancelled.
+  // link's name as the title. null = cancelled.
   const linkedNoteText = useCallback(async (entry: TemplateEntry | "blank", title: string) => {
     if (entry === "blank") return BLANK_NOTE;
     const raw = await readOrReport(entry);
@@ -171,29 +163,6 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     if (!expanded) return;
     await writeNewNote(folder, parsed.baseName, expanded);
   }, [store, newNotesFolder, pickTemplate, linkedNoteText, writeNewNote, scanVault, openFile]);
-
-  // "New note from template…" (palette, the Templates page's Use with
-  // `picked`, a folder's menu with `folder`). The template's file_name names
-  // the note; a title is asked only when there's no file_name or it uses
-  // {{title}}. True once the note is open.
-  const createNoteFromTemplate = useCallback(async (picked?: TemplateEntry, folder?: string): Promise<boolean> => {
-    if (!store.get(atom_vaultHandle)) return false;
-    const chosen = picked ?? (await pickTemplate({ includeBlank: false, title: "New note from template" }));
-    if (!chosen || chosen === "blank") return false;
-    const raw = await readOrReport(chosen);
-    if (raw === null) return false;
-    const named = namesItsNote(splitTemplate(raw).routing.fileName);
-    let title = "";
-    if (!named) {
-      title = String((await dialog.prompt("Note title:", "", "New note from template")) ?? "").trim();
-      if (!title) return false;
-    }
-    const result = await instantiate(raw, title, "Create", "", { titleFromFileName: named });
-    if (!result) return false;
-    const target = normalizeFolderPath(folder ?? "") || newNotesFolder();
-    const baseName = sanitizeNoteName(result.routing.fileName || title);
-    return (await writeNewNote(target, baseName, result.expanded)) !== null;
-  }, [store, dialog, pickTemplate, readOrReport, instantiate, newNotesFolder, writeNewNote]);
 
   // "New template…": asks the name, then `templates/<name>.md` (in
   // `<pack>/` when given) with a minimal body. A template with the same name
@@ -268,7 +237,6 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   return {
     writeNewNote,
     createNoteFromMissingLink,
-    createNoteFromTemplate,
     createTemplate,
     createWikiLinkFile,
     createLinkedNoteFromTemplate,

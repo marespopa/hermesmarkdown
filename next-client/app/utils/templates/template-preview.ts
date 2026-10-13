@@ -1,5 +1,5 @@
 import { parseFmFields } from "@/app/utils/frontmatter-utils";
-import { splitTemplate } from "./template-frontmatter";
+import { templateContent } from "./template-frontmatter";
 import { expandTemplate, extractPromptLabels, usesToken } from "./template-tokens";
 
 // What the template picker and the empty-note pills show about a template
@@ -22,7 +22,7 @@ export function templateIcon(name: string): TemplateIconKey {
 
 // "3 sections • Action items • Today's date • Asks Owner", from the raw text.
 export function templateSummary(raw: string): string {
-  const { content } = splitTemplate(raw);
+  const content = templateContent(raw);
   const parts: string[] = [];
   const sections = content.split("\n").filter((line) => /^##\s+\S/.test(line)).length;
   if (sections > 0) parts.push(`${sections} section${sections === 1 ? "" : "s"}`);
@@ -82,7 +82,7 @@ function line(text: string): PreviewLine {
 // set to `title`), with unanswered questions kept as pills. Blank runs are
 // collapsed to one line.
 export function templatePreview(raw: string, title: string, now: Date): TemplatePreviewModel {
-  const { content } = splitTemplate(raw);
+  const content = templateContent(raw);
   // Questions stay unanswered: expandTemplate leaves unknown prompt labels as typed.
   const { text } = expandTemplate(content, { now, title, clipboard: "", prompts: {} });
   const fm = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n)?/.exec(text);

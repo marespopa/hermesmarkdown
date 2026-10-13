@@ -7,7 +7,6 @@ import {
   listTemplates,
   parseMissingLink,
   resolveTemplatesFolder,
-  sanitizeNoteName,
   sanitizeTemplateFileName,
   type TemplateEntry,
 } from "./template-registry";
@@ -106,18 +105,6 @@ describe("parseMissingLink", () => {
     expect(parseMissingLink("")).toBeNull();
     expect(parseMissingLink("folder/")).toBeNull();
     expect(parseMissingLink("|alias")).toBeNull();
-  });
-});
-
-describe("sanitizeNoteName", () => {
-  it("replaces forbidden characters and strips .md", () => {
-    expect(sanitizeNoteName(" a/b:c?.md ")).toBe("a-b-c-");
-    expect(sanitizeNoteName("Auth Spec")).toBe("Auth Spec");
-  });
-
-  it("falls back to untitled", () => {
-    expect(sanitizeNoteName("  ")).toBe("untitled");
-    expect(sanitizeNoteName(".md")).toBe("untitled");
   });
 });
 

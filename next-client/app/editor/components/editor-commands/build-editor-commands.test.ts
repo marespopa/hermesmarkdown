@@ -117,7 +117,6 @@ describe("buildEditorCommands", () => {
     expect(commands.map((command) => command.id)).toEqual([
       "save-file",
       "new-file",
-      "new-note-from-template",
       "insert-template",
       "save-as-template",
       "new-template",
@@ -256,16 +255,6 @@ describe("buildEditorCommands", () => {
     expect(context.createFolder).toHaveBeenCalledOnce();
     expect(context.renameFile).toHaveBeenCalledWith(context.activeFileHandle, undefined, context.activeFilePath);
     expect(context.deleteFile).toHaveBeenCalledWith(context.activeFileHandle, context.activeFilePath);
-  });
-
-  it("lists New note from template… only with a vault and runs the flow", () => {
-    const createNoteFromTemplate = vi.fn();
-    const withVault = buildEditorCommands(createContext({ createNoteFromTemplate } as Partial<EditorCommandContext>));
-    withVault.find((command) => command.id === "new-note-from-template")?.action();
-    expect(createNoteFromTemplate).toHaveBeenCalledOnce();
-
-    const withoutVault = buildEditorCommands(createContext({ vaultHandle: null }));
-    expect(withoutVault.some((command) => command.id === "new-note-from-template")).toBe(false);
   });
 
   it("renames the open browser vault from the palette", async () => {

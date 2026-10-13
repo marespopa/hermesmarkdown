@@ -7,7 +7,7 @@ import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_newNoteFolder, atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { writeFileContent } from "@/app/services/file-writer";
-import { NEW_TEMPLATE_BODY, namesItsNote, useTemplateCreate } from "./use-template-create";
+import { NEW_TEMPLATE_BODY, useTemplateCreate } from "./use-template-create";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("react-hot-toast", () => ({ default: { error: vi.fn(), success: vi.fn() } }));
@@ -70,7 +70,7 @@ class FakeDir {
   }
 }
 
-// Its target_folder is a leftover from older templates: ignored, and kept out of notes.
+// Its target_folder and file_name are leftovers from older templates: ignored, and kept out of notes.
 const RFC_TEMPLATE =
   "---\ntarget_folder: docs/rfcs\nfile_name: rfc-{{date}}-{{slug}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}\n";
 
@@ -188,95 +188,6 @@ describe("createNoteFromMissingLink", () => {
   });
 });
 
-describe("createNoteFromTemplate", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    localStorage.clear();
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(new Date(2026, 9, 4, 9, 0));
-    pickTemplate.mockResolvedValue({ name: "rfc", path: "templates/rfc.md" });
-    dialog.prompt.mockResolvedValue("Auth Spec");
-    askPrompts.mockResolvedValue({ Owner: "Ana" });
-  });
-  afterEach(() => vi.useRealTimers());
-
-  it("puts the note in the New Notes Folder named by file_name, ignoring target_folder", async () => {
-    const { root, flows } = await setup({ newNoteFolder: "inbox" });
-    await act(() => flows.createNoteFromTemplate());
-    expect(pickTemplate).toHaveBeenCalledWith(expect.objectContaining({ includeBlank: false }));
-    expect(root.at("inbox/rfc-2026-10-04-auth-spec.md")?.content).toBe("# Auth Spec\nOwner: Ana\n\n");
-    expect(root.dirs.has("docs")).toBe(false);
-  });
-
-  it("opens a note of the same name as it is: never ` (1)`, never overwritten", async () => {
-    const { root, props, flows } = await setup({ templates: { "templates/rfc.md": "Body {{title}}\n" }, newNoteFolder: "inbox" });
-    await root.put("inbox/Auth Spec.md", "mine");
-    await act(() => flows.createNoteFromTemplate());
-    expect(writeFileContent).not.toHaveBeenCalled();
-    expect(root.at("inbox/Auth Spec.md")?.content).toBe("mine");
-    expect(root.at("inbox/Auth Spec (1).md")).toBeUndefined();
-    expect(props.openFile).toHaveBeenCalledWith(root.at("inbox/Auth Spec.md"), "inbox/Auth Spec.md", true);
-  });
-
-  it("names a weekly note by its date format", async () => {
-    const weekly = "---\nfile_name: {{date:GGGG-[W]ww}}\n---\n# Week {{date:ww}}\n";
-    const { root, flows } = await setup({ templates: { "templates/Weekly.md": weekly } });
-    await act(() => flows.createNoteFromTemplate({ name: "Weekly", path: "templates/Weekly.md" }));
-    expect(dialog.prompt).not.toHaveBeenCalled();
-    expect(root.at("2026-W40.md")?.content).toBe("# Week 40\n");
-  });
-
-  it("falls back to the New Notes Folder and the title", async () => {
-    const { root, flows } = await setup({ templates: { "templates/rfc.md": "Body {{title}}\n" }, newNoteFolder: "inbox" });
-    await act(() => flows.createNoteFromTemplate());
-    expect(root.at("inbox/Auth Spec.md")?.content).toBe("Body Auth Spec\n");
-  });
-
-  it("names a dated note without asking for a title, and opens it again instead of duplicating", async () => {
-    const daily = "---\nfile_name: {{date}}\n---\n# {{title}}\n{{cursor}}\n";
-    const { root, props, flows } = await setup({ templates: { "templates/Journal/Daily.md": daily } });
-    const entry = { name: "Daily", path: "templates/Journal/Daily.md", pack: "Journal" };
-    await act(() => flows.createNoteFromTemplate(entry, "journal"));
-    expect(pickTemplate).not.toHaveBeenCalled();
-    expect(dialog.prompt).not.toHaveBeenCalled();
-    expect(root.at("journal/2026-10-04.md")?.content).toBe("# 2026-10-04\n\n");
-
-    root.at("journal/2026-10-04.md")!.content = "# 2026-10-04\nWritten today\n";
-    props.openFile.mockClear();
-    await act(() => flows.createNoteFromTemplate(entry, "journal"));
-    expect(root.at("journal/2026-10-04.md")?.content).toBe("# 2026-10-04\nWritten today\n");
-    expect(root.at("journal/2026-10-04 (1).md")).toBeUndefined();
-    expect(props.openFile).toHaveBeenCalledWith(expect.anything(), "journal/2026-10-04.md", true);
-  });
-
-  it("puts the note in the folder it was asked from", async () => {
-    const { root, flows } = await setup();
-    await act(() => flows.createNoteFromTemplate(undefined, "projects/auth"));
-    expect(root.at("projects/auth/rfc-2026-10-04-auth-spec.md")?.content).toBe("# Auth Spec\nOwner: Ana\n\n");
-    expect(root.at("docs/rfcs/rfc-2026-10-04-auth-spec.md")).toBeUndefined();
-  });
-
-  it("cancels on an empty title", async () => {
-    dialog.prompt.mockResolvedValue("  ");
-    const { flows } = await setup();
-    await act(() => flows.createNoteFromTemplate());
-    expect(askPrompts).not.toHaveBeenCalled();
-    expect(writeFileContent).not.toHaveBeenCalled();
-  });
-});
-
-describe("namesItsNote", () => {
-  it("is true for a file_name that doesn't come from the title", () => {
-    expect(namesItsNote("{{date}}")).toBe(true);
-    expect(namesItsNote("{{weekSheet}}")).toBe(true);
-    expect(namesItsNote("{{prompt:Client}} notes")).toBe(true);
-    expect(namesItsNote("rfc-{{date}}-{{slug}}")).toBe(false);
-    expect(namesItsNote("{{title}}")).toBe(false);
-    expect(namesItsNote(undefined)).toBe(false);
-    expect(namesItsNote("  ")).toBe(false);
-  });
-});
-
 describe("createTemplate", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -385,20 +296,20 @@ describe("{{clipboard}}", () => {
   it("inserts the clipboard text", async () => {
     readText.mockResolvedValue("pasted");
     const { root, flows } = await setup({ templates: { "templates/clip.md": "> {{clipboard}}\n" } });
-    await act(() => flows.createNoteFromTemplate());
+    await act(() => flows.createNoteFromMissingLink("Note"));
     expect(root.at("Note.md")?.content).toBe("> pasted\n");
   });
 
   it("is empty when the read is denied", async () => {
     readText.mockRejectedValue(new Error("denied"));
     const { root, flows } = await setup({ templates: { "templates/clip.md": "> {{clipboard}}\n" } });
-    await act(() => flows.createNoteFromTemplate());
+    await act(() => flows.createNoteFromMissingLink("Note"));
     expect(root.at("Note.md")?.content).toBe("> \n");
   });
 
   it("isn't read for templates that don't use it", async () => {
     const { flows } = await setup({ templates: { "templates/clip.md": "plain\n" } });
-    await act(() => flows.createNoteFromTemplate());
+    await act(() => flows.createNoteFromMissingLink("Note"));
     expect(readText).not.toHaveBeenCalled();
   });
 });

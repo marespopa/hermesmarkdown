@@ -4,7 +4,7 @@ import { TEMPLATE_TOKENS } from "./template-tokens";
 
 describe("lintTemplate", () => {
   it("returns no warnings for a clean template", () => {
-    const raw = "---\nfile_name: rfc-{{date}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}\n";
+    const raw = "---\nstatus: draft\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}\n";
     expect(lintTemplate(raw)).toEqual([]);
   });
 
@@ -24,7 +24,7 @@ describe("lintTemplate", () => {
 
   it("doesn't warn about legacy tokens or the period formats", () => {
     expect(lintTemplate("{{weekSheet}} {{weekday}} {{year}} {{slug}} {{monthSheet-1m}}")).toEqual([]);
-    expect(lintTemplate("---\nfile_name: {{date:GGGG-[W]ww}}\n---\n[[{{date-1w:GGGG-[W]ww}}]] {{date:YYYY-[Q]Q}}")).toEqual([]);
+    expect(lintTemplate("# {{date:GGGG-[W]ww}}\n[[{{date-1w:GGGG-[W]ww}}]] {{date:YYYY-[Q]Q}}")).toEqual([]);
   });
 
   it("warns about an empty prompt label", () => {
@@ -35,25 +35,20 @@ describe("lintTemplate", () => {
     expect(lintTemplate("{{cursor}} {{cursor}}")).toEqual([expect.stringContaining("only the first counts")]);
   });
 
-  it("warns about misspelled routing keys", () => {
-    expect(lintTemplate("---\nfilename: x\n---\nBody")).toEqual([
-      expect.stringContaining('"filename" should be spelled "file_name"'),
-    ]);
-  });
-
-  it("says target_folder is no longer used", () => {
-    expect(lintTemplate("---\ntarget_folder: rfcs\n---\nBody")).toEqual([
+  it("says target_folder and file_name are no longer used", () => {
+    expect(lintTemplate("---\ntarget_folder: rfcs\nfile_name: x\n---\nBody")).toEqual([
       expect.stringContaining('"target_folder" is no longer used'),
+      expect.stringContaining('"file_name" is no longer used'),
     ]);
   });
 });
 
 describe("TEMPLATE_SYNTAX_GUIDE", () => {
-  it("documents every token and file_name, not target_folder", () => {
+  it("documents every token, and neither target_folder nor file_name", () => {
     for (const token of TEMPLATE_TOKENS) expect(TEMPLATE_SYNTAX_GUIDE).toContain(`{{${token}}}`);
     expect(TEMPLATE_SYNTAX_GUIDE).toContain("{{prompt:Label}}");
     expect(TEMPLATE_SYNTAX_GUIDE).not.toContain("target_folder");
-    expect(TEMPLATE_SYNTAX_GUIDE).toContain("file_name");
+    expect(TEMPLATE_SYNTAX_GUIDE).not.toContain("file_name");
   });
 
   it("documents the period formats, not the legacy tokens", () => {

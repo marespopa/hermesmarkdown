@@ -135,7 +135,8 @@ function fadedFences(state: EditorState, block: SyntaxNode): Range<Decoration>[]
 }
 
 // A callout's title line: `> [!type]` reads as the type's name unless the
-// selection reaches before the title (Home, or a click on the label).
+// selection reaches before the title (Home). Pressing the label opens the
+// type menu (callout-type.ts).
 function calloutTitle(state: EditorState, selection: EditorSelection | null, from: number): Range<Decoration> | null {
   const line = state.doc.lineAt(from);
   const match = REGEX_CALLOUT_PREFIX.exec(state.doc.sliceString(from, line.to));

@@ -11,7 +11,6 @@ export const SMALL_BUTTON_CLASS =
 
 interface PackSectionProps {
   pack: TemplatePack;
-  onUse: (template: TemplateEntry) => void;
   onEdit: (template: TemplateEntry) => void;
   onNewTemplate: (pack: TemplatePack) => void;
   onDuplicate: (pack: TemplatePack) => void;
@@ -20,9 +19,9 @@ interface PackSectionProps {
 
 // One of your packs (or the loose templates, `pack.name` ""): its name and
 // count, New template / Duplicate / Delete (no Delete for the loose ones,
-// which aren't a folder of their own), then a row per template with Use
-// (make a note from it) and Edit (open the template file).
-export default function PackSection({ pack, onUse, onEdit, onNewTemplate, onDuplicate, onDelete }: PackSectionProps) {
+// which aren't a folder of their own), then a row per template with Edit
+// (open the template file).
+export default function PackSection({ pack, onEdit, onNewTemplate, onDuplicate, onDelete }: PackSectionProps) {
   const title = pack.name || "Loose templates";
   const count = pack.templates.length;
   return (
@@ -59,14 +58,6 @@ export default function PackSection({ pack, onUse, onEdit, onNewTemplate, onDupl
               </span>
               <Button variant="unstyled" onClick={() => onEdit(template)} className={SMALL_BUTTON_CLASS} aria-label={`Edit ${template.name}`}>
                 <HiOutlinePencil size={14} aria-hidden /> Edit
-              </Button>
-              <Button
-                variant="unstyled"
-                onClick={() => onUse(template)}
-                className={`${SMALL_BUTTON_CLASS} bg-surface-raised text-fg`}
-                aria-label={`Use ${template.name}`}
-              >
-                Use
               </Button>
             </li>
           ))}

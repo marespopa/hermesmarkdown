@@ -16,9 +16,10 @@ import BuiltinPackCard from "./components/BuiltinPackCard";
 import PackSection, { SMALL_BUTTON_CLASS } from "./components/PackSection";
 
 // Templates: everything new notes start from. Your templates, grouped by
-// pack (a folder in templates/), each with Use and Edit, and the
-// packs the app ships, each with Add to vault. Use and Edit open a note in
-// the editor and go back there; the pack actions stay on this page.
+// pack (a folder in templates/), each with Edit, and the packs the app
+// ships, each with Add to vault. Edit opens the template in the editor and
+// goes back there; the pack actions stay on this page. Templates are used
+// from a note, with /template.
 export default function TemplatesPage() {
   const router = useRouter();
   const vaultHandle = useAtomValue(atom_vaultHandle);
@@ -26,7 +27,7 @@ export default function TemplatesPage() {
   const folderPaths = useAtomValue(atom_vaultFolderPaths);
   const templates = useAtomValue(atom_templates);
   const { folder } = useAtomValue(atom_templatesFolder);
-  const { openFile, scanVault, indexVaultTags, createNoteFromTemplate, createTemplate } = useFileSystem();
+  const { openFile, scanVault, indexVaultTags, createTemplate } = useFileSystem();
   const { addBuiltinPack, createPack, duplicatePack, deletePack } = useTemplatePacks();
 
   const paths = useMemo(() => Object.keys(metadata), [metadata]);
@@ -39,10 +40,6 @@ export default function TemplatesPage() {
   }, [vaultHandle]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toEditor = () => router.push("/editor");
-
-  const use = async (template: TemplateEntry) => {
-    if (await createNoteFromTemplate(template)) toEditor();
-  };
 
   const edit = async (template: TemplateEntry) => {
     if (!vaultHandle) return;
@@ -103,7 +100,6 @@ export default function TemplatesPage() {
                   <PackSection
                     key={pack.folder}
                     pack={pack}
-                    onUse={(template) => void use(template)}
                     onEdit={(template) => void edit(template)}
                     onNewTemplate={(target) => void newTemplate(target)}
                     onDuplicate={(target) => void duplicatePack(target)}

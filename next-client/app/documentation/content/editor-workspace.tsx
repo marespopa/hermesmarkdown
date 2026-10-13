@@ -124,8 +124,10 @@ tags: []
 > Body text, same as a regular blockquote.`}</Code>
         <p>
           Insert one from the slash menu: <code>/callout</code> adds a plain <code>[!note]</code>{" "}
-          callout and <code>/collapse</code> adds a foldable one that starts collapsed. Change{" "}
-          <code>note</code> to any type below.
+          callout and <code>/collapse</code> adds a foldable one that starts collapsed. A menu of
+          types opens right away; pick one, or press Esc to keep note. To change it later, click
+          the callout&apos;s type label. You can also type any type below in place of{" "}
+          <code>note</code>.
         </p>
         <p>
           Add <code>+</code> or <code>-</code> after the type to make it foldable: <code>+</code>{" "}

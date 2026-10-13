@@ -5,7 +5,7 @@ import { useStore } from "jotai";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
 import { useTemplateDialog } from "../use-template-dialog";
 import type { TemplateEntry } from "@/app/utils/templates/template-registry";
-import { splitTemplate, type TemplateRouting } from "@/app/utils/templates/template-frontmatter";
+import { templateContent } from "@/app/utils/templates/template-frontmatter";
 import {
   expandTemplate,
   extractPromptLabels,
@@ -15,15 +15,7 @@ import {
 } from "@/app/utils/templates/template-tokens";
 
 export interface InstantiatedTemplate {
-  /** Routing values, expanded with the same context as the content. */
-  routing: TemplateRouting;
   expanded: ExpandedTemplate;
-}
-
-export interface InstantiateOptions {
-  now?: Date;
-  /** No title was asked for: `{{title}}` is the expanded `file_name` (a named note such as `2026-10-12`). */
-  titleFromFileName?: boolean;
 }
 
 async function readClipboard(): Promise<string> {
@@ -58,30 +50,18 @@ export function useTemplateNotes() {
     title: string,
     confirmLabel: string,
     selection = "",
-    { now = new Date(), titleFromFileName = false }: InstantiateOptions = {},
   ): Promise<InstantiatedTemplate | null> => {
-    const { routing, content } = splitTemplate(raw);
-    const routingText = routing.fileName ?? "";
-    const labels = extractPromptLabels(`${content}\n${routingText}`);
+    const content = templateContent(raw);
+    const labels = extractPromptLabels(content);
     let prompts: Record<string, string> = {};
     if (labels.length > 0) {
       const answers = await askPrompts(labels, confirmLabel);
       if (!answers) return null;
       prompts = answers;
     }
-    const clipboard = usesToken(content, "clipboard") || usesToken(routingText, "clipboard")
-      ? await readClipboard()
-      : "";
-    let context: TemplateContext = { now, title, clipboard, prompts, selection };
-    if (titleFromFileName && routing.fileName) {
-      context = { ...context, title: expandTemplate(routing.fileName, { ...context, title: "" }).text.trim() };
-    }
-    const expandValue = (value: string | undefined) =>
-      value === undefined ? undefined : expandTemplate(value, context).text;
-    return {
-      routing: { fileName: expandValue(routing.fileName) },
-      expanded: expandTemplate(content, context),
-    };
+    const clipboard = usesToken(content, "clipboard") ? await readClipboard() : "";
+    const context: TemplateContext = { now: new Date(), title, clipboard, prompts, selection };
+    return { expanded: expandTemplate(content, context) };
   }, [askPrompts]);
 
   return { readTemplate, instantiate };
