@@ -13,7 +13,7 @@ A plan can go to `blocked` at any point. Each stage is run by the matching agent
 
 | State | Agent | Next state |
 |---|---|---|
-| new | hermes-architect | specced / blocked |
+| new | hermes-architect (small plans: hermes-engineer) | specced / blocked (small: review / blocked) |
 | specced, building, changes-requested | hermes-engineer | review / blocked |
 | review | hermes-review | approved / changes-requested (a 2nd rejection → blocked) |
 | blocked (answers filled) | hermes-architect via `unblock` | the state it was blocked from |
@@ -25,8 +25,8 @@ The folder contract, frontmatter keys and the `blocked.md` format are in `next-c
 Run these from the repo root:
 
 ```bash
-scripts/factory new <slug> [title...]   # scaffold brief.md (state: new)
-scripts/factory list                    # table of plans and states
+scripts/factory new <slug> [title...] [--small]  # scaffold brief.md (state: new)
+scripts/factory list                    # table of plans, states and spend
 scripts/factory run [NNN]               # dry run: what would happen
 scripts/factory run [NNN] --commit      # actually run the next stage
 scripts/factory unblock NNN [--commit]  # fold answers in blocked.md, resume
@@ -35,7 +35,7 @@ scripts/factory set NNN merged          # human-only states
 
 ## How to use it
 
-1. **Creating a plan.** Run `new`, then write the user's idea into the generated `brief.md` (Problem / Desired behavior / Out of scope). Leave the frontmatter as it is.
+1. **Creating a plan.** Run `new`, then write the user's idea into the generated `brief.md` (Problem / Desired behavior / Out of scope). Leave the frontmatter as it is. Add `--small` when the brief fully describes the change (one screen, no design decisions): it skips the architect, saving a whole session.
 2. **Advancing.** Always run without `--commit` first and show the user the dry-run lines. Add `--commit` only when the user asked to run it. Stages are slow (each one is a full headless Claude session), so use `run_in_background` for `--commit` runs.
 3. **Blocked plans.**
    - Show the user the questions in `blocked.md`, each with its `Recommended:` answer.
@@ -48,5 +48,6 @@ scripts/factory set NNN merged          # human-only states
 - Agents never commit. `.claude/hooks/factory-guard.sh` blocks git writes when `HERMES_FACTORY=1`. The script also blocks the plan if HEAD or the branch moves during a stage.
 - The script refuses to run on `trunk`/`main`.
 - The script won't start a fresh build (`specced`) while code outside `plans/` is uncommitted, so plans don't mix their changes.
-- If a stage fails 3 times in a row, the plan is blocked. If a stage stops part-way, a `RESUME:` note goes into `mailbox.md`.
+- If a stage fails 2 times in a row, the plan is blocked. A retry resumes the failed session.
+- Stages run on per-stage models (architect `opus`, engineer and reviewer `sonnet`; override with `FACTORY_MODEL_*`). Each run's cost goes into the plan's `usage.tsv`. If a stage stops part-way, a `RESUME:` note goes into `mailbox.md`.
 - Testing hook: `FACTORY_CLAUDE=<stub>` replaces the `claude` binary, and `FACTORY_PERMISSION_MODE` overrides `acceptEdits`.

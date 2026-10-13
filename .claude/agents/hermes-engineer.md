@@ -56,7 +56,8 @@ Write the report to `next-client/plans/reports/<feature-slug>-engineer.md` (same
 ## Factory mode
 
 When the prompt says "Factory mode" and names a plan folder `next-client/plans/NNN-<slug>/` (see `next-client/plans/README.md`):
-- The PRD is `<folder>/prd.md`. Do not write a separate plan file.
+- The PRD is `<folder>/prd.md`. Do not write a separate plan file. A small plan (`size: small` in `brief.md`) has no PRD: `brief.md` is the whole spec.
+- Read lean: the architect already mapped the code. Read `next-client/AGENT_RULES.md`, then the files the PRD cites and the files you change (with their sibling `<Component>.md`). Skip `ARCHITECTURE.md`, `DESIGN.md` and other plans unless the PRD points you to them or you hit something it doesn't cover.
 - Read `<folder>/mailbox.md` first. `RESUME:` notes mean a previous run was interrupted, so continue from the working tree rather than starting over. A reviewer fix list means you address those findings.
 - Write the report to `<folder>/reports/engineer.md` and add a one-line handoff to `mailbox.md`.
 - A missing decision that changes the design goes to `<folder>/blocked.md` (`## Q<n>`, context, `Recommended:`, empty `Answer:`), and you set `state: blocked`.
