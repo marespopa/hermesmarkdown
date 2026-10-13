@@ -9,7 +9,7 @@ export const templatesItems: Subsection[] = [
     id: "templates",
     title: "Templates",
     lead: "A template is a note you start other notes from. Fields like Today's date or Ask: Owner fill in each time you use it.",
-    keywords: "template templates save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet log entry timestamp token field add field placeholder prompt question ask cursor clipboard date new note missing link folder new notes go where file_name name clash already exists new template create template week name weekly monthly quarterly yearly iso week quarter pack packs",
+    keywords: "template templates save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet log entry timestamp token field add field placeholder prompt question ask cursor clipboard date new note missing link folder new notes go where name clash already exists new template create template week name weekly monthly quarterly yearly iso week quarter pack packs",
     body: (
       <>
         <h4 className={h4}>Make a template</h4>
@@ -64,17 +64,11 @@ export const templatesItems: Subsection[] = [
           <strong>Template ready ✦</strong>. Press Esc to use Tab normally again in that note.
         </p>
         <h4 className={h4}>Where new notes go</h4>
-        <p>Every way of making a note follows the same rule:</p>
-        <ul>
-          <li>
-            <strong>Folder:</strong> the link&apos;s folder if it has one (<code>[[rfcs/auth-spec]]</code>{" "}
-            goes in <code>rfcs/</code>), else the folder whose menu you used, else your New Notes folder.
-          </li>
-          <li>
-            <strong>Name:</strong> the template&apos;s <code>file_name</code>, else the title you type.
-            From a link, the link text is the name.
-          </li>
-        </ul>
+        <p>
+          A template only gives a note its text. A note made from a link is named by the link and goes
+          in the link&apos;s folder if it has one (<code>[[rfcs/auth-spec]]</code> goes in{" "}
+          <code>rfcs/</code>), else in your New Notes folder.
+        </p>
         <Callout type="note">
           If a note with that name is already in that folder, it opens (or is linked) as it is. Nothing
           is overwritten, and no <code>name (1)</code> copy is made.
@@ -85,11 +79,6 @@ export const templatesItems: Subsection[] = [
             <strong>An empty note</strong> shows your templates as small buttons under the first line;
             click one to fill the note. With no templates yet, <strong>Browse template packs</strong>{" "}
             takes you to the Templates page.
-          </li>
-          <li>
-            <strong>New note from template…</strong> in the command palette, <strong>Use</strong> on the
-            Templates page, or a folder&apos;s menu: pick a template and answer its questions. A title is
-            asked only when the template&apos;s <code>file_name</code> uses it (or it has none).
           </li>
           <li>
             <strong><code>/template</code></strong> in a note inserts a template where you&apos;re
@@ -110,11 +99,10 @@ export const templatesItems: Subsection[] = [
           vault, directly or one folder down in a pack. The folder is made the first time you need it.
           They stay plain text: a field is written{" "}
           <code>{"{{date}}"}</code> and a question <code>{"{{prompt:Owner}}"}</code>. You can also type these by hand.
-          Typing <code>{"{{"}</code> opens the same field list. An optional{" "}
-          <code>file_name</code> line names new notes, and fields work in it too:
+          Typing <code>{"{{"}</code> opens the same field list:
         </p>
         <Code>
-          {"---\nfile_name: rfc-{{date}}-{{title}}\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}"}
+          {"---\nstatus: draft\n---\n# {{title}}\nOwner: {{prompt:Owner}}\n{{cursor}}"}
         </Code>
         <p>
           Dates take a format after a colon, such as <code>{"{{date:dddd, D MMMM}}"}</code> (Monday, 5
@@ -135,7 +123,7 @@ export const templatesItems: Subsection[] = [
           ]}
         />
         <p>
-          Use these in <code>file_name</code> for weekly, monthly or yearly notes. Other frontmatter
+          Use these in headings and links, for example in weekly, monthly or yearly notes. Frontmatter
           lines (author, status, …) are copied into each new note. Templates stay out of the Tasks
           page and the home feed. AI Chat can write templates for you; see{" "}
           <a href="#ai-templates" className="text-accent hover:underline">AI templates</a>.

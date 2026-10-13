@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom";
 import { Provider } from "jotai";
@@ -14,7 +14,6 @@ const fileSystem = vi.hoisted(() => ({
   vaultHandle: { name: "Notes" } as unknown,
   createNewFile: vi.fn(),
   createFolder: vi.fn(),
-  createNoteFromTemplate: vi.fn(async () => true),
   deleteFile: vi.fn(),
   trashItems: vi.fn(),
   duplicateFile: vi.fn(),
@@ -48,19 +47,6 @@ describe("FilesPage", () => {
     expect(screen.queryByRole("button", { name: "Refresh" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "New Note" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "New Folder" })).toBeInTheDocument();
-    expect(treeProps.current?.createNoteFromTemplate).toBeInstanceOf(Function);
-  });
-
-  it("goes to the editor once a note from a template opened, from the header or a folder", async () => {
-    render(<Provider><FilesPage /></Provider>);
-    fireEvent.click(screen.getByRole("button", { name: "New Note from Template…" }));
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/editor"));
-    expect(fileSystem.createNoteFromTemplate).toHaveBeenCalledWith(undefined, "");
-
-    push.mockClear();
-    fileSystem.createNoteFromTemplate.mockResolvedValueOnce(false);
-    await (treeProps.current!.createNoteFromTemplate as (folder: string) => Promise<void>)("projects");
-    expect(fileSystem.createNoteFromTemplate).toHaveBeenLastCalledWith(undefined, "projects");
-    expect(push).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "New Note from Template…" })).not.toBeInTheDocument();
   });
 });

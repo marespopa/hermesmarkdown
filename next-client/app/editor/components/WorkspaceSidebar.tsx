@@ -119,7 +119,7 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
   const vaultName = useAtomValue(atom_vaultName);
   const {
     vaultHandle, openFile, renameFile, deleteFile, trashItems, duplicateFile, moveItem, moveItems,
-    createNewFile, createFolder, undoFileOperation, createNoteFromTemplate,
+    createNewFile, createFolder, undoFileOperation,
   } = useFileSystem();
   const treeController = useRef<VaultFileTreeController | null>(null);
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
@@ -262,7 +262,6 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
             title="Files"
             menu={fileCreateActions({
               newNote: () => createAtRoot("file"),
-              newFromTemplate: () => void createNoteFromTemplate(),
               newFolder: () => createAtRoot("folder"),
             })}
           >
@@ -287,7 +286,6 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
               resolveFolderHandle={resolveFolderHandle}
               createNewFile={createNewFile}
               createFolder={createFolder}
-              createNoteFromTemplate={(folder) => createNoteFromTemplate(undefined, folder)}
               moveItem={moveItem}
               moveItems={moveItems}
             />

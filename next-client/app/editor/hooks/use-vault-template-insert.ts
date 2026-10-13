@@ -30,7 +30,7 @@ function bodyOnly({ text, cursor }: ExpandedTemplate): ExpandedTemplate {
 
 // `/template` in the slash menu: pick a vault template, answer its prompts,
 // then insert it at the caret. An empty note gets the whole template
-// (non-routing frontmatter included); otherwise only the body. Called with a
+// (frontmatter included); otherwise only the body. Called with a
 // template (the empty-note quick pills), it skips the picker. Selected text
 // fills `{{selection}}` and the template replaces it.
 export function useVaultTemplateInsert({ viewRef, filePath }: UseVaultTemplateInsertOptions) {

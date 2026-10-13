@@ -16,10 +16,7 @@ without changing the public props contract or command behavior.
   `Download as Markdown` (always a .md download of the note, vault note or
   draft; it never saves), `Open Note from Disk…` (a file from the device opens
   as a draft; distinct from `Import files into vault…`), Duplicate / Move /
-  Rename / Delete Note, and `New note from template…` (with a vault open:
-  template picker, a title prompt unless the template's `file_name` names the
-  note, then the note goes in the New Notes folder, or the note already there
-  opens) and `New template…` (with a vault open: name prompt, then
+  Rename / Delete Note, and `New template…` (with a vault open: name prompt, then
   `templates/<name>.md` with a minimal body, or the existing template of that
   name opened unchanged).
 - `editor-ai-commands.ts` defines editor formatting, templates and AI

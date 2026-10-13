@@ -14,7 +14,6 @@ const fileSystem = {
   openFile: vi.fn(async () => {}),
   scanVault: vi.fn(async () => {}),
   indexVaultTags: vi.fn(async () => {}),
-  createNoteFromTemplate: vi.fn(async () => true),
   createTemplate: vi.fn(async () => true),
 };
 vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => fileSystem }));
@@ -55,17 +54,9 @@ describe("TemplatesPage", () => {
     expect(within(screen.getByRole("region", { name: "Loose templates" })).queryByRole("button", { name: /Delete/ })).not.toBeInTheDocument();
   });
 
-  it("goes to the editor once a template made a note, and stays when it was cancelled", async () => {
+  it("has no Use button: templates are used from a note", () => {
     renderPage();
-    fireEvent.click(screen.getByRole("button", { name: "Use Daily" }));
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/editor"));
-    expect(fileSystem.createNoteFromTemplate).toHaveBeenCalledWith({ name: "Daily", path: "templates/Journal/Daily.md", pack: "Journal" });
-
-    push.mockClear();
-    fileSystem.createNoteFromTemplate.mockResolvedValueOnce(false);
-    fireEvent.click(screen.getByRole("button", { name: "Use Meeting" }));
-    await waitFor(() => expect(fileSystem.createNoteFromTemplate).toHaveBeenCalledTimes(2));
-    expect(push).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button", { name: "Use Daily" })).not.toBeInTheDocument();
   });
 
   it("opens a template to edit it", async () => {

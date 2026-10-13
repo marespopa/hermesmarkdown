@@ -10,7 +10,6 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     activeLeaf,
     closeVault,
     createFolder,
-    createNoteFromTemplate,
     createTemplate,
     deleteFile,
     dialog,
@@ -49,15 +48,6 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     },
     ...(vaultHandle
       ? [{
-          id: "new-note-from-template",
-          label: "New note from template…",
-          category: "Vault" as const,
-          keywords: "create template note",
-          // Template picker (+ title prompt unless file_name names the note);
-          // the note goes in the New Notes folder, or opens if it's there.
-          action: () => { void createNoteFromTemplate(); },
-        },
-        {
           id: "insert-template",
           label: "Insert template…",
           category: "Vault" as const,

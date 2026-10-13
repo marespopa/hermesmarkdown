@@ -21,12 +21,9 @@ export function treeMenuItems(
   props: VaultFileTreeProps,
   actions: ReturnType<typeof useTreeActions>,
 ): TreeMenuItem[] {
-  // From a folder, a note from a template goes in that folder; from the
-  // empty space (parentPath ""), it goes in the New Notes folder.
   const newItems = (parentPath: string): TreeMenuItem[] =>
     fileCreateActions({
       newNote: props.createNewFile ? () => actions.startCreate("file", parentPath) : undefined,
-      newFromTemplate: props.createNoteFromTemplate ? () => void props.createNoteFromTemplate!(parentPath) : undefined,
       newFolder: props.createFolder ? () => actions.startCreate("folder", parentPath) : undefined,
     }).map(({ label, icon, onSelect }) => ({ label, icon, onSelect }));
 

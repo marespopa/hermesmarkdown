@@ -1,47 +1,34 @@
 import { describe, expect, it } from "vitest";
-import { splitTemplate, templateBody } from "./template-frontmatter";
+import { templateBody, templateContent } from "./template-frontmatter";
 
-describe("splitTemplate", () => {
-  it("takes the routing keys out (target_folder unused) and keeps other keys", () => {
+describe("templateContent", () => {
+  it("keeps the retired target_folder and file_name keys out, and other keys in", () => {
     const raw = "---\ntarget_folder: rfcs\nfile_name: \"rfc-{{date}}-{{slug}}\"\nstatus: draft\n---\n# {{title}}\n";
-    const { routing, content } = splitTemplate(raw);
-    expect(routing).toEqual({ fileName: "rfc-{{date}}-{{slug}}" });
-    expect(content).toBe("---\nstatus: draft\n---\n# {{title}}\n");
+    expect(templateContent(raw)).toBe("---\nstatus: draft\n---\n# {{title}}\n");
   });
 
-  it("drops the frontmatter block when only routing keys were in it", () => {
-    const { routing, content } = splitTemplate("---\ntarget_folder: docs/rfcs\n---\n\n# {{title}}\n");
-    expect(routing).toEqual({});
-    expect(content).toBe("# {{title}}\n");
+  it("drops the frontmatter block when only retired keys were in it", () => {
+    expect(templateContent("---\ntarget_folder: docs/rfcs\n---\n\n# {{title}}\n")).toBe("# {{title}}\n");
   });
 
-  it("passes templates without frontmatter or routing keys through", () => {
-    expect(splitTemplate("# Plain {{date}}\n")).toEqual({ routing: {}, content: "# Plain {{date}}\n" });
+  it("passes templates without frontmatter or retired keys through", () => {
+    expect(templateContent("# Plain {{date}}\n")).toBe("# Plain {{date}}\n");
     const withOther = "---\ntags: [x]\n---\nBody\n";
-    expect(splitTemplate(withOther)).toEqual({ routing: {}, content: withOther });
+    expect(templateContent(withOther)).toBe(withOther);
   });
 
   it("drops a block that holds only comments", () => {
-    const raw = "---\n# target_folder: notes\n# file_name: x\n---\n\n# {{title}}\n";
-    expect(splitTemplate(raw)).toEqual({ routing: {}, content: "# {{title}}\n" });
+    expect(templateContent("---\n# target_folder: notes\n# file_name: x\n---\n\n# {{title}}\n")).toBe("# {{title}}\n");
   });
 
-  it("removes comment lines and keeps other keys", () => {
-    const raw = "---\n# a note for the template author\nstatus: draft\n---\nBody\n";
-    expect(splitTemplate(raw)).toEqual({ routing: {}, content: "---\nstatus: draft\n---\nBody\n" });
-  });
-
-  it("removes comments and routing keys together", () => {
-    const raw = "---\n# where notes go\ntarget_folder: rfcs\n# kept out\nstatus: draft\n---\nBody\n";
-    expect(splitTemplate(raw)).toEqual({
-      routing: {},
-      content: "---\nstatus: draft\n---\nBody\n",
-    });
+  it("removes comment lines and retired keys together, keeping other keys", () => {
+    const raw = "---\n# where notes go\nfile_name: x\n# kept out\nstatus: draft\n---\nBody\n";
+    expect(templateContent(raw)).toBe("---\nstatus: draft\n---\nBody\n");
   });
 
   it("keeps indented # lines inside a block scalar", () => {
     const raw = "---\n# comment\nnotes: |\n  # x\n  y\n---\nBody\n";
-    expect(splitTemplate(raw)).toEqual({ routing: {}, content: "---\nnotes: |\n  # x\n  y\n---\nBody\n" });
+    expect(templateContent(raw)).toBe("---\nnotes: |\n  # x\n  y\n---\nBody\n");
   });
 });
 

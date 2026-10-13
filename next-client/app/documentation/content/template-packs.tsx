@@ -3,11 +3,11 @@ import { Code, KV, type Subsection } from "../doc-primitives";
 const h4 = "text-[19px] font-semibold tracking-tight !mb-2 !mt-0";
 
 // Documentation content: Editor group, after Templates. The Templates page
-// and template packs, including dated notes (a journal) made from them.
+// and template packs, including a journal kept with them.
 export const templatePacksItem: Subsection = {
   id: "template-packs",
   title: "Template packs",
-  lead: "Keep your templates in packs, add the ones HermesMarkdown ships, and start a journal from a template.",
+  lead: "Keep your templates in packs, add the ones HermesMarkdown ships, and keep a journal with them.",
   keywords:
     "template packs templates page manage edit duplicate delete pack folder journal daily weekly monthly yearly diary dated note today week month year meetings writing projects add to vault reuse",
   body: (
@@ -20,14 +20,10 @@ export const templatePacksItem: Subsection = {
       <p>
         Templates live in <code>templates/</code> at the root of your vault. A pack is a folder inside
         it, like <code>templates/Journal/</code>; templates directly in <code>templates/</code> are listed
-        first, as loose templates. For each template:
+        first, as loose templates. <strong>Edit</strong> opens a template itself; changes apply the
+        next time you use it. To use a template, type <code>/template</code> in a note, pick one from an
+        empty note&apos;s buttons, or from a link to a note that doesn&apos;t exist yet.
       </p>
-      <KV
-        rows={[
-          { label: "Use", value: "Make a note from it and open it in the editor" },
-          { label: "Edit", value: "Open the template itself; changes apply the next time you use it" },
-        ]}
-      />
       <p>
         Each pack has <strong>New</strong> (a template in that pack), <strong>Duplicate</strong> (copy the
         pack under a new name, to change it without touching the original) and <strong>Delete</strong>{" "}
@@ -51,20 +47,16 @@ export const templatePacksItem: Subsection = {
       </p>
       <h4 className={h4}>A journal from templates</h4>
       <p>
-        HermesMarkdown has no daily sheet of its own: a dated page is just a note a template names. The
+        HermesMarkdown has no daily sheet of its own: a dated page is just a note you name by date. The
         Journal pack&apos;s <strong>Daily</strong> template starts like this:
       </p>
-      <Code>{"---\nfile_name: {{date}}\n---\n# {{date:dddd, D MMMM}}"}</Code>
+      <Code>{"# {{date:dddd, D MMMM}}"}</Code>
       <p>
-        Using it from your <code>journal</code> folder&apos;s menu makes{" "}
-        <code>journal/2026-10-12.md</code>. Because its <code>file_name</code>{" "}
-        doesn&apos;t use the title, no title is asked for, and using it again the same day opens the page
-        you already started instead of making another. <strong>Weekly</strong>, <strong>Monthly</strong>{" "}
-        and <strong>Yearly</strong> work the same way with date formats: <code>{"{{date:GGGG-[W]ww}}"}</code>{" "}
-        (<code>2026-W42</code>), <code>{"{{date:YYYY-MM}}"}</code> (<code>2026-10</code>) and{" "}
-        <code>{"{{date:YYYY}}"}</code> (<code>2026</code>). The Weekly and Monthly notes link the one
-        before, like <code>{"[[{{date-1w:GGGG-[W]ww}}]]"}</code>. Change the names in the template to
-        suit yourself.
+        Create a note named by date, like <code>journal/2026-10-12</code> (or click a link to it), and
+        pick <strong>Daily</strong>: it&apos;s suggested first for a date. Or type{" "}
+        <code>/template</code> in an empty note. <strong>Weekly</strong> and <strong>Monthly</strong>{" "}
+        link the one before with date formats, like <code>{"[[{{date-1w:GGGG-[W]ww}}]]"}</code>{" "}
+        (last week&apos;s <code>2026-W41</code>). Change the templates to suit yourself.
       </p>
     </>
   ),

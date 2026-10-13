@@ -1,7 +1,5 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { namesItsNote } from "@/app/hooks/file-system/use-template-create";
-import { splitTemplate } from "./template-frontmatter";
 import { lintTemplate } from "./template-lint";
 import { BUILTIN_PACKS, packTemplatesInVault } from "./template-packs";
 import { expandTemplate } from "./template-tokens";
@@ -25,17 +23,15 @@ describe("BUILTIN_PACKS", () => {
     }
   });
 
-  it("names the Journal's dated notes by period", () => {
-    const journal = BUILTIN_PACKS.find((pack) => pack.name === "Journal")!;
-    const routed = (name: string) => {
-      const { routing } = splitTemplate(journal.templates.find((t) => t.name === name)!.body);
-      expect(namesItsNote(routing.fileName)).toBe(true);
-      return expandTemplate(routing.fileName!, ctx).text;
-    };
-    expect(routed("Daily")).toBe("2026-10-12");
-    expect(routed("Weekly")).toBe("2026-W42");
-    expect(routed("Monthly")).toBe("2026-10");
-    expect(routed("Yearly")).toBe("2026");
+  it("ships no file_name or target_folder: a template only gives a note its text", () => {
+    for (const pack of BUILTIN_PACKS) {
+      for (const template of pack.templates) expect(template.body).not.toMatch(/^(file_name|target_folder):/m);
+    }
+  });
+
+  it("links the Journal's weekly note to last week's by date", () => {
+    const weekly = BUILTIN_PACKS.find((pack) => pack.name === "Journal")!.templates.find((t) => t.name === "Weekly")!;
+    expect(expandTemplate(weekly.body, ctx).text).toContain("Last week: [[2026-W41]]");
   });
 });
 

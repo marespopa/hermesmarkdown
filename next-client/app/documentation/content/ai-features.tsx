@@ -86,9 +86,8 @@ export const aiFeaturesGroup: Group = {
             Mention a template in AI Chat, for example &ldquo;make me an RFC template that asks for
             an owner&rdquo;, or start a message with <code>/template</code>. From then on, the chat
             knows the{" "}
-            <a href="#templates" className="text-accent hover:underline">template tokens</a>{" "}
-            and the <code>file_name</code> key. Each template in a reply
-            shows a card with its path (for example <code>templates/rfc.md</code>) and any problems
+            <a href="#templates" className="text-accent hover:underline">template tokens</a>. Each
+            template in a reply shows a card with its path (for example <code>templates/rfc.md</code>) and any problems
             it spotted, like an unknown token.
           </p>
           <p>

@@ -1,16 +1,10 @@
 import { FM_REGEX, parseFmFields, updateFmFields } from "@/app/utils/frontmatter-utils";
 
-// Routing keys a template's frontmatter may carry. `file_name` names notes
-// created by "New note from template…"; `target_folder` is no longer used (a
-// note goes in the folder it's created from) but is still kept out of
-// created notes. Neither reaches the created note.
-export interface TemplateRouting {
-  fileName?: string;
-}
+// Keys templates once used to place and name new notes (`target_folder`,
+// `file_name`). They no longer do anything and are kept out of created
+// notes; the linter flags them.
+const RETIRED_KEYS = { target_folder: null, file_name: null } as const;
 
-const ROUTING_KEYS = { target_folder: null, file_name: null } as const;
-
-const stripQuotes = (value: string) => value.trim().replace(/^(['"])(.*)\1$/, "$2").trim();
 const dropLeadingBlankLines = (text: string) => text.replace(/^(?:[ \t]*\r?\n)+/, "");
 
 // Frontmatter with its column-0 `#` comment lines removed. Indented `#` lines
@@ -26,32 +20,18 @@ function stripFmComments(raw: string, match: RegExpExecArray): { cleaned: string
   return { cleaned: `---${eol}${kept.join(eol)}${eol}---${eol}${rest}`, empty: false };
 }
 
-// Splits a raw template into its routing values (taken before any token
-// expansion) and the content without the routing keys or frontmatter
-// comments. If removing them leaves the frontmatter block empty, the block
-// is dropped.
-export function splitTemplate(raw: string): { routing: TemplateRouting; content: string } {
+// A raw template's content: frontmatter comments and retired keys removed.
+// If that leaves the frontmatter block empty, the block is dropped.
+export function templateContent(raw: string): string {
   const match = FM_REGEX.exec(raw);
-  if (!match) return { routing: {}, content: raw };
+  if (!match) return raw;
   const stripped = stripFmComments(raw, match);
-  if (stripped.empty) return { routing: {}, content: stripped.cleaned };
-  return splitRouting(stripped.cleaned);
-}
-
-function splitRouting(raw: string): { routing: TemplateRouting; content: string } {
-  const fields = parseFmFields(raw);
-  const routing: TemplateRouting = {};
-  if (fields.file_name !== undefined && stripQuotes(fields.file_name)) {
-    routing.fileName = stripQuotes(fields.file_name);
-  }
-  if (!("target_folder" in fields) && !("file_name" in fields)) return { routing, content: raw };
-
-  const updated = updateFmFields(raw, { ...ROUTING_KEYS });
+  if (stripped.empty) return stripped.cleaned;
+  const fields = parseFmFields(stripped.cleaned);
+  if (!Object.keys(RETIRED_KEYS).some((key) => key in fields)) return stripped.cleaned;
+  const updated = updateFmFields(stripped.cleaned, { ...RETIRED_KEYS });
   const block = FM_REGEX.exec(updated);
-  if (block && !block[1].trim()) {
-    return { routing, content: dropLeadingBlankLines(updated.slice(block[0].length)) };
-  }
-  return { routing, content: updated };
+  return block && !block[1].trim() ? dropLeadingBlankLines(updated.slice(block[0].length)) : updated;
 }
 
 // The content after the frontmatter block (the whole text when there is none).

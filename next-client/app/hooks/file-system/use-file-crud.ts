@@ -67,7 +67,6 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
   const {
     writeNewNote,
     createNoteFromMissingLink,
-    createNoteFromTemplate,
     createTemplate,
     createWikiLinkFile,
     createLinkedNoteFromTemplate,
@@ -96,7 +95,6 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     readTemplate,
     instantiate,
     createNoteFromMissingLink,
-    createNoteFromTemplate,
     createTemplate,
     createLinkedNoteFromTemplate,
     writeNewNote,

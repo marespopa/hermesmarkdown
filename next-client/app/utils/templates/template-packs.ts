@@ -94,17 +94,13 @@ const REPORT = [
   "",
 ].join("\n");
 
-// `file_name` names the note, so using one of these again the same day /
-// week / month / year (in the same folder) opens that note instead of
-// making another.
-const dated = (fileName: string, body: string[]) =>
-  [...frontmatter([`file_name: ${fileName}`]), ...body, ""].join("\n");
+const lines = (body: string[]) => [...body, ""].join("\n");
 
-const DAILY = dated("{{date}}", JOURNAL.trimEnd().split("\n"));
+const DAILY = JOURNAL;
 
-// Names and links use date formats: `GGGG-[W]ww` is the ISO week's name
+// Links use date formats: `GGGG-[W]ww` is the ISO week's name
 // (2026-W42), and date math reaches the one before (`{{date-1w:…}}`).
-const WEEKLY = dated("{{date:GGGG-[W]ww}}", [
+const WEEKLY = lines([
   "# Week {{date:ww}}, {{date:GGGG}}",
   "",
   "Last week: [[{{date-1w:GGGG-[W]ww}}]]",
@@ -118,7 +114,7 @@ const WEEKLY = dated("{{date:GGGG-[W]ww}}", [
   "- ",
 ]);
 
-const MONTHLY = dated("{{date:YYYY-MM}}", [
+const MONTHLY = lines([
   "# {{date:MMMM YYYY}}",
   "",
   "Last month: [[{{date-1m:YYYY-MM}}]]",
@@ -132,7 +128,7 @@ const MONTHLY = dated("{{date:YYYY-MM}}", [
   "- ",
 ]);
 
-const YEARLY = dated("{{date:YYYY}}", [
+const YEARLY = lines([
   "# {{date:YYYY}}",
   "",
   "{{cursor}}",
@@ -212,12 +208,12 @@ export const BUILTIN_PACKS: BuiltinPack[] = [
   {
     id: "journal",
     name: "Journal",
-    description: "A page a day, plus weekly, monthly and yearly notes. Using one again opens the page you already started.",
+    description: "A page a day, plus weekly, monthly and yearly notes.",
     templates: [
-      { name: "Daily", description: "Today's page, named by date like 2026-10-12", body: DAILY },
-      { name: "Weekly", description: "This week's note, named like 2026-W42", body: WEEKLY },
-      { name: "Monthly", description: "This month's note, named like 2026-10", body: MONTHLY },
-      { name: "Yearly", description: "This year's note, named like 2026", body: YEARLY },
+      { name: "Daily", description: "Today's date as the heading, room to write", body: DAILY },
+      { name: "Weekly", description: "This week, with a link to last week's", body: WEEKLY },
+      { name: "Monthly", description: "This month, with a link to last month's", body: MONTHLY },
+      { name: "Yearly", description: "This year: what mattered, what's next", body: YEARLY },
       { name: "Log entry", description: "One line starting with the time, to insert into any note", body: LOG_ENTRY },
     ],
   },
