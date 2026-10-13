@@ -18,7 +18,7 @@ function renderToolbar(view: TaskView = "now") {
     <Provider>
       <TasksToolbar
         view={view}
-        counts={{ now: 2, today: 1, upcoming: 4, all: 9 }}
+        counts={{ board: 9, now: 2, today: 1, upcoming: 4, all: 9 }}
         groupBy="status"
         sort="dueDate:asc"
         searchQuery=""
