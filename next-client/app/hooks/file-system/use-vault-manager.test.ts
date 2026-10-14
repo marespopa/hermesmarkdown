@@ -2,7 +2,7 @@ import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
-import { atom_vaultFiles } from "@/app/atoms/atoms";
+import { atom_openFiles, atom_vaultFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { collectVaultFiles, listDirectoryEntries } from "./vault-scan";
@@ -102,5 +102,21 @@ describe("useVaultManager, opening another vault", () => {
       await opening;
     });
     expect(store.get(atom_vaultFiles)).toEqual([{ name: "new.md" }]);
+  });
+
+  it("keeps the restored tabs when reopening the saved vault on load", async () => {
+    const store = createStore();
+    const layout = { rootContainer: { id: "default-pane", type: "editor" as const, openFilePaths: ["a.md", "b.md"], activeFilePath: "b.md", isPinned: false } };
+    const files = { "a.md": { content: "A", lastSavedContent: "A", fileName: "a", activeFilePath: "a.md" } };
+    store.set(atom_workspaceLayout, layout);
+    store.set(atom_openFiles, files);
+    const [, second] = renderTwo(store);
+    vi.mocked(listDirectoryEntries).mockResolvedValue([]);
+    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [], folders: [], failedSubdirs: 0, timedOut: false });
+
+    await act(() => second.current.initVaultFromHandle(dir("saved"), { persist: false, announce: false, keepTabs: true }));
+
+    expect(store.get(atom_workspaceLayout)).toEqual(layout);
+    expect(store.get(atom_openFiles)).toEqual(files);
   });
 });

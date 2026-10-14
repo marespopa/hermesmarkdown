@@ -196,6 +196,9 @@ export function useVaultManager() {
       descriptor?: VaultDescriptor;
       persist?: boolean;
       announce?: boolean;
+      // Reopening the saved vault on page load: its tabs (persisted with the
+      // workspace layout) stay open instead of starting from an empty pane.
+      keepTabs?: boolean;
     }
   ) => {
     const {
@@ -203,14 +206,17 @@ export function useVaultManager() {
       descriptor = { kind: "local" },
       persist = true,
       announce = true,
+      keepTabs = false,
     } = options ?? {};
 
     setFileMetadata({});
     setVaultFiles([]);
     setVaultFolderPaths([]);
-    clearNoteContent();
-    setOpenFiles({});
-    setWorkspaceLayout(singlePaneLayout([], null));
+    if (!keepTabs) {
+      clearNoteContent();
+      setOpenFiles({});
+      setWorkspaceLayout(singlePaneLayout([], null));
+    }
     setVaultHandle(handle);
     setVaultDescriptor(descriptor);
     setCurrentDirectoryHandle(handle);
@@ -373,6 +379,7 @@ export function useVaultManager() {
             descriptor: stored.descriptor,
             persist: false,
             announce: false,
+            keepTabs: true,
           });
         }
       } catch (err) {
