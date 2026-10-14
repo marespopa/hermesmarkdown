@@ -231,6 +231,12 @@ export const editorWritingItems: Subsection[] = [
           never moved by sorting.
         </p>
         <Callout type="note">
+        <p>
+          A table takes its name from the heading right above it, with only blank lines between
+          them. Text between the heading and the table leaves the table without a name, and
+          formulas that refer to it show <code>#REF!</code>. Put a description below the table
+          instead.
+        </p>
           Formulas are stored as plain text in the Markdown file (<code>| =SUM(B2:B5) |</code>),
           so other Markdown apps show the formula, not the result. References to other notes read
           those notes when you open this one and refresh when you return to its pane.

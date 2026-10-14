@@ -10,12 +10,27 @@ export const FORMULA_FUNCTION_NAMES = Object.keys(FUNCTIONS);
 export const FORMULA_PRESERVATION_RULE =
   "IMPORTANT: Table cells that start with \"=\" are live HermesMarkdown formulas (e.g. =SUM(B2:B5), =AVERAGE(C), =Income!B3). The app computes and displays their results. NEVER evaluate a formula or replace it with a number. Keep every formula exactly as written, including its cell references. The same goes for inline calculator lines (e.g. \"rent = 1200\", \"rent + utilities\", \"total + 15%\"): keep them as written and never append \"= result\" to them.";
 
+// A named table, written right and wrong, for TABLE_FORMULA_GUIDE;
+// formula-ai-guide.test.ts checks both against the real table detection
+// (findAllTables), so the prompt can't drift from it.
+export const TABLE_NAME_EXAMPLE = {
+  right: "## Income\n\n| Source | Amount |\n|---|---|\n| Salary | 4000 |\n\nMonthly income before tax.",
+  wrong: "## Income\n\nMonthly income before tax.\n\n| Source | Amount |\n|---|---|\n| Salary | 4000 |",
+};
+
+const indent = (text: string) => text.split("\n").map((line) => `    ${line}`).join("\n");
+
 // For AI features that may create or restructure tables (chat, builder).
 export const TABLE_FORMULA_GUIDE = `HermesMarkdown tables are Markdown pipe tables with spreadsheet formulas.
 Table structure (a table that breaks these rules renders as plain text):
 - Leave a blank line before and after every table. A table directly under a line of text is not a table.
 - First line is the header row, second is the delimiter row (|---|---|), and every row has the same number of cells.
 - Titles and section names above tables must be real Markdown headings (## Kanban Board), each followed by a blank line. Plain text lines are not headings and don't name a table.
+- A table is named by the Markdown heading right above it: the heading, one blank line, then the table, with NOTHING else between them. NEVER put a paragraph, description, note, list, quote or any other line between a table's heading and the table. That table then has no name, and every formula that refers to it by name (=Income!B3) shows #REF!. Write any description below the table instead.
+  Right:
+${indent(TABLE_NAME_EXAMPLE.right)}
+  Wrong (the table loses its name):
+${indent(TABLE_NAME_EXAMPLE.wrong)}
 Formulas:
 - A cell whose text starts with "=" is a formula. The file stores the formula; the editor shows its computed result.
 - Addressing: columns are letters A, B, C… from the left. The header row is row 1, so the first data row is row 2 (A1 = first header cell, B2 = second column of the first data row).

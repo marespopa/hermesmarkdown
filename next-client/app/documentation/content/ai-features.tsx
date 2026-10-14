@@ -171,6 +171,10 @@ export const aiFeaturesGroup: Group = {
             <code>#CIRCULAR!</code>.
           </p>
           <p>
+            Tables the AI writes keep their heading right above them, with any description below
+            the table, so formulas such as <code>=SUM(Income!B)</code> can find them by name.
+          </p>
+          <p>
             Every AI action that rewrites text (improve, fix grammar, shorten, change tone, expand,
             continue, fix document) is told to keep formulas exactly as written. It never swaps a{" "}
             <code>=SUM(...)</code> for its current result.

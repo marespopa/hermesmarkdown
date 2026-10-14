@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FUNCTIONS } from "./formula-engine";
-import { FORMULA_PRESERVATION_RULE, NOTE_CALC_EXAMPLE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "./formula-ai-guide";
+import { FORMULA_PRESERVATION_RULE, NOTE_CALC_EXAMPLE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE, TABLE_NAME_EXAMPLE } from "./formula-ai-guide";
+import { findAllTables } from "./table-detection";
 import { type LineCalc, scanLine } from "./note-calc-scan";
 
 // Labels the real scanner shows for these lines, in order.
@@ -18,6 +19,13 @@ describe("AI formula guide", () => {
       expect(TABLE_FORMULA_GUIDE).toContain(name);
     }
     expect(TABLE_FORMULA_GUIDE).not.toMatch(/=AVG\(/);
+  });
+
+  it("shows a table named by its heading, and one that loses its name to a paragraph", () => {
+    expect(findAllTables(TABLE_NAME_EXAMPLE.right).map((table) => table.heading)).toEqual(["Income"]);
+    expect(findAllTables(TABLE_NAME_EXAMPLE.wrong).map((table) => table.heading)).toEqual([null]);
+    expect(TABLE_FORMULA_GUIDE).toContain("NEVER put a paragraph");
+    for (const line of TABLE_NAME_EXAMPLE.wrong.split("\n")) expect(TABLE_FORMULA_GUIDE).toContain(line);
   });
 
   it("only uses reference syntax the engine accepts in its examples", () => {
