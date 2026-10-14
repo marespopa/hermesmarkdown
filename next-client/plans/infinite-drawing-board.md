@@ -18,7 +18,7 @@ Let a user open an infinite, pannable and zoomable canvas inside HermesMarkdown,
 
 | Option | Licence | Fit | Verdict |
 | :-- | :-- | :-- | :-- |
-| **Excalidraw** (`@excalidraw/excalidraw`) | MIT | A React component with an infinite canvas, freehand, shapes, arrows, text, images, light and dark themes, touch and pen input, `viewModeEnabled`, and `serializeAsJSON` / `exportToSvg` / `exportToBlob` utilities. 0.18's React peer range covers 17–19 (the app is on React 19.0.0, Next ^16.3.8). It is ESM-only and needs `@excalidraw/excalidraw/index.css` imported. Obsidian's Excalidraw plugin already proves the "drawing stored in a `.md` file" model. | **Recommended** |
+| **Excalidraw** (`@excalidraw/excalidraw`) | MIT | A React component with an infinite canvas, freehand, shapes, arrows, text, images, light and dark themes, touch and pen input, `viewModeEnabled`, and `serializeAsJSON` / `exportToSvg` / `exportToBlob` utilities. 0.18 (latest 0.18.1) has a React peer range of 17–19 (the app is on React 19.0.0, Next ^16.3.8). It is ESM-only and needs `@excalidraw/excalidraw/index.css` imported. Obsidian's Excalidraw plugin already proves the "drawing stored in a `.md` file" model. | **Recommended** |
 | tldraw SDK | Since 4.0 (Sep 2025), production needs a licence key. Without a commercial key it shows a watermark, and hobby keys are granted case by case. | A better SDK for custom shapes, but the licence clashes with a free, open, offline app. | Rejected |
 | Custom canvas (`<canvas>` + `perfect-freehand` + our own pan/zoom/selection/undo) | Ours | Full control and a small bundle, but selection, hit-testing, text editing, undo, export and touch support add up to many weeks of work and a long tail of bugs. | Fallback only, if Excalidraw's bundle or API proves unworkable |
 | JSON Canvas (Obsidian's `.canvas`) | MIT spec | A spec for a board of cards (notes, links, groups), not for drawing. | Out of scope. It could come later as a separate "card board" feature. |
@@ -71,7 +71,7 @@ Panes already dispatch on a pane `type` (`"editor" | "metrics"`, `types/workspac
 3. Load `BoardView` with `next/dynamic` and `ssr: false`, so the Excalidraw bundle only loads the first time a board opens (section 8). Show `EditorSkeleton` while it loads.
 4. Data flow reuses the existing note pipeline. Nothing gets a second save path:
    - **On open:** the file text comes from the same open-file atoms (`atom_fileContent(path)`) and goes through `parseBoard`. The scene becomes Excalidraw's `initialData`.
-   - **On change:** Excalidraw's `onChange` fires on every pointer move and on every selection or viewport change. Write only when the elements actually changed: compare `getSceneVersion(elements)` (or a hash of the persisted fields) with the last serialized value, then debounce about 500 ms. `serializeBoard` produces the new Markdown, which is written into the same content atom the editor uses. The dirty state (`content` vs `lastSavedContent`, as the tab limit already uses), the existing save, save status, autosave, retries and `FileSystemWritableFileStream` handling (closed in `finally`) apply as-is. Without the scene-version check, the tab would look dirty and save constantly with nothing changed.
+   - **On change:** Excalidraw's `onChange` fires on every pointer move and on every selection or viewport change. Write only when the elements actually changed: compare `hashElementsVersion(elements)` with the value at the last write, then debounce about 500 ms. Don't use `getSceneVersion`: 0.18 marks it `@deprecated unsafe, use hashElementsVersion instead`, because it only sums element versions. `hashElementsVersion` hashes each element's `versionNonce` in order, so any edit, delete or reorder changes it. Keep `hashElementsVersion` a value import inside `BoardView` only (section 8). `serializeBoard` produces the new Markdown, which is written into the same content atom the editor uses. The dirty state (`content` vs `lastSavedContent`, as the tab limit already uses), the existing save, save status, autosave, retries and `FileSystemWritableFileStream` handling (closed in `finally`) apply as-is. Without the element-hash check, the tab would look dirty and save constantly with nothing changed.
    - **Flush on unmount:** when the tab is closed, evicted by the tab limit, switched away from or the pane unmounts, flush a pending debounced write immediately so no stroke is lost.
    - **External changes:** the file watcher already reloads open files, and `ConflictDialog` handles the case where unsaved edits exist. On a reload, **cancel any pending debounced write first**, then pass the new scene to `excalidrawAPI.updateScene` without remounting. Otherwise the debounce can fire after the reload and write the old scene back over the new file.
 5. **Theme:** the app theme maps to Excalidraw's `theme` prop. There is no preview mode to map: the editor has had a single mode since the Edit / Preview `viewMode` was removed (`atoms/ui-atoms.ts`). Boards are always editable, and `viewModeEnabled` stays off. (If a read-only board turns out to be needed, it is a separate, board-only toggle.)
@@ -148,7 +148,7 @@ Split into what has to ship with the MVP (otherwise the JSON leaks into the UI) 
 **Editing and saving: depends on board size.**
 
 - **Rendering:** Excalidraw draws on canvas and caches element shapes. Pan and zoom stay smooth into the low thousands of elements. Dense freehand (many points per stroke) is the slow case, especially on phones and iPads.
-- **Serialize and save:** each debounced save runs `JSON.stringify` over the scene and writes the whole file. Around 1 MB this is roughly 10–30 ms on desktop, which is fine with a 500 ms debounce and the scene-version check (section 3), because nothing serializes unless an element changed. Rounding coordinates (section 2) shrinks the file 30–50% for freehand-heavy boards.
+- **Serialize and save:** each debounced save runs `JSON.stringify` over the scene and writes the whole file. Around 1 MB this is roughly 10–30 ms on desktop, which is fine with a 500 ms debounce and the element-hash check (section 3), because nothing serializes unless an element changed. Rounding coordinates (section 2) shrinks the file 30–50% for freehand-heavy boards.
 - **Knock-on costs per save:** the metadata worker re-parses the file, and in a GitHub vault the sync commits the whole file. With `stripBoardFence` applied before indexing, the worker cost stays small. The commit size scales with the board size.
 - **Vault scan:** the worker reads every board in full during a scan. A handful of boards is negligible; hundreds of multi-MB boards would slow the scan noticeably. Measure with the large-board fixture. If needed, have `stripBoardFence` scan for the fence lines instead of parsing the JSON.
 
@@ -174,7 +174,7 @@ Split into what has to ship with the MVP (otherwise the JSON leaks into the UI) 
 - `app/utils/board/migrate.ts` (+ test).
 - `app/utils/board/is-board.ts` (+ test).
 - `app/utils/board/board-text.ts` (+ test, phase 3): text-element extraction for the worker.
-- `app/editor/components/board/BoardView.tsx`: the Excalidraw wrapper. It handles the dynamic import, theme, the scene-version check plus debounced change → content atom, flushing on unmount, cancelling the debounce and calling `updateScene` on reload, and the conflict and invalid error states.
+- `app/editor/components/board/BoardView.tsx`: the Excalidraw wrapper. It handles the dynamic import, theme, the element-hash check plus debounced change → content atom, flushing on unmount, cancelling the debounce and calling `updateScene` on reload, and the conflict and invalid error states.
 - `app/editor/components/board/use-board-viewport.ts`: per-tab viewport in session storage.
 - `app/editor/components/board/README.md`: directory index.
 - **Phase 1 touch points:**
@@ -217,7 +217,7 @@ Split into what has to ship with the MVP (otherwise the JSON leaks into the UI) 
 1. **MVP:**
    - the dependency and self-hosted fonts;
    - the format module (rounding, `stripBoardFence`, conflict detection);
-   - `BoardView` (scene-version change check, flush and cancel, error states) and pane dispatch;
+   - `BoardView` (element-hash change check, flush and cancel, error states) and pane dispatch;
    - the New board command, theme, and save and reload;
    - board JSON kept out of word count, preview, search, links and AI `read_note`;
    - fence-aware task extraction;
