@@ -7,6 +7,7 @@ import type { EditorView } from "@codemirror/view";
 import { callAI } from "@/app/services/ai";
 import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
+import { keepTablesUnderHeadings } from "../utils/ai-table-headings";
 import { AI_ACTIONS } from "./ai-action-prompts";
 
 // Applies an AI result in one transaction (one undo step) rather than
@@ -135,7 +136,7 @@ export function useAIEditorActions() {
 
       const view = activeTarget;
       const { start, end } = mode === "replace-all" ? { start: 0, end: view.state.doc.length } : chatContext;
-      replaceRangeCM6(view, start, end, suggestion);
+      replaceRangeCM6(view, start, end, keepTablesUnderHeadings(suggestion));
 
       showSuccessToast(mode === "replace-all" ? "Document replaced." : "Inserted into document.");
       setIsChatOpen(false);
@@ -148,7 +149,7 @@ export function useAIEditorActions() {
     const suggestion = customSuggestion ?? aiReview.suggestion;
     const { start, end } = aiReview;
     if (activeTarget) {
-      replaceRangeCM6(activeTarget, start, end, suggestion);
+      replaceRangeCM6(activeTarget, start, end, keepTablesUnderHeadings(suggestion));
     }
     showSuccessToast("AI suggestion applied.");
     setAiReview(null);
@@ -159,7 +160,7 @@ export function useAIEditorActions() {
     const suggestion = customSuggestion ?? aiReview.suggestion;
     const { end } = aiReview;
     if (activeTarget) {
-      replaceRangeCM6(activeTarget, end, end, `\n\n${suggestion}`);
+      replaceRangeCM6(activeTarget, end, end, `\n\n${keepTablesUnderHeadings(suggestion)}`);
     }
     showSuccessToast("AI suggestion inserted.");
     setAiReview(null);
