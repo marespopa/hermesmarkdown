@@ -217,9 +217,9 @@ export const getStartedGroup: Group = {
             your name in Settings → Profile, the feed greets you with it.
           </p>
           <p>
-            To keep a note at the top, hover its row and click the pin. On a phone or tablet,
-            touch and hold the row, then choose <strong>Pin to Home</strong>; right-clicking a row
-            opens the same menu. You can also open the note and run <strong>Pin to Home</strong>{" "}
+            To keep a note at the top, click the pin at the top right of its row. It shows when you
+            hover the row, and always on a phone or tablet. You can also touch and hold the row, or
+            right-click it, and choose <strong>Pin to Home</strong>. You can also open the note and run <strong>Pin to Home</strong>{" "}
             from the command palette. Pinned notes sit under{" "}
             <em>Pinned</em> above the days, newest pin first. Click the pin again, or run{" "}
             <strong>Unpin from Home</strong>, to put the note back. Each vault keeps its own pins.
