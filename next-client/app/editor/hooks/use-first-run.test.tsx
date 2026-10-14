@@ -39,6 +39,7 @@ describe("useFirstRun", () => {
 
   it("shows the palette shortcut once under Strict Mode's double effect run", () => {
     const store = createStore();
+    store.set(atom_isVaultRestoring, false);
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <React.StrictMode>
         <Provider store={store}>{children}</Provider>
