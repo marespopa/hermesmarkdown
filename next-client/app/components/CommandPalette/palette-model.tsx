@@ -16,7 +16,9 @@ export const MAX_VISIBLE_ROWS = 12;
 export const SEARCH_OR_CREATE_PLACEHOLDER = "Search or create a note…";
 // One search-pill look for the palette field and the home feed's pill (the
 // same element as far as the user is concerned; they morph into each other).
-export const SEARCH_PILL_CLASS = "flex items-center gap-1 rounded-full border border-edge bg-chrome p-1.5";
+// Inside the palette's glass the field is a quiet translucent well; on the
+// home feed, where it floats on its own, FeedBar adds the panel material.
+export const SEARCH_PILL_CLASS = "flex items-center gap-1 rounded-full border border-edge-subtle bg-black/[0.04] dark:bg-white/[0.06] p-1.5";
 export const SEARCH_FIELD_CLASS = "flex h-10 min-w-0 flex-1 items-center gap-3 rounded-full pl-4 pr-1";
 export const SEARCH_KBD_CLASS = "hidden shrink-0 rounded border border-edge px-1.5 py-0.5 font-mono text-ui-micro text-fg-muted sm:inline";
 export const COMMAND_TOGGLE_CLASS =

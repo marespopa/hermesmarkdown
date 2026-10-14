@@ -58,7 +58,7 @@ const SettingsPage = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden overscroll-none bg-paper-pale font-sans text-ink-light selection:bg-sage/10 dark:bg-paper-dark dark:text-ink-dark lg:flex-row">
-      <aside className="flex shrink-0 flex-col border-b border-edge-subtle bg-chrome/85 backdrop-blur-2xl lg:w-72 lg:border-b-0 lg:border-r">
+      <aside className="glass-bar flex shrink-0 flex-col border-b border-edge-subtle lg:w-72 lg:border-b-0 lg:border-r">
         <div className="border-b border-edge-subtle px-4 pb-3 pt-4">
           <Button
             variant="unstyled"

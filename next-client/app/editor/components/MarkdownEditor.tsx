@@ -77,7 +77,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onChange(newVal);
   }, [onChange]);
 
-  const { fontFamily, displayFontSize, lineHeight, paneRef, contentPaddingX } =
+  const { fontFamily, displayFontSize, lineHeight, paneRef, contentPaddingX, contentPaddingLeft } =
     useEditorAppearance(props.isSplit);
 
   const keyboardInset = useKeyboardInset();
@@ -99,7 +99,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { csvConfirmRef, pasteImageRef } = useEditorPasteHandlers();
 
   const onWikiLinkClick = useCallback((name: string) => props.onWikiLinkClick?.(name), [props.onWikiLinkClick]);
-  const features = useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick });
+  const features = useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWikiLinkClick });
   const { pillUrl, pillType, dismissPill, dateMatch, setIsDateExpanded, onCursorActivity } = features;
 
   const languagePicker = useCodeMirrorCodeLanguagePicker({ viewRef, containerRef });
@@ -279,7 +279,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   return (
     <div
       ref={paneRef}
-      className={`editor-canvas relative w-full h-full overflow-auto cursor-text`}
+      // The pane header floats over this scroller: the sheet starts below it
+      // and scrolls under its glass (--pane-header-inset, PaneLeaf).
+      className={`editor-canvas relative w-full h-full overflow-auto cursor-text pt-[var(--pane-header-inset,0px)] scroll-pt-[var(--pane-header-inset,0px)]`}
       translate="no"
     >
       <div
@@ -298,7 +300,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           fontFamily,
           "--editor-font-size": displayFontSize,
           "--editor-line-height": lineHeight,
-          paddingLeft: contentPaddingX,
+          paddingLeft: contentPaddingLeft,
           paddingRight: contentPaddingX,
           paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}

@@ -32,10 +32,13 @@ const findReplaceTheme = EditorView.theme({
   ".cm-panel.cm-search": {
     position: "relative",
     padding: "0.3rem 2.25rem 0.3rem 0.3rem",
-    backgroundColor: "var(--chrome)",
-    border: "1px solid var(--border)",
+    // The panel material (`.glass-panel`, globals.scss), through its tokens.
+    backgroundColor: "var(--material-panel)",
+    WebkitBackdropFilter: "var(--material-blur)",
+    backdropFilter: "var(--material-blur)",
+    border: "1px solid var(--material-edge)",
     borderRadius: "0.75rem",
-    boxShadow: "0 8px 20px rgba(0, 0, 0, 0.1)",
+    boxShadow: "inset 0 1px 0 var(--material-highlight), var(--material-shadow)",
     fontFamily: "var(--font-inter), system-ui, sans-serif",
     fontSize: "13px",
   },

@@ -16,13 +16,13 @@ interface MentionMenuProps {
 // folder indexes, then single notes.
 export default function MentionMenu({ options, activeIndex, query, onSelect }: MentionMenuProps) {
   return (
-    <div className="absolute bottom-full left-0 right-0 mb-1 bg-paper-light dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-lg overflow-hidden z-50">
+    <div className="absolute bottom-full left-0 right-0 mb-1 glass-panel rounded-xl overflow-hidden z-50">
       {options.map((option, i) => {
         const key = option.kind === "vault" ? "@vault" : option.kind === "folder" ? `folder:${option.path}` : option.file.path;
         const rowClass = `w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors ${
           i === activeIndex
             ? "bg-sage/10 text-sage"
-            : "text-ink-light dark:text-ink-dark hover:bg-neutral-50 dark:hover:bg-neutral-800"
+            : "text-ink-light dark:text-ink-dark hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
         }`;
         // mousedown (not click) so the textarea keeps focus
         const select = (e: React.MouseEvent) => { e.preventDefault(); onSelect(option); };

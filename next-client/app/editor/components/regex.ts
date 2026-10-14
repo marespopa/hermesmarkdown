@@ -14,7 +14,10 @@ export const REGEX_LINK = /(\[)([^\]]+)(\]\()([^)]+)(\))/g;
 export const REGEX_BOLD = /(\*\*|__)(.*?)\1/g;
 export const REGEX_ITALIC = /(\*|_)(.*?)\1/g;
 export const REGEX_STRIKETHROUGH = /(~~)(.*?)(~~)/g;
-export const REGEX_MD_LINK = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
+// A URL link, with an optional "title"; the URL may hold backslash-escaped
+// characters (pasted HTML arrives as `[text](https://x.y/a_\(b\) "Title")`)
+// or balanced parentheses, as typed (`https://x.y/a_(b)`).
+export const REGEX_MD_LINK = /\[[^\]]+\]\((https?:\/\/(?:\\.|\([^\s()]*\)|[^\s()\\])+)(?:\s+"[^"]*")?\)/g;
 export const REGEX_MD_IMAGE = /!\[[^\]]*\]\(([^)\s]+)\)/g;
 export const REGEX_CHECKBOX = /^(\s*[-*]\s*\[)([ xX/!-])(\])/;
 export const REGEX_URL_PASTE = /^(https?:\/\/[^\s]+)$/i;

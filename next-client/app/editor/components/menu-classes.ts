@@ -1,15 +1,11 @@
 // One look for every pop-up menu (TabContextMenu: tab and toolbar menus, the
 // sidebar's section menus, the Tasks page's menus; the file tree's
-// TreeContextMenu): a frosted panel with a soft, deep shadow, compact rows
+// TreeContextMenu): the panel material (`.glass-panel`), compact rows
 // highlighted by a quiet fill on hover and keyboard focus alike, hairline
 // separators inset from the edges. Static black / white fills, which take
 // opacity (the var-backed surface tokens drop the modifier).
 export const MENU_PANEL_CLASS = [
-  "fixed z-50 p-1 flex flex-col gap-px font-sans rounded-xl",
-  "bg-paper-light/90 dark:bg-paper-dark/90 backdrop-blur-xl backdrop-saturate-150",
-  "border border-edge-subtle",
-  "shadow-[0_12px_32px_-8px_rgb(0_0_0/0.20),0_2px_6px_-1px_rgb(0_0_0/0.08)]",
-  "dark:shadow-[0_12px_32px_-8px_rgb(0_0_0/0.55),0_2px_6px_-1px_rgb(0_0_0/0.3)]",
+  "fixed z-50 p-1 flex flex-col gap-px font-sans rounded-xl glass-panel",
 ].join(" ");
 
 // A row: unstyled Button plus this. The shared focus ring is swapped for the

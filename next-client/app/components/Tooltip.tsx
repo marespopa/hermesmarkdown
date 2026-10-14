@@ -20,7 +20,7 @@ const POSITION_CLASSES: Record<Position, string> = {
 };
 
 const BUBBLE_CLASSES =
-  "pointer-events-none whitespace-nowrap bg-overlay border border-edge text-fg text-ui-caption px-2 py-1 z-50";
+  "pointer-events-none whitespace-nowrap glass-panel rounded-md text-fg text-ui-caption px-2 py-1 z-50";
 
 const SHOW_DELAY_MS = 400;
 const GAP_PX = 8;

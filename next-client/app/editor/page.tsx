@@ -201,12 +201,10 @@ export default function LiteEditor() {
     showSuccessToast("Download started");
   };
 
-  // Once the chrome fades, a single pane's text re-centres on the window
-  // rather than on the space beside the faded sidebar (editor.scss).
-  const centringShift =
-    !isMobileChrome && !isVaultLocked && !isHomeFeedOpen && sidebarOpen && "type" in workspaceLayout.rootContainer
-      ? `${sidebarWidth / 2}px`
-      : "0px";
+  // The sidebar floats over the panes, so the text never moves for it; only
+  // the headers of panes on the leading edge start beside it (PaneLeaf).
+  const sidebarInset =
+    !isMobileChrome && !isVaultLocked && !isHomeFeedOpen && sidebarOpen ? `${sidebarWidth}px` : "0px";
 
   return (
     <ErrorBoundary onGoHome={() => router.push("/")}>
@@ -233,7 +231,7 @@ export default function LiteEditor() {
       <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />
       <div
         className={`typing-page fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500`}
-        style={{ "--typing-shift": centringShift } as CSSProperties}
+        style={{ "--sidebar-inset": sidebarInset } as CSSProperties}
       >
         <h1 className="sr-only">HermesMarkdown Editor</h1>
         {/* Modals */}
@@ -260,7 +258,8 @@ export default function LiteEditor() {
             feed is a full-width landing view, so it has none. */}
         {!isMobileChrome && !isVaultLocked && !isHomeFeedOpen && (
           // A wrapper takes the fade: the sidebar's own transition is its slide.
-          <div className="typing-chrome shrink-0 flex">
+          // It takes no room: the sidebar floats over the editor from it.
+          <div className="typing-chrome absolute inset-y-0 left-0 w-0 z-30">
             <WorkspaceSidebar onOpenTasks={() => navigateWithGuard("/editor/tasks", "Tasks")} onOpenTemplates={() => navigateWithGuard("/editor/templates", "Templates")} />
           </div>
         )}

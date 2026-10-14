@@ -17,14 +17,14 @@ import PaneToolbarButton from "./PaneToolbarButton";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue } from "jotai";
 import { formatShortcut } from "@/app/utils/platform";
-import { getFirstLeaf, getTopTrailingLeaf } from "@/app/atoms/utils";
+import { getFirstLeaf, getTopTrailingLeaf, isOnLeadingEdge } from "@/app/atoms/utils";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
 import { useTabDragDrop } from "../hooks/use-tab-drag-drop";
 import PaneEmptyState from "./PaneEmptyState";
 import PaneWindowActions from "./PaneWindowActions";
 import TabStripScroller from "./TabStripScroller";
-import { PANE_HEADER_CLASS, PANE_HEADER_HEIGHT, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
+import { PANE_HEADER_CLASS, PANE_HEADER_HEIGHT, PANE_HEADER_INSET, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -44,6 +44,10 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   // has focus.
   const hostsSidebarToggle = getFirstLeaf(workspaceLayout.rootContainer).id === leaf.id;
   const hostsWindowActions = getTopTrailingLeaf(workspaceLayout.rootContainer).id === leaf.id;
+  // The floating sidebar covers the leading edge; panes there start their
+  // header beside it (--sidebar-inset, page.tsx). Only the header moves —
+  // the text underneath never does.
+  const besideSidebar = isOnLeadingEdge(workspaceLayout.rootContainer, leaf.id);
   const isMobileChrome = useIsMobileChrome();
 
   const { openOrCreateLink } = useFileSystem();
@@ -110,11 +114,19 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       className={`typing-page relative h-full flex flex-col transition-all duration-300 overflow-hidden bg-paper-pale dark:bg-paper-dark ${
         isActive ? "z-10" : ""
       }`}
+      // The header floats over the content, which starts below it
+      // (--pane-header-inset) and scrolls under its glass.
+      style={isMobileChrome ? undefined : ({ "--pane-header-inset": PANE_HEADER_INSET } as React.CSSProperties)}
       onClick={() => setActivePaneId(leaf.id)}
     >
-      {/* Pane tabs are the editor's desktop header, even for a single note. */}
+      {/* Pane tabs are the editor's desktop header, even for a single note.
+          It floats over the editor, so showing, fading or moving it never
+          reflows the text. */}
       {!isMobileChrome && (
-      <div className="shrink-0 relative">
+      <div
+        className="absolute top-0 right-0 z-20 transition-[left] duration-200 ease-out motion-reduce:transition-none"
+        style={{ left: besideSidebar ? "var(--sidebar-inset, 0px)" : 0 }}
+      >
       <div className={`typing-chrome ${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT}`}>
         {/* Show sidebar sits at the far left while the sidebar is hidden; once
             it's open, the sidebar's own header carries the hide button. Its
@@ -205,7 +217,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       )}
 
       {/* Pane Content */}
-      <div className="flex-1 min-h-0 overscroll-none overflow-auto">
+      {/* The editor applies the header inset inside its own scroller; any
+          other content starts below the header here. */}
+      <div className={`flex-1 min-h-0 overscroll-none overflow-auto ${hasFiles && leaf.type === "editor" ? "" : "pt-[var(--pane-header-inset,0px)]"}`}>
         {leaf.openFilePaths.length === 0 ? (
           <PaneEmptyState onLoadDraft={setContent} />
         ) : leaf.type === "editor" ? (

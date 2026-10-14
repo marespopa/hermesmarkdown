@@ -22,6 +22,9 @@ interface LinkPillState {
 
 interface UseCodeMirrorFeaturesOptions {
   viewRef: React.RefObject<EditorView | null>;
+  // The view once created (it's built asynchronously): DOM listeners attach
+  // when it arrives, not on mount, when `viewRef` is still empty.
+  editorView: EditorView | null;
   containerRef: React.RefObject<HTMLDivElement | null>;
   onWikiLinkClick?: (name: string) => void;
 }
@@ -30,7 +33,7 @@ interface UseCodeMirrorFeaturesOptions {
 // cursor-driven, not hover-driven; positions come from `view.coordsAtPos`,
 // converted to containerRef-relative coordinates for the existing
 // LinkPill/DatePickerCallout components.
-export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }: UseCodeMirrorFeaturesOptions) {
+export function useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWikiLinkClick }: UseCodeMirrorFeaturesOptions) {
   const [linkPill, setLinkPill] = useState<LinkPillState | null>(null);
   const pillRangeRef = useRef<{ start: number; end: number } | null>(null);
   pillRangeRef.current = linkPill?.range ?? null;
@@ -99,7 +102,7 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
 
   // Ctrl/Cmd+click opens a URL link or navigates a wikilink.
   useEffect(() => {
-    const view = viewRef.current;
+    const view = editorView;
     if (!view) return;
     const dom = view.dom;
     const handleMouseDown = (e: MouseEvent) => {
@@ -117,11 +120,11 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
     };
     dom.addEventListener("mousedown", handleMouseDown, true);
     return () => dom.removeEventListener("mousedown", handleMouseDown, true);
-  }, [viewRef, onWikiLinkClick]);
+  }, [editorView, onWikiLinkClick]);
 
   // Escape dismisses the open link/date popup.
   useEffect(() => {
-    const view = viewRef.current;
+    const view = editorView;
     if (!view) return;
     const dom = view.dom;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -132,7 +135,7 @@ export function useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick }
     };
     dom.addEventListener("keydown", handleKeyDown, true);
     return () => dom.removeEventListener("keydown", handleKeyDown, true);
-  }, [viewRef, isDateExpanded, linkPill, dismissPill]);
+  }, [editorView, isDateExpanded, linkPill, dismissPill]);
 
   const dispatchReplace = useCallback((from: number, to: number, insert: string) => {
     const view = viewRef.current;

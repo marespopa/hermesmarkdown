@@ -8,6 +8,9 @@ import {
   atom_renderedFontSize,
 } from "@/app/atoms/atoms";
 
+// Room the hanging margin marks need, in units of the editor's font size.
+export const MARGIN_MARKS_ROOM = 2.25;
+
 // Breakpoints below are keyed off the *pane's* own width (measured via
 // ResizeObserver), not window.innerWidth — a Tailwind md:/xl: prefix reacts
 // to the whole viewport, so in a split pane
@@ -56,6 +59,13 @@ export function useEditorAppearance(isSplit = false) {
     return 48;
   }, [isSplit, paneWidth]);
 
+  // The leading margin also holds the heading `#`s and quote `>`s that hang
+  // outside the text (`.cm-marginMarks`, live-markers-theme.ts): at most about
+  // two letters of body text (`###### `, or H1's larger `# `, at 60%), so
+  // never less than that, in step with the text size. Narrow and split panes
+  // have the smallest margins; without this the marks spill past the sheet.
+  const contentPaddingLeft = `max(${contentPaddingX}px, calc(var(--editor-font-size, 17px) * ${MARGIN_MARKS_ROOM}))`;
+
   return {
     fontFamily,
     displayFontSize,
@@ -63,5 +73,6 @@ export function useEditorAppearance(isSplit = false) {
     windowWidth,
     paneRef: paneRef as RefObject<HTMLDivElement | null>,
     contentPaddingX,
+    contentPaddingLeft,
   };
 }

@@ -58,7 +58,7 @@ export function ListHeader() {
   return (
     <div
       role="row"
-      className="sticky top-0 z-20 flex h-7 items-center border-b border-edge-subtle bg-chrome pl-4 pr-9 text-ui-caption font-medium text-fg-muted"
+      className="sticky top-0 z-20 flex h-7 items-center border-b border-edge-subtle glass-bar pl-4 pr-9 text-ui-caption font-medium text-fg-muted"
     >
       <span className="min-w-0 flex-1 truncate">Name</span>
       <span className={DATE_COLUMN}>Date Modified</span>

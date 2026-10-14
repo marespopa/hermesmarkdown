@@ -301,7 +301,7 @@ export default function CommandPalette() {
     containerClassName={isMobileChrome ? "" : "items-start justify-center pt-[18vh] px-4"}
     panelClassName={isMobileChrome
       ? `flex-1 flex flex-col bg-overlay duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-bottom-2 ease-out" : "animate-out fade-out slide-out-to-bottom-2 ease-in"}`
-      : `w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-18vh-2rem)] flex flex-col bg-gradient-to-b from-overlay via-overlay to-surface-raised border border-edge rounded-2xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-top-1 ease-out" : "animate-out fade-out slide-out-to-top-1 ease-in"}`}>
+      : `w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-18vh-2rem)] flex flex-col glass-panel rounded-2xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-top-1 ease-out" : "animate-out fade-out slide-out-to-top-1 ease-in"}`}>
     <div className="flex min-h-0 flex-1 flex-col" onKeyDown={handleKeyDown}>
     <PaletteSearchBar
       inputRef={inputRef}
@@ -338,7 +338,7 @@ export default function CommandPalette() {
       ))}</div>
       {contentFootnote && <p className="px-5 pb-2 text-ui-footnote text-fg-muted">{contentFootnote}</p>}
     </div>
-    <footer className="flex items-center justify-between border-t border-edge-subtle bg-chrome px-3 py-1 text-ui-caption text-fg-muted dark:bg-overlay">
+    <footer className="flex items-center justify-between border-t border-edge-subtle bg-black/[0.03] dark:bg-white/[0.03] px-3 py-1 text-ui-caption text-fg-muted">
       <div className="flex items-center gap-0.5">
         <Button variant="icon" onClick={() => setTheme(THEME_CYCLE[(themeCycleIndex + 1) % THEME_CYCLE.length].value)} aria-label={themeCycleLabel} title={themeCycleLabel} className="!w-7 !h-7" suppressHydrationWarning>
           <ThemeCycleIcon size={14} />
@@ -349,7 +349,7 @@ export default function CommandPalette() {
       </div>
       <span className="font-medium">HermesMarkdown v{version}</span>
     </footer>
-    {contextRow && <div role="menu" aria-label="Palette item actions" className="absolute right-3 top-28 z-10 animate-in fade-in zoom-in-95 slide-in-from-top-1 rounded-lg border border-edge bg-chrome p-1 shadow-lg duration-150 motion-reduce:animate-none"><Button variant="menu-item" role="menuitem" onClick={() => togglePin(contextRow)}>{isPinned(contextRow) ? "Unpin item" : "Pin item"} <span className="ml-auto text-fg-faint">Ctrl+D</span></Button></div>}
+    {contextRow && <div role="menu" aria-label="Palette item actions" className="absolute right-3 top-28 z-10 animate-in fade-in zoom-in-95 slide-in-from-top-1 rounded-lg glass-panel p-1 duration-150 motion-reduce:animate-none"><Button variant="menu-item" role="menuitem" onClick={() => togglePin(contextRow)}>{isPinned(contextRow) ? "Unpin item" : "Pin item"} <span className="ml-auto text-fg-faint">Ctrl+D</span></Button></div>}
     </div>
   </OverlayPanel>;
 }

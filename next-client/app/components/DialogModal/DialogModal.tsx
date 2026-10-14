@@ -43,8 +43,7 @@ const DialogModal = ({
       panelClassName={`
         z-10 w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)]
         max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)]
-        bg-white dark:bg-neutral-900 backdrop-blur-2xl
-        border border-white/20 dark:border-neutral-800/50
+        glass-panel
         overflow-hidden flex flex-col
         animate-in fade-in zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-500 ease-out
         ${mobileSheet
