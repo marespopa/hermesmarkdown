@@ -231,6 +231,37 @@ describe("HomeFeed", () => {
     expect(handlers.onSearch).toHaveBeenCalledWith(">");
   });
 
+  it("asks for a name on the no-vault start until one is given", () => {
+    localStorage.clear();
+    const store = createStore();
+    render(
+      <Provider store={store}>
+        <HomeFeed hasVault={false} onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+    const field = screen.getByPlaceholderText("What should we call you?");
+    // Leaving the field empty saves nothing.
+    fireEvent.blur(field);
+    expect(store.get(atom_userName)).toBe("");
+
+    fireEvent.change(field, { target: { value: "  Hermes " } });
+    fireEvent.keyDown(field, { key: "Enter" });
+    expect(store.get(atom_userName)).toBe("Hermes");
+    expect(screen.queryByPlaceholderText("What should we call you?")).not.toBeInTheDocument();
+    expect(screen.getByText(/, Hermes!$/)).toBeInTheDocument();
+  });
+
+  it("doesn't ask for a name already stored", () => {
+    localStorage.setItem("userName", JSON.stringify("Hermes"));
+    render(
+      <Provider>
+        <HomeFeed hasVault={false} onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+    expect(screen.queryByPlaceholderText("What should we call you?")).not.toBeInTheDocument();
+    localStorage.clear();
+  });
+
   it("names the open vault and closes it after a confirm", async () => {
     const store = createStore();
     store.set(atom_fileMetadata, NOTES);
