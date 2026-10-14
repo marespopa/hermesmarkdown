@@ -17,6 +17,27 @@ describe("findLinkAtPos", () => {
     });
   });
 
+  it("finds links pasted from a web page, with a title or escaped parentheses", () => {
+    const titled = 'See [the docs](https://example.com/docs "Docs home") now';
+    expect(findLinkAtPos(titled, titled.indexOf("[") + 3)).toMatchObject({
+      value: "https://example.com/docs",
+      label: "the docs",
+      rawString: '[the docs](https://example.com/docs "Docs home")',
+    });
+
+    const escaped = "[Mercury](https://en.wikipedia.org/wiki/Mercury_\\(planet\\))";
+    expect(findLinkAtPos(escaped, 2)).toMatchObject({
+      value: "https://en.wikipedia.org/wiki/Mercury_(planet)",
+      end: escaped.length,
+    });
+
+    const typed = "[Mercury](https://en.wikipedia.org/wiki/Mercury_(planet))";
+    expect(findLinkAtPos(typed, 2)).toMatchObject({
+      value: "https://en.wikipedia.org/wiki/Mercury_(planet)",
+      end: typed.length,
+    });
+  });
+
   it("finds WikiLinks and supports cursor positions at the boundaries", () => {
     const text = "See [[Project Notes]]";
     const start = text.indexOf("[[");

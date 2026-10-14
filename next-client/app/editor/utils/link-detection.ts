@@ -8,7 +8,8 @@ export function findLinkAtPos(text: string, pos: number) {
       const label = match[0].slice(1, match[0].indexOf("]"));
       return {
         type: "url",
-        value: match[1],
+        // Unescaped, as the browser should open it.
+        value: match[1].replace(/\\(.)/g, "$1"),
         label,
         start: match.index,
         end: match.index + match[0].length,

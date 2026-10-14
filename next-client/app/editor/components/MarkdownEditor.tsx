@@ -99,7 +99,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { csvConfirmRef, pasteImageRef } = useEditorPasteHandlers();
 
   const onWikiLinkClick = useCallback((name: string) => props.onWikiLinkClick?.(name), [props.onWikiLinkClick]);
-  const features = useCodeMirrorFeatures({ viewRef, containerRef, onWikiLinkClick });
+  const features = useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWikiLinkClick });
   const { pillUrl, pillType, dismissPill, dateMatch, setIsDateExpanded, onCursorActivity } = features;
 
   const languagePicker = useCodeMirrorCodeLanguagePicker({ viewRef, containerRef });
