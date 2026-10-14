@@ -384,15 +384,24 @@ html[data-chrome-faded] .editor-sheet.editor-container {
 /* Spreadsheet-style rulers: column letters in a strip above the header and
    row numbers in a gutter on the left, shown while a table is being edited.
    The space is always reserved (so nothing shifts when they appear) and the
-   labels never overlap a cell. They double as row/column menu buttons. */
+   labels never overlap a cell. They double as row/column menu buttons.
+   The row-number gutter hangs in the page margin, like a heading's `#`s:
+   the preview reaches left by the gutter's width and pads it back, so the
+   table lines up with the text (the margin is at least MARGIN_MARKS_ROOM
+   wide). The numbers sit in that padding, outside the horizontal scroller,
+   so a wide table scrolls past them and is clipped at the text edge. */
 .cm-table-preview {
+  position: relative;
   padding-top: 0.1em;
+  padding-left: 1.6rem;
+  margin-left: -1.6rem;
+  width: calc(100% + 1.6rem);
+  max-width: none;
 }
 
 .cm-table-preview-scroll {
   position: relative;
   padding-top: 1.2rem;
-  padding-left: 1.6rem;
 }
 
 .cm-table-rulers {
