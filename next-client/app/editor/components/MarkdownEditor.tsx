@@ -77,7 +77,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onChange(newVal);
   }, [onChange]);
 
-  const { fontFamily, displayFontSize, lineHeight, paneRef, contentPaddingX } =
+  const { fontFamily, displayFontSize, lineHeight, paneRef, contentPaddingX, contentPaddingLeft } =
     useEditorAppearance(props.isSplit);
 
   const keyboardInset = useKeyboardInset();
@@ -300,7 +300,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           fontFamily,
           "--editor-font-size": displayFontSize,
           "--editor-line-height": lineHeight,
-          paddingLeft: contentPaddingX,
+          paddingLeft: contentPaddingLeft,
           paddingRight: contentPaddingX,
           paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}
