@@ -1,5 +1,5 @@
 ---
-state: new
+state: specced
 size: normal
 blocked_from:
 rejections: 0
