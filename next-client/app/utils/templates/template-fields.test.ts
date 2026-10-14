@@ -25,6 +25,11 @@ describe("fieldLabel", () => {
     expect(fieldLabel("weekday")).toBe("Day name");
   });
 
+  it("names tokens typed in any case", () => {
+    expect(fieldLabel("Year")).toBe("Year");
+    expect(fieldLabel("MonthName")).toBe("Month name");
+  });
+
   it("returns null for non-fields and empty questions", () => {
     expect(fieldLabel("two words")).toBeNull();
     expect(fieldLabel("weekday+1d")).toBeNull();
@@ -33,12 +38,17 @@ describe("fieldLabel", () => {
 });
 
 describe("templateFieldOptions", () => {
-  it("offers a new question, a blank, every built-in token, then tomorrow", () => {
+  it("offers a new question, a blank, every built-in token, then date presets", () => {
     const options = templateFieldOptions("", NOW);
     expect(options[0]).toMatchObject({ label: "Ask a question…", ask: "question" });
     expect(options[1]).toMatchObject({ label: "Blank to fill in…", ask: "blank" });
-    expect(options.slice(2, -1).map((o) => o.token)).toEqual([...TEMPLATE_TOKENS]);
-    expect(options.at(-1)).toMatchObject({ insert: "{{date+1d}}", detail: "2026-10-06" });
+    expect(options.slice(2, 2 + TEMPLATE_TOKENS.length).map((o) => o.token)).toEqual([...TEMPLATE_TOKENS]);
+    expect(options.slice(2 + TEMPLATE_TOKENS.length).map((o) => [o.insert, o.detail])).toEqual([
+      ["{{date+1d}}", "2026-10-06"],
+      ["{{date-1d}}", "2026-10-04"],
+      ["{{date:dddd, D MMMM YYYY}}", "Monday, 5 October 2026"],
+      ["{{date:GGGG-[W]ww}}", "2026-W41"],
+    ]);
   });
 
   it("puts the doc's questions first, once each", () => {
@@ -54,9 +64,20 @@ describe("templateFieldOptions", () => {
     expect(options.find((o) => o.token === "title")?.detail).toBe("the new note's title");
   });
 
-  it("doesn't offer the legacy tokens", () => {
+  it("offers year, month, day, weekday and the other date parts with today's value", () => {
+    const options = templateFieldOptions("", NOW);
+    const detail = (token: string) => options.find((o) => o.token === token)?.detail;
+    expect(detail("year")).toBe("2026");
+    expect(detail("month")).toBe("10");
+    expect(detail("day")).toBe("05");
+    expect(detail("weekday")).toBe("Monday");
+    expect(detail("monthName")).toBe("October");
+    expect(detail("quarter")).toBe("Q4");
+  });
+
+  it("doesn't offer the old sheet names", () => {
     const tokens = templateFieldOptions("", NOW).map((o) => o.token);
-    for (const legacy of ["weekday", "year", "monthName", "week", "quarter", "weekSheet", "yearSheet", "slug"]) {
+    for (const legacy of ["weekSheet", "monthSheet", "quarterSheet", "yearSheet"]) {
       expect(tokens).not.toContain(legacy);
     }
   });
@@ -68,7 +89,11 @@ describe("matchFieldOptions", () => {
 
   it("matches a token-name prefix", () => {
     expect(tokens("da")).toContain("date");
-    expect(tokens("ti")).toEqual(["time", "title"]);
+    expect(tokens("ti")).toEqual(["time", "title", "slug"]);
+  });
+
+  it("matches in any case", () => {
+    expect(tokens("Ye")).toContain("year");
   });
 
   it("matches a word of the plain name", () => {

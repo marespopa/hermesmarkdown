@@ -9,34 +9,35 @@
 
 import { isoWeekOf, periodOf, type PeriodKind } from "../periods/period";
 
-// The tokens the app lists and documents.
+// The tokens the app lists, documents and suggests after `{{`. Names match
+// in any case: `{{Year}}` is `{{year}}`.
 export const TEMPLATE_TOKENS = [
   "date",
   "time",
   "title",
+  "year",
+  "month",
+  "day",
+  "weekday",
+  "weekdayShort",
+  "monthName",
+  "monthNameShort",
+  "week",
+  "quarter",
+  "slug",
   "clipboard",
   "selection",
   "cursor",
 ] as const;
 
-// Older tokens that still expand in existing templates, but aren't listed,
-// suggested or warned about: a date format covers each of them
-// (`{{weekSheet}}` is `{{date:GGGG-[W]ww}}`, `{{year}}` is `{{date:YYYY}}`…).
+// Period names from the removed daily/weekly sheets: they still expand in
+// existing templates, but aren't listed, suggested or warned about (a date
+// format covers each: `{{weekSheet}}` is `{{date:GGGG-[W]ww}}`).
 export const LEGACY_TEMPLATE_TOKENS = [
-  "weekday",
-  "weekdayShort",
-  "year",
-  "month",
-  "day",
-  "monthName",
-  "monthNameShort",
-  "week",
-  "quarter",
   "weekSheet",
   "monthSheet",
   "quarterSheet",
   "yearSheet",
-  "slug",
 ] as const;
 
 export type TemplateToken = (typeof TEMPLATE_TOKENS)[number];
@@ -85,17 +86,25 @@ export interface ParsedToken {
   format?: string;
 }
 
+const KNOWN_TOKENS: readonly string[] = [...TEMPLATE_TOKENS, ...LEGACY_TEMPLATE_TOKENS];
+
+// A known token's own spelling for a name typed in any case (`Year` →
+// `year`); any other name, a blank, keeps its spelling.
+function canonicalName(name: string): string {
+  const lower = name.toLowerCase();
+  return KNOWN_TOKENS.find((known) => known.toLowerCase() === lower) ?? name;
+}
+
 // What's inside `{{…}}` (prompts excluded), or null when it isn't a token.
 export function parseTemplateToken(inner: string): ParsedToken | null {
   const match = /^\s*([A-Za-z_]\w*)(?:([+-]\d+)([dwmyDWMY]))?(?::([^}\n]*))?\s*$/.exec(inner);
   if (!match) return null;
-  const parsed: ParsedToken = { name: match[1] };
+  const parsed: ParsedToken = { name: canonicalName(match[1]) };
   if (match[2]) parsed.offset = { amount: Number(match[2]), unit: match[3].toLowerCase() as "d" | "w" | "m" | "y" };
   if (match[4] !== undefined && match[4].trim()) parsed.format = match[4].trim();
   return parsed;
 }
 
-const KNOWN_TOKENS: readonly string[] = [...TEMPLATE_TOKENS, ...LEGACY_TEMPLATE_TOKENS];
 const isKnownToken = (name: string) => KNOWN_TOKENS.includes(name);
 
 // Whether `{{inner}}` is a known token (listed or legacy) used correctly:

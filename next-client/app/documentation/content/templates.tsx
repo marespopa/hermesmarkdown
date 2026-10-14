@@ -9,7 +9,7 @@ export const templatesItems: Subsection[] = [
     id: "templates",
     title: "Templates",
     lead: "A template is a note you start other notes from. Fields like Today's date or Ask: Owner fill in each time you use it.",
-    keywords: "template templates save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet log entry timestamp token field add field placeholder prompt question ask cursor clipboard date new note missing link folder new notes go where name clash already exists new template create template week name weekly monthly quarterly yearly iso week quarter pack packs",
+    keywords: "template templates year month day weekday month name week number quarter slug save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet log entry timestamp token field add field placeholder prompt question ask cursor clipboard date new note missing link folder new notes go where name clash already exists new template create template week name weekly monthly quarterly yearly iso week quarter pack packs",
     body: (
       <>
         <h4 className={h4}>Make a template</h4>
@@ -44,10 +44,17 @@ export const templatesItems: Subsection[] = [
             { label: "Today's date", value: "2026-10-05; any format, see below" },
             { label: "Current time", value: "14:30" },
             { label: "Note title", value: "The new note's title" },
+            { label: "Year, Month number, Day of the month", value: "2026, 10, 05" },
+            { label: "Day name, Month name", value: "Monday, October; short forms Mon, Oct" },
+            { label: "Week number, Quarter", value: "41, Q4" },
+            { label: "Title as file name", value: "The title in kebab-case: auth-spec" },
             { label: "Clipboard", value: "What you last copied" },
             { label: "Start typing here", value: "Where the caret lands" },
             { label: "Selected text", value: "What you had selected when inserting the template" },
             { label: "Tomorrow's date", value: "2026-10-06; also any other day, week, month or year away" },
+            { label: "Yesterday's date", value: "2026-10-04" },
+            { label: "Long date", value: "Monday, 5 October 2026" },
+            { label: "This week's name", value: "2026-W41" },
             { label: "Blank to fill in…", value: "Stays in the new note as a highlighted blank, e.g. Task 1" },
           ]}
         />
@@ -111,7 +118,11 @@ export const templatesItems: Subsection[] = [
           and <code>[literal text]</code>. Date math works too: <code>{"{{date+1d}}"}</code>,{" "}
           <code>{"{{date-2w}}"}</code>, <code>{"{{date+1m}}"}</code>, <code>{"{{date+1y}}"}</code>, and with a
           format, <code>{"{{date+1d:dddd}}"}</code>. <code>{"{{selection}}"}</code> is the selected text.
-          Any other name, like <code>{"{{task_1}}"}</code>, is a blank.
+          The date parts have short names too: <code>{"{{year}}"}</code>, <code>{"{{month}}"}</code>,{" "}
+          <code>{"{{day}}"}</code>, <code>{"{{weekday}}"}</code>, <code>{"{{monthName}}"}</code>,{" "}
+          <code>{"{{week}}"}</code>, <code>{"{{quarter}}"}</code>, and <code>{"{{slug}}"}</code> is the
+          title as a file name. Field names work in any case: <code>{"{{Year}}"}</code> is{" "}
+          <code>{"{{year}}"}</code>. Any other name, like <code>{"{{task_1}}"}</code>, is a blank.
         </p>
         <KV
           rows={[

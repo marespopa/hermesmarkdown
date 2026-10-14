@@ -10,10 +10,11 @@ describe("lintTemplate", () => {
 
   it("treats other {{names}} as blanks, warning only about likely typos", () => {
     expect(lintTemplate("{{author}} {{task_1}} {{date}}")).toEqual([]);
-    expect(lintTemplate("{{dat}} {{Title}}")).toEqual([
+    expect(lintTemplate("{{dat}} {{titl}}")).toEqual([
       expect.stringContaining("{{dat}} looks like {{date}}"),
-      expect.stringContaining("{{Title}} looks like {{title}}"),
+      expect.stringContaining("{{titl}} looks like {{title}}"),
     ]);
+    expect(lintTemplate("{{Title}} {{Year}}")).toEqual([]);
   });
 
   it("warns about math or formats on the wrong token and about non-fields", () => {
