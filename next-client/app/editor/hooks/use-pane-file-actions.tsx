@@ -16,6 +16,7 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import { TabContextMenuItem } from "../components/TabContextMenu";
 import { useMaterializeDraft } from "./use-materialize-draft";
+import { flushBoardWrite } from "@/app/utils/board/board-flush";
 
 // Shared between the desktop pane tab bar and the mobile control rail so
 // Save/Copy/Close behavior stays a single source of truth even though the
@@ -42,11 +43,14 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
   }, [content, openFiles, filePath, liveHandle, saveFile, exportFile]);
 
   const handleSave = useCallback(async () => {
-    if (!content.trim()) return;
+    // A board's pending stroke goes into the store first; read from there.
+    flushBoardWrite(filePath);
+    const saved = contentStore.get(atom_openFiles)[filePath]?.content ?? content;
+    if (!saved.trim()) return;
 
     // Save in place if we already have a live handle.
     if (liveHandle) {
-      await saveFile(content, liveHandle, 0, false, filePath);
+      await saveFile(saved, liveHandle, 0, false, filePath);
       return;
     }
 
@@ -60,7 +64,7 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
           current = await current.getDirectoryHandle(parts[i]);
         }
         const recovered = await current.getFileHandle(parts[parts.length - 1]);
-        await saveFile(content, recovered, 0, false, filePath);
+        await saveFile(saved, recovered, 0, false, filePath);
         return;
       } catch {
         // Couldn't recover — fall through to the draft/save-as path below.
@@ -89,6 +93,7 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
 
   const closeTabWithAutosave = useCallback(async (path: string) => {
     if (!leaf) return;
+    flushBoardWrite(path);
     const autosaveMode = contentStore.get(atom_autosaveMode);
     if (autosaveMode !== "manual") {
       const fileState = contentStore.get(atom_openFiles)[path];

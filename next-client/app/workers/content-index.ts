@@ -5,6 +5,7 @@
 import { parseFmFields } from "@/app/utils/frontmatter-utils";
 import { isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { remapPath } from "@/app/atoms/utils";
+import { stripBoardFence } from "@/app/utils/board/board-format";
 
 export const REGEX_FRONTMATTER = /^---\r?\n([\s\S]*?)\r?\n---/;
 
@@ -73,7 +74,9 @@ export class ContentIndex {
   upsert(path: string, name: string, content: string, modifiedAt: number): void {
     const existing = this.entries.get(path);
     if (existing && modifiedAt < existing.modifiedAt) return;
-    const text = content.length > this.maxNoteChars ? content.slice(0, this.maxNoteChars) : content;
+    // Board JSON isn't searchable text; its lines are blanked so hit numbers hold.
+    const stripped = stripBoardFence(content);
+    const text = stripped.length > this.maxNoteChars ? stripped.slice(0, this.maxNoteChars) : stripped;
     const base = this.totalChars - (existing?.text.length ?? 0);
     if (base + text.length > this.maxTotalChars) {
       // Better unsearchable than searchable with stale text.

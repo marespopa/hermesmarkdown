@@ -11,7 +11,10 @@ import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { atom_homePinnedPaths, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineCode } from "react-icons/hi";
+import BoardViewLoader from "./board/BoardViewLoader";
+import { isBoard } from "@/app/utils/board/is-board";
+import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import PaneTab, { TabSaveState } from "./PaneTab";
@@ -59,6 +62,11 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const toggleHomePin = useSetAtom(atom_toggleHomePin);
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
+  // A board (see board/) shows as a canvas unless opened as Markdown.
+  const boardMarkdownPaths = useAtomValue(atom_boardMarkdownPaths);
+  const toggleBoardMarkdown = useSetAtom(atom_toggleBoardMarkdown);
+  const isBoardFile = React.useMemo(() => isBoard(filePath, content), [filePath, content]);
+  const showBoard = isBoardFile && !boardMarkdownPaths.has(filePath);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
 
   // The editor remounts on every tab switch, except when the draft was just
@@ -232,15 +240,24 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           // The gate carries the editor's key, so its "already shown" latch
           // follows the editor instance (a draft saved as a file keeps both).
           <PrivateNoteGate key={editorKeyRef.current.key} filePath={filePath} content={content} isActivePane={isActive}>
-            <MarkdownEditor
-              value={content}
-              onChange={setContent}
-              filePath={leaf.activeFilePath || "draft"}
-              onWikiLinkClick={openOrCreateLink}
-              placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
-              isActivePane={isActive}
-              isSplit={!isOnlyPane}
-            />
+            {showBoard ? (
+              <BoardViewLoader
+                path={filePath}
+                content={content}
+                isActivePane={isActive}
+                onEditAsMarkdown={() => toggleBoardMarkdown(filePath)}
+              />
+            ) : (
+              <MarkdownEditor
+                value={content}
+                onChange={setContent}
+                filePath={leaf.activeFilePath || "draft"}
+                onWikiLinkClick={openOrCreateLink}
+                placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
+                isActivePane={isActive}
+                isSplit={!isOnlyPane}
+              />
+            )}
           </PrivateNoteGate>
         ) : (
           <div className="flex flex-col items-center justify-center h-full opacity-20 space-y-2">
@@ -264,6 +281,13 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               onClick: () => openFileInPane(tabMenu.path),
               icon: <HiOutlineViewBoards size={15} />,
             });
+            if (tabMenu.path !== "draft" && isBoard(tabMenu.path, openFiles[tabMenu.path]?.content ?? "")) {
+              menuActions.push({
+                label: boardMarkdownPaths.has(tabMenu.path) ? "Open as Board" : "Edit as Markdown",
+                onClick: () => toggleBoardMarkdown(tabMenu.path),
+                icon: <HiOutlineCode size={15} />,
+              });
+            }
             // Notes in the vault can be pinned to the top of the Home feed;
             // the unsaved draft can't.
             if (hasVault && tabMenu.path !== "draft") {

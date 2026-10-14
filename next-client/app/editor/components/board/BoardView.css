@@ -1,0 +1,5 @@
+/* No web library browsing on boards: hide the library trigger. */
+.hermes-board .default-sidebar-trigger,
+.hermes-board .sidebar-trigger {
+  display: none;
+}

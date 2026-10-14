@@ -1,6 +1,7 @@
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { vaultDisplayName } from "@/app/atoms/vault-atoms";
 import { formatShortcut } from "@/app/utils/platform";
+import { isBoard } from "@/app/utils/board/is-board";
 import type { EditorCommandContext } from "./use-editor-command-context";
 
 export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
@@ -8,7 +9,10 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     activeFileHandle,
     activeFilePath,
     activeLeaf,
+    boardMarkdownPaths,
     closeVault,
+    content,
+    createBoard,
     createFolder,
     createTemplate,
     deleteFile,
@@ -27,6 +31,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     renameFile,
     setBrowserVaultDialogOpen,
     setNewVaultFlowOpen,
+    toggleBoardMarkdown,
     toggleHomePin,
     vaultDescriptor,
     vaultHandle,
@@ -46,6 +51,15 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
       keywords: "create note draft new file",
       action: onNewFile,
     },
+    ...(vaultHandle
+      ? [{
+          id: "new-board",
+          label: "New board",
+          category: "Vault" as const,
+          keywords: "board canvas drawing sketch whiteboard excalidraw draw diagram",
+          action: () => { void createBoard(); },
+        }]
+      : []),
     ...(vaultHandle
       ? [{
           id: "insert-template",
@@ -91,6 +105,15 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
   ];
 
   const fileOperations: Command[] = [
+    ...(activeFilePath && isBoard(activeFilePath, content)
+      ? [{
+          id: "toggle-board-markdown",
+          label: boardMarkdownPaths.has(activeFilePath) ? "Open as Board" : "Edit Board as Markdown",
+          category: "Document" as const,
+          keywords: "board markdown raw source json repair edit",
+          action: () => toggleBoardMarkdown(activeFilePath),
+        }]
+      : []),
     ...(activeFileHandle
       ? [{
           id: "duplicate-current-file",

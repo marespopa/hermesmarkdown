@@ -1,8 +1,8 @@
 ---
-state: specced
+state: approved
 size: normal
 blocked_from:
-rejections: 0
+rejections: 1
 created: 2026-10-14T16:38:22Z
 ---
 

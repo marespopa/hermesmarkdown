@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { ContentIndex, foldCase } from "./content-index";
+import { searchContent } from "./content-search";
 
 describe("foldCase", () => {
   it("lowercases without changing the length", () => {
@@ -89,6 +90,41 @@ describe("ContentIndex", () => {
     // Emptying the index (vault closed) starts over.
     index.remove(["a.md"]);
     expect(index.capped).toBe(false);
+  });
+});
+
+describe("ContentIndex with a board", () => {
+  const board = [
+    "---",
+    "hermes: board",
+    "---",
+    "",
+    "Caption about whales",
+    "```hermes-board",
+    '{"elements":[',
+    '{"type":"freedraw","versionNonce":1}',
+    "]}",
+    "```",
+    "",
+  ].join("\n");
+
+  it("finds prose with its line number but not the JSON", () => {
+    const index = new ContentIndex();
+    index.upsert("b.board.md", "b", board, 1);
+    expect(searchContent(index, "freedraw", ["b.board.md"], 10).hits).toEqual([]);
+    expect(searchContent(index, "versionNonce", ["b.board.md"], 10).hits).toEqual([]);
+    const hits = searchContent(index, "whales", ["b.board.md"], 10).hits;
+    expect(hits).toHaveLength(1);
+    expect(hits[0].line).toBe(5);
+  });
+
+  it("doesn't count the JSON toward the size caps", () => {
+    const index = new ContentIndex();
+    index.upsert("b.board.md", "b", board, 1);
+    const text = index.get("b.board.md")!.text;
+    expect(text).not.toContain("freedraw");
+    expect(text.length).toBeLessThan(board.length - 40);
+    expect(text.split("\n")).toHaveLength(board.split("\n").length);
   });
 });
 

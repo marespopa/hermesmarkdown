@@ -2,6 +2,33 @@
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import { extractTasks, patchLineInContent, replaceTaskLine, simpleHash } from "./taskExtractor";
 
+describe("extractTasks in fenced code", () => {
+  it("ignores tasks inside ``` and ~~~ fences, any language, indented too", () => {
+    const content = "```md\n- [ ] a\n```\n~~~\n- [ ] b\n~~~\n  ```js\n- [ ] c\n  ```\n- [ ] real\n";
+    expect(extractTasks("n.md", content).map((t) => t.text)).toEqual(["real"]);
+  });
+
+  it("keeps line numbers for tasks after a fence", () => {
+    const [task] = extractTasks("n.md", "```\nx\n```\n- [ ] after\n");
+    expect(task.line).toBe(3);
+    expect(task.id).toBe("n.md#3");
+  });
+
+  it("lets an unclosed fence hide the rest", () => {
+    expect(extractTasks("n.md", "- [ ] before\n```\n- [ ] hidden\n")).toHaveLength(1);
+  });
+
+  it("closes a fence with a longer run but not a shorter or different one", () => {
+    expect(extractTasks("n.md", "```\n- [ ] a\n````\n- [ ] b\n").map((t) => t.text)).toEqual(["b"]);
+    expect(extractTasks("n.md", "````\n- [ ] a\n```\n- [ ] b\n~~~~\n").map((t) => t.text)).toEqual([]);
+  });
+
+  it("yields only the prose task from a board file", () => {
+    const content = '---\nhermes: board\n---\n\n- [ ] prose\n\n```hermes-board\n{"text":"- [ ] json"}\n- [ ] inside\n```\n';
+    expect(extractTasks("b.board.md", content).map((t) => t.text)).toEqual(["prose"]);
+  });
+});
+
 describe("extractTasks", () => {
   it("reads the status from the box character", () => {
     const content = "- [ ] Draft\n- [/] Build\n- [!] Wait\n- [x] Ship\n- [X] Ship too\n- [-] Drop\n";

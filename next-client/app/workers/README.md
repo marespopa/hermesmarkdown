@@ -5,11 +5,16 @@ Web Workers and the pure modules they run. Nothing here touches the DOM, React o
 | File | Role |
 |---|---|
 | `metadata.worker.ts` | The metadata worker (created in `app/hooks/file-system/shared.ts`). Parses notes posted by the main thread (frontmatter, tags, wikilinks, word count, tasks, preview) and keeps every parsed note's text in a `ContentIndex` for note-text search |
+| `parse-note.ts` | `parseNoteFile`: the pure per-file parse the metadata worker runs (frontmatter, tags, links, word count, tasks, preview), with board JSON stripped first |
 | `content-index.ts` | `ContentIndex` (path → text, a same-length lowercased copy, body start past the frontmatter, private flag, modified time), `foldCase`, `REGEX_FRONTMATTER`, size limits (`MAX_NOTE_CHARS` 1M per note, `MAX_TOTAL_CHARS` 32M in total) |
 | `content-search.ts` | `parseContentQuery`, `searchContent` (AND substring match, ranking, ≤3 hits per note, snippets with highlight offsets), `handleContentMessage` (the worker's dispatch for typed messages) |
 | `content-search-protocol.ts` | Shared message and hit types |
 | `tokenizer.worker.ts` + `tokenizer-protocol.ts` | The tokenizer tool's worker (created in `app/tools/tokenizer/use-tokenizer.ts`): loads a `gpt-tokenizer` vocabulary (`o200k_base` or `cl100k_base`) on first use, encodes `{ id, text, encoding }` with special-token markers counted as text, and replies `{ id, ok, tokenCount, segments (first 5,000 tokens, see segment-tokens.ts), truncated }` or `{ id, ok: false, error }` |
 | `opfs-writer.worker.ts` | Writes files through `createSyncAccessHandle()` where `createWritable()` is missing (see `app/services/file-writer.ts`) |
+
+## Boards
+
+A board's ` ```hermes-board ` JSON never counts as note text. `parse-note.ts#parseNoteFile` (the metadata worker's per-file parse, pure and tested) runs `stripBoardFence` before tags, wikilinks, word count and preview, and `ContentIndex.upsert` strips before its size caps, so search and hit line numbers ignore the JSON (fence lines are blanked, not removed). `extractTasks` skips all fenced code.
 
 ## Metadata worker protocol
 
