@@ -231,6 +231,45 @@ describe("PaneLeaf Tab Indicators", () => {
     expect(screen.getByText("Copy Markdown")).toBeInTheDocument();
   });
 
+  it("pins a tab's note to Home from the tab menu, and unpins it", () => {
+    localStorage.clear();
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "pane-1"],
+        [atom_vaultHandle, { name: "Vault" } as FileSystemDirectoryHandle],
+        [atom_openFiles, {
+          "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" },
+          "file2.md": { fileName: "file2.md", content: "clean", lastSavedContent: "clean" },
+        }],
+        [atom_workspaceLayout, { rootContainer: mockLeaf }],
+      ]}>
+        <PaneLeaf leaf={mockLeaf} />
+      </TestProvider>
+    );
+
+    fireEvent.contextMenu(screen.getByText("file2.md"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Pin to Home" }));
+    fireEvent.contextMenu(screen.getByText("file2.md"));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Unpin from Home" }));
+    fireEvent.contextMenu(screen.getByText("file2.md"));
+    expect(screen.getByRole("menuitem", { name: "Pin to Home" })).toBeInTheDocument();
+  });
+
+  it("offers no pin for a tab with no vault open", () => {
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "pane-1"],
+        [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
+        [atom_workspaceLayout, { rootContainer: { ...mockLeaf, openFilePaths: ["file1.md"] } }],
+      ]}>
+        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
+      </TestProvider>
+    );
+
+    fireEvent.contextMenu(screen.getByText("file1.md"));
+    expect(screen.queryByRole("menuitem", { name: "Pin to Home" })).not.toBeInTheDocument();
+  });
+
   it("opens settings, help and the tools from the More menu", () => {
     render(
       <TestProvider initialValues={[
