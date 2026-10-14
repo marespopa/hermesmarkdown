@@ -10,18 +10,27 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 interface FolderPromptProps {
   onChooseFolder: () => void;
   onDownload: () => void;
+  // "top" on phones: just under the file bar, clear of the keyboard and the
+  // formatting toolbar docked above it.
+  placement?: "bottom" | "top";
 }
 
-const bar = "typing-chrome fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-30 flex justify-center px-4 pointer-events-none";
+const barBase = "typing-chrome fixed inset-x-0 z-30 flex justify-center px-4 pointer-events-none";
+const barPlacement = {
+  bottom: "bottom-[calc(env(safe-area-inset-bottom)+1rem)]",
+  top: "top-[3.25rem]",
+};
 
 // Asks where notes live once there is something to keep: shown while no
-// vault is open and the draft has text. One sentence, one primary action
+// vault is open and the draft has text, at the bottom of the window (the
+// top on phones). One sentence, one primary action
 // (Choose Folder…, or Keep Notes in This Browser where folders can't be
 // opened, or Download where neither works) and Not Now, which shrinks it to
 // a quiet "Not saved to a folder" mark that opens it again. It fades with
 // the rest of the chrome while you type. The editor page decides when it
 // can show (no vault, not locked, not on the home feed).
-export default function FolderPrompt({ onChooseFolder, onDownload }: FolderPromptProps) {
+export default function FolderPrompt({ onChooseFolder, onDownload, placement = "bottom" }: FolderPromptProps) {
+  const bar = `${barBase} ${barPlacement[placement]}`;
   const hasText = !!useAtomValue(atom_openFiles).draft?.content.trim();
   const [dismissed, setDismissed] = useAtom(atom_folderPromptDismissed);
   const { isVaultSupported, isBrowserVaultSupported } = useFileSystem();

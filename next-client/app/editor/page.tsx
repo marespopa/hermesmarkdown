@@ -309,7 +309,11 @@ export default function LiteEditor() {
         </div>{/* end MAIN LAYOUT */}
 
         {!vaultHandle && !isMounting && !isVaultLocked && !isHomeFeedOpen && (
-          <FolderPrompt onChooseFolder={() => void chooseFolder()} onDownload={handleExport} />
+          <FolderPrompt
+            onChooseFolder={() => void chooseFolder()}
+            onDownload={handleExport}
+            placement={isMobileChrome ? "top" : "bottom"}
+          />
         )}
 
         <SelectionToolbar
