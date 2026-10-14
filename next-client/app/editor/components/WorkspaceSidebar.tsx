@@ -260,6 +260,7 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
                     setHomeFeedOpen(false);
                     setActivePaneId(paneId);
                     setActiveFilePath(filePath);
+                    setOpen(false);
                   }}
                   aria-current={isCurrent ? "page" : undefined}
                   title={filePath}

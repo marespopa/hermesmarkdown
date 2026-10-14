@@ -15,7 +15,7 @@ import {
   contentStore,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_homeFeedOpen, atom_isFileLoading } from "@/app/atoms/ui-atoms";
+import { atom_homeFeedOpen, atom_isFileLoading, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { nextPaint } from "@/app/utils/next-paint";
 import { useDialog } from "../use-dialog";
 import { resolveFileMetaByName } from "./resolve-file-by-name";
@@ -32,6 +32,7 @@ export function useOpenFile() {
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [, setIsFileLoading] = useAtom(atom_isFileLoading);
   const setHomeFeedOpen = useSetAtom(atom_homeFeedOpen);
+  const setSidebarOpen = useSetAtom(atom_sidebarOpen);
   const dialog = useDialog();
 
   const openFile = useCallback(
@@ -118,9 +119,11 @@ export function useOpenFile() {
           };
         });
 
-        // 2. Switch active path (leaving the home feed, if it's showing)
+        // 2. Switch active path (leaving the home feed, if it's showing, and
+        // putting the sidebar away so the note has the window)
         setActiveFilePath(finalPath);
         setHomeFeedOpen(false);
+        setSidebarOpen(false);
 
         // 3. Store the "live" handle separately (non-persisted)
         setActiveFileHandle(fileHandle);
@@ -189,6 +192,7 @@ export function useOpenFile() {
       setOpenFiles,
       setIsFileLoading,
       setHomeFeedOpen,
+      setSidebarOpen,
       dialog,
     ],
   );
