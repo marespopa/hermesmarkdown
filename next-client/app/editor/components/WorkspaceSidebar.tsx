@@ -196,7 +196,7 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
       inert={!open}
       // Hidden, it slides a little past its own width so its shadow goes too.
       style={{ width, left: open ? 0 : -(width + SIDEBAR_SHADOW_ROOM) }}
-      className="absolute inset-y-0 flex flex-col chrome-glass border-r border-edge-subtle shadow-xl shadow-black/10 transition-[left] duration-200 ease-out motion-reduce:transition-none"
+      className="absolute inset-y-0 flex flex-col chrome-glass transition-[left] duration-200 ease-out motion-reduce:transition-none"
     >
       {/* Header, level with the pane toolbar: the vault's name as the title,
           as in a code editor's side bar, and the button that hides the
@@ -216,7 +216,9 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-2">
+      {/* The edge (hairline and shadow) starts below the header: the header
+          and the tab bar beside it read as one strip across the window. */}
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-2 border-r border-edge-subtle shadow-xl shadow-black/10">
         <div className="flex flex-col gap-px pb-3">
           <Button
             variant="unstyled"
