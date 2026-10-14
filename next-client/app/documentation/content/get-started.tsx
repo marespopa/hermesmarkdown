@@ -148,6 +148,17 @@ export const getStartedGroup: Group = {
             with no name prompt.
           </p>
           <p>
+            The first time you open HermesMarkdown there is nothing to set up: you land on an empty
+            note with the cursor in it. Once it has text, a bar at the bottom asks where your notes
+            live. <strong>Choose Folder…</strong> picks a folder (you can make a new one in the
+            picker) and saves the note there; in browsers that can&apos;t open folders it reads{" "}
+            <strong>Keep Notes in This Browser</strong> and creates a{" "}
+            <a href="#browser-vaults" className="text-accent hover:underline">browser vault</a>.{" "}
+            <strong>Not Now</strong> shrinks it to a small &ldquo;Not saved to a folder&rdquo; mark;
+            until you choose, the note is kept only in this browser. <code>CTRL/CMD+S</code> asks the
+            same question.
+          </p>
+          <p>
             The note is saved to your vault once you finish the first line, or when you press{" "}
             <code>CTRL/CMD+S</code>. The file is named after
             the first line, for example <code>Trip ideas.md</code>. If the first line has no usable

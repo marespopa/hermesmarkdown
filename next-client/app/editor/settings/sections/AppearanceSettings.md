@@ -3,7 +3,7 @@
 Description: The Settings → Appearance section: Theme (light, dark, or follow the system) and Typography (editor font, text size, and Full Width, on by default: the text column fills the sheet; off, lines stop at the reading width).
 
 ## Local State & Storage
-- State: `atom_theme`, `atom_editorFontFamily`, `atom_renderedFontSize` (text size, shared with the welcome tour's text size step via `TEXT_SIZES` in `font-options`), `atom_fullWidth`.
+- State: `atom_theme`, `atom_editorFontFamily`, `atom_renderedFontSize` (text size, from `TEXT_SIZES` in `font-options`; a first visit starts at Medium and Full Width, see `useFirstRun`), `atom_fullWidth`.
 - Persistence: All via `atomWithStorage` (`localStorage`).
 
 ## Dependencies

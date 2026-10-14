@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { atom_vaultHandle, atom_vaultKey } from "@/app/atoms/vault-atoms";
-import { atom_vaultOpenBehaviorAppliedFor, atom_welcomeDeferred } from "@/app/atoms/ui-atoms";
+import { atom_vaultOpenBehaviorAppliedFor } from "@/app/atoms/ui-atoms";
 import { clearToolHandoff, readToolHandoff, type ToolHandoff } from "@/app/utils/tool-handoff";
 import type { PendingDraft } from "./use-draft-import";
 import { NO_VAULT_KEY } from "./use-vault-open-behavior";
@@ -20,7 +20,6 @@ export function useToolHandoff({
   isVaultLocked: boolean;
 }) {
   const pendingRef = useRef<ToolHandoff | null | undefined>(undefined);
-  const setWelcomeDeferred = useSetAtom(atom_welcomeDeferred);
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const vaultKey = useAtomValue(atom_vaultKey);
   const appliedFor = useAtomValue(atom_vaultOpenBehaviorAppliedFor);
@@ -28,8 +27,7 @@ export function useToolHandoff({
   useEffect(() => {
     if (pendingRef.current !== undefined) return;
     pendingRef.current = readToolHandoff();
-    if (pendingRef.current) setWelcomeDeferred(true);
-  }, [setWelcomeDeferred]);
+  }, []);
 
   useEffect(() => {
     const handoff = pendingRef.current;

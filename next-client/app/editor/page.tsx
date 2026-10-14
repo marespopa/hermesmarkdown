@@ -5,7 +5,7 @@ import ConflictDialog from "./components/ConflictDialog";
 import { useAtomValue } from "jotai";
 import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
-import WelcomeWizard from "./components/WelcomeWizard";
+import FolderPrompt from "./components/FolderPrompt";
 import NewVaultDialog from "./components/NewVaultDialog";
 import GitHubVaultDialog from "./components/GitHubVaultDialog";
 import BrowserVaultDialog from "./components/BrowserVaultDialog";
@@ -46,6 +46,8 @@ import { useHomeFeed } from "./hooks/use-home-feed";
 import HomeFeed from "./components/HomeFeed";
 import { HomeFeedSkeleton } from "./components/EditorSkeleton";
 import { useVaultOpenBehavior } from "./hooks/use-vault-open-behavior";
+import { useFirstRun } from "./hooks/use-first-run";
+import { useChooseFolder } from "./hooks/use-choose-folder";
 import { useRecentVaultTracker } from "./hooks/use-recent-vaults";
 import { useFadeChromeWhileTyping } from "./hooks/use-fade-chrome-while-typing";
 import { showSuccessToast } from "@/app/components/Toastr";
@@ -81,6 +83,8 @@ export default function LiteEditor() {
     scanVault,
     indexVaultTags,
     syncCurrentDirectoryToPath,
+    isVaultSupported,
+    isBrowserVaultSupported,
   } = useFileSystem();
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const handleRefreshVault = useCallback(() => {
@@ -96,6 +100,8 @@ export default function LiteEditor() {
   useFileWatcher();
   useVaultSync();
   useVaultOpenBehavior();
+  useFirstRun(isMobileChrome);
+  const chooseFolder = useChooseFolder(materializeDraft);
   useRecentVaultTracker();
   // Both Focus levels above Off hide the interface while typing.
   const hideChromeWhileTyping = useAtomValue(atom_focusMode) !== "off";
@@ -150,10 +156,13 @@ export default function LiteEditor() {
       await saveFile(content);
     } else if (vaultHandle) {
       await materializeDraft();
+    } else if (isVaultSupported || isBrowserVaultSupported) {
+      // The first save with no vault asks where notes live.
+      await chooseFolder();
     } else {
       await exportFile(content, fileName);
     }
-  }, [content, activeFileHandle, vaultHandle, saveFile, exportFile, fileName, materializeDraft]);
+  }, [content, activeFileHandle, vaultHandle, saveFile, exportFile, fileName, materializeDraft, isVaultSupported, isBrowserVaultSupported, chooseFolder]);
 
   const { isGitHubVault, runGitHubCommitCommand, runGitHubPullCommand } = useGitHubVaultActions({
     vaultHandle,
@@ -235,7 +244,6 @@ export default function LiteEditor() {
       >
         <h1 className="sr-only">HermesMarkdown Editor</h1>
         {/* Modals */}
-        <WelcomeWizard />
         <NewVaultDialog />
         <GitHubVaultDialog />
         <BrowserVaultDialog />
@@ -299,6 +307,10 @@ export default function LiteEditor() {
           </div>
         </div>
         </div>{/* end MAIN LAYOUT */}
+
+        {!vaultHandle && !isMounting && !isVaultLocked && !isHomeFeedOpen && (
+          <FolderPrompt onChooseFolder={() => void chooseFolder()} onDownload={handleExport} />
+        )}
 
         <SelectionToolbar
           placement={isMobileChrome ? "docked" : "above"}

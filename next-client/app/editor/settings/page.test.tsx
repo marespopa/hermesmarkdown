@@ -179,15 +179,16 @@ describe("SettingsPage", () => {
     expect(screen.getByText(/Choose which company's AI powers the AI features/)).toBeInTheDocument();
   });
 
-  it("puts profile and data first and help and about last in General", () => {
+  it("puts profile and data first and help and about last in General, with no tour", () => {
     render(<SettingsPage />);
     expect(screen.queryByText("Guide")).not.toBeInTheDocument();
     fireEvent.click(screen.getByText("General"));
 
     const text = document.querySelector("main")!.textContent!;
-    const order = ["Profile", "Your Data", "Onboarding", "Help", "About"].map((title) => text.indexOf(title));
+    const order = ["Profile", "Your Data", "Help", "About"].map((title) => text.indexOf(title));
     expect(order.every((index) => index >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
+    expect(screen.queryByText("Onboarding")).not.toBeInTheDocument();
     // A row with no control is plain text, not a setting.
     expect(screen.queryByText("Stored on This Device")).not.toBeInTheDocument();
     expect(screen.getByText(/There's no account/)).toBeInTheDocument();

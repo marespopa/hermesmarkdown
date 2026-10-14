@@ -77,6 +77,12 @@ export const showActionToast = (message: string, actionLabel: string, onAction: 
   );
 };
 
+// A plain tip with no icon, left up long enough to read (e.g. the command
+// palette shortcut on a first visit).
+export const showHintToast = (message: string) => {
+  return toast(message, { ...toastConfig, duration: 6000 });
+};
+
 export const showSaveStateToast = (status: 'saved' | 'error') => {
   if (status === 'saved') {
     return showSuccessToast('Settings saved!');

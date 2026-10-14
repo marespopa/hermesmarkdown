@@ -57,8 +57,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [VaultActionButtons](VaultActionButtons.md) | Open / Create / Browser Vault buttons, shown where no vault is open. |
 | [VaultFileTree](VaultFileTree.md) | Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves. |
 | [vault-tree/](vault-tree/README.md) | `VaultFileTree` building blocks: tree model, `FileRow`, `FolderRow`, `TreeNodes`. |
-| [WelcomeWizard](WelcomeWizard.md) | Two-step onboarding: open, create or connect a vault (or skip), then ready to write. Everything else stays in Settings. |
-| [welcome-wizard/](welcome-wizard/README.md) | `WelcomeWizard` steps and shared step layout. |
+| [FolderPrompt](FolderPrompt.md) | The only first-run question, asked late: once a draft has text and no vault is open, a quiet bottom bar offers Choose Folder… (or Keep Notes in This Browser) and Not Now. |
 | [WikiLinkDialog](WikiLinkDialog.md) | Picks or creates a `[[WikiLink]]` target, with substring-matched suggestions from vault file metadata. |
 | [WorkspaceSidebar](WorkspaceSidebar.md) | The window's sidebar (desktop): Home, Templates and Tasks, open notes and the vault's file tree, on the leading edge; hideable and resizable. |
 | [WorkspaceSplitter](WorkspaceSplitter.md) | Recursively renders the workspace layout tree as resizable panel groups, with a `PaneLeaf` at each leaf. |
