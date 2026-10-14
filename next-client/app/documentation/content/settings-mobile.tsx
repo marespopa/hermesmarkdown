@@ -16,8 +16,9 @@ export const settingsGroup: Group = {
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically. The
-            editor font and text size are set under Settings → Appearance → Typography and apply to
-            every pane in a split workspace. Show Sidebar, Full Width, word wrap, line numbers and
+            editor font, text size and Full Width (on by default) are set under Settings →
+            Appearance → Typography and apply to every pane in a split workspace. Show Sidebar, word
+            wrap, line numbers and
             Show Invisibles (¶ on empty lines, dots for spaces) live under Settings → Editor → Layout;
             Vim mode and{" "}
             <a href="#focus" className="text-accent hover:underline">Focus</a> under Settings →

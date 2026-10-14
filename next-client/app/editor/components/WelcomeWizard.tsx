@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_renderedFontSize, atom_welcomeDeferred, atom_welcomeWizardStep } from "@/app/atoms/atoms";
+import { atom_fullWidth } from "@/app/atoms/ui-atoms";
 import {
   atom_vaultHandle
 } from "@/app/atoms/vault-atoms";
@@ -34,24 +35,28 @@ const WelcomeWizard = ({ initialStep = 0 }: { initialStep?: number }) => {
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const setHomeFeedOpen = useSetAtom(atom_homeFeedOpen);
   const setRenderedFontSize = useSetAtom(atom_renderedFontSize);
+  const setFullWidth = useSetAtom(atom_fullWidth);
 
   useEffect(() => {
     setIsMounted(true);
     if (initialStep !== 0) setStep(initialStep);
   }, [initialStep, setStep]);
 
-  // First-run onboarding starts at Medium text size, unless a size was
-  // already chosen (re-running the tour never changes it).
+  // First-run onboarding starts at Medium text size and full width, unless
+  // they were already chosen (re-running the tour never changes them).
   useEffect(() => {
     if (hasCompleted) return;
-    let hasStoredSize = true;
-    try {
-      hasStoredSize = window.localStorage.getItem("renderedFontSize") !== null;
-    } catch {
-      // Storage unavailable: leave the size alone.
-    }
-    if (!hasStoredSize) setRenderedFontSize(ONBOARDING_TEXT_SIZE);
-  }, [hasCompleted, setRenderedFontSize]);
+    const isStored = (key: string) => {
+      try {
+        return window.localStorage.getItem(key) !== null;
+      } catch {
+        // Storage unavailable: leave the setting alone.
+        return true;
+      }
+    };
+    if (!isStored("renderedFontSize")) setRenderedFontSize(ONBOARDING_TEXT_SIZE);
+    if (!isStored("fullWidth")) setFullWidth(true);
+  }, [hasCompleted, setRenderedFontSize, setFullWidth]);
 
   // A step saved by an older, longer tour lands on the last step instead of
   // a blank one.

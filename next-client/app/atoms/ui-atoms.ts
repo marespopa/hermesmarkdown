@@ -28,8 +28,8 @@ export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", false);
 export const atom_showInvisibles = atomWithStorage<boolean>("showInvisibles", false);
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 // Lets the editor's text column fill the sheet instead of stopping at the
-// reading width (--editor-measure, editor-typography.scss). Off by default.
-export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", false);
+// reading width (--editor-measure, editor-typography.scss). On by default.
+export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
 // Focus (Settings → Editor): "hide" fades the pane header, sidebar and
 // mobile file bar while you type, and moving the mouse brings them back
 // (hooks/use-fade-chrome-while-typing.ts); "dim" does that too, and also

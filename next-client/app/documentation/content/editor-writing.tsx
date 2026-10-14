@@ -15,11 +15,11 @@ export const editorWritingItems: Subsection[] = [
           Word wrap, line numbers, Show Invisibles (¶ on empty lines, dots for spaces), font and theme live under Settings.
         </p>
         <p>
-          The text sits in a column about as wide as a page, so lines stay easy to read on a wide
-          screen. Changing the text size never moves the column&apos;s edges; it only changes how
-          much fits on a line. To use the whole editor instead, turn on{" "}
-          <strong>Full Width</strong> under Settings → Editor → Layout, or run{" "}
-          <strong>Toggle Full Width</strong> from the command palette.
+          The text fills the whole editor by default. For a column about as wide as a page, so
+          lines stay easy to read on a wide screen, turn off <strong>Full Width</strong> under
+          Settings → Appearance → Typography, or run <strong>Toggle Full Width</strong> from the
+          command palette. Changing the text size never moves the column&apos;s edges; it only
+          changes how much fits on a line.
         </p>
         <p>
           Dates (<code>2026-09-27</code>, <code>27/09/2026</code>, <code>[[2026-09-27]]</code>,{" "}

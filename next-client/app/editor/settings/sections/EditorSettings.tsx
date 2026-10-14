@@ -7,16 +7,14 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_focusMode, atom_fullWidth, atom_showInvisibles, atom_sidebarOpen, type FocusMode } from "@/app/atoms/ui-atoms";
+import { atom_focusMode, atom_showInvisibles, atom_sidebarOpen, type FocusMode } from "@/app/atoms/ui-atoms";
 import Toggle from "@/app/components/Toggle";
 import { SelectControl, SettingGroup, SettingItem } from "../components/SettingControls";
 import { FOCUS_OPTIONS } from "../focus-options";
 
-// Settings → Editor: Layout (sidebar, full width, word wrap, line numbers,
-// invisibles) and Writing (Vim mode, Focus) groups.
+// Settings → Editor: Layout (sidebar, word wrap, line numbers, invisibles) and Writing (Vim mode, Focus) groups.
 export default function EditorSettings() {
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
-  const [fullWidth, setFullWidth] = useAtom(atom_fullWidth);
   const [wordWrap, setWordWrap] = useAtom(atom_wordWrap);
   const [lineNumbers, setLineNumbers] = useAtom(atom_lineNumbers);
   const [showInvisibles, setShowInvisibles] = useAtom(atom_showInvisibles);
@@ -30,11 +28,6 @@ export default function EditorSettings() {
           label="Show Sidebar"
           description="Your open notes and the vault's files on the left edge of the window. Also the first toolbar button and Ctrl/Cmd+Alt+S. Desktop only."
           control={<Toggle variant="soft" active={sidebarOpen} onChange={setSidebarOpen} label="Show sidebar" />}
-        />
-        <SettingItem
-          label="Full Width"
-          description="Let the text fill the whole editor instead of stopping at a comfortable reading width."
-          control={<Toggle variant="soft" active={fullWidth} onChange={setFullWidth} />}
         />
         <SettingItem
           label="Word Wrap"

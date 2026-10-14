@@ -71,6 +71,7 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Inter")).toBeInTheDocument();
     expect(screen.getByText("Source Serif 4")).toBeInTheDocument();
     expect(screen.getByText("Plus Jakarta Sans")).toBeInTheDocument();
+    expect(screen.getByText("Full Width")).toBeInTheDocument();
     expect(screen.queryByText("Text Size")).not.toBeInTheDocument();
     expect(screen.queryByText("Line Height")).not.toBeInTheDocument();
   });
@@ -98,7 +99,7 @@ describe("SettingsPage", () => {
     openEditorSection();
 
     expect(screen.getByText("Vim Mode")).toBeInTheDocument();
-    expect(screen.getByText("Full Width")).toBeInTheDocument();
+    expect(screen.queryByText("Full Width")).not.toBeInTheDocument();
     expect(screen.queryByText("Collapse Frontmatter")).not.toBeInTheDocument();
     expect(screen.queryByText("Delay")).not.toBeInTheDocument();
   });

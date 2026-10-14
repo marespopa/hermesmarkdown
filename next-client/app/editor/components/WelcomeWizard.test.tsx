@@ -5,7 +5,7 @@ import { Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import WelcomeWizard from "./WelcomeWizard";
 import { atom_renderedFontSize } from "@/app/atoms/atoms";
-import { atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_welcomeDeferred } from "@/app/atoms/ui-atoms";
+import { atom_fullWidth, atom_hasCompletedOnboarding, atom_homeFeedOpen, atom_isWizardOpen, atom_welcomeDeferred } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 
@@ -32,6 +32,10 @@ const TestProvider = ({ initialValues, children }: { initialValues: any, childre
 
 const FontSizeValue = () => (
   <output data-testid="font-size-value">{useAtomValue(atom_renderedFontSize)}</output>
+);
+
+const FullWidthValue = () => (
+  <output data-testid="full-width-value">{String(useAtomValue(atom_fullWidth))}</output>
 );
 
 const HomeFeedValue = () => (
@@ -215,5 +219,26 @@ describe("WelcomeWizard", () => {
       </TestProvider>
     );
     expect(screen.getByTestId("font-size-value")).toHaveTextContent("21px");
+  });
+
+  it("starts first-run notes at full width, but keeps a width already chosen", () => {
+    const { unmount } = render(
+      <TestProvider initialValues={defaultInitialValues}>
+        <WelcomeWizard />
+        <FullWidthValue />
+      </TestProvider>
+    );
+    expect(screen.getByTestId("full-width-value")).toHaveTextContent("true");
+    expect(window.localStorage.getItem("fullWidth")).toBe("true");
+    unmount();
+
+    window.localStorage.setItem("fullWidth", JSON.stringify(false));
+    render(
+      <TestProvider initialValues={[...defaultInitialValues, [atom_fullWidth, false]]}>
+        <WelcomeWizard />
+        <FullWidthValue />
+      </TestProvider>
+    );
+    expect(screen.getByTestId("full-width-value")).toHaveTextContent("false");
   });
 });
