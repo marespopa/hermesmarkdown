@@ -255,6 +255,31 @@ describe("PaneLeaf Tab Indicators", () => {
     expect(screen.getByRole("menuitem", { name: "Pin to Home" })).toBeInTheDocument();
   });
 
+  it("pins the open note from the More menu, which shows whether it's pinned", () => {
+    localStorage.clear();
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "pane-1"],
+        [atom_vaultHandle, { name: "Vault" } as FileSystemDirectoryHandle],
+        [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
+        [atom_workspaceLayout, { rootContainer: { ...mockLeaf, openFilePaths: ["file1.md"] } }],
+      ]}>
+        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
+      </TestProvider>
+    );
+
+    const more = screen.getByRole("button", { name: "More" });
+    fireEvent.click(more);
+    fireEvent.click(within(screen.getByRole("menu", { name: "More" })).getByRole("menuitem", { name: "Pin to Home" }));
+    fireEvent.click(more);
+    expect(within(screen.getByRole("menu", { name: "More" })).getByRole("menuitem", { name: "Unpin from Home" })).toBeInTheDocument();
+    // The tab's own menu agrees.
+    fireEvent.mouseDown(more);
+    fireEvent.click(more);
+    fireEvent.contextMenu(screen.getByText("file1.md"));
+    expect(screen.getByRole("menuitem", { name: "Unpin from Home" })).toBeInTheDocument();
+  });
+
   it("offers no pin for a tab with no vault open", () => {
     render(
       <TestProvider initialValues={[

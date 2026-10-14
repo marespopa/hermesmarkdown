@@ -219,9 +219,10 @@ export const getStartedGroup: Group = {
           <p>
             To keep a note at the top, click the pin at the top right of its row. It shows when you
             hover the row, and always on a phone or tablet. You can also touch and hold the row, or
-            right-click it, and choose <strong>Pin to Home</strong>. The same item is in a tab&apos;s
-            right-click menu, and <strong>Pin to Home</strong> in the command palette pins the open
-            note. Pinned notes sit under{" "}
+            right-click it, and choose <strong>Pin to Home</strong>. From a note, choose{" "}
+            <strong>Pin to Home</strong> in the toolbar&apos;s <strong>More</strong> menu, in its
+            tab&apos;s right-click menu, or in the command palette. On a pinned note those read{" "}
+            <strong>Unpin from Home</strong>. Pinned notes sit under{" "}
             <em>Pinned</em> above the days, newest pin first. Click the pin again, or run{" "}
             <strong>Unpin from Home</strong>, to put the note back. Each vault keeps its own pins.
           </p>
