@@ -9,7 +9,6 @@ import { showHintToast } from "@/app/components/Toastr";
 import { FIRST_RUN_TEXT_SIZE, isFirstRun, useFirstRun } from "./use-first-run";
 
 vi.mock("@/app/components/Toastr", () => ({ showHintToast: vi.fn() }));
-vi.mock("../utils/focus-pane-editor", () => ({ focusPaneEditorWhenReady: vi.fn() }));
 
 function setup(restoring = false) {
   const store = createStore();
@@ -35,6 +34,17 @@ describe("useFirstRun", () => {
     expect(isFirstRun()).toBe(false);
 
     rerender();
+    expect(showHintToast).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows the palette shortcut once under Strict Mode's double effect run", () => {
+    const store = createStore();
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <React.StrictMode>
+        <Provider store={store}>{children}</Provider>
+      </React.StrictMode>
+    );
+    renderHook(() => useFirstRun(false), { wrapper });
     expect(showHintToast).toHaveBeenCalledTimes(1);
   });
 

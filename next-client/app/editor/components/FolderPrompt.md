@@ -1,6 +1,6 @@
 # FolderPrompt
 
-Description: Asks where notes live, once there is something to keep. There is no setup flow: a first visit lands on an empty draft (`useFirstRun`), and this quiet bar appears at the bottom of the window while no vault is open and the draft has text. It holds one sentence ("Choose where your notes live." plus what happens until then), **Not Now**, and one primary action:
+Description: Asks where notes live, once there is something to keep. There is no setup flow: a first visit lands on the home feed (`useVaultOpenBehavior`), and this quiet bar appears at the bottom of the window while no vault is open and the draft has text. It holds one sentence ("Choose where your notes live." plus what happens until then), **Not Now**, and one primary action:
 
 - **Choose Folder…** where the browser can open folders: the OS folder picker, which can also make a new folder (`useChooseFolder` → `openVault`). Opening a vault clears every open tab, so `useChooseFolder` holds the draft's text meanwhile, puts it back once the vault is open, saves it into the vault straight away, and keeps it in front (the home feed doesn't open over it).
 - **Keep Notes in This Browser** where it can't (Safari, Firefox, phones): opens the browser-vault dialog; the vault made there gets the draft the same way.

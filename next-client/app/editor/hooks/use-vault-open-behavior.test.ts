@@ -66,10 +66,9 @@ describe("useVaultOpenBehavior", () => {
     expect(await loadWithoutVault()).toBe(false);
   });
 
-  it("keeps a first visit with no vault on the empty draft, but opens the feed for a vault", async () => {
+  it("opens the home feed on a first visit with no vault", async () => {
     localStorage.removeItem("hasCompletedOnboarding");
-    expect(await loadWithoutVault()).toBe(false);
-    expect(await openVault()).toBe(true);
+    expect(await loadWithoutVault()).toBe(true);
   });
 
   it("opens the feed again when a vault opens after the no-vault feed", async () => {
