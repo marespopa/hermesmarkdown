@@ -225,18 +225,19 @@ export const editorWritingItems: Subsection[] = [
         />
         <p>
           Amounts like <code>$2,000</code> or <code>1000 RON</code> count as numbers, and totals keep
-          their currency. Errors show spreadsheet-style (<code>#REF!</code>, <code>#DIV/0!</code>,{" "}
+          their currency. So does a share of an amount (<code>=B2*10%</code>), while a ratio of two
+          amounts (<code>=C2/B2*100</code>) and a count are plain numbers. Errors show spreadsheet-style (<code>#REF!</code>, <code>#DIV/0!</code>,{" "}
           <code>#CIRCULAR!</code>, <code>#NAME?</code> for an unknown function,{" "}
           <code>#VALUE!</code> for text where a number is needed). Rows containing a formula are treated as summary rows and are
           never moved by sorting.
         </p>
-        <Callout type="note">
         <p>
           A table takes its name from the heading right above it, with only blank lines between
           them. Text between the heading and the table leaves the table without a name, and
           formulas that refer to it show <code>#REF!</code>. Put a description below the table
           instead.
         </p>
+        <Callout type="note">
           Formulas are stored as plain text in the Markdown file (<code>| =SUM(B2:B5) |</code>),
           so other Markdown apps show the formula, not the result. References to other notes read
           those notes when you open this one and refresh when you return to its pane.

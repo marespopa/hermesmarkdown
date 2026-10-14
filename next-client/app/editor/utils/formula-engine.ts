@@ -1,6 +1,7 @@
 import type { TableData } from "./tableParser";
 import { isFormulaCell, normalizeNoteKey, type RangeRef } from "./formula/addressing";
 import { detectCurrencyDef } from "./formula/currency";
+import { moneyPower } from "./formula/currency-dimension";
 import { FUNCTIONS } from "./formula/functions";
 import { parseFormulaTokens, tokenize, type Node } from "./formula/parser";
 import { formatFormulaValue, resolveCellText, type CurrencyHint, type FormulaCellResult } from "./formula/results";
@@ -41,13 +42,20 @@ export function evaluateTable(
   // (a stack, via this one mutable slot) so a dependency's references don't
   // bleed into the cell that's asking for them.
   let currencyVotes: Map<string, boolean> | null = null;
+  // Counts the currency values recorded for the formula being evaluated
+  // (saved and restored like the votes), so each reference node can tell
+  // whether it read one: `moneyNodes`, for moneyPower.
+  let currencyHits = 0;
+  const moneyNodes = new WeakSet<Node>();
   let currentEvalRow = -1;
   let currentEvalCol = -1;
 
   function recordCurrency(text: string) {
     if (!currencyVotes) return;
     const def = detectCurrencyDef(text);
-    if (def) currencyVotes.set(def.symbol, def.suffix);
+    if (!def) return;
+    currencyVotes.set(def.symbol, def.suffix);
+    currencyHits++;
   }
 
   // Records an already-known hint directly (no text to re-detect) — used to
@@ -56,6 +64,7 @@ export function evaluateTable(
   function recordCurrencyHint(hint: CurrencyHint | null) {
     if (!currencyVotes || !hint) return;
     currencyVotes.set(hint.symbol, hint.suffix);
+    currencyHits++;
   }
 
   function pickCurrency(): CurrencyHint | null {
@@ -87,9 +96,11 @@ export function evaluateTable(
 
     evaluating.add(k);
     const prevVotes = currencyVotes;
+    const prevHits = currencyHits;
     const prevEvalRow = currentEvalRow;
     const prevEvalCol = currentEvalCol;
     currencyVotes = new Map();
+    currencyHits = 0;
     currentEvalRow = row;
     currentEvalCol = col;
     let value: FormulaValue;
@@ -102,12 +113,12 @@ export function evaluateTable(
     }
     currentEvalRow = prevEvalRow;
     currentEvalCol = prevEvalCol;
-    // COUNT/COUNTA return a dimensionless count, not a currency amount, even
-    // when counting cells in a currency column.
-    const isCountFn = ast?.kind === "call" && (ast.name === "COUNT" || ast.name === "COUNTA");
-    const detected = isCountFn ? null : pickCurrency();
+    // Only an amount keeps the currency: a count of a currency column, a
+    // ratio of two amounts (=C2/B2*100) or a comparison is a plain number.
+    const detected = ast && moneyPower(ast, (node) => moneyNodes.has(node)) === 1 ? pickCurrency() : null;
     evaluating.delete(k);
     currencyVotes = prevVotes;
+    currencyHits = prevHits;
     // Propagate this cell's own detected currency up to whichever formula
     // referenced it (e.g. `=B2*2` where B2 is itself a `=SUM(...)` result).
     recordCurrencyHint(detected);
@@ -261,7 +272,19 @@ export function evaluateTable(
     return out;
   }
 
+  // Evaluates `node`, marking it in `moneyNodes` when it read a currency value.
+  function tracked<T>(node: Node, run: () => T): T {
+    const before = currencyHits;
+    const value = run();
+    if (currencyHits > before) moneyNodes.add(node);
+    return value;
+  }
+
   function evalNode(node: Node): FormulaValue {
+    return tracked(node, () => evalNodeValue(node));
+  }
+
+  function evalNodeValue(node: Node): FormulaValue {
     switch (node.kind) {
       case "num":
         return node.value;
@@ -329,19 +352,19 @@ export function evaluateTable(
         const argValues: FormulaValue[] = [];
         for (const a of node.args) {
           if (a.kind === "range") {
-            const flattened = flattenRange(a);
+            const flattened = tracked(a, () => flattenRange(a));
             if (isFormulaError(flattened)) return flattened;
             argValues.push(...flattened);
           } else if (a.kind === "col") {
-            const flattened = flattenColumn(a.col);
+            const flattened = tracked(a, () => flattenColumn(a.col));
             if (isFormulaError(flattened)) return flattened;
             argValues.push(...flattened);
           } else if (a.kind === "tablecol") {
-            const flattened = flattenOtherTableColumn(a.tableName, a.col);
+            const flattened = tracked(a, () => flattenOtherTableColumn(a.tableName, a.col));
             if (isFormulaError(flattened)) return flattened;
             argValues.push(...flattened);
           } else if (a.kind === "filetablecol") {
-            const flattened = flattenOtherFileTableColumn(a.noteRef, a.col);
+            const flattened = tracked(a, () => flattenOtherFileTableColumn(a.noteRef, a.col));
             if (isFormulaError(flattened)) return flattened;
             argValues.push(...flattened);
           } else {
