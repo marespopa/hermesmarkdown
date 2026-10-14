@@ -42,7 +42,7 @@ export default function FeedBar({ onSearch, onSearchCommands, onNewNote, isSearc
       <div className="pointer-events-auto flex w-full max-w-xl items-center gap-1.5 sm:gap-2">
         <div
           data-palette-anchor=""
-          className={`${SEARCH_PILL_CLASS} min-w-0 flex-1 shadow-lg ${isSearchOpen ? "invisible" : ""}`}
+          className={`${SEARCH_PILL_CLASS} glass-panel min-w-0 flex-1 ${isSearchOpen ? "invisible" : ""}`}
           style={{ viewTransitionName: isSearchOpen ? undefined : PALETTE_SEARCH_TRANSITION }}
         >
           <Button

@@ -134,7 +134,7 @@ export default function SelectionToolbar({ placement, onAsk, isAiLoading = false
         <div
           role="toolbar"
           aria-label="Format selection"
-          className="selection-toolbar flex items-center gap-0.5 rounded-full border border-edge bg-chrome p-1 shadow-sm select-none animate-in fade-in zoom-in-95 duration-150"
+          className="selection-toolbar flex items-center gap-0.5 rounded-full glass-panel p-1 select-none animate-in fade-in zoom-in-95 duration-150"
         >
           <BlockTypeMenu view={view} keepFocus={keepFocus} opensUp={placement === "docked"} />
           <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-edge" />

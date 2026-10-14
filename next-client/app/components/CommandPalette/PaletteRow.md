@@ -5,7 +5,7 @@ Description: One option in the command palette's result list (`role="option"`, `
 ## Layout
 - Single-line rows (files, commands, tasks, headings, create): the label with `HighlightedText`, a `PrivateBadge` lock for private files and masked tasks, optional context (a command's `disabledReason`, a task's `path:line`, a `#tag` result's matched tags), the parent folder right-aligned, and a command's shortcut or a spinner while it runs.
 - Content rows (`/` note text): two lines. First the snippet of the matching line, with every term occurrence highlighted. Second, `name:line` with the parent folder right-aligned. They grow to fit both lines (`min-h-10`, `min-h-11` on mobile chrome).
-- Selected rows use `bg-chrome` / `border-edge`; tokens only.
+- Selected and hovered rows use translucent fills (`bg-black/[0.06]`, `bg-white/[0.09]` in dark) with a `border-edge-subtle` hairline, so the palette's glass (`.glass-panel`) shows through them.
 
 ## Accessibility
 - Accessible name: the label (or "Private task"), "(private)" for private files, the context, `name:line` for content rows, and the folder.

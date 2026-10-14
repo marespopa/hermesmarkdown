@@ -115,41 +115,8 @@ html.dark .editor-sheet {
 }
 
 /* Floating chrome (the pane header, the sidebar) sits over the editor rather
-   beside it, so the text never moves when it shows, hides or fades. It takes
-   frosted glass: the chrome tint, see-through enough that the text scrolling
-   beneath stays faintly present. Solid where blur isn't supported or the
-   reader asks for less transparency.
-   The glass is a layer behind the content (::before), never on the element
-   itself: a backdrop-filter on the parent of a scroll area (the sidebar's
-   list) makes Chromium send the wheel to the editor scrolling underneath. */
-.chrome-glass {
-  isolation: isolate;
-}
-
-.chrome-glass::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-color: color-mix(in srgb, var(--chrome) 72%, transparent);
-  -webkit-backdrop-filter: blur(12px) saturate(1.4);
-  backdrop-filter: blur(12px) saturate(1.4);
-}
-
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .chrome-glass::before {
-    background-color: var(--chrome);
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .chrome-glass::before {
-    background-color: var(--chrome);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-}
+   beside it, so the text never moves when it shows, hides or fades. It
+   takes the bar material (`.glass-bar`, globals.scss). */
 
 /* Hide the interface while typing (hooks/use-fade-chrome-while-typing.ts):
    the chrome fades slowly once you type and returns quickly when the mouse

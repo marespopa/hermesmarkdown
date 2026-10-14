@@ -46,10 +46,18 @@ body {
   --frontmatter-bg-active: rgba(60, 56, 50, 0.085);  /* Properties on hover/focus (rest is -hover) */
   --frontmatter-label-opacity: 0.4;
   --row-stripe:     rgba(60, 56, 50, 0.035);  /* alternate rows in list views (Explorer) */
-  /* Template picker glass surface + spring motion (templates UX) */
-  --glass-surface:  rgba(255, 255, 255, 0.75);
-  --glass-border:   rgba(0, 0, 0, 0.08);
-  --glass-shadow:   0 20px 40px -15px rgba(0, 0, 0, 0.07);
+  /* Materials: Apple-style frosted glass for everything that floats over
+     the page (.glass-bar, .glass-panel below). A tint of the surface it
+     stands for, a heavy blur with a saturation boost so colour behind it
+     glows through, a hairline edge, a light inner top edge and a layered
+     shadow. Bars and panels are tints of --chrome and --overlay, so the
+     dark values follow from those. */
+  --material-bar:       color-mix(in srgb, var(--chrome) 72%, transparent);
+  --material-panel:     color-mix(in srgb, var(--overlay) 78%, transparent);
+  --material-blur:      blur(24px) saturate(180%);
+  --material-edge:      rgba(0, 0, 0, 0.08);
+  --material-highlight: rgba(255, 255, 255, 0.65);
+  --material-shadow:    0 1px 2px rgba(0, 0, 0, 0.05), 0 12px 32px -8px rgba(0, 0, 0, 0.18);
   --ease-spring:    cubic-bezier(0.16, 1, 0.3, 1);
   /* Fine paper grain over the editor surface: tiled SVG fractal noise, the
      red channel thresholded into sparse specks (see .editor-sheet). */
@@ -83,9 +91,9 @@ html.dark {
   --moss-hover:     #A3B58C;  /* moss, brightened — hover/active state for sage buttons */
   --task-hold:      #CDB173;
   --row-stripe:     rgba(214, 207, 198, 0.035);
-  --glass-surface:  rgba(28, 28, 30, 0.75);
-  --glass-border:   rgba(255, 255, 255, 0.12);
-  --glass-shadow:   0 20px 40px -15px rgba(0, 0, 0, 0.5);
+  --material-edge:      rgba(255, 255, 255, 0.10);
+  --material-highlight: rgba(255, 255, 255, 0.07);
+  --material-shadow:    0 1px 2px rgba(0, 0, 0, 0.35), 0 16px 40px -8px rgba(0, 0, 0, 0.55);
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.97 0 0 0 0 0.92 0.9 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.07'/%3E%3C/svg%3E");
 }
 
@@ -446,13 +454,14 @@ ul li::marker {
 }
 
 /* ── Templates: glass picker surface and spring motion ───────────────────
-   Durations stay within 150–250ms on --ease-spring. */
+   The picker takes the panel material. Durations stay within 150–250ms on
+   --ease-spring. */
 .template-picker-surface {
-  background-color: var(--glass-surface) !important;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--glass-border) !important;
-  box-shadow: var(--glass-shadow);
+  background-color: var(--material-panel) !important;
+  -webkit-backdrop-filter: var(--material-blur);
+  backdrop-filter: var(--material-blur);
+  border: 1px solid var(--material-edge) !important;
+  box-shadow: inset 0 1px 0 var(--material-highlight), var(--material-shadow);
   border-radius: 16px !important;
 }
 
@@ -488,5 +497,80 @@ ul li::marker {
   }
   .template-quick-pills {
     transition: none;
+  }
+}
+
+/* ── Materials ────────────────────────────────────────────────────────────
+   Two frosted-glass materials over the tokens above. Components keep their
+   own shape (radius, padding); the material owns fill, blur, edge and
+   shadow, so leave bg-/border-colour/shadow utilities off them.
+
+   .glass-bar: the bars that float over the page (pane tab bar, sidebar,
+   mobile file bar). No edge or shadow of its own: bars draw their own
+   hairlines. The glass is a layer behind the content (::before), never on
+   the element itself: a backdrop-filter on the parent of a scroll area (the
+   sidebar's list) makes Chromium send the wheel to the editor scrolling
+   underneath. The bar must be positioned; :where() makes it `relative`
+   unless the element already says otherwise.
+
+   .glass-panel: everything that floats as a panel (menus, popovers,
+   tooltips, toasts, the palette, dialogs). Blur on the element itself, so
+   enter animations (which fade the element) don't drop the blur.
+
+   Both go solid where blur isn't supported, and with Reduce Transparency
+   or Increase Contrast — at the token level, so styles set from script
+   (CodeMirror's menus) follow too. */
+@layer components {
+  :where(.glass-bar) {
+    position: relative;
+  }
+
+  .glass-bar {
+    isolation: isolate;
+  }
+
+  .glass-bar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: inherit;
+    background-color: var(--material-bar);
+    -webkit-backdrop-filter: var(--material-blur);
+    backdrop-filter: var(--material-blur);
+  }
+
+  .glass-panel {
+    background-color: var(--material-panel);
+    -webkit-backdrop-filter: var(--material-blur);
+    backdrop-filter: var(--material-blur);
+    border: 1px solid var(--material-edge);
+    box-shadow: inset 0 1px 0 var(--material-highlight), var(--material-shadow);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --material-bar: var(--chrome);
+    --material-panel: var(--overlay);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --material-bar: var(--chrome);
+    --material-panel: var(--overlay);
+    --material-blur: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root,
+  html.dark {
+    --material-bar: var(--chrome);
+    --material-panel: var(--overlay);
+    --material-blur: none;
+    --material-edge: var(--border);
   }
 }

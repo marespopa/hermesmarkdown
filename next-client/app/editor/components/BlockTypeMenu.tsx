@@ -82,7 +82,7 @@ export default function BlockTypeMenu({ view, keepFocus, opensUp = false }: Bloc
         <div
           role="menu"
           aria-label="Turn into"
-          className={`absolute left-0 ${opensUp ? "bottom-full mb-2" : "top-full mt-2"} w-48 rounded-xl border border-edge bg-chrome p-1 shadow-lg animate-in fade-in zoom-in-95 duration-100`}
+          className={`absolute left-0 ${opensUp ? "bottom-full mb-2" : "top-full mt-2"} w-48 rounded-xl glass-panel p-1 animate-in fade-in zoom-in-95 duration-100`}
         >
           <p className="px-2.5 pb-1 pt-1.5 text-ui-caption font-medium text-fg-muted">Turn into</p>
           {OPTIONS.map((option) => (

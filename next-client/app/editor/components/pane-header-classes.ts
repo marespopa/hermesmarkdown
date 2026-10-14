@@ -1,9 +1,9 @@
 // Shared look of the pane header (tab strip row and its toolbar sections).
 // It floats over the editor (PaneLeaf), so it takes frosted glass
-// (`.chrome-glass`, editor.scss) rather than a solid fill — opacity modifiers
+// (`.glass-bar`, globals.scss) rather than a solid fill — opacity modifiers
 // don't work on the var-backed colors (Tailwind drops the class). A hairline
 // closes it; the editor below is its own paper panel on the chrome.
-export const PANE_HEADER_CLASS = "flex items-center chrome-glass border-b border-edge-subtle shrink-0 relative z-20 px-2 sm:px-3";
+export const PANE_HEADER_CLASS = "flex items-center glass-bar border-b border-edge-subtle shrink-0 relative z-20 px-2 sm:px-3";
 export const PANE_HEADER_HEIGHT = "h-11";
 // The header's height (h-11) as the inset the editor scrolls under, in px
 // so CodeMirror can read it back for its scroll margin (extensions.ts).

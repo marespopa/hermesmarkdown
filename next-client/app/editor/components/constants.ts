@@ -98,7 +98,7 @@ export const CURSOR_SENTINEL = "\0";
 export const CODE_BLOCK_TEMPLATE_CONTENT = `\n\`\`\`${CURSOR_SENTINEL}\n\n\`\`\`\n`;
 
 export const PILL_CONTAINER_CLASSES =
-  "absolute z-40 flex items-center gap-1 p-1 bg-paper-light dark:bg-paper-dark border border-edge rounded-md shadow-sm pointer-events-auto select-none transition-all duration-200 ease-in-out";
+  "absolute z-40 flex items-center gap-1 p-1 glass-panel rounded-lg pointer-events-auto select-none transition-all duration-200 ease-in-out";
 
 export interface Template {
   label: string;

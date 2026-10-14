@@ -31,7 +31,7 @@ export default function VimStatusPill({ status, hostRef }: {
     <div className="pointer-events-none sticky bottom-0 z-20 h-0">
       <div
         aria-hidden={!visible}
-        className={`absolute bottom-4 flex items-center gap-2 rounded-full border border-edge bg-chrome px-3 py-1 text-ui-caption text-fg-muted shadow-sm
+        className={`absolute bottom-4 flex items-center gap-2 rounded-full glass-panel px-3 py-1 text-ui-caption text-fg-muted
           transition-[opacity,transform] duration-150
           ${prompting ? "left-1/2 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2" : "right-4"}
           ${visible ? "pointer-events-auto opacity-100" : "translate-y-1 opacity-0"}`}

@@ -140,7 +140,7 @@ export default function Typeahead({
 
       {isOpen && filteredOptions.length > 0 && (
         <Portal>
-          <ul ref={dropdownRef} style={dropdownStyle} className="max-h-56 overflow-y-auto bg-paper-light dark:bg-neutral-900 border border-beige dark:border-neutral-800 rounded-xl py-1.5 text-ui-subhead custom-scrollbar">
+          <ul ref={dropdownRef} style={dropdownStyle} className="max-h-56 overflow-y-auto glass-panel rounded-xl py-1.5 text-ui-subhead custom-scrollbar">
             {filteredOptions.map((opt, index) => (
               <li
                 key={opt}
@@ -149,7 +149,7 @@ export default function Typeahead({
                 className={`px-4 py-2.5 cursor-pointer transition-colors ${
                   index === activeIndex
                     ? "bg-sage/10 dark:bg-sage/10 text-sage dark:text-sage font-medium"
-                    : "hover:bg-paper-softgray dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-200"
+                    : "hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-neutral-700 dark:text-neutral-200"
                 }`}
               >
                 {opt}
