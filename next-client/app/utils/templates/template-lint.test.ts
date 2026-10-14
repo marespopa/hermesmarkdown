@@ -52,9 +52,9 @@ describe("TEMPLATE_SYNTAX_GUIDE", () => {
     expect(TEMPLATE_SYNTAX_GUIDE).not.toContain("file_name");
   });
 
-  it("documents the period formats, not the legacy tokens", () => {
-    for (const format of ["ww", "GGGG", "Q", "{{date:GGGG-[W]ww}}"]) expect(TEMPLATE_SYNTAX_GUIDE).toContain(format);
-    for (const legacy of ["weekSheet", "monthSheet", "yearSheet", "{{weekday}}", "{{year}}", "{{slug}}", "{{quarter}}"]) {
+  it("documents the period formats and date fields, not the old sheet names", () => {
+    for (const format of ["ww", "GGGG", "Q", "{{date:GGGG-[W]ww}}", "{{weekday}}", "{{year}}", "{{slug}}", "{{quarter}}"]) expect(TEMPLATE_SYNTAX_GUIDE).toContain(format);
+    for (const legacy of ["weekSheet", "monthSheet", "yearSheet"]) {
       expect(TEMPLATE_SYNTAX_GUIDE).not.toContain(legacy);
     }
   });
