@@ -1,9 +1,9 @@
 # FilesSettings
 
-Description: The Settings → Files section: Vault (the New Notes folder, normalized on blur: where drafts and notes made from a template or a folder-less link go; show hidden files), Autosave (mode: After Delay or Manual Only; the delay shows for After Delay) and, last, Privacy (Privacy Mode, see [PrivacyModeSetting](PrivacyModeSetting.md)).
+Description: The Settings → Files section: Vault (the New Notes folder, normalized on blur: where drafts and notes made from a template or a folder-less link go; show hidden files), Autosave (mode: After Delay, a fixed `AUTOSAVE_DELAY` of 2s after the last keystroke, or Manual Only) and, last, Privacy (Privacy Mode, see [PrivacyModeSetting](PrivacyModeSetting.md)).
 
 ## Local State & Storage
-- State: `atom_newNoteFolder`, `atom_showHiddenFiles`, `atom_autosaveMode`, `atom_autosaveDelay` (Privacy Mode lives in `PrivacyModeSetting`).
+- State: `atom_newNoteFolder`, `atom_showHiddenFiles`, `atom_autosaveMode` (Privacy Mode lives in `PrivacyModeSetting`).
 - Persistence: All via `atomWithStorage` (`localStorage`). Toggling hidden files rescans and re-indexes the open vault straight away.
 
 ## Dependencies

@@ -148,6 +148,17 @@ export const getStartedGroup: Group = {
             with no name prompt.
           </p>
           <p>
+            The first time you open HermesMarkdown there is nothing to set up: you land on the
+            home feed, where <strong>New Note</strong> starts a blank note. Once it has text, a bar
+            at the bottom asks where your notes live. <strong>Choose Folder…</strong> picks a folder (you can make a new one in the
+            picker) and saves the note there; in browsers that can&apos;t open folders it reads{" "}
+            <strong>Keep Notes in This Browser</strong> and creates a{" "}
+            <a href="#browser-vaults" className="text-accent hover:underline">browser vault</a>.{" "}
+            <strong>Not Now</strong> shrinks it to a small &ldquo;Not saved to a folder&rdquo; mark;
+            until you choose, the note is kept only in this browser. <code>CTRL/CMD+S</code> asks the
+            same question.
+          </p>
+          <p>
             The note is saved to your vault once you finish the first line, or when you press{" "}
             <code>CTRL/CMD+S</code>. The file is named after
             the first line, for example <code>Trip ideas.md</code>. If the first line has no usable
@@ -176,7 +187,8 @@ export const getStartedGroup: Group = {
             insert a starter block. See{" "}
             <a href="#frontmatter" className="text-accent hover:underline">Frontmatter</a>.
             Autosave can be changed under{" "}
-            Settings → Files → Autosave: <strong>After Delay</strong> (the default) or{" "}
+            Settings → Files → Autosave: <strong>After Delay</strong> (the default, two seconds after
+            you stop typing) or{" "}
             <strong>Manual Only</strong>. With autosave set to manual, a new note is saved only when you
             press <code>CTRL/CMD+S</code>. To get a copy of a note outside your vault, run{" "}
             <strong>Download as Markdown</strong>: it always downloads the note as a <code>.md</code> file
@@ -202,13 +214,15 @@ export const getStartedGroup: Group = {
             Each row shows a note's title, the first few lines of its text and its file name. The column on the
             left groups notes by the day they were last changed: <em>Today</em>,{" "}
             <em>Yesterday</em>, the weekday for the rest of the week, then the date. If you add
-            your name in Settings → General, the feed greets you with it.
+            your name in Settings → Profile, the feed greets you with it.
           </p>
           <p>
-            To keep a note at the top, hover its row and click the pin. On a phone or tablet,
-            touch and hold the row, then choose <strong>Pin to Home</strong>; right-clicking a row
-            opens the same menu. You can also open the note and run <strong>Pin to Home</strong>{" "}
-            from the command palette. Pinned notes sit under{" "}
+            To keep a note at the top, click the pin at the top right of its row. It shows when you
+            hover the row, and always on a phone or tablet. You can also touch and hold the row, or
+            right-click it, and choose <strong>Pin to Home</strong>. From a note, choose{" "}
+            <strong>Pin to Home</strong> in the toolbar&apos;s <strong>More</strong> menu, in its
+            tab&apos;s right-click menu, or in the command palette. On a pinned note those read{" "}
+            <strong>Unpin from Home</strong>. Pinned notes sit under{" "}
             <em>Pinned</em> above the days, newest pin first. Click the pin again, or run{" "}
             <strong>Unpin from Home</strong>, to put the note back. Each vault keeps its own pins.
           </p>
@@ -218,10 +232,12 @@ export const getStartedGroup: Group = {
             note, <code>o</code> or Enter opens, <code>p</code> pins, <code>/</code> searches and Escape goes back to your open notes.
           </p>
           <p>
-            With no vault open, the feed is where you start. It offers <strong>Open Vault</strong>,{" "}
-            <strong>Create Vault</strong> and <strong>Browser Vault</strong>, or you can skip the
-            vault: <strong>New Note</strong> opens a blank draft and <strong>Open File…</strong>{" "}
-            opens a file from your device. Once a vault is open, your notes appear here.
+            With no vault open, the feed is where you start. Until you&apos;ve given a name, it asks
+            what to call you; press Enter and the greeting uses it. Under that are your recent
+            vaults, then <strong>Open Vault</strong>, <strong>Create Vault</strong> and{" "}
+            <strong>Browser Vault</strong>, or you can skip the vault: <strong>New Note</strong>{" "}
+            opens a blank draft and <strong>Open File…</strong> opens a file from your device. Once
+            a vault is open, your notes appear here.
           </p>
           <p>
             At the bottom, <strong>Search or create a note…</strong> opens the command palette.

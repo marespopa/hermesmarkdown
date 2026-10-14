@@ -2,7 +2,7 @@ import React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider, createStore } from "jotai";
-import { atom_isWizardOpen, atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
+import { atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
 import { version } from "@/package.json";
 import GuideSettings from "./GuideSettings";
 
@@ -25,11 +25,9 @@ describe("GuideSettings", () => {
   beforeEach(() => pushMock.mockReset());
   afterEach(cleanup);
 
-  it("restarts the welcome tour in the editor", () => {
-    const store = renderGuide();
-    fireEvent.click(screen.getByRole("button", { name: "Start Tour" }));
-    expect(store.get(atom_isWizardOpen)).toBe(true);
-    expect(pushMock).toHaveBeenCalledWith("/editor");
+  it("has no welcome tour to restart", () => {
+    renderGuide();
+    expect(screen.queryByRole("button", { name: "Start Tour" })).not.toBeInTheDocument();
   });
 
   it("opens the keyboard shortcuts overlay", () => {

@@ -2,7 +2,7 @@ import React from "react";
 import { renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { atom_vaultOpenBehaviorAppliedFor, atom_welcomeDeferred } from "@/app/atoms/ui-atoms";
+import { atom_vaultOpenBehaviorAppliedFor } from "@/app/atoms/ui-atoms";
 import { buildToolHandoff, HANDOFF_TTL_MS, TOOL_HANDOFF_KEY } from "@/app/utils/tool-handoff";
 import { useToolHandoff } from "./use-tool-handoff";
 import { NO_VAULT_KEY } from "./use-vault-open-behavior";
@@ -28,15 +28,13 @@ describe("useToolHandoff", () => {
   afterEach(() => sessionStorage.clear());
 
   it("does nothing without a handoff", () => {
-    const { store, offerDraft } = setup(NO_VAULT_KEY);
+    const { offerDraft } = setup(NO_VAULT_KEY);
     expect(offerDraft).not.toHaveBeenCalled();
-    expect(store.get(atom_welcomeDeferred)).toBe(false);
   });
 
-  it("defers the welcome tour and waits while the vault is locked", () => {
+  it("waits while the vault is locked", () => {
     storeHandoff();
-    const { store, offerDraft, rerender } = setup(NO_VAULT_KEY, true);
-    expect(store.get(atom_welcomeDeferred)).toBe(true);
+    const { offerDraft, rerender } = setup(NO_VAULT_KEY, true);
     expect(offerDraft).not.toHaveBeenCalled();
 
     rerender({ locked: false });

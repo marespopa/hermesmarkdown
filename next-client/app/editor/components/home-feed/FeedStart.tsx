@@ -1,10 +1,12 @@
 "use client";
 
-import { HiOutlineFolderOpen, HiOutlinePlus } from "react-icons/hi";
-import Button from "@/app/components/Button";
+import { useSetAtom } from "jotai";
+import { HiOutlineCollection, HiOutlineDatabase, HiOutlineDocumentText, HiOutlineGlobeAlt, HiOutlinePencilAlt } from "react-icons/hi";
+import { atom_browserVaultDialogOpen, atom_newVaultFlowOpen } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import VaultActionButtons from "../VaultActionButtons";
 import RecentVaultList from "./RecentVaultList";
+import { StartGroup, StartIcon, StartRow } from "./StartGroup";
+import StartName from "./StartName";
 
 interface FeedStartProps {
   onNewNote: () => void;
@@ -12,36 +14,61 @@ interface FeedStartProps {
   onOpenFile: () => void;
 }
 
-// The feed's body with no vault open, in place of the note list: recently
-// opened vaults, the vault actions, then a way to just write (a blank note,
-// or a file from the device).
+// The feed's body with no vault open, in place of the note list, as inset
+// grouped cards: the name (until one is given), recently opened vaults,
+// ways to keep notes (the vault kinds this browser supports), then ways to
+// just write (a blank note, or a file from the device).
 export default function FeedStart({ onNewNote, onOpenFile }: FeedStartProps) {
-  const { isVaultSupported, isBrowserVaultSupported } = useFileSystem();
+  const { openVault, isVaultSupported, isBrowserVaultSupported } = useFileSystem();
+  const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
+  const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
   const canOpenVault = isVaultSupported || isBrowserVaultSupported;
   return (
-    <section aria-label="Get started" className="flex flex-col items-start gap-8 pt-4">
+    <section aria-label="Get started" className="flex flex-col gap-8 pt-2">
+      <StartName />
       <RecentVaultList />
       {canOpenVault && (
-        <div className="flex flex-col items-start gap-3">
-          <p className="text-ui-body text-fg">Open a vault to see your notes here.</p>
-          <div className="-ml-3">
-            <VaultActionButtons />
-          </div>
-        </div>
+        <StartGroup title="Keep your notes" footer="Open a vault to see your notes here.">
+          {isVaultSupported && (
+            <>
+              <StartRow
+                icon={<StartIcon tone="sage"><HiOutlineDatabase size={18} /></StartIcon>}
+                title="Open Vault"
+                subtitle="A folder of notes on this device"
+                onClick={() => openVault()}
+              />
+              <StartRow
+                icon={<StartIcon tone="sage"><HiOutlineCollection size={18} /></StartIcon>}
+                title="Create Vault"
+                subtitle="A new folder for your notes"
+                onClick={() => setNewVaultFlowOpen(true)}
+              />
+            </>
+          )}
+          {isBrowserVaultSupported && (
+            <StartRow
+              icon={<StartIcon tone="sage"><HiOutlineGlobeAlt size={18} /></StartIcon>}
+              title="Browser Vault"
+              subtitle="Notes kept in this browser"
+              onClick={() => setBrowserVaultDialogOpen(true)}
+            />
+          )}
+        </StartGroup>
       )}
-      <div className="flex flex-col items-start gap-2">
-        <p className="text-ui-footnote text-fg-muted">{canOpenVault ? "Or just write" : "Start writing"}</p>
-        <div className="-ml-3 flex flex-wrap gap-2">
-          <Button variant="tertiary" onClick={onNewNote}>
-            <HiOutlinePlus size={16} />
-            New Note
-          </Button>
-          <Button variant="tertiary" onClick={onOpenFile}>
-            <HiOutlineFolderOpen size={16} />
-            Open File…
-          </Button>
-        </div>
-      </div>
+      <StartGroup title={canOpenVault ? "Or just write" : "Start writing"}>
+        <StartRow
+          icon={<StartIcon tone="accent"><HiOutlinePencilAlt size={18} /></StartIcon>}
+          title="New Note"
+          subtitle="A blank page"
+          onClick={onNewNote}
+        />
+        <StartRow
+          icon={<StartIcon tone="accent"><HiOutlineDocumentText size={18} /></StartIcon>}
+          title="Open File…"
+          subtitle="A Markdown file from this device"
+          onClick={onOpenFile}
+        />
+      </StartGroup>
     </section>
   );
 }

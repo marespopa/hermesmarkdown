@@ -157,6 +157,31 @@ describe("evaluateTable — currency formatting", () => {
     expect(result(data, 3, 0)).toBe("$200.00");
   });
 
+  it("shows a ratio of two amounts as a plain number, and a share of an amount in its currency", () => {
+    const data: TableData = {
+      headers: ["Card", "Limit", "Used", "Usage", "Suggested", "Usage x2", "Over"],
+      rows: [["Store card", "7000 RON", "700 RON", "=C2/B2*100", "=B2*10%", "=D2*2", "=IF(C2>E2,\"over\",\"under\")"]],
+      alignments: ["left", "left", "left", "left", "left", "left", "left"],
+    };
+    expect(result(data, 2, 3)).toBe("10");
+    expect(result(data, 2, 4)).toBe("700.00 RON");
+    // A formula built on the ratio stays a plain number.
+    expect(result(data, 2, 5)).toBe("20");
+    expect(result(data, 2, 6)).toBe("under");
+  });
+
+  it("drops the currency for an amount times an amount, but keeps it for an amount over a number", () => {
+    const data: TableData = {
+      headers: ["A", "B"],
+      rows: [["$10", "$20"], ["=A2*B2", "=B2/4"], ["=ROUND(A2/3, 2)", "=MAX(A2:B2)-5"]],
+      alignments: ["left", "left"],
+    };
+    expect(result(data, 3, 0)).toBe("200");
+    expect(result(data, 3, 1)).toBe("$5.00");
+    expect(result(data, 4, 0)).toBe("$3.33");
+    expect(result(data, 4, 1)).toBe("$15.00");
+  });
+
   it("propagates currency through a chain of formula references", () => {
     const data: TableData = {
       headers: ["A", "B"],

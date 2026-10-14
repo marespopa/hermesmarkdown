@@ -20,12 +20,10 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     isOnlyPane,
     onOpenTasks,
     onOpenTemplates,
-    router,
     scanVault,
     setActiveFilePath,
     setActivePaneId,
     setSidebarOpen,
-    setIsWizardOpen,
     setShowHiddenFiles,
     setTaskSearchQuery,
     setTasksGroupBy,
@@ -113,15 +111,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       keywords: "sidebar open notes files tree navigation panel show hide",
       shortcut: formatShortcut("S", { alt: true }),
       action: () => setSidebarOpen(!sidebarOpen),
-    },
-    {
-      id: "start-welcome-tour",
-      label: "Start Welcome Tour",
-      keywords: "onboarding guide help tour walkthrough",
-      action: () => {
-        setIsWizardOpen(true);
-        router.push("/editor");
-      },
     },
   ];
 

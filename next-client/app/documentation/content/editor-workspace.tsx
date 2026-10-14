@@ -253,7 +253,7 @@ tags: []
             { label: "New Folder", value: "Choose a vault folder, then enter a name" },
             { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },
             { label: "Open AI Chat", value: "CTRL+SHIFT+B · when AI is configured" },
-            { label: "Navigate", value: "Open Home, Open Settings, Open Documentation, Show Keyboard Shortcuts, Start Welcome Tour" },
+            { label: "Navigate", value: "Open Home, Open Settings, Open Documentation, Show Keyboard Shortcuts" },
           ]}
         />
         <p>

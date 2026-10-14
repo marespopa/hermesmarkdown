@@ -10,6 +10,7 @@ import {
   HiOutlineQuestionMarkCircle,
   HiOutlineSearch,
 } from "react-icons/hi";
+import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import { formatShortcut } from "@/app/utils/platform";
 import { useWindowActions } from "../hooks/use-window-actions";
 import PaneToolbarButton from "./PaneToolbarButton";
@@ -20,9 +21,9 @@ import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 // `PaneLeaf` renders them once — in the top-right pane's header — where they
 // stay put while focus moves between panes. Each section is its own capsule:
 // - Tools: command palette and AI chat.
-// - More: a pull-down menu with the secondary commands (Copy Markdown and
-//   Export as PDF for the focused pane, Settings, Help). Split
-//   panes and Token Cost are palette commands.
+// - More: a pull-down menu with the secondary commands (Copy Markdown,
+//   Export as PDF and Pin to Home / Unpin from Home for the focused pane,
+//   Settings, Help). Split panes and Token Cost are palette commands.
 export default function PaneWindowActions() {
   const actions = useWindowActions();
   const moreRef = useRef<HTMLButtonElement>(null);
@@ -84,6 +85,14 @@ export default function PaneWindowActions() {
           items={[
             { label: "Copy Markdown", icon: <HiOutlineClipboardCopy size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.copyActiveMarkdown },
             { label: "Export as PDF…", icon: <HiOutlineDocumentDownload size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.exportActivePdf },
+            // Its label and filled pin say whether the open note is pinned.
+            ...(actions.canPinActiveNote
+              ? [{
+                  label: actions.isActiveNotePinned ? "Unpin from Home" : "Pin to Home",
+                  icon: actions.isActiveNotePinned ? <TbPinnedFilled size={15} className="text-accent" /> : <TbPinned size={15} />,
+                  onClick: actions.toggleActiveNotePin,
+                }]
+              : []),
             { label: "Settings", icon: <HiOutlineCog size={15} />, divider: true, onClick: actions.openSettings },
             { label: "Documentation and Help", icon: <HiOutlineQuestionMarkCircle size={15} />, onClick: actions.openHelp },
           ]}

@@ -6,7 +6,7 @@ import {
   atom_content,
   atom_lastSavedContent,
   atom_autosaveMode,
-  atom_autosaveDelay,
+  AUTOSAVE_DELAY,
   atom_activeFilePath,
 } from "@/app/atoms/atoms";
 import { useEffect, useRef, useCallback } from "react";
@@ -21,7 +21,6 @@ export function useAutoSave(onDraftChange?: () => void) {
   const [content] = useAtom(atom_content);
   const [lastSavedContent] = useAtom(atom_lastSavedContent);
   const [autosaveMode] = useAtom(atom_autosaveMode);
-  const [autosaveDelay] = useAtom(atom_autosaveDelay);
   const [activeFilePath] = useAtom(atom_activeFilePath);
   
   const { saveFile } = useFileSystem();
@@ -91,7 +90,7 @@ export function useAutoSave(onDraftChange?: () => void) {
           onDraftChange();
         }
       }
-    }, autosaveDelay);
+    }, AUTOSAVE_DELAY);
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -102,7 +101,6 @@ export function useAutoSave(onDraftChange?: () => void) {
     activeFileHandle, 
     saveFile, 
     autosaveMode, 
-    autosaveDelay, 
     activeFilePath, 
     onDraftChange
   ]);

@@ -5,7 +5,7 @@ import { greeting } from "./greetings";
 
 interface FeedHeaderProps {
   now: Date;
-  /** From the welcome wizard's name step; the greeting goes without a name when empty. */
+  /** From Settings or the no-vault start's name field; the greeting goes without a name when empty. */
   userName?: string;
   /** Shown under the weekday (the stats line). */
   children?: ReactNode;

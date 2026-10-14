@@ -4,6 +4,21 @@ import { SHORTCODES } from "../components/constants";
 import { REGEX_CALC } from "../components/regex";
 import { evaluateMath } from "../utils/math-eval";
 
+// `calc(…)=` at the end of `textBeforeCaret`, evaluated: how many characters
+// to replace and the result (rounded to 2 places), or null when there's no
+// calc or it doesn't evaluate. Also used by table cells, which are edited
+// outside the editor's own text (table-cell-dom.ts).
+export function expandCalc(textBeforeCaret: string): { length: number; replacement: string } | null {
+  const calcMatch = textBeforeCaret.match(REGEX_CALC);
+  if (!calcMatch) return null;
+  const normalized = calcMatch[1].replace(/(\d),(\d+)/g, (_, pre, post) =>
+    post.length <= 2 ? `${pre}.${post}` : `${pre}${post}`,
+  );
+  const result = evaluateMath(normalized.replace(/[^-()\d/*+.]/g, ""));
+  if (result == null) return null;
+  return { length: calcMatch[0].length, replacement: (Math.round(result * 100) / 100).toString() };
+}
+
 // Port of useMarkdownEditor.ts's handleValueChange calc()=/shortcode
 // auto-expand (SHORTCODES map + inline calc(...)= evaluator). Runs after
 // every doc change: if the text immediately before the cursor matches a
@@ -27,30 +42,16 @@ function tryExpand(view: EditorView) {
   const line = view.state.doc.lineAt(pos);
   const textUpToCursor = line.text.slice(0, pos - line.from);
 
-  const calcMatch = textUpToCursor.match(REGEX_CALC);
-  if (calcMatch) {
-    const mathExpression = calcMatch[1];
-    const fullMatchString = calcMatch[0];
-    const normalized = mathExpression.replace(/(\d),(\d+)/g, (_, pre, post) =>
-      post.length <= 2 ? `${pre}.${post}` : `${pre}${post}`,
-    );
-    const sanitized = normalized.replace(/[^-()\d/*+.]/g, "");
-    try {
-      const result = evaluateMath(sanitized);
-      if (result == null) {
-        throw new Error("invalid expression");
-      }
-      const replacement = (Math.round(result * 100) / 100).toString();
-      const sliceStart = pos - fullMatchString.length;
-      view.dispatch({
-        changes: { from: sliceStart, to: pos, insert: replacement },
-        selection: EditorSelection.cursor(sliceStart + replacement.length),
-        userEvent: "input.replace.calc",
-      });
-      return true;
-    } catch {
-      // not a valid expression — fall through to shortcode matching
-    }
+  // Not a valid expression falls through to shortcode matching.
+  const calc = expandCalc(textUpToCursor);
+  if (calc) {
+    const sliceStart = pos - calc.length;
+    view.dispatch({
+      changes: { from: sliceStart, to: pos, insert: calc.replacement },
+      selection: EditorSelection.cursor(sliceStart + calc.replacement.length),
+      userEvent: "input.replace.calc",
+    });
+    return true;
   }
 
   for (const [code, getValue] of Object.entries(SHORTCODES)) {

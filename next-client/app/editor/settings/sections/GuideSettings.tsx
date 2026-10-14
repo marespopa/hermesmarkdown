@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
-import { atom_isWizardOpen, atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
+import { atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { version } from "@/package.json";
 import { SettingGroup, SettingItem } from "../components/SettingControls";
@@ -18,27 +18,14 @@ const ABOUT_LINKS = [
 
 const actionButtonClass = "h-8 px-4 text-ui-footnote font-medium";
 
-// Settings → General, after the profile groups: Onboarding (tour), Help
-// (shortcuts, docs), and About (version, links).
+// Settings → General, after the profile groups: Help (shortcuts, docs) and
+// About (version, links).
 export default function GuideSettings() {
   const router = useRouter();
-  const setIsWizardOpen = useSetAtom(atom_isWizardOpen);
   const setKeyboardShortcutsOpen = useSetAtom(atom_keyboardShortcutsOpen);
-
-  const startTour = () => {
-    setIsWizardOpen(true);
-    router.push("/editor");
-  };
 
   return (
     <>
-      <SettingGroup title="Onboarding">
-        <SettingItem
-          label="Welcome Tour"
-          description="Walk through the intro screens again to rediscover features."
-          control={<Button variant="secondary" onClick={startTour} className={actionButtonClass}>Start Tour</Button>}
-        />
-      </SettingGroup>
       <SettingGroup title="Help">
         <SettingItem
           label="Keyboard Shortcuts"

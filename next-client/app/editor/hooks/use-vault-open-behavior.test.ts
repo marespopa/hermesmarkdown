@@ -36,6 +36,9 @@ async function loadWithoutVault(restoring = false) {
 describe("useVaultOpenBehavior", () => {
   beforeEach(() => {
     sessionStorage.clear();
+    localStorage.clear();
+    // A returning visitor; first visits have their own test.
+    localStorage.setItem("hasCompletedOnboarding", "true");
   });
 
   it("opens the home feed the first time a vault opens in this tab", async () => {
@@ -61,6 +64,11 @@ describe("useVaultOpenBehavior", () => {
   it("stays on the draft after a refresh with no vault", async () => {
     await loadWithoutVault();
     expect(await loadWithoutVault()).toBe(false);
+  });
+
+  it("opens the home feed on a first visit with no vault", async () => {
+    localStorage.removeItem("hasCompletedOnboarding");
+    expect(await loadWithoutVault()).toBe(true);
   });
 
   it("opens the feed again when a vault opens after the no-vault feed", async () => {

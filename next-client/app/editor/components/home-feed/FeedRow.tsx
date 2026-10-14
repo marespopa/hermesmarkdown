@@ -37,12 +37,14 @@ function FeedPreview({ entry }: { entry: FeedEntry }) {
 
 // One note in the feed: day label (or "Pinned") in the left gutter, then the
 // title, a few lines of plain-text preview (masked for private
-// notes) and the file name in small, faint type. The pin button shows on
-// hover, keyboard focus or selection, and not at all on touch-only screens,
-// where a long press opens the row's menu (Open, Pin / Unpin) instead; a right-click or the context-menu key opens it
-// everywhere. "Touch-only" is `any-hover: none`: `hover: none` only reads
-// the primary pointer, so it also hid the pin from a mouse on a tablet or
-// phone.
+// notes) and the file name in small, faint type. The pin button is a
+// 44px target at the row's top right, kept clear of the row's text so a tap
+// that just misses it doesn't open the note. It shows on hover, keyboard
+// focus or selection, always on a pinned note, and always on touch-only
+// screens (`any-hover: none`: `hover: none` only reads the primary pointer,
+// so a mouse on a tablet still gets the hover behaviour). A long press,
+// right-click or the context-menu key opens the row's menu (Open, Pin /
+// Unpin).
 const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
   { entry, isSelected, onOpen, onHover, onTogglePin },
   ref,
@@ -77,7 +79,7 @@ const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
         {...longPress.handlers}
         aria-label={entry.isPrivate ? `${entry.title} (private)` : entry.title}
         // No text selection or callout on a long press (iOS).
-        className={`group block w-full min-w-0 select-none rounded-lg py-3 pl-3 pr-10 text-left [@media(any-hover:none)]:pr-3 transition-colors [-webkit-touch-callout:none] ${
+        className={`group block w-full min-w-0 select-none rounded-lg py-3 pl-3 pr-12 text-left transition-colors [-webkit-touch-callout:none] ${
           isSelected ? "bg-surface-raised" : "hover:bg-surface-raised"
         }`}
       >
@@ -104,11 +106,11 @@ const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
         onMouseEnter={onHover}
         aria-label={pinLabel}
         title={pinLabel}
-        className={`absolute right-1.5 top-2 flex h-8 w-8 items-center justify-center rounded-md text-fg-faint transition-opacity hover:text-fg focus-visible:opacity-100 group-hover/row:opacity-100 [@media(any-hover:none)]:hidden ${
-          isSelected ? "opacity-100" : "opacity-0"
-        }`}
+        className={`absolute right-0.5 top-1 flex h-11 w-11 items-center justify-center rounded-full transition hover:bg-surface hover:text-fg focus-visible:opacity-100 group-hover/row:opacity-100 [@media(any-hover:none)]:opacity-100 ${
+          entry.isPinned ? "text-accent" : "text-fg-faint"
+        } ${isSelected || entry.isPinned ? "opacity-100" : "opacity-0"}`}
       >
-        {entry.isPinned ? <TbPinnedFilled size={15} aria-hidden="true" /> : <TbPinned size={15} aria-hidden="true" />}
+        {entry.isPinned ? <TbPinnedFilled size={17} aria-hidden="true" /> : <TbPinned size={17} aria-hidden="true" />}
       </Button>
       {menu && (
         <TabContextMenu

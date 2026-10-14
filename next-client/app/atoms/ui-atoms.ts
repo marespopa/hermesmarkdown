@@ -28,8 +28,8 @@ export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", false);
 export const atom_showInvisibles = atomWithStorage<boolean>("showInvisibles", false);
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 // Lets the editor's text column fill the sheet instead of stopping at the
-// reading width (--editor-measure, editor-typography.scss). Off by default.
-export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", false);
+// reading width (--editor-measure, editor-typography.scss). On by default.
+export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
 // Focus (Settings → Editor): "hide" fades the pane header, sidebar and
 // mobile file bar while you type, and moving the mouse brings them back
 // (hooks/use-fade-chrome-while-typing.ts); "dim" does that too, and also
@@ -173,26 +173,18 @@ export const atom_snapshotOnConflict = atomWithStorage<boolean>(
   "snapshotOnConflict",
   true,
 );
-export const atom_autosaveDelay = atomWithStorage<number>(
-  "autosaveDelay",
-  2000,
-);
+// How long "afterDelay" autosave waits after the last keystroke (ms).
+export const AUTOSAVE_DELAY = 2000;
+// Set after the first visit (useFirstRun). The key predates the removal of
+// the welcome tour, so people who finished the tour don't count as new.
 export const atom_hasCompletedOnboarding = atomWithStorage<boolean>(
   "hasCompletedOnboarding",
   false,
 );
 export const atom_userName = atomWithStorage<string>("userName", "");
-export const atom_isWizardOpen = atom<boolean>(false);
-// Set when /editor opens with work handed over from a tool page: first-run
-// visitors see that work instead of the welcome tour, which waits for their
-// next visit. In memory, so a reload clears it.
-export const atom_welcomeDeferred = atom<boolean>(false);
-// Survives the full-page reload caused by the Google Drive OAuth round-trip, so the
-// wizard resumes where the user left off instead of restarting at the welcome step.
-export const atom_welcomeWizardStep = atomWithStorage<number>(
-  "welcomeWizardStep",
-  0,
-);
+// "Not Now" on the FolderPrompt: it shrinks to a "Not saved to a folder"
+// mark for the rest of the visit. In memory, so the next visit asks again.
+export const atom_folderPromptDismissed = atom<boolean>(false);
 
 // How notes open: the last collapse or expand clicked on any note's
 // Properties row (no setting of its own). Same storage key as the old

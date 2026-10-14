@@ -16,17 +16,17 @@ export const settingsGroup: Group = {
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically. The
-            editor font and text size are set under Settings → Appearance → Typography and apply to
-            every pane in a split workspace. Show Sidebar, Full Width, word wrap, line numbers and
-            Show Invisibles (¶ on empty lines, dots for spaces) live under Settings → Editor → Layout;
-            Vim mode and{" "}
-            <a href="#focus" className="text-accent hover:underline">Focus</a> under Settings →
-            Editor → Writing.
+            editor font, text size and Full Width (on by default) are set under Settings →
+            Appearance → Typography and apply to every pane in a split workspace. Vim mode and{" "}
+            <a href="#focus" className="text-accent hover:underline">Focus</a> are under Settings →
+            Editor. Word wrap, line numbers and invisibles (¶ on empty lines, dots for spaces) are
+            command palette toggles: <strong>Toggle Word Wrap</strong>,{" "}
+            <strong>Toggle Line Numbers</strong>, <strong>Toggle Invisibles</strong>.
           </p>
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
-              { label: "Sidebar", value: "Settings → Editor → Layout → Show Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
+              { label: "Sidebar", value: "The toolbar's Sidebar button, CTRL/CMD+ALT+S or Toggle Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
               { label: "Typeface", value: "Plus Jakarta Sans by default, with Source Serif 4, Inter, and Geist Mono options" },
             ]}
           />

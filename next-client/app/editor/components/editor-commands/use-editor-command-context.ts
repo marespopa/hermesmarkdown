@@ -9,7 +9,6 @@ import {
   atom_vaultDescriptor,
   atom_closePane,
   atom_closeTab,
-  atom_isWizardOpen,
   atom_splitPane,
   atom_workspaceLayout,
   findLeaf,
@@ -99,7 +98,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
   const [, setTaskTagFilter] = useAtom(atom_taskTagFilter);
   const [, setTaskView] = useAtom(atom_taskView);
-  const [, setIsWizardOpen] = useAtom(atom_isWizardOpen);
   const [privacyLevel, setPrivacyLevel] = useAtom(atom_privacyLevel);
   const [revealAllPrivate, setRevealAllPrivate] = useAtom(atom_revealAllPrivate);
   const setRevealedPrivatePaths = useSetAtom(atom_revealedPrivatePaths);
@@ -160,7 +158,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setTaskSearchQuery,
     setTaskTagFilter,
     setTaskView,
-    setIsWizardOpen,
     privacyLevel,
     setPrivacyLevel,
     revealAllPrivate,

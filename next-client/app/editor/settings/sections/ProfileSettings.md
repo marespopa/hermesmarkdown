@@ -4,7 +4,7 @@ Description: The first groups of the Settings → General section (rendered abov
 
 ## Local State & Storage
 - State: `atom_userName`, `atom_recentCommandIds`, `atom_recentFilePaths`, `atom_commandUseCounts`, `atom_palettePinnedItems`.
-- Persistence: `atomWithStorage` (`localStorage`). The name is shared with the Welcome wizard.
+- Persistence: `atomWithStorage` (`localStorage`).
 
 ## Dependencies
 - Core: `SettingControls`, `BareInput`, `Button`, `useDialog`, `Toastr`.

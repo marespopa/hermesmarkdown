@@ -11,7 +11,7 @@ Description: Create, reopen, rename or delete browser vaults — vaults stored i
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Behavior
-- Opening or creating a vault asks the browser for persistent storage and closes the dialog. The welcome wizard advances on its own once a vault is open.
+- Opening or creating a vault asks the browser for persistent storage and closes the dialog.
 - Delete asks for inline confirmation, closes the vault first if it is the open one, then removes its files and registry entry.
 - Folders found in storage without a registry entry are listed as "Recovered vault …" so their notes can still be opened and exported.
 

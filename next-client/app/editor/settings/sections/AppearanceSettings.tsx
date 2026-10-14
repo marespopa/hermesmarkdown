@@ -4,6 +4,8 @@ import React from "react";
 import { useAtom } from "jotai";
 import { HiOutlineDesktopComputer, HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
 import { atom_editorFontFamily, atom_renderedFontSize, atom_theme, type Theme } from "@/app/atoms/atoms";
+import { atom_fullWidth } from "@/app/atoms/ui-atoms";
+import Toggle from "@/app/components/Toggle";
 import FontPicker from "../components/FontPicker";
 import { SegmentedControl, SettingGroup, SettingItem } from "../components/SettingControls";
 import { FONTS, TEXT_SIZES } from "../font-options";
@@ -14,11 +16,13 @@ const THEME_OPTIONS: { label: string; value: Theme; Icon: React.ComponentType<{ 
   { label: "System", value: "system", Icon: HiOutlineDesktopComputer },
 ];
 
-// Settings → Appearance: Theme and Typography groups.
+// Settings → Appearance: Theme and Typography (font, text size, full width)
+// groups.
 export default function AppearanceSettings() {
   const [theme, setTheme] = useAtom(atom_theme);
   const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [textSize, setTextSize] = useAtom(atom_renderedFontSize);
+  const [fullWidth, setFullWidth] = useAtom(atom_fullWidth);
 
   return (
     <>
@@ -41,6 +45,11 @@ export default function AppearanceSettings() {
           description="The size of your notes' text."
           layout="stack"
           control={<SegmentedControl options={TEXT_SIZES} value={textSize} onChange={setTextSize} />}
+        />
+        <SettingItem
+          label="Full Width"
+          description="Let the text fill the whole editor. Turn it off to stop lines at a comfortable reading width."
+          control={<Toggle variant="soft" active={fullWidth} onChange={setFullWidth} label="Full width" />}
         />
       </SettingGroup>
     </>

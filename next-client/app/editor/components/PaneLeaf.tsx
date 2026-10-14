@@ -8,14 +8,17 @@ import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
 import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_homePinnedPaths, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
 import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards } from "react-icons/hi";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
+import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import PaneTab, { TabSaveState } from "./PaneTab";
 import PaneActions from "./PaneActions";
 import PaneToolbarButton from "./PaneToolbarButton";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { formatShortcut } from "@/app/utils/platform";
 import { getFirstLeaf, getTopTrailingLeaf, isOnLeadingEdge } from "@/app/atoms/utils";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
@@ -51,6 +54,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const isMobileChrome = useIsMobileChrome();
 
   const { openOrCreateLink } = useFileSystem();
+  const hasVault = !!useAtomValue(atom_vaultHandle);
+  const homePinnedPaths = useAtomValue(atom_homePinnedPaths);
+  const toggleHomePin = useSetAtom(atom_toggleHomePin);
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
@@ -258,6 +264,16 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               onClick: () => openFileInPane(tabMenu.path),
               icon: <HiOutlineViewBoards size={15} />,
             });
+            // Notes in the vault can be pinned to the top of the Home feed;
+            // the unsaved draft can't.
+            if (hasVault && tabMenu.path !== "draft") {
+              const isPinned = homePinnedPaths.includes(tabMenu.path);
+              menuActions.push({
+                label: isPinned ? "Unpin from Home" : "Pin to Home",
+                onClick: () => toggleHomePin(tabMenu.path),
+                icon: isPinned ? <TbPinnedFilled size={15} /> : <TbPinned size={15} />,
+              });
+            }
             const closeItems = buildTabMenuItems(tabMenu.path);
             if (menuActions.length > 0) closeItems[0] = { ...closeItems[0], divider: true };
             return [...menuActions, ...closeItems];

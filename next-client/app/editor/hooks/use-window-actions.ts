@@ -2,7 +2,9 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { atom_activePaneId, atom_workspaceLayout } from "@/app/atoms/atoms";
 import { atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_homePinnedPaths, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
 import { findLeaf } from "@/app/atoms/utils";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { exportActivePdf } from "../utils/open-helper-dialogs";
 import { usePaneFileActions } from "./use-pane-file-actions";
@@ -20,11 +22,20 @@ export function useWindowActions() {
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
   const { handleCopy } = usePaneFileActions(activeLeaf);
   const activePaneHasFiles = !!activeLeaf && activeLeaf.openFilePaths.length > 0;
+  // The focused pane's note, when it can be pinned to Home: in the open
+  // vault, not the draft.
+  const hasVault = !!useAtomValue(atom_vaultHandle);
+  const homePinnedPaths = useAtomValue(atom_homePinnedPaths);
+  const toggleHomePin = useSetAtom(atom_toggleHomePin);
+  const pinnablePath = hasVault && activeLeaf?.activeFilePath && activeLeaf.activeFilePath !== "draft" ? activeLeaf.activeFilePath : null;
 
   return {
     isAiConfigured,
     sidebarOpen,
     activePaneHasFiles,
+    canPinActiveNote: !!pinnablePath,
+    isActiveNotePinned: !!pinnablePath && homePinnedPaths.includes(pinnablePath),
+    toggleActiveNotePin: () => { if (pinnablePath) toggleHomePin(pinnablePath); },
     openCommandPalette: () => openCommandPalette(),
     // Same trigger as the Ctrl/Cmd+Shift+B shortcut; the editor page opens the chat.
     openAIChat: () => setAiBuilderRequest((value) => value + 1),

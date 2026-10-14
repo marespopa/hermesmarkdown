@@ -27,7 +27,6 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
     atom_lineHeight: { toString: () => "atom_lineHeight" },
     atom_theme: { toString: () => "atom_theme" },
     atom_autosaveMode: { toString: () => "atom_autosaveMode" },
-    atom_autosaveDelay: { toString: () => "atom_autosaveDelay" },
     atom_vimMode: { toString: () => "atom_vimMode" },
     atom_showStats: { toString: () => "atom_showStats" },
   };
@@ -55,7 +54,6 @@ describe("SettingsPage", () => {
     (useAtom as any).mockImplementation((atom: any) => {
       const atomStr = atom.toString();
       if (atomStr === "atom_autosaveMode") return ["afterDelay", vi.fn()];
-      if (atomStr === "atom_autosaveDelay") return [2000, vi.fn()];
       if (atomStr === "atom_lineHeight") return ["1.8", vi.fn()];
       if (atomStr === "atom_showStats") return [true, vi.fn()];
       if (atomStr === "atom_theme") return ["light", vi.fn()];
@@ -71,6 +69,7 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Inter")).toBeInTheDocument();
     expect(screen.getByText("Source Serif 4")).toBeInTheDocument();
     expect(screen.getByText("Plus Jakarta Sans")).toBeInTheDocument();
+    expect(screen.getByText("Full Width")).toBeInTheDocument();
     expect(screen.queryByText("Text Size")).not.toBeInTheDocument();
     expect(screen.queryByText("Line Height")).not.toBeInTheDocument();
   });
@@ -91,14 +90,18 @@ describe("SettingsPage", () => {
     (useAtom as any).mockImplementation((atom: any) => {
       const str = atom.toString();
       if (str === "atom_autosaveMode") return ["afterDelay", vi.fn()];
-      if (str === "atom_autosaveDelay") return [2000, vi.fn()];
       return ["", vi.fn()];
     });
     render(<SettingsPage />);
     openEditorSection();
 
     expect(screen.getByText("Vim Mode")).toBeInTheDocument();
-    expect(screen.getByText("Full Width")).toBeInTheDocument();
+    expect(screen.queryByText("Full Width")).not.toBeInTheDocument();
+    // Palette-only toggles and the sidebar have no settings rows.
+    expect(screen.queryByText("Word Wrap")).not.toBeInTheDocument();
+    expect(screen.queryByText("Line Numbers")).not.toBeInTheDocument();
+    expect(screen.queryByText("Show Invisibles")).not.toBeInTheDocument();
+    expect(screen.queryByText("Show Sidebar")).not.toBeInTheDocument();
     expect(screen.queryByText("Collapse Frontmatter")).not.toBeInTheDocument();
     expect(screen.queryByText("Delay")).not.toBeInTheDocument();
   });
@@ -110,7 +113,8 @@ describe("SettingsPage", () => {
     expect(screen.queryByText("On Vault Open")).not.toBeInTheDocument();
     expect(screen.getByText("New Notes Folder")).toBeInTheDocument();
     expect(screen.getByText("Show Hidden Files")).toBeInTheDocument();
-    expect(screen.getByText("Delay")).toBeInTheDocument();
+    expect(screen.getByText("Autosave Mode")).toBeInTheDocument();
+    expect(screen.queryByText("Delay")).not.toBeInTheDocument();
   });
 
   it("has no Privacy section: Privacy Mode is the last group in Files", () => {
@@ -124,24 +128,7 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("button", { name: "Hide from lists" })).toBeInTheDocument();
   });
 
-  it("calls setter when autosave delay is changed", () => {
-    const setAutosaveDelay = vi.fn();
-    (useAtom as any).mockImplementation((atom: any) => {
-      const atomStr = atom.toString();
-      if (atomStr === "atom_autosaveMode") return ["afterDelay", vi.fn()];
-      if (atomStr === "atom_autosaveDelay") return [2000, setAutosaveDelay];
-      return ["", vi.fn()];
-    });
-
-    render(<SettingsPage />);
-    openFilesSection();
-
-    const select = screen.getByDisplayValue("2s");
-    fireEvent.change(select, { target: { value: "5000" } });
-    expect(setAutosaveDelay).toHaveBeenCalledWith(5000);
-  });
-
-  it("offers one Focus setting with three levels, and Show Sidebar under Layout", () => {
+  it("offers one Focus setting with three levels", () => {
     const setFocusMode = vi.fn();
     (useAtom as any).mockImplementation((atom: any) => {
       if (atom === atom_focusMode) return ["hide", setFocusMode];
@@ -150,7 +137,6 @@ describe("SettingsPage", () => {
     render(<SettingsPage />);
     openEditorSection();
 
-    expect(screen.getByText("Show Sidebar")).toBeInTheDocument();
     expect(screen.queryByText("Flow Mode")).not.toBeInTheDocument();
     expect(screen.queryByText("Hide Interface While Typing")).not.toBeInTheDocument();
     const focus = screen.getByRole("combobox", { name: "Focus" });
@@ -193,15 +179,16 @@ describe("SettingsPage", () => {
     expect(screen.getByText(/Choose which company's AI powers the AI features/)).toBeInTheDocument();
   });
 
-  it("puts profile and data first and help and about last in General", () => {
+  it("puts profile and data first and help and about last in General, with no tour", () => {
     render(<SettingsPage />);
     expect(screen.queryByText("Guide")).not.toBeInTheDocument();
     fireEvent.click(screen.getByText("General"));
 
     const text = document.querySelector("main")!.textContent!;
-    const order = ["Profile", "Your Data", "Onboarding", "Help", "About"].map((title) => text.indexOf(title));
+    const order = ["Profile", "Your Data", "Help", "About"].map((title) => text.indexOf(title));
     expect(order.every((index) => index >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
+    expect(screen.queryByText("Onboarding")).not.toBeInTheDocument();
     // A row with no control is plain text, not a setting.
     expect(screen.queryByText("Stored on This Device")).not.toBeInTheDocument();
     expect(screen.getByText(/There's no account/)).toBeInTheDocument();

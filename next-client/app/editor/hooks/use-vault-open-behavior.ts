@@ -12,7 +12,8 @@ export const NO_VAULT_KEY = "no-vault";
 // writing. Returning to the editor from another route (Files, Settings)
 // or refreshing the page doesn't re-run it, so a refresh stays on the note.
 // Arriving through the landing page's "Resume" (atom_resumeRequested) counts
-// as already handled: the restored tabs stay in front.
+// as already handled: the restored tabs stay in front. A first visit opens
+// the no-vault feed like any other.
 export function useVaultOpenBehavior() {
   const vaultKey = useAtomValue(atom_vaultKey);
   const hasVault = !!useAtomValue(atom_vaultHandle);

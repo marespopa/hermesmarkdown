@@ -137,7 +137,10 @@ export interface TableRulers {
 // being edited. They match formula addressing (A1 = first header cell, the
 // first data row is 2) and double as menu buttons: clicking a letter or a
 // number focuses that column/row and opens the table menu for it. They live
-// in gutters reserved around the table, never on top of a cell.
+// in gutters reserved around the table, never on top of a cell. The letters
+// sit inside the horizontal scroller so they follow their columns; the
+// numbers sit outside it, in the page margin, so a wide table scrolls past
+// them and is clipped at the text edge.
 export function createTableRulers(
   scroll: HTMLElement,
   options: {
@@ -148,11 +151,21 @@ export function createTableRulers(
   },
 ): TableRulers {
   const doc = scroll.ownerDocument;
-  const layer = doc.createElement("div");
-  layer.className = "cm-table-rulers";
-  layer.hidden = true;
-  layer.setAttribute("contenteditable", "false");
-  scroll.appendChild(layer);
+  const wrapper = scroll.parentElement ?? scroll;
+  const makeLayer = (parent: HTMLElement) => {
+    const layer = doc.createElement("div");
+    layer.className = "cm-table-rulers";
+    layer.hidden = true;
+    layer.setAttribute("contenteditable", "false");
+    parent.appendChild(layer);
+    return layer;
+  };
+  const colLayer = makeLayer(scroll);
+  const rowLayer = makeLayer(wrapper);
+  const setHidden = (hidden: boolean) => {
+    colLayer.hidden = hidden;
+    rowLayer.hidden = hidden;
+  };
 
   const letters: HTMLButtonElement[] = [];
   const numbers: HTMLButtonElement[] = [];
@@ -175,7 +188,7 @@ export function createTableRulers(
       options.focusCell(cell);
       showTableMenu({ element: button }, options.menuFor(cell), button.title);
     });
-    layer.appendChild(button);
+    (kind === "col" ? colLayer : rowLayer).appendChild(button);
     return button;
   };
 
@@ -190,13 +203,14 @@ export function createTableRulers(
     update(cell) {
       const table = cell?.isConnected ? cell.closest("table") : null;
       if (!cell || !table) {
-        layer.hidden = true;
+        setHidden(true);
         return;
       }
-      layer.hidden = false;
+      setHidden(false);
       const base = scroll.getBoundingClientRect();
+      const rowBase = wrapper.getBoundingClientRect();
       const x = (rect: DOMRect) => rect.left - base.left + scroll.scrollLeft;
-      const y = (rect: DOMRect) => rect.top - base.top + scroll.scrollTop;
+      const y = (rect: DOMRect) => rect.top - rowBase.top + wrapper.scrollTop;
       const activeCol = (cell as HTMLTableCellElement).cellIndex;
       const activeRow = (cell.parentElement as HTMLTableRowElement).rowIndex; // 0 = header
 

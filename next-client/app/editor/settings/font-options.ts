@@ -7,8 +7,8 @@ export const FONTS = [
   { label: "Geist Mono", value: MONO_FONT_STACK },
 ];
 
-// Reading text size, Settings → Appearance and the welcome tour's text size
-// step. Follows Apple's Dynamic Type body sizes; 17px is the default.
+// Reading text size: Settings → Appearance and the Text Size commands.
+// Follows Apple's Dynamic Type body sizes; 17px is the default.
 export const TEXT_SIZES = [
   { label: "Small", value: "15px" },
   { label: "Medium", value: "17px" },

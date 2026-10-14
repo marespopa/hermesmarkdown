@@ -12,14 +12,16 @@ export const editorWritingItems: Subsection[] = [
         <p>
           You always edit the Markdown source, styled as you type: headings, emphasis, links,
           tags and dates are highlighted in place, and tables render as an editable grid.
-          Word wrap, line numbers, Show Invisibles (¶ on empty lines, dots for spaces), font and theme live under Settings.
+          Font and theme live under Settings; word wrap, line numbers and invisibles (¶ on empty
+          lines, dots for spaces) are command palette toggles (<strong>Toggle Word Wrap</strong>,{" "}
+          <strong>Toggle Line Numbers</strong>, <strong>Toggle Invisibles</strong>).
         </p>
         <p>
-          The text sits in a column about as wide as a page, so lines stay easy to read on a wide
-          screen. Changing the text size never moves the column&apos;s edges; it only changes how
-          much fits on a line. To use the whole editor instead, turn on{" "}
-          <strong>Full Width</strong> under Settings → Editor → Layout, or run{" "}
-          <strong>Toggle Full Width</strong> from the command palette.
+          The text fills the whole editor by default. For a column about as wide as a page, so
+          lines stay easy to read on a wide screen, turn off <strong>Full Width</strong> under
+          Settings → Appearance → Typography, or run <strong>Toggle Full Width</strong> from the
+          command palette. Changing the text size never moves the column&apos;s edges; it only
+          changes how much fits on a line.
         </p>
         <p>
           Dates (<code>2026-09-27</code>, <code>27/09/2026</code>, <code>[[2026-09-27]]</code>,{" "}
@@ -223,10 +225,17 @@ export const editorWritingItems: Subsection[] = [
         />
         <p>
           Amounts like <code>$2,000</code> or <code>1000 RON</code> count as numbers, and totals keep
-          their currency. Errors show spreadsheet-style (<code>#REF!</code>, <code>#DIV/0!</code>,{" "}
+          their currency. So does a share of an amount (<code>=B2*10%</code>), while a ratio of two
+          amounts (<code>=C2/B2*100</code>) and a count are plain numbers. Errors show spreadsheet-style (<code>#REF!</code>, <code>#DIV/0!</code>,{" "}
           <code>#CIRCULAR!</code>, <code>#NAME?</code> for an unknown function,{" "}
           <code>#VALUE!</code> for text where a number is needed). Rows containing a formula are treated as summary rows and are
           never moved by sorting.
+        </p>
+        <p>
+          A table takes its name from the heading right above it, with only blank lines between
+          them. Text between the heading and the table leaves the table without a name, and
+          formulas that refer to it show <code>#REF!</code>. Put a description below the table
+          instead.
         </p>
         <Callout type="note">
           Formulas are stored as plain text in the Markdown file (<code>| =SUM(B2:B5) |</code>),
@@ -282,7 +291,7 @@ rent + utilities + 15%    = 1587`}</Code>
         <Callout type="note">
           Results are only displayed. Your file holds exactly what you typed, so the note stays plain
           Markdown. To write a result into the note instead, use the <code>calc(2*21)=</code>{" "}
-          shortcode.
+          shortcode, which works in table cells too.
         </Callout>
       </>
     ),
