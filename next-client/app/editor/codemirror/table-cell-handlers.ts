@@ -3,7 +3,7 @@ import { redo, undo } from "@codemirror/commands";
 import { EditorSelection } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { detectDelimitedTable, parseDelimitedText } from "../utils/table-manipulation";
-import { altHint, caretOffsetIn, matchByWrapper, refreshHandles, renderCell, rulersByWrapper, selectionOffsetsIn, setCaretOffset, toDisplay, toRaw } from "./table-cell-dom";
+import { altHint, caretOffsetIn, expandCalcInCell, matchByWrapper, refreshHandles, renderCell, rulersByWrapper, selectionOffsetsIn, setCaretOffset, toDisplay, toRaw } from "./table-cell-dom";
 import { addColumnAction, addRowAction, appendRowAction, copyCSVAction, copyJSONAction, findTableInState, insertColumnLeftAction, insertRowAboveAction, moveColumnAction, moveRowAction, normalizeTableSource, pasteGridAction, removeColumnAction, removeRowAction, removeTableAction, setAlignmentAction, sortColumnAction, sumColumnAction } from "./table-commands";
 import type { TableDisplayMatch } from "./table-display";
 import { CELL_ATTR, cellKey, exitTable, focusCellElement, focusTableCellAt, getTableHandle, placeCaret, TABLE_WIDGET_CLASS } from "./table-focus";
@@ -195,7 +195,10 @@ export function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
 
   wrapper.addEventListener("input", (event) => {
     const el = cellOf(event.target);
-    if (el) commitCell(el);
+    if (el) {
+      expandCalcInCell(el);
+      commitCell(el);
+    }
     refreshHandles(wrapper);
   });
 

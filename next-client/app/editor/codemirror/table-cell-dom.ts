@@ -6,6 +6,7 @@ import type { TableDisplayMatch } from "./table-display";
 import { CELL_ATTR, cellKey, placeCaret, type TableWidgetHandle } from "./table-focus";
 import type { ComputedCell } from "./table-formulas";
 import type { TableRulers } from "./table-handles";
+import { expandCalc } from "./shortcode-expand";
 
 // DOM helpers for the inline table widget: cell rendering, building and
 // syncing the <table>, caret offsets, and per-wrapper bookkeeping.
@@ -149,4 +150,18 @@ export function setCaretOffset(el: HTMLElement, offset: number) {
   range.collapse(true);
   selection.removeAllRanges();
   selection.addRange(range);
+}
+
+// `calc(…)=` just typed before the caret becomes its result, in the cell,
+// as it does in the text: the editor's own expander (shortcode-expand.ts)
+// never sees a cell's caret.
+export function expandCalcInCell(el: HTMLElement) {
+  const caret = caretOffsetIn(el);
+  if (caret === null) return;
+  const text = el.textContent ?? "";
+  const calc = expandCalc(text.slice(0, caret));
+  if (!calc) return;
+  const start = caret - calc.length;
+  el.textContent = text.slice(0, start) + calc.replacement + text.slice(caret);
+  setCaretOffset(el, start + calc.replacement.length);
 }

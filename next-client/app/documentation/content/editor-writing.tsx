@@ -284,7 +284,7 @@ rent + utilities + 15%    = 1587`}</Code>
         <Callout type="note">
           Results are only displayed. Your file holds exactly what you typed, so the note stays plain
           Markdown. To write a result into the note instead, use the <code>calc(2*21)=</code>{" "}
-          shortcode.
+          shortcode, which works in table cells too.
         </Callout>
       </>
     ),

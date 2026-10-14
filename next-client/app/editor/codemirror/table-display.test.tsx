@@ -5,6 +5,7 @@ import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it } from "vitest";
 import { parseTable } from "../utils/tableParser";
+import { setCaretOffset } from "./table-cell-dom";
 import {
   collectTableDisplayMatches,
   tableDisplayExtension,
@@ -127,6 +128,23 @@ describe("tableDisplayExtension", () => {
 
     expect(view.state.doc.toString()).toContain("x\\|y");
     expect(tableSource(view)?.rows[0]).toEqual(["x\\|y", "2"]);
+  });
+
+  it("expands calc(…)= typed in a cell into its result", async () => {
+    const doc = "| Item | Cost |\n| --- | --- |\n| Hosting | 0 |";
+    const view = makeView(doc);
+    const cell = await cellAt(view, "2:1");
+
+    act(() => cell.focus());
+    await flush();
+    act(() => {
+      cell.textContent = "calc(45500-48.05)=";
+      setCaretOffset(cell, "calc(45500-48.05)=".length);
+      fireEvent.input(cell);
+    });
+
+    expect(cell.textContent).toBe("45451.95");
+    expect(view.state.doc.toString()).toContain("| Hosting | 45451.95 |");
   });
 
   it("adds a row when tabbing out of the last cell", async () => {
