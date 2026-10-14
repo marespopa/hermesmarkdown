@@ -2,7 +2,6 @@
 
 import { useAtom } from "jotai";
 import {
-  atom_autosaveDelay,
   atom_autosaveMode,
   atom_editorFontFamily,
   atom_renderedFontSize,
@@ -29,7 +28,6 @@ export default function SettingsCommands() {
   const [, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [, setTextSize] = useAtom(atom_renderedFontSize);
   const [, setAutosaveMode] = useAtom(atom_autosaveMode);
-  const [, setAutosaveDelay] = useAtom(atom_autosaveDelay);
 
   const commands: Command[] = [
     { id: "toggle-full-width", label: "Toggle Full Width", category: "Settings", keywords: "editor layout wide column line length measure", action: () => setFullWidth(!fullWidth) },
@@ -66,13 +64,6 @@ export default function SettingsCommands() {
       category: "Settings" as const,
       keywords: "save timing",
       action: () => setAutosaveMode(value),
-    })),
-    ...([500, 1000, 2000, 3000, 5000, 10000] as const).map((value) => ({
-      id: `set-autosave-delay-${value}`,
-      label: `Autosave Delay: ${value / 1000}s`,
-      category: "Settings" as const,
-      keywords: "save timing seconds",
-      action: () => setAutosaveDelay(value),
     })),
   ];
 

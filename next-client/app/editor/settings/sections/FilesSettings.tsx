@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useAtom } from "jotai";
-import { atom_autosaveDelay, atom_autosaveMode, atom_showHiddenFiles } from "@/app/atoms/atoms";
+import { atom_autosaveMode, atom_showHiddenFiles } from "@/app/atoms/atoms";
 import { atom_newNoteFolder } from "@/app/atoms/ui-atoms";
 import { BareInput } from "@/app/components/Input";
 import Toggle from "@/app/components/Toggle";
@@ -15,7 +15,6 @@ import PrivacyModeSetting from "./PrivacyModeSetting";
 // groups, then Privacy (PrivacyModeSetting).
 export default function FilesSettings() {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
-  const [autosaveDelay, setAutosaveDelay] = useAtom(atom_autosaveDelay);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [newNoteFolder, setNewNoteFolder] = useAtom(atom_newNoteFolder);
   const { scanVault, indexVaultTags, vaultHandle } = useFileSystem();
@@ -55,7 +54,7 @@ export default function FilesSettings() {
       <SettingGroup title="Autosave">
         <SettingItem
           label="Autosave Mode"
-          description="When unsaved changes are written to disk."
+          description="When unsaved changes are written to disk. After Delay saves two seconds after you stop typing."
           control={
             <SelectControl value={autosaveMode} onChange={(v) => setAutosaveMode(v as any)}>
               <option value="afterDelay">After Delay</option>
@@ -63,22 +62,6 @@ export default function FilesSettings() {
             </SelectControl>
           }
         />
-        {autosaveMode === "afterDelay" && (
-          <SettingItem
-            label="Delay"
-            description="Idle time after the last keystroke before saving."
-            control={
-              <SelectControl value={autosaveDelay} onChange={(v) => setAutosaveDelay(Number(v))}>
-                <option value={500}>0.5s</option>
-                <option value={1000}>1s</option>
-                <option value={2000}>2s</option>
-                <option value={3000}>3s</option>
-                <option value={5000}>5s</option>
-                <option value={10000}>10s</option>
-              </SelectControl>
-            }
-          />
-        )}
       </SettingGroup>
       <PrivacyModeSetting />
     </>

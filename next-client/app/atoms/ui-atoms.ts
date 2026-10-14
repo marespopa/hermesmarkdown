@@ -173,10 +173,8 @@ export const atom_snapshotOnConflict = atomWithStorage<boolean>(
   "snapshotOnConflict",
   true,
 );
-export const atom_autosaveDelay = atomWithStorage<number>(
-  "autosaveDelay",
-  2000,
-);
+// How long "afterDelay" autosave waits after the last keystroke (ms).
+export const AUTOSAVE_DELAY = 2000;
 export const atom_hasCompletedOnboarding = atomWithStorage<boolean>(
   "hasCompletedOnboarding",
   false,

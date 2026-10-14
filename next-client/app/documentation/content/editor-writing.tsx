@@ -12,7 +12,9 @@ export const editorWritingItems: Subsection[] = [
         <p>
           You always edit the Markdown source, styled as you type: headings, emphasis, links,
           tags and dates are highlighted in place, and tables render as an editable grid.
-          Word wrap, line numbers, Show Invisibles (¶ on empty lines, dots for spaces), font and theme live under Settings.
+          Font and theme live under Settings; word wrap, line numbers and invisibles (¶ on empty
+          lines, dots for spaces) are command palette toggles (<strong>Toggle Word Wrap</strong>,{" "}
+          <strong>Toggle Line Numbers</strong>, <strong>Toggle Invisibles</strong>).
         </p>
         <p>
           The text fills the whole editor by default. For a column about as wide as a page, so
