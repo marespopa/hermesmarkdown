@@ -20,11 +20,18 @@ function ctx(overrides: Partial<TemplateContext> = {}): TemplateContext {
 }
 
 describe("expandTemplate", () => {
-  it("lists only the documented tokens", () => {
-    expect([...TEMPLATE_TOKENS]).toEqual(["date", "time", "title", "clipboard", "selection", "cursor"]);
+  it("lists the documented tokens", () => {
+    expect([...TEMPLATE_TOKENS]).toEqual([
+      "date", "time", "title", "year", "month", "day", "weekday", "weekdayShort",
+      "monthName", "monthNameShort", "week", "quarter", "slug", "clipboard", "selection", "cursor",
+    ]);
   });
 
-  it("still expands every legacy temporal token with zero-padding and English names", () => {
+  it("matches token names in any case", () => {
+    expect(expandTemplate("{{Year}} {{YEAR}} {{Title}} {{MonthName}}", ctx()).text).toBe("2026 2026 Auth Spec October");
+  });
+
+  it("expands every temporal token with zero-padding and English names", () => {
     const { text } = expandTemplate(
       "{{date}} {{time}} {{weekday}} {{year}}/{{month}}/{{day}} {{monthName}}",
       ctx(),
@@ -53,8 +60,8 @@ describe("expandTemplate", () => {
   });
 
   it("keeps unknown tokens and unanswered prompts literal", () => {
-    expect(expandTemplate("{{foo}} {{Date}} {{prompt:Missing}}", ctx()).text)
-      .toBe("{{foo}} {{Date}} {{prompt:Missing}}");
+    expect(expandTemplate("{{foo}} {{prompt:Missing}}", ctx()).text)
+      .toBe("{{foo}} {{prompt:Missing}}");
   });
 
   it("replaces every occurrence of a prompt label with its answer", () => {

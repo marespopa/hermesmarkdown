@@ -23,7 +23,6 @@ const TOKEN_LABELS: Record<TemplateToken | LegacyTemplateToken, string> = {
   clipboard: "Clipboard",
   selection: "Selected text",
   cursor: "Start typing here",
-  // Legacy tokens: named in existing templates, never offered.
   weekday: "Day name",
   weekdayShort: "Short day name",
   year: "Year",
@@ -33,11 +32,12 @@ const TOKEN_LABELS: Record<TemplateToken | LegacyTemplateToken, string> = {
   monthNameShort: "Short month name",
   week: "Week number",
   quarter: "Quarter",
+  slug: "Title as file name",
+  // Legacy tokens: named in existing templates, never offered.
   weekSheet: "This week's name",
   monthSheet: "This month's name",
   quarterSheet: "This quarter's name",
   yearSheet: "This year's name",
-  slug: "Title as file name",
 };
 
 const UNIT_NAMES = { d: "day", w: "week", m: "month", y: "year" } as const;
@@ -134,15 +134,26 @@ export function templateFieldOptions(doc: string, now: Date): TemplateFieldOptio
       ask: "blank" as const,
     },
     ...tokens,
-    {
-      label: "Tomorrow's date",
-      token: "date+1d",
-      insert: "{{date+1d}}",
-      detail: expandTemplate("{{date+1d}}", ctx).text,
-      info: "Date math: {{date+1d}}, {{date-1w}}, {{date+1m}}. Add a format with :, e.g. {{date:dddd D MMMM}} or {{date-1w:GGGG-[W]ww}} (last week's name).",
-    },
+    ...DATE_PRESETS.map(({ label, token, info }) => ({
+      label,
+      token,
+      insert: `{{${token}}}`,
+      detail: expandTemplate(`{{${token}}}`, ctx).text,
+      info,
+    })),
   ];
 }
+
+const DATE_MATH_INFO =
+  "Date math: {{date+1d}}, {{date-1w}}, {{date+1m}}. Add a format with :, e.g. {{date:dddd D MMMM}} or {{date-1w:GGGG-[W]ww}} (last week's name).";
+
+// Common date math and formats, offered after the tokens.
+const DATE_PRESETS = [
+  { label: "Tomorrow's date", token: "date+1d", info: DATE_MATH_INFO },
+  { label: "Yesterday's date", token: "date-1d", info: DATE_MATH_INFO },
+  { label: "Long date", token: "date:dddd, D MMMM YYYY", info: "Today written out. Formats: YYYY MM M DD D dddd ddd MMMM MMM ww GGGG Q HH mm, [text] as is." },
+  { label: "This week's name", token: "date:GGGG-[W]ww", info: "The ISO week, e.g. 2026-W42. Add date math for another week: {{date-1w:GGGG-[W]ww}}." },
+];
 
 // Options matching what's typed after `{{`: a token-name prefix, a word in
 // the plain name, or the start of the plain name ("day name").

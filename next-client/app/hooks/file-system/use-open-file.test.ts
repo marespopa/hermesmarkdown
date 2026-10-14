@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 import { useOpenFile } from "./use-open-file";
-import { useAtom } from "jotai";
+import { getDefaultStore, useAtom } from "jotai";
+import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { 
   atom_vaultHandle, 
   atom_activeFileHandle, 
@@ -74,6 +75,15 @@ describe("useOpenFile loading state", () => {
     const calls = mockSetIsFileLoading.mock.calls;
     expect(calls[0][0]).toBe(true);
     expect(calls[calls.length - 1][0]).toBe(false);
+  });
+
+  it("hides the sidebar when a file opens", async () => {
+    getDefaultStore().set(atom_sidebarOpen, true);
+    const { result } = renderHook(() => useOpenFile());
+
+    await result.current.openFile(mockFileHandle as any);
+
+    expect(getDefaultStore().get(atom_sidebarOpen)).toBe(false);
   });
 
   it("should reset isFileLoading even if getFile fails", async () => {

@@ -10,10 +10,11 @@ describe("lintTemplate", () => {
 
   it("treats other {{names}} as blanks, warning only about likely typos", () => {
     expect(lintTemplate("{{author}} {{task_1}} {{date}}")).toEqual([]);
-    expect(lintTemplate("{{dat}} {{Title}}")).toEqual([
+    expect(lintTemplate("{{dat}} {{titl}}")).toEqual([
       expect.stringContaining("{{dat}} looks like {{date}}"),
-      expect.stringContaining("{{Title}} looks like {{title}}"),
+      expect.stringContaining("{{titl}} looks like {{title}}"),
     ]);
+    expect(lintTemplate("{{Title}} {{Year}}")).toEqual([]);
   });
 
   it("warns about math or formats on the wrong token and about non-fields", () => {
@@ -51,9 +52,9 @@ describe("TEMPLATE_SYNTAX_GUIDE", () => {
     expect(TEMPLATE_SYNTAX_GUIDE).not.toContain("file_name");
   });
 
-  it("documents the period formats, not the legacy tokens", () => {
-    for (const format of ["ww", "GGGG", "Q", "{{date:GGGG-[W]ww}}"]) expect(TEMPLATE_SYNTAX_GUIDE).toContain(format);
-    for (const legacy of ["weekSheet", "monthSheet", "yearSheet", "{{weekday}}", "{{year}}", "{{slug}}", "{{quarter}}"]) {
+  it("documents the period formats and date fields, not the old sheet names", () => {
+    for (const format of ["ww", "GGGG", "Q", "{{date:GGGG-[W]ww}}", "{{weekday}}", "{{year}}", "{{slug}}", "{{quarter}}"]) expect(TEMPLATE_SYNTAX_GUIDE).toContain(format);
+    for (const legacy of ["weekSheet", "monthSheet", "yearSheet"]) {
       expect(TEMPLATE_SYNTAX_GUIDE).not.toContain(legacy);
     }
   });

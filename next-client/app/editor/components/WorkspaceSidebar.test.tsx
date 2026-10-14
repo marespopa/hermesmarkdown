@@ -100,13 +100,14 @@ describe("WorkspaceSidebar", () => {
     expect(screen.getByLabelText("Unsaved changes")).toBeInTheDocument();
   });
 
-  it("opens a note in its pane and leaves the home feed", () => {
+  it("opens a note in its pane, leaves the home feed and hides", () => {
     renderSidebar();
 
     fireEvent.click(screen.getByRole("button", { name: /b\.md/ }));
 
     expect(screen.getByTestId("active-pane")).toHaveTextContent("right");
     expect(screen.getByTestId("home-feed")).toHaveTextContent("false");
+    expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
   });
 
   it("marks Home, not a note, as current while the home feed is open", () => {
