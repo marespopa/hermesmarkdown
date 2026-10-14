@@ -20,6 +20,8 @@ import { fileCreateActions } from "./vault-tree/file-create-actions";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
 
 const NO_TAGS: string[] = [];
+// Extra travel when hidden, past the reach of its shadow-xl.
+const SIDEBAR_SHADOW_ROOM = 32;
 
 const ITEM_CLASS = "flex items-center gap-2 h-7 px-2 rounded-md text-ui-footnote text-left transition-colors";
 const ITEM_CURRENT_CLASS = "bg-surface-raised text-ink-light dark:text-ink-dark font-medium";
@@ -104,7 +106,8 @@ function Section({ title, menu, children }: { title: string; menu?: SectionMenuI
 // Templates and Tasks (their pages, through the page's unsaved-changes
 // guard), the open notes across
 // every pane, then the vault's file tree. Commands stay in the toolbar.
-// Sits on the window's leading edge; slides out when hidden
+// Floats over the window's leading edge on frosted glass, so opening it
+// never moves the text; slides out when hidden
 // (`atom_sidebarOpen`: hidden from its header's button, shown again from the toolbar's) and resizes by dragging its trailing edge
 // (`atom_sidebarWidth`, double-click to reset).
 export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onOpenTasks?: () => void; onOpenTemplates?: () => void } = {}) {
@@ -132,6 +135,17 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
     treeController.current?.focus();
     setFilesFocusRequested(false);
   }, [filesFocusRequested, open, setFilesFocusRequested]);
+
+  // It floats over the text like a drawer: a click in the editor (anywhere on
+  // a pane's sheet or canvas) puts it away.
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.target instanceof Element && event.target.closest(".editor-canvas")) setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    return () => document.removeEventListener("pointerdown", onPointerDown, true);
+  }, [open, setOpen]);
 
   const tabs = getWorkspaceTabs(workspaceLayout.rootContainer);
   const activeLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId);
@@ -180,8 +194,9 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
     <nav
       aria-label="Sidebar"
       inert={!open}
-      style={{ width, marginLeft: open ? 0 : -width }}
-      className="relative shrink-0 h-full flex flex-col bg-chrome border-r border-edge-subtle transition-[margin-left] duration-200 ease-out motion-reduce:transition-none"
+      // Hidden, it slides a little past its own width so its shadow goes too.
+      style={{ width, left: open ? 0 : -(width + SIDEBAR_SHADOW_ROOM) }}
+      className="absolute inset-y-0 flex flex-col chrome-glass border-r border-edge-subtle shadow-xl shadow-black/10 transition-[left] duration-200 ease-out motion-reduce:transition-none"
     >
       {/* Header, level with the pane toolbar: the vault's name as the title,
           as in a code editor's side bar, and the button that hides the

@@ -50,6 +50,15 @@ export function getTopTrailingLeaf(node: WorkspaceContainer | PanelLeaf): PanelL
   return getTopTrailingLeaf(child);
 }
 
+// Whether the pane sits on the window's leading (left) edge: the first child
+// of a side-by-side split, any child of a stacked one. The floating sidebar
+// covers these panes' headers, so they make room for it (PaneLeaf).
+export function isOnLeadingEdge(node: WorkspaceContainer | PanelLeaf, id: string): boolean {
+  if ("type" in node) return node.id === id;
+  const children = node.direction === "horizontal" ? node.children.slice(0, 1) : node.children;
+  return children.some((child) => isOnLeadingEdge(child, id));
+}
+
 // Drops any open tabs matching `shouldRemove` from every pane in the tree,
 // falling back to a draft tab if a pane would otherwise end up empty.
 // Shared by file deletion and by vault-reopen handle rebinding, since both

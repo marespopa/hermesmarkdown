@@ -279,7 +279,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   return (
     <div
       ref={paneRef}
-      className={`editor-canvas relative w-full h-full overflow-auto cursor-text`}
+      // The pane header floats over this scroller: the sheet starts below it
+      // and scrolls under its glass (--pane-header-inset, PaneLeaf).
+      className={`editor-canvas relative w-full h-full overflow-auto cursor-text pt-[var(--pane-header-inset,0px)] scroll-pt-[var(--pane-header-inset,0px)]`}
       translate="no"
     >
       <div

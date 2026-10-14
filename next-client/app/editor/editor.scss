@@ -114,6 +114,43 @@ html.dark .editor-sheet {
   }
 }
 
+/* Floating chrome (the pane header, the sidebar) sits over the editor rather
+   beside it, so the text never moves when it shows, hides or fades. It takes
+   frosted glass: the chrome tint, see-through enough that the text scrolling
+   beneath stays faintly present. Solid where blur isn't supported or the
+   reader asks for less transparency.
+   The glass is a layer behind the content (::before), never on the element
+   itself: a backdrop-filter on the parent of a scroll area (the sidebar's
+   list) makes Chromium send the wheel to the editor scrolling underneath. */
+.chrome-glass {
+  isolation: isolate;
+}
+
+.chrome-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: color-mix(in srgb, var(--chrome) 72%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .chrome-glass::before {
+    background-color: var(--chrome);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .chrome-glass::before {
+    background-color: var(--chrome);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
 /* Hide the interface while typing (hooks/use-fade-chrome-while-typing.ts):
    the chrome fades slowly once you type and returns quickly when the mouse
    moves. Opacity and colour only, so nothing reflows under the caret. The
@@ -149,28 +186,10 @@ html[data-chrome-faded] .editor-sheet.editor-container {
   box-shadow: none;
 }
 
-/* With the sidebar open, the column is centred beside it; once it fades,
-   the column slides left by half its width (--typing-shift, page.tsx) to
-   centre on the window — never past the page margin, so a narrow pane keeps
-   its text where it is. `left`, not a transform: a transform would become
-   the containing block of the editor's fixed-position menus. Full Width
-   leaves exactly that room (editor-typography.scss), so it re-centres too. */
-.editor-measure {
-  left: 0;
-  transition: left 150ms ease-out;
-}
-
-html[data-chrome-faded] .editor-measure {
-  left: calc(-1 * clamp(0px, (100% - var(--editor-measure)) / 2, var(--typing-shift, 0px)));
-  transition-duration: 600ms;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .typing-chrome,
   .editor-canvas,
   .editor-sheet.editor-container,
-  .editor-measure,
-  html[data-chrome-faded] .editor-measure,
   html[data-chrome-faded] .typing-chrome,
   html[data-chrome-faded] .editor-canvas {
     transition: none;

@@ -233,6 +233,22 @@ describe("WorkspaceSidebar", () => {
     expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
   });
 
+  it("hides when the editor is clicked, not when the sidebar is", () => {
+    renderSidebar();
+    const canvas = document.createElement("div");
+    canvas.className = "editor-canvas";
+    const text = document.createElement("p");
+    canvas.append(text);
+    document.body.append(canvas);
+
+    fireEvent.pointerDown(screen.getByRole("navigation"));
+    expect(screen.getByRole("navigation").closest("[inert]")).toBeNull();
+
+    fireEvent.pointerDown(text);
+    expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
+    canvas.remove();
+  });
+
   it("opens the Templates and Tasks pages, with a vault", () => {
     const onOpenTasks = vi.fn();
     const onOpenTemplates = vi.fn();

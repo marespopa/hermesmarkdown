@@ -4,28 +4,29 @@ import { useEffect } from "react";
 
 // Hide the interface while typing: text typed into an editor fades the
 // window chrome (elements with `.typing-chrome`: the pane header, the
-// sidebar, the mobile file bar) so only the sheet is left. It comes back when
-// the mouse moves over where the chrome sits (moving over the text leaves it
-// hidden), or on a tap or focus outside the editor.
+// sidebar, the mobile file bar) so only the sheet is left. The chrome floats
+// over the text, so it comes back on a deliberate move of the mouse anywhere,
+// at once when the pointer reaches the window's top or left edge (where the
+// tab bar and sidebar sit), or on a tap or focus outside the editor.
 // The state lives on <html data-chrome-faded> rather than in an atom, so a
 // keystroke never re-renders React; the fade itself is CSS (editor.scss).
 // Fading never changes layout, so the text doesn't move.
 
 export const CHROME_FADED_ATTRIBUTE = "data-chrome-faded";
-// How far the mouse travels (px) before the chrome returns: enough to
-// ignore a nudged desk or a trackpad's resting jitter.
-export const REVEAL_DISTANCE = 8;
+// How far the mouse travels (px) in one movement before the chrome returns:
+// enough to ignore a nudged desk or a trackpad's resting jitter.
+export const REVEAL_DISTANCE = 40;
+// A pause this long (ms) between moves starts the travel count over, so
+// jitter spread across minutes of typing never adds up to a reveal.
+export const REVEAL_PAUSE = 300;
+// Within this many px of the top or left edge, any movement brings the
+// chrome back.
+export const EDGE_REVEAL_ZONE = 12;
 
 const inEditor = (target: EventTarget | null) =>
   target instanceof Element && !!target.closest(".cm-editor");
 
-// Faded chrome has `pointer-events: none`, so it never gets hover events;
-// the pointer is tested against each element's box instead.
-const overChrome = (x: number, y: number) =>
-  Array.from(document.querySelectorAll(".typing-chrome")).some((element) => {
-    const box = element.getBoundingClientRect();
-    return x >= box.left && x < box.right && y >= box.top && y < box.bottom;
-  });
+const atLeadingEdge = (x: number, y: number) => x < EDGE_REVEAL_ZONE || y < EDGE_REVEAL_ZONE;
 
 export function useFadeChromeWhileTyping(enabled: boolean) {
   useEffect(() => {
@@ -33,6 +34,7 @@ export function useFadeChromeWhileTyping(enabled: boolean) {
     const root = document.documentElement;
     let faded = false;
     let travelled = 0;
+    let lastMoveAt = -Infinity;
 
     const fade = () => {
       if (faded) return;
@@ -53,8 +55,10 @@ export function useFadeChromeWhileTyping(enabled: boolean) {
     };
     const onMouseMove = (event: MouseEvent) => {
       if (!faded) return;
+      if (event.timeStamp - lastMoveAt > REVEAL_PAUSE) travelled = 0;
+      lastMoveAt = event.timeStamp;
       travelled += Math.abs(event.movementX) + Math.abs(event.movementY);
-      if (travelled >= REVEAL_DISTANCE && overChrome(event.clientX, event.clientY)) reveal();
+      if (travelled >= REVEAL_DISTANCE || atLeadingEdge(event.clientX, event.clientY)) reveal();
     };
     // Touch has no hover: a tap anywhere but the text brings it back.
     const onPointerDown = (event: PointerEvent) => {

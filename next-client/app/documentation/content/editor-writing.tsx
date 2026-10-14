@@ -106,9 +106,10 @@ export const editorWritingItems: Subsection[] = [
           ]}
         />
         <p>
-          While the interface is hidden, move the mouse over the tabs or the sidebar and everything
-          comes back; moving it over the text leaves the page alone. On a phone, tap anywhere
-          outside the text. The layout never moves, so the line you&apos;re typing stays where it is.
+          While the interface is hidden, move the mouse deliberately, or touch the top or left edge
+          of the window, and everything comes back; a small nudge leaves the page alone. On a phone,
+          tap anywhere outside the text. The tabs and sidebar float over the page, so showing,
+          hiding or opening them never moves the line you&apos;re typing.
         </p>
         <p>
           At the strongest level, the current paragraph is the run of non-blank lines around the
