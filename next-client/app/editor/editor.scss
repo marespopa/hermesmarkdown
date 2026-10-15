@@ -380,6 +380,28 @@ html[data-chrome-faded] .editor-sheet.editor-container {
   text-decoration: underline;
 }
 
+.cm-note-embed-image {
+  display: block;
+  max-width: 100%;
+  max-height: 32rem;
+  height: auto;
+  border-radius: 0.4em;
+}
+
+.cm-note-embed-code {
+  margin: 0;
+  padding: 0.6em 0.8em;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border-radius: 0.4em;
+  background-color: color-mix(in srgb, var(--fg) 5%, transparent);
+  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
+  font-size: 0.85em;
+  line-height: 1.5;
+  white-space: pre;
+  tab-size: 2;
+}
+
 .cm-note-embed-message {
   color: var(--fg-faint);
   font-size: 0.85em;

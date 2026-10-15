@@ -6,55 +6,44 @@ import type { EditorView } from "@codemirror/view";
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { atom_openFiles } from "@/app/atoms/file-atoms";
 import { atom_revealAllPrivate, atom_revealedPrivatePaths } from "@/app/atoms/privacy-atoms";
-import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { resolveFileMetaByName } from "@/app/hooks/file-system/resolve-file-by-name";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { noteEmbedsDataField, setNoteEmbeds, type EmbedContent, type NoteEmbedsData } from "../codemirror/note-embeds";
-import { csvCandidatePaths, csvToMarkdownTable, embedKey, findEmbeds, type EmbedRef } from "../utils/note-embeds";
+import { csvToMarkdownTable, embedKey, findEmbeds, type EmbedRef } from "../utils/note-embeds";
+import { clipCode, imageUrlFor, locateVaultFile, readLocatedText, readNoteFile } from "../utils/embed-files";
 
-// Disk reads, by path + modified time, shared by every pane.
-const diskCache = new Map<string, string>();
-const MAX_CACHED = 50;
 // A line starting with `![[` or `/`: the cheap check before the full scan.
 const MAY_EMBED = /^[ \t]*(?:!\[\[|\/[^\s/])/m;
 // Edits in an embedded note's tab reach the embed once typing pauses.
 const SETTLE_MS = 200;
 
-async function readNote(meta: FileMetadata): Promise<string | null> {
-  const key = `${meta.path}\u0000${meta.modifiedAt}`;
-  const cached = diskCache.get(key);
-  if (cached !== undefined) return cached;
-  try {
-    const text: string = await (await meta.handle.getFile()).text();
-    if (diskCache.size >= MAX_CACHED) diskCache.delete(diskCache.keys().next().value!);
-    diskCache.set(key, text);
-    return text;
-  } catch {
-    return null;
-  }
+// Counts the times the window comes back into view, so embeds re-check their
+// files then: a CSV edited in a spreadsheet app shows its new rows as soon as
+// you switch back.
+function useWindowReturns(): number {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const bump = () => {
+      if (document.visibilityState === "visible") setCount((n) => n + 1);
+    };
+    window.addEventListener("focus", bump);
+    document.addEventListener("visibilitychange", bump);
+    return () => {
+      window.removeEventListener("focus", bump);
+      document.removeEventListener("visibilitychange", bump);
+    };
+  }, []);
+  return count;
 }
 
-// CSV files aren't in the vault index, so they're looked up by path: next to
-// the note first, then from the vault root.
-async function readCsv(vault: FileSystemDirectoryHandle | null, ref: EmbedRef, fromPath: string | undefined) {
-  if (!vault) return null;
-  for (const path of csvCandidatePaths(ref.target, fromPath)) {
-    try {
-      const text = await (await (await resolveFileHandleAtPath(vault, path)).getFile()).text();
-      return { path, text };
-    } catch {
-      // Not there; try the next place.
-    }
-  }
-  return null;
-}
-
-// The notes and CSV files embedded in `value` (`![[Note]]`, `/Note.md`,
-// `/data.csv` lines), pushed into `view` for its embed widgets
+// The files embedded in `value` (`![[Note]]`, `/Note.md`, `/data.csv`,
+// `/chart.png`, `/auth.ts` lines), pushed into `view` for its embed widgets
 // (codemirror/note-embeds.ts). A note open in a tab shows its live text,
-// unsaved edits included; any other note is read from disk and read again
-// when the vault scan sees it change. A CSV is read again on each scan.
-// Private notes stay veiled until they're revealed, like everywhere else.
+// unsaved edits included; everything else is read from disk, checked again
+// on each vault scan and whenever the window comes back, and re-read only
+// when its modified time changed. Private notes stay veiled until they're
+// revealed, like everywhere else.
 export function useNoteEmbeds(
   view: EditorView | null,
   value: string,
@@ -90,6 +79,7 @@ export function useNoteEmbeds(
   const vault = useAtomValue(atom_vaultHandle);
   const revealAll = useAtomValue(atom_revealAllPrivate);
   const revealed = useAtomValue(atom_revealedPrivatePaths);
+  const windowReturns = useWindowReturns();
 
   const [contents, setContents] = useState<Map<string, EmbedContent>>(() => new Map());
 
@@ -99,23 +89,34 @@ export function useNoteEmbeds(
       return;
     }
     let cancelled = false;
+    const load = async ({ ref, meta }: (typeof resolved)[number], openText: string | undefined): Promise<EmbedContent> => {
+      if (ref.kind !== "note") {
+        const located = await locateVaultFile(vault, ref, fromPath);
+        if (!located) return { kind: "missing" };
+        if (ref.kind === "image") return { kind: "image", path: located.path, url: imageUrlFor(located) };
+        const text = await readLocatedText(located);
+        if (ref.kind === "code") return { kind: "code", path: located.path, ...clipCode(text) };
+        return { kind: "note", path: located.path, markdown: csvToMarkdownTable(text) };
+      }
+      if (!meta) return { kind: "missing" };
+      if (meta.path === fromPath) return { kind: "self" };
+      const markdown = openText ?? (await readNoteFile(meta));
+      if (markdown === null) return { kind: "missing" };
+      const veiled = (isPrivateFrontmatter(meta.frontmatter) || isPrivateContent(markdown))
+        && !revealAll && !revealed.has(meta.path);
+      return veiled ? { kind: "private" } : { kind: "note", path: meta.path, markdown };
+    };
     const timer = setTimeout(async () => {
       const next = new Map<string, EmbedContent>();
-      for (const [i, { ref, meta }] of resolved.entries()) {
-        const key = embedKey(ref);
-        if (ref.kind === "csv") {
-          const csv = await readCsv(vault, ref, fromPath);
-          if (cancelled) return;
-          next.set(key, csv ? { kind: "note", path: csv.path, markdown: csvToMarkdownTable(csv.text) } : { kind: "missing" });
-        } else if (!meta) next.set(key, { kind: "missing" });
-        else if (meta.path === fromPath) next.set(key, { kind: "self" });
-        else {
-          const markdown = openTexts[i] ?? (await readNote(meta));
-          if (cancelled) return;
-          const veiled = (isPrivateFrontmatter(meta.frontmatter) || (markdown !== null && isPrivateContent(markdown)))
-            && !revealAll && !revealed.has(meta.path);
-          next.set(key, markdown === null ? { kind: "missing" } : veiled ? { kind: "private" } : { kind: "note", path: meta.path, markdown });
+      for (const [i, entry] of resolved.entries()) {
+        let content: EmbedContent;
+        try {
+          content = await load(entry, openTexts[i]);
+        } catch {
+          content = { kind: "missing" };
         }
+        if (cancelled) return;
+        next.set(embedKey(entry.ref), content);
       }
       if (!cancelled) setContents(next);
     }, SETTLE_MS);
@@ -123,7 +124,7 @@ export function useNoteEmbeds(
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [resolved, openTexts, vault, fromPath, revealAll, revealed, fileMetadata]);
+  }, [resolved, openTexts, vault, fromPath, revealAll, revealed, fileMetadata, windowReturns]);
 
   const data = useMemo(() => ({ contents, open }), [contents, open]);
   useEffect(() => {

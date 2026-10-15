@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import React from "react";
 import type { FileMetadata } from "@/app/atoms/metadata";
@@ -17,7 +17,7 @@ function meta(path: string, text: string, frontmatter: Record<string, unknown> =
     modifiedAt: 1,
     wordCount: 0,
     tasks: [],
-    handle: { getFile: vi.fn(async () => ({ text: async () => text })) },
+    handle: { getFile: vi.fn(async () => ({ lastModified: Math.random(), text: async () => text })) },
   };
 }
 
@@ -54,7 +54,7 @@ describe("useNoteEmbeds", () => {
   });
 
   it("reads an embedded CSV next to the note as a table", async () => {
-    const csv = { getFile: async () => ({ text: async () => "product,status\nSync,shipped" }) };
+    const csv = { getFile: async () => ({ lastModified: 1, text: async () => "product,status\nSync,shipped" }) };
     const reports = { getFileHandle: vi.fn(async (name: string) => { if (name === "sales.csv") return csv; throw new Error("NotFound"); }) };
     const vault = { getDirectoryHandle: vi.fn(async () => reports), getFileHandle: vi.fn(async () => { throw new Error("NotFound"); }) };
     const { store, hook } = setup("/sales.csv\n/missing.csv", [], "reports/Weekly.md");
@@ -62,6 +62,40 @@ describe("useNoteEmbeds", () => {
     await waitFor(() => expect(hook.result.current.contents.get("sales.csv")).toMatchObject({ kind: "note", path: "reports/sales.csv" }));
     expect((hook.result.current.contents.get("sales.csv") as { markdown: string }).markdown).toMatch(/\| Sync\s+\| shipped\s+\|/);
     expect(hook.result.current.contents.get("missing.csv")).toEqual({ kind: "missing" });
+  });
+
+  it("shows code files clipped and images as object URLs", async () => {
+    const createObjectURL = vi.fn(() => "blob:chart");
+    Object.assign(URL, { createObjectURL, revokeObjectURL: vi.fn() });
+    const code = Array.from({ length: 410 }, (_, i) => `line ${i}`).join("\n");
+    const files: Record<string, unknown> = {
+      "auth.ts": { getFile: async () => ({ lastModified: 1, text: async () => code }) },
+      "chart.png": { getFile: async () => ({ lastModified: 1, text: async () => "" }) },
+    };
+    const vault = {
+      getDirectoryHandle: vi.fn(async () => { throw new Error("NotFound"); }),
+      getFileHandle: vi.fn(async (name: string) => { if (files[name]) return files[name]; throw new Error("NotFound"); }),
+    };
+    const { store, hook } = setup("/auth.ts\n/chart.png", [], "Weekly.md");
+    store.set(atom_vaultHandle, vault as unknown as FileSystemDirectoryHandle);
+    await waitFor(() => expect(hook.result.current.contents.size).toBe(2));
+    expect(hook.result.current.contents.get("auth.ts")).toMatchObject({ kind: "code", path: "auth.ts", more: 10 });
+    expect(hook.result.current.contents.get("chart.png")).toEqual({ kind: "image", path: "chart.png", url: "blob:chart" });
+  });
+
+  it("checks files again when the window comes back", async () => {
+    let text = "product,status\nSync,planned";
+    let modified = 1;
+    const csv = { getFile: async () => ({ lastModified: modified, text: async () => text }) };
+    const vault = { getDirectoryHandle: vi.fn(), getFileHandle: vi.fn(async () => csv) };
+    const { store, hook } = setup("/status.csv", [], "Weekly.md");
+    store.set(atom_vaultHandle, vault as unknown as FileSystemDirectoryHandle);
+    await waitFor(() => expect((hook.result.current.contents.get("status.csv") as { markdown: string })?.markdown).toContain("planned"));
+
+    text = "product,status\nSync,shipped";
+    modified = 2;
+    act(() => { window.dispatchEvent(new Event("focus")); });
+    await waitFor(() => expect((hook.result.current.contents.get("status.csv") as { markdown: string }).markdown).toContain("shipped"));
   });
 
   it("returns no contents when there are no embeds", () => {

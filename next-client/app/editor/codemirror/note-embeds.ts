@@ -2,18 +2,23 @@ import { EditorState, Extension, Range, StateEffect, StateField, type Transactio
 import { Decoration, DecorationSet, EditorView, WidgetType } from "@codemirror/view";
 import { noteToHtml } from "@/app/utils/print/note-html";
 import { currentRenderTheme, renderBlock } from "../utils/rendered-block-cache";
+import { highlightInto } from "../utils/highlight-code";
 import { embedKey, embedSection, findEmbeds, type EmbedRef } from "../utils/note-embeds";
 
-// A line holding only `![[Note]]` (or `![[Note#Heading]]`), `/Note.md` or
-// `/data.csv` shows that note's text, or the CSV as a table, under it,
-// read-only. The line itself stays as typed; the embed is a
-// block widget after it. Notes are read on the React side
+// A line holding only `![[Note]]` (or `![[Note#Heading]]`) or `/path.ext`
+// shows that file under it, read-only: a note's text, a CSV as a table, an
+// image, or a code file with syntax colours. The line itself stays as typed;
+// the embed is a block widget after it. Files are read on the React side
 // (hooks/use-note-embeds.ts) and pushed in with `setNoteEmbeds`; an embed
-// whose note hasn't arrived yet shows "Loading…". Embeds inside an embed
-// show as their names, so nothing can loop.
+// whose file hasn't arrived yet shows "Loading…". Embeds inside an embedded
+// note show as their names, so nothing can loop.
 
 export type EmbedContent =
+  /** A note's text, or a CSV already turned into a Markdown table. */
   | { kind: "note"; path: string; markdown: string }
+  | { kind: "image"; path: string; url: string }
+  /** `more`: lines left out past the shown limit. */
+  | { kind: "code"; path: string; code: string; more: number }
   | { kind: "missing" }
   | { kind: "self" }
   | { kind: "private" };
@@ -37,8 +42,21 @@ export const noteEmbedsDataField = StateField.define<NoteEmbedsData>({
   },
 });
 
-const sameContent = (a: EmbedContent | undefined, b: EmbedContent | undefined) =>
-  a === b || (!!a && !!b && a.kind === b.kind && (a.kind !== "note" || (b.kind === "note" && a.path === b.path && a.markdown === b.markdown)));
+function sameContent(a: EmbedContent | undefined, b: EmbedContent | undefined): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.kind !== b.kind) return false;
+  if (a.kind === "note" && b.kind === "note") return a.path === b.path && a.markdown === b.markdown;
+  if (a.kind === "image" && b.kind === "image") return a.url === b.url;
+  if (a.kind === "code" && b.kind === "code") return a.path === b.path && a.code === b.code;
+  return true;
+}
+
+const MISSING: Record<EmbedRef["kind"], string> = {
+  note: "Note not found",
+  csv: "File not found",
+  image: "Image not found",
+  code: "File not found",
+};
 
 const heights = new Map<string, number>();
 
@@ -88,7 +106,7 @@ class NoteEmbedWidget extends WidgetType {
     frame.className = "cm-note-embed-frame";
     wrapper.appendChild(frame);
 
-    // A note's title opens it; a CSV has nothing to open in the app.
+    // A note's title opens it; other files have nothing to open in the app.
     const title = document.createElement(ref.kind === "note" ? "button" : "div");
     title.className = "cm-note-embed-title";
     title.textContent = ref.heading ? `${ref.target} › ${ref.heading}` : ref.target;
@@ -111,10 +129,26 @@ class NoteEmbedWidget extends WidgetType {
     });
 
     if (!content) frame.appendChild(message("Loading…"));
-    else if (content.kind === "missing") frame.appendChild(message(ref.kind === "csv" ? "File not found" : "Note not found"));
+    else if (content.kind === "missing") frame.appendChild(message(MISSING[ref.kind]));
     else if (content.kind === "self") frame.appendChild(message("A note can't embed itself"));
     else if (content.kind === "private") frame.appendChild(message("Private note: open it to read"));
-    else {
+    else if (content.kind === "image") {
+      const image = document.createElement("img");
+      image.className = "cm-note-embed-image";
+      image.src = content.url;
+      image.alt = content.path.split("/").pop() ?? "";
+      image.addEventListener("load", measure);
+      frame.appendChild(image);
+    } else if (content.kind === "code") {
+      const pre = document.createElement("pre");
+      pre.className = "cm-note-embed-code";
+      const code = document.createElement("code");
+      code.textContent = content.code;
+      pre.appendChild(code);
+      frame.appendChild(pre);
+      if (content.more) frame.appendChild(message(`… ${content.more} more lines`));
+      void highlightInto(code, content.code, content.path).then(measure);
+    } else {
       const section = embedSection(content.markdown, ref.heading);
       if (section === null) frame.appendChild(message(`No heading "${ref.heading}" in this note`));
       else if (!section) frame.appendChild(message(ref.kind === "csv" ? "Empty file" : "Empty note"));

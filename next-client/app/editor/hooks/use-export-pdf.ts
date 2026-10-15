@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useStore } from "jotai";
 import toast from "react-hot-toast";
-import { atom_activeFilePath, atom_content, atom_fileName, atom_openFiles } from "@/app/atoms/file-atoms";
+import { atom_activeFilePath, atom_content, atom_fileName } from "@/app/atoms/file-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_revealAllPrivate, atom_revealedPrivatePaths } from "@/app/atoms/privacy-atoms";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
@@ -11,9 +11,9 @@ import { useRegisterCommand } from "@/app/components/CommandPalette/CommandPalet
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { escapeHtml, noteToHtml, type PrintBlock } from "@/app/utils/print/note-html";
 import { printDate, printSettingsFrom, type PrintSettings } from "@/app/utils/print/print-settings";
-import { resolveFileMetaByName } from "@/app/hooks/file-system/resolve-file-by-name";
 import { EXPORT_PDF_EVENT } from "../utils/open-helper-dialogs";
-import { csvCandidatePaths, expandEmbeds } from "../utils/note-embeds";
+import { vaultImagePath } from "../utils/note-embeds";
+import { useCompileEmbeds } from "./use-embed-reader";
 import { printDocument, printHtml } from "../utils/print-note";
 import { renderMermaid } from "../utils/render-mermaid";
 import { renderMathMl } from "../utils/render-math";
@@ -22,28 +22,8 @@ export const VEILED_REASON = "Show the note first: it's marked private";
 
 const REGEX_IMAGE_SRC = /!\[[^\]]*\]\(\s*<?([^)\s>]+)>?/g;
 
-// A vault image path for `src` relative to the note's folder: "../a.png"
-// from "journal/2026/x.md" is "journal/a.png"; "/a.png" is from the vault root.
-export function vaultImagePath(notePath: string, src: string): string | null {
-  let decoded: string;
-  try {
-    decoded = decodeURIComponent(src);
-  } catch {
-    decoded = src;
-  }
-  if (/^[a-z][a-z0-9+.-]*:/i.test(decoded)) return null;
-  const parts = decoded.startsWith("/") ? [] : notePath.split("/").slice(0, -1);
-  for (const segment of decoded.split("/")) {
-    if (!segment || segment === ".") continue;
-    if (segment === "..") {
-      if (!parts.length) return null;
-      parts.pop();
-    } else {
-      parts.push(segment);
-    }
-  }
-  return parts.length ? parts.join("/") : null;
-}
+// Moved to utils/note-embeds.ts; kept here for existing imports.
+export { vaultImagePath };
 
 async function renderBlock(block: PrintBlock): Promise<string> {
   try {
@@ -78,6 +58,7 @@ export function useExportPdf() {
   const metadata = useAtomValue(atom_fileMetadata);
   const revealAll = useAtomValue(atom_revealAllPrivate);
   const revealed = useAtomValue(atom_revealedPrivatePaths);
+  const compileEmbeds = useCompileEmbeds();
   const busy = useRef(false);
   const [job, setJobState] = useState<PdfJob | null>(null);
   // The job on show, so a replaced or dropped one's images are let go.
@@ -106,31 +87,9 @@ export function useExportPdf() {
     const urls: string[] = [];
     try {
       const notePath = store.get(atom_activeFilePath) ?? "draft";
-      // Embed lines (`![[Note]]`, `/Note.md`, `/data.csv`) print the
-      // embedded text or table; private and unreadable files print as names.
-      const text = await expandEmbeds(store.get(atom_content), async (ref) => {
-        if (ref.kind === "csv") {
-          const vault = store.get(atom_vaultHandle);
-          for (const csvPath of vault ? csvCandidatePaths(ref.target, notePath) : []) {
-            try {
-              return await (await (await resolveFileHandleAtPath(vault!, csvPath)).getFile()).text();
-            } catch {
-              // Not there; try the next place.
-            }
-          }
-          return null;
-        }
-        const meta = resolveFileMetaByName(ref.target, store.get(atom_fileMetadata), notePath);
-        if (!meta || meta.path === notePath) return null;
-        try {
-          const markdown: string = store.get(atom_openFiles)[meta.path]?.content ?? await (await meta.handle.getFile()).text();
-          const veiled = (isPrivateContent(markdown) || isPrivateFrontmatter(meta.frontmatter))
-            && !store.get(atom_revealAllPrivate) && !store.get(atom_revealedPrivatePaths).has(meta.path);
-          return veiled ? null : markdown;
-        } catch {
-          return null;
-        }
-      });
+      // Embed lines print what they embed, nested embeds included; private
+      // and unreadable files keep their lines.
+      const text = await compileEmbeds(store.get(atom_content), notePath);
       const vaultHandle = store.get(atom_vaultHandle);
       const images = new Map<string, string>();
       if (vaultHandle && notePath !== "draft") {
@@ -163,7 +122,7 @@ export function useExportPdf() {
     } finally {
       busy.current = false;
     }
-  }, [store, disabledReason, setJob]);
+  }, [store, disabledReason, setJob, compileEmbeds]);
 
   // Cancel: the dialog closes and the images are let go.
   const close = useCallback(() => setJob(null), [setJob]);

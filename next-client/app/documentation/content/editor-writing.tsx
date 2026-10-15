@@ -431,9 +431,9 @@ graph TD
   },
   {
     id: "embeds",
-    title: "Embedding notes",
-    lead: "Show another note, or a CSV file as a table, inside this one: ![[Note name]], /Note.md or /data.csv on a line of its own.",
-    keywords: "embed transclude transclusion include note section heading ![[ csv table slash",
+    title: "Embedding notes and files",
+    lead: "Show another note, a CSV table, an image or a code file inside this one: ![[Note name]] or /path on a line of its own.",
+    keywords: "embed transclude transclusion include note section heading ![[ csv table image picture code file slash compile book chapters",
     body: (
       <>
         <p>
@@ -443,19 +443,35 @@ graph TD
           everything under it, up to the next heading of the same level.
         </p>
         <p>
-          A line holding only a slash and a file name works too: <code>/Chapter 1.md</code> embeds a
-          note, and <code>/data/sales.csv</code> shows a CSV file as a table (its first row is the
-          header). Start a line with <code>/</code> and type the start of a note&apos;s name: the rest
-          of the best match appears in faded text, and <code>Tab</code> (or <code>→</code>)
-          accepts it. The slash menu also lists matching notes; picking one writes its path for you. A CSV path is looked
-          up next to the note first, then from the vault root.
+          A line holding only a slash and a file name works too, and not only for notes:
+        </p>
+        <KV
+          rows={[
+            { label: "/Chapter 1.md", value: "The note's text" },
+            { label: "/data/sales.csv", value: "A table; the first row is the header" },
+            { label: "/assets/chart.png", value: "The image (png, jpg, gif, webp, svg, avif)" },
+            { label: "/scripts/auth.ts", value: "The code with syntax colours (most languages, plus txt and log); long files show their first 400 lines" },
+          ]}
+        />
+        <p>
+          A file path is looked up next to the note first, then from the vault root. Start a line
+          with <code>/</code> and type the start of a note&apos;s name: the rest of the best match
+          appears in faded text, and <code>Tab</code> (or <code>→</code>) accepts it. The slash
+          menu also lists matching notes; picking one writes its path for you.
         </p>
         <p>
-          The embed follows the note: while it&apos;s open in a tab you see its unsaved edits, and
-          otherwise its saved text. Click the note&apos;s name above the embed to open it. Embeds
-          inside an embedded note show as their names, private notes stay hidden until you show
-          them, and a board shows its caption. <strong>Export as PDF</strong> prints the embedded
-          text in place.
+          Embeds stay current: a note open in a tab shows its unsaved edits, and other files are
+          checked again whenever you come back to the window, so a CSV you just changed in a
+          spreadsheet app shows its new rows. Click a note&apos;s name above its embed to open it.
+          Private notes stay hidden until you show them, and a board shows its caption.
+        </p>
+        <p>
+          To build one document from many, such as a book whose main note holds only{" "}
+          <code>/01-introduction.md</code>, <code>/02-analysis.md</code> and so on, use{" "}
+          <strong>Export as PDF</strong> or <strong>Download Compiled Markdown</strong>: every
+          embed is filled in, embeds inside embedded notes too, CSV files become tables, code
+          files code blocks, and images keep working. A note that would end up inside itself is
+          left as its line, so nothing loops.
         </p>
       </>
     ),

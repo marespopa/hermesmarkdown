@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { noteEmbedsExtension, setNoteEmbeds, touchesEmbedLines, type EmbedContent } from "./note-embeds";
 import { embedKey } from "../utils/note-embeds";
 
+const highlightInto = vi.fn(async () => {});
+vi.mock("../utils/highlight-code", () => ({ highlightInto: (...args: unknown[]) => highlightInto(...(args as [])) }));
 vi.mock("../utils/rendered-block-cache", () => ({
   currentRenderTheme: () => "default",
   renderBlock: vi.fn(async () => ({ html: "<svg></svg>" })),
@@ -71,6 +73,22 @@ describe("noteEmbedsExtension", () => {
     view.dispatch({ effects: setNoteEmbeds.of({ contents, open: vi.fn() }) });
     expect(view.dom.querySelector(".cm-note-embed-body table td")?.textContent).toBe("Sync");
     expect(view.dom.querySelector("button.cm-note-embed-title")).toBeNull();
+    cleanup();
+  });
+
+  it("shows an image and a highlighted code file", () => {
+    const { view, cleanup } = createEditor("/chart.png\n/auth.ts");
+    const contents = new Map<string, EmbedContent>([
+      [embedKey({ target: "chart.png", heading: null, kind: "image" }), { kind: "image", path: "assets/chart.png", url: "blob:chart" }],
+      [embedKey({ target: "auth.ts", heading: null, kind: "code" }), { kind: "code", path: "auth.ts", code: "const a = 1;", more: 3 }],
+    ]);
+    view.dispatch({ effects: setNoteEmbeds.of({ contents, open: null }) });
+    const image = view.dom.querySelector<HTMLImageElement>(".cm-note-embed-image")!;
+    expect(image.getAttribute("src")).toBe("blob:chart");
+    expect(image.alt).toBe("chart.png");
+    expect(view.dom.querySelector(".cm-note-embed-code code")?.textContent).toBe("const a = 1;");
+    expect(view.dom.textContent).toContain("… 3 more lines");
+    expect(highlightInto).toHaveBeenCalledWith(expect.any(HTMLElement), "const a = 1;", "auth.ts");
     cleanup();
   });
 
