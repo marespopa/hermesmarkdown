@@ -346,6 +346,71 @@ html[data-chrome-faded] .editor-sheet.editor-container {
   }
 }
 
+/* `![[Note]]` embeds (codemirror/note-embeds.ts): the note's text, read-only,
+   under its line. Padding, not margin, for the same height-map reason as
+   rendered blocks. */
+.cm-note-embed {
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 0.25em 0 0.75em;
+  cursor: default;
+  user-select: text;
+}
+
+.cm-note-embed-frame {
+  box-sizing: border-box;
+  padding: 0.6em 1em 0.75em;
+  border-left: 2px solid var(--border);
+  border-radius: 0 0.5em 0.5em 0;
+  background-color: color-mix(in srgb, var(--fg) 2.5%, transparent);
+}
+
+.cm-note-embed-title {
+  display: block;
+  margin-bottom: 0.35em;
+  color: var(--fg-muted);
+  font-size: 0.8em;
+  font-weight: 500;
+  text-align: left;
+}
+
+.cm-note-embed-title:hover,
+.cm-note-embed-title:focus-visible {
+  color: var(--fg);
+  text-decoration: underline;
+}
+
+.cm-note-embed-message {
+  color: var(--fg-faint);
+  font-size: 0.85em;
+}
+
+.cm-note-embed-body {
+  color: var(--fg);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+
+  > :first-child { margin-top: 0; }
+  > :last-child { margin-bottom: 0; }
+  h1, h2, h3, h4, h5, h6 { margin: 0.8em 0 0.3em; font-weight: 600; line-height: 1.3; }
+  h1 { font-size: 1.35em; }
+  h2 { font-size: 1.2em; }
+  h3 { font-size: 1.08em; }
+  h4, h5, h6 { font-size: 1em; }
+  p, ul, ol, blockquote, pre, table { margin: 0.4em 0; }
+  ul, ol { padding-left: 1.4em; }
+  ul { list-style: disc; }
+  ol { list-style: decimal; }
+  blockquote { padding-left: 0.8em; border-left: 2px solid var(--border-subtle); color: var(--fg-muted); }
+  code, pre { font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace; font-size: 0.88em; }
+  pre { padding: 0.6em 0.8em; border-radius: 0.4em; background-color: color-mix(in srgb, var(--fg) 5%, transparent); overflow-x: auto; }
+  table { border-collapse: collapse; }
+  th, td { padding: 0.25em 0.6em; border: 1px solid var(--border-subtle); }
+  img { max-width: 100%; height: auto; }
+  a { text-decoration: underline; }
+  hr { margin: 0.8em 0; border: 0; border-top: 1px solid var(--border-subtle); }
+}
+
 .rendered-block-dialog-preview svg {
   height: auto;
   max-width: 100%;

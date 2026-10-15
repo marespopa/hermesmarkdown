@@ -424,6 +424,29 @@ graph TD
     ),
   },
   {
+    id: "embeds",
+    title: "Embedding notes",
+    lead: "Show another note inside this one with ![[Note name]] on a line of its own.",
+    keywords: "embed transclude transclusion include note section heading ![[",
+    body: (
+      <>
+        <p>
+          Put <code>![[Note name]]</code> on a line of its own and the note&apos;s text shows
+          right under it, read-only. The line stays as you typed it. Add a heading to show only
+          that section: <code>![[Roadmap#Q3 goals]]</code> shows the Q3 goals heading and
+          everything under it, up to the next heading of the same level.
+        </p>
+        <p>
+          The embed follows the note: while it&apos;s open in a tab you see its unsaved edits, and
+          otherwise its saved text. Click the note&apos;s name above the embed to open it. Embeds
+          inside an embedded note show as their names, private notes stay hidden until you show
+          them, and a board shows its caption. <strong>Export as PDF</strong> prints the embedded
+          text in place.
+        </p>
+      </>
+    ),
+  },
+  {
     id: "slash-menu",
     title: "Slash menu",
     lead: "Type / at the start of a line or after a space for a searchable menu of insertable content, plus AI actions when AI is configured.",

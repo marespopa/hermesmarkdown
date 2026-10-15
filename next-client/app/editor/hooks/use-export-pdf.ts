@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useStore } from "jotai";
 import toast from "react-hot-toast";
-import { atom_activeFilePath, atom_content, atom_fileName } from "@/app/atoms/file-atoms";
+import { atom_activeFilePath, atom_content, atom_fileName, atom_openFiles } from "@/app/atoms/file-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_revealAllPrivate, atom_revealedPrivatePaths } from "@/app/atoms/privacy-atoms";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
@@ -11,7 +11,9 @@ import { useRegisterCommand } from "@/app/components/CommandPalette/CommandPalet
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { escapeHtml, noteToHtml, type PrintBlock } from "@/app/utils/print/note-html";
 import { printDate, printSettingsFrom, type PrintSettings } from "@/app/utils/print/print-settings";
+import { resolveFileMetaByName } from "@/app/hooks/file-system/resolve-file-by-name";
 import { EXPORT_PDF_EVENT } from "../utils/open-helper-dialogs";
+import { expandEmbeds } from "../utils/note-embeds";
 import { printDocument, printHtml } from "../utils/print-note";
 import { renderMermaid } from "../utils/render-mermaid";
 import { renderMathMl } from "../utils/render-math";
@@ -103,8 +105,21 @@ export function useExportPdf() {
     busy.current = true;
     const urls: string[] = [];
     try {
-      const text = store.get(atom_content);
       const notePath = store.get(atom_activeFilePath) ?? "draft";
+      // `![[Note]]` lines print the embedded text; private and unreadable
+      // notes print as their names.
+      const text = await expandEmbeds(store.get(atom_content), async (target) => {
+        const meta = resolveFileMetaByName(target, store.get(atom_fileMetadata), notePath);
+        if (!meta || meta.path === notePath) return null;
+        try {
+          const markdown: string = store.get(atom_openFiles)[meta.path]?.content ?? await (await meta.handle.getFile()).text();
+          const veiled = (isPrivateContent(markdown) || isPrivateFrontmatter(meta.frontmatter))
+            && !store.get(atom_revealAllPrivate) && !store.get(atom_revealedPrivatePaths).has(meta.path);
+          return veiled ? null : markdown;
+        } catch {
+          return null;
+        }
+      });
       const vaultHandle = store.get(atom_vaultHandle);
       const images = new Map<string, string>();
       if (vaultHandle && notePath !== "draft") {

@@ -102,6 +102,13 @@ There's one mode: every Markdown character stays as typed, so writing is plain t
 2. **Editing**: double-clicking a preview, its **Edit** button (always visible on touch screens), or Ctrl/Cmd+Shift+Enter with the caret beside it opens `RenderedBlockSourceDialog`. The dialog has a live preview. **Save** (or Ctrl/Cmd+Enter) writes the new body with `applyRenderedBlockEdit` as a single undoable change. Inserting an empty block from the slash menu opens the dialog straight away, since the caret would otherwise land inside a hidden range.
 3. **Viewer**: for Mermaid, **Open viewer** in the dialog opens `MermaidDialog` (zoom, pan, SVG download).
 
+## Note embeds
+
+`codemirror/note-embeds.ts` shows the note named on a line holding only `![[Note]]` (or `![[Note#Heading]]`, alias allowed) as a read-only block widget after that line; the line itself stays as typed and editable. `utils/note-embeds.ts` holds the pure parts: `findEmbeds` (embed lines outside fenced code; `![[file.png]]`-style names with a non-note extension are skipped), `embedSection` (frontmatter and board scene removed, or just one heading's section) and `expandEmbeds` (Export as PDF swaps each embed line for its text).
+
+1. **Loading**: `hooks/use-note-embeds.ts` (in `MarkdownEditor`) resolves each target with `resolveFileMetaByName`, takes an open tab's text from `atom_openFiles` (through a narrowed atom, so typing elsewhere doesn't re-render) or reads the file (cached by path + `modifiedAt`), and pushes `{ contents, open }` into the editor with the `setNoteEmbeds` effect. A missing note, the note itself and a veiled private note get a message instead of text.
+2. **Rendering**: the embedded section goes through `noteToHtml` (everything escaped), its Mermaid and math through `rendered-block-cache`. Embeds inside the embedded note print as names, so embeds never recurse. The title button opens the note like its wikilink.
+
 ## Table Flow
 
 Tables never show their pipe syntax. Every valid GFM table renders as an

@@ -1,0 +1,71 @@
+import { EditorState } from "@codemirror/state";
+import { EditorView } from "@codemirror/view";
+import { describe, expect, it, vi } from "vitest";
+import { noteEmbedsExtension, setNoteEmbeds, type EmbedContent } from "./note-embeds";
+import { embedKey } from "../utils/note-embeds";
+
+vi.mock("../utils/rendered-block-cache", () => ({
+  currentRenderTheme: () => "default",
+  renderBlock: vi.fn(async () => ({ html: "<svg></svg>" })),
+}));
+
+function createEditor(doc: string) {
+  const parent = document.createElement("div");
+  document.body.appendChild(parent);
+  const view = new EditorView({ parent, state: EditorState.create({ doc, extensions: noteEmbedsExtension }) });
+  return { view, cleanup: () => { view.destroy(); parent.remove(); } };
+}
+
+const embeds = (view: EditorView) => Array.from(view.dom.querySelectorAll(".cm-note-embed"));
+
+describe("noteEmbedsExtension", () => {
+  it("shows a loading embed under each embed line and keeps the line's text", () => {
+    const { view, cleanup } = createEditor("Intro\n![[Roadmap]]\nOutro");
+    expect(embeds(view)).toHaveLength(1);
+    expect(embeds(view)[0].textContent).toContain("Loading…");
+    expect(view.state.doc.toString()).toBe("Intro\n![[Roadmap]]\nOutro");
+    cleanup();
+  });
+
+  it("renders the note's text once it arrives, and opens it from the title", () => {
+    const { view, cleanup } = createEditor("![[Roadmap#Q3]]");
+    const open = vi.fn();
+    const contents = new Map<string, EmbedContent>([
+      [embedKey({ target: "Roadmap", heading: "Q3" }), { kind: "note", path: "Roadmap.md", markdown: "# Roadmap\n## Q3\nShip **sync**\n## Q4\nLater" }],
+    ]);
+    view.dispatch({ effects: setNoteEmbeds.of({ contents, open }) });
+
+    const body = view.dom.querySelector(".cm-note-embed-body")!;
+    expect(body.querySelector("strong")?.textContent).toBe("sync");
+    expect(body.textContent).not.toContain("Later");
+
+    (view.dom.querySelector(".cm-note-embed-title") as HTMLElement).click();
+    expect(open).toHaveBeenCalledWith("Roadmap");
+    cleanup();
+  });
+
+  it.each([
+    [{ kind: "missing" }, "Note not found"],
+    [{ kind: "self" }, "A note can't embed itself"],
+    [{ kind: "private" }, "Private note"],
+  ] as [EmbedContent, string][])("shows a message for %j", (content, text) => {
+    const { view, cleanup } = createEditor("![[Roadmap]]");
+    view.dispatch({ effects: setNoteEmbeds.of({ contents: new Map([[embedKey({ target: "Roadmap", heading: null }), content]]), open: null }) });
+    expect(embeds(view)[0].textContent).toContain(text);
+    cleanup();
+  });
+
+  it("escapes the embedded note's HTML", () => {
+    const { view, cleanup } = createEditor("![[Roadmap]]");
+    const contents = new Map<string, EmbedContent>([[embedKey({ target: "Roadmap", heading: null }), { kind: "note", path: "Roadmap.md", markdown: "<script>alert(1)</script> text" }]]);
+    view.dispatch({ effects: setNoteEmbeds.of({ contents, open: null }) });
+    expect(view.dom.querySelector(".cm-note-embed-body script")).toBeNull();
+    cleanup();
+  });
+
+  it("adds nothing for embeds in code or plain links", () => {
+    const { view, cleanup } = createEditor("```\n![[Roadmap]]\n```\n[[Roadmap]]");
+    expect(embeds(view)).toHaveLength(0);
+    cleanup();
+  });
+});

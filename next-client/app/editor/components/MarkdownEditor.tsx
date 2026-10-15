@@ -23,6 +23,8 @@ import { useEmptyNoteBoard } from "../hooks/use-empty-note-board";
 import { useCodeMirrorTable } from "../hooks/use-codemirror-table";
 import { useCrossFileTables } from "../hooks/use-cross-file-tables";
 import { formulaFileTablesField, setFormulaFileTables } from "../codemirror/table-formulas";
+import { useNoteEmbeds } from "../hooks/use-note-embeds";
+import { noteEmbedsDataField, setNoteEmbeds } from "../codemirror/note-embeds";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { openRenderedBlockAtCaret } from "../codemirror/rendered-block";
 import { useCodeMirrorCodeLanguagePicker } from "../hooks/use-codemirror-code-language-picker";
@@ -158,6 +160,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   // (async-loaded) snapshot to the table grid so results can resolve.
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const formulaFileTables = useCrossFileTables(props.value, fileMetadata, props.isActivePane !== false, props.filePath);
+  // `![[Note]]` lines show the note under them (codemirror/note-embeds.ts).
+  const noteEmbeds = useNoteEmbeds(props.value, fileMetadata, props.filePath, onWikiLinkClick);
 
   const image = useCodeMirrorImage({ viewRef, containerRef });
   const { imageInfo, onCursorActivity: onImageCursorActivity } = image;
@@ -255,6 +259,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     if (formulaFileTables.size === 0 && editorView.state.field(formulaFileTablesField, false)?.size === 0) return;
     editorView.dispatch({ effects: setFormulaFileTables.of(formulaFileTables) });
   }, [editorView, formulaFileTables]);
+  useEffect(() => {
+    if (editorView && editorView.state.field(noteEmbedsDataField, false) !== noteEmbeds) editorView.dispatch({ effects: setNoteEmbeds.of(noteEmbeds) });
+  }, [editorView, noteEmbeds]);
 
   useScrollToPendingTarget(editorView, filePath);
 
