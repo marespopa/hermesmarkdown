@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import ConflictDialog from "./components/ConflictDialog";
 import { useAtomValue } from "jotai";
-import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf } from "@/app/atoms/atoms";
+import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf, contentStore } from "@/app/atoms/atoms";
+import { flushAllBoardWrites } from "@/app/utils/board/board-flush";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import FolderPrompt from "./components/FolderPrompt";
 import NewVaultDialog from "./components/NewVaultDialog";
@@ -150,19 +151,22 @@ export default function LiteEditor() {
   }, []);
 
   const handleSave = useCallback(async () => {
-    if (!content.trim()) return;
-    
+    // A board's pending stroke goes into the store first; read from there.
+    flushAllBoardWrites();
+    const current = contentStore.get(atom_content);
+    if (!current.trim()) return;
+
     if (activeFileHandle) {
-      await saveFile(content);
+      await saveFile(current);
     } else if (vaultHandle) {
       await materializeDraft();
     } else if (isVaultSupported || isBrowserVaultSupported) {
       // The first save with no vault asks where notes live.
       await chooseFolder();
     } else {
-      await exportFile(content, fileName);
+      await exportFile(current, fileName);
     }
-  }, [content, activeFileHandle, vaultHandle, saveFile, exportFile, fileName, materializeDraft, isVaultSupported, isBrowserVaultSupported, chooseFolder]);
+  }, [activeFileHandle, vaultHandle, saveFile, exportFile, fileName, materializeDraft, isVaultSupported, isBrowserVaultSupported, chooseFolder]);
 
   const { isGitHubVault, runGitHubCommitCommand, runGitHubPullCommand } = useGitHubVaultActions({
     vaultHandle,

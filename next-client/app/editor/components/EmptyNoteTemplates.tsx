@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useAtomValue } from "jotai";
 import { useRouter } from "next/navigation";
-import { HiOutlineTemplate } from "react-icons/hi";
+import { HiOutlineTemplate, HiOutlineViewBoards } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import TemplateIcon from "@/app/components/TemplateDialog/TemplateIcon";
 import { atom_templates } from "@/app/atoms/template-atoms";
@@ -17,6 +17,8 @@ interface EmptyNoteTemplatesProps {
   onPick: (template: TemplateEntry) => void;
   /** Opens the full template picker; offered when there are more templates than pills. */
   onMore?: () => void;
+  /** Turns the note into a drawing board (a new board file for the draft). */
+  onBoard?: () => void;
 }
 
 const MAX_PILLS = 4;
@@ -25,9 +27,10 @@ const PILL_CLASS = "pointer-events-auto inline-flex min-h-11 items-center gap-1.
 
 // Soft pills resting under the first line of an empty note: one click fills
 // the note from one of the vault's templates. A vault with none gets a single
-// "Browse template packs" pill to the Templates page instead. They fade out
+// "Browse template packs" pill to the Templates page instead; a Board pill
+// starts a drawing board instead of text. They fade out
 // as soon as the note has text.
-export default function EmptyNoteTemplates({ isEmpty, onPick, onMore }: EmptyNoteTemplatesProps) {
+export default function EmptyNoteTemplates({ isEmpty, onPick, onMore, onBoard }: EmptyNoteTemplatesProps) {
   const templates = useAtomValue(atom_templates);
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const router = useRouter();
@@ -63,6 +66,12 @@ export default function EmptyNoteTemplates({ isEmpty, onPick, onMore }: EmptyNot
         <Button variant="unstyled" onClick={() => router.push("/editor/templates")} className={PILL_CLASS}>
           <HiOutlineTemplate size={14} aria-hidden />
           Browse template packs
+        </Button>
+      )}
+      {onBoard && (
+        <Button variant="unstyled" onClick={onBoard} className={PILL_CLASS}>
+          <HiOutlineViewBoards size={14} aria-hidden />
+          Board
         </Button>
       )}
       {hasMore && (

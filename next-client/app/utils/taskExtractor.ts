@@ -37,10 +37,26 @@ export function simpleHash(s: string): string {
   return h.toString(36);
 }
 
+const REGEX_FENCE_OPEN = /^\s*(`{3,}|~{3,})/;
+const REGEX_FENCE_CLOSE = /^\s*(`{3,}|~{3,})\s*$/;
+
+// Checklist lines count everywhere except inside fenced code (``` or ~~~,
+// any language). Line indexes of the other tasks are unchanged.
 export function extractTasks(path: string, content: string): TaskItem[] {
   const lines = content.split("\n");
   const tasks: TaskItem[] = [];
+  let fence: string | null = null; // the opening run, e.g. "```"
   lines.forEach((raw, i) => {
+    if (fence) {
+      const close = raw.match(REGEX_FENCE_CLOSE);
+      if (close && close[1][0] === fence[0] && close[1].length >= fence.length) fence = null;
+      return;
+    }
+    const open = raw.match(REGEX_FENCE_OPEN);
+    if (open) {
+      fence = open[1];
+      return;
+    }
     const m = raw.match(REGEX_TASK_LINE);
     if (!m) return;
     const status = taskStatusFromChar(m[2]);

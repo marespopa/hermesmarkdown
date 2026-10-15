@@ -38,6 +38,8 @@ import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { supportsDirectoryInput } from "@/app/services/vault-archive";
 import { usePaneFileActions } from "../../hooks/use-pane-file-actions";
+import { useCreateBoard } from "../../hooks/use-create-board";
+import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
 
 export type EditorCommandsProps = {
   onNewFile: () => void;
@@ -68,6 +70,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     deleteFile,
     duplicateFile,
     moveItem,
+    createFile,
     createFolder,
     createTemplate,
     isVaultSupported,
@@ -78,6 +81,9 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     renameBrowserVault,
     deleteBrowserVault,
   } = useFileSystem();
+  const createBoard = useCreateBoard(createFile);
+  const boardMarkdownPaths = useAtomValue(atom_boardMarkdownPaths);
+  const toggleBoardMarkdown = useSetAtom(atom_toggleBoardMarkdown);
   const vaultDescriptor = useAtomValue(atom_vaultDescriptor);
   const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
   const supportsFolderImport = supportsDirectoryInput();
@@ -120,6 +126,9 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     scanVault,
     indexVaultTags,
     closeVault,
+    createBoard,
+    boardMarkdownPaths,
+    toggleBoardMarkdown,
     homePinnedPaths,
     toggleHomePin,
     renameFile,

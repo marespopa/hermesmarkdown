@@ -2,6 +2,7 @@ import type { FileMetadata } from "@/app/atoms/metadata";
 import type { ContentHit } from "@/app/workers/content-search-protocol";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import type { TaskItem } from "@/app/utils/taskExtractor";
+import { boardTextForReading } from "@/app/utils/board/board-format";
 
 // The pure half of AI Chat's tools (declared in app/api/ai/chat-tools.ts):
 // what each one answers, from the vault's index and the text the client read.
@@ -59,7 +60,8 @@ export function readNoteOutput(name: string, file: FileMetadata | null, text: st
     return `[[${noteName(file.path)}]] is private, so it isn't shared. Ask the user to open it.`;
   }
   if (text === null) return `[[${noteName(file.path)}]] couldn't be read.`;
-  const body = text.length > NOTE_CHAR_LIMIT ? `${text.slice(0, NOTE_CHAR_LIMIT)}\n[note continues…]` : text;
+  const readable = boardTextForReading(text);
+  const body = readable.length > NOTE_CHAR_LIMIT ? `${readable.slice(0, NOTE_CHAR_LIMIT)}\n[note continues…]` : readable;
   return `--- NOTE: [[${noteName(file.path)}]] (${file.path}) ---\n${body}\n--- END NOTE ---`;
 }
 

@@ -1,7 +1,8 @@
 import { withRetry } from "./shared";
 
 // Creates `<baseName>.md` in `dir`, or `<baseName> (1).md`, `(2)`… when the
-// name is taken. Never overwrites. Returns the new (empty) file's handle.
+// name is taken. A base name ending in `.board` keeps that suffix last
+// (`Untitled (1).board.md`). Never overwrites. Returns the new (empty) file's handle.
 // Used where the text already exists and must not be lost (a draft's first
 // save, a file named in the file tree); notes made from templates or links
 // open the existing note instead.
@@ -9,13 +10,15 @@ export async function createUniqueFile(
   dir: FileSystemDirectoryHandle,
   baseName: string,
 ): Promise<{ handle: FileSystemFileHandle; fileName: string }> {
-  let fileName = `${baseName}.md`;
+  const suffix = baseName.endsWith(".board") ? ".board" : "";
+  const stem = suffix ? baseName.slice(0, -suffix.length) : baseName;
+  let fileName = `${stem}${suffix}.md`;
   let counter = 1;
   while (true) {
     try {
       await withRetry(() => dir.getFileHandle(fileName, { create: false }));
       // No throw: the name is taken.
-      fileName = `${baseName} (${counter++}).md`;
+      fileName = `${stem} (${counter++})${suffix}.md`;
     } catch (err: any) {
       if (err?.name !== "NotFoundError") throw err;
       const handle = await withRetry(() => dir.getFileHandle(fileName, { create: true }));

@@ -34,6 +34,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# excalidraw fonts, copied from node_modules by scripts/copy-excalidraw-assets.mjs
+/public/excalidraw-assets/
+
 # yarn
 /.yarn/*
 !/.yarn/releases/

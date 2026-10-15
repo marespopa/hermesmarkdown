@@ -45,5 +45,30 @@ export default tseslint.config(
         version: "detect",
       },
     },
+  },
+
+  // Excalidraw is heavy: only the lazy BoardView may import it, so the
+  // editor route's first load stays small. Type imports are fine.
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@excalidraw/*"],
+              allowTypeImports: true,
+              message:
+                "Only app/editor/components/board/BoardView.tsx may import Excalidraw (keeps it out of the editor's first load).",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["app/editor/components/board/BoardView.tsx", "**/*.test.ts", "**/*.test.tsx"],
+    rules: { "@typescript-eslint/no-restricted-imports": "off" },
   }
 );

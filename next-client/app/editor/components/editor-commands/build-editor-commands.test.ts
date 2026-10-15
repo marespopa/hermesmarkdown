@@ -107,6 +107,38 @@ describe("buildEditorCommands", () => {
     expect(pinned.find((command) => command.id === "toggle-home-pin")?.label).toBe("Unpin from Home");
   });
 
+  it("offers New board only with a vault, and runs createBoard", () => {
+    const withVault = createContext({ createBoard: vi.fn() } as Partial<EditorCommandContext>);
+    const command = buildEditorCommands(withVault).find((c) => c.id === "new-board")!;
+    expect(command.label).toBe("New board");
+    command.action();
+    expect(withVault.createBoard).toHaveBeenCalled();
+
+    const noVault = buildEditorCommands(createContext({ vaultHandle: null } as unknown as Partial<EditorCommandContext>));
+    expect(noVault.some((c) => c.id === "new-board")).toBe(false);
+  });
+
+  it("offers the board toggle only for a board, flipping its label", () => {
+    expect(buildEditorCommands(createContext()).some((c) => c.id === "toggle-board-markdown")).toBe(false);
+
+    const boardContent = "---\nhermes: board\n---\n";
+    const asBoard = createContext({
+      content: boardContent,
+      boardMarkdownPaths: new Set<string>(),
+      toggleBoardMarkdown: vi.fn(),
+    } as unknown as Partial<EditorCommandContext>);
+    const toggle = buildEditorCommands(asBoard).find((c) => c.id === "toggle-board-markdown")!;
+    expect(toggle.label).toBe("Edit Board as Markdown");
+    toggle.action();
+    expect(asBoard.toggleBoardMarkdown).toHaveBeenCalledWith("Note.md");
+
+    const asMarkdown = createContext({
+      content: boardContent,
+      boardMarkdownPaths: new Set(["Note.md"]),
+    } as unknown as Partial<EditorCommandContext>);
+    expect(buildEditorCommands(asMarkdown).find((c) => c.id === "toggle-board-markdown")?.label).toBe("Open as Board");
+  });
+
   it("preserves every command ID and its registration order", () => {
     const commands = buildEditorCommands(createContext());
     const templateIds = TEMPLATES
@@ -116,6 +148,7 @@ describe("buildEditorCommands", () => {
     expect(commands.map((command) => command.id)).toEqual([
       "save-file",
       "new-file",
+      "new-board",
       "insert-template",
       "save-as-template",
       "new-template",

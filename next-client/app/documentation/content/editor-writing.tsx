@@ -336,6 +336,41 @@ graph TD
     ),
   },
   {
+    id: "boards",
+    title: "Boards",
+    lead: "Sketch on an infinite canvas: freehand, shapes, arrows and text, saved inside a Markdown note.",
+    keywords: "board canvas drawing sketch whiteboard draw diagram shapes arrows",
+    body: (
+      <>
+        <p>
+          Open the command palette and run <strong>New board</strong> (with a vault open). It
+          creates <code>Untitled.board.md</code> in your New Notes folder and opens it as a canvas.
+          If the name is taken you get <code>Untitled (1).board.md</code>.
+          You can also start one from an empty note: click the <strong>Board</strong> pill under the
+          first line (from a fresh, unsaved note it creates a new board file), or pick{" "}
+          <strong>Board</strong> when a missing link asks how to create its note.
+        </p>
+        <p>
+          A board is still a Markdown note. The drawing is stored in a fenced block, so you can write
+          a caption above it, add <code>[[links]]</code> and tags, and it syncs like any other note.
+          Drawing changes are saved automatically, like text.
+        </p>
+        <KV
+          rows={[
+            { label: "Edit as Markdown", value: "Right-click the tab (or use the palette's Edit Board as Markdown) to see the raw file" },
+            { label: "Open as Board", value: "Switch back from the raw file to the canvas" },
+          ]}
+        />
+        <Callout type="note">
+          Images aren&apos;t supported on boards yet. Undo history belongs to the canvas and starts
+          fresh when the file changes on disk. If a sync leaves merge conflicts in a board, or its
+          data can&apos;t be read, the pane says so and offers <strong>Edit as Markdown</strong> so you
+          can repair it. Boards work offline and make no network requests.
+        </Callout>
+      </>
+    ),
+  },
+  {
     id: "links",
     title: "Links",
     lead: "Insert a link from the slash menu, or just paste a URL — both give you a title to type over immediately.",

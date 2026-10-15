@@ -6,7 +6,7 @@ import { atom_templateDialog } from "@/app/atoms/template-atoms";
 import type { TemplateEntry } from "@/app/utils/templates/template-registry";
 
 export interface PickTemplateOptions {
-  /** Show "Blank note" as a row (missing-link creation). */
+  /** Show "Blank note" and "Board" rows (missing-link creation). */
   includeBlank?: boolean;
   title?: string;
   /** A template to put first and highlight, e.g. the one a link's name points to. */
@@ -20,7 +20,7 @@ export function useTemplateDialog() {
 
   const pickTemplate = useCallback(
     ({ includeBlank = false, title = "Insert template", preselect }: PickTemplateOptions = {}) =>
-      new Promise<TemplateEntry | "blank" | null>((resolve) => {
+      new Promise<TemplateEntry | "blank" | "board" | null>((resolve) => {
         setRequest({
           kind: "pick",
           includeBlank,

@@ -1,11 +1,11 @@
 {
   "name": "hermesmarkdown",
-  "version": "6.24.0",
+  "version": "6.25.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3000",
+    "dev": "node scripts/copy-excalidraw-assets.mjs && next dev --port 3000",
     "dev:integration": "next dev -p 3001",
-    "build": "next build",
+    "build": "node scripts/copy-excalidraw-assets.mjs && next build",
     "start": "next start",
     "lint": "node --max-old-space-size=2048 ./node_modules/eslint/bin/eslint.js .",
     "check": "node --max-old-space-size=2048 ./node_modules/typescript/bin/tsc --noEmit && yarn lint",
@@ -25,6 +25,7 @@
     "@codemirror/search": "^6.7.1",
     "@codemirror/state": "^6.7.1",
     "@codemirror/view": "^6.43.6",
+    "@excalidraw/excalidraw": "^0.18.0",
     "@lezer/highlight": "^1.2.3",
     "@lezer/markdown": "^1.7.1",
     "@replit/codemirror-vim": "^6.4.0",

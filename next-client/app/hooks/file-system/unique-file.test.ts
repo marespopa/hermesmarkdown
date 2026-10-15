@@ -43,6 +43,17 @@ describe("createUniqueFile", () => {
     expect(fileName).toBe("Note (2).md");
   });
 
+  it("keeps .board last when numbering a board", async () => {
+    const dir = fakeDir(["Untitled.board.md"]);
+    expect((await createUniqueFile(dir, "Untitled.board")).fileName).toBe("Untitled (1).board.md");
+    expect((await createUniqueFile(dir, "Untitled.board")).fileName).toBe("Untitled (2).board.md");
+  });
+
+  it("leaves other names alone", async () => {
+    expect((await createUniqueFile(fakeDir(["Notes.md"]), "Notes")).fileName).toBe("Notes (1).md");
+    expect((await createUniqueFile(fakeDir(["foo.boardgame.md"]), "foo.boardgame")).fileName).toBe("foo.boardgame (1).md");
+  });
+
   it("rethrows errors other than a missing file", async () => {
     const dir = fakeDir();
     dir.getFileHandle.mockRejectedValue(Object.assign(new Error("denied"), { name: "NotAllowedError" }));
