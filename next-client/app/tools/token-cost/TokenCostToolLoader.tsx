@@ -1,12 +1,13 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { TokenCostSkeleton } from "../components/ToolSkeletons";
 
-// Client-only, since the text lives in sessionStorage; the skeleton holds
-// the tool's height so the page doesn't jump when it mounts.
+// Client-only, since the text lives in sessionStorage; its skeleton
+// outlines the tool so the page doesn't jump when it mounts.
 const TokenCostTool = dynamic(() => import("./TokenCostTool"), {
   ssr: false,
-  loading: () => <div className="h-[900px] rounded-2xl bg-surface-raised animate-pulse" aria-hidden="true" />,
+  loading: () => <TokenCostSkeleton />,
 });
 
 export default function TokenCostToolLoader() {
