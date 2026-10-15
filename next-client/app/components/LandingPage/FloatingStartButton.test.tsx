@@ -5,6 +5,9 @@ import "@testing-library/jest-dom";
 import FloatingStartButton from "./FloatingStartButton";
 
 let heroBottom = 400;
+// Animation frames run later, as in a browser, never inside the call that
+// asks for one: scrollTo() runs the queued ones.
+let frames: FrameRequestCallback[] = [];
 
 function Harness({ onStart }: { onStart: () => void }) {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -18,13 +21,19 @@ function Harness({ onStart }: { onStart: () => void }) {
 
 function scrollTo(bottom: number) {
   heroBottom = bottom;
-  act(() => { fireEvent.scroll(window); });
+  act(() => {
+    fireEvent.scroll(window);
+    const queued = frames;
+    frames = [];
+    queued.forEach((callback) => callback(0));
+  });
 }
 
 describe("FloatingStartButton", () => {
   beforeEach(() => {
     heroBottom = 400;
-    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => { callback(0); return 1; });
+    frames = [];
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => frames.push(callback));
     vi.stubGlobal("cancelAnimationFrame", vi.fn());
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
       () => ({ bottom: heroBottom }) as DOMRect,
