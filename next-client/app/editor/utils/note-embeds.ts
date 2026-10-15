@@ -69,7 +69,7 @@ export const fileExtension = (name: string) => EXT.exec(name)?.[1].toLowerCase()
 // A CSV (or tab-separated) file as a Markdown table, the first row as the
 // header. Ragged rows are padded or cut to the header's width.
 export function csvToMarkdownTable(text: string): string {
-  const trimmed = text.replace(/^﻿/, "").trim();
+  const trimmed = text.replace(/^\uFEFF/, "").trim();
   if (!trimmed) return "";
   const delimiter = detectDelimitedTable(trimmed) ?? (trimmed.split("\n")[0].includes("\t") ? "\t" : ",");
   return delimitedTextToMarkdownTable(trimmed, delimiter);
