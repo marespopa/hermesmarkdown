@@ -19,6 +19,7 @@ import { annotationDisplayPlugin } from "./annotation-display";
 import { tableDisplayExtension } from "./table-display";
 import { renderedBlockExtension } from "./rendered-block";
 import { noteEmbedsExtension } from "./note-embeds";
+import { embedGhost } from "./embed-ghost";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
 import { bulletAutospace } from "./bullet-autospace";
 import { noteCalcExtension } from "./note-calc";
@@ -97,6 +98,8 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     tableDisplayExtension,
     renderedBlockExtension,
     noteEmbedsExtension,
+    // `/name` at the start of a line: the rest of the best note as faded text.
+    embedGhost(() => opts.slashMenuCallbacksRef.current.embedFiles?.() ?? []),
     noteCalcExtension,
     shortcodeExpandPlugin,
     bulletAutospace,

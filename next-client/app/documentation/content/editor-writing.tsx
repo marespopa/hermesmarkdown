@@ -442,8 +442,9 @@ graph TD
         <p>
           A line holding only a slash and a file name works too: <code>/Chapter 1.md</code> embeds a
           note, and <code>/data/sales.csv</code> shows a CSV file as a table (its first row is the
-          header). Start a line with <code>/</code> and type part of a note&apos;s name: the slash
-          menu offers matching notes, and picking one writes its path for you. A CSV path is looked
+          header). Start a line with <code>/</code> and type the start of a note&apos;s name: the rest
+          of the best match appears in faded text, and <code>Tab</code> (or <code>→</code>)
+          accepts it. The slash menu also lists matching notes; picking one writes its path for you. A CSV path is looked
           up next to the note first, then from the vault root.
         </p>
         <p>
