@@ -27,13 +27,12 @@ export const settingsGroup: Group = {
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
               { label: "Sidebar", value: "The toolbar's Sidebar button, CTRL/CMD+ALT+S or Toggle Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
-              { label: "Typeface", value: "Plus Jakarta Sans by default, with Source Serif 4, Inter, and Geist Mono options" },
+              { label: "Typeface", value: "Geist Mono by default, or Inter" },
             ]}
           />
           <Callout type="note">
-            Plus Jakarta Sans is the default for comfortable long-form writing. Source Serif 4 gives
-            essays a printed-page feel, Inter is a neutral screen sans, and Geist Mono suits
-            technical notes. Text sizes follow Apple&apos;s Dynamic Type steps, 15 to 23px.
+            Geist Mono is the default for writing: an even, typewriter-like rhythm. Inter, the
+            app&apos;s interface face, is there if you prefer a proportional sans. Text sizes follow Apple&apos;s Dynamic Type steps, 15 to 23px.
           </Callout>
         </>
       ),

@@ -20,9 +20,11 @@ import { useCodeMirrorFeatures } from "../hooks/use-codemirror-features";
 import { useCodeMirrorTemplates } from "../hooks/use-codemirror-templates";
 import { useVaultTemplateInsert } from "../hooks/use-vault-template-insert";
 import { useEmptyNoteBoard } from "../hooks/use-empty-note-board";
+import { useInsertBoardLink } from "../hooks/use-insert-board-link";
 import { useCodeMirrorTable } from "../hooks/use-codemirror-table";
 import { useCrossFileTables } from "../hooks/use-cross-file-tables";
 import { formulaFileTablesField, setFormulaFileTables } from "../codemirror/table-formulas";
+import { useNoteEmbeds } from "../hooks/use-note-embeds";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { openRenderedBlockAtCaret } from "../codemirror/rendered-block";
 import { useCodeMirrorCodeLanguagePicker } from "../hooks/use-codemirror-code-language-picker";
@@ -64,8 +66,10 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const lineNumbers = useAtomValue(atom_lineNumbers);
   const showInvisibles = useAtomValue(atom_showInvisibles);
   const vimMode = useAtomValue(atom_vimMode);
-  // Paragraph dimming and typewriter scrolling: the strongest Focus level.
-  const flowMode = useAtomValue(atom_focusMode) === "dim";
+  // Paragraph or sentence dimming and typewriter scrolling: the two
+  // strongest Focus levels.
+  const focusMode = useAtomValue(atom_focusMode);
+  const flowMode = focusMode === "dim" ? "paragraph" : focusMode === "sentence" ? "sentence" : false;
   const fullWidth = useAtomValue(atom_fullWidth);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
@@ -86,7 +90,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
 
-  const { createWikiLinkFile, vaultHandle, saveAsTemplate, createLinkedNoteFromTemplate } = useFileSystem();
+  const { createWikiLinkFile, vaultHandle, saveAsTemplate, createLinkedNoteFromTemplate, createLinkedBoard } = useFileSystem();
+  const insertBoardLink = useInsertBoardLink({ viewRef, createLinkedBoard });
   const insertVaultTemplate = useVaultTemplateInsert({ viewRef, filePath });
   const insertTemplate = useCallback(() => { void insertVaultTemplate(); }, [insertVaultTemplate]);
   const startBoard = useEmptyNoteBoard({ viewRef, filePath });
@@ -133,6 +138,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onInsertTemplateField: isTemplateNote ? insertTemplateField : undefined,
     onAskTemplateQuestion: askTemplateQuestion,
     onSaveAsTemplate: saveNoteAsTemplate,
+    onInsertBoard: vaultHandle ? () => { void insertBoardLink(); } : undefined,
   });
 
   useEffect(() => {
@@ -253,6 +259,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     if (formulaFileTables.size === 0 && editorView.state.field(formulaFileTablesField, false)?.size === 0) return;
     editorView.dispatch({ effects: setFormulaFileTables.of(formulaFileTables) });
   }, [editorView, formulaFileTables]);
+  // `![[Note]]`, `/Note.md` and `/data.csv` lines show the file under them.
+  useNoteEmbeds(editorView, props.value, fileMetadata, props.filePath, onWikiLinkClick);
 
   useScrollToPendingTarget(editorView, filePath);
 

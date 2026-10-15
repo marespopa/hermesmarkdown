@@ -84,7 +84,7 @@ export default function MarkdownEditorPage() {
           <div className="space-y-4">
             <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05]">
               What Is a{" "}
-              <span className="text-neutral-600 dark:text-neutral-400 italic font-serif">Markdown Editor?</span>
+              <span className="text-neutral-600 dark:text-neutral-400 italic">Markdown Editor?</span>
             </h1>
           </div>
           <p className="text-lg md:text-xl leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-2xl font-medium">

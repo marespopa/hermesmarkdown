@@ -240,7 +240,7 @@ tags: []
             { label: "Toggle Hidden Files / Toggle Sidebar", value: "—" },
             { label: "Theme: Light / Dark / System", value: "—" },
             { label: "Toggle Full Width / Word Wrap / Line Numbers / Invisibles / Vim Mode", value: "—" },
-            { label: "Focus: …", value: "Off, hide interface while typing, or also dim other paragraphs" },
+            { label: "Focus: …", value: "Off, hide interface while typing, or also dim other paragraphs or sentences" },
             { label: "Settings", value: "Editor Font, Text Size, Autosave, Open Settings" },
             { label: "GitHub", value: "Commit, push, sync, pull — GitHub vaults only" },
           ]}

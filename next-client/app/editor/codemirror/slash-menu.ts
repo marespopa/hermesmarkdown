@@ -14,6 +14,7 @@ import {
   VAULT_TEMPLATE_SENTINEL,
   TEMPLATE_FIELD_SENTINEL,
   SAVE_AS_TEMPLATE_SENTINEL,
+  BOARD_LINK_SENTINEL,
   CURSOR_SENTINEL,
   CODE_BLOCK_TEMPLATE_CONTENT,
   MARK_PRIVATE_SENTINEL,
@@ -28,10 +29,11 @@ import { clearPrivateMarkers, isPrivateContent } from "@/app/utils/note-privacy"
 // migration). Frontmatter wizard, Link/WikiLink/Date/Table sentinels are.
 // The vault Template entry is added only when the editor can insert one, and
 // Template field only while editing a template.
-const AVAILABLE_TEMPLATES = TEMPLATES.filter((t) => !t.aiOnly && !t.vaultOnly && !t.templateOnly && !t.saveTemplateOnly);
+const AVAILABLE_TEMPLATES = TEMPLATES.filter((t) => !t.aiOnly && !t.vaultOnly && !t.templateOnly && !t.saveTemplateOnly && !t.boardOnly);
 const VAULT_TEMPLATE_ENTRIES = TEMPLATES.filter((t) => t.content === VAULT_TEMPLATE_SENTINEL);
 const TEMPLATE_FIELD_ENTRIES = TEMPLATES.filter((t) => t.templateOnly);
 const SAVE_TEMPLATE_ENTRIES = TEMPLATES.filter((t) => t.saveTemplateOnly);
+const BOARD_ENTRIES = TEMPLATES.filter((t) => t.boardOnly);
 
 export interface SlashMenuCallbacks {
   onOpenLinkDialog: (range: { from: number; to: number }) => void;
@@ -47,6 +49,10 @@ export interface SlashMenuCallbacks {
   onAskTemplateQuestion?: (kind: "question" | "blank") => Promise<string | null>;
   /** Saves the note as a template; set with a vault, outside template notes. */
   onSaveAsTemplate?: () => void;
+  /** Creates a board and links it at the caret; set with a vault. The trigger text is already removed. */
+  onInsertBoard?: () => void;
+  /** Vault paths of the notes `/name` can embed; set with a vault. */
+  embedFiles?: () => string[];
   onFrontmatterWizard: () => void;
   onCodeBlockInserted: (pos: number) => void;
 }
@@ -183,6 +189,11 @@ export function applyTemplate(
     callbacks.onSaveAsTemplate?.();
     return;
   }
+  if (content === BOARD_LINK_SENTINEL) {
+    view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
+    callbacks.onInsertBoard?.();
+    return;
+  }
   if (content === TEMPLATE_FIELD_SENTINEL) {
     view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
     callbacks.onInsertTemplateField?.();
@@ -225,6 +236,27 @@ function looksLikePath(textFromSlash: string): boolean {
   );
 }
 
+const MAX_FILE_OPTIONS = 8;
+
+// Notes whose name matches what follows a `/` at the start of a line, for
+// embedding as `/path.md` (utils/note-embeds.ts): names starting with the
+// query first, then names containing it, then paths containing it.
+export function matchEmbedFiles(paths: string[], query: string): string[] {
+  const q = query.toLowerCase().replace(/\.md$/, "");
+  if (!q) return [];
+  const scored: [number, string][] = [];
+  for (const path of paths) {
+    const lower = path.toLowerCase();
+    const name = lower.split("/").pop()!.replace(/\.md$/, "");
+    const score = name.startsWith(q) ? 0 : name.includes(q) ? 1 : lower.includes(q) ? 2 : -1;
+    if (score >= 0) scored.push([score, path]);
+  }
+  return scored
+    .sort((a, b) => a[0] - b[0] || a[1].length - b[1].length || a[1].localeCompare(b[1]))
+    .slice(0, MAX_FILE_OPTIONS)
+    .map(([, path]) => path);
+}
+
 export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallbacks }) {
   return (context: CompletionContext): CompletionResult | null => {
     const pos = context.pos;
@@ -237,23 +269,43 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
     if (!validBoundary) return null;
 
     const query = textUpToCursor.slice(slashIndex + 1);
-    if (query.includes(" ")) return null;
-    if (looksLikePath(textUpToCursor.slice(slashIndex))) return null;
+    // `/name` alone on a line also offers notes to embed; their names may
+    // hold spaces and folders, so those matches keep the menu open.
+    const atLineStart = textUpToCursor.slice(0, slashIndex).trim() === "";
+    const embedFiles = atLineStart && callbacksRef.current.embedFiles
+      ? matchEmbedFiles(callbacksRef.current.embedFiles(), query)
+      : [];
+    const from = line.from + slashIndex;
+    const fileOptions: Completion[] = embedFiles.map((path) => ({
+      label: path.split("/").pop()!.replace(/\.md$/, ""),
+      detail: path.includes("/") ? `Embed · ${path.split("/").slice(0, -1).join("/")}` : "Embed note",
+      apply: (view, _completion, applyFrom, applyTo) => {
+        const insert = `/${path}`;
+        view.dispatch({
+          changes: { from: applyFrom, to: applyTo, insert },
+          selection: EditorSelection.cursor(applyFrom + insert.length),
+          userEvent: "input.complete",
+        });
+      },
+    }));
+    if (query.includes(" ") || looksLikePath(textUpToCursor.slice(slashIndex))) {
+      return fileOptions.length ? { from, to: pos, options: fileOptions, filter: false } : null;
+    }
 
     const templates = [
       ...AVAILABLE_TEMPLATES,
       ...(callbacksRef.current.onInsertVaultTemplate ? VAULT_TEMPLATE_ENTRIES : []),
       ...(callbacksRef.current.onInsertTemplateField ? TEMPLATE_FIELD_ENTRIES : []),
       ...(callbacksRef.current.onSaveAsTemplate ? SAVE_TEMPLATE_ENTRIES : []),
+      ...(callbacksRef.current.onInsertBoard ? BOARD_ENTRIES : []),
       ...(callbacksRef.current.onOpenAIChat ? TEMPLATES.filter((template) => template.content === AI_CHAT_SENTINEL) : []),
     ];
     // Offer only the privacy commands that would change this note.
     const isPrivate = isPrivateContent(context.state.doc.toString());
     const hidden = isPrivate ? [MARK_PRIVATE_SENTINEL] : [MARK_PUBLIC_SENTINEL];
     const matches = templates.filter((t) => !hidden.includes(t.content) && fuzzyMatch(t.label, query));
-    if (matches.length === 0) return null;
+    if (matches.length === 0 && fileOptions.length === 0) return null;
 
-    const from = line.from + slashIndex;
     const options: Completion[] = matches.map((t) => ({
       label: t.label,
       detail: t.description,
@@ -262,6 +314,6 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
       },
     }));
 
-    return { from, to: pos, options, filter: false };
+    return { from, to: pos, options: [...options, ...fileOptions], filter: false };
   };
 }

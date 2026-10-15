@@ -175,18 +175,14 @@ Defined in `tailwind.config.js` as custom `fontSize` entries. Sizes and line hei
 
 ## Font Families
 
-Four self-hosted faces (`app/fonts.ts`), one role each. Every stack falls back to the Apple system face with the same role.
+Two self-hosted faces (`app/fonts.ts`): Inter for everything sans, Geist Mono for code. Every stack falls back to the Apple system face with the same role.
 
 | Token | Stack | Use |
 |---|---|---|
-| `font-sans` | Inter → system-ui (SF Pro) | UI chrome, labels, buttons (also the `body` default) |
-| `font-display` | Plus Jakarta Sans → Inter | Landing and display headings |
-| `font-serif` | Source Serif 4 → New York → Georgia | Italic accents on marketing pages |
-| `font-mono` | Geist Mono → SF Mono → Menlo | Code, keyboard chips, technical metadata |
-| `font-sourcecode` | Source Code Pro | Legacy code surfaces |
-| `font-journal` | Georgia | Document body (journal mode) |
+| `font-sans` | Inter → system-ui (SF Pro) | UI chrome, labels, buttons, headings (also the `body` default) |
+| `font-mono` | Geist Mono → SF Mono → Menlo | The default writing face, code, keyboard chips, technical metadata |
 
-The editor font is user-selectable (Settings → Typography) from `app/editor/settings/font-options.ts`: Plus Jakarta Sans (default), Source Serif 4, Inter, and Geist Mono. Text size offers the Dynamic Type body steps 15 / 17 (default) / 19 / 21 / 23px. Those two are the only typography settings. Line height (1.65), the reading measure (≤ 44rem / 704px, the same at every text size), heading rhythm and code styling are fixed in `app/editor/editor-typography.scss`.
+The editor font is user-selectable (Settings → Typography) from `app/editor/settings/font-options.ts`: Geist Mono (default) or Inter. Saved choices of the retired Plus Jakarta Sans and Source Serif 4 move to Inter on load. Text size offers the Dynamic Type body steps 15 / 17 (default) / 19 / 21 / 23px. Those two are the only typography settings. Line height (1.65), the reading measure (≤ 44rem / 704px, the same at every text size), heading rhythm and code styling are fixed in `app/editor/editor-typography.scss`.
 
 ---
 

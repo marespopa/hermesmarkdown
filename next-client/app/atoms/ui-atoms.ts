@@ -34,10 +34,23 @@ export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
 // mobile file bar while you type, and moving the mouse brings them back
 // (hooks/use-fade-chrome-while-typing.ts); "dim" does that too, and also
 // fades every paragraph but the caret's and keeps the caret line centred
-// (codemirror/flow-mode.ts). "hide" by default.
-export const FOCUS_MODES = ["off", "hide", "dim"] as const;
+// (codemirror/flow-mode.ts); "sentence" is "dim" narrowed to the caret's
+// sentence. "hide" by default.
+export const FOCUS_MODES = ["off", "hide", "dim", "sentence"] as const;
 export type FocusMode = (typeof FOCUS_MODES)[number];
 export const atom_focusMode = atomWithChoiceStorage<FocusMode>("focusMode", FOCUS_MODES, "hide");
+// Toggle Sentence Focus (Ctrl/Cmd+Alt+F): sentence focus on, or back to the
+// level used before it ("hide" when there was none).
+const atom_focusBeforeSentence = atom<FocusMode>("hide");
+export const atom_toggleSentenceFocus = atom(null, (get, set) => {
+  const current = get(atom_focusMode);
+  if (current === "sentence") {
+    set(atom_focusMode, get(atom_focusBeforeSentence));
+    return;
+  }
+  set(atom_focusBeforeSentence, current);
+  set(atom_focusMode, "sentence");
+});
 // The window's sidebar (desktop): open notes and the vault's file tree, on the
 // leading edge. Hidden by default; toggled from the toolbar or Ctrl/Cmd+Alt+S.
 export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
@@ -49,18 +62,15 @@ export const atom_sidebarCollapsed = atomWithStorage<Record<string, boolean>>("s
 // Each stack falls back to the Apple system face with the same role.
 export const MONO_FONT_STACK =
   'var(--font-geist-mono), "SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
-export const EDITORIAL_FONT_STACK =
-  "var(--font-plus-jakarta), system-ui, -apple-system, ui-sans-serif, sans-serif";
-export const SERIF_FONT_STACK =
-  'var(--font-source-serif), "New York", ui-serif, Georgia, serif';
 export const UI_FONT_STACK =
   "var(--font-inter), system-ui, -apple-system, ui-sans-serif, sans-serif";
 export const atom_editorFontFamily = atomWithStorage<string>(
   "editorFontFamily",
-  EDITORIAL_FONT_STACK,
+  MONO_FONT_STACK,
 );
 // Saved choices from older versions move to their closest current equivalent:
-// IBM Plex Mono to Geist Mono, older stack strings to the current ones (so the
+// IBM Plex Mono to Geist Mono, the retired Plus Jakarta Sans and Source Serif
+// to Inter, older stack strings to the current ones (so the
 // picker still shows them as selected), and the 14–22px sizes up one pixel
 // onto the Dynamic Type steps. Every target is a current value, so this is
 // safe to run on each load.
@@ -75,8 +85,8 @@ const LEGACY_TEXT_SIZES: Record<string, string> = {
 const FONT_STACKS_BY_VARIABLE: [string, string][] = [
   ["--font-ibm-mono", MONO_FONT_STACK],
   ["--font-geist-mono", MONO_FONT_STACK],
-  ["--font-plus-jakarta", EDITORIAL_FONT_STACK],
-  ["--font-source-serif", SERIF_FONT_STACK],
+  ["--font-plus-jakarta", UI_FONT_STACK],
+  ["--font-source-serif", UI_FONT_STACK],
   ["--font-inter", UI_FONT_STACK],
 ];
 

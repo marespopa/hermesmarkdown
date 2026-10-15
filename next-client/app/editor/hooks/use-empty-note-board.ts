@@ -12,8 +12,8 @@ interface UseEmptyNoteBoardOptions {
 
 // The empty-note "Board" pill: an empty vault note becomes a board in place
 // (its text is replaced by the board frontmatter and an empty scene, and the
-// pane switches to the canvas). The draft can't be a board, so it creates
-// `Untitled.board.md` instead, like the New board command.
+// pane switches to the canvas). The draft can't be a board, so it asks for a
+// name and creates `<name>.board.md` instead, like the New board command.
 export function useEmptyNoteBoard({ viewRef, filePath }: UseEmptyNoteBoardOptions) {
   const { createFile } = useFileSystem();
   const createBoard = useCreateBoard(createFile);

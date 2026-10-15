@@ -67,8 +67,8 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Font")).toBeInTheDocument();
     expect(screen.getByText("Geist Mono")).toBeInTheDocument();
     expect(screen.getByText("Inter")).toBeInTheDocument();
-    expect(screen.getByText("Source Serif 4")).toBeInTheDocument();
-    expect(screen.getByText("Plus Jakarta Sans")).toBeInTheDocument();
+    expect(screen.queryByText("Source Serif 4")).not.toBeInTheDocument();
+    expect(screen.queryByText("Plus Jakarta Sans")).not.toBeInTheDocument();
     expect(screen.getByText("Full Width")).toBeInTheDocument();
     expect(screen.queryByText("Text Size")).not.toBeInTheDocument();
     expect(screen.queryByText("Line Height")).not.toBeInTheDocument();
@@ -128,7 +128,7 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("button", { name: "Hide from lists" })).toBeInTheDocument();
   });
 
-  it("offers one Focus setting with three levels", () => {
+  it("offers one Focus setting with four levels", () => {
     const setFocusMode = vi.fn();
     (useAtom as any).mockImplementation((atom: any) => {
       if (atom === atom_focusMode) return ["hide", setFocusMode];
@@ -145,6 +145,7 @@ describe("SettingsPage", () => {
       "Off",
       "Hide interface while typing",
       "Hide interface and dim other paragraphs",
+      "Hide interface and dim other sentences",
     ]);
     fireEvent.change(focus, { target: { value: "dim" } });
     expect(setFocusMode).toHaveBeenCalledWith("dim");

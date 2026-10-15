@@ -203,10 +203,10 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   }, [store, dialog, openFile, writeNewNote]);
 
   // The WikiLink dialog's "Create and link" (no `entry`) and "From
-  // template": creates the linked note without opening it and returns its
-  // link path (no `.md`), or null. A note of that name already there is
-  // linked as it is.
-  const createLinkedNote = useCallback(async (name: string, entry?: TemplateEntry): Promise<string | null> => {
+  // template", and `/board` ("board"): creates the linked note without
+  // opening it and returns its link path (no `.md`), or null. A note of that
+  // name already there is linked as it is.
+  const createLinkedNote = useCallback(async (name: string, entry?: TemplateEntry | "board"): Promise<string | null> => {
     const vaultHandle = store.get(atom_vaultHandle);
     if (!vaultHandle) return null;
     const parsed = parseMissingLink(name);
@@ -236,6 +236,8 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     (name: string, entry: TemplateEntry) => createLinkedNote(name, entry),
     [createLinkedNote],
   );
+  // `name` ends in `.board` (boardBaseName).
+  const createLinkedBoard = useCallback((name: string) => createLinkedNote(name, "board"), [createLinkedNote]);
 
   return {
     writeNewNote,
@@ -243,5 +245,6 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     createTemplate,
     createWikiLinkFile,
     createLinkedNoteFromTemplate,
+    createLinkedBoard,
   };
 }

@@ -6,4 +6,5 @@ export const FOCUS_OPTIONS: { value: FocusMode; label: string }[] = [
   { value: "off", label: "Off" },
   { value: "hide", label: "Hide interface while typing" },
   { value: "dim", label: "Hide interface and dim other paragraphs" },
+  { value: "sentence", label: "Hide interface and dim other sentences" },
 ];

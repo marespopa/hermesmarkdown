@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import {
   atom_autosaveMode,
   atom_editorFontFamily,
@@ -8,10 +8,11 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_focusMode, atom_fullWidth, atom_lineNumbers, atom_showInvisibles } from "@/app/atoms/ui-atoms";
+import { atom_focusMode, atom_fullWidth, atom_lineNumbers, atom_showInvisibles, atom_toggleSentenceFocus } from "@/app/atoms/ui-atoms";
 import { useRegisterCommand, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { FOCUS_OPTIONS } from "../focus-options";
 import { FONTS, TEXT_SIZES } from "../font-options";
+import { formatShortcut } from "@/app/utils/platform";
 
 function RegisteredCommand({ command }: { command: Command }) {
   useRegisterCommand(command);
@@ -25,6 +26,7 @@ export default function SettingsCommands() {
   const [showInvisibles, setShowInvisibles] = useAtom(atom_showInvisibles);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [focusMode, setFocusMode] = useAtom(atom_focusMode);
+  const toggleSentenceFocus = useSetAtom(atom_toggleSentenceFocus);
   const [, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [, setTextSize] = useAtom(atom_renderedFontSize);
   const [, setAutosaveMode] = useAtom(atom_autosaveMode);
@@ -44,6 +46,14 @@ export default function SettingsCommands() {
       disabledReason: focusMode === value ? "Current setting" : undefined,
       action: () => setFocusMode(value),
     })),
+    {
+      id: "toggle-sentence-focus",
+      label: "Toggle Sentence Focus",
+      category: "Settings",
+      keywords: "focus sentence dim typewriter flow writing distraction free",
+      shortcut: formatShortcut("F", { alt: true }),
+      action: () => toggleSentenceFocus(),
+    },
     ...FONTS.map(({ label, value }) => ({
       id: `set-editor-font-${label.toLowerCase().replace(/\s+/g, "-")}`,
       label: `Editor Font: ${label}`,

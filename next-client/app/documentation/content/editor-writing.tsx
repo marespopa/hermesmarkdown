@@ -98,13 +98,17 @@ export const editorWritingItems: Subsection[] = [
       <>
         <p>
           Choose a level under Settings → Editor → Focus, or run one of the{" "}
-          <strong>Focus: …</strong> commands from the command palette.
+          <strong>Focus: …</strong> commands from the command palette.{" "}
+          <code>CTRL/CMD+ALT+F</code> (<strong>Toggle Sentence Focus</strong>) switches sentence
+          focus on, and back to the level you had before. As the caret moves from one sentence to
+          the next, the old one fades out and the new one fades in.
         </p>
         <KV
           rows={[
             { label: "Off", value: "The interface stays put while you type" },
             { label: "Hide interface while typing", value: "The toolbar, tabs and sidebar fade once you start typing (default)" },
             { label: "Hide interface and dim other paragraphs", value: "The same, plus other paragraphs fade and the caret line stays centered" },
+            { label: "Hide interface and dim other sentences", value: "The same, but only the sentence you're writing stays at full strength" },
           ]}
         />
         <p>
@@ -343,11 +347,15 @@ graph TD
     body: (
       <>
         <p>
-          Open the command palette and run <strong>New board</strong> (with a vault open). It
-          creates <code>Untitled.board.md</code> in your New Notes folder and opens it as a canvas.
-          If the name is taken you get <code>Untitled (1).board.md</code>.
+          Open the command palette and run <strong>New board</strong> (with a vault open). It asks
+          for the board&apos;s name, creates <code>Sprint plan.board.md</code> (for a board named
+          Sprint plan) in your New Notes folder and opens it as a canvas.
+          If the name is taken you get <code>Sprint plan (1).board.md</code>.
+          To link a new board from the note you&apos;re writing, type <code>/board</code>: it asks for
+          the name, creates the board without leaving the note and inserts a link to it (a board
+          that already has that name is linked as it is).
           You can also start one from an empty note: click the <strong>Board</strong> pill under the
-          first line (from a fresh, unsaved note it creates a new board file), or pick{" "}
+          first line (from a fresh, unsaved note it asks for a name and creates a new board file), or pick{" "}
           <strong>Board</strong> when a missing link asks how to create its note.
         </p>
         <p>
@@ -422,6 +430,53 @@ graph TD
     ),
   },
   {
+    id: "embeds",
+    title: "Embedding notes and files",
+    lead: "Show another note, a CSV table, an image or a code file inside this one: ![[Note name]] or /path on a line of its own.",
+    keywords: "embed transclude transclusion include note section heading ![[ csv table image picture code file slash compile book chapters",
+    body: (
+      <>
+        <p>
+          Put <code>![[Note name]]</code> on a line of its own and the note&apos;s text shows
+          right under it, read-only. The line stays as you typed it. Add a heading to show only
+          that section: <code>![[Roadmap#Q3 goals]]</code> shows the Q3 goals heading and
+          everything under it, up to the next heading of the same level.
+        </p>
+        <p>
+          A line holding only a slash and a file name works too, and not only for notes:
+        </p>
+        <KV
+          rows={[
+            { label: "/Chapter 1.md", value: "The note's text" },
+            { label: "/data/sales.csv", value: "A table; the first row is the header" },
+            { label: "/assets/chart.png", value: "The image (png, jpg, gif, webp, svg, avif)" },
+            { label: "/scripts/auth.ts", value: "The code with syntax colours (most languages, plus txt and log); long files show their first 400 lines" },
+          ]}
+        />
+        <p>
+          A file path is looked up next to the note first, then from the vault root. Start a line
+          with <code>/</code> and type the start of a note&apos;s name: the rest of the best match
+          appears in faded text, and <code>Tab</code> (or <code>→</code>) accepts it. The slash
+          menu also lists matching notes; picking one writes its path for you.
+        </p>
+        <p>
+          Embeds stay current: a note open in a tab shows its unsaved edits, and other files are
+          checked again whenever you come back to the window, so a CSV you just changed in a
+          spreadsheet app shows its new rows. Click a note&apos;s name above its embed to open it.
+          Private notes stay hidden until you show them, and a board shows its caption.
+        </p>
+        <p>
+          To build one document from many, such as a book whose main note holds only{" "}
+          <code>/01-introduction.md</code>, <code>/02-analysis.md</code> and so on, use{" "}
+          <strong>Export as PDF</strong> or <strong>Download Compiled Markdown</strong>: every
+          embed is filled in, embeds inside embedded notes too, CSV files become tables, code
+          files code blocks, and images keep working. A note that would end up inside itself is
+          left as its line, so nothing loops.
+        </p>
+      </>
+    ),
+  },
+  {
     id: "slash-menu",
     title: "Slash menu",
     lead: "Type / at the start of a line or after a space for a searchable menu of insertable content, plus AI actions when AI is configured.",
@@ -439,6 +494,8 @@ graph TD
             { label: "Task", value: "Checklist task with status, due date & tags" },
             { label: "Table", value: "Starter table" },
             { label: "Code · Mermaid", value: "Fenced code / diagram block" },
+            { label: "Board", value: "Name a new drawing board and link it at the caret (with a vault open)" },
+            { label: "A note's name", value: "At the start of a line, matching notes are offered to embed as /path.md" },
             { label: "Callout · Collapse", value: "Callout / collapsed callout" },
             { label: "Frontmatter", value: "Insert or reveal the YAML block" },
             { label: "Template (/template, /tpl)", value: "Insert a template from your vault" },

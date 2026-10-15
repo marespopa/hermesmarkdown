@@ -12,6 +12,8 @@ import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy
 import { escapeHtml, noteToHtml, type PrintBlock } from "@/app/utils/print/note-html";
 import { printDate, printSettingsFrom, type PrintSettings } from "@/app/utils/print/print-settings";
 import { EXPORT_PDF_EVENT } from "../utils/open-helper-dialogs";
+import { vaultImagePath } from "../utils/note-embeds";
+import { useCompileEmbeds } from "./use-embed-reader";
 import { printDocument, printHtml } from "../utils/print-note";
 import { renderMermaid } from "../utils/render-mermaid";
 import { renderMathMl } from "../utils/render-math";
@@ -20,28 +22,8 @@ export const VEILED_REASON = "Show the note first: it's marked private";
 
 const REGEX_IMAGE_SRC = /!\[[^\]]*\]\(\s*<?([^)\s>]+)>?/g;
 
-// A vault image path for `src` relative to the note's folder: "../a.png"
-// from "journal/2026/x.md" is "journal/a.png"; "/a.png" is from the vault root.
-export function vaultImagePath(notePath: string, src: string): string | null {
-  let decoded: string;
-  try {
-    decoded = decodeURIComponent(src);
-  } catch {
-    decoded = src;
-  }
-  if (/^[a-z][a-z0-9+.-]*:/i.test(decoded)) return null;
-  const parts = decoded.startsWith("/") ? [] : notePath.split("/").slice(0, -1);
-  for (const segment of decoded.split("/")) {
-    if (!segment || segment === ".") continue;
-    if (segment === "..") {
-      if (!parts.length) return null;
-      parts.pop();
-    } else {
-      parts.push(segment);
-    }
-  }
-  return parts.length ? parts.join("/") : null;
-}
+// Moved to utils/note-embeds.ts; kept here for existing imports.
+export { vaultImagePath };
 
 async function renderBlock(block: PrintBlock): Promise<string> {
   try {
@@ -76,6 +58,7 @@ export function useExportPdf() {
   const metadata = useAtomValue(atom_fileMetadata);
   const revealAll = useAtomValue(atom_revealAllPrivate);
   const revealed = useAtomValue(atom_revealedPrivatePaths);
+  const compileEmbeds = useCompileEmbeds();
   const busy = useRef(false);
   const [job, setJobState] = useState<PdfJob | null>(null);
   // The job on show, so a replaced or dropped one's images are let go.
@@ -103,8 +86,10 @@ export function useExportPdf() {
     busy.current = true;
     const urls: string[] = [];
     try {
-      const text = store.get(atom_content);
       const notePath = store.get(atom_activeFilePath) ?? "draft";
+      // Embed lines print what they embed, nested embeds included; private
+      // and unreadable files keep their lines.
+      const text = await compileEmbeds(store.get(atom_content), notePath);
       const vaultHandle = store.get(atom_vaultHandle);
       const images = new Map<string, string>();
       if (vaultHandle && notePath !== "draft") {
@@ -137,7 +122,7 @@ export function useExportPdf() {
     } finally {
       busy.current = false;
     }
-  }, [store, disabledReason, setJob]);
+  }, [store, disabledReason, setJob, compileEmbeds]);
 
   // Cancel: the dialog closes and the images are let go.
   const close = useCallback(() => setJob(null), [setJob]);
