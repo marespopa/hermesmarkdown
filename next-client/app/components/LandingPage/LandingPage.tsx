@@ -10,6 +10,11 @@ import LoadingOverlay from "@/app/components/LoadingOverlay/LoadingOverlay";
 import Button from "@/app/components/Button/Button.component";
 import Toast from "@/app/components/Toast";
 import { FiFileText } from "react-icons/fi";
+import { LANDING_FAQ, LANDING_FEATURES, LANDING_PLATFORMS } from "./landing-content";
+
+const SECTION = "container max-w-screen-xl border-t border-black/5 py-20 dark:border-white/10";
+const H2 = "text-2xl font-bold tracking-tight md:text-3xl";
+const BODY = "leading-relaxed text-neutral-600 dark:text-neutral-400";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -86,6 +91,75 @@ export default function LandingPage() {
             Private by default. Your notes stay in files you control.
           </p>
         </div>
+      </section>
+
+      <section className={SECTION} aria-labelledby="landing-features">
+        <div className="max-w-3xl space-y-4">
+          <h2 id="landing-features" className={H2}>
+            A local-first Markdown editor in your browser
+          </h2>
+          <p className={`text-lg ${BODY}`}>
+            HermesMarkdown edits plain Markdown files where they already live.
+            There is nothing to install and nothing to sign up for, and your
+            notes stay readable by any other editor or tool.
+          </p>
+        </div>
+        <ul className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+          {LANDING_FEATURES.map((feature) => (
+            <li key={feature.title} className="space-y-2">
+              <h3 className="text-ui-callout font-semibold">{feature.title}</h3>
+              <p className={BODY}>{feature.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className={SECTION} aria-labelledby="landing-platforms">
+        <div className="max-w-3xl space-y-4">
+          <h2 id="landing-platforms" className={H2}>
+            Works in every modern browser
+          </h2>
+          <p className={`text-lg ${BODY}`}>
+            Where your notes live depends on what the browser allows.
+          </p>
+        </div>
+        <ul className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-3">
+          {LANDING_PLATFORMS.map((platform) => (
+            <li key={platform.title} className="space-y-2">
+              <h3 className="text-ui-callout font-semibold">{platform.title}</h3>
+              <p className={BODY}>{platform.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className={SECTION} aria-labelledby="landing-faq">
+        <h2 id="landing-faq" className={H2}>
+          Questions
+        </h2>
+        <dl className="mt-10 max-w-3xl space-y-8">
+          {LANDING_FAQ.map(({ q, a }) => (
+            <div key={q} className="space-y-2">
+              <dt className="font-semibold">{q}</dt>
+              <dd className={BODY}>{a}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className={`mt-12 max-w-3xl ${BODY}`}>
+          New to Markdown? Read{" "}
+          <Link href="/markdown-editor" className="font-semibold text-fg underline-offset-4 hover:underline">
+            what a Markdown editor is
+          </Link>
+          , try the{" "}
+          <Link href="/tools" className="font-semibold text-fg underline-offset-4 hover:underline">
+            free Markdown tools
+          </Link>
+          , or browse the{" "}
+          <Link href="/documentation" className="font-semibold text-fg underline-offset-4 hover:underline">
+            documentation
+          </Link>
+          .
+        </p>
       </section>
     </main>
   );
