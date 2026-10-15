@@ -41,7 +41,7 @@ export default function WhatIsHermesMd() {
             </Button>
             <div className="space-y-4">
               <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05]">
-                Is <span className="text-neutral-600 dark:text-neutral-400 italic font-serif">HermesMarkdown</span>{" "}
+                Is <span className="text-neutral-600 dark:text-neutral-400 italic">HermesMarkdown</span>{" "}
                 the same as Hermes Agent?
               </h1>
             </div>

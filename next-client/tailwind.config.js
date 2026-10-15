@@ -42,21 +42,6 @@ module.exports = {
           "ui-sans-serif",
           "sans-serif",
         ],
-        display: [
-          "var(--font-plus-jakarta)",
-          "var(--font-inter)",
-          "system-ui",
-          "-apple-system",
-          "ui-sans-serif",
-          "sans-serif",
-        ],
-        serif: [
-          "var(--font-source-serif)",
-          "New York",
-          "ui-serif",
-          "Georgia",
-          "serif",
-        ],
         mono: [
           "var(--font-geist-mono)",
           "SF Mono",
@@ -65,8 +50,6 @@ module.exports = {
           "Menlo",
           "monospace",
         ],
-        sourcecode: ["Source Code Pro", "ui-monospace", "monospace"],
-        journal: ["Georgia", "ui-serif", "serif"],
       },
       colors: {
         // ── Semantic tokens (CSS-var backed — dark mode is automatic) ──

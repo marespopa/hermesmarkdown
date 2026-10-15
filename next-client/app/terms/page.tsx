@@ -34,7 +34,7 @@ export default function TermsAndConditions() {
           <div className="space-y-4">
             <h1 className="text-5xl md:text-8xl font-bold tracking-tight leading-[1.05]">
               Terms of{" "}
-              <span className="text-neutral-600 dark:text-neutral-400 italic font-serif">
+              <span className="text-neutral-600 dark:text-neutral-400 italic">
                 Service.
               </span>
             </h1>

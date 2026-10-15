@@ -139,7 +139,7 @@ export default function SelectionToolbar({ placement, onAsk, isAiLoading = false
           <BlockTypeMenu view={view} keepFocus={keepFocus} opensUp={placement === "docked"} />
           <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-edge" />
           {formatButton("Bold", `Bold (${formatShortcut("B")})`, toggleBold, "B", "font-bold")}
-          {formatButton("Italic", `Italic (${formatShortcut("I")})`, toggleItalic, "I", "italic font-serif")}
+          {formatButton("Italic", `Italic (${formatShortcut("I")})`, toggleItalic, "I", "italic")}
           {formatButton("Link", `Link (${formatShortcut("L", { shift: true })})`, wrapAsLink, <HiOutlineLink size={15} />)}
           {onAsk && !isAiLoading && (
             <>

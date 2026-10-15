@@ -38,7 +38,7 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="min-h-screen overflow-x-hidden font-display selection:bg-sage/30">
+    <main className="min-h-screen overflow-x-hidden font-sans selection:bg-sage/30">
       <LoadingOverlay isVisible={showLoading} text="Opening editor..." />
 
       <Toast

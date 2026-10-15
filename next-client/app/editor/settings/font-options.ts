@@ -1,8 +1,7 @@
-import { EDITORIAL_FONT_STACK, MONO_FONT_STACK, SERIF_FONT_STACK, UI_FONT_STACK } from "@/app/atoms/ui-atoms";
+import { MONO_FONT_STACK, UI_FONT_STACK } from "@/app/atoms/ui-atoms";
 
+// The writing font: the app's two typefaces.
 export const FONTS = [
-  { label: "Plus Jakarta Sans", value: EDITORIAL_FONT_STACK },
-  { label: "Source Serif 4", value: SERIF_FONT_STACK },
   { label: "Inter", value: UI_FONT_STACK },
   { label: "Geist Mono", value: MONO_FONT_STACK },
 ];

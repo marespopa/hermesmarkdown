@@ -49,18 +49,15 @@ export const atom_sidebarCollapsed = atomWithStorage<Record<string, boolean>>("s
 // Each stack falls back to the Apple system face with the same role.
 export const MONO_FONT_STACK =
   'var(--font-geist-mono), "SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
-export const EDITORIAL_FONT_STACK =
-  "var(--font-plus-jakarta), system-ui, -apple-system, ui-sans-serif, sans-serif";
-export const SERIF_FONT_STACK =
-  'var(--font-source-serif), "New York", ui-serif, Georgia, serif';
 export const UI_FONT_STACK =
   "var(--font-inter), system-ui, -apple-system, ui-sans-serif, sans-serif";
 export const atom_editorFontFamily = atomWithStorage<string>(
   "editorFontFamily",
-  EDITORIAL_FONT_STACK,
+  UI_FONT_STACK,
 );
 // Saved choices from older versions move to their closest current equivalent:
-// IBM Plex Mono to Geist Mono, older stack strings to the current ones (so the
+// IBM Plex Mono to Geist Mono, the retired Plus Jakarta Sans and Source Serif
+// to Inter, older stack strings to the current ones (so the
 // picker still shows them as selected), and the 14–22px sizes up one pixel
 // onto the Dynamic Type steps. Every target is a current value, so this is
 // safe to run on each load.
@@ -75,8 +72,8 @@ const LEGACY_TEXT_SIZES: Record<string, string> = {
 const FONT_STACKS_BY_VARIABLE: [string, string][] = [
   ["--font-ibm-mono", MONO_FONT_STACK],
   ["--font-geist-mono", MONO_FONT_STACK],
-  ["--font-plus-jakarta", EDITORIAL_FONT_STACK],
-  ["--font-source-serif", SERIF_FONT_STACK],
+  ["--font-plus-jakarta", UI_FONT_STACK],
+  ["--font-source-serif", UI_FONT_STACK],
   ["--font-inter", UI_FONT_STACK],
 ];
 
