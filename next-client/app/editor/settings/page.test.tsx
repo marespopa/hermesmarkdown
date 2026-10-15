@@ -128,7 +128,7 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("button", { name: "Hide from lists" })).toBeInTheDocument();
   });
 
-  it("offers one Focus setting with three levels", () => {
+  it("offers one Focus setting with four levels", () => {
     const setFocusMode = vi.fn();
     (useAtom as any).mockImplementation((atom: any) => {
       if (atom === atom_focusMode) return ["hide", setFocusMode];
@@ -145,6 +145,7 @@ describe("SettingsPage", () => {
       "Off",
       "Hide interface while typing",
       "Hide interface and dim other paragraphs",
+      "Hide interface and dim other sentences",
     ]);
     fireEvent.change(focus, { target: { value: "dim" } });
     expect(setFocusMode).toHaveBeenCalledWith("dim");
