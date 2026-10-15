@@ -36,7 +36,7 @@ export default function ToolShell({ tool, openInWorkspace, children }: Props) {
               <li aria-current="page" className="text-fg">{tool.name}</li>
             </ol>
           </nav>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.05]">{tool.name}</h1>
+          <h1 className="text-4xl md:text-6xl font-hero font-normal tracking-tight leading-[1.05]">{tool.name}</h1>
           <p className={`text-lg md:text-xl max-w-2xl ${MUTED}`}>{tool.lead}</p>
         </header>
 

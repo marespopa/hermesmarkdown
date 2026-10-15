@@ -65,7 +65,7 @@ export const atom_sidebarCollapsed = atomWithStorage<Record<string, boolean>>("s
 export const MONO_FONT_STACK =
   'var(--font-geist-mono), "SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
 export const UI_FONT_STACK =
-  "var(--font-inter), system-ui, -apple-system, ui-sans-serif, sans-serif";
+  "var(--font-plus-jakarta), system-ui, -apple-system, ui-sans-serif, sans-serif";
 // The duospaced writing face (fonts.ts) falls back to the monospace stack.
 export const DUOSPACE_FONT_STACK = `var(--font-duospace), ${MONO_FONT_STACK}`;
 // The proportional writing face (fonts.ts) falls back to the sans stack.
@@ -75,9 +75,9 @@ export const atom_editorFontFamily = atomWithStorage<string>(
   MONO_FONT_STACK,
 );
 // Saved choices from older versions move to their closest current equivalent:
-// IBM Plex Mono to Geist Mono; for writing, Inter (no longer offered there)
-// and the retired Plus Jakarta Sans and Source Serif to Quattro, the
-// proportional writing face; for reading they go to Inter; older stack
+// IBM Plex Mono to Geist Mono; for writing, Inter, Plus Jakarta Sans and
+// Source Serif (none offered there) to Quattro, the proportional writing
+// face; for reading they go to the interface sans; older stack
 // strings to the current ones (so the
 // picker still shows them as selected), and the 14–22px sizes up one pixel
 // onto the Dynamic Type steps. Every target is a current value, so this is
@@ -91,8 +91,9 @@ const LEGACY_TEXT_SIZES: Record<string, string> = {
 };
 
 // First match wins, so stacks that fall back to another face's variable
-// (Duospace to Geist Mono, Quattro to Inter) are checked before it. A saved
-// sans goes to `sans`: Quattro for writing, Inter for reading.
+// (Duospace to Geist Mono, Quattro to Plus Jakarta Sans) are checked before
+// it. A saved sans goes to `sans`: Quattro for writing, the interface sans
+// for reading.
 const fontStacksByVariable = (sans: string): [string, string][] => [
   ["--font-duospace", DUOSPACE_FONT_STACK],
   ["--font-quattro", QUATTRO_FONT_STACK],

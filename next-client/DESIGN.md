@@ -157,7 +157,7 @@ Add it directly to `tailwind.config.js` under the relevant group. Document wheth
 
 ## Typography Scale
 
-Defined in `tailwind.config.js` as custom `fontSize` entries. Sizes and line heights follow Apple's HIG text styles (iOS Dynamic Type "Large" defaults); tracking follows Inter's dynamic metrics, tightening as the size grows.
+Defined in `tailwind.config.js` as custom `fontSize` entries. Sizes and line heights follow Apple's HIG text styles (iOS Dynamic Type "Large" defaults); tracking tightens as the size grows (first tuned for Inter, kept for Plus Jakarta Sans).
 
 | Token | Size | Line height | HIG style | Use |
 |---|---|---|---|---|
@@ -175,14 +175,15 @@ Defined in `tailwind.config.js` as custom `fontSize` entries. Sizes and line hei
 
 ## Font Families
 
-Two self-hosted faces (`app/fonts.ts`): Inter for everything sans, Geist Mono for code. Every stack falls back to the Apple system face with the same role. Two more are writing-only options, both built on IBM Plex and bundled unmodified under the SIL OFL (licence alongside the files), loaded only when picked: Duospace (`app/font-files/duospace/`, duospaced) and Quattro (`app/font-files/quattro/`, proportional).
+Three self-hosted faces (`app/fonts.ts`), the "Editorial Craft" pairing: Plus Jakarta Sans for everything sans, Instrument Serif for the hero headings of the landing and marketing pages, and Geist Mono for code. The sans and hero stacks are the `--landing-body` and `--landing-hero` tokens in `globals.scss`; every stack falls back to a system face with the same role. Two more are writing-only options, both built on IBM Plex and bundled unmodified under the SIL OFL (licence alongside the files), loaded only when picked: Duospace (`app/font-files/duospace/`, duospaced) and Quattro (`app/font-files/quattro/`, proportional).
 
 | Token | Stack | Use |
 |---|---|---|
-| `font-sans` | Inter → system-ui (SF Pro) | UI chrome, labels, buttons, headings (also the `body` default) |
+| `font-sans` | Plus Jakarta Sans → system-ui (SF Pro) | UI chrome, labels, buttons, headings (also the `body` default) |
+| `font-hero` | Instrument Serif → Georgia → serif | The `h1` of the landing, docs, tools, legal, contact and error pages. One weight: use with `font-normal` |
 | `font-mono` | Geist Mono → SF Mono → Menlo | The default writing face, code, keyboard chips, technical metadata |
 
-The editor font is user-selectable (Settings → Typography) from `app/editor/settings/font-options.ts`: Geist Mono (default), Duospace (set without tracking, like the monospace: `data-font="mono"`) or Quattro. Inter is the interface face only; a saved Inter writing choice, and the retired Plus Jakarta Sans and Source Serif 4, move to Quattro on load. Text size offers the Dynamic Type body steps 15 / 17 (default) / 19 / 21 / 23px. Those two are the only typography settings. Line height (1.65), the reading measure (≤ 44rem / 704px, the same at every text size), heading rhythm and code styling are fixed in `app/editor/editor-typography.scss`.
+The editor font is user-selectable (Settings → Typography) from `app/editor/settings/font-options.ts`: Geist Mono (default), Duospace (set without tracking, like the monospace: `data-font="mono"`) or Quattro. Plus Jakarta Sans is the interface face only; a saved sans writing choice (Inter, Plus Jakarta Sans) and the retired Source Serif 4 move to Quattro on load, and a saved Inter or Source Serif reading font moves to Plus Jakarta Sans. Text size offers the Dynamic Type body steps 15 / 17 (default) / 19 / 21 / 23px. Those two are the only typography settings. Line height (1.65), the reading measure (≤ 44rem / 704px, the same at every text size), heading rhythm and code styling are fixed in `app/editor/editor-typography.scss`.
 
 ---
 

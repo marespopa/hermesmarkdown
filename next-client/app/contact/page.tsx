@@ -33,7 +33,7 @@ export default function ContactPage() {
           </Button>
 
           <div className="space-y-4">
-            <h1 className="text-5xl md:text-8xl font-bold tracking-tight leading-[1.05]">
+            <h1 className="text-5xl md:text-8xl font-hero font-normal tracking-tight leading-[1.05]">
               Get in{" "}
               <span className="text-neutral-600 dark:text-neutral-400 italic">
                 Touch.

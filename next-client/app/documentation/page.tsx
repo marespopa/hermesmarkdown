@@ -9,8 +9,8 @@ import DocsLocalNav from "./components/DocsLocalNav";
 import DocsSidebar from "./components/DocsSidebar";
 import TopicCards from "./components/TopicCards";
 
-// The system UI font first (SF Pro on Apple devices), the app's Inter after.
-const DOCS_FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", var(--font-inter), system-ui, sans-serif';
+// The system UI font first (SF Pro on Apple devices), the app's sans after.
+const DOCS_FONT = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", var(--font-plus-jakarta), system-ui, sans-serif';
 const LOCAL_NAV_HEIGHT = 48;
 
 // Article body typography, applied to whatever the content modules render.

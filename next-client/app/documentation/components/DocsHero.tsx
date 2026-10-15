@@ -18,7 +18,7 @@ export default function DocsHero({ query, onQueryChange, resultCount }: DocsHero
   return (
     <section className="text-center pt-14 pb-12 sm:pt-24 sm:pb-16 animate-hero-fade-in">
       <p className="text-[17px] font-semibold text-fg-muted">HermesMarkdown Documentation</p>
-      <h1 className="mt-2 text-[40px] sm:text-[56px] font-semibold tracking-[-0.03em] leading-[1.07] text-fg">
+      <h1 className="mt-2 text-[40px] sm:text-[56px] font-hero font-normal tracking-[-0.01em] leading-[1.07] text-fg">
         How can we help?
       </h1>
       <p className="mt-4 mx-auto max-w-2xl text-[19px] sm:text-[21px] leading-snug text-fg-muted">

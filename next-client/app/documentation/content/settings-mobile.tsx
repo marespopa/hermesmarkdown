@@ -8,7 +8,7 @@ export const settingsGroup: Group = {
     {
       id: "appearance",
       title: "Appearance",
-      lead: "Theme and a small editorial typeface pair shape the editor's paper-like writing surface.",
+      lead: "Pick a theme, the font you write in and the text size.",
       keywords: "theme dark light font typography text size sidebar layout full width focus",
       body: (
         <>

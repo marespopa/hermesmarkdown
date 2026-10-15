@@ -31,7 +31,7 @@ export default function ToolsPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumb) }} />
       <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-28 pb-28 space-y-12">
         <header className="space-y-4">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.05]">Free tools</h1>
+          <h1 className="text-4xl md:text-6xl font-hero font-normal tracking-tight leading-[1.05]">Free tools</h1>
           <p className="text-lg md:text-xl max-w-2xl text-fg-muted leading-relaxed">{DESCRIPTION}</p>
         </header>
         <ul className="grid gap-4 sm:grid-cols-2">

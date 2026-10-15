@@ -1,17 +1,25 @@
-import { Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono, Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import localFont from "next/font/local";
 
-// Inter for the interface, Geist Mono for code and writing, and two
-// writing-only faces, Duospace and Quattro. Fallbacks name the matching
-// Apple system face so a slow network still lands on something with the same
-// voice.
+// Plus Jakarta Sans for the interface, Instrument Serif for the marketing
+// pages' hero headings, Geist Mono for code and writing, and two writing-only
+// faces, Duospace and Quattro. Fallbacks name the matching system face so a
+// slow network still lands on something with the same voice.
 
-// Interface and headings. A variable font
-// whose metrics sit close to SF Pro; the ui-* type scale (tailwind.config.js)
-// is tracked for it.
-export const inter = Inter({
+// Interface, body text and headings: a warm, humanist variable sans.
+export const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-plus-jakarta",
+  display: "swap",
+});
+
+// Hero headings on the landing and marketing pages (`font-hero`). One weight;
+// the italic covers emphasis inside a headline.
+export const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-instrument-serif",
   display: "swap",
 });
 
