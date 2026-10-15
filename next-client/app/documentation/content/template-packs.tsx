@@ -9,7 +9,7 @@ export const templatePacksItem: Subsection = {
   title: "Template packs",
   lead: "Keep your templates in packs, add the ones HermesMarkdown ships, and keep a journal with them.",
   keywords:
-    "template packs templates page manage edit duplicate delete pack folder journal daily weekly monthly yearly diary dated note today week month year meetings writing book note projects prd requirements engineering readme adr decision record add to vault reuse",
+    "template packs templates page manage edit duplicate delete pack folder journal daily weekly monthly yearly diary dated note today week month year meetings writing book note projects prd requirements engineering readme adr decision record finance budget expenses savings subscriptions money table formulas add to vault reuse",
   body: (
     <>
       <p>
@@ -40,12 +40,19 @@ export const templatePacksItem: Subsection = {
           { label: "Writing", value: "Draft, Outline, Book note" },
           { label: "Projects", value: "Project brief, PRD, Spec, Report" },
           { label: "Engineering", value: "README, Decision record" },
+          { label: "Finance", value: "Monthly budget, Expense log, Savings goals, Subscriptions" },
         ]}
       />
       <p>
         <strong>Add to vault</strong> copies a pack&apos;s templates into <code>templates/</code> as files
         you own. A file you already have is never replaced: the button says how many are missing, and{" "}
         <strong>Added</strong> once you have them all.
+      </p>
+      <p>
+        The Finance templates are tables with formulas: type amounts over the zeros and the totals
+        update. The monthly budget&apos;s summary adds up its Income and Expenses tables by name, so add
+        or remove rows freely; in Savings goals and Subscriptions, copy a row&apos;s formula when you add
+        one.
       </p>
       <h4 className={h4}>A journal from templates</h4>
       <p>

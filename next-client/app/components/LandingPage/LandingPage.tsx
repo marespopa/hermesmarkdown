@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -10,6 +10,7 @@ import LoadingOverlay from "@/app/components/LoadingOverlay/LoadingOverlay";
 import Button from "@/app/components/Button/Button.component";
 import Toast from "@/app/components/Toast";
 import { FiFileText } from "react-icons/fi";
+import FloatingStartButton from "./FloatingStartButton";
 import { LANDING_FAQ, LANDING_FEATURES, LANDING_PLATFORMS } from "./landing-content";
 
 const SECTION = "container max-w-screen-xl border-t border-black/5 py-20 dark:border-white/10";
@@ -24,6 +25,7 @@ export default function LandingPage() {
   const [showLoading, setShowLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const setResumeRequested = useSetAtom(atom_resumeRequested);
+  const heroCtaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -72,7 +74,7 @@ export default function LandingPage() {
             A Markdown editor that runs in your browser and saves straight to
             your device. No accounts, no cloud, nothing between you and the page.
           </p>
-          <div className="flex flex-col items-start gap-5 pt-2 sm:flex-row sm:items-center">
+          <div ref={heroCtaRef} className="flex flex-col items-start gap-5 pt-2 sm:flex-row sm:items-center">
             <Button
               variant="hero"
               onClick={handleStart}
@@ -161,6 +163,8 @@ export default function LandingPage() {
           .
         </p>
       </section>
+
+      <FloatingStartButton heroRef={heroCtaRef} onStart={handleStart} />
     </main>
   );
 }

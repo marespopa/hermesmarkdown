@@ -239,7 +239,7 @@ describe("HomeFeed", () => {
         <HomeFeed hasVault={false} onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
       </Provider>,
     );
-    const field = screen.getByPlaceholderText("What should we call you?");
+    const field = screen.getByRole("textbox", { name: "Your name" });
     // Leaving the field empty saves nothing.
     fireEvent.blur(field);
     expect(store.get(atom_userName)).toBe("");
@@ -247,8 +247,25 @@ describe("HomeFeed", () => {
     fireEvent.change(field, { target: { value: "  Hermes " } });
     fireEvent.keyDown(field, { key: "Enter" });
     expect(store.get(atom_userName)).toBe("Hermes");
-    expect(screen.queryByPlaceholderText("What should we call you?")).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "Your name" })).not.toBeInTheDocument();
     expect(screen.getByText(/, Hermes!$/)).toBeInTheDocument();
+  });
+
+  it("asks for a name with a Save button that waits for one", () => {
+    localStorage.clear();
+    const store = createStore();
+    render(
+      <Provider store={store}>
+        <HomeFeed hasVault={false} onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
+      </Provider>,
+    );
+    expect(screen.getByRole("region", { name: "What should we call you?" })).toBeInTheDocument();
+    const save = screen.getByRole("button", { name: "Save" });
+    expect(save).toBeDisabled();
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Your name" }), { target: { value: "Hermes" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(store.get(atom_userName)).toBe("Hermes");
   });
 
   it("doesn't ask for a name already stored", () => {
@@ -258,7 +275,7 @@ describe("HomeFeed", () => {
         <HomeFeed hasVault={false} onOpenNote={vi.fn()} onNewNote={vi.fn()} onSearch={vi.fn()} onClose={vi.fn()} />
       </Provider>,
     );
-    expect(screen.queryByPlaceholderText("What should we call you?")).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "Your name" })).not.toBeInTheDocument();
     localStorage.clear();
   });
 
@@ -409,9 +426,10 @@ describe("HomeFeed", () => {
     }
   });
 
-  it("shows a quiet start prompt for an empty vault", () => {
+  it("says an empty vault has no notes and offers a Start writing button", () => {
     const { onNewNote } = renderFeed({});
     expect(screen.queryByRole("option")).not.toBeInTheDocument();
+    expect(screen.getByText("No notes in this vault yet.")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Start writing" }));
     expect(onNewNote).toHaveBeenCalled();
   });

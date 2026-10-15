@@ -8,6 +8,7 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
 import { atom_homeFeedTopRequest, atom_indexerState, atom_userName } from "@/app/atoms/ui-atoms";
 import { atom_templatesFolder } from "@/app/atoms/template-atoms";
+import { HiOutlinePencilAlt } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import FeedBar from "./home-feed/FeedBar";
 import FeedHeader from "./home-feed/FeedHeader";
@@ -233,9 +234,14 @@ export default function HomeFeed({ onOpenNote, onNewNote, onSearch, onClose, isS
         ) : feed.length === 0 && isIndexing ? (
           <FeedSkeleton />
         ) : feed.length === 0 ? (
-          <Button variant="bare" onClick={onNewNote} className="text-ui-body text-fg-muted">
-            Start writing
-          </Button>
+          // An empty vault: say so, and offer the first note as a real button.
+          <div className="flex flex-col items-start gap-4">
+            <p className="text-ui-body text-fg-muted">No notes in this vault yet.</p>
+            <Button variant="primary" onClick={onNewNote}>
+              <HiOutlinePencilAlt size={18} aria-hidden="true" />
+              Start writing
+            </Button>
+          </div>
         ) : shouldVirtualize ? (
           <div
             ref={listRef}

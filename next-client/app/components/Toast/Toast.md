@@ -1,6 +1,6 @@
 # Toast
 
-Description: Persistent call-to-action card with icon, title, action button, and an optional inline name field. When the card appears, the action button takes focus, so Enter takes the action; with a name field, the field takes focus instead and Enter in it takes the action.
+Description: Persistent call-to-action card with icon, title, action button, and an optional inline name field, on the panel material (`.glass-panel`, see DESIGN.md) with the description in `text-fg-muted` so it reads over the page behind. When the card appears, the action button takes focus, so Enter takes the action; with a name field, the field takes focus instead and Enter in it takes the action.
 
 ## Local State & Storage
 - State: Dismissed and closing flags (useState).

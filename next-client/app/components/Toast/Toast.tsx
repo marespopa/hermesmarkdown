@@ -59,7 +59,7 @@ export default function Toast({
             <p className="text-ui-footnote font-bold uppercase tracking-wider text-sage dark:text-sage">
               {title}
             </p>
-            <p className="text-xs opacity-60">{description}</p>
+            <p className="text-xs text-fg-muted">{description}</p>
           </div>
           {!hasNameField && (
             // Focused on show, so Enter takes the action (the name field

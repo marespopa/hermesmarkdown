@@ -81,7 +81,7 @@ Anything that floats over the page is frosted glass, Apple-style: a tint of the 
 | Class | Use | Tint |
 |-------|-----|------|
 | `glass-bar` | Bars over the page: pane tab bar, sidebar, mobile file bar, Files list header, Settings sidebar | `--material-bar` (72% `--chrome`) |
-| `glass-panel` | Floating panels: menus, popovers, tooltips, toasts, the command palette, dialogs, the selection toolbar, the slash menu and find bar | `--material-panel` (78% `--overlay`) |
+| `glass-panel` | Floating panels: menus, popovers, tooltips, toasts (the welcome-back card and react-hot-toast notifications), the command palette, dialogs, the mobile navigation menu, the selection toolbar, the slash menu and find bar | `--material-panel` (90% `--overlay`: mostly opaque, so text on it reads over a busy page) |
 
 - Tokens: `--material-bar`, `--material-panel`, `--material-blur` (`blur(24px) saturate(180%)`), `--material-edge`, `--material-highlight`, `--material-shadow`. Styles set from script (CodeMirror themes) use the tokens directly.
 - `glass-bar` draws its glass on a `::before` layer behind the content, never on the element: a `backdrop-filter` on the parent of a scroll area sends the wheel to whatever scrolls underneath in Chromium. `glass-panel` blurs the element itself, so enter animations keep the blur.
