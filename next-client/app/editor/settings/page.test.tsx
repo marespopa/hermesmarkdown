@@ -33,7 +33,7 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
 });
 
 import { useAtom } from "jotai";
-import { UI_FONT_STACK, atom_focusMode } from "@/app/atoms/ui-atoms";
+import { QUATTRO_FONT_STACK, atom_focusMode } from "@/app/atoms/ui-atoms";
 import { atom_aiProvider, atom_availableClaudeModels } from "@/app/atoms/atoms";
 
 // Helper: switch to the "Editor" category so its controls render.
@@ -66,8 +66,9 @@ describe("SettingsPage", () => {
     // Typography is the default-active section — no nav click needed.
     expect(screen.getByText("Font")).toBeInTheDocument();
     expect(screen.getByText("Geist Mono")).toBeInTheDocument();
-    expect(screen.getByText("Inter")).toBeInTheDocument();
     expect(screen.getByText("Duospace")).toBeInTheDocument();
+    expect(screen.getByText("Quattro")).toBeInTheDocument();
+    expect(screen.queryByText("Inter")).not.toBeInTheDocument();
     expect(screen.queryByText("Source Serif 4")).not.toBeInTheDocument();
     expect(screen.queryByText("Plus Jakarta Sans")).not.toBeInTheDocument();
     expect(screen.getByText("Full Width")).toBeInTheDocument();
@@ -83,8 +84,8 @@ describe("SettingsPage", () => {
     });
 
     render(<SettingsPage />);
-    fireEvent.click(screen.getByText("Inter"));
-    expect(setEditorFontFamily).toHaveBeenCalledWith(UI_FONT_STACK);
+    fireEvent.click(screen.getByText("Quattro"));
+    expect(setEditorFontFamily).toHaveBeenCalledWith(QUATTRO_FONT_STACK);
   });
 
   it("renders editor settings options", () => {
