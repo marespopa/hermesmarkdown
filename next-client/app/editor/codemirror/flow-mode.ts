@@ -1,4 +1,4 @@
-import { EditorState, type Extension, type Text } from "@codemirror/state";
+import { EditorState, type Extension, type Range, type Text } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 
 // Flow mode: a distraction-light writing mode with two parts.
@@ -70,34 +70,72 @@ export function sentenceRangeAt(doc: Text, pos: number, first: number, last: num
 
 const activeLine = Decoration.line({ class: "cm-flowActive" });
 const dimmedText = Decoration.mark({ class: "cm-flowDim" });
+// Text that just changed state as the caret moved to another sentence of the
+// same paragraph: it fades instead of switching. Marks are re-created spans,
+// so a CSS transition can't run on them; a one-off animation does, and the
+// next update drops these classes again.
+const fadingOut = Decoration.mark({ class: "cm-flowDim cm-flowDimEnter" });
+const fadingIn = Decoration.mark({ class: "cm-flowEnter" });
 
-function buildActiveRange(state: EditorState, level: FlowLevel): DecorationSet {
+interface Span {
+  from: number;
+  to: number;
+}
+
+// `range` dimmed, with the part inside `left` (the sentence just left) fading.
+function dimRange(ranges: Range<Decoration>[], range: Span, left: Span | null) {
+  if (range.from >= range.to) return;
+  const cutFrom = left ? Math.max(range.from, left.from) : range.to;
+  const cutTo = left ? Math.min(range.to, left.to) : range.to;
+  if (cutFrom >= cutTo) {
+    ranges.push(dimmedText.range(range.from, range.to));
+    return;
+  }
+  if (range.from < cutFrom) ranges.push(dimmedText.range(range.from, cutFrom));
+  ranges.push(fadingOut.range(cutFrom, cutTo));
+  if (cutTo < range.to) ranges.push(dimmedText.range(cutTo, range.to));
+}
+
+// The decorations, and the caret's sentence. `previous` is the sentence the
+// caret was in before a caret-only move, or null (typing, first build).
+export function buildActiveRange(
+  state: EditorState,
+  level: FlowLevel,
+  previous: Span | null = null,
+): { decorations: DecorationSet; sentence: Span | null } {
   const { doc } = state;
   const head = state.selection.main.head;
   const { first, last } = paragraphLinesAt(doc, head);
-  const ranges = [];
+  const ranges: Range<Decoration>[] = [];
   for (let n = first; n <= last; n++) ranges.push(activeLine.range(doc.line(n).from));
-  if (level === "sentence") {
-    const paraFrom = doc.line(first).from;
-    const paraTo = doc.line(last).to;
-    const { from, to } = sentenceRangeAt(doc, head, first, last);
-    if (from > paraFrom) ranges.push(dimmedText.range(paraFrom, from));
-    if (to < paraTo) ranges.push(dimmedText.range(to, paraTo));
-  }
-  return Decoration.set(ranges, true);
+  if (level !== "sentence") return { decorations: Decoration.set(ranges, true), sentence: null };
+  const paraFrom = doc.line(first).from;
+  const paraTo = doc.line(last).to;
+  const sentence = sentenceRangeAt(doc, head, first, last);
+  // Only a move to another sentence of this paragraph fades: entering a new
+  // paragraph already fades its lines in.
+  const moved = previous !== null
+    && (previous.from !== sentence.from || previous.to !== sentence.to)
+    && previous.from >= paraFrom && previous.to <= paraTo;
+  const left = moved ? previous : null;
+  dimRange(ranges, { from: paraFrom, to: sentence.from }, left);
+  if (moved && sentence.from < sentence.to) ranges.push(fadingIn.range(sentence.from, sentence.to));
+  dimRange(ranges, { from: sentence.to, to: paraTo }, left);
+  return { decorations: Decoration.set(ranges, true), sentence };
 }
 
 const focusPlugin = (level: FlowLevel) =>
   ViewPlugin.fromClass(
     class {
       decorations: DecorationSet;
+      sentence: Span | null;
       constructor(view: EditorView) {
-        this.decorations = buildActiveRange(view.state, level);
+        ({ decorations: this.decorations, sentence: this.sentence } = buildActiveRange(view.state, level));
       }
       update(update: ViewUpdate) {
-        if (update.docChanged || update.selectionSet) {
-          this.decorations = buildActiveRange(update.state, level);
-        }
+        if (!update.docChanged && !update.selectionSet) return;
+        const previous = update.docChanged ? null : this.sentence;
+        ({ decorations: this.decorations, sentence: this.sentence } = buildActiveRange(update.state, level, previous));
       }
     },
     { decorations: (plugin) => plugin.decorations },
@@ -135,15 +173,29 @@ const flowModeTheme = EditorView.theme({
   "&.cm-flowMode.cm-focused .cm-content > .cm-flowActive": {
     opacity: "1",
   },
-  ".cm-flowDim": {
-    transition: DIM_TRANSITION,
-  },
   "&.cm-flowMode.cm-focused .cm-flowDim": {
     opacity: "0.25",
   },
+  "&.cm-flowMode.cm-focused .cm-flowDimEnter": {
+    animation: "cm-flow-fade-out 200ms ease",
+  },
+  "&.cm-flowMode.cm-focused .cm-flowEnter": {
+    animation: "cm-flow-fade-in 200ms ease",
+  },
+  "@keyframes cm-flow-fade-out": {
+    from: { opacity: "1" },
+    to: { opacity: "0.25" },
+  },
+  "@keyframes cm-flow-fade-in": {
+    from: { opacity: "0.25" },
+    to: { opacity: "1" },
+  },
   "@media (prefers-reduced-motion: reduce)": {
-    "&.cm-flowMode .cm-content > *, .cm-flowDim": {
+    "&.cm-flowMode .cm-content > *": {
       transition: "none",
+    },
+    "&.cm-flowMode.cm-focused .cm-flowDimEnter, &.cm-flowMode.cm-focused .cm-flowEnter": {
+      animation: "none",
     },
   },
 });

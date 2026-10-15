@@ -39,6 +39,18 @@ export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
 export const FOCUS_MODES = ["off", "hide", "dim", "sentence"] as const;
 export type FocusMode = (typeof FOCUS_MODES)[number];
 export const atom_focusMode = atomWithChoiceStorage<FocusMode>("focusMode", FOCUS_MODES, "hide");
+// Toggle Sentence Focus (Ctrl/Cmd+Alt+F): sentence focus on, or back to the
+// level used before it ("hide" when there was none).
+const atom_focusBeforeSentence = atom<FocusMode>("hide");
+export const atom_toggleSentenceFocus = atom(null, (get, set) => {
+  const current = get(atom_focusMode);
+  if (current === "sentence") {
+    set(atom_focusMode, get(atom_focusBeforeSentence));
+    return;
+  }
+  set(atom_focusBeforeSentence, current);
+  set(atom_focusMode, "sentence");
+});
 // The window's sidebar (desktop): open notes and the vault's file tree, on the
 // leading edge. Hidden by default; toggled from the toolbar or Ctrl/Cmd+Alt+S.
 export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);

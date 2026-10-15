@@ -146,3 +146,48 @@ describe("flowMode at the sentence level", () => {
     parent.remove();
   });
 });
+
+describe("sentence fades", () => {
+  const TEXT = "Ship the build. Review the plan. Close the sprint.";
+  const classTexts = (view: EditorView, cls: string) =>
+    Array.from(view.contentDOM.querySelectorAll(`.${cls}`)).map((el) => el.textContent);
+
+  it("fades the sentence left out and the one entered in when the caret moves", () => {
+    const { parent, view } = createEditor(TEXT, TEXT.indexOf("Review"), "sentence");
+    expect(classTexts(view, "cm-flowDimEnter")).toEqual([]);
+
+    view.dispatch({ selection: EditorSelection.cursor(TEXT.indexOf("Close")), userEvent: "select" });
+    expect(classTexts(view, "cm-flowDimEnter")).toEqual(["Review the plan. "]);
+    expect(classTexts(view, "cm-flowEnter")).toEqual(["Close the sprint."]);
+    expect(classTexts(view, "cm-flowDim")).toEqual(["Ship the build. ", "Review the plan. "]);
+
+    view.destroy();
+    parent.remove();
+  });
+
+  it("doesn't fade while typing or when moving within the sentence", () => {
+    const { parent, view } = createEditor(TEXT, TEXT.indexOf("plan"), "sentence");
+
+    view.dispatch({ changes: { from: TEXT.indexOf("plan"), insert: "x" }, userEvent: "input.type" });
+    expect(classTexts(view, "cm-flowDimEnter")).toEqual([]);
+    expect(classTexts(view, "cm-flowEnter")).toEqual([]);
+
+    view.dispatch({ selection: EditorSelection.cursor(TEXT.indexOf("Review") + 1), userEvent: "select" });
+    expect(classTexts(view, "cm-flowEnter")).toEqual([]);
+
+    view.destroy();
+    parent.remove();
+  });
+
+  it("doesn't fade sentences when the caret enters another paragraph", () => {
+    const doc = `${TEXT}\n\nNext paragraph here.`;
+    const { parent, view } = createEditor(doc, doc.indexOf("Review"), "sentence");
+
+    view.dispatch({ selection: EditorSelection.cursor(doc.indexOf("Next")), userEvent: "select" });
+    expect(classTexts(view, "cm-flowEnter")).toEqual([]);
+    expect(classTexts(view, "cm-flowDimEnter")).toEqual([]);
+
+    view.destroy();
+    parent.remove();
+  });
+});

@@ -98,7 +98,10 @@ export const editorWritingItems: Subsection[] = [
       <>
         <p>
           Choose a level under Settings → Editor → Focus, or run one of the{" "}
-          <strong>Focus: …</strong> commands from the command palette.
+          <strong>Focus: …</strong> commands from the command palette.{" "}
+          <code>CTRL/CMD+ALT+F</code> (<strong>Toggle Sentence Focus</strong>) switches sentence
+          focus on, and back to the level you had before. As the caret moves from one sentence to
+          the next, the old one fades out and the new one fades in.
         </p>
         <KV
           rows={[
