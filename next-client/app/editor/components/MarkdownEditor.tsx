@@ -20,11 +20,11 @@ import { useCodeMirrorFeatures } from "../hooks/use-codemirror-features";
 import { useCodeMirrorTemplates } from "../hooks/use-codemirror-templates";
 import { useVaultTemplateInsert } from "../hooks/use-vault-template-insert";
 import { useEmptyNoteBoard } from "../hooks/use-empty-note-board";
+import { useInsertBoardLink } from "../hooks/use-insert-board-link";
 import { useCodeMirrorTable } from "../hooks/use-codemirror-table";
 import { useCrossFileTables } from "../hooks/use-cross-file-tables";
 import { formulaFileTablesField, setFormulaFileTables } from "../codemirror/table-formulas";
 import { useNoteEmbeds } from "../hooks/use-note-embeds";
-import { noteEmbedsDataField, setNoteEmbeds } from "../codemirror/note-embeds";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { openRenderedBlockAtCaret } from "../codemirror/rendered-block";
 import { useCodeMirrorCodeLanguagePicker } from "../hooks/use-codemirror-code-language-picker";
@@ -90,7 +90,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
 
-  const { createWikiLinkFile, vaultHandle, saveAsTemplate, createLinkedNoteFromTemplate } = useFileSystem();
+  const { createWikiLinkFile, vaultHandle, saveAsTemplate, createLinkedNoteFromTemplate, createLinkedBoard } = useFileSystem();
+  const insertBoardLink = useInsertBoardLink({ viewRef, createLinkedBoard });
   const insertVaultTemplate = useVaultTemplateInsert({ viewRef, filePath });
   const insertTemplate = useCallback(() => { void insertVaultTemplate(); }, [insertVaultTemplate]);
   const startBoard = useEmptyNoteBoard({ viewRef, filePath });
@@ -137,6 +138,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onInsertTemplateField: isTemplateNote ? insertTemplateField : undefined,
     onAskTemplateQuestion: askTemplateQuestion,
     onSaveAsTemplate: saveNoteAsTemplate,
+    onInsertBoard: vaultHandle ? () => { void insertBoardLink(); } : undefined,
   });
 
   useEffect(() => {
@@ -160,8 +162,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   // (async-loaded) snapshot to the table grid so results can resolve.
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const formulaFileTables = useCrossFileTables(props.value, fileMetadata, props.isActivePane !== false, props.filePath);
-  // `![[Note]]` lines show the note under them (codemirror/note-embeds.ts).
-  const noteEmbeds = useNoteEmbeds(props.value, fileMetadata, props.filePath, onWikiLinkClick);
 
   const image = useCodeMirrorImage({ viewRef, containerRef });
   const { imageInfo, onCursorActivity: onImageCursorActivity } = image;
@@ -259,9 +259,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     if (formulaFileTables.size === 0 && editorView.state.field(formulaFileTablesField, false)?.size === 0) return;
     editorView.dispatch({ effects: setFormulaFileTables.of(formulaFileTables) });
   }, [editorView, formulaFileTables]);
-  useEffect(() => {
-    if (editorView && editorView.state.field(noteEmbedsDataField, false) !== noteEmbeds) editorView.dispatch({ effects: setNoteEmbeds.of(noteEmbeds) });
-  }, [editorView, noteEmbeds]);
+  // `![[Note]]`, `/Note.md` and `/data.csv` lines show the file under them.
+  useNoteEmbeds(editorView, props.value, fileMetadata, props.filePath, onWikiLinkClick);
 
   useScrollToPendingTarget(editorView, filePath);
 

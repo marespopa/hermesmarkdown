@@ -4,8 +4,9 @@ import { noteToHtml } from "@/app/utils/print/note-html";
 import { currentRenderTheme, renderBlock } from "../utils/rendered-block-cache";
 import { embedKey, embedSection, findEmbeds, type EmbedRef } from "../utils/note-embeds";
 
-// A line holding only `![[Note]]` (or `![[Note#Heading]]`) shows that note's
-// text under it, read-only. The line itself stays as typed; the embed is a
+// A line holding only `![[Note]]` (or `![[Note#Heading]]`), `/Note.md` or
+// `/data.csv` shows that note's text, or the CSV as a table, under it,
+// read-only. The line itself stays as typed; the embed is a
 // block widget after it. Notes are read on the React side
 // (hooks/use-note-embeds.ts) and pushed in with `setNoteEmbeds`; an embed
 // whose note hasn't arrived yet shows "Loading…". Embeds inside an embed
@@ -87,16 +88,19 @@ class NoteEmbedWidget extends WidgetType {
     frame.className = "cm-note-embed-frame";
     wrapper.appendChild(frame);
 
-    const title = document.createElement("button");
-    title.type = "button";
+    // A note's title opens it; a CSV has nothing to open in the app.
+    const title = document.createElement(ref.kind === "note" ? "button" : "div");
     title.className = "cm-note-embed-title";
     title.textContent = ref.heading ? `${ref.target} › ${ref.heading}` : ref.target;
-    title.title = "Open the note";
-    title.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      view.state.field(noteEmbedsDataField, false)?.open?.(ref.target);
-    });
+    if (title instanceof HTMLButtonElement) {
+      title.type = "button";
+      title.title = "Open the note";
+      title.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        view.state.field(noteEmbedsDataField, false)?.open?.(ref.target);
+      });
+    }
     frame.appendChild(title);
 
     const measure = () => view.requestMeasure({
@@ -107,13 +111,13 @@ class NoteEmbedWidget extends WidgetType {
     });
 
     if (!content) frame.appendChild(message("Loading…"));
-    else if (content.kind === "missing") frame.appendChild(message("Note not found"));
+    else if (content.kind === "missing") frame.appendChild(message(ref.kind === "csv" ? "File not found" : "Note not found"));
     else if (content.kind === "self") frame.appendChild(message("A note can't embed itself"));
     else if (content.kind === "private") frame.appendChild(message("Private note: open it to read"));
     else {
       const section = embedSection(content.markdown, ref.heading);
       if (section === null) frame.appendChild(message(`No heading "${ref.heading}" in this note`));
-      else if (!section) frame.appendChild(message("Empty note"));
+      else if (!section) frame.appendChild(message(ref.kind === "csv" ? "Empty file" : "Empty note"));
       else {
         const body = document.createElement("div");
         body.className = "cm-note-embed-body";
@@ -135,7 +139,7 @@ class NoteEmbedWidget extends WidgetType {
 
 function buildDecorations(state: EditorState): DecorationSet {
   const text = state.doc.toString();
-  if (!text.includes("![[")) return Decoration.none;
+  if (!text.includes("![[") && !text.includes("/")) return Decoration.none;
   const { contents } = state.field(noteEmbedsDataField);
   const ranges: Range<Decoration>[] = findEmbeds(text).map(({ line, ref }) =>
     Decoration.widget({ widget: new NoteEmbedWidget(ref, contents.get(embedKey(ref))), block: true, side: 1 })

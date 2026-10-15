@@ -31,7 +31,7 @@ describe("noteEmbedsExtension", () => {
     const { view, cleanup } = createEditor("![[Roadmap#Q3]]");
     const open = vi.fn();
     const contents = new Map<string, EmbedContent>([
-      [embedKey({ target: "Roadmap", heading: "Q3" }), { kind: "note", path: "Roadmap.md", markdown: "# Roadmap\n## Q3\nShip **sync**\n## Q4\nLater" }],
+      [embedKey({ target: "Roadmap", heading: "Q3", kind: "note" }), { kind: "note", path: "Roadmap.md", markdown: "# Roadmap\n## Q3\nShip **sync**\n## Q4\nLater" }],
     ]);
     view.dispatch({ effects: setNoteEmbeds.of({ contents, open }) });
 
@@ -50,16 +50,27 @@ describe("noteEmbedsExtension", () => {
     [{ kind: "private" }, "Private note"],
   ] as [EmbedContent, string][])("shows a message for %j", (content, text) => {
     const { view, cleanup } = createEditor("![[Roadmap]]");
-    view.dispatch({ effects: setNoteEmbeds.of({ contents: new Map([[embedKey({ target: "Roadmap", heading: null }), content]]), open: null }) });
+    view.dispatch({ effects: setNoteEmbeds.of({ contents: new Map([[embedKey({ target: "Roadmap", heading: null, kind: "note" }), content]]), open: null }) });
     expect(embeds(view)[0].textContent).toContain(text);
     cleanup();
   });
 
   it("escapes the embedded note's HTML", () => {
     const { view, cleanup } = createEditor("![[Roadmap]]");
-    const contents = new Map<string, EmbedContent>([[embedKey({ target: "Roadmap", heading: null }), { kind: "note", path: "Roadmap.md", markdown: "<script>alert(1)</script> text" }]]);
+    const contents = new Map<string, EmbedContent>([[embedKey({ target: "Roadmap", heading: null, kind: "note" }), { kind: "note", path: "Roadmap.md", markdown: "<script>alert(1)</script> text" }]]);
     view.dispatch({ effects: setNoteEmbeds.of({ contents, open: null }) });
     expect(view.dom.querySelector(".cm-note-embed-body script")).toBeNull();
+    cleanup();
+  });
+
+  it("shows a CSV as a table with a plain title", () => {
+    const { view, cleanup } = createEditor("/sales.csv");
+    const contents = new Map<string, EmbedContent>([
+      [embedKey({ target: "sales.csv", heading: null, kind: "csv" }), { kind: "note", path: "sales.csv", markdown: "| product | status |\n| --- | --- |\n| Sync | shipped |" }],
+    ]);
+    view.dispatch({ effects: setNoteEmbeds.of({ contents, open: vi.fn() }) });
+    expect(view.dom.querySelector(".cm-note-embed-body table td")?.textContent).toBe("Sync");
+    expect(view.dom.querySelector("button.cm-note-embed-title")).toBeNull();
     cleanup();
   });
 

@@ -11,7 +11,7 @@ import {
   TASK_EDITOR_SENTINEL,
   WIKILINK_EDITOR_SENTINEL,
 } from "../components/constants";
-import { createSlashMenuSource, insertExpandedTemplate, type SlashMenuCallbacks } from "./slash-menu";
+import { createSlashMenuSource, insertExpandedTemplate, matchEmbedFiles, type SlashMenuCallbacks } from "./slash-menu";
 import { CALLOUT_TYPE_MENU_EVENT } from "./callout-type";
 
 function makeCallbacks(): SlashMenuCallbacks {
@@ -239,5 +239,47 @@ describe("insertExpandedTemplate", () => {
     expect(view.state.selection.main.head).toBe("# Title\nBody".length);
     undo(view);
     expect(view.state.doc.toString()).toBe("");
+  });
+});
+
+describe("slash menu note embeds", () => {
+  const PATHS = ["Roadmap.md", "specs/Road trip.md", "Backlog.md", "archive/Old roadmap.md"];
+
+  it("ranks names starting with the query, then containing it, then paths", () => {
+    expect(matchEmbedFiles(PATHS, "road")).toEqual(["Roadmap.md", "specs/Road trip.md", "archive/Old roadmap.md"]);
+    expect(matchEmbedFiles(PATHS, "specs")).toEqual(["specs/Road trip.md"]);
+    expect(matchEmbedFiles(PATHS, "Roadmap.md")).toEqual(["Roadmap.md", "archive/Old roadmap.md"]);
+    expect(matchEmbedFiles(PATHS, "")).toEqual([]);
+  });
+
+  it("offers matching notes at the start of a line and inserts their path", () => {
+    const callbacks = { ...makeCallbacks(), embedFiles: () => PATHS };
+    const { result } = getResult("/road t", callbacks);
+    expect(result?.options.map((option) => option.label)).toEqual(["Road trip"]);
+
+    const view = makeView("/road t");
+    const option = result!.options[0];
+    (option.apply as (view: EditorView, completion: unknown, from: number, to: number) => void)(view, option, result!.from, "/road t".length);
+    expect(view.state.doc.toString()).toBe("/specs/Road trip.md");
+    view.destroy();
+  });
+
+  it("offers no notes after text on the line", () => {
+    const callbacks = { ...makeCallbacks(), embedFiles: () => PATHS };
+    const { result } = getResult("See /road", callbacks);
+    expect(result?.options.map((option) => option.label) ?? []).not.toContain("Roadmap");
+  });
+
+  it("shows Board only when a board can be created", () => {
+    expect(getResult("/boa").result?.options.map((option) => option.label) ?? []).not.toContain("Board");
+    const onInsertBoard = vi.fn();
+    const callbacks = { ...makeCallbacks(), onInsertBoard };
+    const { result } = getResult("/boa", callbacks);
+    const board = result!.options.find((option) => option.label === "Board")!;
+    const view = makeView("/boa");
+    (board.apply as (view: EditorView, completion: unknown, from: number, to: number) => void)(view, board, 0, 4);
+    expect(view.state.doc.toString()).toBe("");
+    expect(onInsertBoard).toHaveBeenCalled();
+    view.destroy();
   });
 });

@@ -90,6 +90,7 @@ export const AI_CHAT_SENTINEL = "__OPEN_AI_CHAT__";
 export const VAULT_TEMPLATE_SENTINEL = "__OPEN_VAULT_TEMPLATE__";
 export const TEMPLATE_FIELD_SENTINEL = "__OPEN_TEMPLATE_FIELD__";
 export const SAVE_AS_TEMPLATE_SENTINEL = "__SAVE_AS_TEMPLATE__";
+export const BOARD_LINK_SENTINEL = "__INSERT_BOARD_LINK__";
 export const MARK_PRIVATE_SENTINEL = "__MARK_PRIVATE__";
 export const MARK_PUBLIC_SENTINEL = "__MARK_PUBLIC__";
 export const AI_ACTION_SENTINEL_PREFIX = "__AI_ACTION__:";
@@ -113,6 +114,8 @@ export interface Template {
   templateOnly?: boolean;
   /** Only shown when the note can be saved as a template (onSaveAsTemplate). */
   saveTemplateOnly?: boolean;
+  /** Only shown when a board can be created and linked (onInsertBoard). */
+  boardOnly?: boolean;
 }
 
 export const TEMPLATES: Template[] = [
@@ -126,6 +129,13 @@ export const TEMPLATES: Template[] = [
     icon: "</>",
     description: "Insert a code block",
     content: CODE_BLOCK_TEMPLATE_CONTENT,
+  },
+  {
+    label: "Board",
+    icon: "✎",
+    description: "Create a drawing board and link it here",
+    content: BOARD_LINK_SENTINEL,
+    boardOnly: true,
   },
   {
     label: "Mermaid",

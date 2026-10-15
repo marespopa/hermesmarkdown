@@ -4,6 +4,7 @@ import { createStore, Provider } from "jotai";
 import React from "react";
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { atom_openFiles } from "@/app/atoms/file-atoms";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useNoteEmbeds } from "./use-note-embeds";
 
 function meta(path: string, text: string, frontmatter: Record<string, unknown> = {}): FileMetadata {
@@ -25,7 +26,7 @@ function setup(value: string, files: FileMetadata[], fromPath = "Status.md") {
   const metadata = Object.fromEntries(files.map((file) => [file.path, file]));
   const wrapper = ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
   const open = vi.fn();
-  const hook = renderHook(() => useNoteEmbeds(value, metadata, fromPath, open), { wrapper });
+  const hook = renderHook(() => useNoteEmbeds(null, value, metadata, fromPath, open), { wrapper });
   return { store, hook, open };
 }
 
@@ -50,6 +51,17 @@ describe("useNoteEmbeds", () => {
   it("veils private notes", async () => {
     const { hook } = setup("![[Journal]]", [meta("Journal.md", "---\nprivate: true\n---\nSecret", { private: true })]);
     await waitFor(() => expect(hook.result.current.contents.get("journal")).toEqual({ kind: "private" }));
+  });
+
+  it("reads an embedded CSV next to the note as a table", async () => {
+    const csv = { getFile: async () => ({ text: async () => "product,status\nSync,shipped" }) };
+    const reports = { getFileHandle: vi.fn(async (name: string) => { if (name === "sales.csv") return csv; throw new Error("NotFound"); }) };
+    const vault = { getDirectoryHandle: vi.fn(async () => reports), getFileHandle: vi.fn(async () => { throw new Error("NotFound"); }) };
+    const { store, hook } = setup("/sales.csv\n/missing.csv", [], "reports/Weekly.md");
+    store.set(atom_vaultHandle, vault as unknown as FileSystemDirectoryHandle);
+    await waitFor(() => expect(hook.result.current.contents.get("sales.csv")).toMatchObject({ kind: "note", path: "reports/sales.csv" }));
+    expect((hook.result.current.contents.get("sales.csv") as { markdown: string }).markdown).toMatch(/\| Sync\s+\| shipped\s+\|/);
+    expect(hook.result.current.contents.get("missing.csv")).toEqual({ kind: "missing" });
   });
 
   it("returns no contents when there are no embeds", () => {

@@ -13,7 +13,7 @@ import { escapeHtml, noteToHtml, type PrintBlock } from "@/app/utils/print/note-
 import { printDate, printSettingsFrom, type PrintSettings } from "@/app/utils/print/print-settings";
 import { resolveFileMetaByName } from "@/app/hooks/file-system/resolve-file-by-name";
 import { EXPORT_PDF_EVENT } from "../utils/open-helper-dialogs";
-import { expandEmbeds } from "../utils/note-embeds";
+import { csvCandidatePaths, expandEmbeds } from "../utils/note-embeds";
 import { printDocument, printHtml } from "../utils/print-note";
 import { renderMermaid } from "../utils/render-mermaid";
 import { renderMathMl } from "../utils/render-math";
@@ -106,10 +106,21 @@ export function useExportPdf() {
     const urls: string[] = [];
     try {
       const notePath = store.get(atom_activeFilePath) ?? "draft";
-      // `![[Note]]` lines print the embedded text; private and unreadable
-      // notes print as their names.
-      const text = await expandEmbeds(store.get(atom_content), async (target) => {
-        const meta = resolveFileMetaByName(target, store.get(atom_fileMetadata), notePath);
+      // Embed lines (`![[Note]]`, `/Note.md`, `/data.csv`) print the
+      // embedded text or table; private and unreadable files print as names.
+      const text = await expandEmbeds(store.get(atom_content), async (ref) => {
+        if (ref.kind === "csv") {
+          const vault = store.get(atom_vaultHandle);
+          for (const csvPath of vault ? csvCandidatePaths(ref.target, notePath) : []) {
+            try {
+              return await (await (await resolveFileHandleAtPath(vault!, csvPath)).getFile()).text();
+            } catch {
+              // Not there; try the next place.
+            }
+          }
+          return null;
+        }
+        const meta = resolveFileMetaByName(ref.target, store.get(atom_fileMetadata), notePath);
         if (!meta || meta.path === notePath) return null;
         try {
           const markdown: string = store.get(atom_openFiles)[meta.path]?.content ?? await (await meta.handle.getFile()).text();

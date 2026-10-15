@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { useStore } from "jotai";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import type { EditorView } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
@@ -21,6 +24,7 @@ interface UseCodeMirrorTemplatesOptions {
   onInsertTemplateField?: () => void;
   onAskTemplateQuestion?: (kind: "question" | "blank") => Promise<string | null>;
   onSaveAsTemplate?: () => void;
+  onInsertBoard?: () => void;
 }
 
 // Step 5: slash/template menu insertion targets. The actual menu UI is
@@ -38,7 +42,9 @@ export function useCodeMirrorTemplates({
   onInsertTemplateField,
   onAskTemplateQuestion,
   onSaveAsTemplate,
+  onInsertBoard,
 }: UseCodeMirrorTemplatesOptions) {
+  const store = useStore();
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const linkRangeRef = useRef<Range | null>(null);
 
@@ -119,6 +125,7 @@ export function useCodeMirrorTemplates({
     onInsertTemplateField,
     onAskTemplateQuestion,
     onSaveAsTemplate,
+    onInsertBoard,
     onFrontmatterWizard: () => onFrontmatterWizard(),
     onCodeBlockInserted: () => {},
   });
@@ -130,6 +137,9 @@ export function useCodeMirrorTemplates({
   slashMenuCallbacksRef.current.onInsertTemplateField = onInsertTemplateField;
   slashMenuCallbacksRef.current.onAskTemplateQuestion = onAskTemplateQuestion;
   slashMenuCallbacksRef.current.onSaveAsTemplate = onSaveAsTemplate;
+  slashMenuCallbacksRef.current.onInsertBoard = onInsertBoard;
+  // `/name` at the start of a line offers vault notes to embed.
+  slashMenuCallbacksRef.current.embedFiles = () => (store.get(atom_vaultHandle) ? Object.keys(store.get(atom_fileMetadata)) : []);
 
   const wikiLinkTriggerRef = useRef<WikiLinkTriggerCallback | null>((_view, from, to) => {
     wikiLinkRangeRef.current = { from, to };

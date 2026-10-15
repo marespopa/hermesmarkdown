@@ -348,6 +348,9 @@ graph TD
           for the board&apos;s name, creates <code>Sprint plan.board.md</code> (for a board named
           Sprint plan) in your New Notes folder and opens it as a canvas.
           If the name is taken you get <code>Sprint plan (1).board.md</code>.
+          To link a new board from the note you&apos;re writing, type <code>/board</code>: it asks for
+          the name, creates the board without leaving the note and inserts a link to it (a board
+          that already has that name is linked as it is).
           You can also start one from an empty note: click the <strong>Board</strong> pill under the
           first line (from a fresh, unsaved note it asks for a name and creates a new board file), or pick{" "}
           <strong>Board</strong> when a missing link asks how to create its note.
@@ -426,8 +429,8 @@ graph TD
   {
     id: "embeds",
     title: "Embedding notes",
-    lead: "Show another note inside this one with ![[Note name]] on a line of its own.",
-    keywords: "embed transclude transclusion include note section heading ![[",
+    lead: "Show another note, or a CSV file as a table, inside this one: ![[Note name]], /Note.md or /data.csv on a line of its own.",
+    keywords: "embed transclude transclusion include note section heading ![[ csv table slash",
     body: (
       <>
         <p>
@@ -435,6 +438,13 @@ graph TD
           right under it, read-only. The line stays as you typed it. Add a heading to show only
           that section: <code>![[Roadmap#Q3 goals]]</code> shows the Q3 goals heading and
           everything under it, up to the next heading of the same level.
+        </p>
+        <p>
+          A line holding only a slash and a file name works too: <code>/Chapter 1.md</code> embeds a
+          note, and <code>/data/sales.csv</code> shows a CSV file as a table (its first row is the
+          header). Start a line with <code>/</code> and type part of a note&apos;s name: the slash
+          menu offers matching notes, and picking one writes its path for you. A CSV path is looked
+          up next to the note first, then from the vault root.
         </p>
         <p>
           The embed follows the note: while it&apos;s open in a tab you see its unsaved edits, and
@@ -464,6 +474,8 @@ graph TD
             { label: "Task", value: "Checklist task with status, due date & tags" },
             { label: "Table", value: "Starter table" },
             { label: "Code · Mermaid", value: "Fenced code / diagram block" },
+            { label: "Board", value: "Name a new drawing board and link it at the caret (with a vault open)" },
+            { label: "A note's name", value: "At the start of a line, matching notes are offered to embed as /path.md" },
             { label: "Callout · Collapse", value: "Callout / collapsed callout" },
             { label: "Frontmatter", value: "Insert or reveal the YAML block" },
             { label: "Template (/template, /tpl)", value: "Insert a template from your vault" },

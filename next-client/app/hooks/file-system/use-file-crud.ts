@@ -70,6 +70,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     createTemplate,
     createWikiLinkFile,
     createLinkedNoteFromTemplate,
+    createLinkedBoard,
   } = useTemplateCreate({
     scanVault,
     indexVaultTags,
@@ -97,6 +98,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     createNoteFromMissingLink,
     createTemplate,
     createLinkedNoteFromTemplate,
+    createLinkedBoard,
     writeNewNote,
     saveAsTemplate,
     openOrCreateLink,
