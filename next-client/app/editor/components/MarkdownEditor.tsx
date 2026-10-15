@@ -19,6 +19,7 @@ import { useCodeMirrorEditor } from "../hooks/use-codemirror-editor";
 import { useCodeMirrorFeatures } from "../hooks/use-codemirror-features";
 import { useCodeMirrorTemplates } from "../hooks/use-codemirror-templates";
 import { useVaultTemplateInsert } from "../hooks/use-vault-template-insert";
+import { useEmptyNoteBoard } from "../hooks/use-empty-note-board";
 import { useCodeMirrorTable } from "../hooks/use-codemirror-table";
 import { useCrossFileTables } from "../hooks/use-cross-file-tables";
 import { formulaFileTablesField, setFormulaFileTables } from "../codemirror/table-formulas";
@@ -88,6 +89,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { createWikiLinkFile, vaultHandle, saveAsTemplate, createLinkedNoteFromTemplate } = useFileSystem();
   const insertVaultTemplate = useVaultTemplateInsert({ viewRef, filePath });
   const insertTemplate = useCallback(() => { void insertVaultTemplate(); }, [insertVaultTemplate]);
+  const startBoard = useEmptyNoteBoard({ viewRef, filePath });
   const { isTemplateNote, insertTemplateField, askTemplateQuestion, saveNoteAsTemplate } = useTemplateNote({
     viewRef,
     editorView,
@@ -330,6 +332,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             isEmpty={!isTemplateNote && editorValue.trim() === ""}
             onPick={(source) => { void insertVaultTemplate(source); }}
             onMore={vaultHandle ? () => { void insertVaultTemplate(); } : undefined}
+            onBoard={startBoard}
           />
 
           <EditorPills

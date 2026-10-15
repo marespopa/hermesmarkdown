@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { HiOutlineDocument, HiOutlinePencil } from "react-icons/hi";
+import { HiOutlineDocument, HiOutlinePencil, HiOutlineViewBoards } from "react-icons/hi";
 import DialogModal from "@/app/components/DialogModal";
 import Button from "@/app/components/Button";
 import { BareInput } from "@/app/components/Input";
@@ -11,6 +11,10 @@ import TemplateIcon from "./TemplateIcon";
 import TemplatePreview from "./TemplatePreview";
 
 export const BLANK_NOTE_LABEL = "Blank note";
+export const BOARD_LABEL = "Board";
+
+/** A row that starts without a template. */
+export type PickerStart = "blank" | "board";
 
 /** A vault template ({ name, path, pack? }), or any named entry with a description. */
 export interface TemplatePickerEntry {
@@ -30,6 +34,7 @@ interface TemplatePickerProps<T extends TemplatePickerEntry> {
   templates: T[];
   /** The templates folder, for the empty state. */
   folder: string;
+  /** Also offer "Blank note" and "Board" rows. */
   includeBlank: boolean;
   /** Path of a template to put first and highlight (the one a link's name points to). */
   preselect?: string;
@@ -40,15 +45,15 @@ interface TemplatePickerProps<T extends TemplatePickerEntry> {
   bodies?: Record<string, string | null>;
   /** Opens a template to edit it (pencil on hover, ⌘/Ctrl+E on the highlighted row). */
   onEdit?: (entry: T) => void;
-  onPick: (value: T | "blank") => void;
+  onPick: (value: T | PickerStart) => void;
   onCancel: () => void;
 }
 
-type Row<T> = { kind: "blank" } | { kind: "template"; entry: T };
+type Row<T> = { kind: PickerStart } | { kind: "template"; entry: T };
 
 const SHORTCUT_COUNT = 9;
 
-// Searchable list of vault templates (plus "Blank note" first when asked;
+// Searchable list of vault templates (plus "Blank note" and "Board" first when asked;
 // a `preselect`ed template goes before it, highlighted). Each row has an icon, the name and a muted summary (the
 // entry's description, else its structure, else its path); a pack template's
 // name follows its pack ("Journal / Daily"). With `bodies`,
@@ -83,6 +88,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
     return [
       ...(first ? [toRow(first)] : []),
       ...(includeBlank && matches(BLANK_NOTE_LABEL) ? [{ kind: "blank" } as Row<T>] : []),
+      ...(includeBlank && matches(BOARD_LABEL) ? [{ kind: "board" } as Row<T>] : []),
       ...found.filter((t) => t !== first).map(toRow),
     ];
   }, [includeBlank, preselect, query, templates]);
@@ -99,7 +105,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
 
   const pick = (row: Row<T> | undefined) => {
     if (!row) return;
-    onPick(row.kind === "blank" ? "blank" : row.entry);
+    onPick(row.kind === "template" ? row.entry : row.kind);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -170,7 +176,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                   <p className="px-3 py-2 text-ui-footnote text-fg-muted">No matching templates</p>
                 )}
                 {rows.map((row, index) => (
-                  <div key={row.kind === "blank" ? "__blank__" : pickerEntryKey(row.entry)} className="group relative">
+                  <div key={row.kind === "template" ? pickerEntryKey(row.entry) : `__${row.kind}__`} className="group relative">
                   <Button
                     id={`template-row-${index}`}
                     variant="menu-item"
@@ -186,13 +192,15 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                   >
                     {row.kind === "blank" ? (
                       <HiOutlineDocument size={16} className="shrink-0 text-fg-faint" aria-hidden />
+                    ) : row.kind === "board" ? (
+                      <HiOutlineViewBoards size={16} className="shrink-0 text-fg-faint" aria-hidden />
                     ) : (
                       <TemplateIcon name={row.entry.name} className="text-fg-muted" />
                     )}
                     <span className="flex min-w-0 flex-col">
                       <span className="truncate text-ui-subhead text-fg">
                         {row.kind === "template" && row.entry.pack && <span className="text-fg-faint">{row.entry.pack} / </span>}
-                        {row.kind === "blank" ? BLANK_NOTE_LABEL : row.entry.name}
+                        {row.kind === "template" ? row.entry.name : row.kind === "blank" ? BLANK_NOTE_LABEL : BOARD_LABEL}
                       </span>
                       {row.kind === "template" && (
                         <span className="truncate text-[12px] font-normal text-fg-faint">{summary(row.entry)}</span>
@@ -228,7 +236,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                     <TemplatePreview raw={bodies?.[pickerEntryKey(highlighted.entry)] ?? null} name={highlighted.entry.name} />
                   ) : (
                     <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-edge-subtle text-ui-caption text-fg-faint">
-                      An empty note
+                      {highlighted?.kind === "board" ? "An empty drawing board" : "An empty note"}
                     </div>
                   )}
                 </div>
@@ -247,7 +255,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
               isDisabled={!highlighted}
               className="w-full sm:w-auto"
             >
-              {highlighted?.kind === "blank" ? `Use ${BLANK_NOTE_LABEL.toLowerCase()}` : "Use template"}
+              {highlighted?.kind === "blank" ? `Use ${BLANK_NOTE_LABEL.toLowerCase()}` : highlighted?.kind === "board" ? "Use board" : "Use template"}
             </Button>
           )}
         </div>

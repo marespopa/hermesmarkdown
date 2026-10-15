@@ -19,6 +19,7 @@ import {
   type TemplateEntry,
 } from "@/app/utils/templates/template-registry";
 import { offsetToLineColumn, type ExpandedTemplate } from "@/app/utils/templates/template-tokens";
+import { NEW_BOARD_MARKDOWN } from "@/app/utils/board/board-format";
 
 interface UseTemplateCreateProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -30,6 +31,7 @@ interface UseTemplateCreateProps {
 export const NEW_TEMPLATE_BODY = "# {{title}}\n\n{{cursor}}\n";
 
 const BLANK_NOTE: ExpandedTemplate = { text: "\n", cursor: null };
+const NEW_BOARD: ExpandedTemplate = { text: NEW_BOARD_MARKDOWN, cursor: null };
 const joinPath = (folder: string, name: string) => (folder ? `${folder}/${name}` : name);
 
 // Fresh handle for a vault path, or null when it doesn't exist.
@@ -114,17 +116,18 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     }
   }, [readTemplate]);
 
-  // Note text for a link-named note: blank, or `entry` expanded with the
-  // link's name as the title. null = cancelled.
-  const linkedNoteText = useCallback(async (entry: TemplateEntry | "blank", title: string) => {
+  // Note text for a link-named note: blank, an empty board, or `entry`
+  // expanded with the link's name as the title. null = cancelled.
+  const linkedNoteText = useCallback(async (entry: TemplateEntry | "blank" | "board", title: string) => {
     if (entry === "blank") return BLANK_NOTE;
+    if (entry === "board") return NEW_BOARD;
     const raw = await readOrReport(entry);
     if (raw === null) return null;
     return (await instantiate(raw, title, "Create"))?.expanded ?? null;
   }, [readOrReport, instantiate]);
 
   // Clicking a missing [[link]]: an existing note opens; otherwise the
-  // template picker (with Blank note; the template the name points to comes
+  // template picker (with Blank note and Board; the template the name points to comes
   // first, highlighted), then the note is created and opened.
   const createNoteFromMissingLink = useCallback(async (link: string) => {
     const vaultHandle = store.get(atom_vaultHandle);
