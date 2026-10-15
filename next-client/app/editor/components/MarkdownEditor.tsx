@@ -305,7 +305,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           mx-auto w-full
           text-ui-body
         `}
-        data-font={fontFamily.includes("--font-geist-mono") ? "mono" : undefined}
+        data-font={fontFamily.includes("--font-geist-mono") || fontFamily.includes("--font-duospace") ? "mono" : undefined}
         data-full-width={fullWidth ? "" : undefined}
         style={{
           fontFamily,

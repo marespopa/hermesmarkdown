@@ -37,8 +37,8 @@
   font-kerning: normal;
   text-rendering: optimizeLegibility;
   overflow-wrap: break-word;
-  /* Proportional faces tighten slightly at body size; monospace never does
-     (its letters have fixed advances). */
+  /* Proportional faces tighten slightly at body size; monospace and
+     duospace never do (their letters have fixed advances). */
   letter-spacing: -0.011em;
 }
 

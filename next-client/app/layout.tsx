@@ -5,7 +5,7 @@ import MainPage from "./components/MainPage";
 import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import InlineScript from "./components/InlineScript";
 import { Metadata, Viewport } from "next";
-import { inter, geistMono } from "./fonts";
+import { inter, geistMono, duospace } from "./fonts";
 
 const SITE_DESCRIPTION =
   "Edit local Markdown folders in your browser, saved to disk or to a browser vault on Safari, Firefox and mobile. Works offline. No accounts, no cloud.";
@@ -107,7 +107,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`h-full overscroll-none ${inter.variable} ${geistMono.variable}`}
+      className={`h-full overscroll-none ${inter.variable} ${geistMono.variable} ${duospace.variable}`}
     >
       <head>
         <InlineScript html={THEME_INIT_SCRIPT} />

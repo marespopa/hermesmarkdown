@@ -1,8 +1,10 @@
 import { Geist_Mono, Inter } from "next/font/google";
+import localFont from "next/font/local";
 
-// Two typefaces: Inter for everything sans (interface, headings, writing),
-// Geist Mono for code. Fallbacks name the matching Apple system face
-// so a slow network still lands on something with the same voice.
+// Inter for everything sans (interface, headings, writing), Geist Mono for
+// code, and Duospace as a third writing face. Fallbacks name the matching
+// Apple system face so a slow network still lands on something with the same
+// voice.
 
 // Interface, headings and the writing face. A variable font
 // whose metrics sit close to SF Pro; the ui-* type scale (tailwind.config.js)
@@ -18,4 +20,21 @@ export const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
   display: "swap",
+});
+
+// Writing only: a duospaced face (most letters share one width, m/M/w/W take
+// one and a half) for a typewriter rhythm that reads less mechanically than
+// a monospace. Built on IBM Plex Mono, self-hosted under the SIL OFL
+// (font-files/duospace/OFL.md) since no font service carries it.
+export const duospace = localFont({
+  src: [
+    { path: "./font-files/duospace/duospace-regular.woff2", weight: "400", style: "normal" },
+    { path: "./font-files/duospace/duospace-italic.woff2", weight: "400", style: "italic" },
+    { path: "./font-files/duospace/duospace-bold.woff2", weight: "700", style: "normal" },
+    { path: "./font-files/duospace/duospace-bold-italic.woff2", weight: "700", style: "italic" },
+  ],
+  variable: "--font-duospace",
+  display: "swap",
+  // Only loaded where the setting picks it.
+  preload: false,
 });

@@ -67,6 +67,7 @@ describe("SettingsPage", () => {
     expect(screen.getByText("Font")).toBeInTheDocument();
     expect(screen.getByText("Geist Mono")).toBeInTheDocument();
     expect(screen.getByText("Inter")).toBeInTheDocument();
+    expect(screen.getByText("Duospace")).toBeInTheDocument();
     expect(screen.queryByText("Source Serif 4")).not.toBeInTheDocument();
     expect(screen.queryByText("Plus Jakarta Sans")).not.toBeInTheDocument();
     expect(screen.getByText("Full Width")).toBeInTheDocument();

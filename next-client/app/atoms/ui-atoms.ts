@@ -64,6 +64,8 @@ export const MONO_FONT_STACK =
   'var(--font-geist-mono), "SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
 export const UI_FONT_STACK =
   "var(--font-inter), system-ui, -apple-system, ui-sans-serif, sans-serif";
+// The duospaced writing face (fonts.ts) falls back to the monospace stack.
+export const DUOSPACE_FONT_STACK = `var(--font-duospace), ${MONO_FONT_STACK}`;
 export const atom_editorFontFamily = atomWithStorage<string>(
   "editorFontFamily",
   MONO_FONT_STACK,
@@ -83,6 +85,7 @@ const LEGACY_TEXT_SIZES: Record<string, string> = {
 };
 
 const FONT_STACKS_BY_VARIABLE: [string, string][] = [
+  ["--font-duospace", DUOSPACE_FONT_STACK],
   ["--font-ibm-mono", MONO_FONT_STACK],
   ["--font-geist-mono", MONO_FONT_STACK],
   ["--font-plus-jakarta", UI_FONT_STACK],
