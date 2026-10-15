@@ -3,6 +3,8 @@
 // edit them, rename them, delete them. Nothing here is read again once added.
 // Raw bodies: never expanded on write.
 
+import { FINANCE_PACK } from "./template-packs-finance";
+
 export interface BuiltinTemplate {
   /** File name without `.md`. */
   name: string;
@@ -341,6 +343,7 @@ export const BUILTIN_PACKS: BuiltinPack[] = [
       { name: "Decision record", description: "Context, options, decision, consequences", body: ADR },
     ],
   },
+  FINANCE_PACK,
 ];
 
 // Which of a pack's templates already exist in `templates/<pack>/`
