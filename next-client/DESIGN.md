@@ -179,10 +179,10 @@ Two self-hosted faces (`app/fonts.ts`): Inter for everything sans, Geist Mono fo
 
 | Token | Stack | Use |
 |---|---|---|
-| `font-sans` | Inter → system-ui (SF Pro) | UI chrome, labels, buttons, headings, the default writing face (also the `body` default) |
-| `font-mono` | Geist Mono → SF Mono → Menlo | Code, keyboard chips, technical metadata |
+| `font-sans` | Inter → system-ui (SF Pro) | UI chrome, labels, buttons, headings (also the `body` default) |
+| `font-mono` | Geist Mono → SF Mono → Menlo | The default writing face, code, keyboard chips, technical metadata |
 
-The editor font is user-selectable (Settings → Typography) from `app/editor/settings/font-options.ts`: Inter (default) or Geist Mono. Saved choices of the retired Plus Jakarta Sans and Source Serif 4 move to Inter on load. Text size offers the Dynamic Type body steps 15 / 17 (default) / 19 / 21 / 23px. Those two are the only typography settings. Line height (1.65), the reading measure (≤ 44rem / 704px, the same at every text size), heading rhythm and code styling are fixed in `app/editor/editor-typography.scss`.
+The editor font is user-selectable (Settings → Typography) from `app/editor/settings/font-options.ts`: Geist Mono (default) or Inter. Saved choices of the retired Plus Jakarta Sans and Source Serif 4 move to Inter on load. Text size offers the Dynamic Type body steps 15 / 17 (default) / 19 / 21 / 23px. Those two are the only typography settings. Line height (1.65), the reading measure (≤ 44rem / 704px, the same at every text size), heading rhythm and code styling are fixed in `app/editor/editor-typography.scss`.
 
 ---
 

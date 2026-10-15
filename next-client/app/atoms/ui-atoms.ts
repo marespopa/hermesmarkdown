@@ -54,7 +54,7 @@ export const UI_FONT_STACK =
   "var(--font-inter), system-ui, -apple-system, ui-sans-serif, sans-serif";
 export const atom_editorFontFamily = atomWithStorage<string>(
   "editorFontFamily",
-  UI_FONT_STACK,
+  MONO_FONT_STACK,
 );
 // Saved choices from older versions move to their closest current equivalent:
 // IBM Plex Mono to Geist Mono, the retired Plus Jakarta Sans and Source Serif

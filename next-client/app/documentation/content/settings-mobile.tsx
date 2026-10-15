@@ -27,12 +27,12 @@ export const settingsGroup: Group = {
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
               { label: "Sidebar", value: "The toolbar's Sidebar button, CTRL/CMD+ALT+S or Toggle Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
-              { label: "Typeface", value: "Inter by default, or Geist Mono" },
+              { label: "Typeface", value: "Geist Mono by default, or Inter" },
             ]}
           />
           <Callout type="note">
-            Inter, the app&apos;s own typeface, is the default for writing. Geist Mono suits
-            technical notes. Text sizes follow Apple&apos;s Dynamic Type steps, 15 to 23px.
+            Geist Mono is the default for writing: an even, typewriter-like rhythm. Inter, the
+            app&apos;s interface face, is there if you prefer a proportional sans. Text sizes follow Apple&apos;s Dynamic Type steps, 15 to 23px.
           </Callout>
         </>
       ),

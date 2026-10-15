@@ -1,9 +1,9 @@
 import { MONO_FONT_STACK, UI_FONT_STACK } from "@/app/atoms/ui-atoms";
 
-// The writing font: the app's two typefaces.
+// The writing font: the app's two typefaces, the default (Geist Mono) first.
 export const FONTS = [
-  { label: "Inter", value: UI_FONT_STACK },
   { label: "Geist Mono", value: MONO_FONT_STACK },
+  { label: "Inter", value: UI_FONT_STACK },
 ];
 
 // Reading text size: Settings → Appearance and the Text Size commands.
