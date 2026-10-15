@@ -7,7 +7,7 @@ import { atom_templatesFolder } from "@/app/atoms/template-atoms";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
 import { writeFileContent } from "@/app/services/file-writer";
 import type { BuiltinPack } from "@/app/utils/templates/template-packs";
-import type { TemplatePack } from "@/app/utils/templates/template-registry";
+import type { TemplateEntry, TemplatePack } from "@/app/utils/templates/template-registry";
 import { useDialog } from "../use-dialog";
 import { useFileSystem } from "../use-file-system";
 import { withRetry } from "./shared";
@@ -39,7 +39,8 @@ async function folderExists(vaultHandle: FileSystemDirectoryHandle, path: string
 // folder (template-registry.ts), so every action is a plain file operation:
 // adding a built-in pack writes its templates there (never over a file that
 // exists), a new pack is an empty folder, duplicating copies the files into
-// a new folder, and deleting moves the folder to the vault's Trash (Undo).
+// a new folder, and deleting moves the folder, or one template, to the
+// vault's Trash (Undo).
 export function useTemplatePacks() {
   const store = useStore();
   const dialog = useDialog();
@@ -152,5 +153,21 @@ export function useTemplatePacks() {
     }
   }, [store, dialog, trashItems]);
 
-  return { addBuiltinPack, createPack, duplicatePack, deletePack };
+  // Moves one template file to the vault's Trash, after asking.
+  const deleteTemplate = useCallback(async (template: TemplateEntry): Promise<boolean> => {
+    const vaultHandle = store.get(atom_vaultHandle);
+    if (!vaultHandle) return false;
+    const ok = await dialog.confirm(`Move the ${template.name} template to the Trash?`, "Delete template", "Delete", "Cancel");
+    if (!ok) return false;
+    try {
+      await trashItems([{ handle: await resolveFileHandleAtPath(vaultHandle, template.path), path: template.path }]);
+      return true;
+    } catch (err) {
+      console.warn("Couldn't delete template:", err);
+      toast.error("Couldn't delete the template");
+      return false;
+    }
+  }, [store, dialog, trashItems]);
+
+  return { addBuiltinPack, createPack, duplicatePack, deletePack, deleteTemplate };
 }

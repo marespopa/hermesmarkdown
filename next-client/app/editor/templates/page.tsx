@@ -16,7 +16,7 @@ import BuiltinPackCard from "./components/BuiltinPackCard";
 import PackSection, { SMALL_BUTTON_CLASS } from "./components/PackSection";
 
 // Templates: everything new notes start from. Your templates, grouped by
-// pack (a folder in templates/), each with Edit, and the packs the app
+// pack (a folder in templates/), each with Edit and Delete, and the packs the app
 // ships, each with Add to vault. Edit opens the template in the editor and
 // goes back there; the pack actions stay on this page. Templates are used
 // from a note, with /template.
@@ -28,7 +28,7 @@ export default function TemplatesPage() {
   const templates = useAtomValue(atom_templates);
   const { folder } = useAtomValue(atom_templatesFolder);
   const { openFile, scanVault, indexVaultTags, createTemplate } = useFileSystem();
-  const { addBuiltinPack, createPack, duplicatePack, deletePack } = useTemplatePacks();
+  const { addBuiltinPack, createPack, duplicatePack, deletePack, deleteTemplate } = useTemplatePacks();
 
   const paths = useMemo(() => Object.keys(metadata), [metadata]);
   const packs = useMemo(() => groupTemplatePacks(folder, templates, folderPaths), [folder, templates, folderPaths]);
@@ -104,6 +104,7 @@ export default function TemplatesPage() {
                     onNewTemplate={(target) => void newTemplate(target)}
                     onDuplicate={(target) => void duplicatePack(target)}
                     onDelete={(target) => void deletePack(target)}
+                    onDeleteTemplate={(template) => void deleteTemplate(template)}
                   />
                 ))
               )}

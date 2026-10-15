@@ -20,8 +20,9 @@ export const templatePacksItem: Subsection = {
       <p>
         Templates live in <code>templates/</code> at the root of your vault. A pack is a folder inside
         it, like <code>templates/Journal/</code>; templates directly in <code>templates/</code> are listed
-        first, as loose templates. <strong>Edit</strong> opens a template itself; changes apply the
-        next time you use it. To use a template, type <code>/template</code> in a note, pick one from an
+        first, under <strong>Not in a pack</strong>. <strong>Edit</strong> opens a template itself; changes
+        apply the next time you use it. <strong>Delete</strong> moves one template to the Trash, with
+        Undo. To use a template, type <code>/template</code> in a note, pick one from an
         empty note&apos;s buttons, or from a link to a note that doesn&apos;t exist yet.
       </p>
       <p>

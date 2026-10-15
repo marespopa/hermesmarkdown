@@ -25,7 +25,7 @@ The Tasks page (`app/editor/tasks`) is a vault-wide view over the derived task i
 
 ### Templates page
 The Templates page (`app/editor/templates`, sidebar **Templates**, palette **Open Templates**) is where templates are kept. Templates are used from a note (`/template`, an empty note's buttons, a missing link's picker), never to create or name notes. The app has no daily or periodic sheets of its own.
-- **Your templates**: grouped by pack (`groupTemplatePacks`; a pack is a folder in `templates/`, loose templates first), each with **Edit** (opens the template file). Each pack has **New** (`createTemplate(pack)`), **Duplicate** and **Delete** (to the Trash, with Undo); the page header has **New template** and **New pack** (`use-template-packs.ts`).
+- **Your templates**: grouped by pack (`groupTemplatePacks`; a pack is a folder in `templates/`, templates in no pack first, under "Not in a pack"), each with **Edit** (opens the template file) and **Delete** (that file to the Trash, with Undo). Each pack has **New** (`createTemplate(pack)`), **Duplicate** and **Delete** (to the Trash, with Undo); the page header has **New template** and **New pack** (`use-template-packs.ts`).
 - **Template packs**: the built-in packs (`BUILTIN_PACKS` in `app/utils/templates/template-packs.ts`: Journal, Meetings, Writing, Projects, Engineering) with **Add to vault**, which copies them into `templates/<pack>/` without replacing files that exist (**Add N missing**, **Added**).
 - Opened directly (a reload), the page scans the vault once when nothing is indexed.
 

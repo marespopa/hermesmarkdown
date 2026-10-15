@@ -15,14 +15,18 @@ interface PackSectionProps {
   onNewTemplate: (pack: TemplatePack) => void;
   onDuplicate: (pack: TemplatePack) => void;
   onDelete: (pack: TemplatePack) => void;
+  onDeleteTemplate: (template: TemplateEntry) => void;
 }
 
-// One of your packs (or the loose templates, `pack.name` ""): its name and
-// count, New template / Duplicate / Delete (no Delete for the loose ones,
-// which aren't a folder of their own), then a row per template with Edit
-// (open the template file).
-export default function PackSection({ pack, onEdit, onNewTemplate, onDuplicate, onDelete }: PackSectionProps) {
-  const title = pack.name || "Loose templates";
+// The group of templates directly in templates/, outside any pack folder.
+export const NO_PACK_TITLE = "Not in a pack";
+
+// One of your packs (or the templates in no pack, `pack.name` ""): its name
+// and count, New template / Duplicate / Delete (no Delete for the templates
+// in no pack, which aren't a folder of their own), then a row per template
+// with Edit (open the template file) and Delete (just that file).
+export default function PackSection({ pack, onEdit, onNewTemplate, onDuplicate, onDelete, onDeleteTemplate }: PackSectionProps) {
+  const title = pack.name || NO_PACK_TITLE;
   const count = pack.templates.length;
   return (
     <section aria-label={title} className="rounded-xl border border-edge-subtle bg-surface">
@@ -58,6 +62,9 @@ export default function PackSection({ pack, onEdit, onNewTemplate, onDuplicate, 
               </span>
               <Button variant="unstyled" onClick={() => onEdit(template)} className={SMALL_BUTTON_CLASS} aria-label={`Edit ${template.name}`}>
                 <HiOutlinePencil size={14} aria-hidden /> Edit
+              </Button>
+              <Button variant="unstyled" onClick={() => onDeleteTemplate(template)} className={SMALL_BUTTON_CLASS} aria-label={`Delete template ${template.name}`}>
+                <HiOutlineTrash size={14} aria-hidden /> Delete
               </Button>
             </li>
           ))}
