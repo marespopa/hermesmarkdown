@@ -204,6 +204,90 @@ const PROJECT_BRIEF = [
   "",
 ].join("\n");
 
+// The ones below use blanks ({{name}}): what to fill in, with Tab to jump
+// from one to the next.
+const PRD = lines([
+  ...frontmatter(["owner: {{prompt:Owner}}", "status: Draft", "release: {{prompt:Target release}}", "date: {{date}}"]),
+  "# {{title}}",
+  "",
+  "## Problem",
+  "{{cursor}}",
+  "",
+  "## Users and use cases",
+  "- As a {{user_type}}, I want {{goal}} so that {{benefit}}",
+  "",
+  "## Requirements",
+  "- [ ] {{requirement}}",
+  "",
+  "## Out of scope",
+  "- {{left_for_later}}",
+  "",
+  "## Success metrics",
+  "- {{metric}}: from {{baseline}} to {{target}}",
+  "",
+  "## Open questions",
+  "- ",
+]);
+
+const BOOK_NOTE = lines([
+  ...frontmatter(["author: {{prompt:Author}}", "type: book", "tags: [{{topic}}]"]),
+  "# {{title}}",
+  "",
+  "## Summary",
+  "{{cursor}}",
+  "",
+  "## Key ideas",
+  "- {{key_idea}}",
+  "",
+  "## Quotes",
+  "> {{quote}} (p. {{page_number}})",
+  "",
+  "## Related notes",
+  "- [[{{related_note}}]]",
+]);
+
+const README = lines([
+  "# {{title}}",
+  "",
+  "{{cursor}}",
+  "",
+  "## Features",
+  "- **{{feature}}**: {{what_it_does}}",
+  "",
+  "## Installation",
+  "```sh",
+  "{{install_command}}",
+  "```",
+  "",
+  "## Usage",
+  "```",
+  "{{usage_example}}",
+  "```",
+  "",
+  "## License",
+  "{{license}}",
+]);
+
+// An architecture decision record: one decision, why, and what it costs.
+const ADR = lines([
+  ...frontmatter(["status: Proposed", "date: {{date}}", "deciders: {{prompt:Deciders}}"]),
+  "# {{title}}",
+  "",
+  "## Context",
+  "{{cursor}}",
+  "",
+  "## Options considered",
+  "1. {{option_a}}",
+  "2. {{option_b}}",
+  "",
+  "## Decision",
+  "{{chosen_option}}, because {{reason}}",
+  "",
+  "## Consequences",
+  "- Good: {{upside}}",
+  "- Bad: {{downside}}",
+]);
+
 export const BUILTIN_PACKS: BuiltinPack[] = [
   {
     id: "journal",
@@ -230,20 +314,31 @@ export const BUILTIN_PACKS: BuiltinPack[] = [
   {
     id: "writing",
     name: "Writing",
-    description: "A blank draft and an outline to think with.",
+    description: "A blank draft, an outline to think with, and notes on what you read.",
     templates: [
       { name: "Draft", description: "A title and a blank page", body: ESSAY },
       { name: "Outline", description: "The point, why it matters, sections", body: OUTLINE },
+      { name: "Book note", description: "Summary, key ideas, quotes, asks for the author", body: BOOK_NOTE },
     ],
   },
   {
     id: "projects",
     name: "Projects",
-    description: "Briefs, specs and reports for project work.",
+    description: "Briefs, requirements, specs and reports for project work.",
     templates: [
       { name: "Project brief", description: "Goal, scope, milestones", body: PROJECT_BRIEF },
+      { name: "PRD", description: "Problem, users, requirements, success metrics", body: PRD },
       { name: "Spec", description: "Author, status, summary, design", body: SPEC },
       { name: "Report", description: "Summary, findings, next steps", body: REPORT },
+    ],
+  },
+  {
+    id: "engineering",
+    name: "Engineering",
+    description: "A README and decision records for code and systems.",
+    templates: [
+      { name: "README", description: "What it does, features, installation, usage", body: README },
+      { name: "Decision record", description: "Context, options, decision, consequences", body: ADR },
     ],
   },
 ];
