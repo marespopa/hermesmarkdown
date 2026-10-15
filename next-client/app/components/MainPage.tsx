@@ -39,17 +39,18 @@ const MainPage = ({ children }: Props) => {
         position="bottom-right"
         reverseOrder={false}
         toastOptions={{
-          className: "hermes-markdown-toast",
+          className: "hermes-markdown-toast glass-panel",
           duration: 3000,
           style: {
             fontFamily: "var(--font-plus-jakarta), ui-sans-serif, sans-serif",
             fontSize: "13px",
             fontWeight: 500,
-            border: "1px solid var(--border-subtle)",
             borderRadius: "12px",
-            background: "var(--surface-raised)",
+            // The panel material (`.glass-panel`) owns fill, blur, edge
+            // and shadow; react-hot-toast's own defaults would cover it.
+            background: "var(--material-panel)",
+            boxShadow: "inset 0 1px 0 var(--material-highlight), var(--material-shadow)",
             color: "var(--fg)",
-            boxShadow: "0 8px 24px rgb(0 0 0 / 12%)",
           },
           success: {
             iconTheme: {

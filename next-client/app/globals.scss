@@ -57,9 +57,10 @@ body {
      stands for, a heavy blur with a saturation boost so colour behind it
      glows through, a hairline edge, a light inner top edge and a layered
      shadow. Bars and panels are tints of --chrome and --overlay, so the
-     dark values follow from those. */
+     dark values follow from those. Panels stay mostly opaque (90%): text
+     on them (toasts, menus, dialogs) must read over a busy page. */
   --material-bar:       color-mix(in srgb, var(--chrome) 72%, transparent);
-  --material-panel:     color-mix(in srgb, var(--overlay) 78%, transparent);
+  --material-panel:     color-mix(in srgb, var(--overlay) 90%, transparent);
   --material-blur:      blur(24px) saturate(180%);
   --material-edge:      rgba(0, 0, 0, 0.08);
   --material-highlight: rgba(255, 255, 255, 0.65);
@@ -264,7 +265,7 @@ html.dark {
 }
 
 .hermes-markdown-toast {
-  @apply bg-white text-black border border-edge px-4 py-3 font-medium;
+  @apply text-fg px-4 py-3 font-medium;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -292,10 +293,6 @@ html.dark {
 .no-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
-}
-
-html.dark .hermes-markdown-toast {
-  @apply bg-neutral-800 text-white border border-edge px-4 py-3 font-medium;
 }
 
 /* List styling using Tailwind colors */
