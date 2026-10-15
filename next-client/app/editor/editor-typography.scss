@@ -32,6 +32,21 @@
   margin-inline: auto;
 }
 
+/* The sidebar floats over the panes, so a centered column stays put when it
+   opens. When the window is narrow enough that the sidebar would cover the
+   text, the column starts 1.5rem clear of it instead (narrowing if it must):
+   the larger of that and the centering margin. --pane-sidebar-inset is the
+   open sidebar's width on panes at the leading edge, else 0 (PaneLeaf);
+   EditorSkeleton sets both variables the same way. */
+.editor-sheet .editor-measure {
+  margin-left: max(
+    calc(var(--pane-sidebar-inset, 0px) + 1.5rem - var(--sheet-pad-left, 0px)),
+    calc((100% - var(--editor-measure)) / 2),
+    0px
+  );
+  margin-right: auto;
+}
+
 .editor-sheet.editor-container .cm-content {
   color: color-mix(in srgb, var(--fg) 88%, var(--surface));
   font-kerning: normal;

@@ -312,7 +312,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           fontFamily,
           "--editor-font-size": displayFontSize,
           "--editor-line-height": lineHeight,
-          paddingLeft: contentPaddingLeft,
+          "--sheet-pad-left": contentPaddingLeft,
+          paddingLeft: "var(--sheet-pad-left)",
           paddingRight: contentPaddingX,
           paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}

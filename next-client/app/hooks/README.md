@@ -61,7 +61,7 @@ All file writes go through `writeFileContent()` in `app/services/file-writer.ts`
 | Hook | Purpose |
 |------|---------|
 | `use-file-editor.ts` | Composes open / save / export / index; registers background indexing on the active file |
-| `use-open-file.ts` | Loads a file into the editor (and closes the home feed and the sidebar); retries stale handles. Saved content on disk always wins: differing unsaved browser text for that file is kept as a `local` snapshot on the tab, never prompted. Only an unsaved draft asks before being replaced |
+| `use-open-file.ts` | Loads a file into the editor (and closes the home feed; the sidebar stays as it is); retries stale handles. Saved content on disk always wins: differing unsaved browser text for that file is kept as a `local` snapshot on the tab, never prompted. Only an unsaved draft asks before being replaced |
 | `use-save-file.ts` | Writes with exponential backoff (up to 8 retries for autosave, 2 for manual saves; capped at 1.5s); auto-enables cloud mode after repeated lock errors; updates metadata async |
 | `use-export-file.ts` | Desktop picker → Web Share API → blob download fallback chain |
 | `use-index-active-file.ts` | 1s-debounced re-index on content change (unsaved text included); the worker also updates the note-text index, and the path is marked text-indexed |
