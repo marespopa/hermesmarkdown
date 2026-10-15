@@ -343,11 +343,12 @@ graph TD
     body: (
       <>
         <p>
-          Open the command palette and run <strong>New board</strong> (with a vault open). It
-          creates <code>Untitled.board.md</code> in your New Notes folder and opens it as a canvas.
-          If the name is taken you get <code>Untitled (1).board.md</code>.
+          Open the command palette and run <strong>New board</strong> (with a vault open). It asks
+          for the board&apos;s name, creates <code>Sprint plan.board.md</code> (for a board named
+          Sprint plan) in your New Notes folder and opens it as a canvas.
+          If the name is taken you get <code>Sprint plan (1).board.md</code>.
           You can also start one from an empty note: click the <strong>Board</strong> pill under the
-          first line (from a fresh, unsaved note it creates a new board file), or pick{" "}
+          first line (from a fresh, unsaved note it asks for a name and creates a new board file), or pick{" "}
           <strong>Board</strong> when a missing link asks how to create its note.
         </p>
         <p>

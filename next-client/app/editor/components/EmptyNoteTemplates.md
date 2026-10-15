@@ -4,7 +4,7 @@ Description: Quick-start pills for an empty note. Rendered by [MarkdownEditor](M
 
 ## Logic
 
-- Sources: the vault's templates (`atom_templates`), at most four, plus **More…** (the full template picker) when there are more. A vault with no templates gets a single **Browse template packs** pill that goes to the Templates page (`/editor/templates`, `useRouter`), where packs are added. A **Board** pill (with `onBoard`) follows them: MarkdownEditor wires it to `useEmptyNoteBoard`, which turns the empty note into a drawing board in place, or creates `Untitled.board.md` from the draft. Nothing shows without a vault (`atom_vaultHandle`).
+- Sources: the vault's templates (`atom_templates`), at most four, plus **More…** (the full template picker) when there are more. A vault with no templates gets a single **Browse template packs** pill that goes to the Templates page (`/editor/templates`, `useRouter`), where packs are added. A **Board** pill (with `onBoard`) follows them: MarkdownEditor wires it to `useEmptyNoteBoard`, which turns the empty note into a drawing board in place, or, from the draft, asks for a name and creates `<name>.board.md`. Nothing shows without a vault (`atom_vaultHandle`).
 - Motion: `.template-quick-pills` in `globals.scss` (rise-in on `data-state="open"`, fade on `"closed"`, `--ease-spring`; none with reduced motion).
 - Touch targets are 44px high on mobile, 36px from 640px.
 

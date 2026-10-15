@@ -5,7 +5,10 @@ import React from "react";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_newNoteFolder } from "@/app/atoms/ui-atoms";
 import { NEW_BOARD_MARKDOWN } from "@/app/utils/board/board-format";
-import { useCreateBoard } from "./use-create-board";
+import { boardBaseName, useCreateBoard } from "./use-create-board";
+
+const prompt = vi.fn();
+vi.mock("@/app/hooks/use-dialog", () => ({ useDialog: () => ({ prompt }) }));
 
 const ensureVaultFolder = vi.fn();
 vi.mock("@/app/hooks/file-system/unique-file", () => ({
@@ -32,13 +35,23 @@ describe("useCreateBoard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     ensureVaultFolder.mockResolvedValue(folder);
+    prompt.mockResolvedValue("Untitled");
   });
 
-  it("creates Untitled.board in the New Notes folder", async () => {
+  it("creates the named board in the New Notes folder", async () => {
+    prompt.mockResolvedValue("Sprint plan");
     const { createFile, createBoard } = setup("inbox");
     await createBoard();
+    expect(prompt).toHaveBeenCalledWith("Board name:", "Untitled", "New board");
     expect(ensureVaultFolder).toHaveBeenCalledWith(vault, "inbox");
-    expect(createFile).toHaveBeenCalledWith("Untitled.board", NEW_BOARD_MARKDOWN, folder);
+    expect(createFile).toHaveBeenCalledWith("Sprint plan.board", NEW_BOARD_MARKDOWN, folder);
+  });
+
+  it.each([null, "", "   "])("creates nothing when the prompt gives %j", async (answer) => {
+    prompt.mockResolvedValue(answer);
+    const { createFile, createBoard } = setup();
+    await createBoard();
+    expect(createFile).not.toHaveBeenCalled();
   });
 
   it("uses the vault root when the folder is empty", async () => {
@@ -53,5 +66,19 @@ describe("useCreateBoard", () => {
     await createBoard();
     expect(createFile).not.toHaveBeenCalled();
     expect(toastError).toHaveBeenCalledWith("Couldn't create the board.");
+  });
+});
+
+describe("boardBaseName", () => {
+  it.each([
+    ["Sprint plan", "Sprint plan.board"],
+    ["  Sprint plan  ", "Sprint plan.board"],
+    ["Sprint plan.md", "Sprint plan.board"],
+    ["Sprint plan.board", "Sprint plan.board"],
+    ["Sprint plan.board.md", "Sprint plan.board"],
+    [".board.md", null],
+    ["", null],
+  ])("%j -> %j", (input, expected) => {
+    expect(boardBaseName(input)).toBe(expected);
   });
 });
