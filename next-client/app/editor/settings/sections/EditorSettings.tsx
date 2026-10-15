@@ -25,7 +25,7 @@ export default function EditorSettings() {
         />
         <SettingItem
           label="Focus"
-          description="Fade the toolbar, tabs and sidebar once you start typing, leaving only the page; move the mouse to bring them back. The strongest level also dims every paragraph but the one you're in and keeps your line centered."
+          description="Fade the toolbar, tabs and sidebar once you start typing, leaving only the page; move the mouse to bring them back. The two strongest levels also dim every paragraph (or sentence) but the one you're in and keep your line centered."
           control={
             <SelectControl value={focusMode} onChange={(value) => setFocusMode(value as FocusMode)} ariaLabel="Focus">
               {FOCUS_OPTIONS.map((option) => (

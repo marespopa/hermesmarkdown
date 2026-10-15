@@ -28,7 +28,7 @@ import { templateBlanks } from "./template-blanks";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
 import { tableKeyBindings } from "./table-keymap";
 import { frontmatterCollapse } from "./frontmatter-fold";
-import { flowMode } from "./flow-mode";
+import { flowMode, type FlowLevel } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
 import { listCaretGuard } from "./list-caret";
 import { invisibles } from "./invisibles";
@@ -46,7 +46,8 @@ interface BuildExtensionsOptions {
   /** Vim mode on; the caller has already awaited `loadVim()`. */
   vimMode: boolean;
   vimModeCompartment: Compartment;
-  flowMode: boolean;
+  /** Flow mode level, or false when off. */
+  flowMode: FlowLevel | false;
   flowModeCompartment: Compartment;
   onOpenActiveHelperRef: { current: () => boolean };
   placeholder?: string;
@@ -68,7 +69,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     opts.wordWrapCompartment.of(opts.wordWrap ? EditorView.lineWrapping : []),
     opts.lineNumbersCompartment.of(opts.lineNumbers ? editorLineNumbers() : []),
     opts.invisiblesCompartment.of(opts.showInvisibles ? invisibles() : []),
-    opts.flowModeCompartment.of(opts.flowMode ? flowMode() : []),
+    opts.flowModeCompartment.of(opts.flowMode ? flowMode(opts.flowMode) : []),
     // Keep the caret clear of the floating pane header when scrolling it into
     // view (--pane-header-inset, PaneLeaf; unset on mobile).
     EditorView.scrollMargins.of((view) => ({

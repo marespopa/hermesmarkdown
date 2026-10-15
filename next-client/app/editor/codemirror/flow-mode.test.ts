@@ -1,16 +1,16 @@
 import { EditorSelection, EditorState, Text } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { describe, expect, it } from "vitest";
-import { flowMode, paragraphLinesAt, shouldTypewriterScroll } from "./flow-mode";
+import { flowMode, paragraphLinesAt, sentenceRangeAt, shouldTypewriterScroll, type FlowLevel } from "./flow-mode";
 
 const DOC = ["# Title", "", "First line", "second line", "", "Last"].join("\n");
 
-function createEditor(doc = DOC, cursor = 0) {
+function createEditor(doc = DOC, cursor = 0, level: FlowLevel = "paragraph") {
   const parent = document.createElement("div");
   document.body.appendChild(parent);
   const view = new EditorView({
     parent,
-    state: EditorState.create({ doc, selection: EditorSelection.cursor(cursor), extensions: flowMode() }),
+    state: EditorState.create({ doc, selection: EditorSelection.cursor(cursor), extensions: flowMode(level) }),
   });
   return { parent, view };
 }
@@ -79,6 +79,68 @@ describe("flowMode", () => {
     const { parent, view } = createEditor();
 
     expect(view.state.doc.toString()).toBe(DOC);
+
+    view.destroy();
+    parent.remove();
+  });
+});
+
+describe("sentenceRangeAt", () => {
+  // The sentence around the first occurrence of `at` in a one-paragraph doc.
+  function sentence(text: string, at: string) {
+    const doc = Text.of(text.split("\n"));
+    const { first, last } = paragraphLinesAt(doc, 0);
+    const { from, to } = sentenceRangeAt(doc, text.indexOf(at), first, last);
+    return text.slice(from, to);
+  }
+
+  it("finds the sentence around the caret, trailing space included", () => {
+    const text = "Ship the build. Review the plan! Is it done? Yes.";
+    expect(sentence(text, "Ship")).toBe("Ship the build. ");
+    expect(sentence(text, "plan")).toBe("Review the plan! ");
+    expect(sentence(text, "done")).toBe("Is it done? ");
+    expect(sentence(text, "Yes")).toBe("Yes.");
+  });
+
+  it("keeps abbreviations followed by a lowercase word in one sentence", () => {
+    expect(sentence("Use a tool, e.g. the linter. Then ship.", "linter")).toBe("Use a tool, e.g. the linter. ");
+  });
+
+  it("includes closing quotes and brackets", () => {
+    expect(sentence('He wrote "done." Then left.', "wrote")).toBe('He wrote "done." ');
+  });
+
+  it("starts a sentence at a line that follows a finished one or starts a block", () => {
+    expect(sentence("First task done.\nsecond line", "second")).toBe("second line");
+    expect(sentence("- Draft the spec\n- Review it", "Review")).toBe("- Review it");
+    expect(sentence("A soft\nwrapped line", "wrapped")).toBe("A soft\nwrapped line");
+  });
+});
+
+describe("flowMode at the sentence level", () => {
+  const TEXT = "Ship the build. Review the plan.\n\nLast";
+
+  function dimmedTexts(view: EditorView) {
+    return Array.from(view.contentDOM.querySelectorAll(".cm-flowDim")).map((el) => el.textContent);
+  }
+
+  it("dims the rest of the caret's paragraph", () => {
+    const { parent, view } = createEditor(TEXT, TEXT.indexOf("Review"), "sentence");
+
+    expect(activeLineTexts(view)).toEqual(["Ship the build. Review the plan."]);
+    expect(dimmedTexts(view)).toEqual(["Ship the build. "]);
+
+    view.dispatch({ selection: EditorSelection.cursor(TEXT.indexOf("build")), userEvent: "select" });
+    expect(dimmedTexts(view)).toEqual(["Review the plan."]);
+
+    view.destroy();
+    parent.remove();
+  });
+
+  it("dims nothing extra in the paragraph level", () => {
+    const { parent, view } = createEditor(TEXT, TEXT.indexOf("Review"));
+
+    expect(dimmedTexts(view)).toEqual([]);
 
     view.destroy();
     parent.remove();

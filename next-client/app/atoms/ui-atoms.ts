@@ -34,8 +34,9 @@ export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
 // mobile file bar while you type, and moving the mouse brings them back
 // (hooks/use-fade-chrome-while-typing.ts); "dim" does that too, and also
 // fades every paragraph but the caret's and keeps the caret line centred
-// (codemirror/flow-mode.ts). "hide" by default.
-export const FOCUS_MODES = ["off", "hide", "dim"] as const;
+// (codemirror/flow-mode.ts); "sentence" is "dim" narrowed to the caret's
+// sentence. "hide" by default.
+export const FOCUS_MODES = ["off", "hide", "dim", "sentence"] as const;
 export type FocusMode = (typeof FOCUS_MODES)[number];
 export const atom_focusMode = atomWithChoiceStorage<FocusMode>("focusMode", FOCUS_MODES, "hide");
 // The window's sidebar (desktop): open notes and the vault's file tree, on the

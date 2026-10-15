@@ -7,7 +7,7 @@ import type { Compartment } from "@codemirror/state";
 import { loadedVim, loadVim } from "../codemirror/vim-loader";
 import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
 import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
-import { flowMode as flowModeExtension } from "../codemirror/flow-mode";
+import { flowMode as flowModeExtension, type FlowLevel } from "../codemirror/flow-mode";
 import { invisibles } from "../codemirror/invisibles";
 import { editorLineNumbers } from "../codemirror/line-numbers";
 import { changedRange } from "@/app/utils/text-diff";
@@ -19,7 +19,8 @@ interface UseCodeMirrorEditorOptions {
   lineNumbers: boolean;
   showInvisibles: boolean;
   vimMode: boolean;
-  flowMode: boolean;
+  /** Flow mode level, or false when off. */
+  flowMode: FlowLevel | false;
   onOpenActiveHelperRef: { current: () => boolean };
   placeholder?: string;
   readOnly: boolean;
@@ -219,7 +220,7 @@ export function useCodeMirrorEditor({
     const view = viewRef.current;
     const compartment = flowModeCompartmentRef.current;
     if (!view || !compartment) return;
-    view.dispatch({ effects: compartment.reconfigure(flowMode ? flowModeExtension() : []) });
+    view.dispatch({ effects: compartment.reconfigure(flowMode ? flowModeExtension(flowMode) : []) });
   }, [flowMode, viewRef]);
 
   // Keep the view in sync when `value` changes for a reason other than

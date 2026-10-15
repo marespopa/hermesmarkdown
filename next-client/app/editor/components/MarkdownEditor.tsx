@@ -64,8 +64,10 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const lineNumbers = useAtomValue(atom_lineNumbers);
   const showInvisibles = useAtomValue(atom_showInvisibles);
   const vimMode = useAtomValue(atom_vimMode);
-  // Paragraph dimming and typewriter scrolling: the strongest Focus level.
-  const flowMode = useAtomValue(atom_focusMode) === "dim";
+  // Paragraph or sentence dimming and typewriter scrolling: the two
+  // strongest Focus levels.
+  const focusMode = useAtomValue(atom_focusMode);
+  const flowMode = focusMode === "dim" ? "paragraph" : focusMode === "sentence" ? "sentence" : false;
   const fullWidth = useAtomValue(atom_fullWidth);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);

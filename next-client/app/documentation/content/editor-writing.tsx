@@ -105,6 +105,7 @@ export const editorWritingItems: Subsection[] = [
             { label: "Off", value: "The interface stays put while you type" },
             { label: "Hide interface while typing", value: "The toolbar, tabs and sidebar fade once you start typing (default)" },
             { label: "Hide interface and dim other paragraphs", value: "The same, plus other paragraphs fade and the caret line stays centered" },
+            { label: "Hide interface and dim other sentences", value: "The same, but only the sentence you're writing stays at full strength" },
           ]}
         />
         <p>

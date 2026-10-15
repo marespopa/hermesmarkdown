@@ -60,13 +60,13 @@ The editor route (`page.tsx`) composes these:
     - **Conflict Resolution**: If local changes exist and the file was modified externally, a **Conflict Dialog** appears with **Accept Incoming** (reload from disk), **Keep Current** (overwrite on next save), or **Resolve in Merge Editor** (current, incoming and merged result side by side).
 5. **Folder Management**: Creating a folder uses `targetDir.getDirectoryHandle(name, { create: true })` and refreshes the directory listing.
 
-## Flow mode (Focus: dim)
+## Flow mode (Focus: dim, sentence)
 
-`codemirror/flow-mode.ts` is the strongest level of the Focus setting (**Hide interface and dim other paragraphs**, Settings → Editor or **Focus: …** in the command palette), read from `atom_focusMode` (`"dim"`) and toggled through a CodeMirror compartment.
+`codemirror/flow-mode.ts` is the two strongest levels of the Focus setting (**Hide interface and dim other paragraphs** / **… other sentences**, Settings → Editor or **Focus: …** in the command palette), read from `atom_focusMode` (`"dim"` → `flowMode("paragraph")`, `"sentence"` → `flowMode("sentence")`) and toggled through a CodeMirror compartment.
 
 `codemirror/bullet-autospace.ts` (an `EditorView.inputHandler`) turns a `-` typed at the start of a line (after any indent or `> `) into `- `. A space typed right after that bare bullet is swallowed, and a second `-` turns it back into `--`, so `---` still types as a rule or frontmatter fence. Code blocks and multi-cursor edits are left alone.
 
-1. **Paragraph focus**: a view plugin marks the lines of the caret's paragraph (the run of non-blank lines around it) with `cm-flowActive`. While the editor has focus, every other line and block widget fades to 25% opacity. On blur the whole note returns to full strength.
+1. **Paragraph focus**: a view plugin marks the lines of the caret's paragraph (the run of non-blank lines around it) with `cm-flowActive`. While the editor has focus, every other line and block widget fades to 25% opacity. On blur the whole note returns to full strength. At the sentence level, `sentenceRangeAt` finds the caret's sentence inside that paragraph (a `.` `!` `?` or `…` followed by whitespace and a non-lowercase character, a line ending in one, or a line starting a Markdown block) and the rest of the paragraph gets the `cm-flowDim` mark, faded the same way.
 2. **Typewriter scrolling**: a transaction extender adds a centered `scrollIntoView` effect to typing, deletion, undo/redo and keyboard caret movement. Pointer selections and external reloads never scroll. The content gets extra bottom padding so the last line can still reach the center.
 
 Neither part touches the document. The Markdown on disk is unchanged.
