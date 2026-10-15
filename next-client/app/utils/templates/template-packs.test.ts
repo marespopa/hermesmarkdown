@@ -33,6 +33,13 @@ describe("BUILTIN_PACKS", () => {
     const weekly = BUILTIN_PACKS.find((pack) => pack.name === "Journal")!.templates.find((t) => t.name === "Weekly")!;
     expect(expandTemplate(weekly.body, ctx).text).toContain("Last week: [[2026-W41]]");
   });
+
+  it("asks for the owner of a PRD and the author of a book note", () => {
+    const find = (pack: string, name: string) =>
+      BUILTIN_PACKS.find((p) => p.name === pack)!.templates.find((t) => t.name === name)!;
+    expect(expandTemplate(find("Projects", "PRD").body, { ...ctx, prompts: { Owner: "Growth" } }).text).toContain("owner: Growth");
+    expect(expandTemplate(find("Writing", "Book note").body, { ...ctx, prompts: { Author: "Unknown" } }).text).toContain("author: Unknown");
+  });
 });
 
 describe("packTemplatesInVault", () => {

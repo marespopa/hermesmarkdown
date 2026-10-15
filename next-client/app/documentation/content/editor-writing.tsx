@@ -93,7 +93,7 @@ export const editorWritingItems: Subsection[] = [
     id: "focus",
     title: "Focus",
     lead: "Let the interface fade while you type, and optionally dim everything but the paragraph you're writing.",
-    keywords: "focus hide interface chrome toolbar tabs sidebar fade typing distraction free minimal typewriter scrolling dim paragraph flow writing settings setup",
+    keywords: "focus word count words hide interface chrome toolbar tabs sidebar fade typing distraction free minimal typewriter scrolling dim paragraph flow writing settings setup",
     body: (
       <>
         <p>
@@ -122,6 +122,13 @@ export const editorWritingItems: Subsection[] = [
           caret. Everything else dims while the editor has focus and returns to full strength when
           you click away. Typing, deleting, undo/redo and moving with the keyboard keep the line
           centered; clicking or selecting with the mouse never scrolls the view.
+        </p>
+        <p>
+          Turn on <strong>Word Count</strong> in Settings → Editor (or run{" "}
+          <strong>Toggle Word Count</strong>) to show the note&apos;s word count faintly in the
+          bottom-left corner of the editor. It steps aside while you type and comes back when you
+          pause or move the mouse. Frontmatter and Markdown marks on their own, like{" "}
+          <code>#</code> or <code>-</code>, aren&apos;t counted.
         </p>
         <Callout type="note">
           Focus only changes how the editor looks. The Markdown in your file stays the same.

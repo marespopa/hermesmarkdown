@@ -27,6 +27,8 @@ export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", false);
 // Marks empty lines with ¶ and shows spaces and tabs (codemirror/invisibles.ts).
 export const atom_showInvisibles = atomWithStorage<boolean>("showInvisibles", false);
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
+// The faint word count pill in the editor corner (WordCountPill). Off by default.
+export const atom_showWordCount = atomWithStorage<boolean>("showWordCount", false);
 // Lets the editor's text column fill the sheet instead of stopping at the
 // reading width (--editor-measure, editor-typography.scss). On by default.
 export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
@@ -63,14 +65,20 @@ export const atom_sidebarCollapsed = atomWithStorage<Record<string, boolean>>("s
 export const MONO_FONT_STACK =
   'var(--font-geist-mono), "SF Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
 export const UI_FONT_STACK =
-  "var(--font-inter), system-ui, -apple-system, ui-sans-serif, sans-serif";
+  "var(--font-plus-jakarta), system-ui, -apple-system, ui-sans-serif, sans-serif";
+// The duospaced writing face (fonts.ts) falls back to the monospace stack.
+export const DUOSPACE_FONT_STACK = `var(--font-duospace), ${MONO_FONT_STACK}`;
+// The proportional writing face (fonts.ts) falls back to the sans stack.
+export const QUATTRO_FONT_STACK = `var(--font-quattro), ${UI_FONT_STACK}`;
 export const atom_editorFontFamily = atomWithStorage<string>(
   "editorFontFamily",
   MONO_FONT_STACK,
 );
 // Saved choices from older versions move to their closest current equivalent:
-// IBM Plex Mono to Geist Mono, the retired Plus Jakarta Sans and Source Serif
-// to Inter, older stack strings to the current ones (so the
+// IBM Plex Mono to Geist Mono; for writing, Inter, Plus Jakarta Sans and
+// Source Serif (none offered there) to Quattro, the proportional writing
+// face; for reading they go to the interface sans; older stack
+// strings to the current ones (so the
 // picker still shows them as selected), and the 14–22px sizes up one pixel
 // onto the Dynamic Type steps. Every target is a current value, so this is
 // safe to run on each load.
@@ -82,21 +90,31 @@ const LEGACY_TEXT_SIZES: Record<string, string> = {
   "22px": "23px",
 };
 
-const FONT_STACKS_BY_VARIABLE: [string, string][] = [
+// First match wins, so stacks that fall back to another face's variable
+// (Duospace to Geist Mono, Quattro to Plus Jakarta Sans) are checked before
+// it. A saved sans goes to `sans`: Quattro for writing, the interface sans
+// for reading.
+const fontStacksByVariable = (sans: string): [string, string][] => [
+  ["--font-duospace", DUOSPACE_FONT_STACK],
+  ["--font-quattro", QUATTRO_FONT_STACK],
   ["--font-ibm-mono", MONO_FONT_STACK],
   ["--font-geist-mono", MONO_FONT_STACK],
-  ["--font-plus-jakarta", UI_FONT_STACK],
-  ["--font-source-serif", UI_FONT_STACK],
-  ["--font-inter", UI_FONT_STACK],
+  ["--font-plus-jakarta", sans],
+  ["--font-source-serif", sans],
+  ["--font-inter", sans],
 ];
+const SANS_TARGET_BY_KEY: Record<string, string> = {
+  editorFontFamily: QUATTRO_FONT_STACK,
+  renderedFontFamily: UI_FONT_STACK,
+};
 
 export function migrateLegacyTypographyPreferences() {
   if (typeof window === "undefined") return;
   try {
-    for (const key of ["editorFontFamily", "renderedFontFamily"]) {
+    for (const [key, sans] of Object.entries(SANS_TARGET_BY_KEY)) {
       const saved = window.localStorage.getItem(key);
       if (!saved) continue;
-      const stack = FONT_STACKS_BY_VARIABLE.find(([variable]) => saved.includes(variable))?.[1];
+      const stack = fontStacksByVariable(sans).find(([variable]) => saved.includes(variable))?.[1];
       if (stack && JSON.parse(saved) !== stack) {
         window.localStorage.setItem(key, JSON.stringify(stack));
       }

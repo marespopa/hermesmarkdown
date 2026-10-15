@@ -36,7 +36,7 @@ export default function AppearanceSettings() {
       <SettingGroup title="Typography">
         <SettingItem
           label="Font"
-          description="Choose a paper-like typeface for the Markdown editor. Fonts are self-hosted and keep a system fallback."
+          description="The font you write in."
           layout="stack"
           control={<FontPicker fonts={FONTS} value={editorFontFamily} onChange={setEditorFontFamily} />}
         />

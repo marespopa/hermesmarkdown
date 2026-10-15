@@ -23,6 +23,7 @@ const packs = {
   createPack: vi.fn(async () => "Work"),
   duplicatePack: vi.fn(async () => "Journal copy"),
   deletePack: vi.fn(async () => true),
+  deleteTemplate: vi.fn(async () => true),
 };
 vi.mock("@/app/hooks/file-system/use-template-packs", () => ({ useTemplatePacks: () => packs }));
 
@@ -45,13 +46,22 @@ function renderPage({ vault = true, paths = ["templates/Meeting.md", "templates/
 describe("TemplatesPage", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("lists your templates by pack, loose ones first, empty packs too", () => {
+  it("lists your templates by pack, those in no pack first, empty packs too", () => {
     renderPage();
     const sections = screen.getAllByRole("region").map((region) => region.getAttribute("aria-label")).filter(Boolean);
-    expect(sections.slice(0, 3)).toEqual(["Loose templates", "Empty", "Journal"]);
+    expect(sections.slice(0, 3)).toEqual(["Not in a pack", "Empty", "Journal"]);
     expect(within(screen.getByRole("region", { name: "Journal" })).getByText("Daily")).toBeInTheDocument();
     expect(within(screen.getByRole("region", { name: "Empty" })).getByText("No templates in this pack yet.")).toBeInTheDocument();
-    expect(within(screen.getByRole("region", { name: "Loose templates" })).queryByRole("button", { name: /Delete/ })).not.toBeInTheDocument();
+    expect(within(screen.getByRole("region", { name: "Not in a pack" })).queryByRole("button", { name: "Delete Not in a pack" })).not.toBeInTheDocument();
+  });
+
+  it("deletes one template, in a pack or not", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Delete template Meeting" }));
+    expect(packs.deleteTemplate).toHaveBeenCalledWith(expect.objectContaining({ path: "templates/Meeting.md" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete template Daily" }));
+    expect(packs.deleteTemplate).toHaveBeenCalledWith(expect.objectContaining({ path: "templates/Journal/Daily.md" }));
+    expect(packs.deletePack).not.toHaveBeenCalled();
   });
 
   it("has no Use button: templates are used from a note", () => {

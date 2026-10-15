@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { atom_openFiles } from "@/app/atoms/file-atoms";
 import { atom_resumeRequested, atom_userName } from "@/app/atoms/ui-atoms";
 import LandingPage from "./LandingPage";
+import { LANDING_FAQ } from "./landing-content";
 
 const router = vi.hoisted(() => ({
   push: vi.fn(),
@@ -63,6 +64,30 @@ describe("LandingPage", () => {
     );
     expect(screen.queryByText("Try it. Right here.")).not.toBeInTheDocument();
     expect(screen.queryByText("Optional GitHub backup, on your terms")).not.toBeInTheDocument();
+  });
+
+  it("explains the editor below the hero, with an FAQ and links to the guides", () => {
+    renderLandingPage();
+
+    expect(
+      screen.getByRole("heading", {
+        level: 2,
+        name: "A local-first Markdown editor in your browser",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Works offline" })).toBeInTheDocument();
+    for (const { q, a } of LANDING_FAQ) {
+      expect(screen.getByText(q)).toBeInTheDocument();
+      expect(screen.getByText(a)).toBeInTheDocument();
+    }
+    expect(screen.getByRole("link", { name: "what a Markdown editor is" })).toHaveAttribute(
+      "href",
+      "/markdown-editor",
+    );
+    expect(screen.getByRole("link", { name: "free Markdown tools" })).toHaveAttribute(
+      "href",
+      "/tools",
+    );
   });
 
   it("opens the editor from the primary action", () => {

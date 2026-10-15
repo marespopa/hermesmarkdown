@@ -34,7 +34,7 @@ export default function Error({ error, reset }: ErrorPageProps) {
           </p>
         </div>
 
-        <h1 className="text-6xl md:text-8xl font-bold tracking-tight leading-none">
+        <h1 className="text-6xl md:text-8xl font-hero font-normal tracking-tight leading-none">
           Something{' '}
           <span className="text-neutral-300 dark:text-neutral-700 italic">
             went wrong.

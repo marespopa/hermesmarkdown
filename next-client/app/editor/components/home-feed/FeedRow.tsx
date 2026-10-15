@@ -7,6 +7,7 @@ import Button from "@/app/components/Button";
 import PrivateBadge from "@/app/components/PrivateBadge";
 import TabContextMenu from "../TabContextMenu";
 import type { FeedEntry } from "./feed-model";
+import { FeedPreviewSkeleton } from "./FeedSkeleton";
 import { useLongPress } from "./use-long-press";
 
 interface FeedRowProps {
@@ -91,10 +92,7 @@ const FeedRow = forwardRef<HTMLDivElement, FeedRowProps>(function FeedRow(
           <FeedPreview entry={entry} />
         ) : (
           // Placeholder until the indexer has read this note.
-          <span aria-hidden="true" className="mt-2 block space-y-2 motion-safe:animate-pulse">
-            <span className="block h-2.5 w-11/12 rounded bg-surface-raised" />
-            <span className="block h-2.5 w-2/3 rounded bg-surface-raised" />
-          </span>
+          <FeedPreviewSkeleton />
         )}
         {entry.fileName && (
           <span className="mt-1.5 block truncate text-ui-caption text-fg-faint">{entry.fileName}</span>

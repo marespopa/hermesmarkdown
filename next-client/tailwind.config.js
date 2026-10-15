@@ -18,7 +18,7 @@ module.exports = {
     },
     extend: {
       // Apple's HIG text styles: sizes and line heights from the iOS Dynamic
-      // Type "Large" defaults, tracking from Inter's dynamic metrics (tighter
+      // Type "Large" defaults, tracking first tuned for Inter's metrics (tighter
       // as text grows, slightly open at 11–12px so small labels stay legible).
       fontSize: {
         'ui-title-1': ['1.75rem', { lineHeight: '2.125rem', letterSpacing: '-0.021em' }],   // 28/34
@@ -34,14 +34,9 @@ module.exports = {
       // Each family leads with its self-hosted face (app/fonts.ts) and falls
       // back to the Apple system face with the same role.
       fontFamily: {
-        sans: [
-          "var(--font-inter)",
-          "system-ui",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "ui-sans-serif",
-          "sans-serif",
-        ],
+        // Stacks live in globals.scss (--landing-body, --landing-hero).
+        sans: ["var(--landing-body)"],
+        hero: ["var(--landing-hero)"],
         mono: [
           "var(--font-geist-mono)",
           "SF Mono",

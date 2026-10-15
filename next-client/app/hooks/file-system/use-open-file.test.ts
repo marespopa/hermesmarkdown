@@ -77,13 +77,13 @@ describe("useOpenFile loading state", () => {
     expect(calls[calls.length - 1][0]).toBe(false);
   });
 
-  it("hides the sidebar when a file opens", async () => {
+  it("leaves the sidebar open when a file opens", async () => {
     getDefaultStore().set(atom_sidebarOpen, true);
     const { result } = renderHook(() => useOpenFile());
 
     await result.current.openFile(mockFileHandle as any);
 
-    expect(getDefaultStore().get(atom_sidebarOpen)).toBe(false);
+    expect(getDefaultStore().get(atom_sidebarOpen)).toBe(true);
   });
 
   it("should reset isFileLoading even if getFile fails", async () => {

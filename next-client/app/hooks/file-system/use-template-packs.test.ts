@@ -127,4 +127,17 @@ describe("useTemplatePacks", () => {
     await act(async () => { await packs.deletePack(pack); });
     expect(fileSystem.trashItems).toHaveBeenCalledWith([expect.objectContaining({ path: "templates/Journal" })]);
   });
+
+  it("moves one template to the Trash only after asking", async () => {
+    const { packs } = await setup({ "templates/Meeting.md": "x\n" });
+    const template = { name: "Meeting", path: "templates/Meeting.md" };
+    dialog.confirm.mockResolvedValueOnce(false);
+    await act(async () => { await packs.deleteTemplate(template); });
+    expect(fileSystem.trashItems).not.toHaveBeenCalled();
+
+    dialog.confirm.mockResolvedValueOnce(true);
+    await act(async () => { await packs.deleteTemplate(template); });
+    expect(dialog.confirm).toHaveBeenCalledWith("Move the Meeting template to the Trash?", "Delete template", "Delete", "Cancel");
+    expect(fileSystem.trashItems).toHaveBeenCalledWith([expect.objectContaining({ path: "templates/Meeting.md" })]);
+  });
 });

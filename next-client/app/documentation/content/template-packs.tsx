@@ -9,7 +9,7 @@ export const templatePacksItem: Subsection = {
   title: "Template packs",
   lead: "Keep your templates in packs, add the ones HermesMarkdown ships, and keep a journal with them.",
   keywords:
-    "template packs templates page manage edit duplicate delete pack folder journal daily weekly monthly yearly diary dated note today week month year meetings writing projects add to vault reuse",
+    "template packs templates page manage edit duplicate delete pack folder journal daily weekly monthly yearly diary dated note today week month year meetings writing book note projects prd requirements engineering readme adr decision record add to vault reuse",
   body: (
     <>
       <p>
@@ -20,8 +20,9 @@ export const templatePacksItem: Subsection = {
       <p>
         Templates live in <code>templates/</code> at the root of your vault. A pack is a folder inside
         it, like <code>templates/Journal/</code>; templates directly in <code>templates/</code> are listed
-        first, as loose templates. <strong>Edit</strong> opens a template itself; changes apply the
-        next time you use it. To use a template, type <code>/template</code> in a note, pick one from an
+        first, under <strong>Not in a pack</strong>. <strong>Edit</strong> opens a template itself; changes
+        apply the next time you use it. <strong>Delete</strong> moves one template to the Trash, with
+        Undo. To use a template, type <code>/template</code> in a note, pick one from an
         empty note&apos;s buttons, or from a link to a note that doesn&apos;t exist yet.
       </p>
       <p>
@@ -36,8 +37,9 @@ export const templatePacksItem: Subsection = {
         rows={[
           { label: "Journal", value: "Daily, Weekly, Monthly, Yearly and Log entry" },
           { label: "Meetings", value: "Meeting notes, One-on-one, Standup" },
-          { label: "Writing", value: "Draft, Outline" },
-          { label: "Projects", value: "Project brief, Spec, Report" },
+          { label: "Writing", value: "Draft, Outline, Book note" },
+          { label: "Projects", value: "Project brief, PRD, Spec, Report" },
+          { label: "Engineering", value: "README, Decision record" },
         ]}
       />
       <p>

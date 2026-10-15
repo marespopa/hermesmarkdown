@@ -82,7 +82,7 @@ export default function MarkdownEditorPage() {
             ← Back to home
           </Link>
           <div className="space-y-4">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05]">
+            <h1 className="text-5xl md:text-7xl font-hero font-normal tracking-tight leading-[1.05]">
               What Is a{" "}
               <span className="text-neutral-600 dark:text-neutral-400 italic">Markdown Editor?</span>
             </h1>

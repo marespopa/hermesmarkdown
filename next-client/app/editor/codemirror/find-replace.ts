@@ -39,7 +39,7 @@ const findReplaceTheme = EditorView.theme({
     border: "1px solid var(--material-edge)",
     borderRadius: "0.75rem",
     boxShadow: "inset 0 1px 0 var(--material-highlight), var(--material-shadow)",
-    fontFamily: "var(--font-inter), system-ui, sans-serif",
+    fontFamily: "var(--font-plus-jakarta), system-ui, sans-serif",
     fontSize: "13px",
   },
   // Inline layout (CM6 breaks find and replace rows with a <br>), so rows

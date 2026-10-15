@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_focusMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_focusMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_showWordCount, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
 import DatePickerCallout from "./DatePickerCallout";
@@ -40,6 +40,7 @@ import EditorPills from "./markdown-editor/EditorPills";
 import FoldChevrons from "./markdown-editor/FoldChevrons";
 import LinkInsertDialog from "./markdown-editor/LinkInsertDialog";
 import VimStatusPill from "./markdown-editor/VimStatusPill";
+import WordCountPill from "./markdown-editor/WordCountPill";
 import { useVimStatus } from "../hooks/use-vim-status";
 import TemplateStrip from "./TemplateStrip";
 import EmptyNoteTemplates from "./EmptyNoteTemplates";
@@ -64,6 +65,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { onChange } = props;
   const wordWrap = useAtomValue(atom_wordWrap);
   const lineNumbers = useAtomValue(atom_lineNumbers);
+  const showWordCount = useAtomValue(atom_showWordCount);
   const showInvisibles = useAtomValue(atom_showInvisibles);
   const vimMode = useAtomValue(atom_vimMode);
   // Paragraph or sentence dimming and typewriter scrolling: the two
@@ -304,13 +306,14 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           mx-auto w-full
           text-ui-body
         `}
-        data-font={fontFamily.includes("--font-geist-mono") ? "mono" : undefined}
+        data-font={fontFamily.includes("--font-geist-mono") || fontFamily.includes("--font-duospace") ? "mono" : undefined}
         data-full-width={fullWidth ? "" : undefined}
         style={{
           fontFamily,
           "--editor-font-size": displayFontSize,
           "--editor-line-height": lineHeight,
-          paddingLeft: contentPaddingLeft,
+          "--sheet-pad-left": contentPaddingLeft,
+          paddingLeft: "var(--sheet-pad-left)",
           paddingRight: contentPaddingX,
           paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}
@@ -391,6 +394,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         </div>
       </div>
       {vimMode && <VimStatusPill status={vimStatus} hostRef={vimStatusHostRef} />}
+      {showWordCount && props.isActivePane !== false && <WordCountPill view={editorView} text={editorValue} />}
     </div>
   );
 }

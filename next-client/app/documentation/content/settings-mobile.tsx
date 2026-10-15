@@ -8,7 +8,7 @@ export const settingsGroup: Group = {
     {
       id: "appearance",
       title: "Appearance",
-      lead: "Theme and a small editorial typeface pair shape the editor's paper-like writing surface.",
+      lead: "Pick a theme, the font you write in and the text size.",
       keywords: "theme dark light font typography text size sidebar layout full width focus",
       body: (
         <>
@@ -27,12 +27,14 @@ export const settingsGroup: Group = {
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
               { label: "Sidebar", value: "The toolbar's Sidebar button, CTRL/CMD+ALT+S or Toggle Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
-              { label: "Typeface", value: "Geist Mono by default, or Inter" },
+              { label: "Typeface", value: "Geist Mono by default, Duospace or Quattro" },
             ]}
           />
           <Callout type="note">
-            Geist Mono is the default for writing: an even, typewriter-like rhythm. Inter, the
-            app&apos;s interface face, is there if you prefer a proportional sans. Text sizes follow Apple&apos;s Dynamic Type steps, 15 to 23px.
+            Geist Mono is the default for writing: an even, typewriter-like rhythm. Duospace
+            keeps that rhythm but gives wide letters like m and w more room, so lines lose a
+            monospace&apos;s gaps. Quattro is its proportional sibling, for prose that reads like
+            a book while keeping the same calm texture. Text sizes follow Apple&apos;s Dynamic Type steps, 15 to 23px.
           </Callout>
         </>
       ),

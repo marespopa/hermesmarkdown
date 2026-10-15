@@ -51,8 +51,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const hostsSidebarToggle = getFirstLeaf(workspaceLayout.rootContainer).id === leaf.id;
   const hostsWindowActions = getTopTrailingLeaf(workspaceLayout.rootContainer).id === leaf.id;
   // The floating sidebar covers the leading edge; panes there start their
-  // header beside it (--sidebar-inset, page.tsx). Only the header moves —
-  // the text underneath never does.
+  // header beside it (--sidebar-inset, page.tsx). Only the header moves;
+  // the text underneath moves only when the sidebar would cover it
+  // (--pane-sidebar-inset, .editor-measure in editor-typography.scss).
   const besideSidebar = isOnLeadingEdge(workspaceLayout.rootContainer, leaf.id);
   const isMobileChrome = useIsMobileChrome();
 
@@ -130,7 +131,10 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       }`}
       // The header floats over the content, which starts below it
       // (--pane-header-inset) and scrolls under its glass.
-      style={isMobileChrome ? undefined : ({ "--pane-header-inset": PANE_HEADER_INSET } as React.CSSProperties)}
+      style={isMobileChrome ? undefined : ({
+        "--pane-header-inset": PANE_HEADER_INSET,
+        "--pane-sidebar-inset": besideSidebar ? "var(--sidebar-inset, 0px)" : "0px",
+      } as React.CSSProperties)}
       onClick={() => setActivePaneId(leaf.id)}
     >
       {/* Pane tabs are the editor's desktop header, even for a single note.

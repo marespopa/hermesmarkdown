@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* App chrome reads in Inter (Tailwind `font-sans`), the closest open face to
-   SF Pro; kerning and optical sizing on everywhere. */
+/* App chrome reads in Plus Jakarta Sans (Tailwind `font-sans`, --landing-body);
+   kerning and optical sizing on everywhere. */
 body {
   font-family: theme('fontFamily.sans');
   font-kerning: normal;
@@ -16,6 +16,12 @@ body {
    Neutral surfaces only — clay/moss accents never appear as backgrounds.
    ─────────────────────────────────────────────────────────────────────── */
 :root {
+  /* Editorial Craft (warm & humanist): Instrument Serif for hero headings
+     (`font-hero`), Plus Jakarta Sans for everything else (`font-sans`). The
+     editor's writing fonts are set separately (Settings → Typography). */
+  --landing-hero: var(--font-instrument-serif), 'Instrument Serif', Georgia, serif;
+  --landing-body: var(--font-plus-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, ui-sans-serif, sans-serif;
+
   --surface:        #FAF9F7;  /* editor surface — soft off-white, no color cast */
   --surface-raised: #F2F1EE;  /* elevated cards / panels */
   --chrome:         #F0EFEC;  /* tab bar, file indicator, palette footer — visibly distinct from editor */

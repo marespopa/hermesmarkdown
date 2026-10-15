@@ -11,7 +11,7 @@ import Button from "@/app/components/Button";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import { formatShortcut } from "@/app/utils/platform";
-import { PANE_HEADER_HEIGHT, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
+import { PANE_HEADER_HEIGHT, PANE_ICON_SIZE } from "./pane-header-classes";
 import PaneToolbarButton from "./PaneToolbarButton";
 import TabContextMenu from "./TabContextMenu";
 import { statusDot } from "./PaneTab";
@@ -23,9 +23,12 @@ const NO_TAGS: string[] = [];
 // Extra travel when hidden, past the reach of its shadow-xl.
 const SIDEBAR_SHADOW_ROOM = 32;
 
+// One fill for hover and the current row, the file tree's (FileRow), so
+// every row in the sidebar highlights alike; the current one is also bolder.
+const ITEM_FILL = "bg-paper-softgray/60 dark:bg-paper-dark-surface/50";
 const ITEM_CLASS = "flex items-center gap-2 h-7 px-2 rounded-md text-ui-footnote text-left transition-colors";
-const ITEM_CURRENT_CLASS = "bg-surface-raised text-ink-light dark:text-ink-dark font-medium";
-const ITEM_IDLE_CLASS = "text-fg-muted hover:bg-black/5 dark:hover:bg-white/10 hover:text-fg";
+const ITEM_CURRENT_CLASS = `${ITEM_FILL} text-ink-light dark:text-ink-dark font-medium`;
+const ITEM_IDLE_CLASS = "text-fg-muted hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50 hover:text-fg";
 
 interface SectionMenuItem {
   label: string;
@@ -136,8 +139,8 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
     setFilesFocusRequested(false);
   }, [filesFocusRequested, open, setFilesFocusRequested]);
 
-  // It floats over the text like a drawer: a click in the editor (anywhere on
-  // a pane's sheet or canvas) puts it away.
+  // Opening notes leaves it open, so you can browse; a click in the editor
+  // (anywhere on a pane's sheet or canvas) means you're writing, and puts it away.
   useEffect(() => {
     if (!open) return;
     const onPointerDown = (event: PointerEvent) => {
@@ -205,15 +208,15 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
         <h2 className="flex-1 min-w-0 truncate text-ui-caption font-semibold uppercase tracking-wider text-fg-faint select-none">
           {vaultName ?? "Workspace"}
         </h2>
-        <div className={`${PANE_SECTION_CLASS} !ml-0`}>
-          <PaneToolbarButton
-            icon={<VscLayoutSidebarLeft size={PANE_ICON_SIZE} />}
-            label="Hide sidebar"
-            shortcut={formatShortcut("S", { alt: true })}
-            tooltipPosition="bottom-end"
-            onClick={() => setOpen(false)}
-          />
-        </div>
+        {/* A plain icon button: alone, it needs no section capsule. */}
+        <PaneToolbarButton
+          icon={<VscLayoutSidebarLeft size={PANE_ICON_SIZE} />}
+          label="Hide sidebar"
+          shortcut={formatShortcut("S", { alt: true })}
+          tooltipPosition="bottom-end"
+          onClick={() => setOpen(false)}
+          className="shrink-0"
+        />
       </div>
 
       {/* The edge (hairline and shadow) starts below the header: the header
@@ -260,7 +263,6 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
                     setHomeFeedOpen(false);
                     setActivePaneId(paneId);
                     setActiveFilePath(filePath);
-                    setOpen(false);
                   }}
                   aria-current={isCurrent ? "page" : undefined}
                   title={filePath}
