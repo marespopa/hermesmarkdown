@@ -42,6 +42,14 @@ describe("EmptyNoteTemplates", () => {
     expect(push).toHaveBeenCalledWith("/editor/templates");
   });
 
+  it("offers a Board pill that starts a drawing board", () => {
+    const onBoard = vi.fn();
+    renderPills({ onBoard }, ["templates/standup.md"]);
+    expect(pillNames()).toEqual(["standup", "Board"]);
+    fireEvent.click(screen.getByText("Board"));
+    expect(onBoard).toHaveBeenCalled();
+  });
+
   it("renders nothing without a vault", () => {
     renderPills({}, [], false);
     expect(screen.queryByRole("group")).not.toBeInTheDocument();

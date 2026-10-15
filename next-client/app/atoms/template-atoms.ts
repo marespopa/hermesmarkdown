@@ -26,7 +26,7 @@ export type TemplateDialogRequest =
       title: string;
       /** Path of the template to put first and highlight (the one a link's name points to). */
       preselect?: string;
-      resolve: (value: TemplateEntry | "blank" | null) => void;
+      resolve: (value: TemplateEntry | "blank" | "board" | null) => void;
     }
   | {
       kind: "prompts";

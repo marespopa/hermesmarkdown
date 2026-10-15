@@ -43,7 +43,7 @@ export function useVaultTemplateInsert({ viewRef, filePath }: UseVaultTemplateIn
     const before = viewRef.current;
     const selection = before ? before.state.sliceDoc(before.state.selection.main.from, before.state.selection.main.to) : "";
     const chosen = source ?? await pickTemplate({ includeBlank: false, title: "Insert template" });
-    if (!chosen || chosen === "blank") return;
+    if (!chosen || typeof chosen === "string") return;
     let raw: string;
     try {
       raw = await readTemplate(chosen);

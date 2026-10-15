@@ -62,7 +62,7 @@ describe("TemplatePicker", () => {
 
   it("lists a preselected template first, before Blank note, highlighted", () => {
     const { onPick } = renderPicker({ includeBlank: true, preselect: "templates/rfc.md" });
-    expect(rowNames()).toEqual(["rfctemplates/rfc.md", "Blank note", "meetingtemplates/meeting.md"]);
+    expect(rowNames()).toEqual(["rfctemplates/rfc.md", "Blank note", "Board", "meetingtemplates/meeting.md"]);
     expect(screen.getAllByRole("option")[0]).toHaveAttribute("aria-selected", "true");
     fireEvent.keyDown(screen.getByLabelText("Search templates"), { key: "Enter" });
     expect(onPick).toHaveBeenCalledWith(templates[1]);
@@ -159,9 +159,16 @@ describe("TemplatePicker", () => {
     expect(onPick).toHaveBeenCalledWith("blank");
   });
 
-  it("offers only Blank note when the vault has no templates", () => {
+  it("picks Board as 'board'", () => {
+    const { onPick } = renderPicker({ includeBlank: true });
+    expect(rowNames()[1]).toBe("Board");
+    fireEvent.click(screen.getByText("Board"));
+    expect(onPick).toHaveBeenCalledWith("board");
+  });
+
+  it("offers only Blank note and Board when the vault has no templates", () => {
     renderPicker({ includeBlank: true, templates: [] });
-    expect(rowNames()).toEqual(["Blank note"]);
+    expect(rowNames()).toEqual(["Blank note", "Board"]);
   });
 
   it("shows the empty state without templates", () => {

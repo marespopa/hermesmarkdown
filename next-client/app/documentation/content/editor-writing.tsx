@@ -346,6 +346,9 @@ graph TD
           Open the command palette and run <strong>New board</strong> (with a vault open). It
           creates <code>Untitled.board.md</code> in your New Notes folder and opens it as a canvas.
           If the name is taken you get <code>Untitled (1).board.md</code>.
+          You can also start one from an empty note: click the <strong>Board</strong> pill under the
+          first line (from a fresh, unsaved note it creates a new board file), or pick{" "}
+          <strong>Board</strong> when a missing link asks how to create its note.
         </p>
         <p>
           A board is still a Markdown note. The drawing is stored in a fenced block, so you can write
