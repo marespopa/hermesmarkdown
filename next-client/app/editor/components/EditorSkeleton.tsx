@@ -1,16 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { atom_homeFeedOpen, atom_sidebarOpen, atom_sidebarWidth, atom_userName, atom_vaultOpenBehaviorAppliedFor } from "@/app/atoms/ui-atoms";
-import { PANE_HEADER_CLASS, PANE_HEADER_HEIGHT } from "./pane-header-classes";
+import { PANE_HEADER_CLASS, PANE_HEADER_HEIGHT, PANE_SECTION_CLASS } from "./pane-header-classes";
 import FeedHeader from "./home-feed/FeedHeader";
-import FeedSkeleton, { FeedVaultSkeleton } from "./home-feed/FeedSkeleton";
+import FeedSkeleton, { FeedVaultSkeleton, SkeletonLine } from "./home-feed/FeedSkeleton";
+import { SEARCH_PILL_CLASS } from "@/app/components/CommandPalette/palette-model";
 import { NO_VAULT_KEY } from "../hooks/use-vault-open-behavior";
-
-// One placeholder shape. Static black / white so the opacity modifier works
-// (the var-backed tokens drop it); pulses only when motion is allowed.
-const BAR = "bg-black/[0.06] dark:bg-white/[0.08] motion-safe:animate-pulse";
+import { routeSkeleton, SKELETON_BAR as BAR, SUBPAGE_BACKDROP } from "./RouteSkeletons";
 
 // Paragraph line widths, as a share of the column, so the page reads as text.
 const PARAGRAPHS = [
@@ -37,17 +36,23 @@ export function HomeFeedSkeleton() {
         {now ? (
           <FeedHeader now={now} userName={userName} />
         ) : (
+          // FeedHeader's type, so the real greeting and date land in place.
           <div className="pb-8 pt-16 sm:pt-24">
-            <div className={`h-4 w-48 mb-3 rounded-full ${BAR}`} />
-            <div className={`h-9 sm:h-11 w-56 rounded-lg ${BAR}`} />
+            <span className="mb-1 block">
+              <SkeletonLine textClass="text-ui-callout" barClass="h-3.5 w-48" />
+            </span>
+            <SkeletonLine textClass="text-ui-title-1 sm:text-[2.5rem] sm:leading-[3rem]" barClass="h-8 sm:h-10 w-56 rounded-lg" />
           </div>
         )}
         <FeedSkeleton rows={5} />
       </div>
       <div className="absolute inset-x-0 bottom-5 flex justify-center px-3 sm:px-4">
         <div className="flex w-full max-w-xl items-center gap-1.5 sm:gap-2">
-          <div className="h-[3.25rem] flex-1 rounded-full border border-edge bg-chrome shadow-lg" />
-          <div className="h-12 w-12 sm:h-[3.25rem] sm:w-[3.25rem] shrink-0 rounded-full bg-surface-raised shadow-lg" />
+          {/* FeedBar's search pill and new-note button. */}
+          <div className={`${SEARCH_PILL_CLASS} glass-panel min-w-0 flex-1`}>
+            <div className="h-10 flex-1" />
+          </div>
+          <div className="h-12 w-12 sm:h-[3.25rem] sm:w-[3.25rem] shrink-0 rounded-full bg-sage shadow-lg" />
         </div>
       </div>
     </div>
@@ -59,10 +64,14 @@ export function HomeFeedSkeleton() {
 // that already opened the vault and wasn't on the feed, which lands back in
 // the workspace: sidebar (desktop, when it's open), pane
 // header with tab pills, and the paper panel with a title and a few
-// paragraphs of placeholder lines. Both mirror the real layout's classes
+// paragraphs of placeholder lines; the sidebar floats over the panes, as the
+// real one does. Both mirror the real layout's classes
 // (`PANE_HEADER_CLASS`, `.editor-canvas`, `.editor-sheet`) so the page
 // appears in place with no jump.
 export default function EditorSkeleton() {
+  // The gate wraps every /editor route: a refresh on Templates, Tasks, Files
+  // or Settings outlines that page instead (RouteSkeletons).
+  const subpage = routeSkeleton(usePathname());
   const appliedFor = useAtomValue(atom_vaultOpenBehaviorAppliedFor);
   // The feed may already be open behind a pending vault (`?view=home` read).
   const isHomeFeedOpen = useAtomValue(atom_homeFeedOpen);
@@ -80,56 +89,42 @@ export default function EditorSkeleton() {
   const sidebarWidth = useAtomValue(atom_sidebarWidth);
 
   return (
-    <div role="status" aria-label="Loading vault" className="fixed inset-0 z-40 flex bg-chrome select-none">
+    <div role="status" aria-label="Loading vault" className={`fixed inset-0 z-40 flex select-none ${subpage ? SUBPAGE_BACKDROP : "bg-chrome"}`}>
       <span className="sr-only">Loading your vault…</span>
-      {!isRefreshInWorkspace ? <HomeFeedSkeleton /> : <WorkspaceSkeleton sidebarOpen={sidebarOpen} sidebarWidth={sidebarWidth} />}
+      {subpage ? <div aria-hidden="true" className="flex flex-1 min-w-0">{subpage}</div> : !isRefreshInWorkspace ? <HomeFeedSkeleton /> : <WorkspaceSkeleton sidebarOpen={sidebarOpen} sidebarWidth={sidebarWidth} />}
     </div>
   );
 }
 
+// The sidebar floats over the panes (WorkspaceSidebar), so the sheet keeps
+// the full width and only the pane header starts beside it (PaneLeaf).
 function WorkspaceSkeleton({ sidebarOpen, sidebarWidth }: { sidebarOpen: boolean; sidebarWidth: number }) {
   return (
-    <>
-      {sidebarOpen && (
+    <div
+      aria-hidden="true"
+      // The open sidebar's width, beside which the text column stays clear
+      // (.editor-measure); none at the mobile-chrome width, where it's hidden.
+      style={{ "--skeleton-sidebar": `${sidebarOpen ? sidebarWidth : 0}px` } as React.CSSProperties}
+      className="relative flex-1 min-w-0 h-full min-[769px]:[--pane-sidebar-inset:var(--skeleton-sidebar)]"
+    >
+      <div className="absolute inset-0 flex flex-col">
         <div
-          aria-hidden="true"
-          style={{ width: sidebarWidth }}
-          className="shrink-0 h-full flex flex-col bg-chrome border-r border-edge-subtle max-[768px]:hidden"
+          className={`${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT} max-[768px]:hidden`}
+          style={{ marginLeft: sidebarOpen ? sidebarWidth : 0 }}
         >
-          <div className={`flex items-center gap-2 shrink-0 pl-4 pr-2 sm:pr-3 border-b border-edge-subtle ${PANE_HEADER_HEIGHT}`}>
-            <div className={`flex-1 h-2.5 max-w-24 rounded-full ${BAR}`} />
-            <div className={`w-8 h-8 ml-auto rounded-full ${BAR}`} />
-          </div>
-          <div className="flex flex-col gap-3 px-4 pt-4">
-            <div className={`h-2 w-16 rounded-full ${BAR}`} />
-            {["70%", "55%", "62%"].map((w, i) => (
-              <div key={i} style={{ width: w }} className={`h-3 rounded-full ${BAR}`} />
-            ))}
-            <div className={`h-2 w-12 mt-3 rounded-full ${BAR}`} />
-            {["66%", "48%", "74%", "52%", "60%"].map((w, i) => (
-              <div key={i} style={{ width: w }} className={`h-3 rounded-full ${BAR}`} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div aria-hidden="true" className="flex-1 min-w-0 flex flex-col">
-        <div className={`${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT} max-[768px]:hidden`}>
-          {!sidebarOpen && <div className={`w-8 h-8 mr-2 sm:mr-3 rounded-full ${BAR}`} />}
+          {!sidebarOpen && <div className={`${PANE_SECTION_CLASS} !ml-0 mr-2 sm:mr-3 w-8`} />}
           <div className="flex items-center gap-1 flex-1 px-2">
             <div className={`h-8 w-32 rounded-lg ${BAR}`} />
             <div className={`h-8 w-24 rounded-lg ${BAR}`} />
           </div>
-          <div className={`h-8 w-20 ml-2 rounded-full ${BAR}`} />
-          <div className={`h-8 w-16 ml-2 rounded-full ${BAR}`} />
+          <div className={`${PANE_SECTION_CLASS} w-20`} />
+          <div className={`${PANE_SECTION_CLASS} w-16`} />
         </div>
 
         <div className="editor-canvas flex-1 min-h-0 overflow-hidden">
-          <div
-            className="editor-sheet mx-auto w-full mt-6 mb-10 sm:mt-8 sm:mb-14 pt-6 sm:pt-8 pb-12"
-            style={{ paddingInline: "clamp(1.5rem, 8vw, 7rem)" }}
-          >
-            <div className="max-w-2xl mx-auto flex flex-col">
+          {/* MarkdownEditor's sheet: its margins, page padding and text column. */}
+          <div className="editor-sheet mx-auto w-full min-h-full mt-6 mb-10 sm:mt-8 sm:mb-14 pt-6 sm:pt-8 pb-12 pr-5 sm:pr-12 xl:pr-14 [--sheet-pad-left:2.390625rem] sm:[--sheet-pad-left:3rem] xl:[--sheet-pad-left:3.5rem] pl-[var(--sheet-pad-left)]">
+            <div className="editor-measure flex flex-col">
               <div className={`h-7 w-2/5 rounded-lg mb-10 ${BAR}`} />
               {PARAGRAPHS.map((lines, p) => (
                 <div key={p} className="flex flex-col gap-3 mb-8">
@@ -142,6 +137,49 @@ function WorkspaceSkeleton({ sidebarOpen, sidebarWidth }: { sidebarOpen: boolean
           </div>
         </div>
       </div>
-    </>
+
+      {sidebarOpen && (
+        <div
+          style={{ width: sidebarWidth }}
+          className="absolute inset-y-0 left-0 flex flex-col glass-bar max-[768px]:hidden"
+        >
+          <div className={`flex items-center gap-2 shrink-0 pl-4 pr-2 sm:pr-3 border-b border-edge-subtle ${PANE_HEADER_HEIGHT}`}>
+            <div className="flex-1">
+              <div className={`h-2.5 max-w-24 rounded-full ${BAR}`} />
+            </div>
+            {/* The plain hide button: an icon in a 28px target. */}
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center">
+              <div className={`h-4 w-4 rounded ${BAR}`} />
+            </div>
+          </div>
+          {/* WorkspaceSidebar's body: its edge starts below the header. */}
+          <div className="flex-1 min-h-0 px-2 pt-2 border-r border-edge-subtle shadow-xl shadow-black/10">
+            <div className="flex flex-col gap-px pb-3">
+              {["40%", "55%", "38%"].map((w, i) => <SidebarItem key={i} width={w} />)}
+            </div>
+            {[["70%", "55%"], ["66%", "48%", "74%", "52%", "60%"]].map((items, s) => (
+              <div key={s} className="flex flex-col">
+                <div className="flex h-7 items-center px-2">
+                  <div className={`h-2 w-16 rounded-full ${BAR}`} />
+                </div>
+                <div className="flex flex-col gap-px pb-3">
+                  {items.map((w, i) => <SidebarItem key={i} width={w} />)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// One sidebar row (WorkspaceSidebar's ITEM_CLASS): icon and name.
+function SidebarItem({ width }: { width: string }) {
+  return (
+    <div className="flex h-7 items-center gap-2 px-2">
+      <div className={`h-[15px] w-[15px] shrink-0 rounded ${BAR}`} />
+      <div style={{ width }} className={`h-2.5 rounded-full ${BAR}`} />
+    </div>
   );
 }

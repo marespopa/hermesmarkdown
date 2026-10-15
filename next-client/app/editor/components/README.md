@@ -52,7 +52,8 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [TemplateStrip](TemplateStrip.md) | Line at the top of a template note: field count, Add field, lint warnings. |
 | [TaskDialog](TaskDialog.md) | Form for building a task line (title, status, priority, due date, tags). |
 | [UnifiedSearchInput](UnifiedSearchInput.md) | Search field that turns `#tag` entries into removable tag chips alongside free text, with tag autocomplete. |
-| [EditorSkeleton](EditorSkeleton.md) | Shown while the saved vault loads: the home feed with placeholder rows (On vault open → Home), or the workspace outline (sidebar, tab pills, paper panel). |
+| [EditorSkeleton](EditorSkeleton.md) | Shown while the saved vault loads: the home feed with placeholder rows (On vault open → Home), or the workspace outline (sidebar, tab pills, paper panel); on an /editor sub-page, that page's outline (RouteSkeletons). |
+| [RouteSkeletons](RouteSkeletons.md) | Loading outlines of the /editor sub-pages (Templates, Tasks, Files, Settings), chosen by path for EditorSkeleton. |
 | [VaultAccessGate](VaultAccessGate.md) | Wraps every /editor route: restores the saved vault on load and keeps the route hidden until it is readable, with the Restore Access prompt when needed. |
 | [VaultPendingOverlay](VaultPendingOverlay.md) | Prompt shown after reload when the stored vault handle needs the user to grant permission again. |
 | [VaultActionButtons](VaultActionButtons.md) | Open / Create / Browser Vault buttons, shown where no vault is open. |
