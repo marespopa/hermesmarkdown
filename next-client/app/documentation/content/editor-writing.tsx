@@ -124,9 +124,11 @@ export const editorWritingItems: Subsection[] = [
           centered; clicking or selecting with the mouse never scrolls the view.
         </p>
         <p>
-          The note&apos;s word count sits faintly in the bottom-left corner of the editor. It steps
-          aside while you type and comes back when you pause or move the mouse. Frontmatter and
-          Markdown marks on their own, like <code>#</code> or <code>-</code>, aren&apos;t counted.
+          Turn on <strong>Word Count</strong> in Settings → Editor (or run{" "}
+          <strong>Toggle Word Count</strong>) to show the note&apos;s word count faintly in the
+          bottom-left corner of the editor. It steps aside while you type and comes back when you
+          pause or move the mouse. Frontmatter and Markdown marks on their own, like{" "}
+          <code>#</code> or <code>-</code>, aren&apos;t counted.
         </p>
         <Callout type="note">
           Focus only changes how the editor looks. The Markdown in your file stays the same.

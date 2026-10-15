@@ -27,6 +27,8 @@ export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", false);
 // Marks empty lines with ¶ and shows spaces and tabs (codemirror/invisibles.ts).
 export const atom_showInvisibles = atomWithStorage<boolean>("showInvisibles", false);
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
+// The faint word count pill in the editor corner (WordCountPill). Off by default.
+export const atom_showWordCount = atomWithStorage<boolean>("showWordCount", false);
 // Lets the editor's text column fill the sheet instead of stopping at the
 // reading width (--editor-measure, editor-typography.scss). On by default.
 export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
