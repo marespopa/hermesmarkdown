@@ -1,7 +1,7 @@
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { describe, expect, it, vi } from "vitest";
-import { noteEmbedsExtension, setNoteEmbeds, type EmbedContent } from "./note-embeds";
+import { noteEmbedsExtension, setNoteEmbeds, touchesEmbedLines, type EmbedContent } from "./note-embeds";
 import { embedKey } from "../utils/note-embeds";
 
 vi.mock("../utils/rendered-block-cache", () => ({
@@ -77,6 +77,32 @@ describe("noteEmbedsExtension", () => {
   it("adds nothing for embeds in code or plain links", () => {
     const { view, cleanup } = createEditor("```\n![[Roadmap]]\n```\n[[Roadmap]]");
     expect(embeds(view)).toHaveLength(0);
+    cleanup();
+  });
+});
+
+describe("touchesEmbedLines", () => {
+  const DOC = "Intro text\n![[Roadmap]]\nMore text";
+  const change = (from: number, to: number, insert: string) =>
+    EditorState.create({ doc: DOC }).update({ changes: { from, to, insert } });
+
+  it("skips edits in ordinary lines", () => {
+    expect(touchesEmbedLines(change(2, 2, "x"))).toBe(false);
+    expect(touchesEmbedLines(change(DOC.length, DOC.length, " and more"))).toBe(false);
+  });
+
+  it("catches edits on embed lines, new embed or fence lines, and removed ones", () => {
+    expect(touchesEmbedLines(change(13, 13, "x"))).toBe(true);
+    expect(touchesEmbedLines(change(0, 0, "/"))).toBe(true);
+    expect(touchesEmbedLines(change(0, 0, "```\n"))).toBe(true);
+    expect(touchesEmbedLines(change(11, 24, ""))).toBe(true);
+  });
+
+  it("keeps embeds in place while typing elsewhere", () => {
+    const { view, cleanup } = createEditor(DOC);
+    view.dispatch({ changes: { from: 0, insert: "Longer " } });
+    expect(embeds(view)).toHaveLength(1);
+    expect(view.state.doc.lineAt(view.posAtDOM(embeds(view)[0])).text).toBe("![[Roadmap]]");
     cleanup();
   });
 });

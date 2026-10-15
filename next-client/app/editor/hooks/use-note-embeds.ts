@@ -15,6 +15,10 @@ import { csvCandidatePaths, csvToMarkdownTable, embedKey, findEmbeds, type Embed
 // Disk reads, by path + modified time, shared by every pane.
 const diskCache = new Map<string, string>();
 const MAX_CACHED = 50;
+// A line starting with `![[` or `/`: the cheap check before the full scan.
+const MAY_EMBED = /^[ \t]*(?:!\[\[|\/[^\s/])/m;
+// Edits in an embedded note's tab reach the embed once typing pauses.
+const SETTLE_MS = 200;
 
 async function readNote(meta: FileMetadata): Promise<string | null> {
   const key = `${meta.path}\u0000${meta.modifiedAt}`;
@@ -59,7 +63,7 @@ export function useNoteEmbeds(
   open: (target: string) => void,
 ): NoteEmbedsData {
   const refsSignature = useMemo(
-    () => (value.includes("![[") || value.includes("\n/") || value.startsWith("/")
+    () => (MAY_EMBED.test(value)
       ? [...new Set(findEmbeds(value).map(({ ref }) => JSON.stringify(ref)))].join("\n")
       : ""),
     [value],
@@ -95,7 +99,7 @@ export function useNoteEmbeds(
       return;
     }
     let cancelled = false;
-    (async () => {
+    const timer = setTimeout(async () => {
       const next = new Map<string, EmbedContent>();
       for (const [i, { ref, meta }] of resolved.entries()) {
         const key = embedKey(ref);
@@ -114,9 +118,10 @@ export function useNoteEmbeds(
         }
       }
       if (!cancelled) setContents(next);
-    })();
+    }, SETTLE_MS);
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
   }, [resolved, openTexts, vault, fromPath, revealAll, revealed, fileMetadata]);
 

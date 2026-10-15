@@ -1,4 +1,4 @@
-import { EditorState, Extension, Range, StateEffect, StateField } from "@codemirror/state";
+import { EditorState, Extension, Range, StateEffect, StateField, type Transaction } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, WidgetType } from "@codemirror/view";
 import { noteToHtml } from "@/app/utils/print/note-html";
 import { currentRenderTheme, renderBlock } from "../utils/rendered-block-cache";
@@ -137,9 +137,31 @@ class NoteEmbedWidget extends WidgetType {
   }
 }
 
+// Lines that can start or end an embed, or change which lines are code.
+const EMBED_CANDIDATE = /^\s*(?:!\[\[|\/|`{3,}|~{3,})/;
+const MAX_CHECKED_LINES = 500;
+
+// Whether `transaction` touched a line that can matter to embeds, before or
+// after the change. Typing in ordinary lines doesn't, so the widgets are only
+// mapped to their new positions instead of rescanning the whole note.
+export function touchesEmbedLines(transaction: Transaction): boolean {
+  let touched = false;
+  const check = (doc: EditorState["doc"], from: number, to: number) => {
+    const first = doc.lineAt(from).number;
+    const last = doc.lineAt(to).number;
+    if (last - first > MAX_CHECKED_LINES) return true;
+    for (let n = first; n <= last; n++) if (EMBED_CANDIDATE.test(doc.line(n).text)) return true;
+    return false;
+  };
+  transaction.changes.iterChangedRanges((fromA, toA, fromB, toB) => {
+    if (!touched) touched = check(transaction.startState.doc, fromA, toA) || check(transaction.newDoc, fromB, toB);
+  });
+  return touched;
+}
+
 function buildDecorations(state: EditorState): DecorationSet {
   const text = state.doc.toString();
-  if (!text.includes("![[") && !text.includes("/")) return Decoration.none;
+  if (!text.includes("![[") && !/^\s*\//m.test(text)) return Decoration.none;
   const { contents } = state.field(noteEmbedsDataField);
   const ranges: Range<Decoration>[] = findEmbeds(text).map(({ line, ref }) =>
     Decoration.widget({ widget: new NoteEmbedWidget(ref, contents.get(embedKey(ref))), block: true, side: 1 })
@@ -151,8 +173,9 @@ function buildDecorations(state: EditorState): DecorationSet {
 const noteEmbedsField = StateField.define<DecorationSet>({
   create: buildDecorations,
   update(value, transaction) {
-    if (!transaction.docChanged && !transaction.effects.some((effect) => effect.is(setNoteEmbeds))) return value;
-    return buildDecorations(transaction.state);
+    if (transaction.effects.some((effect) => effect.is(setNoteEmbeds))) return buildDecorations(transaction.state);
+    if (!transaction.docChanged) return value;
+    return touchesEmbedLines(transaction) ? buildDecorations(transaction.state) : value.map(transaction.changes);
   },
   provide: (field) => EditorView.decorations.from(field),
 });
