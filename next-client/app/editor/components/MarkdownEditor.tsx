@@ -40,6 +40,7 @@ import EditorPills from "./markdown-editor/EditorPills";
 import FoldChevrons from "./markdown-editor/FoldChevrons";
 import LinkInsertDialog from "./markdown-editor/LinkInsertDialog";
 import VimStatusPill from "./markdown-editor/VimStatusPill";
+import WordCountPill from "./markdown-editor/WordCountPill";
 import { useVimStatus } from "../hooks/use-vim-status";
 import TemplateStrip from "./TemplateStrip";
 import EmptyNoteTemplates from "./EmptyNoteTemplates";
@@ -391,6 +392,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         </div>
       </div>
       {vimMode && <VimStatusPill status={vimStatus} hostRef={vimStatusHostRef} />}
+      {props.isActivePane !== false && <WordCountPill view={editorView} text={editorValue} />}
     </div>
   );
 }

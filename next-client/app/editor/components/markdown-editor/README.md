@@ -8,3 +8,4 @@ Render pieces of [`MarkdownEditor`](../MarkdownEditor.md). The editing behaviour
 | [LinkInsertDialog](LinkInsertDialog.md) | The "Add Link" dialog opened by `/link`. |
 | [FoldChevrons](FoldChevrons.md) | Collapse/expand chevrons for foldable callouts and frontmatter. |
 | [VimStatusPill](VimStatusPill.md) | Vim mode, pending keys and the `:` / `/` prompt, floating at the bottom of the pane. |
+| [WordCountPill](WordCountPill.md) | The note's word count, faint in the bottom-left corner; steps aside while typing. |
