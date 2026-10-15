@@ -49,7 +49,7 @@ interface TemplatePickerProps<T extends TemplatePickerEntry> {
   onCancel: () => void;
 }
 
-type Row<T> = { kind: PickerStart } | { kind: "template"; entry: T };
+type Row<T> = { kind: "blank" } | { kind: "board" } | { kind: "template"; entry: T };
 
 const SHORTCUT_COUNT = 9;
 
