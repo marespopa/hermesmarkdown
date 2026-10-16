@@ -6,6 +6,7 @@ import { useAtomValue } from "jotai";
 import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf, contentStore } from "@/app/atoms/atoms";
 import { flushAllBoardWrites } from "@/app/utils/board/board-flush";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
+import useVisibleViewport from "@/app/hooks/use-visible-viewport";
 import FolderPrompt from "./components/FolderPrompt";
 import NewVaultDialog from "./components/NewVaultDialog";
 import GitHubVaultDialog from "./components/GitHubVaultDialog";
@@ -73,6 +74,7 @@ export default function LiteEditor() {
   // pane): targets whichever CM6 view is currently active.
   const aiActions = useAIEditorActions();
   const isMobileChrome = useIsMobileChrome();
+  const visibleViewport = useVisibleViewport();
   const {
     vaultHandle,
     activeFileHandle,
@@ -244,7 +246,7 @@ export default function LiteEditor() {
       <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />
       <div
         className={`typing-page fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500`}
-        style={{ "--sidebar-inset": sidebarInset } as CSSProperties}
+        style={{ "--sidebar-inset": sidebarInset, ...visibleViewport } as CSSProperties}
       >
         <h1 className="sr-only">HermesMarkdown Editor</h1>
         {/* Modals */}

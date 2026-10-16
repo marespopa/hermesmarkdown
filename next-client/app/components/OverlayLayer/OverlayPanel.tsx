@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Portal from "@/app/components/Portal/Portal";
 import OverlayBackdrop from "./OverlayBackdrop";
+import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
 import { useOverlayDismissal, useFocusTrap } from "./useOverlay";
 import type { OverlayVariant, OverlayBackdropVariant, DismissTrigger } from "./overlay-types";
 
@@ -22,6 +23,7 @@ interface OverlayPanelProps {
   containerClassName?: string;
   /** Classes for the actual panel content wrapper (background, animation, sizing). */
   panelClassName?: string;
+  panelStyle?: React.CSSProperties;
   ariaLabelledBy?: string;
   ariaDescribedBy?: string;
   role?: string;
@@ -52,6 +54,7 @@ export default function OverlayPanel({
   disableFocusTrap = false,
   containerClassName = "",
   panelClassName = "",
+  panelStyle,
   ariaLabelledBy,
   ariaDescribedBy,
   role = "dialog",
@@ -65,6 +68,11 @@ export default function OverlayPanel({
     onConfirm,
   });
   useFocusTrap(panelEl, !disableFocusTrap && isOpen);
+  // Where the on-screen keyboard overlays the page instead of resizing it
+  // (iOS Safari), full-window overlays end at its top edge, so a sheet's
+  // fields, results and buttons stay in the visible area.
+  const keyboardInset = useKeyboardInset();
+  const fitsAboveKeyboard = (variant === "modal" || variant === "sheet") && keyboardInset > 0;
 
   if (!isMounted) return null;
 
@@ -72,6 +80,7 @@ export default function OverlayPanel({
     <Portal>
       <div
         className={`${CONTAINER_BASE[variant]} z-[1000] ${containerClassName}`}
+        style={fitsAboveKeyboard ? { bottom: keyboardInset } : undefined}
         onClick={onBackdropClick}
         role={role}
         aria-modal="true"
@@ -83,6 +92,7 @@ export default function OverlayPanel({
           ref={setPanelEl}
           onClick={(e) => e.stopPropagation()}
           className={`relative pointer-events-auto ${panelClassName}`}
+          style={panelStyle}
         >
           {children}
         </div>

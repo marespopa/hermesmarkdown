@@ -12,6 +12,7 @@ React hooks organized by concern: UI primitives, sync orchestration, and the fil
 | `use-mobile-chrome.tsx` | 768px breakpoint for the mobile chrome (file indicator bar, full-screen overlays) |
 | `use-show-files.ts` | **Show Files**: on desktop sets `atom_showFiles` (sidebar shown, its Files section unfolded, home feed closed, tree focus requested) and returns to `/editor` from other routes; on mobile opens `/editor/files`. Takes an optional `navigate` (the editor page's unsaved-changes guard) |
 | `use-keyboard-inset.tsx` | On-screen keyboard height via `visualViewport`, so fixed elements can stay clear of it |
+| `use-visible-viewport.ts` | While an overlaying keyboard is open (iOS Safari), a style pinning a full-window fixed layer to the visible area; the editor page uses it so the top bar stays put and the editor ends at the keyboard |
 | `use-tap-refocus.ts` | Android Chrome: the first touch tap on a field that script focused (dialog, palette, autoFocus) refocuses it silently so the on-screen keyboard types into it. Mounted once by `MainPage` |
 | `use-back-button-close.ts` | Makes the device/browser back action close the open overlay instead of leaving the editor |
 | `use-resolved-theme.ts` | Resolves `"system"` theme to `"light"` / `"dark"`, live with OS changes |

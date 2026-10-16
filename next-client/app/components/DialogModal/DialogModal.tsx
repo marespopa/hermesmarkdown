@@ -4,6 +4,7 @@ import React from "react";
 import { IoClose } from "react-icons/io5";
 import Button from "../Button";
 import OverlayPanel from "../OverlayLayer/OverlayPanel";
+import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
 
 type Props = {
   isOpened: boolean;
@@ -29,6 +30,10 @@ const DialogModal = ({
   hideCloseButton = false,
   mobileSheet = false,
 }: Props) => {
+  // OverlayPanel already ends above an overlaying keyboard (iOS Safari); the
+  // panel's dvh cap doesn't shrink with it, so it's fitted to what's left.
+  const keyboardInset = useKeyboardInset();
+
   return (
     <OverlayPanel
       isOpen={isOpened}
@@ -39,6 +44,7 @@ const DialogModal = ({
       backdropClassName="animate-in fade-in duration-300"
       ariaLabelledBy={ariaLabelledBy}
       ariaDescribedBy={ariaDescribedBy}
+      panelStyle={keyboardInset > 0 ? { maxHeight: `calc(100dvh - ${keyboardInset}px - 2rem)` } : undefined}
       containerClassName={`p-4 sm:p-6 ${mobileSheet ? "items-end sm:items-center justify-center" : "items-center justify-center"}`}
       panelClassName={`
         z-10 w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-3rem)]

@@ -12,7 +12,6 @@ import WikiLinkDialog from "./WikiLinkDialog";
 import TaskDialog from "./TaskDialog";
 import { TEMPLATES } from "./constants";
 import { applyTemplate } from "../codemirror/slash-menu";
-import useKeyboardInset from "@/app/hooks/use-keyboard-inset";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useEditorAppearance } from "../hooks/use-editor-appearance";
 import { useCodeMirrorEditor } from "../hooks/use-codemirror-editor";
@@ -86,8 +85,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const { fontFamily, displayFontSize, lineHeight, paneRef, contentPaddingX, contentPaddingLeft } =
     useEditorAppearance(props.isSplit);
-
-  const keyboardInset = useKeyboardInset();
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -315,7 +312,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           "--sheet-pad-left": contentPaddingLeft,
           paddingLeft: "var(--sheet-pad-left)",
           paddingRight: contentPaddingX,
-          paddingBottom: keyboardInset > 0 ? `calc(3rem + ${keyboardInset}px)` : undefined,
         } as React.CSSProperties}
       >
         {isTemplateNote && <TemplateStrip name={filePath.split("/").pop()!.replace(/\.md$/i, "")} doc={editorValue} onAddField={insertTemplateField} />}
