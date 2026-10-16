@@ -24,7 +24,7 @@ function markers(doc: string, caret?: number): string[] {
     const text = state.doc.sliceString(from, to);
     const cls = deco.spec.class;
     if (cls === "cm-listGap") out.push("gap");
-    else if (cls === "cm-marginOnly") out.push("strut");
+    else if (deco.spec.widget) out.push("strut");
     else if (from === to) out.push("line");
     else if (cls?.endsWith("cm-listTask")) out.push(`task:${text}:${deco.spec.attributes["data-state"]}`);
     else if (cls === "cm-listMarker") out.push(`list:${text}`);
@@ -50,7 +50,7 @@ describe("buildLiveMarkerDecorations", () => {
   });
 
   it("props up a row that holds only margin marks", () => {
-    expect(markers("## \n\n> \n\nBody", 0)).toEqual(["strut", "margin:## ", "strut", "line", "margin:> "]);
+    expect(markers("## \n\n> \n\nBody", 0)).toEqual(["margin:## ", "strut", "line", "margin:> ", "strut"]);
     expect(markers("## Title", 3)).toEqual(["margin:## "]);
   });
 
