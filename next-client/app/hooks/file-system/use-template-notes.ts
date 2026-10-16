@@ -36,7 +36,9 @@ export function useTemplateNotes() {
 
   // Always the saved file on disk (fresh handle), so edits apply on next use
   // even before a rescan, and unsaved tab text never leaks in.
+  // A built-in starter carries its own text.
   const readTemplate = useCallback(async (entry: TemplateEntry): Promise<string> => {
+    if (entry.body !== undefined) return entry.body;
     const vaultHandle = store.get(atom_vaultHandle);
     if (!vaultHandle) throw new Error("No vault open");
     const handle = await resolveFileHandleAtPath(vaultHandle, entry.path);

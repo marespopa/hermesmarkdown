@@ -4,6 +4,7 @@
 // Raw bodies: never expanded on write.
 
 import { FINANCE_PACK } from "./template-packs-finance";
+import type { TemplateEntry } from "./template-registry";
 
 export interface BuiltinTemplate {
   /** File name without `.md`. */
@@ -345,6 +346,21 @@ export const BUILTIN_PACKS: BuiltinPack[] = [
   },
   FINANCE_PACK,
 ];
+
+// The empty-note pills before the vault has templates of its own (or with no
+// vault at all): a few built-ins used straight from memory, nothing written.
+const STARTERS: [packId: string, name: string][] = [
+  ["meetings", "Meeting notes"],
+  ["writing", "Outline"],
+  ["projects", "Project brief"],
+  ["writing", "Book note"],
+];
+
+export const STARTER_TEMPLATES: TemplateEntry[] = STARTERS.map(([packId, name]) => {
+  const pack = BUILTIN_PACKS.find((p) => p.id === packId)!;
+  const template = pack.templates.find((t) => t.name === name)!;
+  return { name, path: `builtin:${packId}/${name}`, pack: pack.name, body: template.body };
+});
 
 // Which of a pack's templates already exist in `templates/<pack>/`
 // (by file name, ignoring case), from the vault's indexed paths.

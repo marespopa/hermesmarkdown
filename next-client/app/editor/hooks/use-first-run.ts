@@ -32,7 +32,8 @@ export function isFirstRun() {
 }
 
 // The first visit has no setup screens: it lands on the home feed
-// (useVaultOpenBehavior), like any visit with no vault. Once the
+// (useVaultOpenBehavior), like any visit with no vault, and useWelcomeNote
+// then opens the Welcome draft over it. Once the
 // saved vault has had its chance to restore, this applies the first-run
 // defaults (Medium text, full width) unless they are already stored, shows
 // the command palette shortcut once, and records that the visit happened.

@@ -34,12 +34,18 @@ function renderPills(props: Partial<React.ComponentProps<typeof EmptyNoteTemplat
 const pillNames = () => screen.getAllByRole("button").map((b) => b.textContent);
 
 describe("EmptyNoteTemplates", () => {
-  it("offers a link to the template packs when the vault has no templates", () => {
+  it("offers built-in starters and the template packs when the vault has no templates", () => {
     push.mockClear();
     renderPills();
-    expect(pillNames()).toEqual(["Browse template packs"]);
+    expect(pillNames()).toEqual(["Meeting notes", "Outline", "Project brief", "Book note", "Browse template packs"]);
     fireEvent.click(screen.getByText("Browse template packs"));
     expect(push).toHaveBeenCalledWith("/editor/templates");
+  });
+
+  it("fills the note from a built-in starter, carrying its text", () => {
+    const { onPick } = renderPills();
+    fireEvent.click(screen.getByText("Outline"));
+    expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ name: "Outline", body: expect.any(String) }));
   });
 
   it("offers a Board pill that starts a drawing board", () => {
@@ -50,9 +56,9 @@ describe("EmptyNoteTemplates", () => {
     expect(onBoard).toHaveBeenCalled();
   });
 
-  it("renders nothing without a vault", () => {
-    renderPills({}, [], false);
-    expect(screen.queryByRole("group")).not.toBeInTheDocument();
+  it("offers only the built-in starters without a vault", () => {
+    renderPills({ onBoard: vi.fn() }, [], false);
+    expect(pillNames()).toEqual(["Meeting notes", "Outline", "Project brief", "Book note"]);
   });
 
   it("offers vault templates, at most four, with More… for the rest", () => {

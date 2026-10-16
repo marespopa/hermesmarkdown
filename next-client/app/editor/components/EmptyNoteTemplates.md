@@ -4,7 +4,7 @@ Description: Quick-start pills for an empty note. Rendered by [MarkdownEditor](M
 
 ## Logic
 
-- Sources: the vault's templates (`atom_templates`), at most four, plus **More…** (the full template picker) when there are more. A vault with no templates gets a single **Browse template packs** pill that goes to the Templates page (`/editor/templates`, `useRouter`), where packs are added. A **Board** pill (with `onBoard`) follows them: MarkdownEditor wires it to `useEmptyNoteBoard`, which turns the empty note into a drawing board in place, or, from the draft, asks for a name and creates `<name>.board.md`. Nothing shows without a vault (`atom_vaultHandle`).
+- Sources: the vault's templates (`atom_templates`), at most four, plus **More…** (the full template picker) when there are more. With no templates yet, or no vault at all, the built-in starters (`STARTER_TEMPLATES` in `template-packs.ts`: Meeting notes, Outline, Project brief, Book note) take their place; they carry their own `body`, so nothing is read from or written to the vault. With a vault, a **Browse template packs** pill follows them to the Templates page (`/editor/templates`, `useRouter`), where packs are added. A **Board** pill (with `onBoard`, vault only: it may create a file) comes next: MarkdownEditor wires it to `useEmptyNoteBoard`, which turns the empty note into a drawing board in place, or, from the draft, asks for a name and creates `<name>.board.md`.
 - Motion: `.template-quick-pills` in `globals.scss` (rise-in on `data-state="open"`, fade on `"closed"`, `--ease-spring`; none with reduced motion).
 - Touch targets are 44px high on mobile, 36px from 640px.
 
@@ -13,6 +13,6 @@ Description: Quick-start pills for an empty note. Rendered by [MarkdownEditor](M
 | Prop | Type | Description |
 |---|---|---|
 | isEmpty | `boolean` | Show the pills (false fades them out) |
-| onPick | `(template: TemplateEntry) => void` | Fill the note from a vault template |
+| onPick | `(template: TemplateEntry) => void` | Fill the note from a vault template or a built-in starter |
 | onMore? | `() => void` | Open the template picker; shown with more than four templates |
 | onBoard? | `() => void` | Start a drawing board instead of text; shows the Board pill |
