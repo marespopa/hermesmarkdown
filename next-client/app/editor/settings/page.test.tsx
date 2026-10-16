@@ -14,6 +14,11 @@ vi.mock("jotai", async (importOriginal) => {
 
 // Mock next/navigation router
 const pushMock = vi.fn();
+vi.mock("@/app/services/ai", () => ({
+  fetchClaudeModels: vi.fn().mockResolvedValue([]),
+  fetchGeminiModels: vi.fn().mockResolvedValue([]),
+  testAIConnection: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
 }));
