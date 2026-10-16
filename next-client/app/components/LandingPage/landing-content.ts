@@ -22,12 +22,12 @@ export const LANDING_FEATURES: LandingFeature[] = [
     body: "Edit Markdown tables like a spreadsheet, with sorting and formulas, and sketch on infinite drawing boards stored as Markdown.",
   },
   {
-    title: "Focus when you need it",
-    body: "Hide the interface and dim everything but the paragraph or sentence you're writing. Vim keys are there if you want them.",
+    title: "Make it yours",
+    body: "Pick from four light and four dark color themes, from warm sepia to deep midnight. Hide the interface and dim everything but the sentence you're writing, or turn on Vim keys.",
   },
   {
     title: "Export and AI, both optional",
-    body: "Export notes as PDF or compiled Markdown. AI features use your own API key and stay off until you add one.",
+    body: "Export notes as PDF, a standalone HTML page or compiled Markdown. AI features use your own API key and stay off until you add one.",
   },
 ];
 
