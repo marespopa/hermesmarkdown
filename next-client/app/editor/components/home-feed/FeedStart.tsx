@@ -1,9 +1,11 @@
 "use client";
 
 import { useSetAtom } from "jotai";
-import { HiOutlineCollection, HiOutlineDatabase, HiOutlineDocumentText, HiOutlineGlobeAlt, HiOutlinePencilAlt } from "react-icons/hi";
+import { HiOutlineCollection, HiOutlineDatabase, HiOutlineDocumentText, HiOutlineGlobeAlt, HiOutlinePencilAlt, HiOutlineSparkles } from "react-icons/hi";
 import { atom_browserVaultDialogOpen, atom_newVaultFlowOpen } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import FeedTips from "./FeedTips";
+import FeedWelcome from "./FeedWelcome";
 import RecentVaultList from "./RecentVaultList";
 import { StartGroup, StartIcon, StartRow } from "./StartGroup";
 import StartName from "./StartName";
@@ -14,10 +16,11 @@ interface FeedStartProps {
   onOpenFile: () => void;
 }
 
-// The feed's body with no vault open, in place of the note list, as inset
-// grouped cards: the name (until one is given), recently opened vaults,
-// ways to keep notes (the vault kinds this browser supports), then ways to
-// just write (a blank note, or a file from the device).
+// The feed's body with no vault open, in place of the note list: a welcome
+// card, then inset grouped cards: the name (until one is given), recently
+// opened vaults, ways to keep notes (the vault kinds this browser supports),
+// ways to just write (a blank note, or a file from the device), and a line
+// of tips.
 export default function FeedStart({ onNewNote, onOpenFile }: FeedStartProps) {
   const { openVault, isVaultSupported, isBrowserVaultSupported } = useFileSystem();
   const setNewVaultFlowOpen = useSetAtom(atom_newVaultFlowOpen);
@@ -25,6 +28,11 @@ export default function FeedStart({ onNewNote, onOpenFile }: FeedStartProps) {
   const canOpenVault = isVaultSupported || isBrowserVaultSupported;
   return (
     <section aria-label="Get started" className="flex flex-col gap-8 pt-2">
+      <FeedWelcome
+        icon={<HiOutlineSparkles size={22} />}
+        title="Write in plain Markdown"
+        message="Your notes are ordinary .md files you own, kept on this device. No account, nothing to set up."
+      />
       <StartName />
       <RecentVaultList />
       {canOpenVault && (
@@ -69,6 +77,7 @@ export default function FeedStart({ onNewNote, onOpenFile }: FeedStartProps) {
           onClick={onOpenFile}
         />
       </StartGroup>
+      <FeedTips />
     </section>
   );
 }

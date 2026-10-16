@@ -13,6 +13,8 @@ import { INDEXING_VERBS, ROTATE_MS } from "./home-feed/FeedStatus";
 import { extractTasks } from "@/app/utils/taskExtractor";
 
 const vault = vi.hoisted(() => ({ closeVault: vi.fn(), openVault: vi.fn(), confirm: vi.fn() }));
+const routerPush = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: routerPush }) }));
 vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: () => ({ openVault: vault.openVault, closeVault: vault.closeVault, isVaultSupported: true, isBrowserVaultSupported: true }),
 }));
@@ -429,9 +431,18 @@ describe("HomeFeed", () => {
   it("says an empty vault has no notes and offers a Start writing button", () => {
     const { onNewNote } = renderFeed({});
     expect(screen.queryByRole("option")).not.toBeInTheDocument();
-    expect(screen.getByText("No notes in this vault yet.")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Start writing" }));
+    const empty = screen.getByRole("region", { name: "Empty vault" });
+    expect(within(empty).getByText(/No notes in this vault yet/)).toBeInTheDocument();
+    fireEvent.click(within(empty).getByRole("button", { name: "Start writing" }));
     expect(onNewNote).toHaveBeenCalled();
+  });
+
+  it("offers template packs and tips in an empty vault", () => {
+    renderFeed({});
+    const empty = screen.getByRole("region", { name: "Empty vault" });
+    fireEvent.click(within(empty).getByRole("button", { name: "Browse Template Packs" }));
+    expect(routerPush).toHaveBeenCalledWith("/editor/templates");
+    expect(within(empty).getByRole("list", { name: "Tips" })).toHaveTextContent("[[to link notes");
   });
 
   it("shows three skeleton rows instead of the start prompt while the vault loads", () => {
