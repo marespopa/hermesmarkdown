@@ -1,13 +1,13 @@
 # DialogModal
 
-Description: Modal dialog shell (built on `OverlayPanel`), plus `GlobalDialog`, the app-wide alert/confirm/prompt/select/new-file dialog driven by an atom. A select dialog's choices render through `SelectOptionList`: past six options it adds a filter field (typing narrows the list, ↑/↓ pick, Return chooses) and the list scrolls within the dialog.
+Description: Modal dialog shell (built on `OverlayPanel`), plus `GlobalDialog`, the app-wide alert/confirm/prompt/select/new-file dialog driven by an atom. A select dialog's choices render through `SelectOptionList`: past six options it adds a filter field (typing narrows the list, ↑/↓ pick, Return chooses) and the list scrolls within the dialog. While the on-screen keyboard is open and overlays the page rather than resizing it (iOS Safari), every dialog ends above it (`OverlayPanel`) and its height is capped to the visible area (`useKeyboardInset`), so fields and buttons stay in view.
 
 ## Local State & Storage
 - State: `DialogModal` is controlled. `GlobalDialog` reads `atom_globalDialog` (ui-atoms) and `atom_fileMetadata` (for tag suggestions), and holds its input in local useState.
 - Persistence: None - transient UI state.
 
 ## Dependencies
-- Core: `OverlayPanel`, `Button`, `Input`, `Typeahead`, `react-icons`.
+- Core: `OverlayPanel`, `useKeyboardInset`, `Button`, `Input`, `Typeahead`, `react-icons`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage
@@ -29,5 +29,5 @@ To open `GlobalDialog`, set `atom_globalDialog` to a `DialogConfig` (`type`, `me
 | children | `ReactNode` |  | Dialog body |
 | styles? | `string` | `""` | Panel classes |
 | hideCloseButton? | `boolean` | `false` | Hides the X button |
-| mobileSheet? | `boolean` | `false` | Bottom-sheet layout on mobile (keeps it clear of the keyboard) |
+| mobileSheet? | `boolean` | `false` | Bottom-sheet layout on mobile |
 | ariaLabelledBy? / ariaDescribedBy? | `string` |  | ARIA ids |

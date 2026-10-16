@@ -3,11 +3,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import DialogModal from "./DialogModal";
 import "@testing-library/jest-dom";
 
+const keyboardInset = vi.hoisted(() => ({ value: 0 }));
+vi.mock("@/app/hooks/use-keyboard-inset", () => ({ default: () => keyboardInset.value }));
+
 describe("DialogModal Component", () => {
   const mockOnClose = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    keyboardInset.value = 0;
     cleanup();
   });
 
@@ -86,5 +90,24 @@ describe("DialogModal Component", () => {
     
     fireEvent.keyDown(window, { key: "Enter" });
     expect(mockOnConfirm).not.toHaveBeenCalled();
+  });
+
+  it("lifts the dialog above an open on-screen keyboard", () => {
+    keyboardInset.value = 300;
+    render(
+      <DialogModal isOpened={true} onClose={mockOnClose} mobileSheet>
+        <div data-testid="modal-content">Content</div>
+      </DialogModal>
+    );
+    expect(screen.getByRole("dialog")).toHaveStyle({ bottom: "300px" });
+  });
+
+  it("leaves the layout alone while the keyboard is closed", () => {
+    render(
+      <DialogModal isOpened={true} onClose={mockOnClose} mobileSheet>
+        <div>Content</div>
+      </DialogModal>
+    );
+    expect(screen.getByRole("dialog").style.bottom).toBe("");
   });
 });

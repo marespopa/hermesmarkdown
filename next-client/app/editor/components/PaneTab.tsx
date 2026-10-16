@@ -160,7 +160,7 @@ export default function PaneTab({
               "transition-opacity duration-100",
               isActive && !showDot
                 ? "opacity-60 hover:opacity-100"
-                : "opacity-0 group-hover:opacity-60 hover:!opacity-100",
+                : "opacity-0 group-hover:opacity-60 hover:!opacity-100 [@media(hover:none)]:opacity-60",
             ].join(" ")}
           >
             <HiOutlineX size={12} />

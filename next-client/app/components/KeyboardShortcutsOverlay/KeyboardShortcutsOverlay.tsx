@@ -103,7 +103,7 @@ export default function KeyboardShortcutsOverlay() {
       panelClassName={
         isMobileChrome
           ? "flex-1 flex flex-col bg-chrome animate-in slide-in-from-bottom duration-overlay-panel"
-          : "w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)] flex flex-col glass-panel rounded-2xl overflow-hidden"
+          : "w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] flex flex-col glass-panel rounded-2xl overflow-hidden"
       }
       ariaLabelledBy="keyboard-shortcuts-title"
     >

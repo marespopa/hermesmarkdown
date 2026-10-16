@@ -28,4 +28,19 @@ describe("Tooltip portal mode", () => {
     fireEvent.mouseLeave(trigger);
     expect(screen.queryByRole("tooltip")).toBeNull();
   });
+
+  it("stays hidden on touch screens, where a tap emulates mouseenter", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query === "(hover: none)" }));
+    render(
+      <Tooltip label="Close tab" portal>
+        <span>x</span>
+      </Tooltip>,
+    );
+
+    fireEvent.mouseEnter(screen.getByText("x").parentElement!);
+    act(() => vi.advanceTimersByTime(400));
+    expect(screen.queryByRole("tooltip")).toBeNull();
+    vi.unstubAllGlobals();
+  });
 });
