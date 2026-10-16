@@ -157,7 +157,8 @@ describe("startVaultIndex", () => {
     await vi.waitFor(() => expect(h.metadata["a.md"].handle).toBe(a.handle));
     expect(Object.keys(h.metadata).sort()).toEqual(["a.md", "later.md", "removed.md"]);
 
-    await indexer.complete([a, later]).done;
+    // Gone by the time `listed` settles, before parsing is over.
+    await indexer.complete([a, later]).listed;
     expect(Object.keys(h.metadata).sort()).toEqual(["a.md", "later.md"]);
   });
 

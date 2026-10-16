@@ -63,10 +63,11 @@ export interface VaultIndexer {
   add: (files: CollectedFile[]) => void;
   /**
    * The walk is over and `files` is everything it found (notes it never
-   * passed to `add` are added now). `done` settles once every note is
+   * passed to `add` are added now). `listed` settles once every note is
+   * dated and merged and removed ones are gone; `done` once every note is
    * parsed and the cache saved; `contentDone` after the backfill.
    */
-  complete: (files: CollectedFile[]) => { done: Promise<void>; contentDone: Promise<void> };
+  complete: (files: CollectedFile[]) => { listed: Promise<void>; done: Promise<void>; contentDone: Promise<void> };
 }
 
 const STAT_CHUNK_SIZE = 200;
@@ -234,7 +235,7 @@ export function startVaultIndex(fresh: boolean, deps: VaultIndexDeps): VaultInde
     add(files);
     const listed = new Set(files.map((file) => file.path));
 
-    const done = (async () => {
+    const listedDone = (async () => {
       await Promise.all(statWork);
       if (!deps.isCurrent()) return;
       flush();
@@ -246,6 +247,10 @@ export function startVaultIndex(fresh: boolean, deps: VaultIndexDeps): VaultInde
         return Object.fromEntries(kept.map((path) => [path, prev[path]]));
       });
       replacedOld = true;
+    })();
+
+    const done = listedDone.then(async () => {
+      if (!deps.isCurrent()) return;
       while (parsing) await parsing;
       if (parseError) throw parseError;
       if (!deps.isCurrent()) return;
@@ -256,7 +261,7 @@ export function startVaultIndex(fresh: boolean, deps: VaultIndexDeps): VaultInde
         if (entry) index[path] = entry;
       }
       await deps.saveCache(index);
-    })();
+    });
 
     // Runs after the metadata pass even if it failed (its error is reported
     // through `done`), so it never competes with parsing for reads.
@@ -274,7 +279,7 @@ export function startVaultIndex(fresh: boolean, deps: VaultIndexDeps): VaultInde
       }
     });
 
-    return { done, contentDone };
+    return { listed: listedDone, done, contentDone };
   }
 
   return { add, complete };

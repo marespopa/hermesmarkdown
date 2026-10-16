@@ -18,8 +18,9 @@ interface RunVaultIndexOptions {
 // One streaming indexing run with the metadata worker: the walk hands each
 // folder's notes to the indexer as it lists them, so notes are dated, matched
 // against the cache and shown before the walk is over; parsing (newest first)
-// and the note-text backfill follow (see vault-index.ts). Null when a newer
-// run took over during the walk.
+// and the note-text backfill follow (see vault-index.ts). Resolves once
+// every note is listed and removed ones are gone; null when a newer run took
+// over during the walk.
 export async function runVaultIndex({
   worker, root, includeHidden, fresh, vaultKey, setMetadata, setFolderPaths, isCurrent,
 }: RunVaultIndexOptions) {
@@ -41,5 +42,7 @@ export async function runVaultIndex({
   reportCollectProblems(timedOut, failedSubdirs);
   if (!isCurrent()) return null;
   setFolderPaths(folders);
-  return indexer.complete(files);
+  const run = indexer.complete(files);
+  await run.listed;
+  return run;
 }
