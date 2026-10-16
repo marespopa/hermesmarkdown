@@ -10,13 +10,13 @@ function pointer(type: "pointerdown" | "click", target: Element, pointerType = "
 
 describe("useTapRefocus", () => {
   let field: HTMLInputElement;
-  let onBlur: ReturnType<typeof vi.fn>;
+  let onBlur: ReturnType<typeof vi.fn<(event: FocusEvent) => void>>;
 
   beforeEach(() => {
     field = document.createElement("input");
     field.value = "Roadmap";
     document.body.appendChild(field);
-    onBlur = vi.fn();
+    onBlur = vi.fn<(event: FocusEvent) => void>();
     document.addEventListener("focusout", onBlur);
   });
 
