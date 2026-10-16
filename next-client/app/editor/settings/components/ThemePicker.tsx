@@ -16,7 +16,7 @@ interface ThemePickerProps<T extends string> {
 // whatever mode the app is in right now.
 export default function ThemePicker<T extends string>({ themes, value, onChange }: ThemePickerProps<T>) {
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       {themes.map((t) => {
         const isActive = value === t.value;
         return (

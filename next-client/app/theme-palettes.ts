@@ -4,8 +4,8 @@
 // the first palette of each list is the default and has no override there.
 // The swatch values here only draw the picker's previews.
 
-export type LightTheme = "paper" | "sepia" | "porcelain";
-export type DarkTheme = "ink" | "midnight" | "graphite";
+export type LightTheme = "paper" | "sepia" | "porcelain" | "sage";
+export type DarkTheme = "ink" | "midnight" | "graphite" | "dusk";
 
 export interface ThemePalette<T extends string> {
   value: T;
@@ -33,6 +33,12 @@ export const LIGHT_THEMES: ThemePalette<LightTheme>[] = [
     description: "Cool white",
     swatch: { surface: "#F8F9FB", chrome: "#ECEFF3", fg: "#1F2329", accent: "#A2563E" },
   },
+  {
+    value: "sage",
+    label: "Sage",
+    description: "Soft green",
+    swatch: { surface: "#F4F6F1", chrome: "#E7ECE1", fg: "#232A22", accent: "#9A5039" },
+  },
 ];
 
 export const DARK_THEMES: ThemePalette<DarkTheme>[] = [
@@ -53,6 +59,12 @@ export const DARK_THEMES: ThemePalette<DarkTheme>[] = [
     label: "Graphite",
     description: "Neutral gray",
     swatch: { surface: "#1C1C1E", chrome: "#111112", fg: "#E9E9EB", accent: "#DC8E6C" },
+  },
+  {
+    value: "dusk",
+    label: "Dusk",
+    description: "Muted violet",
+    swatch: { surface: "#221E2A", chrome: "#19161F", fg: "#ECE6F2", accent: "#E3957A" },
   },
 ];
 

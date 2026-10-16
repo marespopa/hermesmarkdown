@@ -84,6 +84,17 @@ html[data-light-theme="porcelain"]:not(.dark) {
   ));
 }
 
+/* Light: Sage — soft green paper, green-black ink. */
+html[data-light-theme="sage"]:not(.dark) {
+  @include light-palette((
+    surface: #F4F6F1, raised: #EBEFE6, chrome: #E7ECE1, softgray: #DFE5D8,
+    input: #FAFBF8, border: #CFD8C6, tint: rgb(45, 60, 40),
+    fg: #232A22, fg-muted: #4D5949, fg-faint: #5D6858, ink-hover: #333D31,
+    clay: #9A5039, moss: #55663F, moss-hover: #4F5F3A, hold: #7A5F27,
+    link: #285FBF, link-hover: #1E57C4,
+  ));
+}
+
 /* Dark: Midnight — deep blue-black. */
 html.dark[data-dark-theme="midnight"] {
   @include dark-palette((
@@ -103,5 +114,16 @@ html.dark[data-dark-theme="graphite"] {
     fg: #E9E9EB, fg-muted: #A6A6AB, fg-faint: #919196,
     clay: #DC8E6C, moss: #94A67E, moss-hover: #A8BA92, hold: #CFB475,
     link: #68ABFF, link-hover: #8FC0FF,
+  ));
+}
+
+/* Dark: Dusk — muted violet. */
+html.dark[data-dark-theme="dusk"] {
+  @include dark-palette((
+    surface: #221E2A, raised: #2C2736, chrome: #19161F,
+    input: #1D1924, border: #3D3649, tint: rgb(220, 210, 235),
+    fg: #ECE6F2, fg-muted: #ADA4BA, fg-faint: #968DA3,
+    clay: #E3957A, moss: #9AAE86, moss-hover: #AEC09B, hold: #D4B878,
+    link: #80B1FF, link-hover: #A3C6FF,
   ));
 }
