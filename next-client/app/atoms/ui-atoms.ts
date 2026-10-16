@@ -5,6 +5,9 @@ import { atomWithChoiceStorage } from "./choice-storage";
 import { tabSessionStorage } from "./session-storage";
 import { DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, type DarkTheme, type LightTheme } from "@/app/theme-palettes";
 
+// AI provider, keys and the AI Features switch live in ai-atoms; re-exported here.
+export * from "./ai-atoms";
+
 // Theme & appearance
 export type Theme = "light" | "dark" | "system";
 
@@ -356,30 +359,6 @@ export type AiActionStatus =
   | { seq: number; status: "done"; label: string }
   | { seq: number; status: "error"; message: string };
 export const atom_aiActionStatus = atom<AiActionStatus>({ seq: 0, status: "idle" });
-
-// AI Features
-export type AIProvider = "claude" | "gemini";
-export const atom_aiProvider = atomWithStorage<AIProvider>(
-  "hermes_ai_provider",
-  "claude",
-);
-export const atom_claudeKey = atomWithStorage<string>("hermes_claude_key", "");
-export const atom_geminiKey = atomWithStorage<string>("hermes_gemini_key", "");
-
-// The AI Features switch. Off until turned on; never stored (null) reads as
-// on when a key was saved before the switch existed, so those setups keep working.
-const atom_aiEnabledStored = atomWithStorage<boolean | null>("hermes_ai_enabled", null);
-export const atom_aiEnabled = atom(
-  (get) => get(atom_aiEnabledStored) ?? (get(atom_claudeKey).trim().length > 0 || get(atom_geminiKey).trim().length > 0),
-  (_get, set, enabled: boolean) => set(atom_aiEnabledStored, enabled),
-);
-
-export const atom_isAiConfigured = atom((get) => {
-  if (!get(atom_aiEnabled)) return false;
-  const provider = get(atom_aiProvider);
-  const key = provider === "gemini" ? get(atom_geminiKey) : get(atom_claudeKey);
-  return key.trim().length > 0;
-});
 
 export const atom_isFileLoading = atom<boolean>(false);
 

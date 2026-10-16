@@ -9,7 +9,8 @@ import { atom_revealAllPrivate, atom_revealedPrivatePaths } from "@/app/atoms/pr
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
-import { printDate, type PrintSettings } from "@/app/utils/print/print-settings";
+import { printDate } from "@/app/utils/print/print-settings";
+import { atom_pdfSettings } from "@/app/atoms/print-atoms";
 import { EXPORT_PDF_EVENT } from "../utils/open-helper-dialogs";
 import { vaultImagePath } from "../utils/note-embeds";
 import { useCompileEmbeds } from "./use-embed-reader";
@@ -40,16 +41,16 @@ export function useExportDisabledReason(): string | undefined {
 export interface PdfJob {
   title: string;
   body: string;
-  settings: PrintSettings;
   date: string;
   urls: string[];
 }
 
 const revoke = (urls: string[]) => urls.forEach((url) => URL.revokeObjectURL(url));
 
-// Export as PDF: the focused note, rendered with its frontmatter's page setup
-// (print-settings.ts) and shown in the export dialog; printing goes through
-// the browser's print dialog (Save as PDF), all on the device. Registers the
+// Export as PDF: the focused note, rendered and shown in the export dialog,
+// where its page setup is chosen (atom_pdfSettings, print-settings.ts);
+// printing goes through the browser's print dialog (Save as PDF), all on the
+// device. Registers the
 // palette command and answers the toolbar's More → Export as PDF… event. A
 // private note that's still veiled can't be exported until it's shown.
 export function useExportPdf() {
@@ -83,13 +84,13 @@ export function useExportPdf() {
       // Embed lines print what they embed, nested embeds included; private
       // and unreadable files keep their lines.
       const text = await compileEmbeds(store.get(atom_content), notePath);
-      const { title: h1, body, settings } = await renderNote(text, notePath, store.get(atom_vaultHandle), async (file) => {
+      const { title: h1, body } = await renderNote(text, notePath, store.get(atom_vaultHandle), async (file) => {
         const url = URL.createObjectURL(file);
         urls.push(url);
         return url;
       });
       const title = h1 ?? (store.get(atom_fileName) || "Untitled").replace(/\.md$/i, "");
-      setJob({ title, body, settings, date: printDate(), urls });
+      setJob({ title, body, date: printDate(), urls });
     } catch (err) {
       console.warn("Export as PDF failed:", err);
       revoke(urls);
@@ -108,13 +109,13 @@ export function useExportPdf() {
     if (!job) return;
     setJob(null, false);
     try {
-      await printHtml(printDocument(job.title, job.body, job.settings, job.date), () => revoke(job.urls));
+      await printHtml(printDocument(job.title, job.body, store.get(atom_pdfSettings), job.date), () => revoke(job.urls));
     } catch (err) {
       console.warn("Export as PDF failed:", err);
       revoke(job.urls);
       toast.error("Couldn't export the note as PDF");
     }
-  }, [job, setJob]);
+  }, [job, setJob, store]);
 
   useRegisterCommand({
     id: "export-pdf",

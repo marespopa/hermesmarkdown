@@ -1,37 +1,36 @@
-// A note's PDF page setup, read from flat `pdf_*` frontmatter keys:
-//
-//   pdf_page_size: Letter          # A4 (default) or Letter
-//   pdf_margins: 20mm 15mm         # 1–4 CSS lengths (mm, cm, in, pt, px); a bare number is mm
-//   pdf_header: "{title} | {date}"
-//   pdf_footer: "{page} / {pages}"
-//   pdf_page_break: "---"          # a line that starts a new page; default <!-- pagebreak -->
-//
-// A header or footer is text with {title}, {date}, {page} and {pages}. A `|`
-// splits it into left | right, or left | centre | right; on its own it's
-// centred.
-
-import { parseFmFields } from "../frontmatter-utils";
+// PDF page setup, chosen in the export dialog and remembered for the next
+// export (atom_pdfSettings). A header or footer is text with {title},
+// {date}, {page} and {pages}. A `|` splits it into left | right, or
+// left | centre | right; on its own it's centred.
 
 export type PageSize = "A4" | "Letter";
+export type MarginSize = "narrow" | "normal" | "wide";
 
 export interface PrintSettings {
   pageSize: PageSize;
-  /** CSS margin shorthand, e.g. "18mm 16mm". */
-  margins: string;
+  margins: MarginSize;
   header: string | null;
   footer: string | null;
-  /** The line that starts a new page. */
-  pageBreak: string;
+  /** Horizontal rules (---) start a new page; `<!-- pagebreak -->` always does. */
+  breakAtRules: boolean;
 }
 
+/** The line that always starts a new page. */
 export const DEFAULT_PAGE_BREAK = "<!-- pagebreak -->";
+
+/** Each margin choice as CSS margin shorthand. */
+export const MARGIN_CSS: Record<MarginSize, string> = {
+  narrow: "10mm",
+  normal: "18mm 16mm",
+  wide: "25mm 22mm",
+};
 
 export const DEFAULT_PRINT_SETTINGS: PrintSettings = {
   pageSize: "A4",
-  margins: "18mm 16mm",
+  margins: "normal",
   header: null,
   footer: null,
-  pageBreak: DEFAULT_PAGE_BREAK,
+  breakAtRules: false,
 };
 
 /** Page width and height, as CSS lengths. */
@@ -40,33 +39,17 @@ export const PAGE_DIMENSIONS: Record<PageSize, { width: string; height: string }
   Letter: { width: "8.5in", height: "11in" },
 };
 
-const REGEX_LENGTH = /^(\d+(?:\.\d+)?)(mm|cm|in|pt|px)?$/i;
+const text = (value: unknown) => (typeof value === "string" && value.trim() ? value : null);
 
-function parsePageSize(value: string | undefined): PageSize {
-  const size = value?.trim().toLowerCase();
-  return size === "letter" ? "Letter" : "A4";
-}
-
-function parseMargins(value: string | undefined): string {
-  const parts = value?.trim().split(/[\s,]+/).filter(Boolean) ?? [];
-  if (!parts.length || parts.length > 4) return DEFAULT_PRINT_SETTINGS.margins;
-  const lengths = parts.map((part) => {
-    const match = REGEX_LENGTH.exec(part);
-    return match ? `${match[1]}${(match[2] ?? "mm").toLowerCase()}` : null;
-  });
-  return lengths.every(Boolean) ? lengths.join(" ") : DEFAULT_PRINT_SETTINGS.margins;
-}
-
-const text = (value: string | undefined) => value?.trim().replace(/^'(.*)'$/, "$1") || null;
-
-export function printSettingsFrom(markdown: string): PrintSettings {
-  const fields = parseFmFields(markdown);
+// Stored settings, checked: anything unreadable falls back to the default.
+export function normalizePrintSettings(stored: unknown): PrintSettings {
+  const value = (stored && typeof stored === "object" ? stored : {}) as Record<string, unknown>;
   return {
-    pageSize: parsePageSize(fields.pdf_page_size),
-    margins: parseMargins(fields.pdf_margins),
-    header: text(fields.pdf_header),
-    footer: text(fields.pdf_footer),
-    pageBreak: text(fields.pdf_page_break) ?? DEFAULT_PAGE_BREAK,
+    pageSize: value.pageSize === "Letter" ? "Letter" : "A4",
+    margins: typeof value.margins === "string" && value.margins in MARGIN_CSS ? (value.margins as MarginSize) : "normal",
+    header: text(value.header),
+    footer: text(value.footer),
+    breakAtRules: value.breakAtRules === true,
   };
 }
 

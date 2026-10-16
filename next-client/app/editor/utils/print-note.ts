@@ -3,8 +3,8 @@
 // hidden same-origin iframe, so the app's own DOM, theme and chrome never
 // reach the printout, and Ctrl/Cmd+P keeps opening the palette.
 
-import { escapeHtml } from "@/app/utils/print/note-html";
-import { DEFAULT_PRINT_SETTINGS, printDate, templateSlots, type PrintSettings, type SlotPart, type Slots } from "@/app/utils/print/print-settings";
+import { escapeHtml, PAGE_BREAK_HTML } from "@/app/utils/print/note-html";
+import { DEFAULT_PRINT_SETTINGS, MARGIN_CSS, printDate, templateSlots, type PrintSettings, type SlotPart, type Slots } from "@/app/utils/print/print-settings";
 
 // Always light, whatever the app theme. Breaks avoid splitting a table row,
 // a code block, a diagram or a callout, and keep headings with what follows.
@@ -82,11 +82,16 @@ export function pageCss(settings: PrintSettings, values: PageValues): string {
   const filled = { title: values.title, date: values.date ?? printDate() };
   const header = settings.header ? marginBoxes("top", templateSlots(settings.header, filled)) : "";
   const footer = settings.footer ? marginBoxes("bottom", templateSlots(settings.footer, filled)) : "";
-  return `@page { size: ${settings.pageSize}; margin: ${settings.margins}; ${header} ${footer} }`;
+  return `@page { size: ${settings.pageSize}; margin: ${MARGIN_CSS[settings.margins]}; ${header} ${footer} }`;
+}
+
+// With "New page at each rule" on, every horizontal rule becomes a page break.
+export function pagedBody(body: string, settings: PrintSettings): string {
+  return settings.breakAtRules ? body.replaceAll("<hr>", PAGE_BREAK_HTML) : body;
 }
 
 export function printDocument(title: string, body: string, settings: PrintSettings = DEFAULT_PRINT_SETTINGS, date?: string): string {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>${pageCss(settings, { title, date })}${PRINT_CSS}</style></head><body>${body}</body></html>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title><style>${pageCss(settings, { title, date })}${PRINT_CSS}</style></head><body>${pagedBody(body, settings)}</body></html>`;
 }
 
 const waitForImages = (doc: Document) =>

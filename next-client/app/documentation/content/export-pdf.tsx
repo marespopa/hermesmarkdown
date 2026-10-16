@@ -1,4 +1,4 @@
-import { Callout, Code, KV, type Subsection } from "../doc-primitives";
+import { Callout, KV, type Subsection } from "../doc-primitives";
 
 // Documentation content: Export as PDF (Editor group, after the workspace items).
 export const exportPdfItem: Subsection = {
@@ -10,8 +10,8 @@ export const exportPdfItem: Subsection = {
     <>
       <p>
         Run <strong>Export as PDF…</strong> from the command palette, or choose it from the
-        toolbar&apos;s <strong>More</strong> menu. A dialog shows the note&apos;s page setup and a
-        preview of its pages. <strong>Save as PDF…</strong> opens your browser&apos;s print dialog;
+        toolbar&apos;s <strong>More</strong> menu. A dialog shows the page setup and a preview of
+        the pages. <strong>Save as PDF…</strong> opens your browser&apos;s print dialog;
         choose <strong>Save as PDF</strong> as the destination (on iPhone and iPad, share the
         preview or save it to Files).
       </p>
@@ -24,21 +24,15 @@ export const exportPdfItem: Subsection = {
         ]}
       />
       <p>
-        Set the page up in the note&apos;s frontmatter. Every key is optional; leave one out for
-        the default.
+        Set the page up in the dialog; your choices are remembered for the next export.
       </p>
-      <Code>{`---
-pdf_page_size: Letter            # A4 (default) or Letter
-pdf_margins: 20mm 15mm           # like CSS margins; a bare number is mm
-pdf_header: "{title} | {date}"
-pdf_footer: "{page} / {pages}"
-pdf_page_break: "<!-- pagebreak -->"
----`}</Code>
       <KV
         rows={[
-          { label: "Header and footer", value: <>Text with <code>{"{title}"}</code>, <code>{"{date}"}</code> (the export day), <code>{"{page}"}</code> and <code>{"{pages}"}</code>. On its own it&apos;s centred; <code>|</code> splits it into left | right, or left | centre | right. Put it in quotes.</> },
-          { label: "Page breaks", value: <>A line that&apos;s exactly the marker starts a new page. The default is <code>{"<!-- pagebreak -->"}</code>; set <code>pdf_page_break: &quot;---&quot;</code> to break at every horizontal rule.</> },
-          { label: "Preview", value: "Each page break starts a new sheet. Long sections run onto more pages when printed; faint lines show roughly where" },
+          { label: "Paper", value: "A4 (the default) or Letter" },
+          { label: "Margins", value: "Narrow, Normal (the default) or Wide" },
+          { label: "Header and footer", value: <>Text with <code>{"{title}"}</code>, <code>{"{date}"}</code> (the export day), <code>{"{page}"}</code> and <code>{"{pages}"}</code>, e.g. <code>{"{title} | {date}"}</code> or <code>{"{page} / {pages}"}</code>. On its own it&apos;s centred; <code>|</code> splits it into left | right, or left | centre | right. Leave it empty for none.</> },
+          { label: "Page breaks", value: <>A line that&apos;s exactly <code>{"<!-- pagebreak -->"}</code> starts a new page. Turn on <strong>New page at each rule</strong> to break at every horizontal rule (<code>---</code>) too.</> },
+          { label: "Preview", value: "Follows your choices as you make them. Each page break starts a new sheet; long sections run onto more pages when printed, and faint lines show roughly where" },
         ]}
       />
       <Callout type="note">
