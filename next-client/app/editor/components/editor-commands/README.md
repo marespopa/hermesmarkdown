@@ -24,7 +24,8 @@ without changing the public props contract or command behavior.
   name opened unchanged).
 - `editor-ai-commands.ts` defines editor formatting, templates and AI
   commands. The `Insert: …` commands skip the slash menu's vault
-  **Template** entry (`vaultOnly`).
+  **Template** entry (`vaultOnly`). The `AI: …` actions are listed only with
+  AI Features switched on (`isAiEnabled`), disabled until a key is set.
 - `workspace-task-view-commands.ts` defines panels, panes, tabs, the editor-only
   toggles (Toggle Hidden Files, Toggle Sidebar), Show Token Cost, the welcome
   tour, tasks and views.

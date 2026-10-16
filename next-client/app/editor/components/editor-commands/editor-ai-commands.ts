@@ -20,6 +20,7 @@ import type { EditorCommandContext } from "./use-editor-command-context";
 export function buildEditorAiCommandGroups(context: EditorCommandContext) {
   const {
     activeEditorView,
+    isAiEnabled,
     isAiConfigured,
     onRunAIAction,
     runEditorCommand,
@@ -105,7 +106,8 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
       },
     }));
 
-  const aiActions: Command[] = [
+  // With AI Features off, the palette lists no AI actions at all.
+  const aiActions: Command[] = !isAiEnabled ? [] : [
     ["improve", "AI: Improve writing"],
     ["expand", "AI: Expand selection"],
     ["fix-grammar", "AI: Fix spelling and grammar"],
@@ -126,7 +128,7 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     category: "AI",
     keywords: "assistant rewrite selection document",
     disabledReason: !isAiConfigured
-      ? "Configure an AI provider in Settings"
+      ? "Add an API key in Settings → AI Features"
       : !activeEditorView
         ? "Open and focus a note first"
         : undefined,

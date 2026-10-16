@@ -8,8 +8,8 @@ export const aiFeaturesGroup: Group = {
     {
       id: "byok-setup",
       title: "BYOK setup",
-      lead: "AI features need your own Anthropic or Google Gemini key — there's no default model HermesMarkdown provides.",
-      keywords: "byok api key anthropic gemini claude provider model",
+      lead: "AI is optional and off by default. Turn it on with your own Anthropic or Google Gemini key — there's no default model HermesMarkdown provides.",
+      keywords: "byok api key anthropic gemini claude provider model enable disable turn on off",
       body: (
         <>
           <KV
@@ -19,20 +19,23 @@ export const aiFeaturesGroup: Group = {
             ]}
           />
           <p>
-            Settings → AI Features → choose an AI Provider (Claude or Gemini) → paste your API key → Test Connection,
-            then pick a Model (use the refresh button to reload the list). Once a key validates, AI
-            Chat, the Ask AI toolbar, and the AI items in the slash menu appear. The palette&apos;s <code>AI: …</code> actions are always listed and explain
-            that a key is needed until one is set.
+            AI is optional and off until you turn it on. Settings → AI Features → switch on{" "}
+            <strong>AI features</strong>, pick a Provider (Claude or Gemini) and paste your API key. Then
+            pick a Model (the refresh button reloads the list) and, if you like, <strong>Test connection</strong>.
+            With a key set, AI Chat, the Ask AI toolbar and the AI items in the slash menu appear; the
+            palette lists its <code>AI: …</code> actions while the switch is on and runs them once a key
+            is set. With the switch off, none of them show.
           </p>
           <p>
-            The key is stored in your browser. Each AI request passes through HermesMarkdown's servers
-            on its way to Anthropic or Google — the key is never logged or saved there. See{" "}
+            Nothing is sent until you use an AI feature. The key is stored in your browser. Each AI
+            request passes through HermesMarkdown&apos;s servers on its way to Anthropic or Google — the
+            key is never logged or saved there. See{" "}
             <a href="#privacy-model" className="text-accent hover:underline">Privacy model</a>{" "}
             for the full picture.
           </p>
           <Callout type="note">
-            Remove a key with the <strong>Remove AI key</strong> button in Settings → AI Features.
-            AI features are disabled again until a new key is set.
+            Switching AI features off keeps your key for later; <strong>Remove key</strong> in Settings →
+            AI Features deletes it.
           </Callout>
         </>
       ),

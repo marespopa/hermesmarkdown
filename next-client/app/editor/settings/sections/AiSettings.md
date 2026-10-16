@@ -1,14 +1,19 @@
 # AiSettings
 
-Description: The Settings → AI Features section, one untitled group: AI Provider (which company's AI to use: Claude or Gemini), Model (a picker loaded from the key's account, with a refresh button and fallback list), the API key with a "Remove AI key" button, and a connection test. Provider-specific copy and defaults live in one `PROVIDERS` table.
+Description: The Settings → AI Features section. One group holds the **AI features** switch, off by default and worded as optional. Turned on, a **Setup** group follows: Provider (Claude or Gemini, a segmented control), the API key (with where to get one and that it stays in this browser), then, once a key is in, quiet **Test connection** / **Remove key** buttons and the Model picker (loaded from the key's account, with a refresh button and fallback list), and a note on what is sent and when. Provider-specific copy and defaults live in one `PROVIDERS` table.
+
+## Logic
+- `atom_aiEnabled` (`localStorage["hermes_ai_enabled"]`): never stored reads as on when a Claude or Gemini key was saved before the switch existed, so those setups keep working; otherwise off.
+- `atom_isAiConfigured` needs the switch on and the provider's key, so every AI entry point (chat, Ask AI, slash menu, `AI: …` palette actions, Ctrl/Cmd+Shift+B) follows the switch. With it off, the palette lists no AI actions.
+- Turning it off keeps the key; **Remove key** deletes it. Models are only fetched while it's on.
 
 ## Local State & Storage
-- State: `atom_aiProvider`, `atom_selectedAiModel`, `atom_claudeKey`, `atom_geminiKey`, `atom_availableClaudeModels`, `atom_availableGeminiModels`; fetching, fetch error, and testing flags are local useState.
-- Persistence: Keys and selections in `localStorage` (`hermes_claude_key`, `hermes_gemini_key`, …).
+- State: `atom_aiEnabled`, `atom_aiProvider`, `atom_selectedAiModel`, `atom_claudeKey`, `atom_geminiKey`, `atom_availableClaudeModels`, `atom_availableGeminiModels`; fetching, fetch error, and testing flags are local useState.
+- Persistence: The switch, keys and selections in `localStorage` (`hermes_ai_enabled`, `hermes_claude_key`, `hermes_gemini_key`, …).
 
 ## Dependencies
-- Core: `SettingControls`, `Input`, `Button`, `Toastr`, `app/services/ai` (`fetchClaudeModels`, `fetchGeminiModels`, `testAIConnection`).
-- Network: Only with a key — model listing and the connection test (Claude via `/api/ai`, Gemini model listing directly from Google).
+- Core: `SettingControls` (`SettingGroup`, `SettingItem`, `SettingNote`, `SegmentedControl`, `SelectControl`), `Toggle`, `Input`, `Button`, `Toastr`, `app/services/ai` (`fetchClaudeModels`, `fetchGeminiModels`, `testAIConnection`).
+- Network: Only with the switch on and a key: model listing and the connection test (Claude via `/api/ai`, Gemini model listing directly from Google).
 
 ## Quick Usage
 ```tsx

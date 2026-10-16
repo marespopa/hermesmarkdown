@@ -55,6 +55,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     showHiddenFiles: false,
     setShowHiddenFiles: vi.fn(),
     setAiBuilderRequest: vi.fn(),
+    isAiEnabled: true,
     isAiConfigured: true,
     content: "Note content",
     workspaceLayout: {
@@ -262,6 +263,11 @@ describe("buildEditorCommands", () => {
     expect(context.onSave).not.toHaveBeenCalled();
   });
 
+  it("lists no AI actions while AI features are off", () => {
+    const commands = buildEditorCommands(createContext({ isAiEnabled: false, isAiConfigured: false }));
+    expect(commands.some((command) => command.id.startsWith("ai-"))).toBe(false);
+  });
+
   it("preserves availability reasons and action callbacks", () => {
     const context = createContext({
       activeEditorView: null,
@@ -271,7 +277,7 @@ describe("buildEditorCommands", () => {
     const command = (id: string) => commands.find((candidate) => candidate.id === id);
 
     expect(command("format-bold")?.disabledReason).toBe("Open and focus a note first");
-    expect(command("ai-improve")?.disabledReason).toBe("Configure an AI provider in Settings");
+    expect(command("ai-improve")?.disabledReason).toBe("Add an API key in Settings → AI Features");
 
     command("save-file")?.action();
     command("open-tasks-panel")?.action();
