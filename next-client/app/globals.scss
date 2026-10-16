@@ -198,6 +198,17 @@ select:focus-visible {
   outline: none;
 }
 
+/* iOS Safari zooms the page into any focused field under 16px and leaves it
+   zoomed. On touch screens, text fields are held at 16px or more; desktop
+   keeps the compact sizes. */
+@media (hover: none) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea,
+  select {
+    font-size: max(1rem, 1em) !important;
+  }
+}
+
 html, body {
   background-color: rgb(var(--paper-pale));
   color: rgb(var(--ink-light));
