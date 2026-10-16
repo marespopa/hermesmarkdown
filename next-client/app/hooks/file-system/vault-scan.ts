@@ -94,16 +94,23 @@ export function isSecretFile(name: string): boolean {
   return /^\.env(\..*)?$/i.test(name);
 }
 
+// Notes handed to `onFiles` at a time while one folder is being listed, so a
+// big flat folder streams too.
+const REPORT_BATCH_SIZE = 100;
+
 // Recursively collects the vault's markdown files for indexing, and the
 // folders walked for the file tree, listing up to WALK_CONCURRENCY folders
 // at once. Skips SKIPPED_DIRS and dotfolders
 // unless `includeHidden`, in which case non-.md files in .hermes/ (e.g.
 // .hermes/index.yaml) are included too. Secret files never are. Gives up
-// after `timeoutMs` so a huge tree can never pin the indexer.
+// after `timeoutMs` so a huge tree can never pin the indexer. `onFiles`
+// gets the notes as they're found (per folder, in batches), before the walk
+// is over; the result still lists every one.
 export async function collectVaultFiles(
   root: FileSystemDirectoryHandle,
   includeHidden: boolean,
   timeoutMs = 60000,
+  onFiles?: (files: CollectedFile[]) => void,
 ): Promise<CollectResult> {
   const files: CollectedFile[] = [];
   const folders: string[] = [];
@@ -118,13 +125,31 @@ export async function collectVaultFiles(
     !isSecretFile(name) &&
     (name.endsWith(".md") || (includeHidden && path.split("/")[0] === VAULT_DATA_DIR));
 
+  // Never throws into the walk; nothing is reported once it's over (the
+  // result carries those notes).
+  const report = (found: CollectedFile[]) => {
+    if (!onFiles || finished || found.length === 0) return;
+    try {
+      onFiles(found);
+    } catch (err) {
+      console.warn("Failed to report collected files:", err);
+    }
+  };
+
   async function listDir(dirHandle: FileSystemDirectoryHandle, path: string, queue: Array<[FileSystemDirectoryHandle, string]>) {
+    let found: CollectedFile[] = [];
     try {
       for await (const entry of (dirHandle as any).values()) {
         if (finished) return;
         const currentPath = path ? `${path}/${entry.name}` : entry.name;
         if (entry.kind === "file" && isWanted(entry.name, currentPath)) {
-          files.push({ handle: entry as FileSystemFileHandle, path: currentPath });
+          const file = { handle: entry as FileSystemFileHandle, path: currentPath };
+          files.push(file);
+          found.push(file);
+          if (found.length >= REPORT_BATCH_SIZE) {
+            report(found);
+            found = [];
+          }
         } else if (
           entry.kind === "directory" &&
           !isIgnoredDir(entry.name, currentPath) &&
@@ -139,6 +164,7 @@ export async function collectVaultFiles(
       console.warn(`Failed to collect files from ${path || "root"}:`, err);
       if (path) failedSubdirs++;
     }
+    report(found);
   }
 
   await new Promise<void>((resolve) => {

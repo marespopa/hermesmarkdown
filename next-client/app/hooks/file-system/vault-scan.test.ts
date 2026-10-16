@@ -101,6 +101,29 @@ describe("collectVaultFiles", () => {
     expect(maxActive).toBeGreaterThan(1);
   });
 
+  it("reports each folder's notes as they're found, in batches", async () => {
+    const vault = await makeVault();
+    for (let i = 0; i < 150; i++) await vault.writeText(`big/n${i}.md`, "x");
+    const batches: string[][] = [];
+    const result = await collectVaultFiles(vault.asHandle(), false, undefined, (files) => {
+      batches.push(files.map((f) => f.path));
+    });
+
+    expect(batches.flat().sort()).toEqual(paths(result));
+    // A folder is never reported as one batch over 100 notes.
+    expect(Math.max(...batches.map((b) => b.length))).toBe(100);
+    expect(batches.filter((b) => b[0].startsWith("big/")).map((b) => b.length)).toEqual([100, 50]);
+  });
+
+  it("keeps walking when the callback throws", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const result = await collectVaultFiles((await makeVault()).asHandle(), false, undefined, () => {
+      throw new Error("boom");
+    });
+    expect(paths(result)).toEqual(["a.md", "notes/b.md", "notes/deep/c.md"]);
+    warn.mockRestore();
+  });
+
   it("counts unreadable subfolders", async () => {
     const vault = await makeVault();
     const notes = await vault.getDirectoryHandle("notes");
