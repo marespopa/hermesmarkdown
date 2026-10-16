@@ -95,6 +95,18 @@ html[data-light-theme="sage"]:not(.dark) {
   ));
 }
 
+/* Light: Solarized — the Solarized base3 cream with its base02 ink; the
+   accents are darkened Solarized orange/green/yellow/blue to clear 4.5:1. */
+html[data-light-theme="solarized"]:not(.dark) {
+  @include light-palette((
+    surface: #FDF6E3, raised: #F4EDD8, chrome: #EEE8D5, softgray: #E6DFCA,
+    input: #FFFBF0, border: #DDD6C1, tint: rgb(7, 54, 66),
+    fg: #073642, fg-muted: #4D5E63, fg-faint: #566A70, ink-hover: #0B4250,
+    clay: #B23F0E, moss: #5F6E00, moss-hover: #566300, hold: #7F6300,
+    link: #1A6BA6, link-hover: #155D92,
+  ));
+}
+
 /* Dark: Midnight — deep blue-black. */
 html.dark[data-dark-theme="midnight"] {
   @include dark-palette((
@@ -125,5 +137,17 @@ html.dark[data-dark-theme="dusk"] {
     fg: #ECE6F2, fg-muted: #ADA4BA, fg-faint: #968DA3,
     clay: #E3957A, moss: #9AAE86, moss-hover: #AEC09B, hold: #D4B878,
     link: #80B1FF, link-hover: #A3C6FF,
+  ));
+}
+
+/* Dark: Nord — the Nord polar-night grays with snow-storm text and its
+   frost/aurora accents (orange lightened to clear 4.5:1 on raised). */
+html.dark[data-dark-theme="nord"] {
+  @include dark-palette((
+    surface: #2E3440, raised: #3B4252, chrome: #262B35,
+    input: #2A2F3A, border: #434C5E, tint: rgb(216, 222, 233),
+    fg: #ECEFF4, fg-muted: #C5CCD8, fg-faint: #A9B2C2,
+    clay: #E3A893, moss: #A3BE8C, moss-hover: #B7CDA3, hold: #EBCB8B,
+    link: #88C0D0, link-hover: #A3D0DC,
   ));
 }

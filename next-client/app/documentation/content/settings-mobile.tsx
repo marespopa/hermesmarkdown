@@ -16,8 +16,9 @@ export const settingsGroup: Group = {
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically.
-            Each mode has its own color theme: Paper, Sepia, Porcelain or Sage for light, and
-            Ink, Midnight, Graphite or Dusk for dark — pick them under Settings → Appearance or with{" "}
+            Each mode has its own color theme: Paper, Sepia, Porcelain, Sage or Solarized for light,
+            and Ink, Midnight, Graphite, Dusk or Nord for dark. Settings → Appearance shows the colors for the
+            mode you picked, and both under System; the command palette also has{" "}
             <strong>Light Theme: …</strong> and <strong>Dark Theme: …</strong>. The
             editor font, text size and Full Width (on by default) are set under Settings →
             Appearance → Typography and apply to every pane in a split workspace. Vim mode and{" "}
@@ -29,7 +30,7 @@ export const settingsGroup: Group = {
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
-              { label: "Light / Dark theme", value: "Paper, Sepia, Porcelain, Sage / Ink, Midnight, Graphite, Dusk" },
+              { label: "Light / Dark theme", value: "Paper, Sepia, Porcelain, Sage, Solarized / Ink, Midnight, Graphite, Dusk, Nord" },
               { label: "Sidebar", value: "The toolbar's Sidebar button, CTRL/CMD+ALT+S or Toggle Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
               { label: "Typeface", value: "Geist Mono by default, Duospace or Quattro" },
             ]}

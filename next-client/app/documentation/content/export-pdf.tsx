@@ -9,7 +9,7 @@ export const exportPdfItem: Subsection = {
   body: (
     <>
       <p>
-        Run <strong>Export as PDF…</strong> from the command palette, or choose it from the
+        Run <strong>Export as PDF</strong> from the command palette, or choose it from the
         toolbar&apos;s <strong>More</strong> menu. A dialog shows the page setup and a preview of
         the pages. <strong>Save as PDF…</strong> opens your browser&apos;s print dialog;
         choose <strong>Save as PDF</strong> as the destination (on iPhone and iPad, share the

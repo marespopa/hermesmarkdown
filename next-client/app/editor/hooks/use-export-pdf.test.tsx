@@ -57,9 +57,9 @@ describe("useExportPdf", () => {
     localStorage.clear();
   });
 
-  it("registers Export as PDF…, opens the dialog, and prints the rendered note under its H1 title", async () => {
+  it("registers Export as PDF, opens the dialog, and prints the rendered note under its H1 title", async () => {
     const { hook } = setup("reviews/2026-Q4.md", "---\nowner: product\n---\n# Q4 review\n\n- [x] Ship billing\n\n```mermaid\ngraph TD; A-->B\n```\n\n$$\nx^\n$$");
-    expect(registered).toMatchObject({ id: "export-pdf", label: "Export as PDF…", category: "Document" });
+    expect(registered).toMatchObject({ id: "export-pdf", label: "Export as PDF", category: "Document" });
     expect(registered?.disabledReason).toBeUndefined();
 
     await act(async () => { await registered!.action(); });

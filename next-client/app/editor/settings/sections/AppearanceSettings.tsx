@@ -25,8 +25,9 @@ const THEME_OPTIONS: { label: string; value: Theme; Icon: React.ComponentType<{ 
   { label: "System", value: "system", Icon: HiOutlineDesktopComputer },
 ];
 
-// Settings → Appearance: Theme (mode, plus a palette for each of light and
-// dark) and Typography (font, text size, full width) groups.
+// Settings → Appearance: Theme (mode, then the palette that mode uses — both
+// light and dark palettes only under System, since either may show) and
+// Typography (font, text size, full width) groups.
 export default function AppearanceSettings() {
   const [theme, setTheme] = useAtom(atom_theme);
   const [lightTheme, setLightTheme] = useAtom(atom_lightTheme);
@@ -43,18 +44,22 @@ export default function AppearanceSettings() {
           description="System follows your OS's light/dark setting and switches automatically when it changes."
           control={<SegmentedControl options={THEME_OPTIONS} value={theme} onChange={setTheme} />}
         />
-        <SettingItem
-          label="Light theme"
-          description="The colors used in light mode."
-          layout="stack"
-          control={<ThemePicker themes={LIGHT_THEMES} value={resolveLightTheme(lightTheme)} onChange={setLightTheme} />}
-        />
-        <SettingItem
-          label="Dark theme"
-          description="The colors used in dark mode."
-          layout="stack"
-          control={<ThemePicker themes={DARK_THEMES} value={resolveDarkTheme(darkTheme)} onChange={setDarkTheme} />}
-        />
+        {theme !== "dark" && (
+          <SettingItem
+            label={theme === "system" ? "Light colors" : "Colors"}
+            description={theme === "system" ? "Used while your system is light." : "The palette for light mode."}
+            layout="stack"
+            control={<ThemePicker themes={LIGHT_THEMES} value={resolveLightTheme(lightTheme)} onChange={setLightTheme} />}
+          />
+        )}
+        {theme !== "light" && (
+          <SettingItem
+            label={theme === "system" ? "Dark colors" : "Colors"}
+            description={theme === "system" ? "Used while your system is dark." : "The palette for dark mode."}
+            layout="stack"
+            control={<ThemePicker themes={DARK_THEMES} value={resolveDarkTheme(darkTheme)} onChange={setDarkTheme} />}
+          />
+        )}
       </SettingGroup>
       <SettingGroup title="Typography">
         <SettingItem

@@ -85,7 +85,7 @@ export default function PaneWindowActions() {
           onClose={() => setMoreMenu(null)}
           items={[
             { label: "Copy Markdown", icon: <HiOutlineClipboardCopy size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.copyActiveMarkdown },
-            { label: "Export as PDF…", icon: <HiOutlineDocumentDownload size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.exportActivePdf },
+            { label: "Export as PDF", icon: <HiOutlineDocumentDownload size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.exportActivePdf },
             { label: "Export as HTML", icon: <HiOutlineCode size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.exportActiveHtml },
             // Its label and filled pin say whether the open note is pinned.
             ...(actions.canPinActiveNote
@@ -96,7 +96,7 @@ export default function PaneWindowActions() {
                 }]
               : []),
             { label: "Settings", icon: <HiOutlineCog size={15} />, divider: true, onClick: actions.openSettings },
-            { label: "Documentation and Help", icon: <HiOutlineQuestionMarkCircle size={15} />, onClick: actions.openHelp },
+            { label: "Documentation", icon: <HiOutlineQuestionMarkCircle size={15} />, onClick: actions.openHelp },
           ]}
         />
       )}
