@@ -96,7 +96,7 @@ export default function PaneWindowActions() {
                 }]
               : []),
             { label: "Settings", icon: <HiOutlineCog size={15} />, divider: true, onClick: actions.openSettings },
-            { label: "Documentation and Help", icon: <HiOutlineQuestionMarkCircle size={15} />, onClick: actions.openHelp },
+            { label: "Documentation", icon: <HiOutlineQuestionMarkCircle size={15} />, onClick: actions.openHelp },
           ]}
         />
       )}

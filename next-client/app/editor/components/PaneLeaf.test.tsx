@@ -203,7 +203,7 @@ describe("PaneLeaf Tab Indicators", () => {
     fireEvent.click(more);
     expect(more).toHaveAttribute("aria-expanded", "true");
     const menu = screen.getByRole("menu", { name: "More" });
-    for (const name of ["Copy Markdown", "Export as PDF", "Settings", "Documentation and Help"]) {
+    for (const name of ["Copy Markdown", "Export as PDF", "Settings", "Documentation"]) {
       expect(within(menu).getByRole("menuitem", { name: new RegExp(`^${name}`) })).toBeInTheDocument();
     }
     for (const name of ["Split Right", "Token Cost", "Hide Toolbar"]) {
@@ -310,7 +310,7 @@ describe("PaneLeaf Tab Indicators", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: "Settings" }));
     expect(push).toHaveBeenCalledWith("/editor/settings");
     fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Documentation and Help" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Documentation" }));
     expect(push).toHaveBeenCalledWith("/documentation");
     fireEvent.click(screen.getByRole("button", { name: "More" }));
     expect(screen.queryByRole("menuitem", { name: "Free Tools" })).not.toBeInTheDocument();
