@@ -17,7 +17,8 @@ export const settingsGroup: Group = {
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically.
             Each mode has its own color theme: Paper, Sepia, Porcelain or Sage for light, and
-            Ink, Midnight, Graphite or Dusk for dark — pick them under Settings → Appearance or with{" "}
+            Ink, Midnight, Graphite or Dusk for dark. Settings → Appearance shows the colors for the
+            mode you picked, and both under System; the command palette also has{" "}
             <strong>Light Theme: …</strong> and <strong>Dark Theme: …</strong>. The
             editor font, text size and Full Width (on by default) are set under Settings →
             Appearance → Typography and apply to every pane in a split workspace. Vim mode and{" "}

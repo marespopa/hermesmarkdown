@@ -1,6 +1,6 @@
 # AppearanceSettings
 
-Description: The Settings → Appearance section: Theme (light, dark, or follow the system, plus a Light theme and a Dark theme palette — Paper/Sepia/Porcelain/Sage and Ink/Midnight/Graphite/Dusk, see `app/theme-palettes.ts`) and Typography (editor font, text size, and Full Width, on by default: the text column fills the sheet; off, lines stop at the reading width).
+Description: The Settings → Appearance section: Theme (light, dark, or follow the system, then the palette for that mode — Paper/Sepia/Porcelain/Sage for light, Ink/Midnight/Graphite/Dusk for dark, see `app/theme-palettes.ts`; Light and Dark show only their own palette as "Colors", System shows both as "Light colors" and "Dark colors") and Typography (editor font, text size, and Full Width, on by default: the text column fills the sheet; off, lines stop at the reading width).
 
 ## Local State & Storage
 - State: `atom_theme`, `atom_lightTheme`, `atom_darkTheme`, `atom_editorFontFamily`, `atom_renderedFontSize` (text size, from `TEXT_SIZES` in `font-options`; a first visit starts at Medium and Full Width, see `useFirstRun`), `atom_fullWidth`.
