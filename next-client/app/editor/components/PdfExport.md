@@ -1,6 +1,6 @@
 # PdfExport
 
-Description: Mounts **Export as PDF…** once per editor page, and the export dialog it opens (`PdfExportDialog`): the note's page setup beside a preview of its pages. **Save as PDF…** prints the rendered note from a hidden iframe through the browser's print dialog, where **Save as PDF** makes the file. Nothing leaves the device.
+Description: Mounts **Export as PDF…** once per editor page, and the export dialog it opens (`PdfExportDialog`): the note's page setup beside a preview of its pages. **Save as PDF…** prints the rendered note from a hidden iframe through the browser's print dialog, where **Save as PDF** makes the file. Nothing leaves the device. Also mounts **Export as HTML** (`useExportHtml`, `hooks/use-export-html.ts`): the same rendering (`utils/render-note.ts`) with vault images inlined as data URLs, wrapped by `htmlDocument()` (`utils/html-export.ts`: the PDF stylesheet plus a screen reading column that follows the reader's light/dark setting) and downloaded as `<note>.html` (`downloadText`). Palette command and More → **Export as HTML** (`exportActiveHtml()` dispatches `hermes:export-html`); disabled like the PDF export for an empty or still-veiled private note (`useExportDisabledReason`).
 
 ## Behavior
 - Palette command **Export as PDF…** (Document; keywords pdf, print, export, share, archive) and the toolbar's More → **Export as PDF…** (`exportActivePdf()` dispatches `hermes:export-pdf`) run the same export.

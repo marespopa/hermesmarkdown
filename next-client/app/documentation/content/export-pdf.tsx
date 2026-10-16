@@ -53,3 +53,31 @@ pdf_page_break: "<!-- pagebreak -->"
     </>
   ),
 };
+
+// Documentation content: Export as HTML (after Export as PDF).
+export const exportHtmlItem: Subsection = {
+  id: "export-html",
+  title: "Export as HTML",
+  lead: "Download any note as one standalone web page. It's made on your device; the note never leaves it.",
+  keywords: "html export web page website publish share download standalone self-contained file offline",
+  body: (
+    <>
+      <p>
+        Run <strong>Export as HTML</strong> from the command palette, or choose it from the
+        toolbar&apos;s <strong>More</strong> menu. The note downloads as a single <code>.html</code>{" "}
+        file named after it, ready to open in any browser, send, or put on a website.
+      </p>
+      <KV
+        rows={[
+          { label: "Included", value: "Everything Export as PDF prints: headings, lists, task boxes, tables, code, callouts, Mermaid diagrams, math, embeds and vault images" },
+          { label: "Standalone", value: "Images, diagrams and styles are inside the file, so it opens offline and loads nothing else (images the note links to on the web stay links)" },
+          { label: "Look", value: "A centred reading column that follows the reader's light or dark setting, and prints like the PDF" },
+        ]}
+      />
+      <p>
+        The page&apos;s title comes from the note&apos;s first heading, or its file name. Like Export
+        as PDF, a note marked private can only be exported once you&apos;ve shown it.
+      </p>
+    </>
+  ),
+};

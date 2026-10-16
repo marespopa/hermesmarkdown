@@ -44,3 +44,10 @@ export const EXPORT_PDF_EVENT = "hermes:export-pdf";
 export function exportActivePdf() {
   document.dispatchEvent(new CustomEvent(EXPORT_PDF_EVENT));
 }
+
+export const EXPORT_HTML_EVENT = "hermes:export-html";
+
+// Downloads the note in the focused pane as a self-contained .html file.
+export function exportActiveHtml() {
+  document.dispatchEvent(new CustomEvent(EXPORT_HTML_EVENT));
+}

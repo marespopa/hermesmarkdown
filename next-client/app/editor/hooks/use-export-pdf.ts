@@ -6,32 +6,33 @@ import toast from "react-hot-toast";
 import { atom_activeFilePath, atom_content, atom_fileName } from "@/app/atoms/file-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_revealAllPrivate, atom_revealedPrivatePaths } from "@/app/atoms/privacy-atoms";
-import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
-import { escapeHtml, noteToHtml, type PrintBlock } from "@/app/utils/print/note-html";
-import { printDate, printSettingsFrom, type PrintSettings } from "@/app/utils/print/print-settings";
+import { printDate, type PrintSettings } from "@/app/utils/print/print-settings";
 import { EXPORT_PDF_EVENT } from "../utils/open-helper-dialogs";
 import { vaultImagePath } from "../utils/note-embeds";
 import { useCompileEmbeds } from "./use-embed-reader";
 import { printDocument, printHtml } from "../utils/print-note";
-import { renderMermaid } from "../utils/render-mermaid";
-import { renderMathMl } from "../utils/render-math";
+import { renderNote } from "../utils/render-note";
 
 export const VEILED_REASON = "Show the note first: it's marked private";
-
-const REGEX_IMAGE_SRC = /!\[[^\]]*\]\(\s*<?([^)\s>]+)>?/g;
 
 // Moved to utils/note-embeds.ts; kept here for existing imports.
 export { vaultImagePath };
 
-async function renderBlock(block: PrintBlock): Promise<string> {
-  try {
-    return block.kind === "mermaid" ? await renderMermaid(block.source, "default") : await renderMathMl(block.source);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return `<pre class="render-error">${escapeHtml(`${block.kind === "mermaid" ? "Diagram" : "Formula"} error: ${message}`)}\n\n${escapeHtml(block.source)}</pre>`;
-  }
+// Why the focused note can't be exported right now (empty, or private and
+// still veiled), or undefined. Shared by Export as PDF and Export as HTML.
+export function useExportDisabledReason(): string | undefined {
+  const content = useAtomValue(atom_content);
+  const activeFilePath = useAtomValue(atom_activeFilePath);
+  const metadata = useAtomValue(atom_fileMetadata);
+  const revealAll = useAtomValue(atom_revealAllPrivate);
+  const revealed = useAtomValue(atom_revealedPrivatePaths);
+  const path = activeFilePath ?? "draft";
+  const isPrivate = isPrivateContent(content) || isPrivateFrontmatter(metadata[path]?.frontmatter);
+  const veiled = isPrivate && !revealAll && !revealed.has(path);
+  return !content.trim() ? "The note is empty" : veiled ? VEILED_REASON : undefined;
 }
 
 // A rendered note waiting in the export dialog. `urls` are its images'
@@ -53,11 +54,6 @@ const revoke = (urls: string[]) => urls.forEach((url) => URL.revokeObjectURL(url
 // private note that's still veiled can't be exported until it's shown.
 export function useExportPdf() {
   const store = useStore();
-  const content = useAtomValue(atom_content);
-  const activeFilePath = useAtomValue(atom_activeFilePath);
-  const metadata = useAtomValue(atom_fileMetadata);
-  const revealAll = useAtomValue(atom_revealAllPrivate);
-  const revealed = useAtomValue(atom_revealedPrivatePaths);
   const compileEmbeds = useCompileEmbeds();
   const busy = useRef(false);
   const [job, setJobState] = useState<PdfJob | null>(null);
@@ -72,10 +68,7 @@ export function useExportPdf() {
     if (shown.current) revoke(shown.current.urls);
   }, []);
 
-  const path = activeFilePath ?? "draft";
-  const isPrivate = isPrivateContent(content) || isPrivateFrontmatter(metadata[path]?.frontmatter);
-  const veiled = isPrivate && !revealAll && !revealed.has(path);
-  const disabledReason = !content.trim() ? "The note is empty" : veiled ? VEILED_REASON : undefined;
+  const disabledReason = useExportDisabledReason();
 
   const exportPdf = useCallback(async () => {
     if (busy.current) return;
@@ -90,30 +83,12 @@ export function useExportPdf() {
       // Embed lines print what they embed, nested embeds included; private
       // and unreadable files keep their lines.
       const text = await compileEmbeds(store.get(atom_content), notePath);
-      const vaultHandle = store.get(atom_vaultHandle);
-      const images = new Map<string, string>();
-      if (vaultHandle && notePath !== "draft") {
-        for (const [, src] of text.matchAll(REGEX_IMAGE_SRC)) {
-          const imagePath = vaultImagePath(notePath, src);
-          if (!imagePath || images.has(src)) continue;
-          try {
-            const file = await (await resolveFileHandleAtPath(vaultHandle, imagePath)).getFile();
-            const url = URL.createObjectURL(file);
-            urls.push(url);
-            images.set(src, url);
-          } catch {
-            // Missing image: its alt text prints instead.
-          }
-        }
-      }
-      const settings = printSettingsFrom(text);
-      const result = noteToHtml(text, {
-        imageSrc: (src) => images.get(src) ?? (/^(https?:|data:image\/)/i.test(src) ? src : null),
-        pageBreak: settings.pageBreak,
+      const { title: h1, body, settings } = await renderNote(text, notePath, store.get(atom_vaultHandle), async (file) => {
+        const url = URL.createObjectURL(file);
+        urls.push(url);
+        return url;
       });
-      const rendered = await Promise.all(result.blocks.map(renderBlock));
-      const body = result.html.replace(/(<div class="rendered [a-z]+") data-render="(\d+)"><\/div>/g, (_whole, open: string, index: string) => `${open}>${rendered[Number(index)] ?? ""}</div>`);
-      const title = result.title ?? (store.get(atom_fileName) || "Untitled").replace(/\.md$/i, "");
+      const title = h1 ?? (store.get(atom_fileName) || "Untitled").replace(/\.md$/i, "");
       setJob({ title, body, settings, date: printDate(), urls });
     } catch (err) {
       console.warn("Export as PDF failed:", err);

@@ -6,7 +6,7 @@ import { atom_homePinnedPaths, atom_toggleHomePin } from "@/app/atoms/home-pin-a
 import { findLeaf } from "@/app/atoms/utils";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
-import { exportActivePdf } from "../utils/open-helper-dialogs";
+import { exportActiveHtml, exportActivePdf } from "../utils/open-helper-dialogs";
 import { usePaneFileActions } from "./use-pane-file-actions";
 
 // The window-wide toolbar commands: the toolbar's Tools section, its More
@@ -44,5 +44,6 @@ export function useWindowActions() {
     toggleSidebar: () => setSidebarOpen(!sidebarOpen),
     copyActiveMarkdown: () => void handleCopy(),
     exportActivePdf,
+    exportActiveHtml,
   };
 }
