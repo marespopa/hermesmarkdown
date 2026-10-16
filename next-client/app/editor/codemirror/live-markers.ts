@@ -1,6 +1,6 @@
 import { syntaxTree } from "@codemirror/language";
 import { EditorState, type Range } from "@codemirror/state";
-import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
+import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate, WidgetType } from "@codemirror/view";
 import type { SyntaxNode } from "@lezer/common";
 import { findFrontmatterFoldRange } from "./frontmatter-fold";
 import { liveMarkersTheme } from "./live-markers-theme";
@@ -54,13 +54,30 @@ const TASK_DATA_STATE: Record<TaskStatus, string> = {
 // a heading or quote's text lines up with the paragraphs around it.
 const marginMarks = Decoration.mark({ class: "cm-marginMarks" });
 // A row holding only margin marks (`## ` before its first letter) has no text
-// in the flow and would collapse; a strut keeps it at its own height.
-const marginOnlyLine = Decoration.line({ class: "cm-marginOnly" });
+// in the flow: it would collapse, and the caret at its end would be drawn
+// (and a click on it would land) by the marks in the margin. A zero-width
+// strut after the marks keeps the row at its own height and gives the caret
+// after `## ` its place in the text column.
+class MarginStrutWidget extends WidgetType {
+  eq() {
+    return true;
+  }
+  toDOM() {
+    const strut = document.createElement("span");
+    strut.className = "cm-marginStrut";
+    strut.textContent = "\u200b";
+    return strut;
+  }
+  // Clicks on the strut place the caret (at the row's end) like on text.
+  ignoreEvent() {
+    return false;
+  }
+}
+const marginStrut = Decoration.widget({ widget: new MarginStrutWidget(), side: 1 });
 
 function marginMarkRanges(state: EditorState, from: number, to: number): Range<Decoration>[] {
   const out = [marginMarks.range(from, to)];
-  const line = state.doc.lineAt(from);
-  if (to === line.to) out.push(marginOnlyLine.range(line.from));
+  if (to === state.doc.lineAt(from).to) out.push(marginStrut.range(to));
   return out;
 }
 

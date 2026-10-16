@@ -40,9 +40,9 @@ export function useHomeFeed({ hasVault, openFile, newNote, materializeDraft, imp
   useHomeFeedUrlSync(isOpen, hasVault, setIsOpen);
 
   // A draft with text is saved first, so opening a note never asks to discard
-  // it.
+  // it. The feed stays up until openFile has read the note and closes it, so
+  // the slow read never flashes the empty pane (or the previous tab).
   const openNote = useCallback(async (path: string) => {
-    setIsOpen(false);
     await materializeDraft();
     const handle = store.get(atom_fileMetadata)[path]?.handle as FileSystemFileHandle | undefined;
     if (handle) await openFile(handle, path);

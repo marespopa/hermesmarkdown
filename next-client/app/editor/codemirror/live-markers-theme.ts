@@ -51,10 +51,6 @@ export const liveMarkersTheme = EditorView.theme({
     transform: "translateX(-100%) scale(0.6)",
     transformOrigin: "right 70%",
   },
-  // A zero-width space gives a marks-only row a line box at its own size.
-  ".cm-marginOnly::after": {
-    content: '"\\200b"',
-  },
 
   // A callout reads as one rounded, tinted card (lines tagged in highlight.ts),
   // its text inset from the card's edge.

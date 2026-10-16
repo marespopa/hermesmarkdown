@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { CachedMetadata } from "@/app/services/metadata-cache";
-import { indexVaultFiles, parseWithWorker, reusableEntry, statFiles, type VaultIndexDeps } from "./vault-index";
+import { parseWithWorker, reusableEntry, startVaultIndex, statFiles, type VaultIndexDeps } from "./vault-index";
 
 vi.mock("react-hot-toast", () => ({ default: { error: vi.fn(), success: vi.fn() } }));
 
@@ -43,9 +43,20 @@ function harness(overrides: Partial<VaultIndexDeps> = {}, initial: Record<string
     setMetadata: vi.fn((update) => { metadata = update(metadata); }),
     isCurrent: () => true,
     chunkSize: 2,
+    flushIntervalMs: 0,
     ...overrides,
   };
   return { deps, get metadata() { return metadata; } };
+}
+
+// A whole walk at once: every note found, then the walk is over.
+const indexVaultFiles = (files: ReturnType<typeof file>[], fresh: boolean, deps: VaultIndexDeps) =>
+  startVaultIndex(fresh, deps).complete(files);
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((r) => { resolve = r; });
+  return { promise, resolve };
 }
 
 describe("statFiles", () => {
@@ -76,16 +87,86 @@ describe("reusableEntry", () => {
   });
 });
 
-describe("indexVaultFiles", () => {
+describe("startVaultIndex", () => {
+  it("shows notes from the first folders while the walk is still running", async () => {
+    const parse = deferred<CachedMetadata[]>();
+    const h = harness({ parse: vi.fn(() => parse.promise) });
+    const indexer = startVaultIndex(true, h.deps);
+
+    indexer.add([file("first/a.md", 1)]);
+    // Dated before the walk is over, and before it's parsed.
+    await vi.waitFor(() => expect(h.metadata["first/a.md"]).toMatchObject({ modifiedAt: 1 }));
+    expect(h.metadata["first/a.md"].preview).toBeUndefined();
+    expect(h.metadata).not.toHaveProperty("later/b.md");
+
+    indexer.add([file("later/b.md", 2)]);
+    await vi.waitFor(() => expect(h.metadata["later/b.md"]).toMatchObject({ modifiedAt: 2 }));
+    parse.resolve([parsed("first/a.md", 1)]);
+    await vi.waitFor(() => expect(h.metadata["first/a.md"].preview).toBe("preview of first/a.md"));
+  });
+
+  it("loads the cache as soon as the run starts, before any note is found", () => {
+    const h = harness();
+    startVaultIndex(true, h.deps);
+    expect(h.deps.loadCache).toHaveBeenCalledTimes(1);
+  });
+
+  it("merges the first batch at once, then holds later ones until the interval or the walk's end", async () => {
+    const cached = { "a.md": parsed("a.md", 1), "b.md": parsed("b.md", 2), "c.md": parsed("c.md", 3) };
+    const h = harness({ loadCache: vi.fn(async () => cached), flushIntervalMs: 60_000 });
+    const indexer = startVaultIndex(true, h.deps);
+    const files = [file("a.md", 1), file("b.md", 2), file("c.md", 3)];
+
+    indexer.add([files[0]]);
+    await vi.waitFor(() => expect(h.metadata).toHaveProperty("a.md"));
+    indexer.add([files[1]]);
+    indexer.add([files[2]]);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(Object.keys(h.metadata)).toEqual(["a.md"]);
+
+    await indexer.complete(files).done;
+    expect(Object.keys(h.metadata).sort()).toEqual(["a.md", "b.md", "c.md"]);
+  });
+
+  it("adds notes the walk never reported when it completes", async () => {
+    const h = harness();
+    const indexer = startVaultIndex(true, h.deps);
+    const reported = file("a.md", 1);
+    indexer.add([reported]);
+    await indexer.complete([reported, file("b.md", 2)]).done;
+    expect(Object.keys(h.metadata).sort()).toEqual(["a.md", "b.md"]);
+    expect((h.deps.read as any).mock.calls.flatMap(([chunk]: any) => chunk.map((f: any) => f.path)).sort()).toEqual(["a.md", "b.md"]);
+  });
+
+  it("replaces the old vault's notes on a fresh open, even of an empty vault", async () => {
+    const h = harness({}, { "old.md": { ...parsed("old.md", 1), handle: {} } });
+    await indexVaultFiles([], true, h.deps).done;
+    expect(h.metadata).toEqual({});
+  });
+
+  it("keeps notes not listed yet on re-index until the walk is over", async () => {
+    const h = harness({}, {
+      "a.md": { ...parsed("a.md", 1), handle: {} },
+      "later.md": { ...parsed("later.md", 2), handle: {} },
+      "removed.md": { ...parsed("removed.md", 3), handle: {} },
+    });
+    const indexer = startVaultIndex(false, h.deps);
+    const a = file("a.md", 1);
+    const later = file("later.md", 2);
+    indexer.add([a]);
+    await vi.waitFor(() => expect(h.metadata["a.md"].handle).toBe(a.handle));
+    expect(Object.keys(h.metadata).sort()).toEqual(["a.md", "later.md", "removed.md"]);
+
+    // Gone by the time `listed` settles, before parsing is over.
+    await indexer.complete([a, later]).listed;
+    expect(Object.keys(h.metadata).sort()).toEqual(["a.md", "later.md"]);
+  });
+
   it("dates every note before parsing, then parses newest first", async () => {
     const h = harness();
     const files = [file("old.md", 1), file("new.md", 3), file("mid.md", 2)];
 
-    const { done } = await indexVaultFiles(files, true, h.deps);
-    // Ordered by date immediately, not parsed yet.
-    expect(h.metadata["new.md"]).toMatchObject({ modifiedAt: 3 });
-    expect(h.metadata["new.md"].preview).toBeUndefined();
-
+    const { done } = indexVaultFiles(files, true, h.deps);
     await done;
     const readOrder = (h.deps.read as any).mock.calls.flatMap(([chunk]: any) => chunk.map((f: any) => f.path));
     expect(readOrder).toEqual(["new.md", "mid.md", "old.md"]);
@@ -98,9 +179,8 @@ describe("indexVaultFiles", () => {
     const h = harness({ loadCache: vi.fn(async () => cached) });
     const files = [file("same.md", 7), file("changed.md", 9)];
 
-    const { done } = await indexVaultFiles(files, true, h.deps);
+    await indexVaultFiles(files, true, h.deps).done;
     expect(h.metadata["same.md"]).toMatchObject({ tags: ["kept"], preview: "preview of same.md" });
-    await done;
 
     const readPaths = (h.deps.read as any).mock.calls.flatMap(([chunk]: any) => chunk.map((f: any) => f.path));
     expect(readPaths).toEqual(["changed.md"]);
@@ -116,7 +196,7 @@ describe("indexVaultFiles", () => {
     });
     const files = [file("note.md", 2)];
 
-    const { done } = await indexVaultFiles(files, false, h.deps);
+    const { done } = indexVaultFiles(files, false, h.deps);
     await done;
 
     expect(h.metadata["note.md"]).toMatchObject({ tags: ["kept"], handle: files[0].handle });
@@ -127,14 +207,14 @@ describe("indexVaultFiles", () => {
   it("stops quietly once a newer run has started", async () => {
     let current = true;
     const h = harness({ isCurrent: () => current });
-    const { done } = await indexVaultFiles([file("a.md", 1), file("b.md", 2), file("c.md", 3)], true, h.deps);
+    const { done } = indexVaultFiles([file("a.md", 1), file("b.md", 2), file("c.md", 3)], true, h.deps);
     current = false;
     await done;
     expect(h.deps.saveCache).not.toHaveBeenCalled();
   });
 });
 
-describe("indexVaultFiles note-text backfill", () => {
+describe("startVaultIndex note-text backfill", () => {
   const readPaths = (deps: VaultIndexDeps) =>
     (deps.read as any).mock.calls.map(([chunk]: any) => chunk.map((f: any) => f.path));
 
@@ -154,7 +234,7 @@ describe("indexVaultFiles note-text backfill", () => {
     });
     const files = [file("old.md", 1), file("new.md", 3), file("known.md", 2), file("changed.md", 9)];
 
-    const { done, contentDone } = await indexVaultFiles(files, true, h.deps);
+    const { done, contentDone } = indexVaultFiles(files, true, h.deps);
     await done;
     await contentDone;
 
@@ -175,7 +255,7 @@ describe("indexVaultFiles note-text backfill", () => {
       indexContent: vi.fn((files: unknown[]) => { indexContent(files); current = false; }),
     });
 
-    const { contentDone } = await indexVaultFiles([file("a.md", 1), file("b.md", 2), file("c.md", 3)], true, h.deps);
+    const { contentDone } = indexVaultFiles([file("a.md", 1), file("b.md", 2), file("c.md", 3)], true, h.deps);
     await contentDone;
     expect(indexContent).toHaveBeenCalledTimes(1);
     expect(readPaths(h.deps)).toEqual([["c.md", "b.md"]]);
@@ -183,7 +263,7 @@ describe("indexVaultFiles note-text backfill", () => {
 
   it("does nothing without the content deps", async () => {
     const h = harness({ loadCache: vi.fn(async () => ({ "a.md": parsed("a.md", 1) })) });
-    const { contentDone } = await indexVaultFiles([file("a.md", 1)], true, h.deps);
+    const { contentDone } = indexVaultFiles([file("a.md", 1)], true, h.deps);
     await contentDone;
     expect(h.deps.read).not.toHaveBeenCalled();
   });

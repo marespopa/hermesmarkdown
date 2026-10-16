@@ -47,13 +47,12 @@ import {
   isCloudFolderName,
   listDirectoryEntries,
   metadataForFiles,
-  readFilesForIndexing,
   singlePaneLayout,
 } from "./vault-scan";
-import { indexVaultFiles, parseWithWorker, reportCollectProblems } from "./vault-index";
+import { reportCollectProblems } from "./vault-index";
+import { runVaultIndex } from "./run-vault-index";
 import { useVaultNavigation } from "./use-vault-navigation";
-import { clearNoteContent, indexNoteContent, markContentIndexed, needsContentIndex } from "@/app/services/content-search-client";
-import { loadMetadataCache, saveMetadataCache } from "@/app/services/metadata-cache";
+import { clearNoteContent } from "@/app/services/content-search-client";
 import { atom_showHiddenFiles, atom_browserVaultDialogOpen } from "@/app/atoms/ui-atoms";
 import { loadStoredWorkspace } from "./stored-workspace";
 import { purgeExpiredTrash } from "./trash-ops";
@@ -139,42 +138,35 @@ export function useVaultManager() {
         const vault = store.get(atom_vaultHandle);
         const isCurrent = () => indexRun === run && store.get(atom_vaultHandle) === vault;
         setIndexerState({ status: "compiling", count: 0 });
-        const { files: fileHandles, folders, failedSubdirs: subdirFailCount, timedOut } = await collectVaultFiles(handle, includeHidden);
 
-        reportCollectProblems(timedOut, subdirFailCount);
-
-        if (!isCurrent()) return;
-        setVaultFolderPaths(folders);
-
-        // Without a worker, list the notes with no parsed metadata. Fresh
-        // vault open replaces metadata entirely; re-index keeps earlier
-        // parses, refreshes handles and drops files gone from disk.
+        // Without a worker, list the notes with no parsed metadata once the
+        // walk is over. Fresh vault open replaces metadata entirely; re-index
+        // keeps earlier parses, refreshes handles and drops files gone from disk.
         if (!metadataWorker) {
+          const { files: fileHandles, folders, failedSubdirs, timedOut } = await collectVaultFiles(handle, includeHidden);
+          reportCollectProblems(timedOut, failedSubdirs);
+          if (!isCurrent()) return;
+          setVaultFolderPaths(folders);
           setFileMetadata((prev) => metadataForFiles(fileHandles, passedHandle ? undefined : prev));
           setIndexerState("idle");
           return;
         }
 
-        // Dates first, cached parses reused, the rest parsed newest first in
-        // the background, then the note-text backfill (see vault-index.ts).
-        // Read the vault key from the store: right after a vault opens, this
+        // Streams notes in as folders are listed (run-vault-index.ts). Read
+        // the vault key from the store: right after a vault opens, this
         // callback's closure is stale.
-        const vaultKey = store.get(atom_vaultKey);
-        const worker = metadataWorker;
-        const { done, contentDone } = await indexVaultFiles(fileHandles, !!passedHandle, {
-          loadCache: () => (vaultKey ? loadMetadataCache(vaultKey) : Promise.resolve(null)),
-          saveCache: (entries) => (vaultKey ? saveMetadataCache(vaultKey, entries) : Promise.resolve()),
-          read: readFilesForIndexing,
-          // The worker also indexes the text of every note it parses.
-          parse: (files) => {
-            markContentIndexed(files);
-            return parseWithWorker(worker, files);
-          },
+        const indexing = await runVaultIndex({
+          worker: metadataWorker,
+          root: handle,
+          includeHidden,
+          fresh: !!passedHandle,
+          vaultKey: store.get(atom_vaultKey),
           setMetadata: setFileMetadata,
+          setFolderPaths: setVaultFolderPaths,
           isCurrent,
-          needsContent: needsContentIndex,
-          indexContent: indexNoteContent,
         });
+        if (!indexing) return;
+        const { done, contentDone } = indexing;
         void contentDone.catch((err) => console.error("Failed to index note text:", err));
         void done
           .catch((err) => console.error("Failed to parse vault metadata:", err))
