@@ -549,6 +549,7 @@ html[data-chrome-faded] .editor-sheet.editor-container {
 .cm-table-menu {
   position: fixed;
   max-height: calc(100vh - 1rem);
+  max-height: calc(100dvh - 1rem);
   overflow-y: auto;
   z-index: 60;
   display: flex;
