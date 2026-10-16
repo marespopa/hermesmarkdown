@@ -4,8 +4,8 @@ import { formatShortcut } from "@/app/utils/platform";
 // editor itself, then clear (or keep) like any draft. Plain text: no tokens.
 export function welcomeNote(isMobileChrome: boolean): string {
   const palette = isMobileChrome
-    ? "Tap the **menu button** for every command."
-    : `Press **${formatShortcut("k")}** for every command.`;
+    ? "Tap the **menu button** to open the command palette: notes, commands and settings in one search."
+    : `Press **${formatShortcut("k")}** to open the command palette: notes, commands and settings in one search.`;
   return [
     "# Welcome",
     "",

@@ -30,7 +30,7 @@ describe("useFirstRun", () => {
     expect(localStorage.getItem("fullWidth")).toBe("true");
     expect(store.get(atom_fullWidth)).toBe(true);
     expect(showHintToast).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(showHintToast).mock.calls[0][0]).toMatch(/anytime for every command/);
+    expect(vi.mocked(showHintToast).mock.calls[0][0]).toMatch(/anytime to open the command palette/);
     expect(isFirstRun()).toBe(false);
 
     rerender();
