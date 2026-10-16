@@ -51,7 +51,7 @@ const revoke = (urls: string[]) => urls.forEach((url) => URL.revokeObjectURL(url
 // where its page setup is chosen (atom_pdfSettings, print-settings.ts);
 // printing goes through the browser's print dialog (Save as PDF), all on the
 // device. Registers the
-// palette command and answers the toolbar's More → Export as PDF… event. A
+// palette command and answers the toolbar's More → Export as PDF event. A
 // private note that's still veiled can't be exported until it's shown.
 export function useExportPdf() {
   const store = useStore();
@@ -119,7 +119,7 @@ export function useExportPdf() {
 
   useRegisterCommand({
     id: "export-pdf",
-    label: "Export as PDF…",
+    label: "Export as PDF",
     category: "Document",
     keywords: "pdf print export save share archive download",
     disabledReason,

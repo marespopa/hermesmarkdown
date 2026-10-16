@@ -230,7 +230,7 @@ tags: []
         <KV
           rows={[
             { label: "Open Home", value: "Your vault's home feed: recent notes" },
-            { label: "Export as PDF…", value: "Print the note, or save it as a PDF" },
+            { label: "Export as PDF", value: "Print the note, or save it as a PDF" },
             { label: "Export as HTML", value: "Download the note as a standalone web page" },
             { label: "Show Files", value: "CTRL/CMD+SHIFT+E" },
             { label: "Open Tasks", value: "—" },

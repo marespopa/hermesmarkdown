@@ -203,7 +203,7 @@ describe("PaneLeaf Tab Indicators", () => {
     fireEvent.click(more);
     expect(more).toHaveAttribute("aria-expanded", "true");
     const menu = screen.getByRole("menu", { name: "More" });
-    for (const name of ["Copy Markdown", "Export as PDF…", "Settings", "Documentation and Help"]) {
+    for (const name of ["Copy Markdown", "Export as PDF", "Settings", "Documentation and Help"]) {
       expect(within(menu).getByRole("menuitem", { name: new RegExp(`^${name}`) })).toBeInTheDocument();
     }
     for (const name of ["Split Right", "Token Cost", "Hide Toolbar"]) {
