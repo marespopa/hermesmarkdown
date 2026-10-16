@@ -55,8 +55,8 @@ export function useFirstRun(isMobileChrome: boolean) {
     if (!isStored("fullWidth")) setFullWidth(true);
     showHintToast(
       isMobileChrome
-        ? "Tap the menu button anytime for every command."
-        : `Press ${formatShortcut("k")} anytime for every command.`,
+        ? "Tap the menu button anytime to open the command palette."
+        : `Press ${formatShortcut("k")} anytime to open the command palette.`,
     );
   }, [firstRun, isVaultRestoring, isMobileChrome, setHasCompleted, setRenderedFontSize, setFullWidth]);
 }

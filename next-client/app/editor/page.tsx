@@ -206,7 +206,7 @@ export default function LiteEditor() {
   });
 
 
-  // Download as Markdown: always a .md download of the note, vault note or
+  // Export as Markdown: always a .md download of the note, vault note or
   // draft alike. It never saves; Save stays its own command.
   const handleExport = () => {
     if (!content.trim()) return;

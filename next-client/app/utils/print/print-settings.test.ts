@@ -1,30 +1,22 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { DEFAULT_PRINT_SETTINGS, printDate, printSettingsFrom, templateSlots } from "./print-settings";
+import { DEFAULT_PRINT_SETTINGS, MARGIN_CSS, normalizePrintSettings, printDate, templateSlots } from "./print-settings";
 
 const values = { title: "Q4 review", date: "2026-10-13" };
 
-describe("printSettingsFrom", () => {
-  it("defaults to A4, 18 × 16 mm margins, no header or footer and the comment marker", () => {
-    expect(printSettingsFrom("# No frontmatter")).toEqual(DEFAULT_PRINT_SETTINGS);
-    expect(DEFAULT_PRINT_SETTINGS.pageBreak).toBe("<!-- pagebreak -->");
+describe("normalizePrintSettings", () => {
+  it("defaults to A4, normal margins, no header or footer and no rule breaks", () => {
+    expect(normalizePrintSettings(undefined)).toEqual(DEFAULT_PRINT_SETTINGS);
+    expect(MARGIN_CSS[DEFAULT_PRINT_SETTINGS.margins]).toBe("18mm 16mm");
   });
 
-  it("reads the pdf_ keys", () => {
-    const note = '---\npdf_page_size: letter\npdf_margins: 20 15mm 1in\npdf_header: "{title} | {date}"\npdf_footer: \'{page}\'\npdf_page_break: "\\pagebreak"\n---\n# Body';
-    expect(printSettingsFrom(note)).toEqual({
-      pageSize: "Letter",
-      margins: "20mm 15mm 1in",
-      header: "{title} | {date}",
-      footer: "{page}",
-      pageBreak: "\\pagebreak",
-    });
+  it("keeps stored choices it can read", () => {
+    const stored = { pageSize: "Letter", margins: "wide", header: "{title} | {date}", footer: "{page}", breakAtRules: true };
+    expect(normalizePrintSettings(stored)).toEqual(stored);
   });
 
-  it("falls back on page size and margins it can't read", () => {
-    const note = "---\npdf_page_size: A3\npdf_margins: wide\n---\n";
-    expect(printSettingsFrom(note)).toMatchObject({ pageSize: "A4", margins: "18mm 16mm" });
-    expect(printSettingsFrom("---\npdf_margins: 1 2 3 4 5\n---\n").margins).toBe("18mm 16mm");
+  it("falls back on values it can't read", () => {
+    expect(normalizePrintSettings({ pageSize: "A3", margins: "1in", header: "  ", footer: 4, breakAtRules: "yes" })).toEqual(DEFAULT_PRINT_SETTINGS);
   });
 });
 

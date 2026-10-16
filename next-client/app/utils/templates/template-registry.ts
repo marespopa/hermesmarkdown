@@ -15,6 +15,8 @@ export interface TemplateEntry {
   path: string;
   /** The pack (subfolder of the templates folder) it belongs to; none for a loose template. */
   pack?: string;
+  /** A built-in starter (not in the vault): its raw text, read instead of `path`. */
+  body?: string;
 }
 
 export interface TemplatePack {

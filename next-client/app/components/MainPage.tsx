@@ -12,6 +12,7 @@ import { CommandPaletteProvider } from "./CommandPalette/CommandPaletteContext";
 import AppCommands from "./CommandPalette/AppCommands";
 import KeyboardShortcutsOverlay from "./KeyboardShortcutsOverlay/KeyboardShortcutsOverlay";
 import SettingsCommands from "../editor/settings/components/SettingsCommands";
+import useTapRefocus from "../hooks/use-tap-refocus";
 
 const GlobalDialog = dynamic(() => import("./DialogModal/GlobalDialog"));
 const TemplateDialogHost = dynamic(() => import("./TemplateDialog/TemplateDialogHost"));
@@ -22,6 +23,7 @@ type Props = {
 
 const MainPage = ({ children }: Props) => {
   const pathname = usePathname();
+  useTapRefocus();
   const isEditor = pathname?.startsWith("/editor");
   const hideNav = isEditor;
   

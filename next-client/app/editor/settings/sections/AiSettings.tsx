@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { HiOutlineRefresh } from "react-icons/hi";
 import {
+  atom_aiEnabled,
   atom_aiProvider,
   atom_availableClaudeModels,
   atom_availableGeminiModels,
@@ -13,16 +14,16 @@ import {
 } from "@/app/atoms/atoms";
 import Button from "@/app/components/Button";
 import Input from "@/app/components/Input";
+import Toggle from "@/app/components/Toggle";
 import { showErrorToast, showSuccessToast } from "@/app/components/Toastr";
 import { fetchClaudeModels, fetchGeminiModels, testAIConnection } from "@/app/services/ai";
-import { SelectControl, SettingGroup, SettingItem } from "../components/SettingControls";
+import { SegmentedControl, SelectControl, SettingGroup, SettingItem, SettingNote } from "../components/SettingControls";
 
 // Per-provider copy, defaults, and the model list shown before the real one loads.
 const PROVIDERS = {
   claude: {
     name: "Claude",
-    keyLabel: "Claude API Key",
-    keyDescription: "Your Anthropic API key. Remove it to disable AI features for this provider.",
+    keyDescription: "Create one at console.anthropic.com.",
     keyPlaceholder: "sk-ant-...",
     defaultModel: "sonnet-5",
     fallbackModels: [
@@ -34,8 +35,7 @@ const PROVIDERS = {
   },
   gemini: {
     name: "Gemini",
-    keyLabel: "Gemini API Key",
-    keyDescription: "Your Google AI Studio API key. Remove it to disable AI features for this provider.",
+    keyDescription: "Create one at aistudio.google.com.",
     keyPlaceholder: "AIza...",
     defaultModel: "gemini-3.5-flash",
     fallbackModels: [
@@ -47,9 +47,13 @@ const PROVIDERS = {
   },
 } as const;
 
-// Settings → AI Features: provider, model (loaded from the key's account,
-// with a refresh button), API key with removal, and a connection test.
+type Provider = keyof typeof PROVIDERS;
+
+// Settings → AI Features: an off-by-default switch, then (once on) the
+// provider, your API key, the model loaded from the key's account and a
+// connection check. Turning it off keeps the key; Remove key deletes it.
 export default function AiSettings() {
+  const [aiEnabled, setAiEnabled] = useAtom(atom_aiEnabled);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
   const [selectedAiModel, setSelectedAiModel] = useAtom(atom_selectedAiModel);
   const [claudeKey, setClaudeKey] = useAtom(atom_claudeKey);
@@ -67,42 +71,38 @@ export default function AiSettings() {
   const setAvailableModels = aiProvider === "claude" ? setAvailableClaudeModels : setAvailableGeminiModels;
 
   useEffect(() => {
-    if (!key || availableModels.length > 0 || fetchError) return;
+    if (!aiEnabled || !key || availableModels.length > 0 || fetchError) return;
     const loadModels = async () => {
       setIsFetchingModels(true);
       setFetchError(null);
       try {
         setAvailableModels(await provider.fetchModels(key));
       } catch (error: any) {
-        setFetchError(error.message || "Failed to load models");
+        setFetchError(error.message || "Couldn't load models");
       } finally {
         setIsFetchingModels(false);
       }
     };
     loadModels();
-  }, [key, availableModels.length, setAvailableModels, fetchError, provider]);
+  }, [aiEnabled, key, availableModels.length, setAvailableModels, fetchError, provider]);
 
   const handleTestConnection = async () => {
-    if (!key) {
-      showErrorToast(`Please enter your ${provider.name} API key first.`);
-      return;
-    }
     setIsTestingConnection(true);
     try {
       const result = await testAIConnection(aiProvider, key);
       if (result.success) {
-        showSuccessToast(`Connection to ${provider.name} successful!`);
+        showSuccessToast(`Connected to ${provider.name}.`);
       } else {
-        showErrorToast(`Failed to connect: ${result.error}`);
+        showErrorToast(`Couldn't connect: ${result.error}`);
       }
     } catch (error: any) {
-      showErrorToast(`An error occurred: ${error.message || "Unknown error"}`);
+      showErrorToast(`Couldn't connect: ${error.message || "unknown error"}`);
     } finally {
       setIsTestingConnection(false);
     }
   };
 
-  const removeAiKey = () => {
+  const removeKey = () => {
     setKey("");
     setAvailableModels([]);
     setFetchError(null);
@@ -112,97 +112,101 @@ export default function AiSettings() {
     availableModels.length > 0 ? availableModels : provider.fallbackModels;
 
   return (
-    <SettingGroup>
-      <SettingItem
-        label="AI Provider"
-        description="Choose which company's AI powers the AI features. Each provider uses its own API key."
-        control={
-          <SelectControl
-            value={aiProvider}
-            onChange={(v) => {
-              const next = v as keyof typeof PROVIDERS;
-              setAiProvider(next);
-              // Reset selected model to the provider's default
-              setSelectedAiModel(PROVIDERS[next].defaultModel);
-            }}
-          >
-            <option value="claude">Claude (Anthropic)</option>
-            <option value="gemini">Gemini (Google)</option>
-          </SelectControl>
-        }
-      />
-      <SettingItem
-        label="Model"
-        description={
-          isFetchingModels
-            ? "Fetching available models..."
-            : fetchError
-              ? `Error: ${fetchError}`
-              : "Choose from models available to your API key."
-        }
-        control={
-          <div className="flex items-center gap-2">
-            <SelectControl value={selectedAiModel} onChange={(v) => setSelectedAiModel(v as any)} disabled={isFetchingModels}>
-              {models.map((m) => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </SelectControl>
-            <Button
-              variant="unstyled"
-              onClick={() => {
-                setAvailableModels([]);
-                setFetchError(null);
-              }}
-              className="p-1.5 text-stone hover:text-sage transition-colors"
-              title="Refresh models"
-              aria-label="Refresh models"
-            >
-              <HiOutlineRefresh size={18} className={isFetchingModels ? "animate-spin" : ""} />
-            </Button>
-          </div>
-        }
-      />
-      <SettingItem
-        label={provider.keyLabel}
-        description={provider.keyDescription}
-        layout="stack"
-        control={
-          <div className="flex flex-col gap-2">
-            <Input
-              name={aiProvider === "claude" ? "claudeKey" : "geminiKey"}
-              value={key}
-              type="password"
-              placeholder={provider.keyPlaceholder}
-              handleChange={(e) => setKey(e.target.value.trim())}
+    <>
+      <SettingGroup>
+        <SettingItem
+          label="AI features"
+          description="Optional, and off unless you turn it on. Adds AI Chat and one-click rewrites, using your own Claude or Gemini API key."
+          control={<Toggle variant="soft" active={aiEnabled} onChange={setAiEnabled} label="AI features" />}
+        />
+      </SettingGroup>
+
+      {aiEnabled && (
+        <SettingGroup title="Setup">
+          <SettingItem
+            label="Provider"
+            control={
+              <SegmentedControl<Provider>
+                options={[{ label: "Claude", value: "claude" }, { label: "Gemini", value: "gemini" }]}
+                value={aiProvider}
+                onChange={(next) => {
+                  setAiProvider(next);
+                  setSelectedAiModel(PROVIDERS[next].defaultModel);
+                }}
+              />
+            }
+          />
+          <SettingItem
+            label="API key"
+            description={`${provider.keyDescription} It's kept in this browser only.`}
+            layout="stack"
+            control={
+              <div className="flex flex-col gap-1">
+                <Input
+                  name={aiProvider === "claude" ? "claudeKey" : "geminiKey"}
+                  value={key}
+                  type="password"
+                  placeholder={provider.keyPlaceholder}
+                  handleChange={(e) => setKey(e.target.value.trim())}
+                />
+                {key && (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="tertiary"
+                      disabled={isTestingConnection}
+                      onClick={handleTestConnection}
+                      className="h-8 px-2 text-ui-footnote sm:text-ui-footnote"
+                    >
+                      {isTestingConnection && <HiOutlineRefresh className="animate-spin" />}
+                      {isTestingConnection ? "Checking…" : "Test connection"}
+                    </Button>
+                    <Button variant="tertiary" onClick={removeKey} className="h-8 px-2 text-ui-footnote sm:text-ui-footnote">
+                      Remove key
+                    </Button>
+                  </div>
+                )}
+              </div>
+            }
+          />
+          {key && (
+            <SettingItem
+              label="Model"
+              description={
+                isFetchingModels
+                  ? "Loading your models…"
+                  : fetchError
+                    ? `Couldn't load your models (${fetchError}); showing the usual ones.`
+                    : "The models your key can use."
+              }
+              control={
+                <div className="flex items-center gap-2">
+                  <SelectControl value={selectedAiModel} onChange={(v) => setSelectedAiModel(v as any)} disabled={isFetchingModels} ariaLabel="Model">
+                    {models.map((m) => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))}
+                  </SelectControl>
+                  <Button
+                    variant="unstyled"
+                    onClick={() => {
+                      setAvailableModels([]);
+                      setFetchError(null);
+                    }}
+                    className="p-1.5 text-stone hover:text-sage transition-colors"
+                    title="Refresh models"
+                    aria-label="Refresh models"
+                  >
+                    <HiOutlineRefresh size={18} className={isFetchingModels ? "animate-spin" : ""} />
+                  </Button>
+                </div>
+              }
             />
-            <Button
-              variant="secondary"
-              onClick={removeAiKey}
-              disabled={!key}
-              className="h-8 self-start px-3 text-ui-footnote text-red-500 hover:bg-red-500/10 disabled:text-fg-faint"
-            >
-              Remove AI key
-            </Button>
-          </div>
-        }
-      />
-      <div className="pt-2 pb-4">
-        <Button
-          variant="secondary"
-          disabled={isTestingConnection}
-          onClick={handleTestConnection}
-          className="w-full flex items-center justify-center gap-2 h-11"
-        >
-          {isTestingConnection ? (
-            <>
-              <HiOutlineRefresh className="animate-spin" />
-              Testing...
-            </>
-          ) : (
-            "Test Connection"
           )}
-        </Button>
-      </div>
-    </SettingGroup>
+          <SettingNote>
+            Nothing is sent until you use an AI feature. Then only what that request needs (your message, the note or
+            selection) goes to {provider.name}, by way of HermesMarkdown&apos;s server, which doesn&apos;t log or keep it.
+          </SettingNote>
+        </SettingGroup>
+      )}
+    </>
   );
 }

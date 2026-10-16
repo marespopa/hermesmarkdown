@@ -8,6 +8,7 @@ import { atom_workspaceLayout } from "@/app/atoms/workspace-atoms";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { exportActivePdf } from "../utils/open-helper-dialogs";
 import { useExportPdf, VEILED_REASON, vaultImagePath } from "./use-export-pdf";
+import { atom_pdfSettings } from "@/app/atoms/print-atoms";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
@@ -85,21 +86,21 @@ describe("useExportPdf", () => {
     await vi.waitFor(() => expect(hook.result.current.job?.title).toBe("note"));
   });
 
-  it("reads the page setup from frontmatter and breaks pages at the marker", async () => {
-    const { hook } = setup(
+  it("prints with the page setup chosen in the dialog, ignoring frontmatter", async () => {
+    const { hook, store } = setup(
       "specs/billing.md",
-      '---\npdf_page_size: Letter\npdf_margins: 1in\npdf_footer: "{page} / {pages}"\npdf_page_break: "---"\n---\n# Billing\n\nPart one\n\n---\n\nPart two',
+      "---\npdf_page_size: A4\n---\n# Billing\n\nPart one\n\n---\n\nPart two\n\n<!-- pagebreak -->\n\nPart three",
     );
+    store.set(atom_pdfSettings, { pageSize: "Letter", margins: "narrow", header: null, footer: "{page} / {pages}", breakAtRules: true });
     await act(async () => { await registered!.action(); });
     await vi.waitFor(() => expect(hook.result.current.job).not.toBeNull());
-    const job = hook.result.current.job!;
-    expect(job.settings).toMatchObject({ pageSize: "Letter", margins: "1in", footer: "{page} / {pages}", pageBreak: "---" });
-    expect(job.body).toContain('<div class="page-break"></div>');
+    expect(hook.result.current.job!.body).toContain('<div class="page-break"></div>');
 
     await act(async () => { await hook.result.current.print(); });
     const html = printHtml.mock.calls[0][0];
-    expect(html).toContain("size: Letter; margin: 1in;");
+    expect(html).toContain("size: Letter; margin: 10mm;");
     expect(html).toContain('@bottom-center { content: counter(page) " / " counter(pages);');
+    expect(html).not.toContain("<hr>");
   });
 
   it("closes the dialog without printing on cancel", async () => {

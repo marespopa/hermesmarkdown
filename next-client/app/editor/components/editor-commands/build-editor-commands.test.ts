@@ -55,6 +55,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     showHiddenFiles: false,
     setShowHiddenFiles: vi.fn(),
     setAiBuilderRequest: vi.fn(),
+    isAiEnabled: true,
     isAiConfigured: true,
     content: "Note content",
     workspaceLayout: {
@@ -247,7 +248,7 @@ describe("buildEditorCommands", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("names note commands with notes, and Download as Markdown runs the export", () => {
+  it("names note commands with notes, and Export as Markdown runs the export", () => {
     const context = createContext();
     const commands = buildEditorCommands(context);
     const label = (id: string) => commands.find((command) => command.id === id)?.label;
@@ -256,10 +257,15 @@ describe("buildEditorCommands", () => {
     expect(label("import-file")).toBe("Open Note from Disk…");
     expect(label("rename-current-file")).toBe("Rename Note");
     expect(label("delete-current-file")).toBe("Delete Note");
-    expect(label("export-file")).toBe("Download as Markdown");
+    expect(label("export-file")).toBe("Export as Markdown");
     commands.find((command) => command.id === "export-file")?.action();
     expect(context.onExport).toHaveBeenCalledOnce();
     expect(context.onSave).not.toHaveBeenCalled();
+  });
+
+  it("lists no AI actions while AI features are off", () => {
+    const commands = buildEditorCommands(createContext({ isAiEnabled: false, isAiConfigured: false }));
+    expect(commands.some((command) => command.id.startsWith("ai-"))).toBe(false);
   });
 
   it("preserves availability reasons and action callbacks", () => {
@@ -271,7 +277,7 @@ describe("buildEditorCommands", () => {
     const command = (id: string) => commands.find((candidate) => candidate.id === id);
 
     expect(command("format-bold")?.disabledReason).toBe("Open and focus a note first");
-    expect(command("ai-improve")?.disabledReason).toBe("Configure an AI provider in Settings");
+    expect(command("ai-improve")?.disabledReason).toBe("Add an API key in Settings → AI Features");
 
     command("save-file")?.action();
     command("open-tasks-panel")?.action();

@@ -84,8 +84,9 @@ export const templatesItems: Subsection[] = [
         <ul>
           <li>
             <strong>An empty note</strong> shows your templates as small buttons under the first line;
-            click one to fill the note. With no templates yet, <strong>Browse template packs</strong>{" "}
-            takes you to the Templates page.
+            click one to fill the note. With no templates yet, a few built-in ones (meeting notes, an
+            outline, a project brief, a book note) are offered instead, and{" "}
+            <strong>Browse template packs</strong> takes you to the Templates page to add your own.
           </li>
           <li>
             <strong><code>/template</code></strong> in a note inserts a template where you&apos;re

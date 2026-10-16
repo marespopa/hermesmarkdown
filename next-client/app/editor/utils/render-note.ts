@@ -6,7 +6,7 @@
 
 import { resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
 import { escapeHtml, noteToHtml, type PrintBlock } from "@/app/utils/print/note-html";
-import { printSettingsFrom, type PrintSettings } from "@/app/utils/print/print-settings";
+import { DEFAULT_PAGE_BREAK } from "@/app/utils/print/print-settings";
 import { vaultImagePath } from "./note-embeds";
 import { renderMermaid } from "./render-mermaid";
 import { renderMathMl } from "./render-math";
@@ -26,7 +26,6 @@ export interface RenderedNote {
   /** The note's first H1, if any. */
   title: string | null;
   body: string;
-  settings: PrintSettings;
 }
 
 export async function renderNote(
@@ -48,12 +47,11 @@ export async function renderNote(
       }
     }
   }
-  const settings = printSettingsFrom(text);
   const result = noteToHtml(text, {
     imageSrc: (src) => images.get(src) ?? (/^(https?:|data:image\/)/i.test(src) ? src : null),
-    pageBreak: settings.pageBreak,
+    pageBreak: DEFAULT_PAGE_BREAK,
   });
   const rendered = await Promise.all(result.blocks.map(renderBlock));
   const body = result.html.replace(/(<div class="rendered [a-z]+") data-render="(\d+)"><\/div>/g, (_whole, open: string, index: string) => `${open}>${rendered[Number(index)] ?? ""}</div>`);
-  return { title: result.title ?? null, body, settings };
+  return { title: result.title ?? null, body };
 }

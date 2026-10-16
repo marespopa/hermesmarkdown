@@ -14,6 +14,11 @@ vi.mock("jotai", async (importOriginal) => {
 
 // Mock next/navigation router
 const pushMock = vi.fn();
+vi.mock("@/app/services/ai", () => ({
+  fetchClaudeModels: vi.fn().mockResolvedValue([]),
+  fetchGeminiModels: vi.fn().mockResolvedValue([]),
+  testAIConnection: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
 }));
@@ -34,7 +39,7 @@ vi.mock("@/app/atoms/atoms", async (importOriginal) => {
 
 import { useAtom } from "jotai";
 import { QUATTRO_FONT_STACK, atom_focusMode } from "@/app/atoms/ui-atoms";
-import { atom_aiProvider, atom_availableClaudeModels } from "@/app/atoms/atoms";
+import { atom_aiEnabled, atom_aiProvider, atom_availableClaudeModels, atom_claudeKey } from "@/app/atoms/atoms";
 
 // Helper: switch to the "Editor" category so its controls render.
 // The page has two "Editor" texts: the back-button breadcrumb and the nav item.
@@ -170,17 +175,20 @@ describe("SettingsPage", () => {
 
   it("names the AI settings plainly", () => {
     (useAtom as any).mockImplementation((atom: any) => {
+      if (atom === atom_aiEnabled) return [true, vi.fn()];
       if (atom === atom_aiProvider) return ["claude", vi.fn()];
+      if (atom === atom_claudeKey) return ["sk-ant-test", vi.fn()];
       if (atom === atom_availableClaudeModels) return [[], vi.fn()];
       return ["", vi.fn()];
     });
     render(<SettingsPage />);
     fireEvent.click(screen.getByText("AI Features"));
 
+    expect(screen.getByText(/Optional, and off unless you turn it on/)).toBeInTheDocument();
+    expect(screen.getByText("Provider")).toBeInTheDocument();
     expect(screen.getByText("Model")).toBeInTheDocument();
     expect(screen.queryByText("Model Tier")).not.toBeInTheDocument();
     expect(screen.queryByText("Provider Config")).not.toBeInTheDocument();
-    expect(screen.getByText(/Choose which company's AI powers the AI features/)).toBeInTheDocument();
   });
 
   it("puts profile and data first and help and about last in General, with no tour", () => {

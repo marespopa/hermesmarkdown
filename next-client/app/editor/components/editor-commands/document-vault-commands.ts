@@ -89,7 +89,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
       : []),
     {
       id: "export-file",
-      label: "Download as Markdown",
+      label: "Export as Markdown",
       keywords: "export download save copy md file note",
       action: onExport,
     },

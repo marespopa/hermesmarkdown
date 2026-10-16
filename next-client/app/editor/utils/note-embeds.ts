@@ -3,7 +3,7 @@
 // the line: a note's text, a CSV as a table, an image, or a code file as a
 // code block. Pure helpers shared by the editor widget
 // (codemirror/note-embeds.ts), the loader hook (hooks/use-note-embeds.ts),
-// Export as PDF and Download Compiled Markdown.
+// Export as PDF and Export as Compiled Markdown.
 import { FM_REGEX } from "@/app/utils/frontmatter-utils";
 import { stripBoardFence } from "@/app/utils/board/board-format";
 import { delimitedTextToMarkdownTable, detectDelimitedTable } from "./table-manipulation";
@@ -186,7 +186,7 @@ export type ReadEmbed = (ref: EmbedRef, fromPath: string) => Promise<EmbedFile |
 /** How deep compiled embeds go; deeper ones stay as their lines. */
 export const MAX_EMBED_DEPTH = 8;
 
-// Export as PDF and Download Compiled Markdown: each embed line becomes the
+// Export as PDF and Export as Compiled Markdown: each embed line becomes the
 // file it names (a note's text with its own embeds filled in, a CSV as a
 // table, a code file as a fenced block, an image as an image link from the
 // vault root). A note already being filled in higher up, or one past

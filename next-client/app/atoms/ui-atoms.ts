@@ -5,6 +5,9 @@ import { atomWithChoiceStorage } from "./choice-storage";
 import { tabSessionStorage } from "./session-storage";
 import { DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, type DarkTheme, type LightTheme } from "@/app/theme-palettes";
 
+// AI provider, keys and the AI Features switch live in ai-atoms; re-exported here.
+export * from "./ai-atoms";
+
 // Theme & appearance
 export type Theme = "light" | "dark" | "system";
 
@@ -356,21 +359,6 @@ export type AiActionStatus =
   | { seq: number; status: "done"; label: string }
   | { seq: number; status: "error"; message: string };
 export const atom_aiActionStatus = atom<AiActionStatus>({ seq: 0, status: "idle" });
-
-// AI Features
-export type AIProvider = "claude" | "gemini";
-export const atom_aiProvider = atomWithStorage<AIProvider>(
-  "hermes_ai_provider",
-  "claude",
-);
-export const atom_claudeKey = atomWithStorage<string>("hermes_claude_key", "");
-export const atom_geminiKey = atomWithStorage<string>("hermes_gemini_key", "");
-
-export const atom_isAiConfigured = atom((get) => {
-  const provider = get(atom_aiProvider);
-  const key = provider === "gemini" ? get(atom_geminiKey) : get(atom_claudeKey);
-  return key.trim().length > 0;
-});
 
 export const atom_isFileLoading = atom<boolean>(false);
 

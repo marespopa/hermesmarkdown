@@ -13,9 +13,9 @@ import { findEmbeds } from "../utils/note-embeds";
 import { useCompileEmbeds } from "./use-embed-reader";
 import { VEILED_REASON } from "./use-export-pdf";
 
-// "Download Compiled Markdown": the focused note as one .md download with
+// "Export as Compiled Markdown": the focused note as one .md download with
 // every embed filled in (notes, nested ones too, CSV tables, code blocks,
-// image links from the vault root). Like Download as Markdown it never
+// image links from the vault root). Like Export as Markdown it never
 // writes to the vault. Offered only when the note has embeds.
 export function useDownloadCompiled() {
   const store = useStore();
@@ -41,7 +41,7 @@ export function useDownloadCompiled() {
       const name = downloadMarkdown(compiled, store.get(atom_fileName));
       toast.success(`Downloaded ${name}`);
     } catch (err) {
-      console.warn("Download Compiled Markdown failed:", err);
+      console.warn("Export as Compiled Markdown failed:", err);
       toast.error("Couldn't compile the note");
     } finally {
       busy.current = false;
@@ -50,7 +50,7 @@ export function useDownloadCompiled() {
 
   useRegisterCommand({
     id: "download-compiled-markdown",
-    label: "Download Compiled Markdown",
+    label: "Export as Compiled Markdown",
     category: "Document",
     keywords: "export download compile build embeds transclusion merge chapters book single file md",
     disabledReason,

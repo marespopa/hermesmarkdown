@@ -11,7 +11,7 @@ import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy
 import { expandEmbeds, type ReadEmbed } from "../utils/note-embeds";
 import { locateVaultFile, readLocatedText, readNoteFile } from "../utils/embed-files";
 
-// The reader behind Export as PDF and Download Compiled Markdown: a note is
+// The reader behind Export as PDF and Export as Compiled Markdown: a note is
 // found like its wikilink (relative to the note embedding it) and read from
 // its open tab, unsaved edits included, or from disk; other files are found
 // next to that note or from the vault root. Veiled private notes and

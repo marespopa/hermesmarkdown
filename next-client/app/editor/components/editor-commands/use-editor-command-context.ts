@@ -28,6 +28,7 @@ import {
   atom_aiBuilderRequest,
   atom_browserVaultDialogOpen,
   atom_sidebarOpen,
+  atom_aiEnabled,
   atom_isAiConfigured,
   atom_newVaultFlowOpen,
   atom_showHiddenFiles,
@@ -90,6 +91,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const dialog = useDialog();
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
+  const isAiEnabled = useAtomValue(atom_aiEnabled);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const content = useAtomValue(atom_content);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
@@ -151,6 +153,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     showHiddenFiles,
     setShowHiddenFiles,
     setAiBuilderRequest,
+    isAiEnabled,
     isAiConfigured,
     content,
     workspaceLayout,
