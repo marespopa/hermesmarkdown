@@ -222,7 +222,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                       aria-label={`Edit template ${row.entry.name}`}
                       title={`Edit template (${mod}E)`}
                       tabIndex={-1}
-                      className="absolute right-1 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-fg-faint transition-opacity duration-150 hover:bg-paper-softgray hover:text-fg sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-paper-dark-surface"
+                      className="absolute right-1 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-fg-faint transition-opacity duration-150 hover:bg-paper-softgray hover:text-fg [@media(hover:hover)]:sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-paper-dark-surface"
                     >
                       <HiOutlinePencil size={15} aria-hidden />
                     </Button>

@@ -1,6 +1,6 @@
 # Tooltip
 
-Description: Delayed hover tooltip for icon-only controls, with an optional shortcut hint. CSS-only by default; `portal` mode renders into `document.body` so it escapes clipping containers.
+Description: Delayed hover tooltip for icon-only controls, with an optional shortcut hint. CSS-only by default; `portal` mode renders into `document.body` so it escapes clipping containers. Never shown on touch screens: hover styles only apply where hover is supported (`hoverOnlyWhenSupported`), and portal mode ignores the emulated mouseenter a tap fires when `(hover: none)` matches.
 
 ## Local State & Storage
 - State: None in default mode (pure CSS `group-hover`). In `portal` mode, the trigger's measured rect (set 400ms after mouseenter, cleared on mouseleave/mousedown).

@@ -110,6 +110,9 @@ function PortalTooltip({
   };
 
   const show = () => {
+    // Touch has no hover: a tap's emulated mouseenter would leave the bubble
+    // up until the next tap elsewhere.
+    if (window.matchMedia?.("(hover: none)").matches) return;
     clear();
     timerRef.current = setTimeout(() => {
       if (triggerRef.current) setRect(triggerRef.current.getBoundingClientRect());

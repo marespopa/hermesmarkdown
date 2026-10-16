@@ -6,6 +6,9 @@ module.exports = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   darkMode: "class",
+  // `hover:` styles only apply on devices that can hover, so a tap on a phone
+  // doesn't leave a control stuck in its hover state (or a tooltip shown).
+  future: { hoverOnlyWhenSupported: true },
   theme: {
     container: {
       center: true,
