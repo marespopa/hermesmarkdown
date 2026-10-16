@@ -2,7 +2,8 @@
 
 import { useAtom } from "jotai";
 import { usePathname, useRouter } from "next/navigation";
-import { atom_keyboardShortcutsOpen, atom_theme, type Theme } from "@/app/atoms/ui-atoms";
+import { atom_darkTheme, atom_keyboardShortcutsOpen, atom_lightTheme, atom_theme, type Theme } from "@/app/atoms/ui-atoms";
+import { DARK_THEMES, LIGHT_THEMES, resolveDarkTheme, resolveLightTheme } from "@/app/theme-palettes";
 import RegisteredCommands from "@/app/editor/components/editor-commands/RegisteredCommands";
 import { type Command, useRegisterCommand } from "./CommandPaletteContext";
 
@@ -19,6 +20,8 @@ export default function AppCommands() {
   const pathname = usePathname() ?? "";
   const router = useRouter();
   const [theme, setTheme] = useAtom(atom_theme);
+  const [lightTheme, setLightTheme] = useAtom(atom_lightTheme);
+  const [darkTheme, setDarkTheme] = useAtom(atom_darkTheme);
   const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
   const inEditor = pathname.startsWith("/editor");
 
@@ -100,5 +103,29 @@ export default function AppCommands() {
     action: () => setTheme(value),
   }));
 
-  return <RegisteredCommands commands={themeCommands} />;
+  // One command per palette of each mode, e.g. "Light Theme: Sepia".
+  const currentLight = resolveLightTheme(lightTheme);
+  const currentDark = resolveDarkTheme(darkTheme);
+  const paletteCommands: Command[] = [
+    ...LIGHT_THEMES.map((t): Command => ({
+      id: `set-light-theme-${t.value}`,
+      label: `Light Theme: ${t.label}`,
+      description: `${t.description}, used in light mode`,
+      category: "Settings",
+      keywords: "theme palette appearance colors light",
+      disabledReason: currentLight === t.value ? "Current light theme" : undefined,
+      action: () => setLightTheme(t.value),
+    })),
+    ...DARK_THEMES.map((t): Command => ({
+      id: `set-dark-theme-${t.value}`,
+      label: `Dark Theme: ${t.label}`,
+      description: `${t.description}, used in dark mode`,
+      category: "Settings",
+      keywords: "theme palette appearance colors dark",
+      disabledReason: currentDark === t.value ? "Current dark theme" : undefined,
+      action: () => setDarkTheme(t.value),
+    })),
+  ];
+
+  return <RegisteredCommands commands={[...themeCommands, ...paletteCommands]} />;
 }

@@ -9,13 +9,16 @@ export const settingsGroup: Group = {
       id: "appearance",
       title: "Appearance",
       lead: "Pick a theme, the font you write in and the text size.",
-      keywords: "theme dark light font typography text size sidebar layout full width focus",
+      keywords: "theme palette colors sepia porcelain midnight graphite dark light font typography text size sidebar layout full width focus",
       body: (
         <>
           <p>
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
-            <strong>Theme: System</strong>). System follows your operating system automatically. The
+            <strong>Theme: System</strong>). System follows your operating system automatically.
+            Each mode has its own color theme: Paper, Sepia or Porcelain for light, and Ink,
+            Midnight or Graphite for dark — pick them under Settings → Appearance or with{" "}
+            <strong>Light Theme: …</strong> and <strong>Dark Theme: …</strong>. The
             editor font, text size and Full Width (on by default) are set under Settings →
             Appearance → Typography and apply to every pane in a split workspace. Vim mode and{" "}
             <a href="#focus" className="text-accent hover:underline">Focus</a> are under Settings →
@@ -26,6 +29,7 @@ export const settingsGroup: Group = {
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
+              { label: "Light / Dark theme", value: "Paper, Sepia, Porcelain / Ink, Midnight, Graphite" },
               { label: "Sidebar", value: "The toolbar's Sidebar button, CTRL/CMD+ALT+S or Toggle Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
               { label: "Typeface", value: "Geist Mono by default, Duospace or Quattro" },
             ]}

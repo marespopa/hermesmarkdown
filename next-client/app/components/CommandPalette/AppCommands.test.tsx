@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider, createStore } from "jotai";
-import { atom_focusMode, atom_theme, atom_wordWrap } from "@/app/atoms/ui-atoms";
+import { atom_darkTheme, atom_focusMode, atom_lightTheme, atom_theme, atom_wordWrap } from "@/app/atoms/ui-atoms";
 import SettingsCommands from "@/app/editor/settings/components/SettingsCommands";
 import AppCommands from "./AppCommands";
 import { CommandPaletteProvider, type Command, useCommandPalette } from "./CommandPaletteContext";
@@ -73,6 +73,22 @@ describe("AppCommands and SettingsCommands", () => {
 
     act(() => { void command("set-theme-light")?.action(); });
     expect(store.get(atom_theme)).toBe("light");
+  });
+
+  it("offers at least three palettes for each mode and disables the current ones", () => {
+    const store = createStore();
+    store.set(atom_lightTheme, "sepia");
+    renderCommands(store);
+
+    for (const id of ["paper", "sepia", "porcelain"]) expect(command(`set-light-theme-${id}`)).toBeDefined();
+    for (const id of ["ink", "midnight", "graphite"]) expect(command(`set-dark-theme-${id}`)).toBeDefined();
+    expect(command("set-light-theme-sepia")?.label).toBe("Light Theme: Sepia");
+    expect(command("set-light-theme-sepia")?.disabledReason).toBe("Current light theme");
+    expect(command("set-dark-theme-ink")?.disabledReason).toBe("Current dark theme");
+
+    act(() => { void command("set-dark-theme-midnight")?.action(); });
+    expect(store.get(atom_darkTheme)).toBe("midnight");
+    expect(store.get(atom_lightTheme)).toBe("sepia");
   });
 
   it("uses verb-object names for the global commands", () => {

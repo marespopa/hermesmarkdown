@@ -3,10 +3,19 @@
 import React from "react";
 import { useAtom } from "jotai";
 import { HiOutlineDesktopComputer, HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
-import { atom_editorFontFamily, atom_renderedFontSize, atom_theme, type Theme } from "@/app/atoms/atoms";
+import {
+  atom_darkTheme,
+  atom_editorFontFamily,
+  atom_lightTheme,
+  atom_renderedFontSize,
+  atom_theme,
+  type Theme,
+} from "@/app/atoms/atoms";
 import { atom_fullWidth } from "@/app/atoms/ui-atoms";
 import Toggle from "@/app/components/Toggle";
+import { DARK_THEMES, LIGHT_THEMES, resolveDarkTheme, resolveLightTheme } from "@/app/theme-palettes";
 import FontPicker from "../components/FontPicker";
+import ThemePicker from "../components/ThemePicker";
 import { SegmentedControl, SettingGroup, SettingItem } from "../components/SettingControls";
 import { FONTS, TEXT_SIZES } from "../font-options";
 
@@ -16,10 +25,12 @@ const THEME_OPTIONS: { label: string; value: Theme; Icon: React.ComponentType<{ 
   { label: "System", value: "system", Icon: HiOutlineDesktopComputer },
 ];
 
-// Settings → Appearance: Theme and Typography (font, text size, full width)
-// groups.
+// Settings → Appearance: Theme (mode, plus a palette for each of light and
+// dark) and Typography (font, text size, full width) groups.
 export default function AppearanceSettings() {
   const [theme, setTheme] = useAtom(atom_theme);
+  const [lightTheme, setLightTheme] = useAtom(atom_lightTheme);
+  const [darkTheme, setDarkTheme] = useAtom(atom_darkTheme);
   const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [textSize, setTextSize] = useAtom(atom_renderedFontSize);
   const [fullWidth, setFullWidth] = useAtom(atom_fullWidth);
@@ -31,6 +42,18 @@ export default function AppearanceSettings() {
           label="Theme"
           description="System follows your OS's light/dark setting and switches automatically when it changes."
           control={<SegmentedControl options={THEME_OPTIONS} value={theme} onChange={setTheme} />}
+        />
+        <SettingItem
+          label="Light theme"
+          description="The colors used in light mode."
+          layout="stack"
+          control={<ThemePicker themes={LIGHT_THEMES} value={resolveLightTheme(lightTheme)} onChange={setLightTheme} />}
+        />
+        <SettingItem
+          label="Dark theme"
+          description="The colors used in dark mode."
+          layout="stack"
+          control={<ThemePicker themes={DARK_THEMES} value={resolveDarkTheme(darkTheme)} onChange={setDarkTheme} />}
         />
       </SettingGroup>
       <SettingGroup title="Typography">

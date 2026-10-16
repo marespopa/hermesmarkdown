@@ -66,6 +66,21 @@ body {
   --material-highlight: rgba(255, 255, 255, 0.65);
   --material-shadow:    0 1px 2px rgba(0, 0, 0, 0.05), 0 12px 32px -8px rgba(0, 0, 0, 0.18);
   --ease-spring:    cubic-bezier(0.16, 1, 0.3, 1);
+  /* Static aliases (Tailwind paper-*, ink-*, beige, clay) as RGB channels,
+     so opacity modifiers work and the color themes (theme-palettes.scss)
+     can repaint them. Light-mode values first, then dark-mode ones. */
+  --paper-pale:         250 249 247;  /* #FAF9F7 */
+  --paper-light:        242 241 238;  /* #F2F1EE */
+  --paper-softgray:     233 231 226;  /* #E9E7E2 */
+  --beige:              216 213 206;  /* #D8D5CE */
+  --beige-light:        233 231 226;  /* #E9E7E2 */
+  --ink-light:          42 40 37;     /* #2A2825 */
+  --ink-hover:          58 55 51;     /* #3A3733 */
+  --ink-muted:          107 104 98;   /* #6B6862 */
+  --paper-dark:         24 22 20;     /* #181614 */
+  --paper-dark-surface: 42 38 34;     /* #2A2622 */
+  --ink-dark:           236 231 224;  /* #ECE7E0 */
+  --clay-surface:       58 54 49;     /* #3A3631 */
   /* Fine paper grain over the editor surface: tiled SVG fractal noise, the
      red channel thresholded into sparse specks (see .editor-sheet). */
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.24 0 0 0 0 0.22 0 0 0 0 0.2 0.9 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.16'/%3E%3C/svg%3E");
@@ -159,12 +174,12 @@ html.dark {
 /* Text selection — caret blue at low opacity (--selection) */
 ::selection {
   background-color: var(--selection);
-  color: theme('colors.ink.light');
+  color: rgb(var(--ink-light));
 }
 
 html.dark ::selection {
   background-color: var(--selection);
-  color: theme('colors.ink.dark');
+  color: rgb(var(--ink-dark));
 }
 
 /* Focus rings — clay outline, no default browser blue */
@@ -184,25 +199,25 @@ select:focus-visible {
 }
 
 html, body {
-  background-color: theme('colors.paper.pale');
-  color: theme('colors.ink.light');
+  background-color: rgb(var(--paper-pale));
+  color: rgb(var(--ink-light));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 html.dark, html.dark body {
-  background-color: theme('colors.paper.dark');
-  color: theme('colors.ink.dark');
+  background-color: rgb(var(--paper-dark));
+  color: rgb(var(--ink-dark));
 }
 
 
 /* Fix overscroll background color */
 html {
-  background-color: theme('colors.paper.pale');
+  background-color: rgb(var(--paper-pale));
 }
 
 html.dark {
-  background-color: theme('colors.paper.dark');
+  background-color: rgb(var(--paper-dark));
 }
 
 @keyframes hero-fade-in {

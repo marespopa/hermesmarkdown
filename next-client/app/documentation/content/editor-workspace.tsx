@@ -239,6 +239,7 @@ tags: []
             { label: "Tasks", value: "Grouping, due-date filters, and clear filters" },
             { label: "Toggle Hidden Files / Toggle Sidebar", value: "—" },
             { label: "Theme: Light / Dark / System", value: "—" },
+            { label: "Light Theme: … / Dark Theme: …", value: "The palette each mode uses" },
             { label: "Toggle Full Width / Word Wrap / Line Numbers / Invisibles / Word Count / Vim Mode", value: "—" },
             { label: "Focus: …", value: "Off, hide interface while typing, or also dim other paragraphs or sentences" },
             { label: "Settings", value: "Editor Font, Text Size, Autosave, Open Settings" },
