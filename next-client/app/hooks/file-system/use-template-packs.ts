@@ -35,6 +35,11 @@ async function folderExists(vaultHandle: FileSystemDirectoryHandle, path: string
   }
 }
 
+// Built-in packs being added, by id. A second request for the same pack
+// (a double tap) joins the run in progress: two runs would both find the
+// files missing and write them twice (as "Name (1).md" on some folders).
+const addsInFlight = new Map<string, Promise<number>>();
+
 // The Templates page's pack actions. A pack is a subfolder of the templates
 // folder (template-registry.ts), so every action is a plain file operation:
 // adding a built-in pack writes its templates there (never over a file that
@@ -67,8 +72,9 @@ export function useTemplatePacks() {
   }, [store, dialog]);
 
   // Writes the pack's templates into `<templates>/<pack.name>/`, skipping
-  // files that already exist (yours win). Resolves to the number written.
-  const addBuiltinPack = useCallback(async (pack: BuiltinPack): Promise<number> => {
+  // files that already exist (yours win). Resolves to the number written;
+  // a request while the same pack is being added gets that run.
+  const writeBuiltinPack = useCallback(async (pack: BuiltinPack): Promise<number> => {
     const vaultHandle = store.get(atom_vaultHandle);
     if (!vaultHandle) return 0;
     const folder = `${store.get(atom_templatesFolder).folder}/${pack.name}`;
@@ -92,6 +98,14 @@ export function useTemplatePacks() {
     }
     return written;
   }, [store, refresh]);
+
+  const addBuiltinPack = useCallback((pack: BuiltinPack): Promise<number> => {
+    const inFlight = addsInFlight.get(pack.id);
+    if (inFlight) return inFlight;
+    const run = writeBuiltinPack(pack).finally(() => addsInFlight.delete(pack.id));
+    addsInFlight.set(pack.id, run);
+    return run;
+  }, [writeBuiltinPack]);
 
   // An empty pack folder; resolves to its name, or null.
   const createPack = useCallback(async (): Promise<string | null> => {

@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { HiOutlineCheck, HiOutlineDownload } from "react-icons/hi";
+import React, { useRef, useState } from "react";
+import { HiOutlineCheck, HiOutlineDownload, HiOutlineRefresh } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import TemplateIcon from "@/app/components/TemplateDialog/TemplateIcon";
 import type { BuiltinPack } from "@/app/utils/templates/template-packs";
@@ -11,17 +11,35 @@ interface BuiltinPackCardProps {
   pack: BuiltinPack;
   /** Names of the pack's templates already in the vault (packTemplatesInVault). */
   inVault: Set<string>;
-  onAdd: (pack: BuiltinPack) => void;
+  /** Copies the pack into the vault; the button spins until it settles. */
+  onAdd: (pack: BuiltinPack) => Promise<unknown> | void;
   /** Without a vault there is nowhere to add it. */
   disabled?: boolean;
 }
 
 // A pack the app ships: its name, what it's for, its templates, and Add to
 // vault (Add missing when some files are there already, Added when all are).
+// From the first click until the pack is in, the button is disabled and
+// spins (Adding…), so a second tap can't start another copy.
 export default function BuiltinPackCard({ pack, inVault, onAdd, disabled = false }: BuiltinPackCardProps) {
+  const [adding, setAdding] = useState(false);
+  // Blocks a second click before the disabled state has rendered.
+  const addingRef = useRef(false);
   const missing = pack.templates.length - inVault.size;
   const added = missing === 0;
-  const label = added ? "Added" : inVault.size > 0 ? `Add ${missing} missing` : "Add to vault";
+  const label = adding ? "Adding…" : added ? "Added" : inVault.size > 0 ? `Add ${missing} missing` : "Add to vault";
+
+  const add = async () => {
+    if (addingRef.current) return;
+    addingRef.current = true;
+    setAdding(true);
+    try {
+      await onAdd(pack);
+    } finally {
+      addingRef.current = false;
+      setAdding(false);
+    }
+  };
   return (
     <section aria-label={`${pack.name} pack`} className="flex flex-col rounded-xl border border-edge-subtle bg-surface p-4">
       <div className="flex items-start gap-3">
@@ -31,12 +49,19 @@ export default function BuiltinPackCard({ pack, inVault, onAdd, disabled = false
         </div>
         <Button
           variant="unstyled"
-          onClick={() => onAdd(pack)}
-          isDisabled={added || disabled}
+          onClick={() => void add()}
+          isDisabled={added || disabled || adding}
           className={`${SMALL_BUTTON_CLASS} ${added ? "" : "bg-surface-raised text-fg"}`}
           aria-label={`${label}: ${pack.name}`}
+          aria-busy={adding || undefined}
         >
-          {added ? <HiOutlineCheck size={14} aria-hidden /> : <HiOutlineDownload size={14} aria-hidden />}
+          {adding ? (
+            <HiOutlineRefresh size={14} aria-hidden className="animate-spin motion-reduce:animate-none" />
+          ) : added ? (
+            <HiOutlineCheck size={14} aria-hidden />
+          ) : (
+            <HiOutlineDownload size={14} aria-hidden />
+          )}
           {label}
         </Button>
       </div>

@@ -125,7 +125,7 @@ export default function TemplatesPage() {
                   key={pack.id}
                   pack={pack}
                   inVault={packTemplatesInVault(pack, folder, paths)}
-                  onAdd={(target) => void addBuiltinPack(target)}
+                  onAdd={addBuiltinPack}
                   disabled={!vaultHandle}
                 />
               ))}

@@ -94,6 +94,20 @@ describe("useTemplatePacks", () => {
     expect(toast.success).toHaveBeenCalledWith(expect.stringContaining("Added Journal"));
   });
 
+  it("joins an add already in progress for the same pack instead of writing it twice", async () => {
+    const { packs } = await setup();
+    const { writeFileContent } = await import("@/app/services/file-writer");
+    let first = 0;
+    let second = 0;
+    await act(async () => {
+      [first, second] = await Promise.all([packs.addBuiltinPack(journal), packs.addBuiltinPack(journal)]);
+    });
+    expect(first).toBe(journal.templates.length);
+    expect(second).toBe(first);
+    expect(writeFileContent).toHaveBeenCalledTimes(journal.templates.length);
+    expect(toast.success).toHaveBeenCalledTimes(1);
+  });
+
   it("creates an empty pack folder, refusing a name that's taken", async () => {
     const { root, packs } = await setup({ "templates/Work/a.md": "a\n" });
     dialog.prompt.mockResolvedValueOnce("Writing");

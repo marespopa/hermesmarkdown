@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom";
 import { createStore, Provider } from "jotai";
@@ -95,6 +95,23 @@ describe("TemplatesPage", () => {
     fireEvent.click(within(journal).getByRole("button", { name: /Add 4 missing: Journal/ }));
     expect(packs.addBuiltinPack).toHaveBeenCalledWith(expect.objectContaining({ name: "Journal" }));
     expect(within(screen.getByRole("region", { name: "Meetings pack" })).getByRole("button", { name: "Add to vault: Meetings" })).toBeEnabled();
+  });
+
+  it("disables a pack's button and spins from the first click until the pack is added", async () => {
+    let finish!: (written: number) => void;
+    packs.addBuiltinPack.mockImplementationOnce(() => new Promise<number>((resolve) => { finish = resolve; }));
+    renderPage();
+    const journal = screen.getByRole("region", { name: "Journal pack" });
+    fireEvent.click(within(journal).getByRole("button", { name: /Add 4 missing: Journal/ }));
+
+    const adding = within(journal).getByRole("button", { name: "Adding…: Journal" });
+    expect(adding).toBeDisabled();
+    expect(adding).toHaveAttribute("aria-busy", "true");
+    fireEvent.click(adding);
+    expect(packs.addBuiltinPack).toHaveBeenCalledTimes(1);
+
+    await act(async () => finish(4));
+    expect(within(journal).getByRole("button", { name: /Add 4 missing: Journal/ })).toBeEnabled();
   });
 
   it("asks for a vault first, and reads the vault when opened on this page", () => {
