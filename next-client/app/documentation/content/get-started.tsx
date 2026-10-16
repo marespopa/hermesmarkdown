@@ -148,10 +148,8 @@ export const getStartedGroup: Group = {
             with no name prompt.
           </p>
           <p>
-            The first time you open HermesMarkdown there is nothing to set up: a short{" "}
-            <strong>Welcome</strong> note opens in the draft, with the basics. Read it, then select
-            all and write over it, or start a blank note with <strong>New Note</strong> from the home
-            feed. Once the draft has text, a bar
+            The first time you open HermesMarkdown there is nothing to set up: you land on the
+            home feed, where <strong>New Note</strong> starts a blank note. Once it has text, a bar
             at the bottom asks where your notes live. <strong>Choose Folder…</strong> picks a folder (you can make a new one in the
             picker) and saves the note there; in browsers that can&apos;t open folders it reads{" "}
             <strong>Keep Notes in This Browser</strong> and creates a{" "}

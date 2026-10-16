@@ -48,7 +48,6 @@ import HomeFeed from "./components/HomeFeed";
 import { HomeFeedSkeleton } from "./components/EditorSkeleton";
 import { useVaultOpenBehavior } from "./hooks/use-vault-open-behavior";
 import { useFirstRun } from "./hooks/use-first-run";
-import { useWelcomeNote } from "./hooks/use-welcome-note";
 import { useChooseFolder } from "./hooks/use-choose-folder";
 import { useRecentVaultTracker } from "./hooks/use-recent-vaults";
 import { useFadeChromeWhileTyping } from "./hooks/use-fade-chrome-while-typing";
@@ -134,7 +133,6 @@ export default function LiteEditor() {
   const { handleImport, fileInputRef, handleFileChange, pendingDraft, offerDraft, confirmPendingDraft, cancelPendingDraft } =
     useDraftImport(importFile);
   useToolHandoff({ offerDraft, isVaultLocked });
-  useWelcomeNote({ offerDraft, isVaultLocked, isMobileChrome });
 
   useEffect(() => {
     const handleFocus = () => {
