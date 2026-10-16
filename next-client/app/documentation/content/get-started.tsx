@@ -298,7 +298,7 @@ export const getStartedGroup: Group = {
             changes. On the left:
             the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Search (the
             command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
-            Markdown, Export as PDF, Settings and Help — every one of them is also in the command palette.
+            Markdown, Export as PDF, Export as HTML, Pin to Home, Settings and Documentation — every one of them is also in the command palette.
           </p>
           <p>
             Toolbar buttons are icons; hover one to see its name and shortcut.
