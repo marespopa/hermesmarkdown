@@ -475,7 +475,7 @@ graph TD
         <p>
           To build one document from many, such as a book whose main note holds only{" "}
           <code>/01-introduction.md</code>, <code>/02-analysis.md</code> and so on, use{" "}
-          <strong>Export as PDF</strong> or <strong>Download Compiled Markdown</strong>: every
+          <strong>Export as PDF</strong> or <strong>Export as Compiled Markdown</strong>: every
           embed is filled in, embeds inside embedded notes too, CSV files become tables, code
           files code blocks, and images keep working. A note that would end up inside itself is
           left as its line, so nothing loops.

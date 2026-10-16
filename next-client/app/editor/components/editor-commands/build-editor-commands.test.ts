@@ -248,7 +248,7 @@ describe("buildEditorCommands", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("names note commands with notes, and Download as Markdown runs the export", () => {
+  it("names note commands with notes, and Export as Markdown runs the export", () => {
     const context = createContext();
     const commands = buildEditorCommands(context);
     const label = (id: string) => commands.find((command) => command.id === id)?.label;
@@ -257,7 +257,7 @@ describe("buildEditorCommands", () => {
     expect(label("import-file")).toBe("Open Note from Disk…");
     expect(label("rename-current-file")).toBe("Rename Note");
     expect(label("delete-current-file")).toBe("Delete Note");
-    expect(label("export-file")).toBe("Download as Markdown");
+    expect(label("export-file")).toBe("Export as Markdown");
     commands.find((command) => command.id === "export-file")?.action();
     expect(context.onExport).toHaveBeenCalledOnce();
     expect(context.onSave).not.toHaveBeenCalled();

@@ -1,4 +1,4 @@
-// "Download as Markdown": hands the note to the browser as a .md download.
+// "Export as Markdown": hands the note to the browser as a .md download.
 // It never writes to the vault or changes the note's saved state.
 
 // The note's file name with a .md extension; a draft without one is named

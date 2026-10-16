@@ -193,7 +193,7 @@ export const getStartedGroup: Group = {
             you stop typing) or{" "}
             <strong>Manual Only</strong>. With autosave set to manual, a new note is saved only when you
             press <code>CTRL/CMD+S</code>. To get a copy of a note outside your vault, run{" "}
-            <strong>Download as Markdown</strong>: it always downloads the note as a <code>.md</code> file
+            <strong>Export as Markdown</strong>: it always downloads the note as a <code>.md</code> file
             and never changes the saved note.
           </p>
         </>

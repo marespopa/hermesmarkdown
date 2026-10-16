@@ -221,7 +221,7 @@ tags: []
         <KV
           rows={[
             { label: "Save", value: "CTRL+S" },
-            { label: "Notes", value: "New Note, Open Note from Disk…, Download as Markdown (always a .md download, never a save), Copy Markdown, Rename / Duplicate / Move / Delete Note" },
+            { label: "Notes", value: "New Note, Open Note from Disk…, Export as Markdown (always a .md download, never a save), Copy Markdown, Rename / Duplicate / Move / Delete Note" },
             { label: "Folders", value: "New folder (one level at a time)" },
             { label: "Editing", value: "Undo, redo, focus, formatting, tasks, and templates" },
             { label: "AI", value: "Chat and selection/document actions" },

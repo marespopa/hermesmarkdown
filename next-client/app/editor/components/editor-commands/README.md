@@ -16,7 +16,7 @@ without changing the public props contract or command behavior.
   `New board` (with a vault open: asks the name, then `<name>.board.md` in the
   New Notes folder, numbered `<name> (1).board.md` on a clash; `useCreateBoard`), `Edit Board as
   Markdown` / `Open as Board` (the active note, only when it is a board),
-  `Download as Markdown` (always a .md download of the note, vault note or
+  `Export as Markdown` (always a .md download of the note, vault note or
   draft; it never saves), `Open Note from Disk…` (a file from the device opens
   as a draft; distinct from `Import files into vault…`), Duplicate / Move /
   Rename / Delete Note, and `New template…` (with a vault open: name prompt, then

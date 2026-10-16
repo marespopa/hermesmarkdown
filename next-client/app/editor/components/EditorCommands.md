@@ -22,7 +22,7 @@ import EditorCommands from "./EditorCommands";
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| onNewFile / onSave / onExport / onImport | `() => void` |  | Document actions: New Note, Save, Download as Markdown (`onExport`, always a .md download, never a save), Open Note from Disk… (`onImport`) |
+| onNewFile / onSave / onExport / onImport | `() => void` |  | Document actions: New Note, Save, Export as Markdown (`onExport`, always a .md download, never a save), Open Note from Disk… (`onImport`) |
 | onRunAIAction | `(id: string) => void` |  | Runs a palette AI action (`improve`, `summarize`, …) |
 | onOpenTasks / onOpenTemplates | `() => void` |  | Navigation |
 | githubVault? | `boolean` |  | Enables the GitHub commands |

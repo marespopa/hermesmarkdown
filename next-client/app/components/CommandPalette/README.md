@@ -16,7 +16,7 @@ Shared command and quick-open surface. See [CommandPalette.md](./CommandPalette.
 
 ## Command contract
 - Register with `useRegisterCommand`. IDs must be stable and globally unique. Register each command once: app-wide ones in `AppCommands` / `SettingsCommands`, editor ones in `editor/components/editor-commands`.
-- Labels are "Verb Object" in title case (Open Settings, Toggle Word Wrap, Download as Markdown), or "Group: Choice" for a set of choices (`Theme: Dark`, `Focus: Off`). Say "note", not "file", for notes.
+- Labels are "Verb Object" in title case (Open Settings, Toggle Word Wrap, Export as Markdown), or "Group: Choice" for a set of choices (`Theme: Dark`, `Focus: Off`). Say "note", not "file", for notes.
 - Register thin adapters over shared actions, so that buttons, menus, shortcuts, and commands share confirmation and error handling.
 - When a command is relevant but unavailable, keep it visible with a `disabledReason` rather than hiding it.
 
