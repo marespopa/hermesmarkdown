@@ -4,6 +4,7 @@ import React, { useRef, useState } from "react";
 import {
   HiOutlineChatAlt2,
   HiOutlineClipboardCopy,
+  HiOutlineCode,
   HiOutlineCog,
   HiOutlineDocumentDownload,
   HiOutlineDotsHorizontal,
@@ -22,7 +23,7 @@ import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 // stay put while focus moves between panes. Each section is its own capsule:
 // - Tools: command palette and AI chat.
 // - More: a pull-down menu with the secondary commands (Copy Markdown,
-//   Export as PDF and Pin to Home / Unpin from Home for the focused pane,
+//   Export as PDF, Export as HTML and Pin to Home / Unpin from Home for the focused pane,
 //   Settings, Help). Split panes and Token Cost are palette commands.
 export default function PaneWindowActions() {
   const actions = useWindowActions();
@@ -85,6 +86,7 @@ export default function PaneWindowActions() {
           items={[
             { label: "Copy Markdown", icon: <HiOutlineClipboardCopy size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.copyActiveMarkdown },
             { label: "Export as PDF…", icon: <HiOutlineDocumentDownload size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.exportActivePdf },
+            { label: "Export as HTML", icon: <HiOutlineCode size={15} />, disabled: !actions.activePaneHasFiles, onClick: actions.exportActiveHtml },
             // Its label and filled pin say whether the open note is pinned.
             ...(actions.canPinActiveNote
               ? [{

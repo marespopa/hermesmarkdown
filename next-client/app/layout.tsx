@@ -1,4 +1,5 @@
 import "./globals.scss";
+import "./theme-palettes.scss";
 import "./editor/editor.scss";
 import "./editor/editor-typography.scss";
 import MainPage from "./components/MainPage";
@@ -6,6 +7,7 @@ import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import InlineScript from "./components/InlineScript";
 import { Metadata, Viewport } from "next";
 import { plusJakarta, instrumentSerif, geistMono, duospace, quattro } from "./fonts";
+import { DARK_THEMES, LIGHT_THEMES } from "./theme-palettes";
 
 const SITE_DESCRIPTION =
   "Edit local Markdown folders in your browser, saved to disk or to a browser vault on Safari, Firefox and mobile. Works offline. No accounts, no cloud.";
@@ -94,6 +96,10 @@ const THEME_INIT_SCRIPT = `
     if (theme !== "light" && theme !== "dark" && theme !== "system") theme = "system";
     var isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
     if (isDark) document.documentElement.classList.add("dark");
+    var lightTheme = JSON.parse(localStorage.getItem("lightTheme") || "null");
+    var darkTheme = JSON.parse(localStorage.getItem("darkTheme") || "null");
+    if (${JSON.stringify(LIGHT_THEMES.map((t) => t.value))}.indexOf(lightTheme) >= 0) document.documentElement.dataset.lightTheme = lightTheme;
+    if (${JSON.stringify(DARK_THEMES.map((t) => t.value))}.indexOf(darkTheme) >= 0) document.documentElement.dataset.darkTheme = darkTheme;
   } catch (e) {}
 })();
 `;

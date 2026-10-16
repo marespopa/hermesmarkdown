@@ -231,6 +231,7 @@ tags: []
           rows={[
             { label: "Open Home", value: "Your vault's home feed: recent notes" },
             { label: "Export as PDF…", value: "Print the note, or save it as a PDF" },
+            { label: "Export as HTML", value: "Download the note as a standalone web page" },
             { label: "Show Files", value: "CTRL/CMD+SHIFT+E" },
             { label: "Open Tasks", value: "—" },
             { label: "Open Templates", value: "Your templates and template packs" },
@@ -239,6 +240,7 @@ tags: []
             { label: "Tasks", value: "Grouping, due-date filters, and clear filters" },
             { label: "Toggle Hidden Files / Toggle Sidebar", value: "—" },
             { label: "Theme: Light / Dark / System", value: "—" },
+            { label: "Light Theme: … / Dark Theme: …", value: "The palette each mode uses" },
             { label: "Toggle Full Width / Word Wrap / Line Numbers / Invisibles / Word Count / Vim Mode", value: "—" },
             { label: "Focus: …", value: "Off, hide interface while typing, or also dim other paragraphs or sentences" },
             { label: "Settings", value: "Editor Font, Text Size, Autosave, Open Settings" },

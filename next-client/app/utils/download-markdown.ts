@@ -17,8 +17,12 @@ export function markdownFileName(fileName: string, content: string): string {
 
 // Starts the download; returns the file name used.
 export function downloadMarkdown(content: string, fileName: string): string {
-  const name = markdownFileName(fileName, content);
-  const url = URL.createObjectURL(new Blob([content], { type: "text/markdown" }));
+  return downloadText(content, markdownFileName(fileName, content), "text/markdown");
+}
+
+// Hands `content` to the browser as a download named `name`; returns it.
+export function downloadText(content: string, name: string, type: string): string {
+  const url = URL.createObjectURL(new Blob([content], { type }));
   const link = document.createElement("a");
   link.href = url;
   link.download = name;

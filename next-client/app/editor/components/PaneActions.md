@@ -1,6 +1,6 @@
 # PaneActions
 
-Description: One pane's own toolbar section, a borderless capsule on a subtle translucent fill (`PANE_SECTION_CLASS`): **Save** (`SaveStateIcon` — save glyph, with a badge while unsaved, a check when just saved, an exclamation mark on error; the tooltip shows the save error when there is one) and, while the window is split, **Close Pane**. Both are `PaneToolbarButton`s. `PaneLeaf` renders it in every pane, focused or not, so the toolbar never reflows when focus moves. Copy Markdown and Export as PDF live in the toolbar's More menu (`PaneWindowActions`) and act on the focused pane; Split Pane Right is a palette command.
+Description: One pane's own toolbar section, a borderless capsule on a subtle translucent fill (`PANE_SECTION_CLASS`): **Save** (`SaveStateIcon` — save glyph, with a badge while unsaved, a check when just saved, an exclamation mark on error; the tooltip shows the save error when there is one) and, while the window is split, **Close Pane**. Both are `PaneToolbarButton`s. `PaneLeaf` renders it in every pane, focused or not, so the toolbar never reflows when focus moves. Copy Markdown, Export as PDF and Export as HTML live in the toolbar's More menu (`PaneWindowActions`) and act on the focused pane; Split Pane Right is a palette command.
 
 ## Local State & Storage
 - State: None; everything comes in through props.

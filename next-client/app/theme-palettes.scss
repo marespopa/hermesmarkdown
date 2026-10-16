@@ -1,0 +1,129 @@
+@use "sass:color";
+@use "sass:map";
+
+/* ─── Color themes ───────────────────────────────────────────────────────────
+   Alternative palettes for each mode (app/theme-palettes.ts). ThemeProvider
+   keeps both picks on <html data-light-theme data-dark-theme>; the light one
+   applies without `.dark`, the dark one with it. The defaults (Paper, Ink)
+   are the plain globals.scss tokens and have no block here. Each palette
+   keeps --fg-faint and the accents at ≥4.5:1 on surface, raised and chrome.
+   ─────────────────────────────────────────────────────────────────────── */
+
+// A color as space-separated RGB channels, for the `rgb(var(--x) / a)` aliases.
+@function channels($c) {
+  @return color.channel($c, "red", $space: rgb) color.channel($c, "green", $space: rgb)
+    color.channel($c, "blue", $space: rgb);
+}
+
+// Tokens both modes share; $tint is the hue of the translucent fills.
+@mixin palette($p) {
+  --surface:        #{map.get($p, surface)};
+  --surface-raised: #{map.get($p, raised)};
+  --chrome:         #{map.get($p, chrome)};
+  --overlay:        #{map.get($p, surface)};
+  --input-bg:       #{map.get($p, input)};
+  --border:         #{map.get($p, border)};
+  --border-subtle:  #{color.change(map.get($p, tint), $alpha: 0.1)};
+  --fg:             #{map.get($p, fg)};
+  --fg-muted:       #{map.get($p, fg-muted)};
+  --fg-faint:       #{map.get($p, fg-faint)};
+  --clay:           #{map.get($p, clay)};
+  --moss:           #{map.get($p, moss)};
+  --moss-hover:     #{map.get($p, moss-hover)};
+  --task-hold:      #{map.get($p, hold)};
+  --link:           #{map.get($p, link)};
+  --link-hover:     #{map.get($p, link-hover)};
+  --row-stripe:     #{color.change(map.get($p, tint), $alpha: 0.035)};
+}
+
+@mixin light-palette($p) {
+  @include palette($p);
+  --frontmatter-bg:        #{color.change(map.get($p, tint), $alpha: 0.035)};
+  --frontmatter-bg-hover:  #{color.change(map.get($p, tint), $alpha: 0.055)};
+  --frontmatter-bg-active: #{color.change(map.get($p, tint), $alpha: 0.085)};
+  --paper-pale:     #{channels(map.get($p, surface))};
+  --paper-light:    #{channels(map.get($p, raised))};
+  --paper-softgray: #{channels(map.get($p, softgray))};
+  --beige:          #{channels(map.get($p, border))};
+  --beige-light:    #{channels(map.get($p, softgray))};
+  --ink-light:      #{channels(map.get($p, fg))};
+  --ink-hover:      #{channels(map.get($p, ink-hover))};
+  --ink-muted:      #{channels(map.get($p, fg-faint))};
+}
+
+@mixin dark-palette($p) {
+  @include palette($p);
+  --frontmatter-bg:        #{color.change(map.get($p, tint), $alpha: 0.04)};
+  --frontmatter-bg-hover:  #{color.change(map.get($p, tint), $alpha: 0.065)};
+  --frontmatter-bg-active: #{color.change(map.get($p, tint), $alpha: 0.1)};
+  --paper-dark:         #{channels(map.get($p, chrome))};
+  --paper-dark-surface: #{channels(map.get($p, raised))};
+  --ink-dark:           #{channels(map.get($p, fg))};
+  --clay-surface:       #{channels(map.get($p, border))};
+}
+
+/* Light: Sepia — warm cream, browner ink. */
+html[data-light-theme="sepia"]:not(.dark) {
+  @include light-palette((
+    surface: #F7F1E5, raised: #EFE7D7, chrome: #ECE3D1, softgray: #E5DAC5,
+    input: #FBF7EF, border: #D9CCB4, tint: rgb(90, 70, 40),
+    fg: #3A2F23, fg-muted: #5F5244, fg-faint: #6C5F50, ink-hover: #4A3D2F,
+    clay: #9C4F36, moss: #5C6A4C, moss-hover: #56644A, hold: #7A5F27,
+    link: #2B5FBF, link-hover: #1F57C4,
+  ));
+}
+
+/* Light: Porcelain — cool white, blue-gray ink. */
+html[data-light-theme="porcelain"]:not(.dark) {
+  @include light-palette((
+    surface: #F8F9FB, raised: #EFF1F5, chrome: #ECEFF3, softgray: #E4E8EE,
+    input: #FFFFFF, border: #D5DBE3, tint: rgb(40, 50, 70),
+    fg: #1F2329, fg-muted: #4E5662, fg-faint: #5F6773, ink-hover: #2F343C,
+    clay: #A2563E, moss: #5A6B55, moss-hover: #546450, hold: #80652C,
+    link: #2563C9, link-hover: #1A5CD0,
+  ));
+}
+
+/* Light: Sage — soft green paper, green-black ink. */
+html[data-light-theme="sage"]:not(.dark) {
+  @include light-palette((
+    surface: #F4F6F1, raised: #EBEFE6, chrome: #E7ECE1, softgray: #DFE5D8,
+    input: #FAFBF8, border: #CFD8C6, tint: rgb(45, 60, 40),
+    fg: #232A22, fg-muted: #4D5949, fg-faint: #5D6858, ink-hover: #333D31,
+    clay: #9A5039, moss: #55663F, moss-hover: #4F5F3A, hold: #7A5F27,
+    link: #285FBF, link-hover: #1E57C4,
+  ));
+}
+
+/* Dark: Midnight — deep blue-black. */
+html.dark[data-dark-theme="midnight"] {
+  @include dark-palette((
+    surface: #1A1F29, raised: #232A37, chrome: #12161E,
+    input: #161B24, border: #333C4D, tint: rgb(200, 210, 230),
+    fg: #E4E8EF, fg-muted: #A3ACBA, fg-faint: #8E98A8,
+    clay: #E0937A, moss: #93A884, moss-hover: #A7BB98, hold: #D1B676,
+    link: #6EAEFF, link-hover: #94C2FF,
+  ));
+}
+
+/* Dark: Graphite — neutral gray, no warmth. */
+html.dark[data-dark-theme="graphite"] {
+  @include dark-palette((
+    surface: #1C1C1E, raised: #2A2A2D, chrome: #111112,
+    input: #18181A, border: #3A3A3D, tint: rgb(210, 210, 215),
+    fg: #E9E9EB, fg-muted: #A6A6AB, fg-faint: #919196,
+    clay: #DC8E6C, moss: #94A67E, moss-hover: #A8BA92, hold: #CFB475,
+    link: #68ABFF, link-hover: #8FC0FF,
+  ));
+}
+
+/* Dark: Dusk — muted violet. */
+html.dark[data-dark-theme="dusk"] {
+  @include dark-palette((
+    surface: #221E2A, raised: #2C2736, chrome: #19161F,
+    input: #1D1924, border: #3D3649, tint: rgb(220, 210, 235),
+    fg: #ECE6F2, fg-muted: #ADA4BA, fg-faint: #968DA3,
+    clay: #E3957A, moss: #9AAE86, moss-hover: #AEC09B, hold: #D4B878,
+    link: #80B1FF, link-hover: #A3C6FF,
+  ));
+}

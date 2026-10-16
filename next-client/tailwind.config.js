@@ -70,7 +70,7 @@ module.exports = {
         // meets 4.5:1 in both themes (a single static gray can't). Opacity
         // modifiers don't work on var colors — use an arbitrary hex for those.
         stone: 'var(--fg-faint)',
-        clay:  '#3A3631',   // dark-mode border / interactive surface (neutral — unrelated to the "clay" accent role, kept for naming-history reasons; see `accent` below for the design doc's clay accent)
+        clay:  'rgb(var(--clay-surface) / <alpha-value>)',   // dark-mode border / interactive surface (neutral — unrelated to the "clay" accent role, kept for naming-history reasons; see `accent` below for the design doc's clay accent)
 
         // ── Accent / brand (static — same in both modes; CSS-var backed so
         //    dark mode brightens them automatically). `accent` = doc's "clay"
@@ -95,23 +95,24 @@ module.exports = {
           done: 'var(--task-done)',
         },
 
-        // ── Static aliases (kept for explicit light/dark overrides) ──
+        // ── Static aliases (kept for explicit light/dark overrides) — RGB-channel
+        //    vars in globals.scss, so the color themes repaint them too ──
         beige: {
-          DEFAULT: '#D8D5CE',
-          light:   '#E9E7E2',
+          DEFAULT: 'rgb(var(--beige) / <alpha-value>)',
+          light:   'rgb(var(--beige-light) / <alpha-value>)',
         },
         paper: {
-          pale:           '#FAF9F7',
-          light:          '#F2F1EE',
-          softgray:       '#E9E7E2',
-          dark:           '#181614',
-          'dark-surface': '#2A2622',
+          pale:           'rgb(var(--paper-pale) / <alpha-value>)',
+          light:          'rgb(var(--paper-light) / <alpha-value>)',
+          softgray:       'rgb(var(--paper-softgray) / <alpha-value>)',
+          dark:           'rgb(var(--paper-dark) / <alpha-value>)',
+          'dark-surface': 'rgb(var(--paper-dark-surface) / <alpha-value>)',
         },
         ink: {
-          light: '#2A2825',
-          hover: '#3A3733',
-          dark:  '#ECE7E0',
-          muted: '#6B6862',
+          light: 'rgb(var(--ink-light) / <alpha-value>)',
+          hover: 'rgb(var(--ink-hover) / <alpha-value>)',
+          dark:  'rgb(var(--ink-dark) / <alpha-value>)',
+          muted: 'rgb(var(--ink-muted) / <alpha-value>)',
         },
       },
       backgroundImage: {

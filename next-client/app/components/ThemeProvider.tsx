@@ -1,7 +1,10 @@
 "use client";
 
 import { useLayoutEffect } from "react";
+import { useAtomValue } from "jotai";
+import { atom_darkTheme, atom_lightTheme } from "@/app/atoms/atoms";
 import { useResolvedTheme } from "@/app/hooks/use-resolved-theme";
+import { resolveDarkTheme, resolveLightTheme } from "@/app/theme-palettes";
 
 type Props = {
   children: React.ReactNode;
@@ -12,6 +15,8 @@ export default function ThemeProvider({ children }: Props) {
   // on change) — see use-resolved-theme.ts — so this effect only ever sees
   // a paintable "light"/"dark" value.
   const resolvedTheme = useResolvedTheme();
+  const lightTheme = resolveLightTheme(useAtomValue(atom_lightTheme));
+  const darkTheme = resolveDarkTheme(useAtomValue(atom_darkTheme));
 
   // useLayoutEffect (not useEffect) — applies the class synchronously before
   // the browser paints. With useEffect there's a one-frame gap on toggle
@@ -27,6 +32,14 @@ export default function ThemeProvider({ children }: Props) {
       root.classList.remove("dark");
     }
   }, [resolvedTheme]);
+
+  // Both palettes stay on <html>; globals.scss applies the light one without
+  // `dark` and the dark one with it, so switching mode needs no update here.
+  useLayoutEffect(() => {
+    const root = window.document.documentElement;
+    root.dataset.lightTheme = lightTheme;
+    root.dataset.darkTheme = darkTheme;
+  }, [lightTheme, darkTheme]);
 
   return <>{children}</>;
 }

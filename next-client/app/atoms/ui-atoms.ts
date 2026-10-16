@@ -3,6 +3,7 @@ import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import type { EditorView } from "@codemirror/view";
 import { atomWithChoiceStorage } from "./choice-storage";
 import { tabSessionStorage } from "./session-storage";
+import { DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, type DarkTheme, type LightTheme } from "@/app/theme-palettes";
 
 // Theme & appearance
 export type Theme = "light" | "dark" | "system";
@@ -22,6 +23,10 @@ export function clearLegacyPaneModePreference() {
 clearLegacyPaneModePreference();
 
 export const atom_theme = atomWithStorage<Theme>("theme", "system");
+// The palette each mode paints with (app/theme-palettes.ts): light mode uses
+// atom_lightTheme, dark mode atom_darkTheme, so "system" switches between them.
+export const atom_lightTheme = atomWithStorage<LightTheme>("lightTheme", DEFAULT_LIGHT_THEME);
+export const atom_darkTheme = atomWithStorage<DarkTheme>("darkTheme", DEFAULT_DARK_THEME);
 export const atom_wordWrap = atomWithStorage<boolean>("wordWrap", true);
 export const atom_lineNumbers = atomWithStorage<boolean>("lineNumbers", false);
 // Marks empty lines with ¶ and shows spaces and tabs (codemirror/invisibles.ts).
