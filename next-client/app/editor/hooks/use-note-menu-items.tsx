@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useCallback } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { HiOutlineClipboardCopy, HiOutlineCode, HiOutlinePencil, HiOutlineTrash, HiOutlineViewBoards } from "react-icons/hi";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
-import { atom_liveHandles, atom_openFiles, atom_splitPane, contentStore } from "@/app/atoms/atoms";
+import { atom_liveHandles, atom_openFiles, atom_splitPane } from "@/app/atoms/atoms";
 import { atom_pinnedNotePaths, atom_toggleNotePin } from "@/app/atoms/note-pin-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
@@ -20,6 +20,7 @@ import { usePaneFileActions } from "./use-pane-file-actions";
 // Open as Board for a board, Pin / Unpin; then Rename… and Move to Trash for
 // a vault note; then Close, Close Others and Close All (of `leaf`).
 export function useNoteMenuItems(leaf: PanelLeaf | null) {
+  const store = useStore();
   const openFiles = useAtomValue(atom_openFiles);
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const pinnedNotePaths = useAtomValue(atom_pinnedNotePaths);
@@ -67,7 +68,7 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
         icon: isPinned ? <TbPinnedFilled size={15} /> : <TbPinned size={15} />,
         onClick: () => toggleNotePin(path),
       });
-      const handle = contentStore.get(atom_liveHandles(path));
+      const handle = store.get(atom_liveHandles(path));
       items.push(
         {
           label: "Rename…",
@@ -87,5 +88,5 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
     const closeItems = buildTabMenuItems(path);
     closeItems[0] = { ...closeItems[0], divider: true };
     return [...items, ...closeItems];
-  }, [openFiles, leaf, hasVault, pinnedNotePaths, toggleNotePin, boardMarkdownPaths, toggleBoardMarkdown, splitPane, renameFile, deleteFile, buildTabMenuItems]);
+  }, [store, openFiles, leaf, hasVault, pinnedNotePaths, toggleNotePin, boardMarkdownPaths, toggleBoardMarkdown, splitPane, renameFile, deleteFile, buildTabMenuItems]);
 }
