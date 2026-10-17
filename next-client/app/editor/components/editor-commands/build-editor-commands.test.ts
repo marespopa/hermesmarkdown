@@ -165,6 +165,7 @@ describe("buildEditorCommands", () => {
       "toggle-hidden-files",
       "token-cost",
       "toggle-sidebar",
+      "toggle-tab-bar",
       "privacy-mode-show-title",
       "privacy-mode-hidden",
       "reveal-private-session",
