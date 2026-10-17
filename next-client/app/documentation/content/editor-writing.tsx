@@ -49,7 +49,10 @@ export const editorWritingItems: Subsection[] = [
           code blocks, bare URLs and copies with no formatting paste as usual.
         </p>
         <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Shortcodes</h4>
-        <p>Type a shortcode and it expands in place.</p>
+        <p>
+          Type a shortcode and it expands in place. Type <code>{"{"}</code> and a letter for a menu
+          of the emoji shortcodes (or <code>/emoji</code> in the slash menu).
+        </p>
         <KV
           rows={[
             { label: "{date} · ..d · {time} · {datetime}", value: "Current date / time" },
@@ -494,15 +497,27 @@ graph TD
     id: "slash-menu",
     title: "Slash menu",
     lead: "Type / at the start of a line or after a space for a searchable menu of insertable content, plus AI actions when AI is configured.",
-    keywords: "slash menu insert template",
+    keywords: "slash menu insert template heading list todo quote divider turn into block emoji alias",
     body: (
       <>
         <p>
-          Keep typing after <code>/</code> to fuzzy-filter by name; <code>↑</code>/<code>↓</code>{" "}
-          to move the selection, <code>Enter</code> to insert, <code>Escape</code> to dismiss.
+          The menu opens grouped by kind. Keep typing after <code>/</code> to search: a command is
+          found by its name, any word of it, a short alias (<code>/h1</code>, <code>/todo</code>,{" "}
+          <code>/ul</code>, <code>/hr</code>, <code>/yaml</code>, <code>/url</code>) or a word of its
+          description, best match first. <code>↑</code>/<code>↓</code> to move the selection,{" "}
+          <code>Enter</code> to insert, <code>Escape</code> to dismiss.
+        </p>
+        <p>
+          The basic blocks turn the current line into that block and keep its text: type{" "}
+          <code>/h2</code> on an empty line for a new heading, or at the end of a line to turn it
+          into one.
         </p>
         <KV
           rows={[
+            { label: "Text · Heading 1–3", value: "Plain text or a heading" },
+            { label: "Bulleted · Numbered · To-do list", value: "A list item or checkbox" },
+            { label: "Quote · Divider", value: "A quotation, or a line between sections" },
+            { label: "Emoji", value: "Pick from the emoji shortcodes" },
             { label: "Link · WikiLink", value: "Open the link dialogs" },
             { label: "Date", value: "Pick a date from a calendar" },
             { label: "Task", value: "Checklist task with status, due date & tags" },

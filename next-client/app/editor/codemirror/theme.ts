@@ -423,6 +423,20 @@ export const slashMenuTheme = EditorView.theme({
     lineHeight: "1.3",
     color: "var(--fg)",
   },
+  // Section headers ("Basic blocks", "Insert", …) while the whole list shows.
+  ".cm-tooltip.cm-tooltip-autocomplete > ul > completion-section": {
+    display: "block",
+    padding: "8px 10px 4px",
+    border: "none",
+    opacity: 1,
+    fontSize: "11px",
+    lineHeight: "13px",
+    fontWeight: "600",
+    color: "var(--fg-faint)",
+  },
+  ".cm-tooltip.cm-tooltip-autocomplete > ul > completion-section:not(:first-child)": {
+    marginTop: "4px",
+  },
   ".cm-tooltip-autocomplete ul li[aria-selected]": {
     backgroundColor: "color-mix(in srgb, var(--clay) 14%, transparent)",
     color: "var(--fg)",
