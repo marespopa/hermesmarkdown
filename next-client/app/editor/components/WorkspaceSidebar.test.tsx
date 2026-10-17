@@ -3,8 +3,8 @@ import { act, render, screen, cleanup, fireEvent, waitFor, within } from "@testi
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createStore, Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
-import { atom_activePaneId, atom_openFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_newNoteRequested, atom_notePins, atom_pendingScrollTarget, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_activePaneId, atom_liveHandles, atom_openFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
+import { atom_activeEditorView, atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_newNoteRequested, atom_notePins, atom_pendingScrollTarget, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import WorkspaceSidebar from "./WorkspaceSidebar";
@@ -14,6 +14,7 @@ const fileSystem = vi.hoisted(() => ({
   createNewFile: vi.fn(),
   createFolder: vi.fn(),
   openFile: vi.fn(async () => {}),
+  renameFile: vi.fn(),
   treeController: null as null | { startCreate: () => void; focus: () => void },
 }));
 
@@ -32,7 +33,7 @@ vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: () => ({
     vaultHandle: fileSystem.vaultHandle,
     openFile: fileSystem.openFile,
-    renameFile: vi.fn(),
+    renameFile: fileSystem.renameFile,
     deleteFile: vi.fn(),
     duplicateFile: vi.fn(),
     moveItem: vi.fn(),
@@ -179,16 +180,111 @@ describe("WorkspaceSidebar", () => {
     expect(screen.queryByTestId("file-tree")).not.toBeInTheDocument();
   });
 
-  it("is only the library: the vault, the Outline and Files, the rest is the palette's", () => {
+  it("lists the focused pane's open notes, the one in front highlighted", () => {
+    renderSidebar(true);
+    const openNotes = within(screen.getByRole("region", { name: "Open Notes" }));
+    expect(openNotes.getByRole("button", { name: "a" })).toHaveAttribute("aria-current", "page");
+    // b.md is in the other pane.
+    expect(openNotes.queryByRole("button", { name: /^b/ })).not.toBeInTheDocument();
+    expect(openNotes.getByRole("button", { name: "Close a" })).toBeInTheDocument();
+  });
+
+  it("shows each open note's Ctrl/Cmd+1–9 shortcut on the editor only", () => {
+    renderSidebar(true);
+    const openNotes = within(screen.getByRole("region", { name: "Open Notes" }));
+    expect(openNotes.getByRole("button", { name: "a" })).toHaveAttribute("aria-keyshortcuts", "Control+1 Meta+1");
+    expect(openNotes.getByText(/^(Ctrl\+1|⌘1)$/)).toBeInTheDocument();
+
+    cleanup();
+    navigation.pathname = "/editor/tasks";
+    renderSidebar(true);
+    const offEditor = within(screen.getByRole("region", { name: "Open Notes" }));
+    expect(offEditor.getByRole("button", { name: "a" })).not.toHaveAttribute("aria-keyshortcuts");
+    expect(offEditor.queryByText(/^(Ctrl\+1|⌘1)$/)).not.toBeInTheDocument();
+    navigation.pathname = "/editor";
+  });
+
+  it("brings an open note to the front of its pane, and back to the editor from a page", () => {
+    const twoNotes = { ...left, openFilePaths: ["a.md", "c.md"] };
+    navigation.pathname = "/editor/tasks";
+    render(
+      <Provider>
+        <HydrateAtoms initialValues={[
+          [atom_sidebarOpen, true],
+          [atom_activePaneId, "left"],
+          [atom_openFiles, {
+            "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" },
+            "c.md": { fileName: "c.md", content: "C changed", lastSavedContent: "C" },
+          }],
+          [atom_workspaceLayout, { rootContainer: twoNotes }],
+        ]}>
+          <WorkspaceSidebar />
+        </HydrateAtoms>
+      </Provider>
+    );
+    const openNotes = within(screen.getByRole("region", { name: "Open Notes" }));
+    // Off the editor, no note is highlighted; unsaved changes show on their row.
+    expect(openNotes.getByRole("button", { name: "a" })).not.toHaveAttribute("aria-current");
+    fireEvent.click(openNotes.getByRole("button", { name: "c — Unsaved changes" }));
+    expect(navigation.push).toHaveBeenCalledWith(expect.stringContaining("c.md"));
+    navigation.pathname = "/editor";
+  });
+
+  describe("an open note's menu (right-click)", () => {
+    function renderTwoNotes(withVault = false) {
+      const store = createStore();
+      store.set(atom_sidebarOpen, true);
+      store.set(atom_activePaneId, "left");
+      store.set(atom_openFiles, {
+        "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" },
+        "c.md": { fileName: "c.md", content: "C", lastSavedContent: "C" },
+      } as never);
+      store.set(atom_workspaceLayout, { rootContainer: { ...left, openFilePaths: ["a.md", "c.md"] } } as never);
+      if (withVault) {
+        store.set(atom_vaultHandle, { name: "Notes" } as never);
+        store.set(atom_liveHandles("a.md"), { kind: "file", name: "a.md" } as never);
+      }
+      render(<Provider store={store}><WorkspaceSidebar /></Provider>);
+      return { store, openNotes: within(screen.getByRole("region", { name: "Open Notes" })) };
+    }
+
+    it("offers the note's actions and closing the others or all", () => {
+      const { store, openNotes } = renderTwoNotes();
+      fireEvent.contextMenu(openNotes.getByRole("button", { name: "a" }));
+
+      const menu = screen.getByRole("menu", { name: "a actions" });
+      expect(within(menu).getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
+        "Copy Markdown", "Open in pane", "Close", "Close Others", "Close All",
+      ]);
+      fireEvent.click(within(menu).getByRole("menuitem", { name: "Close Others" }));
+      expect((store.get(atom_workspaceLayout).rootContainer as typeof left).openFilePaths).toEqual(["a.md"]);
+    });
+
+    it("pins, renames and trashes a vault note from it", () => {
+      fileSystem.renameFile.mockClear();
+      const { openNotes } = renderTwoNotes(true);
+      fireEvent.contextMenu(openNotes.getByRole("button", { name: "a" }));
+
+      const menu = screen.getByRole("menu", { name: "a actions" });
+      for (const name of ["Pin Note", "Rename…", "Move to Trash"]) {
+        expect(within(menu).getByRole("menuitem", { name })).toBeInTheDocument();
+      }
+      fireEvent.click(within(menu).getByRole("menuitem", { name: "Rename…" }));
+      expect(fileSystem.renameFile).toHaveBeenCalledWith({ kind: "file", name: "a.md" }, undefined, "a.md");
+    });
+  });
+
+  it("is the library: the vault, Open Notes, the Outline and Files; the rest is the palette's", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar(true, null, false, { "a.md": { fileName: "a.md", content: "# Plan", lastSavedContent: "" } });
 
     expect(screen.getByRole("region", { name: "Outline" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Files" })).toBeInTheDocument();
-    for (const name of ["Home", "All Notes", "Tags", "Tasks", "Templates", "Trash", "Settings", "Export"]) {
+    for (const name of ["Home", "All Notes", "Tags", "Tasks", "Templates", "Trash", "Export", "Settings", "Documentation"]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
     }
-    for (const name of ["Pinned", "Recent", "Open Notes"]) {
+    expect(screen.getByRole("region", { name: "Open Notes" })).toBeInTheDocument();
+    for (const name of ["Pinned", "Recent"]) {
       expect(screen.queryByRole("region", { name })).not.toBeInTheDocument();
     }
     // Within the sidebar: the test's own atom probes are <output>s (status).
@@ -321,6 +417,32 @@ describe("WorkspaceSidebar", () => {
 
     fireEvent.keyDown(plan, { key: "Enter" });
     expect(screen.getByTestId("scroll-target")).toHaveTextContent('{"path":"a.md","line":1}');
+  });
+
+  it("marks each heading's level and the section the caret is in, as the Files tree marks the open note", async () => {
+    const content = "# Plan\n## Goals\nShip the export\n# Notes";
+    const store = createStore();
+    store.set(atom_sidebarOpen, true);
+    store.set(atom_activePaneId, "left");
+    store.set(atom_openFiles, { "a.md": { fileName: "a.md", content, lastSavedContent: content } } as never);
+    store.set(atom_workspaceLayout, { rootContainer: left } as never);
+    // The caret on line 3, inside Plan › Goals.
+    store.set(atom_activeEditorView, {
+      dom: { isConnected: true },
+      state: { selection: { main: { head: 20 } }, doc: { lineAt: () => ({ number: 3 }) } },
+    } as never);
+    render(<Provider store={store}><WorkspaceSidebar /></Provider>);
+
+    const goals = screen.getByRole("treeitem", { name: "Goals" });
+    expect(goals).toHaveTextContent("H2Goals");
+    await waitFor(() => expect(goals).toHaveAttribute("aria-current", "location"));
+    expect(goals).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("treeitem", { name: "Plan" })).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("treeitem", { name: "Notes" })).not.toHaveAttribute("aria-current");
+
+    // Folded away, the section shows on the heading that holds it.
+    fireEvent.keyDown(screen.getByRole("treeitem", { name: "Plan" }), { key: "ArrowLeft" });
+    expect(screen.getByRole("treeitem", { name: "Plan" })).toHaveAttribute("aria-current", "location");
   });
 
   it("has no outline on a page, only on the editor", () => {

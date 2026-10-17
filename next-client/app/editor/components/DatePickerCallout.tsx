@@ -199,7 +199,7 @@ export default function DatePickerCallout({
                 key={action}
                 variant="bare"
                 onClick={() => handleQuickAction(action)}
-                className="text-ui-footnote py-1.5 px-3 bg-paper-softgray dark:bg-paper-dark-surface border border-edge hover:border-sage hover:text-sage rounded-full transition-all font-medium text-ink-muted dark:text-stone"
+                className="text-ui-footnote py-1.5 px-3 bg-paper-softgray dark:bg-paper-dark-surface border border-edge hover:border-fg-faint hover:text-fg rounded-full transition-all font-medium text-ink-muted dark:text-stone"
               >
                 {{ today: "Today", tomorrow: "Tomorrow", nextWeek: "+1 Week", nextMonth: "+1 Month" }[action]}
               </Button>

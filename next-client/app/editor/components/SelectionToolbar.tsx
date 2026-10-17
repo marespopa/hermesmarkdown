@@ -34,7 +34,7 @@ const HALF_WIDTH_FORMAT_ONLY = 96;
 const HALF_WIDTH_WITH_ASK = 144;
 
 const FORMAT_BUTTON_CLASS =
-  "flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-ui-subhead text-fg hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors";
+  "flex h-7 min-w-7 items-center justify-center rounded-lg px-2 text-ui-subhead text-fg hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors";
 
 // Floating toolbar on a text selection in the active editor: a "Turn into"
 // block-type menu, Bold, Italic, Link, and Ask AI when AI is configured. Shared
@@ -134,7 +134,7 @@ export default function SelectionToolbar({ placement, onAsk, isAiLoading = false
         <div
           role="toolbar"
           aria-label="Format selection"
-          className="selection-toolbar flex items-center gap-0.5 rounded-full glass-panel p-1 select-none animate-in fade-in zoom-in-95 duration-150"
+          className="selection-toolbar flex items-center gap-0.5 rounded-xl glass-panel p-1 select-none animate-in fade-in zoom-in-95 duration-150"
         >
           <BlockTypeMenu view={view} keepFocus={keepFocus} opensUp={placement === "docked"} />
           <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-edge" />
@@ -149,7 +149,7 @@ export default function SelectionToolbar({ placement, onAsk, isAiLoading = false
                 onPointerDown={keepFocus}
                 onMouseDown={keepFocus}
                 onClick={onAsk}
-                className="flex h-7 items-center gap-1.5 rounded-full px-3 text-ui-footnote font-medium text-sage hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
+                className="flex h-7 items-center gap-1.5 rounded-lg px-3 text-ui-footnote font-medium text-fg hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
               >
                 <HiOutlineChatAlt2 size={13} />
                 Ask AI

@@ -48,11 +48,18 @@ describe("settings stored by older versions", () => {
     expect(store.get(atom_autosaveMode)).toBe("afterDelay");
   });
 
-  it("starts Focus at Hide interface while typing, and reads an unknown level as that", () => {
-    expect(createStore().get(atom_focusMode)).toBe("hide");
+  it("starts Focus at Off, and reads an unknown level as that", () => {
+    expect(createStore().get(atom_focusMode)).toBe("off");
     localStorage.setItem("focusMode", JSON.stringify("typewriter"));
     const store = createStore();
     store.sub(atom_focusMode, () => {});
-    expect(store.get(atom_focusMode)).toBe("hide");
+    expect(store.get(atom_focusMode)).toBe("off");
+  });
+
+  it("reads the retired Hide interface while typing level as Off", () => {
+    localStorage.setItem("focusMode", JSON.stringify("hide"));
+    const store = createStore();
+    store.sub(atom_focusMode, () => {});
+    expect(store.get(atom_focusMode)).toBe("off");
   });
 });

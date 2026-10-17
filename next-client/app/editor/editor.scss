@@ -119,57 +119,16 @@ html.dark .app-sheet .editor-sheet {
   }
 }
 
-/* The pane header floats over the editor rather than beside it, so showing
-   it never reflows the text; fading it gives its inset back (below). It
-   takes the bar material (`.glass-bar`, globals.scss). */
-
-/* Hide the interface while typing (hooks/use-fade-chrome-while-typing.ts):
-   the chrome fades slowly once you type and returns quickly when the mouse
-   moves. As it fades, the editor takes back its room: the pane header's
-   inset eases to 0 (the text slides up), the page slides over the
-   sidebar's width (`.editor-frame`, EditorShell) and the mobile file bar
-   folds away (`.typing-chrome-collapse`). The window then reads as one
-   page: the background is the same paper, with its grain, whether the
-   chrome shows or not. */
-.typing-chrome {
-  transition: opacity 150ms ease-out;
-}
-
-.typing-chrome-collapse {
-  transition-property: opacity, height, border-color;
-}
-
+/* No toolbar in the editor: the pane's palette button floats over the
+   sheet's top margin (PaneLeaf). Nothing hides on its own: the sidebar goes
+   away only when you close it, and the page then takes its room
+   (EditorShell's --content-left). */
 .editor-canvas {
-  transition: background-color 150ms ease-out, padding-top 150ms ease-out;
-}
-
-html[data-chrome-faded] .editor-frame {
-  --content-left: 0px !important;
-}
-
-html[data-chrome-faded] [data-pane-id] {
-  --pane-header-inset: 0px !important;
-}
-
-html[data-chrome-faded] .typing-chrome-collapse {
-  height: 0;
-  border-color: transparent;
-}
-
-/* The page's own `left` transition is inline (editor/page.tsx); the fade
-   slows it to the chrome's pace. */
-html[data-chrome-faded] .app-sheet {
-  transition-duration: 600ms !important;
+  transition: background-color 150ms ease-out, padding-top 200ms ease-out;
 }
 
 .editor-sheet.editor-container {
   transition-property: padding, max-width;
-}
-
-html[data-chrome-faded] .typing-chrome {
-  opacity: 0;
-  pointer-events: none;
-  transition-duration: 600ms;
 }
 
 /* The paper grain, always, on every theme: the page (`.app-sheet`: the
@@ -181,12 +140,8 @@ html[data-chrome-faded] .typing-chrome {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .typing-chrome,
   .editor-canvas,
-  .editor-sheet.editor-container,
-  html[data-chrome-faded] .typing-chrome,
-  html[data-chrome-faded] .editor-canvas,
-  html[data-chrome-faded] .app-sheet {
+  .editor-sheet.editor-container {
     transition: none !important;
   }
 }

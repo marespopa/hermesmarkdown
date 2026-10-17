@@ -110,8 +110,8 @@ export default function PrivacyPolicy() {
         <nav aria-label="Related pages" className="border-t border-black/5 dark:border-white/10 pt-8">
           <p className="text-xs font-bold uppercase tracking-[0.2em] opacity-40">Related pages</p>
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium">
-            <Link href="/terms" className="underline underline-offset-4 hover:text-sage">Terms of Service</Link>
-            <Link href="/contact" className="underline underline-offset-4 hover:text-sage">Contact</Link>
+            <Link href="/terms" className="underline underline-offset-4 hover:text-fg">Terms of Service</Link>
+            <Link href="/contact" className="underline underline-offset-4 hover:text-fg">Contact</Link>
           </div>
         </nav>
       </div>

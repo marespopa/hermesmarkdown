@@ -281,7 +281,7 @@ export default function AIChatDialog({
             <MentionMenu options={mentionOptions} activeIndex={mentionIndex} query={mention.query} onSelect={selectMention} />
           )}
 
-          <div className={`rounded-2xl border transition-colors ${
+          <div className={`rounded-xl border transition-colors ${
             isLoading
               ? "border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50"
               : "border-neutral-300 dark:border-neutral-600 bg-paper-light dark:bg-neutral-900 focus-within:border-sage/50 focus-within:ring-2 focus-within:ring-sage/15"
@@ -330,7 +330,7 @@ export default function AIChatDialog({
               <Button variant="unstyled" onClick={send} disabled={!canSend} aria-label="Send"
                 className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
                   canSend
-                    ? "bg-sage text-white hover:bg-sage/80"
+                    ? "bg-fg text-surface hover:bg-[color-mix(in_srgb,var(--fg)_80%,var(--surface))]"
                     : "bg-neutral-100 dark:bg-neutral-800 text-neutral-300 dark:text-neutral-600 cursor-not-allowed"
                 }`}>
                 <HiOutlinePaperAirplane size={16} className="rotate-90" />

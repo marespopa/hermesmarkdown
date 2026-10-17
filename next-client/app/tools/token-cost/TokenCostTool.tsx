@@ -35,7 +35,7 @@ export default function TokenCostTool() {
       />
 
       <div className="grid gap-3 sm:grid-cols-2 items-end">
-        <div className="rounded-2xl border border-edge-subtle bg-surface-raised px-4 py-3" aria-live="polite">
+        <div className="rounded-xl border border-edge-subtle bg-surface-raised px-4 py-3" aria-live="polite">
           <p className="text-ui-footnote text-fg-muted">Input tokens</p>
           <p className="text-ui-title-2 font-bold tabular-nums">
             {inputTokens === null ? "…" : inputTokens.toLocaleString("en-US")}

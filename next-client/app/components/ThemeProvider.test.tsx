@@ -71,6 +71,6 @@ describe("ThemeProvider", () => {
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
     observer.disconnect();
-    expect(seen.filter((v) => v.startsWith("paper/") || v.endsWith("/nord"))).toEqual([]);
+    expect(seen.filter((v) => v.startsWith("paper/") || v.endsWith("/ink"))).toEqual([]);
   });
 });

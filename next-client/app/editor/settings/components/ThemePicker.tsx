@@ -31,7 +31,7 @@ export default function ThemePicker<T extends string>({ themes, value, onChange 
             aria-pressed={isActive}
             aria-label={`${t.label} theme`}
             className={`flex flex-col gap-1.5 rounded-xl border p-1.5 text-left transition-colors focus:outline-none ${
-              isActive ? "border-sage bg-sage/5 dark:bg-sage/10" : "border-edge hover:border-sage/40"
+              isActive ? "border-sage bg-sage/5 dark:bg-sage/10" : "border-edge hover:border-fg-faint"
             }`}
           >
             {/* The editor in miniature: the sidebar's rows in neutral grey

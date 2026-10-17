@@ -1,7 +1,9 @@
 import { Annotation, EditorState, StateEffect, StateField, Text, Transaction } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
-import { parseFmFields } from "@/app/utils/frontmatter-utils";
+import { frontmatterRowLabel, type FrontmatterRowSummary, frontmatterRowSummary } from "./frontmatter-summary";
 import { buildTagMatch, tagPillClassName } from "./tag-pills";
+
+export { frontmatterKeys, frontmatterRowLabel, frontmatterRowSummary, frontmatterSummary, type FrontmatterRowSummary } from "./frontmatter-summary";
 
 export interface FrontmatterFoldRange {
   titleOffset: number;
@@ -79,69 +81,6 @@ export function frontmatterFoldRangeOf(doc: Text): FrontmatterFoldRange | null {
   return range;
 }
 
-// Top-level keys of a frontmatter block, in order (`title`, `tags`, …). Read
-// with the shared frontmatter parser, so the summary row always lists
-// the same keys as other readers.
-export function frontmatterKeys(doc: string): string[] {
-  return Object.keys(parseFmFields(doc));
-}
-
-const SUMMARY_KEY_LIMIT = 3;
-
-// "title, tags, created, +2": the first few keys, then a count of the rest.
-export function frontmatterSummary(keys: string[]): string {
-  const shown = keys.slice(0, SUMMARY_KEY_LIMIT).join(", ");
-  const rest = keys.length - SUMMARY_KEY_LIMIT;
-  return rest > 0 ? `${shown}, +${rest}` : shown;
-}
-
-const SUMMARY_TAG_LIMIT = 3;
-
-export interface FrontmatterRowSummary {
-  status: string | null;
-  // The first few tags, without `#`, then a count of the rest.
-  tags: string[];
-  moreTags: number;
-  // The other keys, as `frontmatterSummary` lists them.
-  keys: string;
-}
-
-function unquote(value: string) {
-  return value.trim().replace(/^['"]|['"]$/g, "").trim();
-}
-
-// What the collapsed row shows: `status` and `tags` as values (chips), the
-// remaining keys by name. A key shown as chips isn't named again; an empty
-// `status` or `tags` stays a plain key.
-export function frontmatterRowSummary(doc: string): FrontmatterRowSummary {
-  const fields = parseFmFields(doc);
-  const status = "status" in fields ? unquote(fields.status) || null : null;
-  const allTags = (fields.tags ?? "")
-    .split(",")
-    .map((tag) => unquote(tag).replace(/^#/, ""))
-    .filter(Boolean);
-  const keys = Object.keys(fields).filter(
-    (key) => !(key === "status" && status) && !(key === "tags" && allTags.length > 0),
-  );
-  return {
-    status,
-    tags: allTags.slice(0, SUMMARY_TAG_LIMIT),
-    moreTags: Math.max(0, allTags.length - SUMMARY_TAG_LIMIT),
-    keys: frontmatterSummary(keys),
-  };
-}
-
-// The row as one line of text, for its accessible label:
-// "draft, #work, #ideas, +1, title, created".
-export function frontmatterRowLabel(summary: FrontmatterRowSummary): string {
-  return [
-    summary.status,
-    ...summary.tags.map((tag) => `#${tag}`),
-    summary.moreTags > 0 ? `+${summary.moreTags}` : null,
-    summary.keys || null,
-  ].filter(Boolean).join(", ");
-}
-
 // A chip coloured like the same word as an inline tag: workflow words
 // (`draft`, `review`, …) and task states (`todo`, `done`, …) keep their
 // colours; anything else is muted.
@@ -157,7 +96,7 @@ function summaryChip(text: string, kindOf: string) {
 // widget, not a fold: a fold's placeholder lives inside a text line, which
 // either costs a row or merges the next content line into the frontmatter's
 // first line (and its styling). It's this one quiet row ("▸ Properties ·
-// title, tags"); clicking it expands the block, as does moving the caret
+// Release plan · draft · created"); clicking it expands the block, as does moving the caret
 // into it (arrowing up from the first line). Expanded, the row ("▾
 // Properties") sits above the YAML and collapses it.
 // Fired on the editor's DOM when the Properties row is clicked (not when
@@ -193,16 +132,25 @@ class FrontmatterHeaderWidget extends WidgetType {
     label.textContent = "Properties";
     button.append(label);
     if (this.collapsed && rowLabel) {
-      // Chips, then the remaining key names: "· draft #work #ideas +1 · title".
-      const { status, tags, moreTags, keys } = this.summary;
+      // The title, chips, then the remaining key names:
+      // "· Release plan · draft #work #ideas +1 · created".
+      const { title, status, tags, moreTags, keys } = this.summary;
       const content = document.createElement("span");
       content.className = "cm-frontmatter-summary-keys";
       content.setAttribute("aria-hidden", "true");
       content.append("·");
+      if (title) {
+        const titleText = document.createElement("span");
+        titleText.className = "cm-frontmatter-title";
+        titleText.textContent = title;
+        content.append(" ", titleText);
+      }
+      const hasChips = !!status || tags.length > 0;
+      if (title && hasChips) content.append(" ·");
       if (status) content.append(summaryChip(status, status));
       for (const tag of tags) content.append(summaryChip(`#${tag}`, tag));
       if (moreTags > 0) content.append(` +${moreTags}`);
-      if (keys) content.append(status || tags.length > 0 ? ` · ${keys}` : ` ${keys}`);
+      if (keys) content.append(title || hasChips ? ` · ${keys}` : ` ${keys}`);
       button.append(content);
     }
     // mousedown, not click: CodeMirror would otherwise move the caret first.

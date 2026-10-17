@@ -25,12 +25,11 @@ export function buildEditorCommands(context: EditorCommandContext): Command[] {
     ...documentVault.vaultActions,
     ...githubVault,
     ...vaultStorage,
-    ...editorAi.aiEntryPoints,
+    ...editorAi.aiMenu,
     ...editorAi.focusAndHistory,
     ...workspaceTasksViews.tabClosure,
     ...editorAi.editor,
     ...editorAi.templates,
     ...workspaceTasksViews.workspaceTasksAndViews,
-    ...editorAi.aiActions,
   ];
 }

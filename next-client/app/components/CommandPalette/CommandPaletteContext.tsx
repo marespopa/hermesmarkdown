@@ -15,13 +15,23 @@ export type Command = {
   disabledReason?: string;
   danger?: boolean;
   closeOnRun?: boolean;
+  /** Where it takes you: another page of the app, or a new browser tab. The palette lists these apart, marked. */
+  opens?: "page" | "tab";
+  /** Close the palette (and let that paint) before running: for actions that open their own dialog or change the note. */
+  closeFirst?: boolean;
+  /** A menu: running it lists these in the palette instead of calling `action`. */
+  subcommands?: Command[];
   action: () => unknown | Promise<unknown>;
 };
 
 type CommandPaletteContextValue = {
   isOpen: boolean;
   initialQuery: string;
+  /** The menu command (`subcommands`) the palette opened into, if any. */
+  initialMenuId: string | null;
   open: (initialQuery?: string) => void;
+  /** Opens the palette on a menu command's list (e.g. Ctrl/Cmd+J's AI menu). */
+  openMenu: (id: string) => void;
   close: () => void;
   commands: Command[];
   register: (command: Command) => () => void;
@@ -67,6 +77,7 @@ async function waitForPaletteField(present: boolean, attempts = 20) {
 export function CommandPaletteProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [initialQuery, setInitialQuery] = useState("");
+  const [initialMenuId, setInitialMenuId] = useState<string | null>(null);
   const commandsRef = useRef<Map<string, Map<symbol, Command>>>(new Map());
   const [version, setVersion] = useState(0);
   const [recentCommandIds, setRecentCommandIds] = useAtom(atom_recentCommandIds);
@@ -120,6 +131,14 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   const open = useCallback((query: string = "") => {
     morphWithAnchor(() => {
       setInitialQuery(query);
+      setInitialMenuId(null);
+      setIsOpen(true);
+    }, true);
+  }, [morphWithAnchor]);
+  const openMenu = useCallback((id: string) => {
+    morphWithAnchor(() => {
+      setInitialQuery("");
+      setInitialMenuId(id);
       setIsOpen(true);
     }, true);
   }, [morphWithAnchor]);
@@ -127,6 +146,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
     morphWithAnchor(() => {
       setIsOpen(false);
       setInitialQuery("");
+      setInitialMenuId(null);
     }, false);
   }, [morphWithAnchor]);
 
@@ -165,8 +185,8 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   );
 
   const value = useMemo(
-    () => ({ isOpen, initialQuery, open, close, commands, register, recentCommandIds, markUsed, createNote, isMorphing, setCreateNote }),
-    [isOpen, initialQuery, open, close, commands, register, recentCommandIds, markUsed, createNote, isMorphing, setCreateNote],
+    () => ({ isOpen, initialQuery, initialMenuId, open, openMenu, close, commands, register, recentCommandIds, markUsed, createNote, isMorphing, setCreateNote }),
+    [isOpen, initialQuery, initialMenuId, open, openMenu, close, commands, register, recentCommandIds, markUsed, createNote, isMorphing, setCreateNote],
   );
 
   return <CommandPaletteContext.Provider value={value}>{children}</CommandPaletteContext.Provider>;
@@ -208,6 +228,9 @@ export function useRegisterCommand(command: Command | null) {
       get disabledReason() { return latest.current?.disabledReason; },
       get danger() { return latest.current?.danger; },
       get closeOnRun() { return latest.current?.closeOnRun; },
+      get closeFirst() { return latest.current?.closeFirst; },
+      get opens() { return latest.current?.opens; },
+      get subcommands() { return latest.current?.subcommands; },
       action: (...args: Parameters<Command["action"]>) => latest.current?.action(...args),
     } as Command;
     return register(stable);

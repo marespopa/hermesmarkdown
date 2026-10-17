@@ -72,7 +72,7 @@ export default function TableTool() {
         <TableCsvImport onConvert={replace} />
       </div>
 
-      <div className="rounded-2xl overflow-hidden">
+      <div className="rounded-xl overflow-hidden">
         <TableGridEditor value={doc} onChange={setStored} replaceRequest={replaceRequest} />
       </div>
       <p className="text-ui-footnote text-fg-muted">
@@ -82,7 +82,7 @@ export default function TableTool() {
         <code className="font-mono">=SUM(B2:B4)</code> or <code className="font-mono">=AVERAGE(C)</code>.
       </p>
 
-      <div className="rounded-2xl border border-edge-subtle bg-surface-raised p-4 space-y-3">
+      <div className="rounded-xl border border-edge-subtle bg-surface-raised p-4 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-ui-subhead font-semibold">Markdown</h2>
           <div className="flex flex-wrap items-center gap-2">

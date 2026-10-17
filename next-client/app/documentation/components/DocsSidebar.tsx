@@ -24,7 +24,7 @@ export default function DocsSidebar({ groups, activeId, onNavigate }: DocsSideba
             href={`#${group.id}`}
             variant="unstyled"
             onClick={onNavigate}
-            className="block px-3 mb-1.5 text-[13px] font-semibold text-fg hover:text-accent transition-colors"
+            className="block px-3 mb-1.5 text-[13px] font-semibold text-fg hover:text-fg transition-colors"
           >
             {group.label}
           </TextLink>

@@ -3,21 +3,24 @@ import { renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import type { EditorView } from "@codemirror/view";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { atom_aiEnabled } from "@/app/atoms/ai-atoms";
 import { atom_activeEditorView, atom_filesFocusRequested, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { useEditorShortcuts } from "./use-editor-shortcuts";
 
 const openSearchPanel = vi.fn();
 vi.mock("@codemirror/search", () => ({ openSearchPanel: (view: unknown) => openSearchPanel(view) }));
+const openMenu = vi.fn();
 vi.mock("@/app/components/CommandPalette/CommandPaletteContext", () => ({
-  useCommandPalette: () => ({ open: vi.fn() }),
+  useCommandPalette: () => ({ open: vi.fn(), openMenu }),
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => "/editor" }));
 let isMobileChrome = false;
 vi.mock("@/app/hooks/use-mobile-chrome", () => ({ default: () => isMobileChrome }));
 
-function renderShortcuts(view: EditorView | null, navigateWithGuard = vi.fn()) {
+function renderShortcuts(view: EditorView | null, navigateWithGuard = vi.fn(), aiEnabled = false) {
   const store = createStore();
   store.set(atom_activeEditorView, view);
+  store.set(atom_aiEnabled, aiEnabled);
   const wrapper = ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
   renderHook(() => useEditorShortcuts({
     navigateWithGuard,
@@ -88,5 +91,30 @@ describe("useEditorShortcuts: Show Files", () => {
     pressShowFiles();
     expect(navigateWithGuard).toHaveBeenCalledWith("/editor/files", "Files");
     expect(store.get(atom_sidebarOpen)).toBe(false);
+  });
+});
+
+describe("useEditorShortcuts: Ask or Edit with AI", () => {
+  beforeEach(() => {
+    openMenu.mockClear();
+    window.localStorage.clear();
+  });
+
+  const pressCtrlJ = () => {
+    const event = new KeyboardEvent("keydown", { key: "j", ctrlKey: true, bubbles: true, cancelable: true });
+    window.dispatchEvent(event);
+    return event;
+  };
+
+  it("opens the palette's AI menu with Ctrl/Cmd+J", () => {
+    renderShortcuts(null, vi.fn(), true);
+    expect(pressCtrlJ().defaultPrevented).toBe(true);
+    expect(openMenu).toHaveBeenCalledWith("ai-menu");
+  });
+
+  it("leaves Ctrl/Cmd+J alone with AI Features off", () => {
+    renderShortcuts(null, vi.fn(), false);
+    expect(pressCtrlJ().defaultPrevented).toBe(false);
+    expect(openMenu).not.toHaveBeenCalled();
   });
 });

@@ -75,7 +75,7 @@ describe("frontmatter collapsing", () => {
     const view = makeView(doc);
 
     toggleFrontmatterFold(view, findFrontmatterFoldRange(doc)!, true);
-    expect(view.contentDOM.textContent).toBe("Properties· title# Heading");
+    expect(view.contentDOM.textContent).toBe("Properties· Note# Heading");
   });
 
   it("adds a spacer block before text that directly follows expanded frontmatter", () => {
@@ -156,19 +156,19 @@ describe("frontmatter summary", () => {
     expect(frontmatterSummary([])).toBe("");
   });
 
-  it("shows status and tags as values, naming only the other keys", () => {
-    const doc = "---\ntitle: A\nstatus: draft\ntags: [work, \"ideas\", #x, y]\ncreated: 2026-10-09\n---\nBody";
+  it("shows the title, status and tags as values, naming only the other keys", () => {
+    const doc = "---\ntitle: \"Release plan\"\nstatus: draft\ntags: [work, \"ideas\", #x, y]\ncreated: 2026-10-09\n---\nBody";
     const summary = frontmatterRowSummary(doc);
-    expect(summary).toEqual({ status: "draft", tags: ["work", "ideas", "x"], moreTags: 1, keys: "title, created" });
-    expect(frontmatterRowLabel(summary)).toBe("draft, #work, #ideas, #x, +1, title, created");
+    expect(summary).toEqual({ title: "Release plan", status: "draft", tags: ["work", "ideas", "x"], moreTags: 1, keys: "created" });
+    expect(frontmatterRowLabel(summary)).toBe("Release plan, draft, #work, #ideas, #x, +1, created");
   });
 
   it("reads block-list tags and keeps an empty status or tags as a key", () => {
     expect(frontmatterRowSummary("---\ntags:\n  - a\n  - b\n---\n")).toEqual({
-      status: null, tags: ["a", "b"], moreTags: 0, keys: "",
+      title: null, status: null, tags: ["a", "b"], moreTags: 0, keys: "",
     });
     expect(frontmatterRowSummary("---\ntitle: \ntags: []\nstatus:\n---\n")).toEqual({
-      status: null, tags: [], moreTags: 0, keys: "title, tags, status",
+      title: null, status: null, tags: [], moreTags: 0, keys: "title, tags, status",
     });
   });
 });

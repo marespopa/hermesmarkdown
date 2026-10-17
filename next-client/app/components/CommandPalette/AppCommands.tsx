@@ -35,6 +35,7 @@ export default function AppCommands() {
           label: "Open HermesMarkdown Website",
           description: "The HermesMarkdown landing page",
           category: "Navigation",
+          opens: "page",
           keywords: "home start landing website site",
           disabledReason: pathname === "/" ? "Already on the website" : undefined,
           action: () => router.push("/"),
@@ -46,6 +47,7 @@ export default function AppCommands() {
     label: "Open Editor",
     description: "Return to the Markdown editor",
     category: "Navigation",
+    opens: "page",
     keywords: "write notes vault",
     disabledReason: pathname === "/editor" ? "Already in editor" : undefined,
     action: () => router.push("/editor"),
@@ -55,9 +57,11 @@ export default function AppCommands() {
     id: "open-documentation",
     label: "Open Documentation",
     category: "Help",
-    keywords: "docs help guide",
+    // A new tab, so the note you're writing stays where it is.
+    opens: "tab",
+    keywords: "docs help guide manual",
     disabledReason: pathname === "/documentation" ? "Already viewing documentation" : undefined,
-    action: () => router.push("/documentation"),
+    action: () => { window.open("/documentation", "_blank", "noopener"); },
   });
 
   // The free tools are their own site area, not part of writing: offered
@@ -70,6 +74,7 @@ export default function AppCommands() {
           label: "Open Free Tools",
           description: "Table generator, Mermaid, tokenizer, token cost and more",
           category: "Navigation",
+          opens: "page",
           keywords: "tools markdown table generator mermaid tokenizer token cost calculator price cleaner converter html",
           disabledReason: pathname === "/tools" ? "Already viewing the tools" : undefined,
           action: () => router.push("/tools"),
@@ -87,6 +92,7 @@ export default function AppCommands() {
           id,
           label,
           category: "Navigation",
+          opens: "page",
           keywords,
           disabledReason: pathname.startsWith(href) ? `Already in ${label.replace("Open ", "")}` : undefined,
           action: () => router.push(href),
@@ -103,6 +109,7 @@ export default function AppCommands() {
     id: "open-settings",
     label: "Open Settings",
     category: "Settings",
+    opens: "page",
     keywords: "preferences configuration config",
     disabledReason: pathname === "/editor/settings" ? "Already in settings" : undefined,
     action: () => router.push("/editor/settings"),

@@ -32,7 +32,7 @@ export default function FoldChevrons({ chevrons, onToggle }: FoldChevronsProps) 
               e.stopPropagation();
               onToggle(chevron);
             }}
-            className="absolute right-1 z-20 p-0.5 rounded text-ink-muted dark:text-fg-faint hover:text-sage dark:hover:text-sage"
+            className="absolute right-1 z-20 p-0.5 rounded text-ink-muted dark:text-fg-faint hover:text-fg dark:hover:text-fg"
             style={{ top: chevron.top }}
             title={label}
             aria-label={label}

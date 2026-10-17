@@ -20,7 +20,7 @@ const FORMATS: { value: CleanerFormat; label: string }[] = [
   { value: "csv", label: FORMAT_LABELS.csv },
 ];
 
-const PANEL = "rounded-2xl border border-edge-subtle bg-surface-raised";
+const PANEL = "rounded-xl border border-edge-subtle bg-surface-raised";
 const CHIP = "h-8 px-3 rounded-full";
 
 // The Markdown Cleaner: messy Markdown, HTML, rich text or CSV on the left,

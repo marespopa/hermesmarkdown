@@ -15,7 +15,7 @@ interface FolderPromptProps {
   placement?: "bottom" | "top";
 }
 
-const barBase = "typing-chrome fixed inset-x-0 z-30 flex justify-center px-4 pointer-events-none";
+const barBase = "fixed inset-x-0 z-30 flex justify-center px-4 pointer-events-none";
 const barPlacement = {
   bottom: "bottom-[calc(env(safe-area-inset-bottom)+1rem)]",
   top: "top-[3.25rem]",
@@ -26,8 +26,7 @@ const barPlacement = {
 // top on phones). One sentence, one primary action
 // (Choose Folder…, or Keep Notes in This Browser where folders can't be
 // opened, or Download where neither works) and Not Now, which shrinks it to
-// a quiet "Not saved to a folder" mark that opens it again. It fades with
-// the rest of the chrome while you type. The editor page decides when it
+// a quiet "Not saved to a folder" mark that opens it again. The editor page decides when it
 // can show (no vault, not locked).
 export default function FolderPrompt({ onChooseFolder, onDownload, placement = "bottom" }: FolderPromptProps) {
   const bar = `${barBase} ${barPlacement[placement]}`;
@@ -62,7 +61,7 @@ export default function FolderPrompt({ onChooseFolder, onDownload, placement = "
     <div className={bar}>
       <section
         aria-label="Where your notes live"
-        className="glass-panel pointer-events-auto flex max-w-xl flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl py-2 pl-4 pr-2"
+        className="glass-panel pointer-events-auto flex max-w-xl flex-wrap items-center gap-x-4 gap-y-2 rounded-xl py-2 pl-4 pr-2"
       >
         <p className="min-w-0 flex-1 basis-56 text-ui-footnote text-fg">
           <span className="font-semibold">Choose where your notes live.</span>{" "}

@@ -1,13 +1,13 @@
 # MobileFileIndicator
 
-Description: Compact mobile header chip showing the active file name and its save state, with save, command palette and AI chat shortcuts. Carries `.typing-chrome`: it fades while you type and returns on a tap outside the text (`useFadeChromeWhileTyping`), and `.typing-chrome-collapse` folds its height to 0 meanwhile so the note takes its room.
+Description: Compact mobile header chip showing the active file name and its save state, with save, command palette and AI chat shortcuts. It stays on screen while you type.
 
 ## Local State & Storage
 - State: `atom_workspaceLayout`, `atom_activePaneId`, `atom_openFiles`, `atom_saveStatus`, `atom_vaultHandle`, `useCommandPalette`.
 - Persistence: None itself. It reads `localStorage["workspaceLayout"]` and `localStorage["openFiles"]` through the atoms.
 
 ## Dependencies
-- Core: `PaneTab` (`statusMeta`), `CommandPaletteContext`, `react-icons`.
+- Core: `save-state.tsx` (`statusMeta`, `SaveStateIcon`), `CommandPaletteContext`, `react-icons`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

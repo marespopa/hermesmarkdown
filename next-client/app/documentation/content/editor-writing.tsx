@@ -49,7 +49,10 @@ export const editorWritingItems: Subsection[] = [
           code blocks, bare URLs and copies with no formatting paste as usual.
         </p>
         <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Shortcodes</h4>
-        <p>Type a shortcode and it expands in place.</p>
+        <p>
+          Type a shortcode and it expands in place. Type <code>{"{"}</code> for a menu of the
+          emoji shortcodes, and keep typing a name to narrow it (or <code>/emoji</code> in the slash menu).
+        </p>
         <KV
           rows={[
             { label: "{date} · ..d · {time} · {datetime}", value: "Current date / time" },
@@ -93,8 +96,8 @@ export const editorWritingItems: Subsection[] = [
   {
     id: "focus",
     title: "Focus",
-    lead: "Let the interface fade while you type, and optionally dim everything but the paragraph you're writing.",
-    keywords: "focus word count words hide interface chrome toolbar tabs sidebar fade typing distraction free minimal typewriter scrolling dim paragraph flow writing settings setup",
+    lead: "Dim everything but the paragraph or sentence you're writing.",
+    keywords: "focus word count words hide interface chrome toolbar tabs sidebar collapse distraction free minimal typewriter scrolling dim paragraph sentence flow writing settings setup",
     body: (
       <>
         <p>
@@ -106,18 +109,16 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <KV
           rows={[
-            { label: "Off", value: "The interface stays put while you type" },
-            { label: "Hide interface while typing", value: "The toolbar, tabs and sidebar fade once you start typing (default)" },
-            { label: "Hide interface and dim other paragraphs", value: "The same, plus other paragraphs fade and the caret line stays centered" },
-            { label: "Hide interface and dim other sentences", value: "The same, but only the sentence you're writing stays at full strength" },
+            { label: "Off", value: "Every line at full strength (default)" },
+            { label: "Dim other paragraphs", value: "Other paragraphs fade and the caret line stays centered" },
+            { label: "Dim other sentences", value: "Only the sentence you're writing stays at full strength" },
           ]}
         />
         <p>
-          While the interface is hidden, move the mouse deliberately, or touch the top or left edge
-          of the window, and everything comes back; a small nudge leaves the page alone. On a phone,
-          tap anywhere outside the text. As the interface fades, the page takes back its room: the
-          text slides up into the tab bar&apos;s space and over into the sidebar&apos;s. The sidebar
-          takes its own room beside the page and stays open until you close it; turn on{" "}
+          Nothing hides while you type, and there&apos;s no toolbar to hide: only the button at the top
+          of the page, which opens the command palette. To be alone with the text, close the sidebar (
+          <code>CTRL/CMD+\</code>); the page takes its room, and it stays that way across reloads. The
+          sidebar stays open until you close it; turn on{" "}
           <strong>Close Sidebar While Writing</strong> (Settings → Editor) to have it put away as soon
           as you type in a note.
         </p>
@@ -376,7 +377,7 @@ graph TD
         </p>
         <KV
           rows={[
-            { label: "Edit as Markdown", value: "Right-click the tab (or use the palette's Edit Board as Markdown) to see the raw file" },
+            { label: "Edit as Markdown", value: "Right-click the board's title (or use the palette's Edit Board as Markdown) to see the raw file" },
             { label: "Open as Board", value: "Switch back from the raw file to the canvas" },
           ]}
         />
@@ -444,7 +445,7 @@ graph TD
     id: "embeds",
     title: "Embedding notes and files",
     lead: "Show another note, a CSV table, an image or a code file inside this one: ![[Note name]] or /path on a line of its own.",
-    keywords: "embed transclude transclusion include note section heading ![[ csv table image picture code file slash compile book chapters",
+    keywords: "embed embed file command transclude transclusion include note section heading ![[ csv table image picture code file slash compile book chapters",
     body: (
       <>
         <p>
@@ -468,10 +469,13 @@ graph TD
           A file path is looked up next to the note first, then from the vault root. Start a line
           with <code>/</code> and type the start of a note&apos;s name: the rest of the best match
           appears in faded text, and <code>Tab</code> (or <code>→</code>) accepts it. The slash
-          menu also lists matching notes; picking one writes its path for you.
+          menu also lists matching notes; picking one writes its path for you. Or type{" "}
+          <code>/embed</code> anywhere and pick <strong>Embed file</strong>: it puts a{" "}
+          <code>/</code> on a line of its own (splitting the line if you were mid-sentence) and
+          opens the menu there, so you can choose a note or type a file&apos;s path.
         </p>
         <p>
-          Embeds stay current: a note open in a tab shows its unsaved edits, and other files are
+          Embeds stay current: a note open in a pane shows its unsaved edits, and other files are
           checked again whenever you come back to the window, so a CSV you just changed in a
           spreadsheet app shows its new rows. Click a note&apos;s name above its embed to open it.
           Private notes stay hidden until you show them, and a board shows its caption.
@@ -491,15 +495,27 @@ graph TD
     id: "slash-menu",
     title: "Slash menu",
     lead: "Type / at the start of a line or after a space for a searchable menu of insertable content, plus AI actions when AI is configured.",
-    keywords: "slash menu insert template",
+    keywords: "slash menu insert template heading list todo quote divider turn into block emoji alias",
     body: (
       <>
         <p>
-          Keep typing after <code>/</code> to fuzzy-filter by name; <code>↑</code>/<code>↓</code>{" "}
-          to move the selection, <code>Enter</code> to insert, <code>Escape</code> to dismiss.
+          The menu opens grouped by kind. Keep typing after <code>/</code> to search: a command is
+          found by its name, any word of it, a short alias (<code>/h1</code>, <code>/todo</code>,{" "}
+          <code>/ul</code>, <code>/hr</code>, <code>/yaml</code>, <code>/url</code>) or a word of its
+          description, best match first. <code>↑</code>/<code>↓</code> to move the selection,{" "}
+          <code>Enter</code> to insert, <code>Escape</code> to dismiss.
+        </p>
+        <p>
+          The basic blocks turn the current line into that block and keep its text: type{" "}
+          <code>/h2</code> on an empty line for a new heading, or at the end of a line to turn it
+          into one.
         </p>
         <KV
           rows={[
+            { label: "Text · Heading 1–3", value: "Plain text or a heading" },
+            { label: "Bulleted · Numbered · To-do list", value: "A list item or checkbox" },
+            { label: "Quote · Divider", value: "A quotation, or a line between sections" },
+            { label: "Emoji", value: "Pick from the emoji shortcodes" },
             { label: "Link · WikiLink", value: "Open the link dialogs" },
             { label: "Date", value: "Pick a date from a calendar" },
             { label: "Task", value: "Checklist task with status, due date & tags" },

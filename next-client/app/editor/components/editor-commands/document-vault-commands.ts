@@ -66,6 +66,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           label: "Insert template…",
           category: "Vault" as const,
           keywords: "template insert apply selection wrap",
+          closeFirst: true,
           // The active editor's template picker; selected text fills {{selection}}.
           action: () => { document.dispatchEvent(new CustomEvent("hermes:insert-vault-template")); },
         },
@@ -74,6 +75,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           label: "Save as template…",
           category: "Vault" as const,
           keywords: "template save create from note preset",
+          closeFirst: true,
           // The active note's text becomes templates/<name>.md.
           action: () => { document.dispatchEvent(new CustomEvent("hermes:save-as-template")); },
         },

@@ -12,10 +12,10 @@ describe("atom_toggleSentenceFocus", () => {
     expect(store.get(atom_focusMode)).toBe("dim");
   });
 
-  it("goes back to hiding the interface when sentence focus was already on", () => {
+  it("goes back to Off when sentence focus was already on", () => {
     const store = createStore();
     store.set(atom_focusMode, "sentence");
     store.set(atom_toggleSentenceFocus);
-    expect(store.get(atom_focusMode)).toBe("hide");
+    expect(store.get(atom_focusMode)).toBe("off");
   });
 });

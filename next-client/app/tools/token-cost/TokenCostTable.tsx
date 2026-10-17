@@ -18,7 +18,7 @@ export default function TokenCostTable({ inputTokens, outputTokens }: Props) {
 
   return (
     <div className="space-y-2">
-      <div className="overflow-x-auto rounded-2xl border border-edge-subtle">
+      <div className="overflow-x-auto rounded-xl border border-edge-subtle">
         <table className="w-full text-ui-subhead">
           <thead className="text-ui-footnote text-fg-muted">
             <tr className="border-b border-edge-subtle">

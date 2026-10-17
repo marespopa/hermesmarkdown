@@ -24,7 +24,7 @@ interface EmptyNoteTemplatesProps {
 
 const MAX_PILLS = 4;
 const FADE_MS = 150;
-const PILL_CLASS = "pointer-events-auto inline-flex min-h-11 items-center gap-1.5 rounded-full border border-edge-subtle bg-[color:color-mix(in_srgb,var(--chrome)_70%,transparent)] px-3 font-sans text-ui-footnote text-fg-muted backdrop-blur-sm transition-[background-color,color] duration-150 hover:bg-chrome hover:text-fg sm:min-h-9";
+const PILL_CLASS = "pointer-events-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-edge-subtle bg-[color:color-mix(in_srgb,var(--chrome)_70%,transparent)] px-3 font-sans text-ui-footnote text-fg-muted backdrop-blur-sm transition-[background-color,color] duration-150 hover:bg-chrome hover:text-fg sm:min-h-9";
 
 // Soft pills resting under the first line of an empty note: one click fills
 // the note from one of the vault's templates. With none yet (or no vault at
@@ -81,7 +81,7 @@ export default function EmptyNoteTemplates({ isEmpty, onPick, onMore, onBoard }:
         <Button
           variant="unstyled"
           onClick={onMore}
-          className="pointer-events-auto inline-flex min-h-11 items-center rounded-full px-3 font-sans text-ui-footnote text-fg-faint hover:text-fg sm:min-h-9"
+          className="pointer-events-auto inline-flex min-h-11 items-center rounded-lg px-3 font-sans text-ui-footnote text-fg-faint hover:text-fg sm:min-h-9"
         >
           More…
         </Button>

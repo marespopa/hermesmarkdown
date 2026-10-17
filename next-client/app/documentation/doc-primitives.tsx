@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 
 export function Code({ children }: { children: ReactNode }) {
   return (
-    <pre className="p-5 bg-chrome border border-edge-subtle text-fg rounded-2xl overflow-x-auto font-mono text-[14px] leading-relaxed w-full min-w-0">
+    <pre className="p-5 bg-chrome border border-edge-subtle text-fg rounded-xl overflow-x-auto font-mono text-[14px] leading-relaxed w-full min-w-0">
       <code>{children}</code>
     </pre>
   );
@@ -21,7 +21,7 @@ const CALLOUT_STYLES = {
 export function Callout({ type = "note", children }: { type?: "note" | "warning" | "tip"; children: ReactNode }) {
   const style = CALLOUT_STYLES[type];
   return (
-    <aside className="rounded-2xl bg-chrome px-5 py-4 text-[15px] leading-relaxed text-fg-muted">
+    <aside className="rounded-xl bg-chrome px-5 py-4 text-[15px] leading-relaxed text-fg-muted">
       <span className={`block text-[15px] font-semibold mb-1 ${style.labelClass}`}>{style.label}</span>
       {children}
     </aside>
@@ -30,7 +30,7 @@ export function Callout({ type = "note", children }: { type?: "note" | "warning"
 
 export function KV({ rows }: { rows: { label: ReactNode; value: ReactNode }[] }) {
   return (
-    <div className="rounded-2xl border border-edge-subtle bg-surface-raised px-5">
+    <div className="rounded-xl border border-edge-subtle bg-surface-raised px-5">
       {rows.map((r, i) => (
         <div
           key={i}

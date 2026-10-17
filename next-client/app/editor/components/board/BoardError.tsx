@@ -21,7 +21,7 @@ const COPY = {
 export default function BoardError({ kind, onEditAsMarkdown }: BoardErrorProps) {
   const { title, body } = COPY[kind];
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 px-6 pt-[var(--pane-header-inset,0px)] text-center">
+    <div className="flex h-full flex-col items-center justify-center gap-3 px-6 pt-[var(--pane-top-room,0px)] text-center">
       <h2 className="text-ui-title-3 text-fg">{title}</h2>
       <p className="max-w-sm text-ui-footnote text-fg-muted">{body}</p>
       <Button variant="secondary" onClick={onEditAsMarkdown}>

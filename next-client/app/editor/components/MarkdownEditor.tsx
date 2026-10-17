@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
 import { atom_activeEditorView, atom_aiBuilderRequest, atom_focusMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_showWordCount, atom_vimMode } from "@/app/atoms/ui-atoms";
+import type { TemplateEntry } from "@/app/utils/templates/template-registry";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
 import DatePickerCallout from "./DatePickerCallout";
@@ -92,7 +93,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { createWikiLinkFile, vaultHandle, saveAsTemplate, createLinkedNoteFromTemplate, createLinkedBoard } = useFileSystem();
   const insertBoardLink = useInsertBoardLink({ viewRef, createLinkedBoard });
   const insertVaultTemplate = useVaultTemplateInsert({ viewRef, filePath });
-  const insertTemplate = useCallback(() => { void insertVaultTemplate(); }, [insertVaultTemplate]);
+  const insertTemplate = useCallback((entry?: TemplateEntry) => { void insertVaultTemplate(entry); }, [insertVaultTemplate]);
   const startBoard = useEmptyNoteBoard({ viewRef, filePath });
   const { isTemplateNote, insertTemplateField, askTemplateQuestion, saveNoteAsTemplate } = useTemplateNote({
     viewRef,
@@ -288,9 +289,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   return (
     <div
       ref={paneRef}
-      // The pane header floats over this scroller: the sheet starts below it
-      // and scrolls under its glass (--pane-header-inset, PaneLeaf).
-      className={`editor-canvas relative w-full h-full overflow-auto cursor-text pt-[var(--pane-header-inset,0px)] scroll-pt-[var(--pane-header-inset,0px)]`}
+      // The pane's palette button floats over the sheet's top margin
+      // (PaneLeaf); nothing else sits above the text.
+      className="editor-canvas relative w-full h-full overflow-auto cursor-text"
       translate="no"
     >
       <div

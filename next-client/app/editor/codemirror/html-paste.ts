@@ -17,7 +17,7 @@ import { hasMarkdownStructure } from "@/app/tools/cleaner/html-structure";
 const REGEX_BARE_URL = /^https?:\/\/\S+$/;
 const CODE_NODES = new Set(["FencedCode", "CodeBlock", "InlineCode", "CodeText"]);
 
-function inCode(state: EditorState, pos: number): boolean {
+export function inCode(state: EditorState, pos: number): boolean {
   let node: { name: string; parent: unknown } | null = syntaxTree(state).resolveInner(pos, -1);
   while (node) {
     if (CODE_NODES.has(node.name)) return true;
@@ -38,6 +38,15 @@ export interface HtmlPasteOptions {
   convert?: (html: string) => Promise<string>;
   /** Shown after a converted paste; `revert` swaps in the plain text. */
   onConverted?: (revert: () => void) => void;
+}
+
+// Copied Markdown source (a code view, a chat's raw reply, a README) is
+// already Markdown: converting it only escapes its markers (`2. Item` →
+// `2\. Item`, `- [ ]` → `\- \[ \]`), so the plain text goes in instead.
+const REGEX_ESCAPE = /\\([\\`*_{}[\]()#+\-.!>~=|])/g;
+const words = (text: string) => text.replace(/\s+/g, " ").trim();
+export function onlyEscapesPlain(markdown: string, plain: string): boolean {
+  return words(markdown.replace(REGEX_ESCAPE, "$1")) === words(plain);
 }
 
 const loadConverter = async (html: string) => {
@@ -72,7 +81,7 @@ export function handleHtmlPaste(view: EditorView, event: ClipboardEvent, options
       return "";
     })
     .then((markdown) => {
-      if (!markdown || markdown === plain.trim()) {
+      if (!markdown || markdown === plain.trim() || onlyEscapesPlain(markdown, plain)) {
         insert(plain, "input.paste");
         return;
       }

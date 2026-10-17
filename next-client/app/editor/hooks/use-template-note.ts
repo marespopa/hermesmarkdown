@@ -7,7 +7,7 @@ import { atom_templatesFolder } from "@/app/atoms/template-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { noteDisplayTitle } from "@/app/utils/note-display";
-import { isTemplatePath, suggestTemplateName } from "@/app/utils/templates/template-registry";
+import { isTemplatePath, suggestTemplateName, type TemplateEntry } from "@/app/utils/templates/template-registry";
 import { openTemplateFieldMenu } from "../codemirror/template-field-completion";
 import { setTemplateNote } from "../codemirror/template-field-pills";
 
@@ -18,8 +18,8 @@ interface UseTemplateNoteOptions {
   filePath: string;
   /** Only the active pane answers the palette's template commands. */
   isActivePane: boolean;
-  /** Opens the template picker and inserts at the caret (or over the selection). */
-  insertTemplate: () => void;
+  /** Inserts `entry` (or the one picked in the template picker) at the caret, or over the selection. */
+  insertTemplate: (entry?: TemplateEntry) => void;
   /** useFileSystem().saveAsTemplate; undefined without a vault. */
   saveAsTemplate?: (text: string, suggestedName: string) => Promise<boolean>;
 }
@@ -31,7 +31,9 @@ interface UseTemplateNoteOptions {
 // - Any other note can be saved as a template (`/save-template` and the
 //   palette), named after its first heading or title.
 // - The palette's "Insert template…" / "Save as template…" reach the active
-//   pane through `hermes:insert-vault-template` / `hermes:save-as-template`.
+//   pane through `hermes:insert-vault-template` / `hermes:save-as-template`;
+//   a `~` template row sends its entry along (`detail.entry`), skipping the
+//   picker.
 export function useTemplateNote({
   viewRef,
   editorView,
@@ -70,7 +72,7 @@ export function useTemplateNote({
 
   useEffect(() => {
     if (!isActivePane) return;
-    const onInsert = () => insertTemplate();
+    const onInsert = (event: Event) => insertTemplate((event as CustomEvent<{ entry?: TemplateEntry } | null>).detail?.entry);
     const onSave = () => { if (!isTemplateNote) saveNoteAsTemplate(); };
     document.addEventListener("hermes:insert-vault-template", onInsert);
     document.addEventListener("hermes:save-as-template", onSave);

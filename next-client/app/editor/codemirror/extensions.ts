@@ -24,6 +24,7 @@ import { shortcodeExpandPlugin } from "./shortcode-expand";
 import { bulletAutospace } from "./bullet-autospace";
 import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
+import { createEmojiSource } from "./emoji-completion";
 import { createTemplateFieldSource } from "./template-field-completion";
 import { templateFieldPills } from "./template-field-pills";
 import { templateBlanks } from "./template-blanks";
@@ -72,10 +73,10 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     opts.lineNumbersCompartment.of(opts.lineNumbers ? editorLineNumbers() : []),
     opts.invisiblesCompartment.of(opts.showInvisibles ? invisibles() : []),
     opts.flowModeCompartment.of(opts.flowMode ? flowMode(opts.flowMode) : []),
-    // Keep the caret clear of the floating pane header when scrolling it into
-    // view (--pane-header-inset, PaneLeaf; unset on mobile).
+    // Keep the caret clear of the pane's floating palette button when
+    // scrolling it into view (--pane-top-room, PaneLeaf; unset on mobile).
     EditorView.scrollMargins.of((view) => ({
-      top: parseFloat(getComputedStyle(view.dom).getPropertyValue("--pane-header-inset")) || 0,
+      top: parseFloat(getComputedStyle(view.dom).getPropertyValue("--pane-top-room")) || 0,
     })),
     history(),
     drawSelection(),
@@ -106,7 +107,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? loadedVim()?.vim() ?? [] : []),
     autocompletion({
-      override: [createSlashMenuSource(opts.slashMenuCallbacksRef), createTemplateFieldSource(opts.slashMenuCallbacksRef)],
+      override: [createSlashMenuSource(opts.slashMenuCallbacksRef), createTemplateFieldSource(opts.slashMenuCallbacksRef), createEmojiSource()],
       activateOnTyping: true,
       icons: false,
     }),

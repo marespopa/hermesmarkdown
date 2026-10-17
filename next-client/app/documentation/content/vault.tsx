@@ -218,7 +218,7 @@ tags: [finance, private]
           <Callout type="note">
             <ul>
               <li>This is screen privacy, not encryption: the file stays readable on disk.</li>
-              <li>File names still show in Files and in tab titles. A new note is named after its first line, so give a private note a harmless first line.</li>
+              <li>File names still show in Files and in the pane title. A new note is named after its first line, so give a private note a harmless first line.</li>
             </ul>
           </Callout>
         </>

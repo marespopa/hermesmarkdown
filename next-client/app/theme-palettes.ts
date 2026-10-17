@@ -1,8 +1,8 @@
 // Color themes per mode: the light mode and the dark mode each pick one of
 // their own palettes (Settings → Appearance, the Theme commands). Three a
 // mode, in pairs: Paper / Ink (warm paper and ink; Ink is the dark paper),
-// Solarized / Nord, and Plain / Graphite (neutral, no tint at all). Paper is
-// the light default, Nord the dark one. The colors live
+// Solarized / Nord, and Plain / Graphite (neutral, no tint at all). Paper and
+// Ink, the paper pair, are the defaults. The colors live
 // in theme-palettes.scss, keyed by <html data-light-theme / data-dark-theme>;
 // the first palette of each list is the default, set on <html> before the
 // first paint (layout.tsx) when nothing else was picked. Paper and Ink are
@@ -10,7 +10,7 @@
 // The swatch values here only draw the picker's previews.
 
 export type LightTheme = "paper" | "solarized" | "plain";
-export type DarkTheme = "nord" | "ink" | "graphite";
+export type DarkTheme = "ink" | "nord" | "graphite";
 
 export interface ThemePalette<T extends string> {
   value: T;
@@ -42,16 +42,16 @@ export const LIGHT_THEMES: ThemePalette<LightTheme>[] = [
 
 export const DARK_THEMES: ThemePalette<DarkTheme>[] = [
   {
-    value: "nord",
-    label: "Nord",
-    description: "Arctic blue",
-    swatch: { surface: "#2E3440", chrome: "#262B35", fg: "#ECEFF4", accent: "#88C0D0" },
-  },
-  {
     value: "ink",
     label: "Ink",
     description: "Dark paper, ink blue",
     swatch: { surface: "#211E1B", chrome: "#181614", fg: "#E6E0D6", accent: "#8FA8D0" },
+  },
+  {
+    value: "nord",
+    label: "Nord",
+    description: "Arctic blue",
+    swatch: { surface: "#2E3440", chrome: "#262B35", fg: "#ECEFF4", accent: "#88C0D0" },
   },
   {
     value: "graphite",
@@ -66,7 +66,7 @@ const LEGACY_LIGHT_THEMES: Record<string, LightTheme> = { sepia: "paper", sage: 
 const LEGACY_DARK_THEMES: Record<string, DarkTheme> = { midnight: "nord", dusk: "ink" };
 
 export const DEFAULT_LIGHT_THEME: LightTheme = "paper";
-export const DEFAULT_DARK_THEME: DarkTheme = "nord";
+export const DEFAULT_DARK_THEME: DarkTheme = "ink";
 
 // Stored values come from localStorage, so a palette from an earlier version
 // moves to its closest current one, and anything else unknown (a

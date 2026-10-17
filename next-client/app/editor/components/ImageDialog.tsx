@@ -78,7 +78,7 @@ export default function ImageDialog() {
     <DialogModal
       isOpened={open}
       onClose={() => setOpen(false)}
-      styles="!max-w-[1200px] !rounded-3xl !backdrop-blur-lg"
+      styles="!max-w-[1200px] !rounded-xl !backdrop-blur-lg"
     >
       <div className="w-full min-w-0">
         <div className="mb-3">

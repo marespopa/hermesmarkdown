@@ -43,6 +43,6 @@ describe("LandingThemePicker", () => {
 
     expect(screen.getByRole("heading", { name: "Light" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Dark" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Nord theme" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Ink theme" })).toHaveAttribute("aria-pressed", "true");
   });
 });

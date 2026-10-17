@@ -58,6 +58,20 @@ describe("AppCommands and SettingsCommands", () => {
     expect(command("open-documentation")?.label).toBe("Open Documentation");
   });
 
+  it("opens Documentation in a new tab and marks the commands that leave the note", () => {
+    const open = vi.spyOn(window, "open").mockImplementation(() => null);
+    pathname = "/editor";
+    renderCommands();
+    command("open-documentation")?.action();
+    expect(open).toHaveBeenCalledWith("/documentation", "_blank", "noopener");
+    expect(push).not.toHaveBeenCalled();
+    expect(command("open-documentation")?.opens).toBe("tab");
+    expect(command("open-settings")?.opens).toBe("page");
+    expect(command("open-all-notes")?.opens).toBe("page");
+    expect(command("toggle-word-wrap")?.opens).toBeUndefined();
+    open.mockRestore();
+  });
+
   it("offers one command per theme and disables the current one", () => {
     const store = createStore();
     store.set(atom_theme, "dark");
@@ -84,7 +98,7 @@ describe("AppCommands and SettingsCommands", () => {
     for (const id of ["nord", "ink", "graphite"]) expect(command(`set-dark-theme-${id}`)).toBeDefined();
     expect(command("set-light-theme-paper")?.label).toBe("Light Theme: Paper");
     expect(command("set-light-theme-paper")?.disabledReason).toBe("Current light theme");
-    expect(command("set-dark-theme-nord")?.disabledReason).toBe("Current dark theme");
+    expect(command("set-dark-theme-ink")?.disabledReason).toBe("Current dark theme");
 
     act(() => { void command("set-dark-theme-graphite")?.action(); });
     expect(store.get(atom_darkTheme)).toBe("graphite");
@@ -109,13 +123,13 @@ describe("AppCommands and SettingsCommands", () => {
 
     expect(command("toggle-flow-mode")).toBeUndefined();
     expect(command("toggle-hide-chrome-while-typing")).toBeUndefined();
-    expect(["set-focus-off", "set-focus-hide", "set-focus-dim", "set-focus-sentence"].map((id) => command(id)?.label)).toEqual([
+    expect(command("set-focus-hide")).toBeUndefined();
+    expect(["set-focus-off", "set-focus-dim", "set-focus-sentence"].map((id) => command(id)?.label)).toEqual([
       "Focus: Off",
-      "Focus: Hide interface while typing",
-      "Focus: Hide interface and dim other paragraphs",
-      "Focus: Hide interface and dim other sentences",
+      "Focus: Dim other paragraphs",
+      "Focus: Dim other sentences",
     ]);
-    expect(command("set-focus-hide")?.disabledReason).toBe("Current setting");
+    expect(command("set-focus-off")?.disabledReason).toBe("Current setting");
     act(() => { void command("set-focus-dim")?.action(); });
     expect(store.get(atom_focusMode)).toBe("dim");
   });

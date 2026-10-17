@@ -1,0 +1,44 @@
+"use client";
+
+import React from "react";
+import Button from "@/app/components/Button";
+import { version } from "../../../package.json";
+import { type Scope, SCOPES } from "./palette-model";
+
+interface PaletteFooterProps {
+  /** The mode in use, lit; null for notes (no prefix). */
+  scope: Scope | null;
+  /** A chip: that mode, or back to notes when it's the one in use. */
+  onScope: (scope: Scope) => void;
+}
+
+// The palette's foot is its legend: one chip per search mode, its prefix
+// in a key cap. Clicking a chip is the same as typing its prefix; the one
+// in use is lit, and clicking it again goes back to notes. Settings and the
+// theme are commands in the list, not buttons here.
+export default function PaletteFooter({ scope, onScope }: PaletteFooterProps) {
+  return (
+    <footer className="flex shrink-0 items-center gap-2 border-t border-edge-subtle py-1.5 pl-2 pr-3 font-sans text-ui-caption text-fg-muted">
+      <div role="group" aria-label="Search modes" className="flex min-w-0 flex-1 flex-wrap items-center gap-0.5">
+        {SCOPES.map(({ id, prefix, label }) => {
+          const active = scope === id;
+          return (
+            <Button
+              key={id}
+              variant="unstyled"
+              aria-label={label}
+              aria-pressed={active}
+              title={`${label} (type ${prefix})`}
+              onClick={() => onScope(id)}
+              className={`flex h-7 items-center gap-1.5 rounded-lg px-1.5 transition-colors ${active ? "bg-accent/15 text-fg" : "hover:bg-black/[0.04] hover:text-fg dark:hover:bg-white/[0.06]"}`}
+            >
+              <kbd className={`flex h-[18px] min-w-[18px] items-center justify-center rounded border font-mono text-[11px] ${active ? "border-transparent bg-accent text-white dark:text-surface" : "border-edge-subtle"}`}>{prefix}</kbd>
+              {label}
+            </Button>
+          );
+        })}
+      </div>
+      <span className="shrink-0 text-fg-faint">v{version}</span>
+    </footer>
+  );
+}

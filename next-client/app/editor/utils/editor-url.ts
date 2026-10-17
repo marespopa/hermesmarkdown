@@ -37,5 +37,9 @@ export function replaceUrlParam(name: string, value: string | null): void {
   if (value === null) url.searchParams.delete(name);
   else url.searchParams.set(name, value);
   url.search = serialize(url.searchParams);
-  window.history.replaceState(window.history.state, "", url);
+  // null, not history.state: the App Router's replaceState patch skips its
+  // sync for state carrying its own markers (`__NA`), which would leave its
+  // idea of the current URL stale and drop later <Link> navigations. It
+  // copies its internal state into the entry itself.
+  window.history.replaceState(null, "", url);
 }

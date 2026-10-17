@@ -24,7 +24,7 @@ describe("ThemePicker", () => {
 describe("theme palettes", () => {
   it("offers three palettes per mode, in pairs", () => {
     expect(LIGHT_THEMES.map((t) => t.value)).toEqual(["paper", "solarized", "plain"]);
-    expect(DARK_THEMES.map((t) => t.value)).toEqual(["nord", "ink", "graphite"]);
+    expect(DARK_THEMES.map((t) => t.value)).toEqual(["ink", "nord", "graphite"]);
   });
 
   it("moves palettes from earlier versions to their closest current one", () => {
@@ -38,6 +38,6 @@ describe("theme palettes", () => {
   it("falls back to the default palette for unknown stored values", () => {
     expect(resolveLightTheme("plain")).toBe("plain");
     expect(resolveLightTheme("nord")).toBe("paper");
-    expect(resolveDarkTheme(undefined)).toBe("nord");
+    expect(resolveDarkTheme(undefined)).toBe("ink");
   });
 });

@@ -91,7 +91,7 @@ export default function WhatIsHermesMd() {
                 define special filenames at all — it edits whatever Markdown already exists in the folder
                 you open, whether that&apos;s an Obsidian vault, a docs folder, or a plain notes directory.
               </p>
-              <div className="p-5 border border-black/5 dark:border-white/5 rounded-2xl bg-neutral-50/50 dark:bg-neutral-900/30 text-sm leading-relaxed">
+              <div className="p-5 border border-black/5 dark:border-white/5 rounded-xl bg-neutral-50/50 dark:bg-neutral-900/30 text-sm leading-relaxed">
                 <span className="block text-ui-footnote uppercase tracking-[0.2em] font-bold mb-2 opacity-60">Note</span>
                 Hermes Agent (NousResearch) and HermesMarkdown are unrelated projects that happen to share
                 the Hermes name. If you landed here looking for SOUL.md, memory.md, or plan-mode setup, this

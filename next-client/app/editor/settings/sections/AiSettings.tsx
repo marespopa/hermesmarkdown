@@ -191,7 +191,7 @@ export default function AiSettings() {
                       setAvailableModels([]);
                       setFetchError(null);
                     }}
-                    className="p-1.5 text-stone hover:text-sage transition-colors"
+                    className="p-1.5 text-stone hover:text-fg transition-colors"
                     title="Refresh models"
                     aria-label="Refresh models"
                   >

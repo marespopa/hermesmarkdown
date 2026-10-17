@@ -11,7 +11,7 @@ import {
 } from "@/app/atoms/atoms";
 import { HiOutlineChevronDown, HiOutlineChatAlt2 } from "react-icons/hi";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
-import { SaveStateIcon, TabSaveState, statusMeta } from "./PaneTab";
+import { SaveStateIcon, type SaveState, statusMeta } from "./save-state";
 import Button from "@/app/components/Button";
 
 interface MobileFileIndicatorProps {
@@ -46,7 +46,7 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
   // the in-content frontmatter summary bar scrolls away with the rest.
   const fileState = activePath ? openFiles[activePath] : undefined;
   const isDirty = !!fileState && fileState.content !== fileState.lastSavedContent;
-  const saveState: TabSaveState =
+  const saveState: SaveState =
     saveStatus.path === activePath && saveStatus.state === "error"
       ? "error"
       : saveStatus.path === activePath && saveStatus.state === "saving"
@@ -59,13 +59,13 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
   const meta = hasOpenFiles ? statusMeta[saveState] : null;
 
   return (
-    <div className="typing-chrome typing-chrome-collapse glass-bar relative shrink-0 flex items-center h-11 overflow-hidden border-b border-edge-subtle">
+    <div className="glass-bar relative shrink-0 flex items-center h-11 overflow-hidden border-b border-edge-subtle">
       {onOpenAIChat && (
         <Button variant="unstyled"
           onClick={onOpenAIChat}
           aria-label="AI Chat"
           title="AI Chat"
-          className="flex items-center justify-center h-11 min-w-11 shrink-0 text-fg-faint hover:text-sage transition-colors"
+          className="flex items-center justify-center h-11 min-w-11 shrink-0 text-fg-faint hover:text-fg transition-colors"
         >
           <HiOutlineChatAlt2 size={18} />
         </Button>
@@ -77,7 +77,7 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
           aria-label={`Save — ${meta.title}`}
           title={saveState === "error" ? saveStatus.message || meta.title : meta.title}
           className={`flex items-center justify-center h-11 min-w-11 shrink-0 disabled:pointer-events-none transition-colors ${
-            saveState === "idle" ? "text-fg-faint hover:text-sage" : meta.className
+            saveState === "idle" ? "text-fg-faint hover:text-fg" : meta.className
           }`}
         >
           <SaveStateIcon state={saveState} size={18} />

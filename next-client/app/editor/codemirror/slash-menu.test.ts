@@ -54,7 +54,86 @@ describe("createSlashMenuSource", () => {
     expect(result?.from).toBe(7);
     expect(result?.to).toBe(10);
     expect(result?.filter).toBe(false);
-    expect(result?.options.map(({ label }) => label)).toEqual(["Code", "Callout", "Collapse"]);
+    // Names starting with the query first, then names merely holding its letters.
+    expect(result?.options.map(({ label }) => label)).toEqual(["Code", "Collapse", "Callout"]);
+  });
+
+  it("groups the whole list into sections, basic blocks first, and drops them for a search", () => {
+    const all = getResult("/").result?.options ?? [];
+    const section = (label: string) => {
+      const value = all.find((option) => option.label === label)?.section;
+      return typeof value === "string" ? value : value?.name;
+    };
+
+    expect(all[0].label).toBe("Text");
+    expect(section("Heading 1")).toBe("Basic blocks");
+    expect(section("Link")).toBe("Insert");
+    expect(section("Frontmatter")).toBe("Note");
+    expect(getResult("/head").result?.options.every((option) => option.section === undefined)).toBe(true);
+  });
+
+  it.each([
+    ["/h1", "Heading 1"],
+    ["/h2", "Heading 2"],
+    ["/todo", "To-do list"],
+    ["/ul", "Bulleted list"],
+    ["/hr", "Divider"],
+    ["/yaml", "Frontmatter"],
+    ["/url", "Link"],
+    ["/list", "Bulleted list"],
+  ])("puts the command an alias or word names first: %s", (doc, label) => {
+    expect(getResult(doc).result?.options[0].label).toBe(label);
+  });
+
+  it("finds a command by a word of its description", () => {
+    expect(getResult("/checkbox").result?.options.map(({ label }) => label)).toContain("To-do list");
+    expect(getResult("/quotation").result?.options.map(({ label }) => label)).toEqual(["Quote"]);
+  });
+
+  it.each([
+    ["/h1", "Heading 1", "# ", 2],
+    ["Intro /h2", "Heading 2", "## Intro", 8],
+    ["- item /todo", "To-do list", "- [ ] item", 10],
+    ["  - nested /ol", "Numbered list", "  1. nested", 11],
+    ["# Title /text", "Text", "Title", 5],
+    ["> said /quote", "Quote", "> said", 6],
+  ])("turns the line into the block: %s", (doc, label, expected, caret) => {
+    const { view } = applyOption(doc, label);
+
+    expect(view.state.doc.toString()).toBe(expected);
+    expect(view.state.selection.main.head).toBe(caret);
+  });
+
+  it("undoes a block command in one step", () => {
+    const view = new EditorView({ state: EditorState.create({ doc: "Intro /h1", extensions: [history()] }) });
+    const { result } = getResult("Intro /h1");
+    const option = result!.options.find((entry) => entry.label === "Heading 1")!;
+    (option.apply as (...args: unknown[]) => void)(view, option, result!.from, result!.to);
+    undo(view);
+
+    expect(view.state.doc.toString()).toBe("Intro /h1");
+  });
+
+  it.each([
+    ["/divider", "---\n", 4],
+    ["Para\n/hr", "Para\n\n---\n", 10],
+    ["Para /hr", "Para\n\n---\n", 10],
+  ])("puts a divider on a line of its own: %j", (doc, expected, caret) => {
+    const { view } = applyOption(doc, "Divider");
+
+    expect(view.state.doc.toString()).toBe(expected);
+    expect(view.state.selection.main.head).toBe(caret);
+  });
+
+  it("leaves a { where the Emoji entry was typed, for the emoji menu", () => {
+    vi.useFakeTimers();
+    try {
+      const { view } = applyOption("Ship it /emoji", "Emoji");
+      expect(view.state.doc.toString()).toBe("Ship it {");
+      expect(view.state.selection.main.head).toBe(9);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("ignores invalid boundaries, paths, spaced queries, and unknown commands", () => {
@@ -119,6 +198,30 @@ describe("createSlashMenuSource", () => {
 
     expect(view.state.doc.toString()).toBe("");
     expect(callbacks.onOpenAIChat).toHaveBeenCalledOnce();
+  });
+
+  it("offers Embed file only with notes to embed", () => {
+    const labels = (callbacks: SlashMenuCallbacks) => getResult("/embed", callbacks).result?.options.map(({ label }) => label) ?? [];
+    expect(labels(makeCallbacks())).not.toContain("Embed file");
+    expect(labels({ ...makeCallbacks(), embedFiles: () => [] })).not.toContain("Embed file");
+    expect(labels({ ...makeCallbacks(), embedFiles: () => ["specs/Roadmap.md"] })).toContain("Embed file");
+  });
+
+  it("leaves a bare / on its own line for Embed file, breaking the line around it", () => {
+    vi.useFakeTimers();
+    const callbacks = { ...makeCallbacks(), embedFiles: () => ["specs/Roadmap.md"] };
+    const alone = applyOption("/embed", "Embed file", callbacks).view;
+    expect(alone.state.doc.toString()).toBe("/");
+    expect(alone.state.selection.main.head).toBe(1);
+
+    const doc = "Intro /embed";
+    const { result } = getResult(doc, callbacks);
+    const option = result!.options.find((entry) => entry.label === "Embed file")!;
+    const view = makeView(doc + " outro");
+    (option.apply as (...args: unknown[]) => void)(view, option, result!.from, result!.to ?? result!.from);
+    expect(view.state.doc.toString()).toBe("Intro \n/\n outro");
+    vi.runAllTimers();
+    vi.useRealTimers();
   });
 
   it("hides AI Chat when AI is not configured", () => {

@@ -36,20 +36,28 @@ export default function TemplateDialogHost() {
       toast.error(`Couldn't open template ${entry.name}`);
     }
   };
-  // Template texts for the picker's summaries and preview, read when it opens.
+  // Template texts for the picker's summaries and preview, read when it
+  // opens, each shown as soon as it arrives (one slow file doesn't hold up
+  // the rest). A picked template carries its text along, so inserting it
+  // doesn't read the file again behind the other reads.
   const [bodies, setBodies] = useState<Record<string, string | null>>({});
   const isPicking = request?.kind === "pick";
   useEffect(() => {
     if (!isPicking) return;
     let cancelled = false;
     setBodies(Object.fromEntries(templates.map((t) => [t.path, null])));
-    void Promise.all(
-      templates.map(async (t) => [t.path, await readTemplate(t).catch(() => "")] as const),
-    ).then((entries) => {
-      if (!cancelled) setBodies(Object.fromEntries(entries));
-    });
+    for (const t of templates) {
+      void readTemplate(t).catch(() => "").then((text) => {
+        if (!cancelled) setBodies((previous) => ({ ...previous, [t.path]: text }));
+      });
+    }
     return () => { cancelled = true; };
   }, [isPicking, request, templates, readTemplate]);
+  const withBody = (value: TemplateEntry | "blank" | "board" | null) => {
+    if (!value || typeof value === "string" || value.body !== undefined) return value;
+    const text = bodies[value.path];
+    return text ? { ...value, body: text } : value;
+  };
 
   if (!request) return null;
   if (!ids.current.has(request)) ids.current.set(request, ++nextId.current);
@@ -67,7 +75,7 @@ export default function TemplateDialogHost() {
         preselect={request.preselect}
         bodies={bodies}
         onEdit={(entry) => { void editTemplate(entry, () => request.resolve(null)); }}
-        onPick={(value) => request.resolve(value)}
+        onPick={(value) => request.resolve(withBody(value))}
         onCancel={() => request.resolve(null)}
       />
     );

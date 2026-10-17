@@ -55,14 +55,16 @@ const Button = React.forwardRef<HTMLButtonElement, Props>(function Button(
 export default Button;
 
 // Flat, as the rest of the app: hover changes a fill or the text colour,
-// never lifts or scales. Only colour properties transition.
+// never lifts or scales. Only colour properties transition. One radius
+// scale everywhere: rounded-lg for controls, rounded-xl for cards and
+// panels, rounded-full only for round icon buttons and dots.
 const TRANSITION = "transition-[color,background-color,border-color,opacity,box-shadow] duration-150 ease-out";
 const FOCUS_RING =
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 const DISABLED = "disabled:opacity-30 disabled:pointer-events-none";
 
 const baseStyles =
-  `rounded-2xl flex items-center justify-center gap-2 ${TRANSITION} ${FOCUS_RING} ${DISABLED} select-none border font-sans font-semibold text-ui-footnote sm:text-ui-subhead`;
+  `rounded-lg flex items-center justify-center gap-2 ${TRANSITION} ${FOCUS_RING} ${DISABLED} select-none border font-sans font-semibold text-ui-footnote sm:text-ui-subhead`;
 
 // On touch screens, small controls take a 44px hit area without changing
 // their footprint: padding grows and a negative margin gives it back.
@@ -124,7 +126,7 @@ const variantStyles = (variant: ButtonVariant): string => {
       return `inline-flex items-center justify-center font-sans font-medium text-ui-footnote hover:underline focus-visible:underline ${FOCUS_RING} rounded ${TRANSITION}`;
 
     case "menu-item":
-      return `w-full inline-flex items-center justify-start gap-3 px-3 py-2.5 font-sans font-medium text-ui-footnote text-fg-muted hover:text-fg ${QUIET_HOVER} ${TRANSITION} rounded-xl group ${FOCUS_RING} ${DISABLED} select-none`;
+      return `w-full inline-flex items-center justify-start gap-3 px-3 py-2.5 font-sans font-medium text-ui-footnote text-fg-muted hover:text-fg ${QUIET_HOVER} ${TRANSITION} rounded-lg group ${FOCUS_RING} ${DISABLED} select-none`;
 
     case "menu-row":
       // The shared focus ring is swapped for the highlight fill, so the

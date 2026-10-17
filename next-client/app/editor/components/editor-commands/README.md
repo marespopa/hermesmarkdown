@@ -24,8 +24,12 @@ without changing the public props contract or command behavior.
   name opened unchanged).
 - `editor-ai-commands.ts` defines editor formatting, templates and AI
   commands. The `Insert: …` commands skip the slash menu's vault
-  **Template** entry (`vaultOnly`). The `AI: …` actions are listed only with
-  AI Features switched on (`isAiEnabled`), disabled until a key is set.
+  **Template** entry (`vaultOnly`). AI is one menu command, **Ask or Edit
+  with AI…** (`ai-menu`, `Ctrl/Cmd+J`), listed only with AI Features switched
+  on (`isAiEnabled`); its `subcommands` are four modes: Freeform Prompt (AI
+  Chat), then Improve Writing, Summarize / Structure and Insert Element (table,
+  Mermaid diagram, formula), each a menu of one-click actions, disabled until a
+  key is set.
 - `workspace-task-view-commands.ts` defines panels, panes, tabs, the editor-only
   toggles (Toggle Hidden Files, Toggle Sidebar), Show Token Cost, the welcome
   tour, tasks and views.

@@ -35,7 +35,7 @@ This directory contains the core logic and routing for the HermesMarkdown Markdo
 - **Files**: The vault's tree, one name everywhere. On desktop it's the sidebar's Files section; **Show Files** (command palette, `Ctrl/Cmd+Shift+E`) shows the sidebar and focuses it. On mobile the same command opens the full-screen Files page (`/editor/files`).
 - **Tasks**: A dedicated full view at `/editor/tasks`.
 - **Command palette**: The primary navigation surface — quick switcher, commands, tags, tasks, and headings.
-- **Mobile**: Below 768px, the tab bar is replaced by a fixed file indicator bar; Files is the full-screen `/editor/files` page.
+- **Mobile**: Below 768px, the toolbar is replaced by a fixed file indicator bar; Files is the full-screen `/editor/files` page.
 
 ### Vault Backend
 

@@ -44,6 +44,10 @@ export function useVaultTemplateInsert({ viewRef, filePath }: UseVaultTemplateIn
     const selection = before ? before.state.sliceDoc(before.state.selection.main.from, before.state.selection.main.to) : "";
     const chosen = source ?? await pickTemplate({ includeBlank: false, title: "Insert template" });
     if (!chosen || typeof chosen === "string") return;
+    // A read that takes a moment (a slow disk) says so, rather than leaving
+    // the note looking as if nothing happened.
+    let notice: string | undefined;
+    const noticeTimer = setTimeout(() => { notice = toast.loading(`Inserting ${chosen.name}…`); }, 200);
     let raw: string;
     try {
       raw = await readTemplate(chosen);
@@ -51,6 +55,9 @@ export function useVaultTemplateInsert({ viewRef, filePath }: UseVaultTemplateIn
       console.warn("Failed to read template:", err?.message || err);
       toast.error(`Couldn't read template ${chosen.name}`);
       return;
+    } finally {
+      clearTimeout(noticeTimer);
+      if (notice) toast.dismiss(notice);
     }
     const meta = filePath === "draft" ? undefined : store.get(atom_fileMetadata)[filePath];
     const title = meta ? noteDisplayTitle(meta, false) : "";

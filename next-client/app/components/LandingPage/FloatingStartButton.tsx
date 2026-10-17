@@ -46,9 +46,9 @@ export default function FloatingStartButton({ heroRef, onStart }: FloatingStartB
       }`}
       style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 1.25rem)" }}
     >
-      <div className="glass-panel pointer-events-auto flex items-center gap-4 rounded-full border border-edge-subtle p-1.5 shadow-lg sm:pl-5">
+      <div className="glass-panel pointer-events-auto flex items-center gap-4 rounded-xl border border-edge-subtle p-1.5 shadow-lg sm:pl-5">
         <p className="hidden text-ui-footnote text-fg-muted sm:block">No account. Your notes stay on your device.</p>
-        <Button variant="hero" onClick={onStart} className="!h-10 !rounded-full !px-6">
+        <Button variant="hero" onClick={onStart} className="!h-10 !px-6">
           Start Writing
         </Button>
       </div>

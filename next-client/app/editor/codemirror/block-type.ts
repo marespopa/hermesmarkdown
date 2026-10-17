@@ -33,7 +33,7 @@ export function blockTypeAt(state: EditorState): BlockType {
   return parseBlockLine(state.doc.lineAt(state.selection.main.head).text).type;
 }
 
-function markerFor(type: BlockType, indent: string, index: number): string {
+export function markerFor(type: BlockType, indent: string, index: number): string {
   if (type === "text") return "";
   if (type === "quote") return "> ";
   if (type.startsWith("h")) return `${"#".repeat(Number(type.slice(1)))} `;

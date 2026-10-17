@@ -14,7 +14,7 @@ interface DraftImportDialogProps {
 // Asks before an imported file replaces a draft that already has text.
 export default function DraftImportDialog({ pendingDraft, onConfirm, onCancel }: DraftImportDialogProps) {
   return (
-    <DialogModal isOpened={pendingDraft !== null} onClose={onCancel} styles="!rounded-[32px] !backdrop-blur-2xl !bg-paper-light/80 dark:!bg-paper-dark/80">
+    <DialogModal isOpened={pendingDraft !== null} onClose={onCancel} styles="!rounded-xl !backdrop-blur-2xl !bg-paper-light/80 dark:!bg-paper-dark/80">
       <div className="flex flex-col gap-6 text-center py-4 px-2">
         <p className="text-lg font-bold tracking-tight">
           Overwrite draft with <br/><span className="text-sage italic">&quot;{pendingDraft?.name}&quot;</span>?

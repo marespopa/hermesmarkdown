@@ -3,15 +3,19 @@
 import React, { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { usePathname } from "next/navigation";
+import { HiOutlineSearch } from "react-icons/hi";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import { atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { atom_isVaultPending, atom_isVaultRestoring } from "@/app/atoms/vault-atoms";
+import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { formatShortcut } from "@/app/utils/platform";
 import BrowserVaultDialog from "./BrowserVaultDialog";
 import GitHubVaultDialog from "./GitHubVaultDialog";
 import NewVaultDialog from "./NewVaultDialog";
-import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
+import Button from "@/app/components/Button";
+import Tooltip from "@/app/components/Tooltip";
+import { PANE_ACTION_BUTTON_CLASS, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 import PaneToolbarButton from "./PaneToolbarButton";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 
@@ -22,6 +26,7 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
   return (!event.altKey && event.key === "\\") || (event.altKey && event.code === "KeyS");
 }
 
+
 // One frame for every /editor route (editor layout, inside VaultAccessGate):
 // the same sidebar on the editor and every page (Tasks,
 // Templates, Trash, Files, Settings), so moving between them never changes
@@ -29,21 +34,23 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
 // mobile has no sidebar. Flat, as a plain writing app: the sidebar is a
 // panel on the window's edge and the content (the editor page, or a
 // ShellPage) fills the rest, starting at `--content-left` (the open
-// sidebar's width, else 0), so it is pushed over, never covered. While the
-// chrome is faded for typing, `.editor-frame` drops that to 0 (editor.scss)
-// so the page slides into the sidebar's room. While
+// sidebar's width, else 0), so it is pushed over, never covered. While
 // the sidebar is hidden, a Show sidebar button sits in the top-left corner
-// of the pages (the editor has its own, in the pane toolbar).
+// of every page, the editor too (it has no toolbar). On the editor a
+// palette button (search icon and Ctrl/Cmd+K) sits in the top-right corner
+// (the pages have their own SearchPill), so the page itself stays bare. Nothing
+// hides on its own: the sidebar opens and closes only when you toggle it,
+// remembered.
 export default function EditorShell({ children }: { children: ReactNode }) {
   const isMobileChrome = useIsMobileChrome();
-  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
   const sidebarWidth = useAtomValue(atom_sidebarWidth);
   const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
   const isVaultPending = useAtomValue(atom_isVaultPending);
   const isVaultLocked = isVaultRestoring || isVaultPending;
   const hasSidebar = !isMobileChrome && !isVaultLocked;
-  const onWorkspace = pathname === "/editor";
+  const onEditor = usePathname() === "/editor";
+  const { open: openCommandPalette } = useCommandPalette();
 
   useEffect(() => {
     if (!hasSidebar) return;
@@ -59,18 +66,18 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   const frame = { "--content-left": `${hasSidebar && sidebarOpen ? sidebarWidth : 0}px` } as CSSProperties;
 
   return (
-    <div className="editor-frame contents" style={frame}>
+    <div className="contents" style={frame}>
       {children}
       {hasSidebar && (
-        // A wrapper takes the fade (typing-chrome): the sidebar's own
-        // transition is its slide. The room it takes is --content-left, above.
-        <div className="typing-chrome fixed inset-y-0 left-0 w-0 z-30">
+        // The sidebar slides in and out of this zero-width wrapper; the room
+        // it takes is --content-left, above.
+        <div className="fixed inset-y-0 left-0 w-0 z-30">
           <WorkspaceSidebar />
         </div>
       )}
-      {hasSidebar && !sidebarOpen && !onWorkspace && (
+      {hasSidebar && !sidebarOpen && (
         <div
-          className={`${PANE_SECTION_CLASS} typing-chrome fixed top-1.5 left-2 !ml-0 z-30`}
+          className={`${PANE_SECTION_CLASS} fixed top-1.5 left-2 !ml-0 z-30`}
         >
           <PaneToolbarButton
             icon={<VscLayoutSidebarLeftOff size={PANE_ICON_SIZE} />}
@@ -80,6 +87,24 @@ export default function EditorShell({ children }: { children: ReactNode }) {
             tooltipPosition="bottom-start"
             onClick={() => setSidebarOpen(true)}
           />
+        </div>
+      )}
+      {hasSidebar && onEditor && (
+        // The way into the command palette, the center of the app: every
+        // note and command (as Ctrl/Cmd+K).
+        <div className={`${PANE_SECTION_CLASS} fixed top-1.5 right-2 !ml-0 z-30`}>
+          <Tooltip label="Go to a note or command" position="bottom-end" portal>
+            <Button
+              variant="unstyled"
+              aria-label="Search or run a command"
+              aria-keyshortcuts="Control+K Meta+K"
+              onClick={() => openCommandPalette()}
+              className={`${PANE_ACTION_BUTTON_CLASS} !w-auto gap-1.5 px-2.5`}
+            >
+              <HiOutlineSearch size={14} aria-hidden="true" />
+              <span className="text-ui-caption tabular-nums">{formatShortcut("K")}</span>
+            </Button>
+          </Tooltip>
         </div>
       )}
       <NewVaultDialog />

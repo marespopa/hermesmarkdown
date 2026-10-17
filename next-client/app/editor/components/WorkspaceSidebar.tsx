@@ -8,6 +8,7 @@ import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import SidebarFiles from "./sidebar/SidebarFiles";
 import SidebarHeader from "./sidebar/SidebarHeader";
+import SidebarOpenNotes from "./sidebar/SidebarOpenNotes";
 import SidebarOutline from "./sidebar/SidebarOutline";
 import { useSidebarNavigation } from "./sidebar/use-sidebar-navigation";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
@@ -18,10 +19,10 @@ const NO_TAGS: string[] = [];
 
 // The window's sidebar (desktop), the same on every /editor route
 // (EditorShell hosts it), and kept to the library: the vault (a switcher),
-// New note and Hide; the note in front's Outline; the vault's Files.
-// Everything else (Home, All Notes, Tags, Tasks, Templates, Trash, Settings,
-// Export, search) is the command palette's (Ctrl/Cmd+K, SearchPill) or the
-// toolbar's More menu. A plain panel in the chrome colour with a hairline
+// New note and Hide; the note in front's Outline; and the vault's Files.
+// Everything else (Home, All Notes, Tags, Tasks, Templates, Trash, Export,
+// Settings, Documentation, search) is the command palette's (Ctrl/Cmd+K,
+// SearchPill) or the toolbar's More menu. A plain panel in the chrome colour with a hairline
 // edge; it takes room, pushing the page over (EditorShell), and slides out
 // when hidden. It stays open until you close it (`atom_sidebarOpen`: its
 // header's button, Escape inside it or Ctrl/Cmd+\; shown again from the
@@ -97,6 +98,7 @@ export default function WorkspaceSidebar() {
       <SidebarHeader onNewNote={navigation.newNote} onHide={() => setOpen(false)} />
 
       <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-1">
+        <SidebarOpenNotes onEditor={onWorkspace} onOpen={navigation.openOpenNote} />
         {onWorkspace && activeTabPath && (
           // The note is already in front: its pane just moves the caret there.
           <SidebarOutline path={activeTabPath} onJump={(line) => setPendingScrollTarget({ path: activeTabPath, line })} />

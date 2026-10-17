@@ -35,6 +35,7 @@ function getShortcutGroups(): ShortcutGroup[] {
         { label: "Show Files (outside a note)", keys: formatShortcut("B") },
         { label: "Show / hide sidebar", keys: `${formatShortcut("\\")} or ${formatShortcut("S", { alt: true })}` },
         { label: "Sentence focus on / off", keys: formatShortcut("F", { alt: true }) },
+        { label: "Ask or Edit with AI (AI features on)", keys: formatShortcut("J") },
         { label: "AI Chat (with an AI key)", keys: formatShortcut("B", { shift: true }) },
         { label: "Pin / unpin in the command palette", keys: formatShortcut("D") },
         { label: "Close dialog", keys: "Esc" },
@@ -102,7 +103,7 @@ export default function KeyboardShortcutsOverlay() {
       panelClassName={
         isMobileChrome
           ? "flex-1 flex flex-col bg-chrome animate-in slide-in-from-bottom duration-overlay-panel"
-          : "w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] flex flex-col glass-panel rounded-2xl overflow-hidden"
+          : "w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] flex flex-col glass-panel rounded-xl overflow-hidden"
       }
       ariaLabelledBy="keyboard-shortcuts-title"
     >

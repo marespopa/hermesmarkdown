@@ -236,6 +236,23 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     (name: string, entry: TemplateEntry) => createLinkedNote(name, entry),
     [createLinkedNote],
   );
+  // The palette's `~` templates (Ctrl/Cmd+Enter, or Enter with no note
+  // open): asks the new note's name, then creates it from `entry` in the
+  // New Notes folder (or the name's own folder) and opens it. A note of that
+  // name already there opens unchanged. Resolves to its path, or null.
+  const createNoteFromTemplate = useCallback(async (entry: TemplateEntry): Promise<string | null> => {
+    const name = await dialog.prompt("Name the new note", entry.name, "New note from template");
+    if (typeof name !== "string" || !name.trim()) return null;
+    const parsed = parseMissingLink(name);
+    if (!parsed) {
+      toast.error(`Can't create a note named "${name.trim()}"`);
+      return null;
+    }
+    const expanded = await linkedNoteText(entry, parsed.baseName);
+    if (!expanded) return null;
+    const created = await writeNewNote(parsed.folder ?? newNotesFolder(), parsed.baseName, expanded);
+    return created?.path ?? null;
+  }, [dialog, newNotesFolder, linkedNoteText, writeNewNote]);
   // `name` ends in `.board` (boardBaseName).
   const createLinkedBoard = useCallback((name: string) => createLinkedNote(name, "board"), [createLinkedNote]);
 
@@ -245,6 +262,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     createTemplate,
     createWikiLinkFile,
     createLinkedNoteFromTemplate,
+    createNoteFromTemplate,
     createLinkedBoard,
   };
 }

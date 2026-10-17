@@ -48,7 +48,7 @@ export const AIReviewDialog: React.FC<AIReviewDialogProps> = ({
         <Button
           variant="icon"
           onClick={() => setIsEditing((v) => !v)}
-          className="p-1.5 rounded-lg text-neutral-400 hover:text-sage hover:bg-sage/10 transition-colors"
+          className="p-1.5 rounded-lg text-neutral-400 hover:text-fg hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
           title={isEditing ? "Preview diff" : "Edit suggestion"}
         >
           {isEditing ? <HiOutlineCheck size={15} /> : <HiOutlinePencil size={15} />}
@@ -59,12 +59,12 @@ export const AIReviewDialog: React.FC<AIReviewDialogProps> = ({
         <textarea
           value={editedSuggestion}
           onChange={(e) => setEditedSuggestion(e.target.value)}
-          className="w-full rounded-2xl border border-beige dark:border-clay bg-paper-light dark:bg-paper-dark-surface p-4 max-h-[60vh] lg:max-h-[65vh] overflow-y-auto font-mono text-ui-footnote leading-relaxed resize-none outline-none focus:ring-2 focus:ring-sage/30"
+          className="w-full rounded-xl border border-beige dark:border-clay bg-paper-light dark:bg-paper-dark-surface p-4 max-h-[60vh] lg:max-h-[65vh] overflow-y-auto font-mono text-ui-footnote leading-relaxed resize-none outline-none focus:ring-2 focus:ring-sage/30"
           rows={12}
           autoFocus
         />
       ) : (
-        <div className="rounded-2xl border border-beige dark:border-clay bg-paper-light dark:bg-paper-dark-surface p-4 max-h-[60vh] lg:max-h-[65vh] overflow-y-auto whitespace-pre-wrap font-mono text-ui-footnote leading-relaxed">
+        <div className="rounded-xl border border-beige dark:border-clay bg-paper-light dark:bg-paper-dark-surface p-4 max-h-[60vh] lg:max-h-[65vh] overflow-y-auto whitespace-pre-wrap font-mono text-ui-footnote leading-relaxed">
           {tokens.map((token, idx) => {
             if (token.type === "removed") {
               return (

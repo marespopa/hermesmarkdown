@@ -39,18 +39,17 @@ export const atom_showWordCount = atomWithStorage<boolean>("showWordCount", fals
 // Lets the editor's text column fill the sheet instead of stopping at the
 // reading width (--editor-measure, editor-typography.scss). On by default.
 export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
-// Focus (Settings → Editor): "hide" fades the pane header, sidebar and
-// mobile file bar while you type, and moving the mouse brings them back
-// (hooks/use-fade-chrome-while-typing.ts); "dim" does that too, and also
-// fades every paragraph but the caret's and keeps the caret line centred
-// (codemirror/flow-mode.ts); "sentence" is "dim" narrowed to the caret's
-// sentence. "hide" by default.
-export const FOCUS_MODES = ["off", "hide", "dim", "sentence"] as const;
+// Focus (Settings → Editor): "dim" fades every paragraph but the caret's
+// and keeps the caret line centred (codemirror/flow-mode.ts); "sentence" is
+// "dim" narrowed to the caret's sentence. Off by default. Focus never hides
+// the interface: the sidebar and the toolbar go away only when you close
+// them. A "hide" saved by an older version reads as "off".
+export const FOCUS_MODES = ["off", "dim", "sentence"] as const;
 export type FocusMode = (typeof FOCUS_MODES)[number];
-export const atom_focusMode = atomWithChoiceStorage<FocusMode>("focusMode", FOCUS_MODES, "hide");
+export const atom_focusMode = atomWithChoiceStorage<FocusMode>("focusMode", FOCUS_MODES, "off");
 // Toggle Sentence Focus (Ctrl/Cmd+Alt+F): sentence focus on, or back to the
-// level used before it ("hide" when there was none).
-const atom_focusBeforeSentence = atom<FocusMode>("hide");
+// level used before it ("off" when there was none).
+const atom_focusBeforeSentence = atom<FocusMode>("off");
 export const atom_toggleSentenceFocus = atom(null, (get, set) => {
   const current = get(atom_focusMode);
   if (current === "sentence") {
@@ -61,7 +60,7 @@ export const atom_toggleSentenceFocus = atom(null, (get, set) => {
   set(atom_focusMode, "sentence");
 });
 // The window's sidebar (desktop): open notes and the vault's file tree, on the
-// leading edge. Hidden by default; toggled from the toolbar or Ctrl/Cmd+Alt+S.
+// leading edge. Hidden by default; toggled from its corner button, Ctrl/Cmd+\\ or Ctrl/Cmd+Alt+S.
 export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
 export const SIDEBAR_MIN_WIDTH = 200;
 export const SIDEBAR_MAX_WIDTH = 420;
@@ -81,9 +80,11 @@ export const UI_FONT_STACK =
 export const DUOSPACE_FONT_STACK = `var(--font-duospace), ${MONO_FONT_STACK}`;
 // The proportional writing face (fonts.ts) falls back to the sans stack.
 export const QUATTRO_FONT_STACK = `var(--font-quattro), ${UI_FONT_STACK}`;
+// The writing face: Quattro, proportional, by default, so a note reads as a
+// page rather than code. Geist Mono and Duospace are a pick away.
 export const atom_editorFontFamily = atomWithStorage<string>(
   "editorFontFamily",
-  MONO_FONT_STACK,
+  QUATTRO_FONT_STACK,
 );
 // Saved choices from older versions move to their closest current equivalent:
 // IBM Plex Mono to Geist Mono; for writing, Inter, Plus Jakarta Sans and

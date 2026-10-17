@@ -223,6 +223,11 @@ export const baseTheme = EditorView.theme({
     textOverflow: "ellipsis",
     opacity: "0.8",
   },
+  // The note's title in the collapsed row, by value: ink, not the row's grey.
+  ".cm-frontmatter-summary-keys .cm-frontmatter-title": {
+    color: "var(--fg)",
+    fontWeight: "500",
+  },
   // Status and tag values in the collapsed row (frontmatter-fold.ts): tag
   // pills sized to the row; a click goes to the row, which expands.
   ".cm-frontmatter-summary-keys .cm-frontmatter-chip": {
@@ -422,6 +427,20 @@ export const slashMenuTheme = EditorView.theme({
     fontSize: "14px",
     lineHeight: "1.3",
     color: "var(--fg)",
+  },
+  // Section headers ("Basic blocks", "Insert", …) while the whole list shows.
+  ".cm-tooltip.cm-tooltip-autocomplete > ul > completion-section": {
+    display: "block",
+    padding: "8px 10px 4px",
+    border: "none",
+    opacity: 1,
+    fontSize: "11px",
+    lineHeight: "13px",
+    fontWeight: "600",
+    color: "var(--fg-faint)",
+  },
+  ".cm-tooltip.cm-tooltip-autocomplete > ul > completion-section:not(:first-child)": {
+    marginTop: "4px",
   },
   ".cm-tooltip-autocomplete ul li[aria-selected]": {
     backgroundColor: "color-mix(in srgb, var(--clay) 14%, transparent)",

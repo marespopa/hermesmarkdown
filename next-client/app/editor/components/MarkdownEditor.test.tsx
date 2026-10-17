@@ -241,7 +241,7 @@ describe("MarkdownEditor", () => {
       expect(range).not.toBeNull();
       expect(isFrontmatterFolded(view.state)).toBe(true);
       // The block becomes its one-line summary row.
-      expect(container.querySelector(".cm-content")?.textContent).toBe("Properties· titleBody content");
+      expect(container.querySelector(".cm-content")?.textContent).toBe("Properties· TestBody content");
     });
 
     act(() => {
@@ -271,7 +271,7 @@ describe("MarkdownEditor", () => {
     await waitForEditor(container);
     await waitFor(() => expect(isFrontmatterFolded(getView(container).state)).toBe(true));
 
-    const summary = await screen.findByRole("button", { name: "Show properties: #a, title" });
+    const summary = await screen.findByRole("button", { name: "Show properties: Test, #a" });
     expect(summary).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(summary);
     await waitFor(() => expect(isFrontmatterFolded(getView(container).state)).toBe(false));

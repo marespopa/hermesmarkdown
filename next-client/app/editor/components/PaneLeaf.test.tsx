@@ -11,11 +11,13 @@ import {
   atom_workspaceLayout,
 } from "@/app/atoms/atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import { atom_liveHandles } from "@/app/atoms/file-atoms";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 import React from "react";
 
 const push = vi.fn();
+const renameFile = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
   usePathname: () => "/editor",
@@ -27,6 +29,7 @@ vi.mock("@/app/hooks/use-file-system", () => ({
     openOrCreateLink: vi.fn(),
     saveFile: vi.fn(),
     exportFile: vi.fn(),
+    renameFile,
   }),
 }));
 
@@ -77,10 +80,10 @@ describe("PaneLeaf Tab Indicators", () => {
 
     const dot = screen.getByTitle("Unsaved changes");
     expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-amber-500");
+    expect(dot).toHaveClass("bg-task-hold");
   });
 
-  it("renders a pulsing blue dot when file is saving", () => {
+  it("renders a pulsing dot when file is saving", () => {
     const initialValues = [
       [atom_activePaneId, "pane-1"],
       [atom_openFiles, { 
@@ -97,11 +100,11 @@ describe("PaneLeaf Tab Indicators", () => {
 
     const dot = screen.getByTitle("Saving…");
     expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-sage");
+    expect(dot).toHaveClass("bg-fg-faint");
     expect(dot).toHaveClass("animate-pulse");
   });
 
-  it("shows close button (not a dot) when file is saved", () => {
+  it("shows no dot when the note is saved", () => {
     const initialValues = [
       [atom_activePaneId, "pane-1"],
       [atom_openFiles, {
@@ -116,11 +119,9 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    // Saved state reverts to showing the close button, not a status dot.
-    // The close button's label is exposed via aria-label + a hover Tooltip,
-    // not a title attribute.
+    // Saved needs no glance: the title shows no dot.
     expect(screen.queryByTitle("Saved")).not.toBeInTheDocument();
-    expect(screen.getAllByLabelText("Close tab").length).toBeGreaterThan(0);
+    expect(screen.getByText("file1")).toBeInTheDocument();
   });
 
   it("renders a red dot when there is a save error", () => {
@@ -140,7 +141,7 @@ describe("PaneLeaf Tab Indicators", () => {
 
     const dot = screen.getByTitle("Disk full");
     expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-red-500");
+    expect(dot).toHaveClass("bg-danger");
   });
 
   it("does not show saving indicator for other files", () => {
@@ -159,12 +160,11 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    // file1.md should not have a saving dot
-    const dots = screen.queryAllByTitle("Saving…");
-    expect(dots.length).toBe(1); // Only for file2.md
+    // Only the note in front has a title, so another note's save shows nothing.
+    expect(screen.queryAllByTitle("Saving…")).toHaveLength(0);
   });
 
-  it("shows the tab strip for a single note", () => {
+  it("shows the note's title instead of a tab strip", () => {
     render(
       <TestProvider initialValues={[
         [atom_activePaneId, "pane-1"],
@@ -174,46 +174,9 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    expect(screen.getByLabelText("Close tab")).toBeInTheDocument();
-    expect(screen.queryByRole("banner", { name: "Note" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^Save/ })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Tab options" })).not.toBeInTheDocument();
-  });
-
-  it("keeps the essentials in the toolbar and the rest in the More menu", () => {
-    render(
-      <TestProvider initialValues={[
-        [atom_activePaneId, "pane-1"],
-        [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
-        [atom_workspaceLayout, { rootContainer: { ...mockLeaf, openFilePaths: ["file1.md"] } }],
-      ]}>
-        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
-      </TestProvider>
-    );
-
-    expect(screen.getByRole("button", { name: /^Save/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Search or create a note…" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Sidebar" })).toBeInTheDocument();
-    for (const name of ["Copy Markdown", "Split Right", "Settings", "Show toolbar"]) {
-      expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
-    }
-
-    const more = screen.getByRole("button", { name: "More" });
-    expect(more).toHaveAttribute("aria-haspopup", "menu");
-    fireEvent.click(more);
-    expect(more).toHaveAttribute("aria-expanded", "true");
-    const menu = screen.getByRole("menu", { name: "More" });
-    for (const name of ["Copy Markdown", "Export as PDF", "Export as HTML", "Settings", "Documentation"]) {
-      expect(within(menu).getByRole("menuitem", { name: new RegExp(`^${name}`) })).toBeInTheDocument();
-    }
-    for (const name of ["Split Right", "Token Cost", "Hide Toolbar"]) {
-      expect(within(menu).queryByRole("menuitem", { name })).not.toBeInTheDocument();
-    }
-
-    // Clicking the button again closes the menu instead of reopening it.
-    fireEvent.mouseDown(more);
-    fireEvent.click(more);
-    expect(screen.queryByRole("menu", { name: "More" })).not.toBeInTheDocument();
+    expect(screen.getByText("file1")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Close tab")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Save/ })).not.toBeInTheDocument();
   });
 
   it("offers Copy Markdown in the active tab's menu", () => {
@@ -227,11 +190,11 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    fireEvent.contextMenu(screen.getByText("file1.md"));
+    fireEvent.contextMenu(screen.getByText("file1"));
     expect(screen.getByText("Copy Markdown")).toBeInTheDocument();
   });
 
-  it("pins a tab's note to Home from the tab menu, and unpins it", () => {
+  it("pins the note from its title's menu, and unpins it", () => {
     localStorage.clear();
     render(
       <TestProvider initialValues={[
@@ -247,37 +210,12 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    fireEvent.contextMenu(screen.getByText("file2.md"));
+    fireEvent.contextMenu(screen.getByText("file1"));
     fireEvent.click(screen.getByRole("menuitem", { name: "Pin Note" }));
-    fireEvent.contextMenu(screen.getByText("file2.md"));
+    fireEvent.contextMenu(screen.getByText("file1"));
     fireEvent.click(screen.getByRole("menuitem", { name: "Unpin Note" }));
-    fireEvent.contextMenu(screen.getByText("file2.md"));
+    fireEvent.contextMenu(screen.getByText("file1"));
     expect(screen.getByRole("menuitem", { name: "Pin Note" })).toBeInTheDocument();
-  });
-
-  it("pins the open note from the More menu, which shows whether it's pinned", () => {
-    localStorage.clear();
-    render(
-      <TestProvider initialValues={[
-        [atom_activePaneId, "pane-1"],
-        [atom_vaultHandle, { name: "Vault" } as FileSystemDirectoryHandle],
-        [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
-        [atom_workspaceLayout, { rootContainer: { ...mockLeaf, openFilePaths: ["file1.md"] } }],
-      ]}>
-        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
-      </TestProvider>
-    );
-
-    const more = screen.getByRole("button", { name: "More" });
-    fireEvent.click(more);
-    fireEvent.click(within(screen.getByRole("menu", { name: "More" })).getByRole("menuitem", { name: "Pin Note" }));
-    fireEvent.click(more);
-    expect(within(screen.getByRole("menu", { name: "More" })).getByRole("menuitem", { name: "Unpin Note" })).toBeInTheDocument();
-    // The tab's own menu agrees.
-    fireEvent.mouseDown(more);
-    fireEvent.click(more);
-    fireEvent.contextMenu(screen.getByText("file1.md"));
-    expect(screen.getByRole("menuitem", { name: "Unpin Note" })).toBeInTheDocument();
   });
 
   it("offers no pin for a tab with no vault open", () => {
@@ -291,29 +229,8 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    fireEvent.contextMenu(screen.getByText("file1.md"));
+    fireEvent.contextMenu(screen.getByText("file1"));
     expect(screen.queryByRole("menuitem", { name: "Pin Note" })).not.toBeInTheDocument();
-  });
-
-  it("opens settings, help and the tools from the More menu", () => {
-    render(
-      <TestProvider initialValues={[
-        [atom_activePaneId, "pane-1"],
-        [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
-        [atom_workspaceLayout, { rootContainer: { ...mockLeaf, openFilePaths: ["file1.md"] } }],
-      ]}>
-        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
-      </TestProvider>
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Settings" }));
-    expect(push).toHaveBeenCalledWith("/editor/settings");
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Documentation" }));
-    expect(push).toHaveBeenCalledWith("/documentation");
-    fireEvent.click(screen.getByRole("button", { name: "More" }));
-    expect(screen.queryByRole("menuitem", { name: "Free Tools" })).not.toBeInTheDocument();
   });
 
   it("guides an empty pane toward creating or opening a note", () => {
@@ -337,7 +254,7 @@ describe("PaneLeaf Tab Indicators", () => {
     const commandButton = screen.getByRole("button", { name: /Browse all commands/ });
     expect(commandButton).toHaveTextContent(formatShortcut("K", { shift: true }));
   });
-  it("lets a tab with unsaved changes be closed by click", () => {
+  it("closes a note with unsaved changes from its title's menu", () => {
     render(
       <TestProvider initialValues={[
         [atom_activePaneId, "pane-1"],
@@ -348,7 +265,8 @@ describe("PaneLeaf Tab Indicators", () => {
     );
 
     expect(screen.getByTitle("Unsaved changes")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Close tab" })).toBeInTheDocument();
+    fireEvent.contextMenu(screen.getByText("file1"));
+    expect(screen.getByRole("menuitem", { name: "Close" })).toBeInTheDocument();
   });
 });
 
@@ -379,63 +297,79 @@ describe("PaneLeaf in a split", () => {
       </TestProvider>
     );
 
-  it("shows window-wide actions once, in the top-right pane, whichever pane has focus", () => {
-    for (const activePaneId of ["left", "right"]) {
-      renderSplit(activePaneId);
-      const [leftPane, rightPane] = Array.from(document.querySelectorAll("[data-pane-id]")) as HTMLElement[];
-
-      // Home lives in the sidebar, not the toolbar.
-      expect(within(leftPane).queryByRole("button", { name: "Home feed" })).not.toBeInTheDocument();
-      expect(within(rightPane).getByRole("button", { name: "More" })).toBeInTheDocument();
-      expect(within(leftPane).queryByRole("button", { name: "More" })).not.toBeInTheDocument();
-      // The sidebar toggle stays in the top-left pane.
-      expect(within(leftPane).getByRole("button", { name: "Sidebar" })).toBeInTheDocument();
-      expect(within(rightPane).queryByRole("button", { name: "Sidebar" })).not.toBeInTheDocument();
-      cleanup();
-    }
-  });
-
-  it("keeps each pane's own actions in an unfocused pane", () => {
+  it("gives each pane its own title, and no toolbar", () => {
     renderSplit("right");
-    const leftPane = document.querySelector('[data-pane-id="left"]') as HTMLElement;
+    const [leftPane, rightPane] = Array.from(document.querySelectorAll("[data-pane-id]")) as HTMLElement[];
 
-    expect(within(leftPane).getByRole("button", { name: /^Save/ })).toBeInTheDocument();
-    expect(within(leftPane).getByRole("button", { name: "Close Pane" })).toBeInTheDocument();
+    expect(within(leftPane).getByText("a", { selector: "span" })).toBeInTheDocument();
+    expect(within(rightPane).getByText("b", { selector: "span" })).toBeInTheDocument();
+    for (const name of ["More", "Close Pane", "Sidebar", "Hide toolbar"]) {
+      expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
+    }
   });
 });
 
-describe("PaneLeaf toolbar menu and sidebar toggle", () => {
-  const leaf = { id: "solo", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
+describe("PaneLeaf title rename", () => {
+  const leaf = { id: "solo", type: "editor" as const, openFilePaths: ["notes/a.md"], activeFilePath: "notes/a.md", isPinned: false };
+  const handle = { kind: "file", name: "a.md" };
 
   beforeEach(() => {
     cleanup();
+    renameFile.mockClear();
     localStorage.removeItem("sidebarOpen");
   });
 
-  const renderSolo = () =>
+  const renderNote = () =>
     render(
       <TestProvider initialValues={[
         [atom_activePaneId, "solo"],
-        [atom_openFiles, { "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" } }],
+        [atom_openFiles, { "notes/a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" } }],
         [atom_workspaceLayout, { rootContainer: leaf }],
+        [atom_vaultHandle, { name: "vault" }],
+        [atom_liveHandles("notes/a.md"), handle],
       ]}>
         <PaneLeaf leaf={leaf} />
       </TestProvider>
     );
 
-  it("shows icon-only buttons, and no toolbar menu on right-click", () => {
-    renderSolo();
-    expect(screen.getByRole("button", { name: /^Save/ })).not.toHaveTextContent("Save");
-
-    fireEvent.contextMenu(screen.getByRole("toolbar", { name: "Pane" }));
-    expect(screen.queryByRole("menu", { name: "Toolbar" })).not.toBeInTheDocument();
+  it("shows the note's folder before its name", () => {
+    renderNote();
+    expect(screen.getByTitle("notes")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "a. Rename" })).toBeInTheDocument();
   });
 
-  it("shows the sidebar from a toolbar button that only appears while it's hidden", () => {
-    renderSolo();
-    fireEvent.click(screen.getByRole("button", { name: "Sidebar" }));
-    // Open, the sidebar's own header carries the hide button.
-    expect(screen.queryByRole("button", { name: "Sidebar" })).not.toBeInTheDocument();
+  it("renames the note in place from its title", () => {
+    renderNote();
+    fireEvent.click(screen.getByRole("button", { name: "a. Rename" }));
+    const field = screen.getByRole("textbox", { name: "Note name" });
+    fireEvent.change(field, { target: { value: "b" } });
+    fireEvent.keyDown(field, { key: "Enter" });
+    expect(renameFile).toHaveBeenCalledWith(handle, "b.md", "notes/a.md");
+    expect(screen.queryByRole("textbox", { name: "Note name" })).not.toBeInTheDocument();
   });
 
+  it("backs out of a rename with Escape", () => {
+    renderNote();
+    fireEvent.click(screen.getByRole("button", { name: "a. Rename" }));
+    const field = screen.getByRole("textbox", { name: "Note name" });
+    fireEvent.change(field, { target: { value: "b" } });
+    fireEvent.keyDown(field, { key: "Escape" });
+    expect(renameFile).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "a. Rename" })).toBeInTheDocument();
+  });
+
+  it("can't rename the draft", () => {
+    const draft = { ...leaf, openFilePaths: ["draft"], activeFilePath: "draft" };
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "solo"],
+        [atom_openFiles, { draft: { fileName: "Untitled", content: "A", lastSavedContent: "A" } }],
+        [atom_workspaceLayout, { rootContainer: draft }],
+        [atom_vaultHandle, { name: "vault" }],
+      ]}>
+        <PaneLeaf leaf={draft} />
+      </TestProvider>
+    );
+    expect(screen.queryByRole("button", { name: /Rename/ })).not.toBeInTheDocument();
+  });
 });

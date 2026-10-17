@@ -39,7 +39,16 @@ export default function SettingsCommands() {
     { id: "toggle-invisibles", label: "Toggle Invisibles", category: "Settings", keywords: "whitespace empty lines blank spaces tabs pilcrow", action: () => setShowInvisibles(!showInvisibles) },
     { id: "toggle-word-count", label: "Toggle Word Count", category: "Settings", keywords: "words stats statistics length counter", action: () => setShowWordCount(!showWordCount) },
     { id: "toggle-vim-mode", label: "Toggle Vim Mode", category: "Settings", keywords: "editor keybindings modal", action: () => setVimMode(!vimMode) },
-    // Focus: one command per level; the current one is disabled.
+    // Focus Mode on (dim other paragraphs) or off: the palette's top-level
+    // switch. The levels follow, one command each; the current one is disabled.
+    {
+      id: "toggle-focus-mode",
+      label: "Toggle Focus Mode",
+      description: focusMode === "off" ? "Dim every paragraph but the caret's" : "Turn Focus off",
+      category: "Settings",
+      keywords: "focus paper zen distraction free dim paragraph typewriter flow writing",
+      action: () => setFocusMode(focusMode === "off" ? "dim" : "off"),
+    },
     ...FOCUS_OPTIONS.map(({ label, value }) => ({
       id: `set-focus-${value}`,
       label: `Focus: ${label}`,

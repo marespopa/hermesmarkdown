@@ -17,7 +17,7 @@ const ENCODINGS: { value: TokenizerEncoding; label: string; models: string }[] =
   { value: "cl100k_base", label: "cl100k", models: "GPT-4, GPT-3.5 Turbo" },
 ];
 
-const PANEL = "rounded-2xl border border-edge-subtle bg-surface-raised";
+const PANEL = "rounded-xl border border-edge-subtle bg-surface-raised";
 const CHIP = "h-8 px-3 rounded-full";
 
 function Stat({ label, value }: { label: string; value: string }) {

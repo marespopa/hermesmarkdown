@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { TEMPLATES } from "../constants";
 import { buildEditorCommands } from "./build-editor-commands";
 import type { EditorCommandContext } from "./use-editor-command-context";
@@ -179,7 +180,7 @@ describe("buildEditorCommands", () => {
       "new-folder",
       "export-vault-zip",
       "import-into-vault",
-      "ai-builder",
+      "ai-menu",
       "focus-editor",
       "undo-edit",
       "redo-edit",
@@ -220,20 +221,6 @@ describe("buildEditorCommands", () => {
       "tasks-view-today",
       "tasks-view-upcoming",
       "tasks-view-all",
-      "ai-improve",
-      "ai-expand",
-      "ai-fix-grammar",
-      "ai-shorten",
-      "ai-tone-formal",
-      "ai-tone-casual",
-      "ai-tone-direct",
-      "ai-tone-polished",
-      "ai-summarize",
-      "ai-extract-tasks",
-      "ai-outline",
-      "ai-title",
-      "ai-continue",
-      "ai-explain",
     ]);
   });
 
@@ -268,13 +255,29 @@ describe("buildEditorCommands", () => {
     expect(commands.some((command) => command.id.startsWith("ai-"))).toBe(false);
   });
 
+  it("collapses the AI actions into one menu of four modes", () => {
+    const commands = buildEditorCommands(createContext());
+    const menu = commands.find((command) => command.id === "ai-menu");
+    expect(menu?.label).toBe("Ask or Edit with AI…");
+    expect(menu?.subcommands?.map((mode) => mode.label)).toEqual([
+      "Freeform Prompt", "Improve Writing", "Summarize / Structure", "Insert Element",
+    ]);
+    const mode = (label: string) => menu?.subcommands?.find((item) => item.label === label)?.subcommands?.map((item) => item.id);
+    expect(mode("Improve Writing")).toEqual(expect.arrayContaining(["ai-improve", "ai-fix-grammar", "ai-tone-formal"]));
+    expect(mode("Summarize / Structure")).toEqual(expect.arrayContaining(["ai-summarize", "ai-extract-tasks", "ai-outline"]));
+    expect(mode("Insert Element")).toEqual(["ai-table", "ai-diagram", "ai-formula"]);
+    expect(commands.filter((command) => command.category === "AI").map((command) => command.id)).toEqual(["ai-menu"]);
+  });
+
   it("preserves availability reasons and action callbacks", () => {
     const context = createContext({
       activeEditorView: null,
       isAiConfigured: false,
     });
     const commands = buildEditorCommands(context);
-    const command = (id: string) => commands.find((candidate) => candidate.id === id);
+    // The AI actions sit inside the AI menu's modes.
+    const flatten = (list: Command[]): Command[] => list.flatMap((item) => [item, ...flatten(item.subcommands ?? [])]);
+    const command = (id: string) => flatten(commands).find((candidate) => candidate.id === id);
 
     expect(command("format-bold")?.disabledReason).toBe("Open and focus a note first");
     expect(command("ai-improve")?.disabledReason).toBe("Add an API key in Settings → AI Features");

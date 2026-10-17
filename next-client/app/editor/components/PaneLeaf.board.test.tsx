@@ -68,12 +68,12 @@ describe("PaneLeaf with a board", () => {
 
   it("offers Edit as Markdown for a board only, and toggles to Open as Board", () => {
     renderPane(BOARD);
-    fireEvent.contextMenu(screen.getByText("Sketch.md"));
+    fireEvent.contextMenu(screen.getByText("Sketch"));
     fireEvent.click(screen.getByText("Edit as Markdown"));
     expect(screen.getByTestId("markdown-editor")).toBeInTheDocument();
     expect(screen.queryByTestId("board-view")).not.toBeInTheDocument();
 
-    fireEvent.contextMenu(screen.getByText("Sketch.md"));
+    fireEvent.contextMenu(screen.getByText("Sketch"));
     expect(screen.getByText("Open as Board")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Open as Board"));
     expect(screen.getByTestId("board-view")).toBeInTheDocument();
@@ -81,7 +81,7 @@ describe("PaneLeaf with a board", () => {
 
   it("doesn't offer Edit as Markdown for a normal note", () => {
     renderPane("# Plain note", "Plain.md");
-    fireEvent.contextMenu(screen.getByText("Plain.md"));
+    fireEvent.contextMenu(screen.getByText("Plain"));
     expect(screen.queryByText("Edit as Markdown")).not.toBeInTheDocument();
   });
 

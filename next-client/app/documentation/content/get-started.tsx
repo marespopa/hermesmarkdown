@@ -206,8 +206,8 @@ export const getStartedGroup: Group = {
         <>
           <p>
             To pin a note, right-click it in the sidebar&apos;s <strong>Files</strong> and choose{" "}
-            <strong>Pin</strong>, choose <strong>Pin Note</strong> in the toolbar&apos;s{" "}
-            <strong>More</strong> menu or in its tab&apos;s right-click menu, run <strong>Pin Note</strong>{" "}
+            <strong>Pin</strong>, choose <strong>Pin Note</strong> in the note&apos;s right-click menu (on the button at
+            the top of the page), run <strong>Pin Note</strong>{" "}
             from the command palette, or press <code>CTRL/CMD+D</code> on it in the palette. Pinned notes
             are listed first, newest pin first, at the top of <strong>Files</strong> and in the command
             palette before you type anything. The same places unpin it. Each vault keeps its own pins;
@@ -232,28 +232,33 @@ export const getStartedGroup: Group = {
             keyboard shortcuts, and the slash command menu.
           </p>
           <p>
-            The toolbar at the top shows your open notes as tabs, even when only one is open. Each pane keeps
-            up to 20 open: opening another closes the one you looked at least recently, never one with unsaved
-            changes. On the left:
-            the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, the search bar (the
-            command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
-            Markdown, Export as PDF, Export as HTML, Pin Note, Settings and Documentation — every one of them is also in the command palette.
+            There&apos;s no toolbar. A quiet header sits at the top left of the page: the note&apos;s folder, its
+            name, and a small dot while it has unsaved changes, is saving, or couldn&apos;t save. It fades out
+            while you type and comes back when you move the pointer. Click the name to rename the note in
+            place: press <code>Enter</code> or click away to keep the new name, <code>Esc</code> to back out. The
+            button in the top-right corner (or <code>CTRL/CMD+K</code>) opens the command palette, where every note
+            and command is: Save, Copy Markdown, Export as PDF or HTML, Pin Note, Settings, Documentation, Ask or Edit with AI and the rest.
+            Each pane keeps up to 20 notes
+            open behind the one in front, listed in the sidebar&apos;s Open Notes: opening another closes the
+            one you looked at least recently, never one with unsaved changes, and <code>CTRL/CMD+1–9</code>{" "}
+            jumps between them (each of the first nine shows its shortcut there). Right-click a note there, or
+            the note&apos;s name at the top, for its menu: Copy Markdown, Open in pane, Pin Note, Rename…, Move
+            to Trash, and Close, Close Others or Close All. While the sidebar is hidden, its button sits in the top-left corner.
           </p>
           <p>
-            Toolbar buttons are icons; hover one to see its name and shortcut.
+            <strong>Search</strong> is the way around: the button in the editor&apos;s top-right corner, the search bar at
+            the top of every page, or <code>CTRL/CMD+K</code> anywhere, opens the command palette to find a note, run a command or go to
+            a page: Home, All Notes, Tags, Tasks, Templates, Trash or Settings. <code>CTRL/CMD+SHIFT+F</code>{" "}
+            searches the text of your notes. Every page has{" "}
+            <strong>← Editor</strong> at the top left to come back to the note you were on.
           </p>
           <p>
-            <strong>Search</strong> is the way around: the search bar in the toolbar and at the top of every page,
-            or <code>CTRL/CMD+K</code> anywhere, opens the command palette to find a note, run a command or go to
-            a page: Home, All Notes, Tags, Tasks, Templates, Trash or Settings. Every page has{" "}
-            <strong>← Editor</strong> at the top left to come back to the note you were on. While you write, the
-            toolbar and its search bar fade away; move the mouse to bring them back.
-          </p>
-          <p>
-            The <strong>sidebar</strong> is only your library, the same on every editor page: its header names the
+            The <strong>sidebar</strong> is your library, the same on every editor page: its header names the
             vault (click it to switch to a recent vault or open another) beside <strong>New note</strong> and the
-            button that hides it; below come the <strong>Outline</strong> of the note in front (click a heading to
-            jump to it) and <strong>Files</strong>, the vault&apos;s tree, each with a chevron to fold or unfold it.
+            button that hides it; below come <strong>Open Notes</strong> (the notes open in the pane you&apos;re in:
+            click one to switch to it, or its × to close it; a dot marks unsaved changes), the{" "}
+            <strong>Outline</strong> of the note in front (click a heading to jump to it) and <strong>Files</strong>,
+            the vault&apos;s tree. A line sets each section apart, and each has a chevron to fold or unfold it.
             It sits beside the page and pushes it over rather than covering it.
           </p>
           <p>
@@ -291,18 +296,19 @@ export const getStartedGroup: Group = {
               { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings · / note text" },
               { label: "Commands on or off", value: "The > button in the search field" },
               { label: "Files controls", value: "New note, new folder, and file actions" },
+              { label: "Ask or Edit with AI…", value: "CTRL/CMD+J" },
               { label: "AI Chat", value: "CTRL+SHIFT+B" },
               { label: "Keyboard shortcuts", value: "Show Keyboard Shortcuts command" },
             ]}
           />
           <p>
-            Open several files side by side: run <strong>Split Pane Right</strong> from the command palette (or <strong>Open in pane</strong> on a tab),
-            drag tabs between panes, and resize with the divider.
+            Open several files side by side: run <strong>Split Pane Right</strong> from the command palette (or <strong>Open in pane</strong> in the title&apos;s right-click menu),
+            and resize with the divider. Each pane has its own title.
           </p>
           <p>
-            To be alone with the text, set{" "}
-            <TextLink href="#focus">Focus</TextLink> under Settings →
-            Editor: the toolbar, tabs and sidebar fade while you type and come back when you move the mouse.
+            To be alone with the text, close the sidebar (<code>CTRL/CMD+\</code>); it stays how you leave
+            it. See{" "}
+            <TextLink href="#focus">Focus</TextLink> to dim everything but the paragraph you&apos;re writing.
           </p>
         </>
       ),
