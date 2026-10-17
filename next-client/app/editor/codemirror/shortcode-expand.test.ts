@@ -47,6 +47,13 @@ describe("shortcodeExpandPlugin", () => {
     expect(view.state.doc.toString()).toBe("{{date}} {{time}}");
   });
 
+  it("expands emoji shortcodes", async () => {
+    const view = makeView();
+    await type(view, "{rocket}");
+    await type(view, "{question}");
+    expect(view.state.doc.toString()).toBe("🚀 ❓ ");
+  });
+
   it("expands ..d to today's date", async () => {
     const view = makeView();
     await type(view, "..d");

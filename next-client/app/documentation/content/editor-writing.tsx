@@ -55,7 +55,7 @@ export const editorWritingItems: Subsection[] = [
             { label: "..tomorrow · ..yesterday", value: "Relative dates" },
             { label: "{iso} · {unix} · {day} · {week} · ..log", value: "Timestamps & log prefix" },
             { label: "{todo} · {done} · {table}", value: "Task line / starter table" },
-            { label: "{check} {error} {idea} {warn} {fix} {bug} {star}", value: "Emoji" },
+            { label: "{check} {error} {idea} {warn} {fix} {bug} {star} {note} {question} {info} {pin} {link} {fire} {rocket} {party} {target} {lock} {key}", value: "Emoji" },
             { label: "calc(2*21)=", value: "Inline calculation" },
           ]}
         />
