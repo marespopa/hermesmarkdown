@@ -1,4 +1,5 @@
 import Link from "next/link";
+import TextLink from "@/app/components/TextLink";
 
 const BackgroundGraphics = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none" aria-hidden="true">
@@ -114,14 +115,14 @@ export default function MarkdownEditorPage() {
                         {editor.name}
                       </Link>
                     ) : (
-                      <a
+                      <TextLink
                         href={editor.href}
+                        variant="quiet"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:text-sage transition-colors"
                       >
                         {editor.name}
-                      </a>
+                      </TextLink>
                     )}
                   </h3>
                   <span className="text-ui-footnote uppercase tracking-[0.15em] font-bold opacity-40">

@@ -5,13 +5,10 @@ type ButtonVariant =
   | "secondary"
   | "outlined"
   | "icon"
-  | "icon-bg"
   | "tertiary"
   | "hero"
   | "warning"
   | "bare"
-  | "fab-action"
-  | "fab-toggle"
   | "pill-icon"
   | "menu-item"
   // No visual styling beyond the shared focus ring: for bespoke controls that
@@ -84,20 +81,11 @@ const variantStyles = (variant: ButtonVariant): string => {
     case "icon":
       return `${baseStyles} w-10 h-10 p-0 bg-transparent border-none text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark hover:bg-paper-softgray dark:hover:bg-paper-dark-surface hover:scale-105 rounded-full active:scale-95`;
 
-    case "icon-bg":
-      return `${baseStyles} w-10 h-10 p-0 bg-paper-light border-beige text-ink-muted hover:bg-paper-softgray hover:border-stone hover:text-ink-light dark:bg-paper-dark-surface dark:border-clay dark:text-ink-dark dark:hover:bg-paper-dark-surface ${surfaceLift} hover:scale-105 active:scale-95`;
-
     case "tertiary":
       return `${baseStyles} h-11 px-3 bg-transparent border-none text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark`;
 
     case "bare":
       return "inline-flex items-center justify-center font-sans font-medium text-ui-footnote hover:underline focus:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded transition-all duration-200 ease-out";
-
-    case "fab-action":
-      return "inline-flex items-center gap-2 px-4 py-2 font-sans font-medium text-ui-footnote text-ink-muted dark:text-stone hover:text-ink-light dark:hover:text-ink-dark transition-all duration-200 ease-out group focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-lg disabled:opacity-30 disabled:pointer-events-none select-none active:scale-95";
-
-    case "fab-toggle":
-      return "inline-flex items-center justify-center px-4 py-2 font-sans font-medium text-ui-footnote border-l border-edge transition-all duration-200 ease-out min-w-[48px] hover:bg-paper-softgray dark:hover:bg-paper-dark-surface focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-30 disabled:pointer-events-none select-none active:scale-95";
 
     case "menu-item":
       return "w-full inline-flex items-center justify-start gap-3 px-3 py-2.5 font-sans font-medium text-ui-footnote text-ink-muted dark:text-stone hover:bg-paper-softgray dark:hover:bg-paper-dark-surface hover:text-ink-light dark:hover:text-ink-dark transition-all duration-200 ease-out rounded-xl group focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-30 disabled:pointer-events-none select-none active:scale-[0.97]";

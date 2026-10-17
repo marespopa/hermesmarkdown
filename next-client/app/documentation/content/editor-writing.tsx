@@ -1,4 +1,5 @@
 import { Callout, Code, KV, type Subsection } from "../doc-primitives";
+import TextLink from "@/app/components/TextLink";
 
 // Documentation content: Editor group, writing features (writing through slash menu).
 export const editorWritingItems: Subsection[] = [
@@ -61,7 +62,7 @@ export const editorWritingItems: Subsection[] = [
         />
         <p>
           For running totals that keep their working, use the{" "}
-          <a href="#inline-calculator" className="text-accent hover:underline">inline calculator</a> instead.
+          <TextLink href="#inline-calculator">inline calculator</TextLink> instead.
         </p>
         <Callout type="tip">
           Click actions work without touching raw syntax — CTRL+Click on a task&apos;s box moves it on a status,
@@ -258,7 +259,7 @@ export const editorWritingItems: Subsection[] = [
         </Callout>
         <p>
           AI features know this syntax too. See{" "}
-          <a href="#ai-table-formulas" className="text-accent hover:underline">AI &amp; table formulas</a>.
+          <TextLink href="#ai-table-formulas">AI &amp; table formulas</TextLink>.
         </p>
       </>
     ),
@@ -434,7 +435,7 @@ graph TD
         <p>
           <code>CTRL+Click</code> a wikilink to open the note. A link to
           a note that doesn&apos;t exist yet creates it, after you confirm or pick a template; see{" "}
-          <a href="#templates" className="text-accent hover:underline">Templates</a>.
+          <TextLink href="#templates">Templates</TextLink>.
         </p>
       </>
     ),

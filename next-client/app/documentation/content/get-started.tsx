@@ -1,5 +1,6 @@
 import { Callout, KV, type Group } from "../doc-primitives";
 import { keyboardShortcutsItem } from "./keyboard-shortcuts";
+import TextLink from "@/app/components/TextLink";
 
 // Documentation content: Get Started group.
 export const getStartedGroup: Group = {
@@ -17,7 +18,7 @@ export const getStartedGroup: Group = {
             Every modern browser can run HermesMarkdown. What differs is where a vault can live:
             opening a folder on disk needs the File System Access API, which only Chromium-based
             browsers implement. Everywhere else, you use a{" "}
-            <a href="#browser-vaults" className="text-accent hover:underline">browser vault</a>.
+            <TextLink href="#browser-vaults">browser vault</TextLink>.
           </p>
           <KV
             rows={[
@@ -99,7 +100,7 @@ export const getStartedGroup: Group = {
           </p>
           <p>
             Opening folders on disk needs a Chromium-based browser. In Safari and Firefox, choose{" "}
-            <a href="#browser-vaults" className="text-accent hover:underline">a browser vault</a>{" "}
+            <TextLink href="#browser-vaults">a browser vault</TextLink>{" "}
             instead.
           </p>
           <Callout type="warning">
@@ -152,7 +153,7 @@ export const getStartedGroup: Group = {
             at the bottom asks where your notes live. <strong>Choose Folder…</strong> picks a folder (you can make a new one in the
             picker) and saves the note there; in browsers that can&apos;t open folders it reads{" "}
             <strong>Keep Notes in This Browser</strong> and creates a{" "}
-            <a href="#browser-vaults" className="text-accent hover:underline">browser vault</a>.{" "}
+            <TextLink href="#browser-vaults">browser vault</TextLink>.{" "}
             <strong>Not Now</strong> shrinks it to a small &ldquo;Not saved to a folder&rdquo; mark;
             until you choose, the note is kept only in this browser. <code>CTRL/CMD+S</code> asks the
             same question.
@@ -184,7 +185,7 @@ export const getStartedGroup: Group = {
           <p>
             No template or metadata is added. Want frontmatter? Type <code>/frontmatter</code> to
             insert a starter block. See{" "}
-            <a href="#frontmatter" className="text-accent hover:underline">Frontmatter</a>.
+            <TextLink href="#frontmatter">Frontmatter</TextLink>.
             Autosave can be changed under{" "}
             Settings → Files → Autosave: <strong>After Delay</strong> (the default, two seconds after
             you stop typing) or{" "}
@@ -300,7 +301,7 @@ export const getStartedGroup: Group = {
           </p>
           <p>
             To be alone with the text, set{" "}
-            <a href="#focus" className="text-accent hover:underline">Focus</a> under Settings →
+            <TextLink href="#focus">Focus</TextLink> under Settings →
             Editor: the toolbar, tabs and sidebar fade while you type and come back when you move the mouse.
           </p>
         </>

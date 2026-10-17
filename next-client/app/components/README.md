@@ -31,6 +31,7 @@ Shared, app-agnostic UI primitives. Each component has a sibling `<Name>.md` (st
 | [ServiceWorkerRegister](ServiceWorkerRegister.md) | Registers the offline service worker; new versions activate silently. |
 | [ThemeProvider](ThemeProvider.md) | Applies the resolved light/dark theme class to `<html>` in a layout effect, so the theme switches without a flash. |
 | [TemplateDialog](TemplateDialog/README.md) | Vault template picker and "Fill in the template" questions form, driven by `atom_templateDialog` via `useTemplateDialog()`; `TemplateDialogHost` is mounted once in `MainPage`. |
+| [TextLink](TextLink/TextLink.md) | The one link primitive: site paths through `next/link`, same-page anchors and mail as plain links, other sites in a new tab; `inline` (ink, underlined), `quiet` and `unstyled` variants, all with the shared focus ring. |
 | [Toast](Toast/Toast.md) | Persistent call-to-action card with icon, title, action button, and an optional inline name field. |
 | [Toastr](Toastr/Toastr.md) | Styled `react-hot-toast` helpers for transient success, error, copy, and save-state notifications. |
 | [Toggle](Toggle/Toggle.md) | Accessible on/off switch for boolean settings. |

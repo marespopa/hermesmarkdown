@@ -1,5 +1,6 @@
 import { TOOLS, toolPath } from "@/app/tools/content/tools";
 import { Callout, KV, type Subsection } from "../doc-primitives";
+import TextLink from "@/app/components/TextLink";
 
 // Documentation content: Get started group, the free tool pages (/tools).
 export const freeToolsItems: Subsection[] = [
@@ -11,15 +12,15 @@ export const freeToolsItems: Subsection[] = [
     body: (
       <>
         <p>
-          The <a href="/tools" className="text-accent hover:underline">tools page</a> lists them.
+          The <TextLink href="/tools">tools page</TextLink> lists them.
           Each one is useful on its own: copy the result, or download it.
         </p>
         <KV
           rows={TOOLS.map((tool) => ({
             label: (
-              <a href={toolPath(tool)} className="text-accent hover:underline">
+              <TextLink href={toolPath(tool)}>
                 {tool.name}
-              </a>
+              </TextLink>
             ),
             value: tool.lead,
           }))}

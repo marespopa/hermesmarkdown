@@ -5,6 +5,7 @@ import Link from "next/link";
 import { HiChevronDown } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import type { Group } from "../doc-primitives";
+import TextLink from "@/app/components/TextLink";
 
 interface DocsLocalNavProps {
   groups: Group[];
@@ -25,22 +26,23 @@ export default function DocsLocalNav({ groups, activeGroupId, top, onOpenContent
       style={{ top }}
     >
       <div className="container max-w-screen-xl flex h-12 items-center gap-6">
-        <a href="#top" className="shrink-0 text-[19px] font-semibold tracking-tight text-fg">
+        <TextLink href="#top" variant="unstyled" className="shrink-0 text-[19px] font-semibold tracking-tight text-fg">
           Documentation
-        </a>
+        </TextLink>
 
         <ul className="hidden lg:flex flex-1 items-center justify-end gap-5">
           {groups.map((group) => (
             <li key={group.id}>
-              <a
+              <TextLink
                 href={`#${group.id}`}
+                variant="unstyled"
                 aria-current={group.id === activeGroupId ? "location" : undefined}
                 className={`text-[13px] transition-colors ${
                   group.id === activeGroupId ? "text-fg" : "text-fg-muted hover:text-fg"
                 }`}
               >
                 {group.label}
-              </a>
+              </TextLink>
             </li>
           ))}
         </ul>

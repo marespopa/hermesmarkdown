@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import ProductHuntBadge from "./components/ProductHuntBadge";
 import ToolsCafeBadge from "./components/ToolsCafeBadge";
 import ClientOnly from "../ClientOnly";
 import packageJson from "@/package.json";
 import { TOOLS, toolPath } from "@/app/tools/content/tools";
+import TextLink from "@/app/components/TextLink";
 
 export default function Footer() {
   return (
@@ -25,13 +25,13 @@ export default function Footer() {
               </div>
               <div className="text-ui-footnote uppercase tracking-[0.2em] font-bold opacity-50">
                 Made with <span className="text-red-500">🧡</span> by{" "}
-                <a
-                  className="hover:opacity-100 transition-opacity underline underline-offset-4"
+                <TextLink
                   href="https://www.marespopa.com/"
-                  target="_blank"
+                  variant="quiet"
+                  className="underline underline-offset-4"
                 >
                   Mares Popa
-                </a>
+                </TextLink>
               </div>
             </div>
             
@@ -39,23 +39,21 @@ export default function Footer() {
                <div className="flex flex-col gap-4">
                   <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold opacity-50">Product</h3>
                   <ul className="flex flex-col gap-2 text-ui-subhead font-medium">
-                    <li><Link href="/" className="hover:text-sage transition-colors">Editor</Link></li>
-                    <li><Link href="/documentation" className="hover:text-sage transition-colors">Documentation</Link></li>
-                    <li><Link href="/markdown-editor" className="hover:text-sage transition-colors">What Is a Markdown Editor?</Link></li>
-                    <li><Link href="/what-is-hermes-md" className="hover:text-sage transition-colors">HermesMarkdown vs Hermes Agent</Link></li>
-                    <li><Link href="/tools" className="hover:text-sage transition-colors">Free Tools</Link></li>
+                    <li><TextLink href="/" variant="quiet">Editor</TextLink></li>
+                    <li><TextLink href="/documentation" variant="quiet">Documentation</TextLink></li>
+                    <li><TextLink href="/markdown-editor" variant="quiet">What Is a Markdown Editor?</TextLink></li>
+                    <li><TextLink href="/what-is-hermes-md" variant="quiet">HermesMarkdown vs Hermes Agent</TextLink></li>
+                    <li><TextLink href="/tools" variant="quiet">Free Tools</TextLink></li>
                     {TOOLS.map((tool) => (
-                      <li key={tool.slug}><Link href={toolPath(tool)} className="hover:text-sage transition-colors">{tool.name}</Link></li>
+                      <li key={tool.slug}><TextLink href={toolPath(tool)} variant="quiet">{tool.name}</TextLink></li>
                     ))}
                     <li>
-                      <a
+                      <TextLink
                         href="https://github.com/marespopa/hermesmarkdown/issues"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:text-sage transition-colors"
+                        variant="quiet"
                       >
                         Issues
-                      </a>
+                      </TextLink>
                     </li>
                   </ul>
                </div>
@@ -63,8 +61,8 @@ export default function Footer() {
                <div className="flex flex-col gap-4">
                   <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold opacity-50">Legal</h3>
                   <ul className="flex flex-col gap-2 text-ui-subhead font-medium">
-                    <li><Link href="/privacy-policy" className="hover:text-sage transition-colors">Privacy</Link></li>
-                    <li><Link href="/terms" className="hover:text-sage transition-colors">Terms</Link></li>
+                    <li><TextLink href="/privacy-policy" variant="quiet">Privacy</TextLink></li>
+                    <li><TextLink href="/terms" variant="quiet">Terms</TextLink></li>
                   </ul>
                </div>
 
@@ -73,15 +71,13 @@ export default function Footer() {
                   <div className="flex flex-col gap-4">
                     <ProductHuntBadge />
                     <ToolsCafeBadge />
-                    <Link href="/contact" className="text-ui-subhead font-medium hover:text-sage transition-colors">Contact Us</Link>
-                    <a
+                    <TextLink href="/contact" variant="quiet" className="text-ui-subhead font-medium">Contact Us</TextLink>
+                    <TextLink
                       href="https://github.com/marespopa/hermesmarkdown"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-ui-subhead font-medium hover:text-sage transition-colors"
+                      variant="quiet" className="text-ui-subhead font-medium"
                     >
                       Source Code
-                    </a>
+                    </TextLink>
                   </div>
                </div>
             </div>

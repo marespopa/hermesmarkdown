@@ -8,10 +8,12 @@ Audit of every button in `app/` (tests excluded), 2026-10-17. Source of truth: `
 |---|---|---|
 | `<button>` | 0 | Fixed: the four left (Input's show/hide and clear, Toggle, Toast dismiss) now use `Button variant="unstyled"`. The clear button also gained `aria-label="Clear"`. |
 | `<input type="file">` | 4 | Allowed (hidden pickers, AGENT_RULES). |
-| `<a>` | 27 | Inline links in documentation, legal pages and a footer badge. There is no reusable link component yet; most repeat `text-accent hover:underline`. |
+| `<a>` | 0 | Fixed: every link uses `TextLink` (`inline` ink and underlined, `quiet`, `unstyled`); site paths go through `next/link`. |
 | Clickable `<div>` | 2 | `OverlayBackdrop` (mouse dismiss; Escape covers keyboard) and a `stopPropagation` wrapper in `SectionHeader`. Both acceptable. |
 
 ## Variants
+
+`icon-bg`, `fab-action` and `fab-toggle` were never used and have been removed.
 
 | Variant | Uses | Size | Hover | Focus | Notes |
 |---|---|---|---|---|---|
@@ -26,7 +28,6 @@ Audit of every button in `app/` (tests excluded), 2026-10-17. Source of truth: `
 | `menu-item` | 6 | full width | fill | ring-2 sage | |
 | `hero` | 4 | h-12 | lift | ring-2 sage | Accent fill (`bg-accent`) breaks the accent rule. |
 | `warning` | 2 | h-11 | darker amber + lift | ring-2 sage | Hard-coded Tailwind amber, not a theme token. |
-| `icon-bg`, `fab-action`, `fab-toggle` | 0 | | | | Unused: remove. |
 
 Other shared buttons: `PaneToolbarButton` / `PANE_ACTION_BUTTON_CLASS` (pane header, 28×28, raised pill on hover, hairline sage ring with no offset), `Toggle` (switch role, `aria-checked`, now the shared ring), `SegmentedControl` options (fill swap).
 
@@ -46,7 +47,5 @@ There are four motion styles across the variants: lift (translate + shadow), sca
 1. Remove lift and scale from all variants; hover = fill or text darkening only.
 2. Make `hero` an ink fill (as `primary`) and `pill-icon` hover ink, keeping the accent for the caret, focus and selection.
 3. Move `warning` to a theme token (a destructive colour per palette).
-4. Delete `icon-bg`, `fab-action`, `fab-toggle`.
-5. Add a `TextLink` component and move the 27 raw `<a>` to it.
-6. Raise `icon` and `pill-icon` to a 44px hit area on touch.
-7. Turn the most repeated `unstyled` patterns (list rows, chips, menu rows) into variants.
+4. Raise `icon` and `pill-icon` to a 44px hit area on touch.
+5. Turn the most repeated `unstyled` patterns (list rows, chips, menu rows) into variants.

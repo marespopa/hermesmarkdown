@@ -1,13 +1,13 @@
 import Image from "next/image";
 import React from "react";
+import TextLink from "@/app/components/TextLink";
 
 export default function ProductHuntBadge() {
   return (
     <div className="flex justify-center items-start mt-2 sm:mt-0">
-      <a
+      <TextLink
         href="https://www.producthunt.com/products/hermesmd?utm_source=badge-follow&utm_medium=badge&utm_source=badge-hermesmd"
-        target="_blank"
-        rel="noopener noreferrer"
+        variant="unstyled"
       >
         <Image
           src="https://api.producthunt.com/widgets/embed-image/v1/follow.svg?product_id=553021&theme=dark"
@@ -17,7 +17,7 @@ export default function ProductHuntBadge() {
           style={{ width: "250px", height: "auto" }}
           unoptimized
         />
-      </a>
+      </TextLink>
     </div>
   );
 }

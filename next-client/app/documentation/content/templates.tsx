@@ -1,5 +1,6 @@
 import { Callout, Code, KV, type Subsection } from "../doc-primitives";
 import { templatePacksItem } from "./template-packs";
+import TextLink from "@/app/components/TextLink";
 
 const h4 = "text-[19px] font-semibold tracking-tight !mb-2 !mt-0";
 
@@ -18,7 +19,7 @@ export const templatesItems: Subsection[] = [
           <strong>New template</strong> on the Templates page, and give it a name. It starts with a
           heading for the note&apos;s title and a spot where you start typing; add what you need. If a
           template with that name already exists, it opens instead. For ready-made ones, add a{" "}
-          <a href="#template-packs" className="text-accent hover:underline">template pack</a>.
+          <TextLink href="#template-packs">template pack</TextLink>.
         </p>
         <p>
           Or turn a note you already like into one: run <strong>Save as template…</strong> from the
@@ -138,7 +139,7 @@ export const templatesItems: Subsection[] = [
           Use these in headings and links, for example in weekly, monthly or yearly notes. Frontmatter
           lines (author, status, …) are copied into each new note. Templates stay out of the Tasks
           page. AI Chat can write templates for you; see{" "}
-          <a href="#ai-templates" className="text-accent hover:underline">AI templates</a>.
+          <TextLink href="#ai-templates">AI templates</TextLink>.
         </p>
       </>
     ),

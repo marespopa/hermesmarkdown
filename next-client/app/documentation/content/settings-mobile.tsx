@@ -1,4 +1,5 @@
 import { Callout, KV, type Group } from "../doc-primitives";
+import TextLink from "@/app/components/TextLink";
 
 // Documentation content: Settings and Mobile groups.
 export const settingsGroup: Group = {
@@ -25,7 +26,7 @@ export const settingsGroup: Group = {
             <strong>Light Theme: …</strong> and <strong>Dark Theme: …</strong>. The
             editor font, text size and Full Width (on by default) are set under Settings →
             Appearance → Typography and apply to every pane in a split workspace. Vim mode and{" "}
-            <a href="#focus" className="text-accent hover:underline">Focus</a> are under Settings →
+            <TextLink href="#focus">Focus</TextLink> are under Settings →
             Editor. Word wrap, line numbers and invisibles (¶ on empty lines, dots for spaces) are
             command palette toggles: <strong>Toggle Word Wrap</strong>,{" "}
             <strong>Toggle Line Numbers</strong>, <strong>Toggle Invisibles</strong>.
@@ -67,8 +68,8 @@ export const settingsGroup: Group = {
           <p>
             Templates are always in <code>templates/</code> at the root of your vault, made the
             first time you need it: every <code>.md</code> file directly in it, or one folder down
-            (a <a href="#template-packs" className="text-accent hover:underline">template pack</a>), is a{" "}
-            <a href="#templates" className="text-accent hover:underline">template</a>.
+            (a <TextLink href="#template-packs">template pack</TextLink>), is a{" "}
+            <TextLink href="#templates">template</TextLink>.
           </p>
         </>
       ),
@@ -82,7 +83,7 @@ export const settingsGroup: Group = {
         <>
           <p>
             Every shortcut in HermesMarkdown is built in and not user-configurable. See{" "}
-            <a href="#keyboard-shortcuts" className="text-accent hover:underline">Keyboard shortcuts</a>{" "}
+            <TextLink href="#keyboard-shortcuts">Keyboard shortcuts</TextLink>{" "}
             for the full reference grouped by context.
           </p>
         </>
@@ -136,7 +137,7 @@ export const mobileGroup: Group = {
             to the home screen protects it, and <strong>Export vault as zip</strong> keeps a backup
             in Files. To import on iOS, pick a <code>.zip</code> or individual notes — folder picking
             isn&apos;t available there. See{" "}
-            <a href="#browser-vaults" className="text-accent hover:underline">Browser vaults</a>.
+            <TextLink href="#browser-vaults">Browser vaults</TextLink>.
           </Callout>
         </>
       ),
