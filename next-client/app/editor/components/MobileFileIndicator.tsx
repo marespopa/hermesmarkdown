@@ -11,7 +11,7 @@ import {
 } from "@/app/atoms/atoms";
 import { HiOutlineChevronDown, HiOutlineChatAlt2 } from "react-icons/hi";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
-import { SaveStateIcon, TabSaveState, statusMeta } from "./PaneTab";
+import { SaveStateIcon, type SaveState, statusMeta } from "./save-state";
 import Button from "@/app/components/Button";
 
 interface MobileFileIndicatorProps {
@@ -46,7 +46,7 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
   // the in-content frontmatter summary bar scrolls away with the rest.
   const fileState = activePath ? openFiles[activePath] : undefined;
   const isDirty = !!fileState && fileState.content !== fileState.lastSavedContent;
-  const saveState: TabSaveState =
+  const saveState: SaveState =
     saveStatus.path === activePath && saveStatus.state === "error"
       ? "error"
       : saveStatus.path === activePath && saveStatus.state === "saving"

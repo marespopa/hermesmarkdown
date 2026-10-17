@@ -15,7 +15,7 @@ const PARAGRAPHS = [
 ];
 
 // What the editor will show, outlined while the saved vault loads: the
-// sidebar (desktop, when it's open), the pane header with tab pills, and the
+// sidebar (desktop, when it's open), the pane's title bar, and the
 // note's text column with a title and a few paragraphs of placeholder lines,
 // the panes starting beside the sidebar as the real ones do. It mirrors the
 // real layout's classes (`PANE_HEADER_CLASS`, `.editor-canvas`,
@@ -46,13 +46,15 @@ function WorkspaceSkeleton({ sidebarOpen, sidebarWidth }: { sidebarOpen: boolean
     >
       <div className="app-sheet absolute inset-0 min-[769px]:left-[var(--skeleton-left)] overflow-hidden bg-surface flex flex-col">
         <div className={`${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT} max-[768px]:hidden`}>
-          {!sidebarOpen && <div className={`${PANE_SECTION_CLASS} !ml-0 mr-2 sm:mr-3 w-8`} />}
-          <div className="flex items-center gap-1 flex-1 px-2">
-            <div className={`h-8 w-32 rounded-lg ${BAR}`} />
-            <div className={`h-8 w-24 rounded-lg ${BAR}`} />
+          {/* The title bar: Show sidebar, the note's title in the middle,
+              the window's controls at the right. */}
+          <div className="flex flex-1 basis-0 items-center">
+            {!sidebarOpen && <div className={`${PANE_SECTION_CLASS} !ml-0 w-8`} />}
           </div>
-          <div className={`${PANE_SECTION_CLASS} w-20`} />
-          <div className={`${PANE_SECTION_CLASS} w-16`} />
+          <div className={`h-4 w-28 rounded-md ${BAR}`} />
+          <div className="flex flex-1 basis-0 items-center justify-end">
+            <div className={`${PANE_SECTION_CLASS} w-16`} />
+          </div>
         </div>
 
         <div className="editor-canvas flex-1 min-h-0 overflow-hidden">

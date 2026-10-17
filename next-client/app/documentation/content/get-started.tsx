@@ -207,7 +207,7 @@ export const getStartedGroup: Group = {
           <p>
             To pin a note, right-click it in the sidebar&apos;s <strong>Files</strong> and choose{" "}
             <strong>Pin</strong>, choose <strong>Pin Note</strong> in the toolbar&apos;s{" "}
-            <strong>More</strong> menu or in its tab&apos;s right-click menu, run <strong>Pin Note</strong>{" "}
+            <strong>More</strong> menu or in its title&apos;s right-click menu, run <strong>Pin Note</strong>{" "}
             from the command palette, or press <code>CTRL/CMD+D</code> on it in the palette. Pinned notes
             are listed first, newest pin first, at the top of <strong>Files</strong> and in the command
             palette before you type anything. The same places unpin it. Each vault keeps its own pins;
@@ -232,11 +232,14 @@ export const getStartedGroup: Group = {
             keyboard shortcuts, and the slash command menu.
           </p>
           <p>
-            The toolbar at the top shows your open notes as tabs, even when only one is open. Each pane keeps
-            up to 20 open: opening another closes the one you looked at least recently, never one with unsaved
-            changes. On the left:
-            the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, the search bar (the
-            command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
+            The toolbar at the top is quiet: the note in front, by name, with a small dot while it has
+            unsaved changes, is saving, or couldn&apos;t save. Click the name (or press <code>CTRL/CMD+K</code>)
+            to open the command palette, where every note and command is; right-click it for the
+            note&apos;s menu (Copy Markdown, Open in pane, Pin Note, Close). Each pane keeps up to 20
+            notes open behind the one in front: opening another closes the one you looked at least
+            recently, never one with unsaved changes, and <code>CTRL/CMD+1–9</code> jumps between them.
+            On the left: the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right:
+            AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
             Markdown, Export as PDF, Export as HTML, Pin Note, Settings and Documentation — every one of them is also in the command palette.
           </p>
           <p>
@@ -296,11 +299,11 @@ export const getStartedGroup: Group = {
             ]}
           />
           <p>
-            Open several files side by side: run <strong>Split Pane Right</strong> from the command palette (or <strong>Open in pane</strong> on a tab),
-            drag tabs between panes, and resize with the divider.
+            Open several files side by side: run <strong>Split Pane Right</strong> from the command palette (or <strong>Open in pane</strong> in the title&apos;s right-click menu),
+            and resize with the divider. Each pane has its own title.
           </p>
           <p>
-            To be alone with the text, close the sidebar and hide the tab bar (
+            To be alone with the text, close the sidebar and hide the toolbar (
             <code>CTRL/CMD+SHIFT+\</code>); both stay how you leave them. See{" "}
             <TextLink href="#focus">Focus</TextLink> to dim everything but the paragraph you&apos;re writing.
           </p>

@@ -7,7 +7,7 @@ Description: Compact mobile header chip showing the active file name and its sav
 - Persistence: None itself. It reads `localStorage["workspaceLayout"]` and `localStorage["openFiles"]` through the atoms.
 
 ## Dependencies
-- Core: `PaneTab` (`statusMeta`), `CommandPaletteContext`, `react-icons`.
+- Core: `save-state.tsx` (`statusMeta`, `SaveStateIcon`), `CommandPaletteContext`, `react-icons`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

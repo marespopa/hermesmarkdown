@@ -18,7 +18,7 @@ import { TabContextMenuItem } from "../components/TabContextMenu";
 import { useMaterializeDraft } from "./use-materialize-draft";
 import { flushBoardWrite } from "@/app/utils/board/board-flush";
 
-// Shared between the desktop pane tab bar and the mobile control rail so
+// Shared between the desktop pane toolbar and the mobile control rail so
 // Save/Copy/Close behavior stays a single source of truth even though the
 // two surfaces render completely different UI around it.
 export function usePaneFileActions(leaf: PanelLeaf | null) {

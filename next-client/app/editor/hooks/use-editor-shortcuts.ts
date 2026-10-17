@@ -67,7 +67,7 @@ export function useEditorShortcuts({
 
       // Find and replace in the active note (Ctrl/Cmd+F). The editor's own
       // keymap handles it while it has focus; this catches the key when focus
-      // is elsewhere (tab bar, sidebar, after the palette), which would
+      // is elsewhere (toolbar, sidebar, after the palette), which would
       // otherwise open the browser's find bar.
       if (
         (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey &&

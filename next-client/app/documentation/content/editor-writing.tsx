@@ -94,7 +94,7 @@ export const editorWritingItems: Subsection[] = [
     id: "focus",
     title: "Focus",
     lead: "Dim everything but the paragraph or sentence you're writing.",
-    keywords: "focus word count words hide interface chrome toolbar tabs tab bar sidebar collapse distraction free minimal typewriter scrolling dim paragraph sentence flow writing settings setup",
+    keywords: "focus word count words hide interface chrome toolbar tabs toolbar sidebar collapse distraction free minimal typewriter scrolling dim paragraph sentence flow writing settings setup",
     body: (
       <>
         <p>
@@ -113,10 +113,10 @@ export const editorWritingItems: Subsection[] = [
         />
         <p>
           Nothing hides while you type. To be alone with the text, close the sidebar (
-          <code>CTRL/CMD+\</code>) and hide the tab bar (<code>CTRL/CMD+SHIFT+\</code>, the{" "}
-          <strong>Hide tab bar</strong> button at the right of the toolbar, or{" "}
-          <strong>Toggle Tab Bar</strong>); the page takes their room, and both stay that way, across
-          reloads, until you bring them back. With the tab bar hidden, <strong>Show tab bar</strong>{" "}
+          <code>CTRL/CMD+\</code>) and hide the toolbar (<code>CTRL/CMD+SHIFT+\</code>, the{" "}
+          <strong>Hide toolbar</strong> button at the right of the toolbar, or{" "}
+          <strong>Toggle Toolbar</strong>); the page takes their room, and both stay that way, across
+          reloads, until you bring them back. With the toolbar hidden, <strong>Show toolbar</strong>{" "}
           sits in the top-right corner. The sidebar stays open until you close it; turn on{" "}
           <strong>Close Sidebar While Writing</strong> (Settings → Editor) to have it put away as soon
           as you type in a note.
@@ -376,7 +376,7 @@ graph TD
         </p>
         <KV
           rows={[
-            { label: "Edit as Markdown", value: "Right-click the tab (or use the palette's Edit Board as Markdown) to see the raw file" },
+            { label: "Edit as Markdown", value: "Right-click the board's title (or use the palette's Edit Board as Markdown) to see the raw file" },
             { label: "Open as Board", value: "Switch back from the raw file to the canvas" },
           ]}
         />
@@ -474,7 +474,7 @@ graph TD
           opens the menu there, so you can choose a note or type a file&apos;s path.
         </p>
         <p>
-          Embeds stay current: a note open in a tab shows its unsaved edits, and other files are
+          Embeds stay current: a note open in a pane shows its unsaved edits, and other files are
           checked again whenever you come back to the window, so a CSV you just changed in a
           spreadsheet app shows its new rows. Click a note&apos;s name above its embed to open it.
           Private notes stay hidden until you show them, and a board shows its caption.

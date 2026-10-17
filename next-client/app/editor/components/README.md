@@ -29,7 +29,6 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [MermaidViewer](MermaidViewer.md) | A rendered diagram with zoom, fit, drag-to-pan and SVG download; used by `MermaidDialog` and the Mermaid tool page (`app/tools/mermaid/`). |
 | [MobileFileIndicator](MobileFileIndicator.md) | Compact mobile header chip showing the active file name and its save state, with save, command palette, and AI chat shortcuts. |
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
-| [PaneActions](PaneActions.md) | One pane's toolbar section: Save, and Close Pane in a split. |
 | [board/](board/README.md) | Boards: Markdown notes holding an Excalidraw scene, shown as a canvas (`BoardViewLoader` → lazy `BoardView`, `BoardError`). |
 | [PaneLeaf](PaneLeaf.md) | One workspace pane: its header (tabs and toolbar) and the active file's editor (behind `PrivateNoteGate`). |
 | [PrivateNoteGate](PrivateNoteGate.md) | Wraps a pane's editor: shows `PrivateNoteVeil` instead of mounting it until a private note is revealed (per note or for the session). |
@@ -37,7 +36,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |
 | [PaneToolbarButton](PaneToolbarButton.md) | Icon-only toolbar button with a tooltip. |
 | [PaneWindowActions](PaneWindowActions.md) | Window-wide toolbar sections (Mode, Tools, More menu), shown once in the top-right pane. |
-| [PaneTab](PaneTab.md) | Draggable file tab with a leading close button, unsaved-changes dot, and shortcut hint; exports `SaveStateIcon`. |
+| [PaneTitle](PaneTitle.md) | The pane's quiet title in place of tabs: the note's name and a save dot; click opens the command palette, right-click the note's menu. `save-state.tsx` holds the save-state dot, icon and labels it shares with the mobile file bar. |
 | [PdfExport](PdfExport.md) | Mounts **Export as PDF** (palette and More menu): the focused note rendered with its `pdf_*` page setup, shown in the export dialog, and printed through the browser's dialog, on the device; also **Export as HTML**, a standalone `.html` download. |
 | [PdfExportDialog](PdfExportDialog.md) | The export dialog: the note's page setup beside a preview of its pages; Save as PDF… opens the print dialog. |
 | [TokenCostDialog](TokenCostDialog.md) | What sending the focused note to each AI model costs (o200k count, input prices); opened from the palette. |
@@ -45,7 +44,6 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [SectionHeader](SectionHeader.md) | Collapsible section header with a title, a chevron toggle, and an optional trailing action. |
 | [SelectionToolbar](SelectionToolbar.md) | Floating toolbar on a text selection, desktop and mobile: Turn into menu, Bold, Italic, Link, and Ask AI when AI is configured. |
 | [TabContextMenu](TabContextMenu.md) | The app's pop-up menu (tab, toolbar More, sidebar ⋯, Tasks page): at a point or right-aligned under a button, clamped to the viewport, arrow-key navigation. `menu-classes.ts` holds the shared menu look, also used by the file tree's `TreeContextMenu`. |
-| [TabStripScroller](TabStripScroller.md) | Horizontally scrolling tab strip that shows left/right scroll arrows at its end when the tabs overflow. |
 | [EmptyNoteTemplates](EmptyNoteTemplates.md) | Quick-start template pills under the first line of an empty note. |
 | [TemplateStrip](TemplateStrip.md) | Line at the top of a template note: field count, Add field, lint warnings. |
 | [TaskDialog](TaskDialog.md) | Form for building a task line (title, status, priority, due date, tags). |

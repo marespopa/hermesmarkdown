@@ -24,7 +24,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     setActiveFilePath,
     setActivePaneId,
     setSidebarOpen,
-    setTabBarVisible,
+    setToolbarVisible,
     setShowHiddenFiles,
     setTaskSearchQuery,
     setTasksGroupBy,
@@ -33,7 +33,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     showHiddenFiles,
     splitPane,
     sidebarOpen,
-    tabBarVisible,
+    toolbarVisible,
     vaultHandle,
     workspaceLayout,
   } = context;
@@ -115,11 +115,11 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       action: () => setSidebarOpen(!sidebarOpen),
     },
     {
-      id: "toggle-tab-bar",
-      label: "Toggle Tab Bar",
-      keywords: "tab bar tabs toolbar header show hide collapse",
+      id: "toggle-toolbar",
+      label: "Toggle Toolbar",
+      keywords: "toolbar title bar tab bar tabs header show hide collapse",
       shortcut: formatShortcut("\\", { shift: true }),
-      action: () => setTabBarVisible(!tabBarVisible),
+      action: () => setToolbarVisible(!toolbarVisible),
     },
   ];
 

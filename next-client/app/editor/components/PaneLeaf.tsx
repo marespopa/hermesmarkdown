@@ -6,19 +6,19 @@ import MarkdownEditor from "./MarkdownEditor";
 import PrivateNoteGate from "./PrivateNoteGate";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
-import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
-import { atom_sidebarOpen, atom_tabBarVisible } from "@/app/atoms/ui-atoms";
+import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_saveStatus, atom_workspaceLayout } from "@/app/atoms/atoms";
+import { atom_sidebarOpen, atom_toolbarVisible } from "@/app/atoms/ui-atoms";
 import { atom_pinnedNotePaths, atom_toggleNotePin } from "@/app/atoms/note-pin-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineCode, HiOutlineChevronDown } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineCode, HiOutlineChevronDown, HiOutlineXCircle } from "react-icons/hi";
 import BoardViewLoader from "./board/BoardViewLoader";
 import { isBoard } from "@/app/utils/board/is-board";
 import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
-import PaneTab, { TabSaveState } from "./PaneTab";
-import PaneActions from "./PaneActions";
+import PaneTitle from "./PaneTitle";
+import type { SaveState } from "./save-state";
 import PaneToolbarButton from "./PaneToolbarButton";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -26,10 +26,9 @@ import { formatShortcut } from "@/app/utils/platform";
 import { getFirstLeaf, getTopTrailingLeaf } from "@/app/atoms/utils";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
-import { useTabDragDrop } from "../hooks/use-tab-drag-drop";
 import PaneEmptyState from "./PaneEmptyState";
 import PaneWindowActions from "./PaneWindowActions";
-import TabStripScroller from "./TabStripScroller";
+import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { PANE_HEADER_CLASS, PANE_HEADER_HEIGHT, PANE_HEADER_INSET, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 
 interface PaneLeafProps {
@@ -41,7 +40,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [openFiles] = useAtom(atom_openFiles);
   const [, splitPane] = useAtom(atom_splitPane);
   const [, closePane] = useAtom(atom_closePane);
-  const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const saveStatus = useAtomValue(atom_saveStatus);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
@@ -64,9 +62,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const isBoardFile = React.useMemo(() => isBoard(filePath, content), [filePath, content]);
   const showBoard = isBoardFile && !boardMarkdownPaths.has(filePath);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
-  // The tab bar shows unless you hide it (remembered, atom_tabBarVisible).
-  const [tabBarVisible, setTabBarVisible] = useAtom(atom_tabBarVisible);
-  const showHeader = !isMobileChrome && tabBarVisible;
+  // The toolbar shows unless you hide it (remembered, atom_toolbarVisible).
+  const [toolbarVisible, setToolbarVisible] = useAtom(atom_toolbarVisible);
+  const showHeader = !isMobileChrome && toolbarVisible;
 
   // The editor remounts on every tab switch, except when the draft was just
   // saved as a file: that keeps the caret, scroll and undo history.
@@ -81,12 +79,12 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
   const isActive = activePaneId === leaf.id;
 
-  const { handleSave, handleCopy, closeTabWithAutosave, buildTabMenuItems } = usePaneFileActions(leaf);
+  const { handleCopy, buildTabMenuItems } = usePaneFileActions(leaf);
 
-  // Drives the toolbar's Save button.
+  // Drives the title's save dot.
   const activeFileState = leaf.activeFilePath ? openFiles[leaf.activeFilePath] : undefined;
   const activeIsDirty = !!activeFileState && activeFileState.content !== activeFileState.lastSavedContent;
-  const activeSaveState: TabSaveState =
+  const activeSaveState: SaveState =
     saveStatus.path === leaf.activeFilePath && saveStatus.state === "error"
       ? "error"
       : saveStatus.path === leaf.activeFilePath && saveStatus.state === "saving"
@@ -106,20 +104,14 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   };
 
   const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string } | null>(null);
-  const tabShortcutNumbers = React.useMemo(
-    () => new Map(
-      getWorkspaceTabs(workspaceLayout.rootContainer)
-        .slice(0, 9)
-        .map(({ paneId, filePath }, index) => [`${paneId}\0${filePath}`, index + 1]),
-    ),
-    [workspaceLayout],
-  );
+  const { open: openCommandPalette } = useCommandPalette();
+  // The note in front, as the title shows it.
+  const activeTitle = (activeFileState?.fileName || leaf.activeFilePath?.split("/").pop() || "Untitled").replace(/\.md$/i, "");
 
   const hasFiles = leaf.openFilePaths.length > 0;
   const openFileInPane = (filePath = leaf.activeFilePath) => {
     splitPane({ id: leaf.id, direction: "horizontal", filePath });
   };
-  const { draggedOverIndex, handleDragStart, handleDragEnd, handleDragOver, handleDragLeave, handleDrop } = useTabDragDrop(leaf.id);
 
   return (
     <div
@@ -132,111 +124,72 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       style={showHeader ? ({ "--pane-header-inset": PANE_HEADER_INSET } as React.CSSProperties) : undefined}
       onClick={() => setActivePaneId(leaf.id)}
     >
-      {/* Pane tabs are the editor's desktop header, even for a single note.
-          It floats over the editor, so showing, fading or moving it never
-          reflows the text. */}
+      {/* The pane's quiet title bar (desktop): Show sidebar at the left
+          while it's closed, the note's title in the middle (the way into
+          the command palette), Close Pane in a split and the window's own
+          controls at the right. It floats over the editor, so showing or
+          hiding it never reflows the text. */}
       {showHeader && (
       <div
         className="absolute top-0 left-0 right-0 z-20"
       >
       <div className={`${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT}`}>
-        {/* Show sidebar sits at the far left while the sidebar is hidden; once
-            it's open, the sidebar's own header carries the hide button. Its
-            right margin matches the header's left padding (px-2 sm:px-3), so it
-            sits evenly between edge and tabs. Home lives in the sidebar. */}
-        {hostsSidebarToggle && !sidebarOpen && (
-          <div className={`${PANE_SECTION_CLASS} !ml-0 mr-2 sm:mr-3`}>
-            <PaneToolbarButton
-              icon={<VscLayoutSidebarLeftOff size={PANE_ICON_SIZE} />}
-              label="Sidebar"
-              tooltip="Show sidebar"
-              shortcut={formatShortcut("\\")}
-              tooltipPosition="bottom-start"
-              onClick={() => setSidebarOpen(true)}
-            />
-          </div>
-        )}
-        {/* Scrollable tabs strip */}
-          <TabStripScroller
-            className="flex items-center flex-1 overflow-x-auto overflow-y-hidden scrollbar-none h-full px-1.5 min-w-0"
-            onDragOver={(e) => handleDragOver(e)}
-            onDragLeave={handleDragLeave}
-            onDrop={(e) => handleDrop(e, leaf.openFilePaths.length)}
-          >
-          {leaf.openFilePaths.map((path, index) => {
-            const fileState = openFiles[path];
-            const fileName = fileState?.fileName || path.split("/").pop() || "Untitled";
-            const isDirty = fileState && fileState.content !== fileState.lastSavedContent;
-            const tabSaveState: TabSaveState =
-              saveStatus.path === path && saveStatus.state === "error"
-                ? "error"
-                : saveStatus.path === path && saveStatus.state === "saving"
-                ? "saving"
-                : saveStatus.path === path && saveStatus.state === "saved"
-                ? "saved"
-                : isDirty
-                ? "dirty"
-                : "idle";
-
-            return (
-              <PaneTab
-                key={path}
-                fileName={fileName}
-                shortcutNumber={tabShortcutNumbers.get(`${leaf.id}\0${path}`)}
-                isActive={leaf.activeFilePath === path}
-                saveState={tabSaveState}
-                saveErrorMessage={saveStatus.message}
-                isDraggedOver={draggedOverIndex === index}
-                draggable
-                onDragStart={(e) => handleDragStart(e, path)}
-                onDragEnd={handleDragEnd}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, index)}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActivePaneId(leaf.id);
-                  setActiveFilePath(path);
-                }}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setActivePaneId(leaf.id);
-                  setTabMenu({ x: e.clientX, y: e.clientY, path });
-                }}
-                onClose={(e) => {
-                  e.stopPropagation();
-                  void closeTabWithAutosave(path);
-                }}
+        <div className="flex min-w-0 flex-1 basis-0 items-center">
+          {hostsSidebarToggle && !sidebarOpen && (
+            <div className={`${PANE_SECTION_CLASS} !ml-0`}>
+              <PaneToolbarButton
+                icon={<VscLayoutSidebarLeftOff size={PANE_ICON_SIZE} />}
+                label="Sidebar"
+                tooltip="Show sidebar"
+                shortcut={formatShortcut("\\")}
+                tooltipPosition="bottom-start"
+                onClick={() => setSidebarOpen(true)}
               />
-            );
-          })}
-          </TabStripScroller>{/* end scrollable tabs strip */}
-
-          {/* This pane's own section — the same in every pane, focused or
-              not, so the header never reflows when focus moves. */}
-          <PaneActions
-            hasFiles={hasFiles}
-            saveState={activeSaveState}
-            saveErrorMessage={saveStatus.message}
-            showClose={!isOnlyPane}
-            onSave={handleSave}
-            onClosePane={() => closePane(leaf.id)}
-          />
+            </div>
+          )}
+        </div>
+        <PaneTitle
+          title={hasFiles ? activeTitle : null}
+          saveState={activeSaveState}
+          saveErrorMessage={saveStatus.message}
+          onOpen={() => {
+            setActivePaneId(leaf.id);
+            openCommandPalette();
+          }}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!hasFiles) return;
+            setActivePaneId(leaf.id);
+            setTabMenu({ x: e.clientX, y: e.clientY, path: leaf.activeFilePath || "draft" });
+          }}
+        />
+        <div className="flex min-w-0 flex-1 basis-0 items-center justify-end">
+          {!isOnlyPane && (
+            <div className={PANE_SECTION_CLASS} role="toolbar" aria-label="Pane">
+              <PaneToolbarButton
+                icon={<HiOutlineXCircle size={PANE_ICON_SIZE} />}
+                label="Close Pane"
+                tooltipPosition="bottom-end"
+                onClick={() => closePane(leaf.id)}
+              />
+            </div>
+          )}
           {hostsWindowActions && <PaneWindowActions />}
+        </div>
       </div>
       </div>
       )}
 
-      {/* With the tab bar hidden, the top-right pane keeps one way back. */}
-      {!isMobileChrome && !tabBarVisible && hostsWindowActions && (
+      {/* With the toolbar hidden, the top-right pane keeps one way back. */}
+      {!isMobileChrome && !toolbarVisible && hostsWindowActions && (
         <div className={`${PANE_SECTION_CLASS} absolute top-1.5 right-2 z-20`}>
           <PaneToolbarButton
             icon={<HiOutlineChevronDown size={PANE_ICON_SIZE} />}
-            label="Show tab bar"
+            label="Show toolbar"
             shortcut={formatShortcut("\\", { shift: true })}
             tooltipPosition="bottom-end"
-            onClick={() => setTabBarVisible(true)}
+            onClick={() => setToolbarVisible(true)}
           />
         </div>
       )}
