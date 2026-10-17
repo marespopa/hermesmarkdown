@@ -24,6 +24,7 @@ import { shortcodeExpandPlugin } from "./shortcode-expand";
 import { bulletAutospace } from "./bullet-autospace";
 import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
+import { createEmojiSource } from "./emoji-completion";
 import { createTemplateFieldSource } from "./template-field-completion";
 import { templateFieldPills } from "./template-field-pills";
 import { templateBlanks } from "./template-blanks";
@@ -106,7 +107,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? loadedVim()?.vim() ?? [] : []),
     autocompletion({
-      override: [createSlashMenuSource(opts.slashMenuCallbacksRef), createTemplateFieldSource(opts.slashMenuCallbacksRef)],
+      override: [createSlashMenuSource(opts.slashMenuCallbacksRef), createTemplateFieldSource(opts.slashMenuCallbacksRef), createEmojiSource()],
       activateOnTyping: true,
       icons: false,
     }),

@@ -17,7 +17,7 @@ import { hasMarkdownStructure } from "@/app/tools/cleaner/html-structure";
 const REGEX_BARE_URL = /^https?:\/\/\S+$/;
 const CODE_NODES = new Set(["FencedCode", "CodeBlock", "InlineCode", "CodeText"]);
 
-function inCode(state: EditorState, pos: number): boolean {
+export function inCode(state: EditorState, pos: number): boolean {
   let node: { name: string; parent: unknown } | null = syntaxTree(state).resolveInner(pos, -1);
   while (node) {
     if (CODE_NODES.has(node.name)) return true;

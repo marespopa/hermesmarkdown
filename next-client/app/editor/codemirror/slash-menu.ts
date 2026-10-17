@@ -16,6 +16,7 @@ import {
   SAVE_AS_TEMPLATE_SENTINEL,
   BOARD_LINK_SENTINEL,
   EMBED_FILE_SENTINEL,
+  EMOJI_PICKER_SENTINEL,
   CURSOR_SENTINEL,
   CODE_BLOCK_TEMPLATE_CONTENT,
   MARK_PRIVATE_SENTINEL,
@@ -24,6 +25,7 @@ import {
 import { FM_REGEX, updateFmFields } from "@/app/utils/frontmatter-utils";
 import { requestCalloutTypeMenu } from "./callout-type";
 import { clearPrivateMarkers, isPrivateContent } from "@/app/utils/note-privacy";
+import { applyBlockCommand, BLOCK_COMMANDS, rankSlashCommands, slashSection } from "./slash-commands";
 
 // Non-AI templates only — AI action entries (aiOnly: true) aren't ported in
 // this pass (that's a separate AI-subsystem port, not part of the CM6
@@ -57,18 +59,6 @@ export interface SlashMenuCallbacks {
   embedFiles?: () => string[];
   onFrontmatterWizard: () => void;
   onCodeBlockInserted: (pos: number) => void;
-}
-
-function fuzzyMatch(label: string, query: string): boolean {
-  if (!query) return true;
-  const hay = label.toLowerCase();
-  // Hyphens stand in for spaces, since a space closes the menu: "/mark-as-private".
-  const q = query.toLowerCase().replace(/-/g, "");
-  let qi = 0;
-  for (let hi = 0; hi < hay.length && qi < q.length; hi++) {
-    if (hay[hi] === q[qi]) qi++;
-  }
-  return qi === q.length;
 }
 
 function insertPlainContent(view: EditorView, from: number, to: number, content: string): number {
@@ -200,6 +190,10 @@ export function applyTemplate(
     insertEmbedPrompt(view, from, to);
     return;
   }
+  if (content === EMOJI_PICKER_SENTINEL) {
+    insertEmojiPrompt(view, from, to);
+    return;
+  }
   if (content === TEMPLATE_FIELD_SENTINEL) {
     view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
     callbacks.onInsertTemplateField?.();
@@ -248,6 +242,19 @@ export function insertEmbedPrompt(view: EditorView, from: number, to: number) {
     userEvent: "input.replace.template",
   });
   // After the key press that picked the command, so the menu opens anew.
+  setTimeout(() => {
+    if (view.dom.isConnected) startCompletion(view);
+  }, 0);
+}
+
+// "Emoji": leaves a `{` where the trigger was and opens the emoji menu
+// there (codemirror/emoji-completion.ts), once the picking key press is over.
+export function insertEmojiPrompt(view: EditorView, from: number, to: number) {
+  view.dispatch({
+    changes: { from, to, insert: "{" },
+    selection: EditorSelection.cursor(from + 1),
+    userEvent: "input.replace.template",
+  });
   setTimeout(() => {
     if (view.dom.isConnected) startCompletion(view);
   }, 0);
@@ -333,14 +340,18 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
     // Offer only the privacy commands that would change this note.
     const isPrivate = isPrivateContent(context.state.doc.toString());
     const hidden = isPrivate ? [MARK_PRIVATE_SENTINEL] : [MARK_PUBLIC_SENTINEL];
-    const matches = templates.filter((t) => !hidden.includes(t.content) && fuzzyMatch(t.label, query));
+    const commands = [...BLOCK_COMMANDS, ...templates.filter((t) => !hidden.includes(t.content))];
+    const matches = rankSlashCommands(commands, query);
     if (matches.length === 0 && fileOptions.length === 0) return null;
 
-    const options: Completion[] = matches.map((t) => ({
-      label: t.label,
-      detail: t.description,
+    // Sections only for the whole list; a search shows the best match first.
+    const options: Completion[] = matches.map((command) => ({
+      label: command.label,
+      detail: command.description,
+      ...(query ? {} : { section: slashSection(command) }),
       apply: (view, _completion, applyFrom, applyTo) => {
-        applyTemplate(view, applyFrom, applyTo, t.content, callbacksRef.current);
+        if ("block" in command && command.block) applyBlockCommand(view, applyFrom, applyTo, command.block);
+        else if ("content" in command) applyTemplate(view, applyFrom, applyTo, command.content, callbacksRef.current);
       },
     }));
 
