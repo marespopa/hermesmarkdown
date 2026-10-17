@@ -115,8 +115,6 @@ export const EMBED_FILE_SENTINEL = "__EMBED_FILE__";
 export const EMOJI_PICKER_SENTINEL = "__OPEN_EMOJI_PICKER__";
 export const MARK_PRIVATE_SENTINEL = "__MARK_PRIVATE__";
 export const MARK_PUBLIC_SENTINEL = "__MARK_PUBLIC__";
-export const AI_ACTION_SENTINEL_PREFIX = "__AI_ACTION__:";
-export const aiActionSentinel = (id: string) => `${AI_ACTION_SENTINEL_PREFIX}${id}`;
 export const CURSOR_SENTINEL = "\0";
 export const CODE_BLOCK_TEMPLATE_CONTENT = `\n\`\`\`${CURSOR_SENTINEL}\n\n\`\`\`\n`;
 
@@ -232,104 +230,6 @@ export const TEMPLATES: Template[] = [
     description: "Open AI Chat with the current note and selection",
     aliases: ["ai", "chat", "ask"],
     content: AI_CHAT_SENTINEL,
-    aiOnly: true,
-  },
-  {
-    label: "Improve writing",
-    icon: "✨",
-    description: "Rewrite selected text for clearer wording without changing its intent",
-    content: aiActionSentinel("improve"),
-    aiOnly: true,
-  },
-  {
-    label: "Fix spelling and grammar",
-    icon: "✅",
-    description: "Apply a light correction pass to selected text",
-    content: aiActionSentinel("fix-grammar"),
-    aiOnly: true,
-  },
-  {
-    label: "Shorten",
-    icon: "✂️",
-    description: "Compress verbose selected text",
-    content: aiActionSentinel("shorten"),
-    aiOnly: true,
-  },
-  {
-    label: "Expand",
-    icon: "➕",
-    description: "Elaborate on terse selected text",
-    content: aiActionSentinel("expand"),
-    aiOnly: true,
-  },
-  {
-    label: "Change tone: Formal",
-    icon: "🎩",
-    description: "Make selected text more formal",
-    content: aiActionSentinel("tone-formal"),
-    aiOnly: true,
-  },
-  {
-    label: "Change tone: Casual",
-    icon: "😊",
-    description: "Make selected text more casual",
-    content: aiActionSentinel("tone-casual"),
-    aiOnly: true,
-  },
-  {
-    label: "Change tone: Direct",
-    icon: "🎯",
-    description: "Make selected text more direct",
-    content: aiActionSentinel("tone-direct"),
-    aiOnly: true,
-  },
-  {
-    label: "Change tone: Polished",
-    icon: "💎",
-    description: "Make selected text more polished",
-    content: aiActionSentinel("tone-polished"),
-    aiOnly: true,
-  },
-  {
-    label: "Summarize",
-    icon: "📃",
-    description: "Turn selected text into a concise summary",
-    content: aiActionSentinel("summarize"),
-    aiOnly: true,
-  },
-  {
-    label: "Extract tasks",
-    icon: "🗒️",
-    description: "Convert selected text into actionable task items",
-    content: aiActionSentinel("extract-tasks"),
-    aiOnly: true,
-  },
-  {
-    label: "Create outline",
-    icon: "📑",
-    description: "Transform selected notes into headings and bullets",
-    content: aiActionSentinel("outline"),
-    aiOnly: true,
-  },
-  {
-    label: "Generate title",
-    icon: "🏷️",
-    description: "Suggest a page title from the current note or selection",
-    content: aiActionSentinel("title"),
-    aiOnly: true,
-  },
-  {
-    label: "Continue writing",
-    icon: "➡️",
-    description: "Continue from the cursor using nearby page context",
-    content: aiActionSentinel("continue"),
-    aiOnly: true,
-  },
-  {
-    label: "Explain selection",
-    icon: "❓",
-    description: "Explain the selected concept in simpler terms",
-    content: aiActionSentinel("explain"),
     aiOnly: true,
   },
   // --- Productivity ---

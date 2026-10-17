@@ -27,10 +27,9 @@ import { requestCalloutTypeMenu } from "./callout-type";
 import { clearPrivateMarkers, isPrivateContent } from "@/app/utils/note-privacy";
 import { applyBlockCommand, BLOCK_COMMANDS, rankSlashCommands, slashSection } from "./slash-commands";
 
-// Non-AI templates only — AI action entries (aiOnly: true) aren't ported in
-// this pass (that's a separate AI-subsystem port, not part of the CM6
-// migration). Frontmatter wizard, Link/WikiLink/Date/Table sentinels are.
-// The vault Template entry is added only when the editor can insert one, and
+// The slash menu stays short: insertions and a few note-level commands. AI
+// is one entry, AI Chat (added only when AI is set up); the one-click AI
+// actions are palette commands. The vault Template entry is added only when the editor can insert one, and
 // Template field only while editing a template.
 const AVAILABLE_TEMPLATES = TEMPLATES.filter((t) => !t.aiOnly && !t.vaultOnly && !t.templateOnly && !t.saveTemplateOnly && !t.boardOnly && !t.embedOnly);
 const VAULT_TEMPLATE_ENTRIES = TEMPLATES.filter((t) => t.content === VAULT_TEMPLATE_SENTINEL);

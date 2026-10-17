@@ -1,9 +1,8 @@
 import { FORMULA_PRESERVATION_RULE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "../utils/formula-ai-guide";
 import { HERMES_SYNTAX_GUIDE, SYNTAX_PRESERVATION_RULE } from "../utils/hermes-syntax-guide";
 
-// Prompt definitions for the one-click AI actions (palette "AI: …" commands
-// and slash-menu AI items), keyed by the action id used in
-// editor/components/constants.ts (`aiActionSentinel(id)`).
+// Prompt definitions for the one-click AI actions (the palette's "AI: …"
+// commands), keyed by action id. The slash menu has only AI Chat.
 
 /** Rewrites the selection; the result is reviewed as a diff. */
 export interface SelectionAction {
