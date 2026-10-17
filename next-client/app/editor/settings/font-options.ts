@@ -1,7 +1,7 @@
 import { DUOSPACE_FONT_STACK, MONO_FONT_STACK, QUATTRO_FONT_STACK } from "@/app/atoms/ui-atoms";
 
-// The writing font, from fixed-width to proportional: Geist Mono (the
-// default), Duospace and Quattro. Plus Jakarta Sans stays the interface face only.
+// The writing font, from fixed-width to proportional: Geist Mono, Duospace
+// and Quattro (the default). Plus Jakarta Sans stays the interface face only.
 export const FONTS = [
   { label: "Geist Mono", value: MONO_FONT_STACK },
   { label: "Duospace", value: DUOSPACE_FONT_STACK },

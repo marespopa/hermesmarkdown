@@ -80,9 +80,11 @@ export const UI_FONT_STACK =
 export const DUOSPACE_FONT_STACK = `var(--font-duospace), ${MONO_FONT_STACK}`;
 // The proportional writing face (fonts.ts) falls back to the sans stack.
 export const QUATTRO_FONT_STACK = `var(--font-quattro), ${UI_FONT_STACK}`;
+// The writing face: Quattro, proportional, by default, so a note reads as a
+// page rather than code. Geist Mono and Duospace are a pick away.
 export const atom_editorFontFamily = atomWithStorage<string>(
   "editorFontFamily",
-  MONO_FONT_STACK,
+  QUATTRO_FONT_STACK,
 );
 // Saved choices from older versions move to their closest current equivalent:
 // IBM Plex Mono to Geist Mono; for writing, Inter, Plus Jakarta Sans and

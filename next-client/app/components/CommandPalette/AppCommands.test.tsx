@@ -84,7 +84,7 @@ describe("AppCommands and SettingsCommands", () => {
     for (const id of ["nord", "ink", "graphite"]) expect(command(`set-dark-theme-${id}`)).toBeDefined();
     expect(command("set-light-theme-paper")?.label).toBe("Light Theme: Paper");
     expect(command("set-light-theme-paper")?.disabledReason).toBe("Current light theme");
-    expect(command("set-dark-theme-nord")?.disabledReason).toBe("Current dark theme");
+    expect(command("set-dark-theme-ink")?.disabledReason).toBe("Current dark theme");
 
     act(() => { void command("set-dark-theme-graphite")?.action(); });
     expect(store.get(atom_darkTheme)).toBe("graphite");

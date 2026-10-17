@@ -18,7 +18,7 @@ export const settingsGroup: Group = {
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically.
             Each mode has its own color theme: Paper (the default), Solarized or Plain for light, and
-            Nord (the default), Ink or Graphite for dark. Paper and Ink are warm paper and ink (Ink is
+            Ink (the default), Nord or Graphite for dark. Paper and Ink are warm paper and ink (Ink is
             the dark paper); Plain and Graphite are neutral, with no tint. Every theme has a faint paper grain. You can also pick them on the
             home page before you start. Each theme has its own accent hue, kept to the
             caret, text selection, focus rings, toggles and selections; icons and buttons stay quiet ink on paper. Settings → Appearance shows the colors for the
@@ -36,14 +36,14 @@ export const settingsGroup: Group = {
               { label: "Theme", value: "Settings → Appearance" },
               { label: "Light / Dark theme", value: "Paper, Solarized, Plain / Nord, Ink, Graphite" },
               { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Toggle Sidebar: navigation, notes and the vault's files on the window's left edge, on every editor page (desktop)" },
-              { label: "Typeface", value: "Geist Mono by default, Duospace or Quattro" },
+              { label: "Typeface", value: "Quattro by default, Duospace or Geist Mono" },
             ]}
           />
           <Callout type="note">
-            Geist Mono is the default for writing: an even, typewriter-like rhythm. Duospace
-            keeps that rhythm but gives wide letters like m and w more room, so lines lose a
-            monospace&apos;s gaps. Quattro is its proportional sibling, for prose that reads like
-            a book while keeping the same calm texture. Text sizes follow Apple&apos;s Dynamic Type steps, 15 to 23px.
+            Quattro is the default for writing: proportional, so a note reads like a page of a
+            book. Geist Mono gives an even, typewriter-like rhythm, and Duospace keeps that
+            rhythm while giving wide letters like m and w more room, so lines lose a
+            monospace&apos;s gaps. Text sizes follow Apple&apos;s Dynamic Type steps, 15 to 23px.
           </Callout>
         </>
       ),
