@@ -166,7 +166,7 @@ export default function TaskDialog({ isOpen, onClose, onConfirm }: TaskDialogPro
                 className={`text-ui-footnote px-2.5 py-1 rounded-lg border transition-all font-medium ${
                   dueDate === preset.value
                     ? "bg-sage/15 border-sage text-sage dark:bg-sage/20 dark:border-sage dark:text-sage"
-                    : "bg-paper-softgray dark:bg-paper-dark-surface/50 border-beige dark:border-clay text-ink-muted dark:text-stone hover:border-sage hover:text-sage dark:hover:border-sage dark:hover:text-sage"
+                    : "bg-paper-softgray dark:bg-paper-dark-surface/50 border-beige dark:border-clay text-ink-muted dark:text-stone hover:border-fg-faint hover:text-fg dark:hover:border-fg-faint dark:hover:text-fg"
                 }`}
               >
                 {preset.label}

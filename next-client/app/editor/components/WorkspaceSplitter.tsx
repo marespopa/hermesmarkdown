@@ -31,7 +31,7 @@ export default function WorkspaceSplitter({ node }: WorkspaceSplitterProps) {
               className={`
                 ${node.direction === "horizontal" ? "w-1.5 cursor-col-resize" : "h-1.5 cursor-row-resize"}
                 bg-edge-subtle dark:bg-clay/70
-                hover:bg-sage/60 active:bg-sage
+                hover:bg-edge active:bg-fg-faint
                 transition-colors duration-200
                 z-10
               `}

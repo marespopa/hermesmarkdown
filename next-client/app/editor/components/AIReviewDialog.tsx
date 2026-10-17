@@ -48,7 +48,7 @@ export const AIReviewDialog: React.FC<AIReviewDialogProps> = ({
         <Button
           variant="icon"
           onClick={() => setIsEditing((v) => !v)}
-          className="p-1.5 rounded-lg text-neutral-400 hover:text-sage hover:bg-sage/10 transition-colors"
+          className="p-1.5 rounded-lg text-neutral-400 hover:text-fg hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
           title={isEditing ? "Preview diff" : "Edit suggestion"}
         >
           {isEditing ? <HiOutlineCheck size={15} /> : <HiOutlinePencil size={15} />}

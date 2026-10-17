@@ -65,7 +65,7 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
           onClick={onOpenAIChat}
           aria-label="AI Chat"
           title="AI Chat"
-          className="flex items-center justify-center h-11 min-w-11 shrink-0 text-fg-faint hover:text-sage transition-colors"
+          className="flex items-center justify-center h-11 min-w-11 shrink-0 text-fg-faint hover:text-fg transition-colors"
         >
           <HiOutlineChatAlt2 size={18} />
         </Button>
@@ -77,7 +77,7 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
           aria-label={`Save — ${meta.title}`}
           title={saveState === "error" ? saveStatus.message || meta.title : meta.title}
           className={`flex items-center justify-center h-11 min-w-11 shrink-0 disabled:pointer-events-none transition-colors ${
-            saveState === "idle" ? "text-fg-faint hover:text-sage" : meta.className
+            saveState === "idle" ? "text-fg-faint hover:text-fg" : meta.className
           }`}
         >
           <SaveStateIcon state={saveState} size={18} />

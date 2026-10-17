@@ -105,7 +105,7 @@ export default function ChatMessageItem({
         {!isUser && (
           <div className="flex items-center gap-1">
             {isEditing ? (
-              <Button variant="unstyled" onClick={onCommitEdit} className={`${actionClass} font-medium text-sage hover:bg-sage/10`}>
+              <Button variant="unstyled" onClick={onCommitEdit} className={`${actionClass} font-medium text-sage hover:bg-black/[0.05] dark:hover:bg-white/[0.08]`}>
                 <HiOutlineCheck size={13} /> Done
               </Button>
             ) : (
@@ -122,12 +122,12 @@ export default function ChatMessageItem({
             <span className="text-neutral-200 dark:text-neutral-700 select-none">·</span>
             <Button variant="unstyled" onClick={() => onApply("insert")}
               title={hasSelection ? "Replace the selected text" : "Insert at cursor position"}
-              className={`${actionClass} font-medium text-sage hover:bg-sage/10`}>
+              className={`${actionClass} font-medium text-sage hover:bg-black/[0.05] dark:hover:bg-white/[0.08]`}>
               <HiOutlineClipboardCheck size={13} />
               {hasSelection ? "Replace selection" : "Insert at cursor"}
             </Button>
             <Button variant="unstyled" onClick={() => onApply("replace-all")} title="Replace entire document"
-              className={`${actionClass} font-medium text-neutral-500 dark:text-neutral-400 hover:text-sage hover:bg-sage/10`}>
+              className={`${actionClass} font-medium text-neutral-500 dark:text-neutral-400 hover:text-fg hover:bg-black/[0.05] dark:hover:bg-white/[0.08]`}>
               Replace all
             </Button>
           </div>

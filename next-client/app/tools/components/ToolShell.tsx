@@ -31,7 +31,7 @@ export default function ToolShell({ tool, openInWorkspace, children }: Props) {
         <header className="space-y-4">
           <nav aria-label="Breadcrumb" className="text-ui-footnote text-fg-muted">
             <ol className="flex items-center gap-2">
-              <li><Link href="/tools" className="hover:text-sage transition-colors">Tools</Link></li>
+              <li><Link href="/tools" className="hover:text-fg transition-colors">Tools</Link></li>
               <li aria-hidden="true">›</li>
               <li aria-current="page" className="text-fg">{tool.name}</li>
             </ol>
@@ -82,7 +82,7 @@ export default function ToolShell({ tool, openInWorkspace, children }: Props) {
             <ul className="flex flex-wrap gap-x-6 gap-y-2">
               {others.map((entry) => (
                 <li key={entry.slug}>
-                  <Link href={toolPath(entry)} className="font-semibold hover:text-sage transition-colors">{entry.name}</Link>
+                  <Link href={toolPath(entry)} className="font-semibold hover:text-fg transition-colors">{entry.name}</Link>
                 </li>
               ))}
             </ul>

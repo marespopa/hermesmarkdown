@@ -37,7 +37,7 @@ export default function FontPicker({
             className={`mb-2 w-full break-inside-avoid flex flex-col items-start gap-1.5 rounded-xl border px-3 py-3 text-left transition-colors focus:outline-none ${
               isActive
                 ? "border-sage bg-sage/5 dark:bg-sage/10"
-                : "border-neutral-100 dark:border-neutral-800/40 hover:border-sage/40"
+                : "border-neutral-100 dark:border-neutral-800/40 hover:border-fg-faint"
             }`}
           >
             <div className="w-full flex items-center justify-between gap-2">

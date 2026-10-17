@@ -77,10 +77,10 @@ describe("PaneLeaf Tab Indicators", () => {
 
     const dot = screen.getByTitle("Unsaved changes");
     expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-amber-500");
+    expect(dot).toHaveClass("bg-task-hold");
   });
 
-  it("renders a pulsing blue dot when file is saving", () => {
+  it("renders a pulsing dot when file is saving", () => {
     const initialValues = [
       [atom_activePaneId, "pane-1"],
       [atom_openFiles, { 
@@ -97,7 +97,7 @@ describe("PaneLeaf Tab Indicators", () => {
 
     const dot = screen.getByTitle("Saving…");
     expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-sage");
+    expect(dot).toHaveClass("bg-fg-faint");
     expect(dot).toHaveClass("animate-pulse");
   });
 
@@ -138,7 +138,7 @@ describe("PaneLeaf Tab Indicators", () => {
 
     const dot = screen.getByTitle("Disk full");
     expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-red-500");
+    expect(dot).toHaveClass("bg-danger");
   });
 
   it("does not show saving indicator for other files", () => {

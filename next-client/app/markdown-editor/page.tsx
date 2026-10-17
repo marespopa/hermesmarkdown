@@ -111,7 +111,7 @@ export default function MarkdownEditorPage() {
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                   <h3 className="font-bold text-lg">
                     {editor.internal ? (
-                      <Link href={editor.href} className="hover:text-sage transition-colors">
+                      <Link href={editor.href} className="hover:text-fg transition-colors">
                         {editor.name}
                       </Link>
                     ) : (
