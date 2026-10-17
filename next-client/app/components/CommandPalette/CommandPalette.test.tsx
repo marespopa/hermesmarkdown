@@ -880,7 +880,7 @@ describe("CommandPalette", () => {
       // Once the transition has settled the panel must not replay its own
       // enter animation (that re-fade was a visible flicker).
       await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)); });
-      expect(document.querySelector(".slide-in-from-top-1")).toBeNull();
+      expect(document.querySelector('[class~="zoom-in-[0.98]"]')).toBeNull();
     });
 
     it("opens directly without an anchor", async () => {
@@ -893,7 +893,7 @@ describe("CommandPalette", () => {
       expect(await screen.findByRole("combobox")).toBeInTheDocument();
       expect(startViewTransition).not.toHaveBeenCalled();
       // A normal open keeps the panel's own enter animation.
-      expect(document.querySelector(".slide-in-from-top-1")).not.toBeNull();
+      expect(document.querySelector('[class~="zoom-in-[0.98]"]')).not.toBeNull();
     });
   });
 

@@ -76,10 +76,12 @@ describe("handleHtmlPaste", () => {
     const view = new EditorView({ state: stateWith("") });
     const onConverted = vi.fn();
     const plain = "1. Draft roadmap\n2. Ship billing export\n- [ ] Review";
-    handleHtmlPaste(view, pasteEvent("<div><span>1. Draft roadmap</span></div>", plain), {
+    // A chat's raw reply: its Markdown source, one paragraph per line.
+    const html = "<p>1. Draft roadmap</p><p>2. Ship billing export</p><p>- [ ] Review</p>";
+    expect(handleHtmlPaste(view, pasteEvent(html, plain), {
       convert: async () => "1\\. Draft roadmap\n\n2\\. Ship billing export\n\n\\- \\[ \\] Review",
       onConverted,
-    });
+    })).toBe(true);
     await flush();
     expect(view.state.doc.toString()).toBe(plain);
     expect(onConverted).not.toHaveBeenCalled();
