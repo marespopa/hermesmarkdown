@@ -4,7 +4,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { HiCheck } from "react-icons/hi";
 import Button from "../../components/Button";
-import { MENU_ICON_CLASS, MENU_ITEM_CLASS, MENU_PANEL_CLASS, MENU_SEPARATOR_CLASS, MENU_SHORTCUT_CLASS } from "./menu-classes";
+import { MENU_ICON_CLASS, MENU_PANEL_CLASS, MENU_SEPARATOR_CLASS, MENU_SHORTCUT_CLASS } from "./menu-classes";
 
 export interface TabContextMenuItem {
   label: string;
@@ -123,7 +123,7 @@ export default function TabContextMenu({ x, y, items, onClose, label, anchorRef,
         <React.Fragment key={`${i}:${item.label}`}>
           {item.divider && i > 0 && <div role="separator" className={MENU_SEPARATOR_CLASS} />}
           <Button
-            variant="unstyled"
+            variant="menu-row"
             role={item.checked === undefined ? "menuitem" : "menuitemcheckbox"}
             aria-checked={item.checked}
             isDisabled={item.disabled}
@@ -132,7 +132,6 @@ export default function TabContextMenu({ x, y, items, onClose, label, anchorRef,
               item.onClick();
               onClose();
             }}
-            className={MENU_ITEM_CLASS}
           >
             {hasCheckable && (
               <span className="shrink-0 w-4 flex justify-center text-sage">{item.checked && <HiCheck size={14} aria-hidden="true" />}</span>

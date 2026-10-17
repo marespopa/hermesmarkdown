@@ -47,6 +47,7 @@ body {
      colours of their own, apart from the accent, as in every palette. To
      do and cancelled stay neutral (--fg-faint). */
   --task-prog:      #A2563E;  /* terracotta */
+  --danger:         #A2563E;  /* destructive buttons and menu rows: the palette's warm red, ≥4.5:1 with --surface on it */
   --task-hold:      #85692F;  /* ochre */
   --task-done:      #5A6B55;  /* green */
   --link:           #34568E;  /* editor links — the ink blue */
@@ -110,6 +111,7 @@ html.dark {
   --clay:           #8FA8D0;
   --moss:           #8FA8D0;
   --task-prog:      #D88B68;
+  --danger:         #D88B68;
   --task-done:      #93A884;
   --link:           #93B0DE;
   --link-hover:     #AFC4E6;

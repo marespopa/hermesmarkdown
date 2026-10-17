@@ -11,7 +11,7 @@ Audit of every button in `app/` (tests excluded), 2026-10-17. Source of truth: `
 | `<a>` | 0 | Fixed: every link uses `TextLink` (`inline` ink and underlined, `quiet`, `unstyled`); site paths go through `next/link`. |
 | Clickable `<div>` | 2 | `OverlayBackdrop` (mouse dismiss; Escape covers keyboard) and a `stopPropagation` wrapper in `SectionHeader`. Both acceptable. |
 
-## Variants
+## Variants (as audited, before the clean-up below)
 
 `icon-bg`, `fab-action` and `fab-toggle` were never used and have been removed.
 
@@ -40,12 +40,14 @@ Other shared buttons: `PaneToolbarButton` / `PANE_ACTION_BUTTON_CLASS` (pane hea
 
 ## Hover and motion
 
-There are four motion styles across the variants: lift (translate + shadow), scale (105 / 110), underline, and fill. The flat, minimal look suggests one: fill or text-colour change only, with no lift or scale. Every variant uses `transition-all`; naming the properties (colour, background, box-shadow) would be cheaper and avoids animating layout.
+Done (follow-up on the same release): one motion style. Hover changes a fill or the text colour; nothing lifts or scales, in the variants or at call sites (toast and dialog close buttons, the empty-note pills, the task status button, the site logo). Variants transition colour properties only, not `transition-all`.
 
-## Suggested next steps
+## Applied
 
-1. Remove lift and scale from all variants; hover = fill or text darkening only.
-2. Make `hero` an ink fill (as `primary`) and `pill-icon` hover ink, keeping the accent for the caret, focus and selection.
-3. Move `warning` to a theme token (a destructive colour per palette).
-4. Raise `icon` and `pill-icon` to a 44px hit area on touch.
-5. Turn the most repeated `unstyled` patterns (list rows, chips, menu rows) into variants.
+1. Lift and scale removed from every variant and call site.
+2. `hero` is an ink fill, like `primary`; `pill-icon` hovers to ink. The accent stays for the caret, focus and selection.
+3. `warning` and destructive menu rows use `--danger` (each palette's warm red; Tailwind `danger`).
+4. `icon`, `pill-icon` and the new `close` take a 44px hit area on touch screens (padding grows, a negative margin keeps the footprint).
+5. New variants for the patterns that repeated: `menu-row` (the tab, file tree, sidebar, Tasks and Turn-into menus; replaces `MENU_ITEM_CLASS`), `segment` (Settings' segmented controls, now with `aria-pressed`; the Tasks list tabs; the WikiLink dialog tabs) and `close` (toast, dialog and mobile menu).
+
+Still bespoke: one-off controls such as the pane tabs, tree rows, cards and pickers, which keep `unstyled` with their own classes.

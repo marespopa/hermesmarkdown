@@ -113,15 +113,12 @@ export default function TasksToolbar({
           return (
             <Button
               key={id}
-              variant="unstyled"
+              variant="segment"
               role="tab"
               aria-selected={selected}
               onClick={() => onViewChange(id)}
-              className={`flex h-7 min-w-0 items-center justify-center gap-1 rounded-md px-1 text-ui-footnote font-medium transition-all duration-150 [@media(pointer:coarse)]:h-8 ${
-                selected
-                  ? "bg-paper-light text-ink-light shadow-sm dark:bg-clay dark:text-ink-dark"
-                  : "text-ink-muted hover:text-ink-light dark:text-stone dark:hover:text-ink-dark"
-              }`}
+              // Five tabs share the row: less side padding than a segment's.
+              className="!px-1"
             >
               <span className="truncate">{label}</span>
               <span className="tabular-nums opacity-60">{counts[id]}</span>

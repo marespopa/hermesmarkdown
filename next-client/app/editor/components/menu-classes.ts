@@ -8,19 +8,13 @@ export const MENU_PANEL_CLASS = [
   "fixed z-50 p-1 flex flex-col gap-px font-sans rounded-xl glass-panel",
 ].join(" ");
 
-// A row: unstyled Button plus this. The shared focus ring is swapped for the
-// highlight fill, so the keyboard and the pointer show the same thing.
-// Literal class names throughout, so Tailwind keeps them.
-export const MENU_ITEM_CLASS = [
-  "w-full flex items-center gap-2.5 h-8 px-2.5 rounded-lg [@media(pointer:coarse)]:h-10",
-  "text-left text-ui-footnote text-ink-light dark:text-ink-dark",
-  "outline-none focus-visible:!ring-0 focus-visible:!ring-offset-0 transition-colors duration-100",
-  "hover:bg-black/[0.05] dark:hover:bg-white/[0.08] focus-visible:bg-black/[0.05] dark:focus-visible:bg-white/[0.08]",
-  "disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed",
-].join(" ");
+// A row is `<Button variant="menu-row">`: compact, a quiet fill on hover
+// and keyboard focus alike (the focus ring swapped for it).
 
-// A destructive row (Move to Trash): red text, red-tinted highlight.
-export const MENU_ITEM_DESTRUCTIVE_CLASS = "!text-red-600 dark:!text-red-400 hover:!bg-red-500/10 focus-visible:!bg-red-500/10";
+// A destructive row (Move to Trash): the palette's warm red (--danger), with
+// a highlight tinted by it.
+export const MENU_ITEM_DESTRUCTIVE_CLASS =
+  "!text-danger hover:!bg-[color-mix(in_srgb,var(--danger)_10%,transparent)] focus-visible:!bg-[color-mix(in_srgb,var(--danger)_10%,transparent)]";
 
 export const MENU_SEPARATOR_CLASS = "my-1 mx-2 h-px bg-edge-subtle";
 

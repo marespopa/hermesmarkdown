@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import TextLink from "@/app/components/TextLink";
 import React, { useEffect, useState } from "react";
 import { FaBars } from "react-icons/fa";
 import logoWhite from "../../../../assets/logo-white.svg";
@@ -36,17 +36,14 @@ const Navbar = () => {
     <>
       <div className="container max-w-screen-xl flex items-center justify-between">
         {/*Logo*/}
-        <Link
-          className="hover:scale-110 focus:scale-110 transition-transform ease-in"
-          href={"/"}
-        >
+        <TextLink href="/" variant="unstyled">
           <Image
             priority
             src={logo}
             alt="HermesMarkdown"
             width={200}
           />
-        </Link>
+        </TextLink>
 
         {/*Menu Hamburg*/}
         <div className="lg:hidden mr-4">

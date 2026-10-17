@@ -63,6 +63,8 @@ module.exports = {
           muted:   'var(--fg-muted)',
           faint:   'var(--fg-faint)',
         },
+        // Destructive actions (Button `warning`, menu rows): each palette's warm red.
+        danger: 'var(--danger)',
         edge: {
           DEFAULT: 'var(--border)',
           subtle:  'var(--border-subtle)',

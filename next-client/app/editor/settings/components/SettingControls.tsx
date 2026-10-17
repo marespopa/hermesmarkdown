@@ -16,14 +16,11 @@ export function SegmentedControl<T extends string>({
   return (
     <div className="inline-flex flex-wrap gap-0.5 rounded-lg bg-paper-softgray/75 p-0.5 dark:bg-paper-dark-surface/80">
       {options.map((opt) => (
-        <Button variant="unstyled"
+        <Button variant="segment"
           key={opt.value}
+          aria-pressed={value === opt.value}
           onClick={() => onChange(opt.value)}
-          className={`rounded-md px-3 py-1.5 text-ui-footnote font-medium transition-colors duration-150 select-none focus:outline-none ${
-            value === opt.value
-              ? "bg-paper-light text-ink-light shadow-sm dark:bg-white/10 dark:text-ink-dark"
-              : "text-ink-muted hover:bg-paper-light/70 hover:text-ink-light dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark"
-          }`}
+          className="h-8"
         >
           {opt.Icon && <opt.Icon size={14} />}
           {opt.label}

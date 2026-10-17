@@ -48,6 +48,8 @@
   // Task statuses keep their own warm / green pair, apart from the accent.
   --task-prog:      #{map.get($p, prog)};
   --task-done:      #{map.get($p, done)};
+  // Destructive buttons and menu rows share the in-progress warm red.
+  --danger:         #{map.get($p, prog)};
   --link:           #{map.get($p, link)};
   --link-hover:     #{map.get($p, link-hover)};
   --row-stripe:     #{color.change(map.get($p, tint), $alpha: 0.035)};
