@@ -81,7 +81,6 @@ export default function PaletteRow({ row, index, selected, scope, inMenu = false
     // The theme's accent, as the sidebar's current row and the file tree's.
     ? "border-transparent bg-accent/15 text-fg hover:bg-accent/15"
     : "border-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06]";
-  const Icon = rowIcon(row);
 
   return <Button variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-label={accessibleLabel} aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason} aria-busy={runningId === row.id}
     isDisabled={runningId !== null || (row.kind === "command" && !!row.command.disabledReason)} onClick={() => onExecute(row)} onMouseEnter={() => onHover(index)} onContextMenu={(event: React.MouseEvent) => { if (row.kind === "file" || row.kind === "command") { event.preventDefault(); onContextMenu(row); } }}
@@ -93,7 +92,7 @@ export default function PaletteRow({ row, index, selected, scope, inMenu = false
         {folder && <span title={folder} className="max-w-[45%] shrink-0 truncate text-right">{folder}</span>}
       </span>
     </> : <>
-      <Icon aria-hidden="true" size={16} className={`shrink-0 ${selected ? "text-fg" : "text-fg-muted"}`} />
+      {React.createElement(rowIcon(row), { "aria-hidden": true, size: 16, className: `shrink-0 ${selected ? "text-fg" : "text-fg-muted"}` })}
       <span className="-ml-0.5 min-w-0 flex-1 truncate"><HighlightedText text={row.label} indices={row.titleIndices} />{isPrivate && <PrivateBadge className="ml-1.5 align-[-2px]" />}{context && <span className="ml-2 text-ui-footnote text-fg-muted"><HighlightedText text={context} indices={row.detailIndices} /></span>}</span>
       {folder && <span title={folder} className="max-w-[45%] shrink-0 truncate text-right text-ui-footnote text-fg-muted"><HighlightedText text={folder} indices={scope === "tag" ? [] : row.detailIndices} /></span>}
       {runningId === row.id

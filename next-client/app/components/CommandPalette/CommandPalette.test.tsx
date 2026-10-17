@@ -19,7 +19,6 @@ import {
   atom_recentFilePaths,
   atom_sidebarCollapsed,
   atom_sidebarOpen,
-  atom_theme,
 } from "@/app/atoms/ui-atoms";
 
 const openFile = vi.fn();
