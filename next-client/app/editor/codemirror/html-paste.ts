@@ -40,6 +40,15 @@ export interface HtmlPasteOptions {
   onConverted?: (revert: () => void) => void;
 }
 
+// Copied Markdown source (a code view, a chat's raw reply, a README) is
+// already Markdown: converting it only escapes its markers (`2. Item` →
+// `2\. Item`, `- [ ]` → `\- \[ \]`), so the plain text goes in instead.
+const REGEX_ESCAPE = /\\([\\`*_{}[\]()#+\-.!>~=|])/g;
+const words = (text: string) => text.replace(/\s+/g, " ").trim();
+export function onlyEscapesPlain(markdown: string, plain: string): boolean {
+  return words(markdown.replace(REGEX_ESCAPE, "$1")) === words(plain);
+}
+
 const loadConverter = async (html: string) => {
   const { convertInput } = await import("@/app/tools/cleaner/convert-input");
   return convertInput(html, "html").markdown;
@@ -72,7 +81,7 @@ export function handleHtmlPaste(view: EditorView, event: ClipboardEvent, options
       return "";
     })
     .then((markdown) => {
-      if (!markdown || markdown === plain.trim()) {
+      if (!markdown || markdown === plain.trim() || onlyEscapesPlain(markdown, plain)) {
         insert(plain, "input.paste");
         return;
       }

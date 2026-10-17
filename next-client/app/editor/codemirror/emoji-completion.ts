@@ -15,15 +15,13 @@ export function matchEmojis(query: string): [name: string, emoji: string][] {
 }
 
 // `{` menu of the emoji shortcodes: `{fi` offers 🔥 fire, and picking one
-// inserts the emoji, as typing `{fire}` would (SHORTCODES). A bare `{` waits
-// for a letter unless the menu was asked for (the slash menu's Emoji entry
-// leaves a `{` and opens it); `{{` is the template field menu's, and code is
-// left alone.
+// inserts the emoji, as typing `{fire}` would (SHORTCODES). A bare `{` opens
+// it with every emoji, narrowed as you type the name; `{{` is the template
+// field menu's, and code is left alone.
 export function createEmojiSource() {
   return (context: CompletionContext): CompletionResult | null => {
     const typed = context.matchBefore(/\{[a-z]*$/i);
     if (!typed) return null;
-    if (typed.text.length < 2 && !context.explicit) return null;
     if (context.state.sliceDoc(typed.from - 1, typed.from) === "{") return null;
     if (inCode(context.state, context.pos)) return null;
     const matches = matchEmojis(typed.text.slice(1));

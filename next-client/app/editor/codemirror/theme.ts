@@ -223,6 +223,11 @@ export const baseTheme = EditorView.theme({
     textOverflow: "ellipsis",
     opacity: "0.8",
   },
+  // The note's title in the collapsed row, by value: ink, not the row's grey.
+  ".cm-frontmatter-summary-keys .cm-frontmatter-title": {
+    color: "var(--fg)",
+    fontWeight: "500",
+  },
   // Status and tag values in the collapsed row (frontmatter-fold.ts): tag
   // pills sized to the row; a click goes to the row, which expands.
   ".cm-frontmatter-summary-keys .cm-frontmatter-chip": {

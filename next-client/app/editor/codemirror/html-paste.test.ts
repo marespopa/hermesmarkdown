@@ -3,7 +3,7 @@ import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { ensureSyntaxTree } from "@codemirror/language";
-import { handleHtmlPaste, shouldConvertHtmlPaste } from "./html-paste";
+import { handleHtmlPaste, onlyEscapesPlain, shouldConvertHtmlPaste } from "./html-paste";
 
 vi.mock("@/app/components/Toastr", () => ({ showActionToast: vi.fn() }));
 
@@ -25,6 +25,13 @@ function pasteEvent(html: string, plain: string) {
 }
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+describe("onlyEscapesPlain", () => {
+  it("tells escaped plain text from a real conversion", () => {
+    expect(onlyEscapesPlain("2\\. Item", "2. Item")).toBe(true);
+    expect(onlyEscapesPlain(MARKDOWN, PLAIN)).toBe(false);
+  });
+});
 
 describe("shouldConvertHtmlPaste", () => {
   it("converts structured HTML, not plain-looking copies, URLs or code", () => {
@@ -61,6 +68,20 @@ describe("handleHtmlPaste", () => {
     handleHtmlPaste(view, pasteEvent("<p>Draft roadmap</p>", "Draft roadmap"), { convert: async () => "Draft roadmap", onConverted });
     await flush();
     expect(view.state.doc.toString()).toBe("Draft roadmap");
+    expect(onConverted).not.toHaveBeenCalled();
+    view.destroy();
+  });
+
+  it("pastes copied Markdown source as it is, not with its markers escaped", async () => {
+    const view = new EditorView({ state: stateWith("") });
+    const onConverted = vi.fn();
+    const plain = "1. Draft roadmap\n2. Ship billing export\n- [ ] Review";
+    handleHtmlPaste(view, pasteEvent("<div><span>1. Draft roadmap</span></div>", plain), {
+      convert: async () => "1\\. Draft roadmap\n\n2\\. Ship billing export\n\n\\- \\[ \\] Review",
+      onConverted,
+    });
+    await flush();
+    expect(view.state.doc.toString()).toBe(plain);
     expect(onConverted).not.toHaveBeenCalled();
     view.destroy();
   });

@@ -29,8 +29,8 @@ describe("createEmojiSource", () => {
     expect(result?.options[0].displayLabel).toBe("🚀  rocket");
   });
 
-  it("waits for a letter after a bare { unless the menu was asked for", () => {
-    expect(getResult("Note {")).toBeNull();
+  it("lists every emoji as soon as { is typed", () => {
+    expect(getResult("Note {")?.options).toHaveLength(18);
     expect(getResult("Note {", true)?.options).toHaveLength(18);
   });
 
