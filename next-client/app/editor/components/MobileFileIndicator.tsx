@@ -59,7 +59,7 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
   const meta = hasOpenFiles ? statusMeta[saveState] : null;
 
   return (
-    <div className="typing-chrome glass-bar relative shrink-0 flex items-center h-11 border-b border-edge-subtle">
+    <div className="typing-chrome typing-chrome-collapse glass-bar relative shrink-0 flex items-center h-11 overflow-hidden border-b border-edge-subtle">
       {onOpenAIChat && (
         <Button variant="unstyled"
           onClick={onOpenAIChat}

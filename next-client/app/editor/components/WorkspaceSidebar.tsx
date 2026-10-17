@@ -92,7 +92,7 @@ export default function WorkspaceSidebar() {
       }}
       // Hidden, it slides out by its own width as the page slides back.
       style={{ width, left: open ? 0 : -width }}
-      className="absolute inset-y-0 flex flex-col bg-chrome border-r border-edge-subtle font-sans transition-[left] duration-200 ease-out motion-reduce:transition-none"
+      className="absolute inset-y-0 flex flex-col bg-surface paper-grain border-r border-edge-subtle font-sans transition-[left] duration-200 ease-out motion-reduce:transition-none"
     >
       <SidebarHeader onNewNote={navigation.newNote} onHide={() => setOpen(false)} />
 

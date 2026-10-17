@@ -296,11 +296,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       <div
         className={`editor-sheet editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           transition-[padding,max-width] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
-          ${/* No margins: the page has no card of its own to set apart (it sits
-               on the content sheet), so only a little air above and below. */
+          ${/* A page's margins: room above the first line as on a sheet of
+               paper, and room below the last so it can be written in the
+               middle of the window rather than at its bottom edge. Split
+               panes keep less of both. */
             props.isSplit
-            ? "[--sheet-pad-top:0.75rem] pb-6 sm:[--sheet-pad-top:1rem]"
-            : "[--sheet-pad-top:1rem] pb-8 sm:[--sheet-pad-top:1.25rem]"}
+            ? "[--sheet-pad-top:1.25rem] pb-[25vh] sm:[--sheet-pad-top:1.5rem]"
+            : "[--sheet-pad-top:2rem] pb-[40vh] sm:[--sheet-pad-top:3rem]"}
           pt-[var(--sheet-pad-top)]
           mx-auto w-full
           text-ui-body

@@ -3,8 +3,7 @@
    border. The editor's own textarea is unaffected and keeps the clay outline. */
 /* The sheet's edges line up with the first tab: the pane header's padding
    (px-2 sm:px-3) + the tab strip's (px-1.5) + the tab's margin (mx-0.5). */
-/* Clear: the page behind shows through (.app-sheet). While typing it takes
-   the paper (.typing-page, below). */
+/* Clear: the page behind, with its paper grain, shows through (.app-sheet). */
 .editor-canvas {
   background-color: transparent;
   padding-inline: 1rem;
@@ -58,7 +57,7 @@ html.dark .editor-sheet {
 
 /* In the editor the note's page is one with the page behind it (.app-sheet,
    the editor route's content): no fill, edge or shadow of its own, just the
-   text column. While typing it all turns to paper (.typing-page, below). */
+   text column on the page's paper. */
 .app-sheet .editor-sheet,
 html.dark .app-sheet .editor-sheet {
   background: transparent;
@@ -120,22 +119,47 @@ html.dark .app-sheet .editor-sheet {
   }
 }
 
-/* Floating chrome (the pane header, the sidebar) sits over the editor rather
-   beside it, so the text never moves when it shows, hides or fades. It
+/* The pane header floats over the editor rather than beside it, so showing
+   it never reflows the text; fading it gives its inset back (below). It
    takes the bar material (`.glass-bar`, globals.scss). */
 
 /* Hide the interface while typing (hooks/use-fade-chrome-while-typing.ts):
    the chrome fades slowly once you type and returns quickly when the mouse
-   moves. Opacity and colour only, so nothing reflows under the caret. The
-   window then reads as one page: everything behind the chrome
-   (`.typing-page`: the content sheet, the pane, the canvas around the
-   note) takes the paper. */
+   moves. As it fades, the editor takes back its room: the pane header's
+   inset eases to 0 (the text slides up), the page slides over the
+   sidebar's width (`.editor-frame`, EditorShell) and the mobile file bar
+   folds away (`.typing-chrome-collapse`). The window then reads as one
+   page: the background is the same paper, with its grain, whether the
+   chrome shows or not. */
 .typing-chrome {
   transition: opacity 150ms ease-out;
 }
 
+.typing-chrome-collapse {
+  transition-property: opacity, height, border-color;
+}
+
 .editor-canvas {
-  transition: background-color 150ms ease-out;
+  transition: background-color 150ms ease-out, padding-top 150ms ease-out;
+}
+
+html[data-chrome-faded] .editor-frame {
+  --content-left: 0px !important;
+}
+
+html[data-chrome-faded] [data-pane-id] {
+  --pane-header-inset: 0px !important;
+}
+
+html[data-chrome-faded] .typing-chrome-collapse {
+  height: 0;
+  border-color: transparent;
+}
+
+/* The page's own `left` transition is inline (editor/page.tsx); the fade
+   slows it to the chrome's pace. */
+html[data-chrome-faded] .app-sheet {
+  transition-duration: 600ms !important;
 }
 
 .editor-sheet.editor-container {
@@ -148,10 +172,12 @@ html[data-chrome-faded] .typing-chrome {
   transition-duration: 600ms;
 }
 
-html[data-chrome-faded] .typing-page,
-html[data-chrome-faded] .editor-canvas {
-  background: var(--paper-grain), var(--surface);
-  transition-duration: 600ms;
+/* The paper grain, always, on every theme: the page (`.app-sheet`: the
+   editor's and every ShellPage's) and what sits on it in the same colour
+   (the pane header, the sidebar) carry it, so the window is one sheet. */
+.app-sheet,
+.paper-grain {
+  background-image: var(--paper-grain);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -159,8 +185,9 @@ html[data-chrome-faded] .editor-canvas {
   .editor-canvas,
   .editor-sheet.editor-container,
   html[data-chrome-faded] .typing-chrome,
-  html[data-chrome-faded] .editor-canvas {
-    transition: none;
+  html[data-chrome-faded] .editor-canvas,
+  html[data-chrome-faded] .app-sheet {
+    transition: none !important;
   }
 }
 

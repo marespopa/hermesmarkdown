@@ -4,13 +4,14 @@ import { useEffect } from "react";
 
 // Hide the interface while typing: text typed into an editor fades the
 // window chrome (elements with `.typing-chrome`: the pane header, the
-// sidebar, the mobile file bar) so only the sheet is left. The chrome floats
-// over the text, so it comes back on a deliberate move of the mouse anywhere,
-// at once when the pointer reaches the window's top or left edge (where the
-// tab bar and sidebar sit), or on a tap or focus outside the editor.
+// sidebar, the mobile file bar) so only the sheet is left, and the editor
+// takes back the room they held (editor.scss). It comes back on a deliberate
+// move of the mouse anywhere, at once when the pointer reaches the window's
+// top or left edge (where the tab bar and sidebar sit), or on a tap or focus
+// outside the editor.
 // The state lives on <html data-chrome-faded> rather than in an atom, so a
-// keystroke never re-renders React; the fade itself is CSS (editor.scss).
-// Fading never changes layout, so the text doesn't move.
+// keystroke never re-renders React; the fade and the reclaimed room are CSS
+// (editor.scss), eased so the text slides rather than jumps.
 
 export const CHROME_FADED_ATTRIBUTE = "data-chrome-faded";
 // How far the mouse travels (px) in one movement before the chrome returns:

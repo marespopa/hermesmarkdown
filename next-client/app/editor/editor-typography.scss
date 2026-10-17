@@ -18,9 +18,8 @@
 }
 
 /* Full Width (Settings → Editor): the column fills the sheet, inside its
-   page margins. The sidebar and pane header float over the sheet
-   (editor.scss), so its width never changes with them and lines don't
-   rewrap under the caret. */
+   page margins. The sheet widens when the chrome fades and the page takes
+   the sidebar's room (editor.scss), so full-width lines rewrap then. */
 .editor-sheet[data-full-width] {
   --editor-measure: 100%;
 }
@@ -45,7 +44,8 @@
 }
 
 .editor-sheet.editor-container .cm-content {
-  color: color-mix(in srgb, var(--fg) 88%, var(--surface));
+  /* Ink on paper: the text a step softer than the headings, never grey. */
+  color: color-mix(in srgb, var(--fg) 92%, var(--surface));
   font-kerning: normal;
   text-rendering: optimizeLegibility;
   overflow-wrap: break-word;

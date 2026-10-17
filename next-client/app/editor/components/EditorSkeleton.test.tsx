@@ -52,7 +52,7 @@ describe("EditorSkeleton", () => {
   it("outlines All Notes, Settings and Trash on a refresh there", () => {
     pathname.current = "/editor/files";
     renderSkeleton();
-    expect(screen.getByRole("heading", { name: "All Notes" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "All Notes", hidden: true })).toBeInTheDocument();
     cleanup();
     pathname.current = "/editor/settings";
     renderSkeleton();
@@ -60,6 +60,6 @@ describe("EditorSkeleton", () => {
     cleanup();
     pathname.current = "/editor/trash";
     renderSkeleton();
-    expect(screen.getByRole("heading", { name: "Trash" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Trash", hidden: true })).toBeInTheDocument();
   });
 });

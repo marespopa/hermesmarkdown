@@ -57,7 +57,7 @@ function WorkspaceSkeleton({ sidebarOpen, sidebarWidth }: { sidebarOpen: boolean
 
         <div className="editor-canvas flex-1 min-h-0 overflow-hidden">
           {/* MarkdownEditor's sheet: its margins, page padding and text column. */}
-          <div className="editor-sheet mx-auto w-full min-h-full pt-4 sm:pt-5 pb-8 pr-5 sm:pr-12 xl:pr-14 [--sheet-pad-left:2.390625rem] sm:[--sheet-pad-left:3rem] xl:[--sheet-pad-left:3.5rem] pl-[var(--sheet-pad-left)]">
+          <div className="editor-sheet mx-auto w-full min-h-full pt-8 sm:pt-12 pb-8 pr-5 sm:pr-12 xl:pr-14 [--sheet-pad-left:2.390625rem] sm:[--sheet-pad-left:3rem] xl:[--sheet-pad-left:3.5rem] pl-[var(--sheet-pad-left)]">
             <div className="editor-measure flex flex-col">
               <div className={`h-7 w-2/5 rounded-lg mb-10 ${BAR}`} />
               {PARAGRAPHS.map((lines, p) => (
@@ -75,7 +75,7 @@ function WorkspaceSkeleton({ sidebarOpen, sidebarWidth }: { sidebarOpen: boolean
       {sidebarOpen && (
         <div
           style={{ width: sidebarWidth }}
-          className="absolute inset-y-0 left-0 flex flex-col bg-chrome border-r border-edge-subtle max-[768px]:hidden"
+          className="absolute inset-y-0 left-0 flex flex-col bg-surface paper-grain border-r border-edge-subtle max-[768px]:hidden"
         >
           <div className={`flex items-center gap-2 shrink-0 pl-4 pr-2 sm:pr-3 ${PANE_HEADER_HEIGHT}`}>
             <div className="flex-1">

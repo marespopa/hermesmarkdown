@@ -29,7 +29,9 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
 // mobile has no sidebar. Flat, as a plain writing app: the sidebar is a
 // panel on the window's edge and the content (the editor page, or a
 // ShellPage) fills the rest, starting at `--content-left` (the open
-// sidebar's width, else 0), so it is pushed over, never covered. While
+// sidebar's width, else 0), so it is pushed over, never covered. While the
+// chrome is faded for typing, `.editor-frame` drops that to 0 (editor.scss)
+// so the page slides into the sidebar's room. While
 // the sidebar is hidden, a Show sidebar button sits in the top-left corner
 // of the pages (the editor has its own, in the pane toolbar).
 export default function EditorShell({ children }: { children: ReactNode }) {
@@ -57,7 +59,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   const frame = { "--content-left": `${hasSidebar && sidebarOpen ? sidebarWidth : 0}px` } as CSSProperties;
 
   return (
-    <div className="contents" style={frame}>
+    <div className="editor-frame contents" style={frame}>
       {children}
       {hasSidebar && (
         // A wrapper takes the fade (typing-chrome): the sidebar's own
