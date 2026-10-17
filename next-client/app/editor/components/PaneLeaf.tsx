@@ -4,23 +4,21 @@ import React from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import MarkdownEditor from "./MarkdownEditor";
 import PrivateNoteGate from "./PrivateNoteGate";
-import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
+import TabContextMenu from "./TabContextMenu";
 import { useAtom } from "jotai";
-import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_saveStatus, atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_pinnedNotePaths, atom_toggleNotePin } from "@/app/atoms/note-pin-atoms";
+import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_saveStatus, atom_workspaceLayout } from "@/app/atoms/atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineCode } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineChartBar } from "react-icons/hi";
 import BoardViewLoader from "./board/BoardViewLoader";
 import { isBoard } from "@/app/utils/board/is-board";
 import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
-import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import PaneTitle from "./PaneTitle";
 import type { SaveState } from "./save-state";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue, useSetAtom } from "jotai";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
-import { usePaneFileActions } from "../hooks/use-pane-file-actions";
+import { useNoteMenuItems } from "../hooks/use-note-menu-items";
 import PaneEmptyState from "./PaneEmptyState";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
 import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
@@ -35,7 +33,6 @@ const PANE_TOP_ROOM = "48px";
 export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [activePaneId, setActivePaneId] = useAtom(atom_activePaneId);
   const [openFiles] = useAtom(atom_openFiles);
-  const [, splitPane] = useAtom(atom_splitPane);
   const saveStatus = useAtomValue(atom_saveStatus);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
@@ -43,8 +40,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
   const { openOrCreateLink, renameFile } = useFileSystem();
   const hasVault = !!useAtomValue(atom_vaultHandle);
-  const pinnedNotePaths = useAtomValue(atom_pinnedNotePaths);
-  const toggleNotePin = useSetAtom(atom_toggleNotePin);
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
   // A board (see board/) shows as a canvas unless opened as Markdown.
@@ -66,7 +61,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
   const isActive = activePaneId === leaf.id;
 
-  const { handleCopy, buildTabMenuItems } = usePaneFileActions(leaf);
+  const noteMenuItems = useNoteMenuItems(leaf);
 
   // Drives the title's save dot.
   const activeFileState = leaf.activeFilePath ? openFiles[leaf.activeFilePath] : undefined;
@@ -108,9 +103,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   React.useEffect(() => setScrolled(false), [filePath]);
 
   const hasFiles = leaf.openFilePaths.length > 0;
-  const openFileInPane = (filePath = leaf.activeFilePath) => {
-    splitPane({ id: leaf.id, direction: "horizontal", filePath });
-  };
 
   return (
     <div
@@ -206,37 +198,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         <TabContextMenu
           x={tabMenu.x}
           y={tabMenu.y}
-          items={(() => {
-            const menuActions: TabContextMenuItem[] = [];
-            if (tabMenu.path === (leaf.activeFilePath || "draft")) {
-              menuActions.push({ label: "Copy Markdown", onClick: handleCopy, icon: <HiOutlineClipboardCopy size={15} /> });
-            }
-            menuActions.push({
-              label: "Open in pane",
-              onClick: () => openFileInPane(tabMenu.path),
-              icon: <HiOutlineViewBoards size={15} />,
-            });
-            if (tabMenu.path !== "draft" && isBoard(tabMenu.path, openFiles[tabMenu.path]?.content ?? "")) {
-              menuActions.push({
-                label: boardMarkdownPaths.has(tabMenu.path) ? "Open as Board" : "Edit as Markdown",
-                onClick: () => toggleBoardMarkdown(tabMenu.path),
-                icon: <HiOutlineCode size={15} />,
-              });
-            }
-            // Notes in the vault can be pinned (first in the palette and in Files);
-            // the unsaved draft can't.
-            if (hasVault && tabMenu.path !== "draft") {
-              const isPinned = pinnedNotePaths.includes(tabMenu.path);
-              menuActions.push({
-                label: isPinned ? "Unpin Note" : "Pin Note",
-                onClick: () => toggleNotePin(tabMenu.path),
-                icon: isPinned ? <TbPinnedFilled size={15} /> : <TbPinned size={15} />,
-              });
-            }
-            const closeItems = buildTabMenuItems(tabMenu.path);
-            if (menuActions.length > 0) closeItems[0] = { ...closeItems[0], divider: true };
-            return [...menuActions, ...closeItems];
-          })()}
+          items={noteMenuItems(tabMenu.path)}
           onClose={() => setTabMenu(null)}
         />
       )}

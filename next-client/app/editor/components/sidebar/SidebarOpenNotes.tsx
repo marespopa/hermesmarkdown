@@ -1,13 +1,15 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useAtomValue } from "jotai";
 import { HiOutlineX } from "react-icons/hi";
 import { atom_activePaneId, atom_openFiles, atom_saveStatus, atom_workspaceLayout, atom_workspaceTabs } from "@/app/atoms/atoms";
 import { findLeaf, getFirstLeaf } from "@/app/atoms/utils";
 import Button from "@/app/components/Button";
 import { formatShortcut } from "@/app/utils/platform";
+import { useNoteMenuItems } from "../../hooks/use-note-menu-items";
 import { usePaneFileActions } from "../../hooks/use-pane-file-actions";
+import TabContextMenu from "../TabContextMenu";
 import { statusDot, type SaveState } from "../save-state";
 import SidebarSection from "./SidebarSection";
 import { sidebarItemClass } from "./sidebar-classes";
@@ -17,7 +19,8 @@ import { sidebarItemClass } from "./sidebar-classes";
 // unsaved, saving or failed to save, and a close button on hover or focus.
 // On the editor, the first nine also show their Ctrl/Cmd+1–9 shortcut (its
 // number counts every pane's notes, as the shortcut does), which gives way
-// to the close button.
+// to the close button. A right-click (or the menu key) opens the note's
+// menu, the same as on the pane's title (useNoteMenuItems).
 // `onOpen` brings a note to the front of its pane (and back to the editor
 // from another page). Renders nothing while no note is open.
 export default function SidebarOpenNotes({
@@ -34,6 +37,8 @@ export default function SidebarOpenNotes({
   const leaf = (activePaneId ? findLeaf(layout.rootContainer, activePaneId) : null) ?? getFirstLeaf(layout.rootContainer);
   const { closeTabWithAutosave } = usePaneFileActions(leaf);
   const workspaceTabs = useAtomValue(atom_workspaceTabs);
+  const noteMenuItems = useNoteMenuItems(leaf);
+  const [menu, setMenu] = useState<{ x: number; y: number; path: string } | null>(null);
 
   if (!leaf || leaf.openFilePaths.length === 0) return null;
 
@@ -58,6 +63,13 @@ export default function SidebarOpenNotes({
             <Button
               variant="unstyled"
               onClick={() => onOpen(leaf.id, path)}
+              onContextMenu={(event: React.MouseEvent) => {
+                event.preventDefault();
+                // From the keyboard (menu key, Shift+F10) there's no pointer: under the row.
+                const rect = event.currentTarget.getBoundingClientRect();
+                const fromKeyboard = event.clientX === 0 && event.clientY === 0;
+                setMenu({ x: fromKeyboard ? rect.left + 8 : event.clientX, y: fromKeyboard ? rect.bottom : event.clientY, path });
+              }}
               aria-current={isCurrent ? "page" : undefined}
               aria-label={dot ? `${name} — ${dotTitle}` : name}
               aria-keyshortcuts={shortcut ? `Control+${tabIndex + 1} Meta+${tabIndex + 1}` : undefined}
@@ -84,6 +96,15 @@ export default function SidebarOpenNotes({
           </div>
         );
       })}
+      {menu && (
+        <TabContextMenu
+          x={menu.x}
+          y={menu.y}
+          label={`${(openFiles[menu.path]?.fileName || menu.path.split("/").pop() || "Note").replace(/\.md$/i, "")} actions`}
+          items={noteMenuItems(menu.path)}
+          onClose={() => setMenu(null)}
+        />
+      )}
     </SidebarSection>
   );
 }

@@ -3,8 +3,8 @@ import { act, render, screen, cleanup, fireEvent, waitFor, within } from "@testi
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createStore, Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
-import { atom_activePaneId, atom_openFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
 import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_newNoteRequested, atom_notePins, atom_pendingScrollTarget, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_activePaneId, atom_liveHandles, atom_openFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
 import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import WorkspaceSidebar from "./WorkspaceSidebar";
@@ -14,6 +14,7 @@ const fileSystem = vi.hoisted(() => ({
   createNewFile: vi.fn(),
   createFolder: vi.fn(),
   openFile: vi.fn(async () => {}),
+  renameFile: vi.fn(),
   treeController: null as null | { startCreate: () => void; focus: () => void },
 }));
 
@@ -32,7 +33,7 @@ vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: () => ({
     vaultHandle: fileSystem.vaultHandle,
     openFile: fileSystem.openFile,
-    renameFile: vi.fn(),
+    renameFile: fileSystem.renameFile,
     deleteFile: vi.fn(),
     duplicateFile: vi.fn(),
     moveItem: vi.fn(),
@@ -227,6 +228,50 @@ describe("WorkspaceSidebar", () => {
     fireEvent.click(openNotes.getByRole("button", { name: "c — Unsaved changes" }));
     expect(navigation.push).toHaveBeenCalledWith(expect.stringContaining("c.md"));
     navigation.pathname = "/editor";
+  });
+
+  describe("an open note's menu (right-click)", () => {
+    function renderTwoNotes(withVault = false) {
+      const store = createStore();
+      store.set(atom_sidebarOpen, true);
+      store.set(atom_activePaneId, "left");
+      store.set(atom_openFiles, {
+        "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" },
+        "c.md": { fileName: "c.md", content: "C", lastSavedContent: "C" },
+      } as never);
+      store.set(atom_workspaceLayout, { rootContainer: { ...left, openFilePaths: ["a.md", "c.md"] } } as never);
+      if (withVault) {
+        store.set(atom_vaultHandle, { name: "Notes" } as never);
+        store.set(atom_liveHandles("a.md"), { kind: "file", name: "a.md" } as never);
+      }
+      render(<Provider store={store}><WorkspaceSidebar /></Provider>);
+      return { store, openNotes: within(screen.getByRole("region", { name: "Open Notes" })) };
+    }
+
+    it("offers the note's actions and closing the others or all", () => {
+      const { store, openNotes } = renderTwoNotes();
+      fireEvent.contextMenu(openNotes.getByRole("button", { name: "a" }));
+
+      const menu = screen.getByRole("menu", { name: "a actions" });
+      expect(within(menu).getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
+        "Copy Markdown", "Open in pane", "Close", "Close Others", "Close All",
+      ]);
+      fireEvent.click(within(menu).getByRole("menuitem", { name: "Close Others" }));
+      expect((store.get(atom_workspaceLayout).rootContainer as typeof left).openFilePaths).toEqual(["a.md"]);
+    });
+
+    it("pins, renames and trashes a vault note from it", () => {
+      fileSystem.renameFile.mockClear();
+      const { openNotes } = renderTwoNotes(true);
+      fireEvent.contextMenu(openNotes.getByRole("button", { name: "a" }));
+
+      const menu = screen.getByRole("menu", { name: "a actions" });
+      for (const name of ["Pin Note", "Rename…", "Move to Trash"]) {
+        expect(within(menu).getByRole("menuitem", { name })).toBeInTheDocument();
+      }
+      fireEvent.click(within(menu).getByRole("menuitem", { name: "Rename…" }));
+      expect(fileSystem.renameFile).toHaveBeenCalledWith({ kind: "file", name: "a.md" }, undefined, "a.md");
+    });
   });
 
   it("is the library: the vault, Open Notes, the Outline and Files; the rest is the palette's", () => {

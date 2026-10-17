@@ -238,11 +238,12 @@ export const getStartedGroup: Group = {
             place: press <code>Enter</code> or click away to keep the new name, <code>Esc</code> to back out. The
             button in the top-right corner (or <code>CTRL/CMD+K</code>) opens the command palette, where every note
             and command is: Save, Copy Markdown, Export as PDF or HTML, Pin Note, Settings, Documentation, Ask or Edit with AI and the rest.
-            Right-click the name for
-            the note&apos;s menu (Copy Markdown, Open in pane, Pin Note, Close). Each pane keeps up to 20 notes
+            Each pane keeps up to 20 notes
             open behind the one in front, listed in the sidebar&apos;s Open Notes: opening another closes the
             one you looked at least recently, never one with unsaved changes, and <code>CTRL/CMD+1–9</code>{" "}
-            jumps between them (each of the first nine shows its shortcut there). While the sidebar is hidden, its button sits in the top-left corner.
+            jumps between them (each of the first nine shows its shortcut there). Right-click a note there, or
+            the note&apos;s name at the top, for its menu: Copy Markdown, Open in pane, Pin Note, Rename…, Move
+            to Trash, and Close, Close Others or Close All. While the sidebar is hidden, its button sits in the top-left corner.
           </p>
           <p>
             <strong>Search</strong> is the way around: the button in the editor&apos;s top-right corner, the search bar at
