@@ -3,8 +3,8 @@ import { act, render, screen, cleanup, fireEvent, waitFor, within } from "@testi
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createStore, Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
-import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_newNoteRequested, atom_notePins, atom_pendingScrollTarget, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { atom_activePaneId, atom_liveHandles, atom_openFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
+import { atom_activeEditorView, atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_newNoteRequested, atom_notePins, atom_pendingScrollTarget, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import WorkspaceSidebar from "./WorkspaceSidebar";
@@ -417,6 +417,32 @@ describe("WorkspaceSidebar", () => {
 
     fireEvent.keyDown(plan, { key: "Enter" });
     expect(screen.getByTestId("scroll-target")).toHaveTextContent('{"path":"a.md","line":1}');
+  });
+
+  it("marks each heading's level and the section the caret is in, as the Files tree marks the open note", async () => {
+    const content = "# Plan\n## Goals\nShip the export\n# Notes";
+    const store = createStore();
+    store.set(atom_sidebarOpen, true);
+    store.set(atom_activePaneId, "left");
+    store.set(atom_openFiles, { "a.md": { fileName: "a.md", content, lastSavedContent: content } } as never);
+    store.set(atom_workspaceLayout, { rootContainer: left } as never);
+    // The caret on line 3, inside Plan › Goals.
+    store.set(atom_activeEditorView, {
+      dom: { isConnected: true },
+      state: { selection: { main: { head: 20 } }, doc: { lineAt: () => ({ number: 3 }) } },
+    } as never);
+    render(<Provider store={store}><WorkspaceSidebar /></Provider>);
+
+    const goals = screen.getByRole("treeitem", { name: "Goals" });
+    expect(goals).toHaveTextContent("H2Goals");
+    await waitFor(() => expect(goals).toHaveAttribute("aria-current", "location"));
+    expect(goals).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("treeitem", { name: "Plan" })).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("treeitem", { name: "Notes" })).not.toHaveAttribute("aria-current");
+
+    // Folded away, the section shows on the heading that holds it.
+    fireEvent.keyDown(screen.getByRole("treeitem", { name: "Plan" }), { key: "ArrowLeft" });
+    expect(screen.getByRole("treeitem", { name: "Plan" })).toHaveAttribute("aria-current", "location");
   });
 
   it("has no outline on a page, only on the editor", () => {
