@@ -8,6 +8,7 @@ import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import SidebarFiles from "./sidebar/SidebarFiles";
 import SidebarHeader from "./sidebar/SidebarHeader";
+import SidebarOpenNotes from "./sidebar/SidebarOpenNotes";
 import SidebarOutline from "./sidebar/SidebarOutline";
 import { useSidebarNavigation } from "./sidebar/use-sidebar-navigation";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
@@ -97,6 +98,7 @@ export default function WorkspaceSidebar() {
       <SidebarHeader onNewNote={navigation.newNote} onHide={() => setOpen(false)} />
 
       <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-1">
+        <SidebarOpenNotes onEditor={onWorkspace} onOpen={navigation.openOpenNote} />
         {onWorkspace && activeTabPath && (
           // The note is already in front: its pane just moves the caret there.
           <SidebarOutline path={activeTabPath} onJump={(line) => setPendingScrollTarget({ path: activeTabPath, line })} />

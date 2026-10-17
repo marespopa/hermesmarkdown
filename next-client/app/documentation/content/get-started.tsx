@@ -253,10 +253,12 @@ export const getStartedGroup: Group = {
             toolbar and its search bar fade away; move the mouse to bring them back.
           </p>
           <p>
-            The <strong>sidebar</strong> is only your library, the same on every editor page: its header names the
+            The <strong>sidebar</strong> is your library, the same on every editor page: its header names the
             vault (click it to switch to a recent vault or open another) beside <strong>New note</strong> and the
-            button that hides it; below come the <strong>Outline</strong> of the note in front (click a heading to
-            jump to it) and <strong>Files</strong>, the vault&apos;s tree, each with a chevron to fold or unfold it.
+            button that hides it; below come <strong>Open Notes</strong> (the notes open in the pane you&apos;re in:
+            click one to switch to it, or its × to close it; a dot marks unsaved changes), the{" "}
+            <strong>Outline</strong> of the note in front (click a heading to jump to it) and <strong>Files</strong>,
+            the vault&apos;s tree. A line sets each section apart, and each has a chevron to fold or unfold it.
             It sits beside the page and pushes it over rather than covering it.
           </p>
           <p>

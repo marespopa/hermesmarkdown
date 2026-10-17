@@ -179,7 +179,42 @@ describe("WorkspaceSidebar", () => {
     expect(screen.queryByTestId("file-tree")).not.toBeInTheDocument();
   });
 
-  it("is only the library: the vault, the Outline and Files, the rest is the palette's", () => {
+  it("lists the focused pane's open notes, the one in front highlighted", () => {
+    renderSidebar(true);
+    const openNotes = within(screen.getByRole("region", { name: "Open Notes" }));
+    expect(openNotes.getByRole("button", { name: "a" })).toHaveAttribute("aria-current", "page");
+    // b.md is in the other pane.
+    expect(openNotes.queryByRole("button", { name: /^b/ })).not.toBeInTheDocument();
+    expect(openNotes.getByRole("button", { name: "Close a" })).toBeInTheDocument();
+  });
+
+  it("brings an open note to the front of its pane, and back to the editor from a page", () => {
+    const twoNotes = { ...left, openFilePaths: ["a.md", "c.md"] };
+    navigation.pathname = "/editor/tasks";
+    render(
+      <Provider>
+        <HydrateAtoms initialValues={[
+          [atom_sidebarOpen, true],
+          [atom_activePaneId, "left"],
+          [atom_openFiles, {
+            "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" },
+            "c.md": { fileName: "c.md", content: "C changed", lastSavedContent: "C" },
+          }],
+          [atom_workspaceLayout, { rootContainer: twoNotes }],
+        ]}>
+          <WorkspaceSidebar />
+        </HydrateAtoms>
+      </Provider>
+    );
+    const openNotes = within(screen.getByRole("region", { name: "Open Notes" }));
+    // Off the editor, no note is highlighted; unsaved changes show on their row.
+    expect(openNotes.getByRole("button", { name: "a" })).not.toHaveAttribute("aria-current");
+    fireEvent.click(openNotes.getByRole("button", { name: "c — Unsaved changes" }));
+    expect(navigation.push).toHaveBeenCalledWith(expect.stringContaining("c.md"));
+    navigation.pathname = "/editor";
+  });
+
+  it("is the library: the vault, Open Notes, the Outline and Files; the rest is the palette's", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar(true, null, false, { "a.md": { fileName: "a.md", content: "# Plan", lastSavedContent: "" } });
 
@@ -188,7 +223,8 @@ describe("WorkspaceSidebar", () => {
     for (const name of ["Home", "All Notes", "Tags", "Tasks", "Templates", "Trash", "Settings", "Export"]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
     }
-    for (const name of ["Pinned", "Recent", "Open Notes"]) {
+    expect(screen.getByRole("region", { name: "Open Notes" })).toBeInTheDocument();
+    for (const name of ["Pinned", "Recent"]) {
       expect(screen.queryByRole("region", { name })).not.toBeInTheDocument();
     }
     // Within the sidebar: the test's own atom probes are <output>s (status).

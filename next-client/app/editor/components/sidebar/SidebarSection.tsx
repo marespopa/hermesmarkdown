@@ -53,8 +53,8 @@ function SectionMenu({ label, items }: { label: string; items: SectionMenuItem[]
   );
 }
 
-// A titled, collapsible group: a hairline above it sets it apart from the
-// one before; its header is a caption led by a disclosure chevron that is
+// A titled, collapsible group: a full-width hairline above it sets it apart
+// from the header or the section before; its header is a caption led by a disclosure chevron that is
 // always shown (right when folded, down when open), and the whole header
 // folds or unfolds it. The ⋯ menu shows on hover or focus.
 // Collapsed sections are remembered (atom_sidebarCollapsed, by title);
@@ -74,7 +74,7 @@ export default function SidebarSection({
   const expanded = !(collapsed[title] ?? defaultCollapsed);
   const setExpanded = (next: boolean) => setCollapsed((prev) => ({ ...prev, [title]: !next }));
   return (
-    <section aria-label={title} className="flex flex-col border-t border-edge-subtle pt-2 pb-3">
+    <section aria-label={title} className="-mx-2 flex flex-col border-t border-edge px-2 pt-2.5 pb-3">
       <div className="group/section flex items-center gap-0.5 h-7 pr-1">
         <Button
           variant="unstyled"
