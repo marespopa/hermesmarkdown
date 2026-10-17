@@ -444,7 +444,7 @@ graph TD
     id: "embeds",
     title: "Embedding notes and files",
     lead: "Show another note, a CSV table, an image or a code file inside this one: ![[Note name]] or /path on a line of its own.",
-    keywords: "embed transclude transclusion include note section heading ![[ csv table image picture code file slash compile book chapters",
+    keywords: "embed embed file command transclude transclusion include note section heading ![[ csv table image picture code file slash compile book chapters",
     body: (
       <>
         <p>
@@ -468,7 +468,10 @@ graph TD
           A file path is looked up next to the note first, then from the vault root. Start a line
           with <code>/</code> and type the start of a note&apos;s name: the rest of the best match
           appears in faded text, and <code>Tab</code> (or <code>→</code>) accepts it. The slash
-          menu also lists matching notes; picking one writes its path for you.
+          menu also lists matching notes; picking one writes its path for you. Or type{" "}
+          <code>/embed</code> anywhere and pick <strong>Embed file</strong>: it puts a{" "}
+          <code>/</code> on a line of its own (splitting the line if you were mid-sentence) and
+          opens the menu there, so you can choose a note or type a file&apos;s path.
         </p>
         <p>
           Embeds stay current: a note open in a tab shows its unsaved edits, and other files are

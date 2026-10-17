@@ -1,4 +1,4 @@
-import { CompletionContext, CompletionResult, Completion } from "@codemirror/autocomplete";
+import { CompletionContext, CompletionResult, Completion, startCompletion } from "@codemirror/autocomplete";
 import { EditorView } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 import {
@@ -15,6 +15,7 @@ import {
   TEMPLATE_FIELD_SENTINEL,
   SAVE_AS_TEMPLATE_SENTINEL,
   BOARD_LINK_SENTINEL,
+  EMBED_FILE_SENTINEL,
   CURSOR_SENTINEL,
   CODE_BLOCK_TEMPLATE_CONTENT,
   MARK_PRIVATE_SENTINEL,
@@ -29,11 +30,12 @@ import { clearPrivateMarkers, isPrivateContent } from "@/app/utils/note-privacy"
 // migration). Frontmatter wizard, Link/WikiLink/Date/Table sentinels are.
 // The vault Template entry is added only when the editor can insert one, and
 // Template field only while editing a template.
-const AVAILABLE_TEMPLATES = TEMPLATES.filter((t) => !t.aiOnly && !t.vaultOnly && !t.templateOnly && !t.saveTemplateOnly && !t.boardOnly);
+const AVAILABLE_TEMPLATES = TEMPLATES.filter((t) => !t.aiOnly && !t.vaultOnly && !t.templateOnly && !t.saveTemplateOnly && !t.boardOnly && !t.embedOnly);
 const VAULT_TEMPLATE_ENTRIES = TEMPLATES.filter((t) => t.content === VAULT_TEMPLATE_SENTINEL);
 const TEMPLATE_FIELD_ENTRIES = TEMPLATES.filter((t) => t.templateOnly);
 const SAVE_TEMPLATE_ENTRIES = TEMPLATES.filter((t) => t.saveTemplateOnly);
 const BOARD_ENTRIES = TEMPLATES.filter((t) => t.boardOnly);
+const EMBED_ENTRIES = TEMPLATES.filter((t) => t.embedOnly);
 
 export interface SlashMenuCallbacks {
   onOpenLinkDialog: (range: { from: number; to: number }) => void;
@@ -194,6 +196,10 @@ export function applyTemplate(
     callbacks.onInsertBoard?.();
     return;
   }
+  if (content === EMBED_FILE_SENTINEL) {
+    insertEmbedPrompt(view, from, to);
+    return;
+  }
   if (content === TEMPLATE_FIELD_SENTINEL) {
     view.dispatch({ changes: { from, to, insert: "" }, userEvent: "input.replace.template" });
     callbacks.onInsertTemplateField?.();
@@ -223,6 +229,28 @@ export function applyTemplate(
       if (view.dom.isConnected) requestCalloutTypeMenu(view, { pos: view.state.selection.main.head });
     }, 0);
   }
+}
+
+// "Embed file": an embed is a line of its own holding `/path`, so the
+// command leaves a bare `/` on its own line (breaking the line around it when
+// there's text either side) and reopens the menu there, which then lists the
+// vault's notes as you type a name; a typed path (`/data/sales.csv`,
+// `/assets/chart.png`) embeds any other file.
+export function insertEmbedPrompt(view: EditorView, from: number, to: number) {
+  const line = view.state.doc.lineAt(from);
+  const before = view.state.sliceDoc(line.from, from).trim() ? "\n" : "";
+  const after = view.state.sliceDoc(to, line.to).trim() ? "\n" : "";
+  const insert = `${before}/${after}`;
+  const caret = from + before.length + 1;
+  view.dispatch({
+    changes: { from, to, insert },
+    selection: EditorSelection.cursor(caret),
+    userEvent: "input.replace.template",
+  });
+  // After the key press that picked the command, so the menu opens anew.
+  setTimeout(() => {
+    if (view.dom.isConnected) startCompletion(view);
+  }, 0);
 }
 
 // A "path-like" trigger (e.g. "/Users/name", "./foo") shouldn't pop the
@@ -298,6 +326,8 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
       ...(callbacksRef.current.onInsertTemplateField ? TEMPLATE_FIELD_ENTRIES : []),
       ...(callbacksRef.current.onSaveAsTemplate ? SAVE_TEMPLATE_ENTRIES : []),
       ...(callbacksRef.current.onInsertBoard ? BOARD_ENTRIES : []),
+      // Only with notes to embed (a vault is open).
+      ...(callbacksRef.current.embedFiles?.().length ? EMBED_ENTRIES : []),
       ...(callbacksRef.current.onOpenAIChat ? TEMPLATES.filter((template) => template.content === AI_CHAT_SENTINEL) : []),
     ];
     // Offer only the privacy commands that would change this note.

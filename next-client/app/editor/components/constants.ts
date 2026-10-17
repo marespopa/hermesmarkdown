@@ -103,6 +103,7 @@ export const VAULT_TEMPLATE_SENTINEL = "__OPEN_VAULT_TEMPLATE__";
 export const TEMPLATE_FIELD_SENTINEL = "__OPEN_TEMPLATE_FIELD__";
 export const SAVE_AS_TEMPLATE_SENTINEL = "__SAVE_AS_TEMPLATE__";
 export const BOARD_LINK_SENTINEL = "__INSERT_BOARD_LINK__";
+export const EMBED_FILE_SENTINEL = "__EMBED_FILE__";
 export const MARK_PRIVATE_SENTINEL = "__MARK_PRIVATE__";
 export const MARK_PUBLIC_SENTINEL = "__MARK_PUBLIC__";
 export const AI_ACTION_SENTINEL_PREFIX = "__AI_ACTION__:";
@@ -128,6 +129,8 @@ export interface Template {
   saveTemplateOnly?: boolean;
   /** Only shown when a board can be created and linked (onInsertBoard). */
   boardOnly?: boolean;
+  /** Only shown when the vault's notes can be embedded (embedFiles). */
+  embedOnly?: boolean;
 }
 
 export const TEMPLATES: Template[] = [
@@ -148,6 +151,13 @@ export const TEMPLATES: Template[] = [
     description: "Create a drawing board and link it here",
     content: BOARD_LINK_SENTINEL,
     boardOnly: true,
+  },
+  {
+    label: "Embed file",
+    icon: "⧉",
+    description: "Show a note, table, image or code file here, read-only",
+    content: EMBED_FILE_SENTINEL,
+    embedOnly: true,
   },
   {
     label: "Mermaid",

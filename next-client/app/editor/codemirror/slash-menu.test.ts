@@ -121,6 +121,30 @@ describe("createSlashMenuSource", () => {
     expect(callbacks.onOpenAIChat).toHaveBeenCalledOnce();
   });
 
+  it("offers Embed file only with notes to embed", () => {
+    const labels = (callbacks: SlashMenuCallbacks) => getResult("/embed", callbacks).result?.options.map(({ label }) => label) ?? [];
+    expect(labels(makeCallbacks())).not.toContain("Embed file");
+    expect(labels({ ...makeCallbacks(), embedFiles: () => [] })).not.toContain("Embed file");
+    expect(labels({ ...makeCallbacks(), embedFiles: () => ["specs/Roadmap.md"] })).toContain("Embed file");
+  });
+
+  it("leaves a bare / on its own line for Embed file, breaking the line around it", () => {
+    vi.useFakeTimers();
+    const callbacks = { ...makeCallbacks(), embedFiles: () => ["specs/Roadmap.md"] };
+    const alone = applyOption("/embed", "Embed file", callbacks).view;
+    expect(alone.state.doc.toString()).toBe("/");
+    expect(alone.state.selection.main.head).toBe(1);
+
+    const doc = "Intro /embed";
+    const { result } = getResult(doc, callbacks);
+    const option = result!.options.find((entry) => entry.label === "Embed file")!;
+    const view = makeView(doc + " outro");
+    (option.apply as (...args: unknown[]) => void)(view, option, result!.from, result!.to ?? result!.from);
+    expect(view.state.doc.toString()).toBe("Intro \n/\n outro");
+    vi.runAllTimers();
+    vi.useRealTimers();
+  });
+
   it("hides AI Chat when AI is not configured", () => {
     const callbacks = makeCallbacks();
     callbacks.onOpenAIChat = undefined;
