@@ -206,8 +206,8 @@ export const getStartedGroup: Group = {
         <>
           <p>
             To pin a note, right-click it in the sidebar&apos;s <strong>Files</strong> and choose{" "}
-            <strong>Pin</strong>, choose <strong>Pin Note</strong> in the toolbar&apos;s{" "}
-            <strong>More</strong> menu or in its title&apos;s right-click menu, run <strong>Pin Note</strong>{" "}
+            <strong>Pin</strong>, choose <strong>Pin Note</strong> in the note&apos;s right-click menu (on the button at
+            the top of the page), run <strong>Pin Note</strong>{" "}
             from the command palette, or press <code>CTRL/CMD+D</code> on it in the palette. Pinned notes
             are listed first, newest pin first, at the top of <strong>Files</strong> and in the command
             palette before you type anything. The same places unpin it. Each vault keeps its own pins;
@@ -232,25 +232,20 @@ export const getStartedGroup: Group = {
             keyboard shortcuts, and the slash command menu.
           </p>
           <p>
-            The toolbar at the top is quiet: the note in front, by name, with a small dot while it has
-            unsaved changes, is saving, or couldn&apos;t save. Click the name (or press <code>CTRL/CMD+K</code>)
-            to open the command palette, where every note and command is; right-click it for the
-            note&apos;s menu (Copy Markdown, Open in pane, Pin Note, Close). Each pane keeps up to 20
-            notes open behind the one in front: opening another closes the one you looked at least
-            recently, never one with unsaved changes, and <code>CTRL/CMD+1–9</code> jumps between them.
-            On the left: the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right:
-            AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
-            Markdown, Export as PDF, Export as HTML, Pin Note, Settings and Documentation — every one of them is also in the command palette.
+            There&apos;s no toolbar. One quiet button sits at the top of the page: the note in front, by
+            name, with a small dot while it has unsaved changes, is saving, or couldn&apos;t save. Click it (or
+            press <code>CTRL/CMD+K</code>) to open the command palette, where every note and command is: Save,
+            Copy Markdown, Export as PDF or HTML, Pin Note, Settings, AI Chat and the rest. Right-click it for
+            the note&apos;s menu (Copy Markdown, Open in pane, Pin Note, Close). Each pane keeps up to 20 notes
+            open behind the one in front, listed in the sidebar&apos;s Open Notes: opening another closes the
+            one you looked at least recently, never one with unsaved changes, and <code>CTRL/CMD+1–9</code>{" "}
+            jumps between them. While the sidebar is hidden, its button sits in the top-left corner.
           </p>
           <p>
-            Toolbar buttons are icons; hover one to see its name and shortcut.
-          </p>
-          <p>
-            <strong>Search</strong> is the way around: the search bar in the toolbar and at the top of every page,
-            or <code>CTRL/CMD+K</code> anywhere, opens the command palette to find a note, run a command or go to
+            <strong>Search</strong> is the way around: the button at the top of the editor, the search bar at
+            the top of every page, or <code>CTRL/CMD+K</code> anywhere, opens the command palette to find a note, run a command or go to
             a page: Home, All Notes, Tags, Tasks, Templates, Trash or Settings. Every page has{" "}
-            <strong>← Editor</strong> at the top left to come back to the note you were on. While you write, the
-            toolbar and its search bar fade away; move the mouse to bring them back.
+            <strong>← Editor</strong> at the top left to come back to the note you were on.
           </p>
           <p>
             The <strong>sidebar</strong> is your library, the same on every editor page: its header names the
@@ -305,8 +300,8 @@ export const getStartedGroup: Group = {
             and resize with the divider. Each pane has its own title.
           </p>
           <p>
-            To be alone with the text, close the sidebar and hide the toolbar (
-            <code>CTRL/CMD+SHIFT+\</code>); both stay how you leave them. See{" "}
+            To be alone with the text, close the sidebar (<code>CTRL/CMD+\</code>); it stays how you leave
+            it. See{" "}
             <TextLink href="#focus">Focus</TextLink> to dim everything but the paragraph you&apos;re writing.
           </p>
         </>

@@ -4,7 +4,7 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
-import { PANE_HEADER_CLASS, PANE_HEADER_HEIGHT, PANE_SECTION_CLASS } from "./pane-header-classes";
+import { PANE_HEADER_HEIGHT } from "./pane-header-classes";
 import { routeSkeleton, SKELETON_BAR as BAR, SUBPAGE_BACKDROP } from "./RouteSkeletons";
 
 // Paragraph line widths, as a share of the column, so the page reads as text.
@@ -15,10 +15,10 @@ const PARAGRAPHS = [
 ];
 
 // What the editor will show, outlined while the saved vault loads: the
-// sidebar (desktop, when it's open), the pane's title bar, and the
+// sidebar (desktop, when it's open), the pane's palette button, and the
 // note's text column with a title and a few paragraphs of placeholder lines,
 // the panes starting beside the sidebar as the real ones do. It mirrors the
-// real layout's classes (`PANE_HEADER_CLASS`, `.editor-canvas`,
+// real layout's classes (`.editor-canvas`,
 // `.editor-sheet`) so the page appears in place with no jump.
 export default function EditorSkeleton() {
   // The gate wraps every /editor route: a refresh on Templates, Tasks, Files
@@ -45,16 +45,9 @@ function WorkspaceSkeleton({ sidebarOpen, sidebarWidth }: { sidebarOpen: boolean
       className="relative flex-1 min-w-0 h-full"
     >
       <div className="app-sheet absolute inset-0 min-[769px]:left-[var(--skeleton-left)] overflow-hidden bg-surface flex flex-col">
-        <div className={`${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT} max-[768px]:hidden`}>
-          {/* The title bar: Show sidebar, the note's title in the middle,
-              the window's controls at the right. */}
-          <div className="flex flex-1 basis-0 items-center">
-            {!sidebarOpen && <div className={`${PANE_SECTION_CLASS} !ml-0 w-8`} />}
-          </div>
-          <div className={`h-4 w-28 rounded-md ${BAR}`} />
-          <div className="flex flex-1 basis-0 items-center justify-end">
-            <div className={`${PANE_SECTION_CLASS} w-16`} />
-          </div>
+        {/* No toolbar: the palette button at the top of the pane. */}
+        <div className="pointer-events-none absolute inset-x-0 top-2 z-10 flex justify-center max-[768px]:hidden">
+          <div className={`h-8 w-36 rounded-lg ${BAR}`} />
         </div>
 
         <div className="editor-canvas flex-1 min-h-0 overflow-hidden">

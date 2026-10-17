@@ -1,18 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { isSidebarToggleShortcut, isToolbarToggleShortcut } from "./EditorShell";
+import { isSidebarToggleShortcut } from "./EditorShell";
 
 const key = (init: KeyboardEventInit) => new KeyboardEvent("keydown", init);
 
 describe("EditorShell shortcuts", () => {
-  it("toggles the toolbar on Ctrl/Cmd+Shift+\\", () => {
-    expect(isToolbarToggleShortcut(key({ ctrlKey: true, shiftKey: true, key: "|", code: "Backslash" }))).toBe(true);
-    expect(isToolbarToggleShortcut(key({ metaKey: true, shiftKey: true, key: "|", code: "Backslash" }))).toBe(true);
-    expect(isToolbarToggleShortcut(key({ ctrlKey: true, key: "\\", code: "Backslash" }))).toBe(false);
-    expect(isToolbarToggleShortcut(key({ shiftKey: true, key: "|", code: "Backslash" }))).toBe(false);
-  });
-
-  it("keeps Ctrl/Cmd+\\ for the sidebar, not the toolbar", () => {
+  it("toggles the sidebar on Ctrl/Cmd+\\ and Ctrl/Cmd+Alt+S", () => {
     expect(isSidebarToggleShortcut(key({ ctrlKey: true, key: "\\", code: "Backslash" }))).toBe(true);
+    expect(isSidebarToggleShortcut(key({ metaKey: true, altKey: true, key: "ß", code: "KeyS" }))).toBe(true);
     expect(isSidebarToggleShortcut(key({ ctrlKey: true, shiftKey: true, key: "|", code: "Backslash" }))).toBe(false);
+    expect(isSidebarToggleShortcut(key({ key: "\\", code: "Backslash" }))).toBe(false);
   });
 });

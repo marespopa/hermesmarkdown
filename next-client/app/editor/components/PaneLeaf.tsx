@@ -6,48 +6,38 @@ import MarkdownEditor from "./MarkdownEditor";
 import PrivateNoteGate from "./PrivateNoteGate";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
-import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_saveStatus, atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_sidebarOpen, atom_toolbarVisible } from "@/app/atoms/ui-atoms";
+import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_saveStatus, atom_workspaceLayout } from "@/app/atoms/atoms";
 import { atom_pinnedNotePaths, atom_toggleNotePin } from "@/app/atoms/note-pin-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineCode, HiOutlineChevronDown, HiOutlineXCircle } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineCode } from "react-icons/hi";
 import BoardViewLoader from "./board/BoardViewLoader";
 import { isBoard } from "@/app/utils/board/is-board";
 import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
-import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import PaneTitle from "./PaneTitle";
 import type { SaveState } from "./save-state";
-import PaneToolbarButton from "./PaneToolbarButton";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue, useSetAtom } from "jotai";
-import { formatShortcut } from "@/app/utils/platform";
-import { getFirstLeaf, getTopTrailingLeaf } from "@/app/atoms/utils";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
 import PaneEmptyState from "./PaneEmptyState";
-import PaneWindowActions from "./PaneWindowActions";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
-import { PANE_HEADER_CLASS, PANE_HEADER_HEIGHT, PANE_HEADER_INSET, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
 }
 
+// The palette button's height plus its offset from the top (top-2, h-8).
+const PANE_TOP_ROOM = "48px";
+
 export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [activePaneId, setActivePaneId] = useAtom(atom_activePaneId);
   const [openFiles] = useAtom(atom_openFiles);
   const [, splitPane] = useAtom(atom_splitPane);
-  const [, closePane] = useAtom(atom_closePane);
   const saveStatus = useAtomValue(atom_saveStatus);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
-  // Window-wide controls sit at fixed window corners — Show sidebar in the
-  // top-left pane, the rest in the top-right one — not in whichever pane
-  // has focus.
-  const hostsSidebarToggle = getFirstLeaf(workspaceLayout.rootContainer).id === leaf.id;
-  const hostsWindowActions = getTopTrailingLeaf(workspaceLayout.rootContainer).id === leaf.id;
   const isMobileChrome = useIsMobileChrome();
 
   const { openOrCreateLink } = useFileSystem();
@@ -61,10 +51,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const toggleBoardMarkdown = useSetAtom(atom_toggleBoardMarkdown);
   const isBoardFile = React.useMemo(() => isBoard(filePath, content), [filePath, content]);
   const showBoard = isBoardFile && !boardMarkdownPaths.has(filePath);
-  const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
-  // The toolbar shows unless you hide it (remembered, atom_toolbarVisible).
-  const [toolbarVisible, setToolbarVisible] = useAtom(atom_toolbarVisible);
-  const showHeader = !isMobileChrome && toolbarVisible;
 
   // The editor remounts on every tab switch, except when the draft was just
   // saved as a file: that keeps the caret, scroll and undo history.
@@ -119,85 +105,42 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       className={`relative h-full flex flex-col transition-all duration-300 overflow-hidden ${
         isActive ? "z-10" : ""
       }`}
-      // The header floats over the content, which starts below it
-      // (--pane-header-inset) and scrolls under its glass.
-      style={showHeader ? ({ "--pane-header-inset": PANE_HEADER_INSET } as React.CSSProperties) : undefined}
+      // Room at the top for the palette button: CodeMirror keeps the caret
+      // below it, and a board's own toolbar starts under it.
+      style={isMobileChrome ? undefined : ({ "--pane-top-room": PANE_TOP_ROOM } as React.CSSProperties)}
       onClick={() => setActivePaneId(leaf.id)}
     >
-      {/* The pane's quiet title bar (desktop): Show sidebar at the left
-          while it's closed, the note's title in the middle (the way into
-          the command palette), Close Pane in a split and the window's own
-          controls at the right. It floats over the editor, so showing or
-          hiding it never reflows the text. */}
-      {showHeader && (
-      <div
-        className="absolute top-0 left-0 right-0 z-20"
-      >
-      <div className={`${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT}`}>
-        <div className="flex min-w-0 flex-1 basis-0 items-center">
-          {hostsSidebarToggle && !sidebarOpen && (
-            <div className={`${PANE_SECTION_CLASS} !ml-0`}>
-              <PaneToolbarButton
-                icon={<VscLayoutSidebarLeftOff size={PANE_ICON_SIZE} />}
-                label="Sidebar"
-                tooltip="Show sidebar"
-                shortcut={formatShortcut("\\")}
-                tooltipPosition="bottom-start"
-                onClick={() => setSidebarOpen(true)}
-              />
-            </div>
-          )}
-        </div>
-        <PaneTitle
-          title={hasFiles ? activeTitle : null}
-          saveState={activeSaveState}
-          saveErrorMessage={saveStatus.message}
-          onOpen={() => {
-            setActivePaneId(leaf.id);
-            openCommandPalette();
-          }}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!hasFiles) return;
-            setActivePaneId(leaf.id);
-            setTabMenu({ x: e.clientX, y: e.clientY, path: leaf.activeFilePath || "draft" });
-          }}
-        />
-        <div className="flex min-w-0 flex-1 basis-0 items-center justify-end">
-          {!isOnlyPane && (
-            <div className={PANE_SECTION_CLASS} role="toolbar" aria-label="Pane">
-              <PaneToolbarButton
-                icon={<HiOutlineXCircle size={PANE_ICON_SIZE} />}
-                label="Close Pane"
-                tooltipPosition="bottom-end"
-                onClick={() => closePane(leaf.id)}
-              />
-            </div>
-          )}
-          {hostsWindowActions && <PaneWindowActions />}
-        </div>
-      </div>
-      </div>
-      )}
-
-      {/* With the toolbar hidden, the top-right pane keeps one way back. */}
-      {!isMobileChrome && !toolbarVisible && hostsWindowActions && (
-        <div className={`${PANE_SECTION_CLASS} absolute top-1.5 right-2 z-20`}>
-          <PaneToolbarButton
-            icon={<HiOutlineChevronDown size={PANE_ICON_SIZE} />}
-            label="Show toolbar"
-            shortcut={formatShortcut("\\", { shift: true })}
-            tooltipPosition="bottom-end"
-            onClick={() => setToolbarVisible(true)}
-          />
+      {/* No toolbar (desktop): one quiet button at the top of the pane, the
+          note's name, as on mobile. A click opens the command palette, the
+          center of the app, where every note and command is; a right-click
+          opens the note's menu. It floats over the page's top margin, so the
+          text starts clear of it. Show sidebar is a corner button
+          (EditorShell). */}
+      {!isMobileChrome && (
+        <div className="pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-center px-12">
+          <div className="pointer-events-auto min-w-0">
+            <PaneTitle
+              title={hasFiles ? activeTitle : null}
+              saveState={activeSaveState}
+              saveErrorMessage={saveStatus.message}
+              onOpen={() => {
+                setActivePaneId(leaf.id);
+                openCommandPalette();
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!hasFiles) return;
+                setActivePaneId(leaf.id);
+                setTabMenu({ x: e.clientX, y: e.clientY, path: leaf.activeFilePath || "draft" });
+              }}
+            />
+          </div>
         </div>
       )}
 
       {/* Pane Content */}
-      {/* The editor applies the header inset inside its own scroller; any
-          other content starts below the header here. */}
-      <div className={`flex-1 min-h-0 overscroll-none overflow-auto ${hasFiles && leaf.type === "editor" ? "" : "pt-[var(--pane-header-inset,0px)]"}`}>
+      <div className="flex-1 min-h-0 overscroll-none overflow-auto">
         {leaf.openFilePaths.length === 0 ? (
           <PaneEmptyState onLoadDraft={setContent} />
         ) : leaf.type === "editor" ? (

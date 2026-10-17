@@ -24,7 +24,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     setActiveFilePath,
     setActivePaneId,
     setSidebarOpen,
-    setToolbarVisible,
     setShowHiddenFiles,
     setTaskSearchQuery,
     setTasksGroupBy,
@@ -33,7 +32,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     showHiddenFiles,
     splitPane,
     sidebarOpen,
-    toolbarVisible,
     vaultHandle,
     workspaceLayout,
   } = context;
@@ -113,13 +111,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       keywords: "sidebar open notes files tree navigation panel show hide",
       shortcut: formatShortcut("\\"),
       action: () => setSidebarOpen(!sidebarOpen),
-    },
-    {
-      id: "toggle-toolbar",
-      label: "Toggle Toolbar",
-      keywords: "toolbar title bar tab bar tabs header show hide collapse",
-      shortcut: formatShortcut("\\", { shift: true }),
-      action: () => setToolbarVisible(!toolbarVisible),
     },
   ];
 

@@ -119,11 +119,10 @@ html.dark .app-sheet .editor-sheet {
   }
 }
 
-/* The pane header floats over the editor rather than beside it (it takes
-   the bar material, `.glass-bar`, globals.scss); the text starts below it
-   (--pane-header-inset, PaneLeaf). Nothing hides on its own: the sidebar
-   and the tab bar go away only when you close them, and the page then
-   takes their room (EditorShell's --content-left, the inset dropping to 0). */
+/* No toolbar in the editor: the pane's palette button floats over the
+   sheet's top margin (PaneLeaf). Nothing hides on its own: the sidebar goes
+   away only when you close it, and the page then takes its room
+   (EditorShell's --content-left). */
 .editor-canvas {
   transition: background-color 150ms ease-out, padding-top 200ms ease-out;
 }

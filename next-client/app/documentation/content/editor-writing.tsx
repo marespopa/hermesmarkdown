@@ -97,7 +97,7 @@ export const editorWritingItems: Subsection[] = [
     id: "focus",
     title: "Focus",
     lead: "Dim everything but the paragraph or sentence you're writing.",
-    keywords: "focus word count words hide interface chrome toolbar tabs toolbar sidebar collapse distraction free minimal typewriter scrolling dim paragraph sentence flow writing settings setup",
+    keywords: "focus word count words hide interface chrome toolbar tabs sidebar collapse distraction free minimal typewriter scrolling dim paragraph sentence flow writing settings setup",
     body: (
       <>
         <p>
@@ -115,12 +115,10 @@ export const editorWritingItems: Subsection[] = [
           ]}
         />
         <p>
-          Nothing hides while you type. To be alone with the text, close the sidebar (
-          <code>CTRL/CMD+\</code>) and hide the toolbar (<code>CTRL/CMD+SHIFT+\</code>, the{" "}
-          <strong>Hide toolbar</strong> button at the right of the toolbar, or{" "}
-          <strong>Toggle Toolbar</strong>); the page takes their room, and both stay that way, across
-          reloads, until you bring them back. With the toolbar hidden, <strong>Show toolbar</strong>{" "}
-          sits in the top-right corner. The sidebar stays open until you close it; turn on{" "}
+          Nothing hides while you type, and there&apos;s no toolbar to hide: only the button at the top
+          of the page, which opens the command palette. To be alone with the text, close the sidebar (
+          <code>CTRL/CMD+\</code>); the page takes its room, and it stays that way across reloads. The
+          sidebar stays open until you close it; turn on{" "}
           <strong>Close Sidebar While Writing</strong> (Settings → Editor) to have it put away as soon
           as you type in a note.
         </p>

@@ -71,7 +71,7 @@ export default function BoardView({ path, content, onEditAsMarkdown }: BoardView
   const ExcalidrawAny = Excalidraw as any;
   return (
     <div
-      className="hermes-board h-full w-full pt-[var(--pane-header-inset,0px)]"
+      className="hermes-board h-full w-full pt-[var(--pane-top-room,0px)]"
       onDropCapture={blockFileDrop}
       onDragOverCapture={blockFileDrop}
     >

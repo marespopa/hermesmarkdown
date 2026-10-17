@@ -36,7 +36,6 @@ export const settingsGroup: Group = {
               { label: "Theme", value: "Settings → Appearance" },
               { label: "Light / Dark theme", value: "Paper, Solarized, Plain / Nord, Ink, Graphite" },
               { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Toggle Sidebar: navigation, notes and the vault's files on the window's left edge, on every editor page (desktop)" },
-              { label: "Toolbar", value: "Hide toolbar (the toolbar's right end), CTRL/CMD+SHIFT+\\ or Toggle Toolbar; remembered, with Show toolbar in the corner while it's hidden (desktop)" },
               { label: "Typeface", value: "Geist Mono by default, Duospace or Quattro" },
             ]}
           />
@@ -100,7 +99,7 @@ export const mobileGroup: Group = {
     {
       id: "mobile-layout",
       title: "Mobile layout",
-      lead: "Below a 768px viewport, the toolbar is replaced by a fixed file indicator bar, and Files opens full screen.",
+      lead: "Below a 768px viewport, the palette button becomes a fixed file indicator bar, and Files opens full screen.",
       keywords: "mobile overlay breakpoint chrome command palette file indicator",
       body: (
         <>

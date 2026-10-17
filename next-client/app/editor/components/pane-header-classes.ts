@@ -1,11 +1,7 @@
-// Shared look of the pane header (tab strip row and its toolbar sections).
-// It floats over the editor (PaneLeaf) in the page's own colour, so it reads
-// as part of the page, closed by a hairline; the text scrolls under it.
-export const PANE_HEADER_CLASS = "flex items-center bg-surface paper-grain border-b border-edge-subtle shrink-0 relative z-20 px-2 sm:px-3";
+// Shared look of the window's small controls: the page title bars
+// (ShellPage) and the sidebar's header share this height, and the corner
+// buttons (Show sidebar) use the sections and buttons below.
 export const PANE_HEADER_HEIGHT = "h-11";
-// The header's height (h-11) as the inset the editor scrolls under, in px
-// so CodeMirror can read it back for its scroll margin (extensions.ts).
-export const PANE_HEADER_INSET = "44px";
 
 // One toolbar section: a borderless capsule holding related controls, on a
 // subtle translucent fill (static black / white, which do take opacity — the

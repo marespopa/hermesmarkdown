@@ -2,9 +2,8 @@
 
 import React, { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useAtom, useAtomValue } from "jotai";
-import { usePathname } from "next/navigation";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
-import { atom_sidebarOpen, atom_sidebarWidth, atom_toolbarVisible } from "@/app/atoms/ui-atoms";
+import { atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { atom_isVaultPending, atom_isVaultRestoring } from "@/app/atoms/vault-atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { formatShortcut } from "@/app/utils/platform";
@@ -22,11 +21,6 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
   return (!event.altKey && event.key === "\\") || (event.altKey && event.code === "KeyS");
 }
 
-// Show / hide the editor's toolbar: Ctrl/Cmd+Shift+\ (`code`, since Shift
-// turns `key` into "|").
-export function isToolbarToggleShortcut(event: KeyboardEvent): boolean {
-  return (event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && event.code === "Backslash";
-}
 
 // One frame for every /editor route (editor layout, inside VaultAccessGate):
 // the same sidebar on the editor and every page (Tasks,
@@ -37,37 +31,27 @@ export function isToolbarToggleShortcut(event: KeyboardEvent): boolean {
 // ShellPage) fills the rest, starting at `--content-left` (the open
 // sidebar's width, else 0), so it is pushed over, never covered. While
 // the sidebar is hidden, a Show sidebar button sits in the top-left corner
-// of the pages (the editor has its own, in the pane toolbar, unless the
-// toolbar is hidden too). Nothing hides on its own: the sidebar and the
-// toolbar (atom_toolbarVisible, Ctrl/Cmd+Shift+\) change only when you
-// toggle them, and both are remembered.
+// of every page, the editor too (it has no toolbar). Nothing hides on its
+// own: the sidebar opens and closes only when you toggle it, remembered.
 export default function EditorShell({ children }: { children: ReactNode }) {
   const isMobileChrome = useIsMobileChrome();
-  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
-  const [toolbarVisible, setToolbarVisible] = useAtom(atom_toolbarVisible);
   const sidebarWidth = useAtomValue(atom_sidebarWidth);
   const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
   const isVaultPending = useAtomValue(atom_isVaultPending);
   const isVaultLocked = isVaultRestoring || isVaultPending;
   const hasSidebar = !isMobileChrome && !isVaultLocked;
-  const onWorkspace = pathname === "/editor";
 
   useEffect(() => {
     if (!hasSidebar) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (isToolbarToggleShortcut(event)) {
-        event.preventDefault();
-        setToolbarVisible((visible) => !visible);
-        return;
-      }
       if (!isSidebarToggleShortcut(event)) return;
       event.preventDefault();
       setSidebarOpen((open) => !open);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [hasSidebar, setSidebarOpen, setToolbarVisible]);
+  }, [hasSidebar, setSidebarOpen]);
 
   const frame = { "--content-left": `${hasSidebar && sidebarOpen ? sidebarWidth : 0}px` } as CSSProperties;
 
@@ -81,9 +65,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
           <WorkspaceSidebar />
         </div>
       )}
-      {/* The editor's own Show sidebar button sits in its toolbar, so with
-          the toolbar hidden it shows here too. */}
-      {hasSidebar && !sidebarOpen && (!onWorkspace || !toolbarVisible) && (
+      {hasSidebar && !sidebarOpen && (
         <div
           className={`${PANE_SECTION_CLASS} fixed top-1.5 left-2 !ml-0 z-30`}
         >

@@ -60,13 +60,8 @@ export const atom_toggleSentenceFocus = atom(null, (get, set) => {
   set(atom_focusMode, "sentence");
 });
 // The window's sidebar (desktop): open notes and the vault's file tree, on the
-// leading edge. Hidden by default; toggled from the toolbar or Ctrl/Cmd+Alt+S.
+// leading edge. Hidden by default; toggled from its corner button, Ctrl/Cmd+\\ or Ctrl/Cmd+Alt+S.
 export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
-// The pane toolbar (desktop): shown unless you hide it (its toolbar button,
-// Ctrl/Cmd+Shift+\ or Toggle Toolbar), and remembered. Read on init: the
-// editor renders only after the vault restores, on the client, so a hidden
-// bar never flashes in first.
-export const atom_toolbarVisible = atomWithStorage<boolean>("toolbarVisible", true, undefined, { getOnInit: true });
 export const SIDEBAR_MIN_WIDTH = 200;
 export const SIDEBAR_MAX_WIDTH = 420;
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 256);

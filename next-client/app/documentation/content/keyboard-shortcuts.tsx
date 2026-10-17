@@ -39,7 +39,6 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "Close the note in front", shortcut: "CTRL/CMD+ALT+W" },
             { label: "Jump to an open note (1–9, in the order opened)", shortcut: "CTRL/CMD+1–9" },
             { label: "Show / hide sidebar", shortcut: "CTRL/CMD+\\ or CTRL/CMD+ALT+S" },
-            { label: "Show / hide toolbar", shortcut: "CTRL/CMD+SHIFT+\\" },
             { label: "Sentence focus on / off", shortcut: "CTRL/CMD+ALT+F" },
           ],
         },
