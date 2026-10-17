@@ -1,6 +1,6 @@
 # Button
 
-Description: Base `<button>` primitive with variant-driven styling, used for every clickable control in the app. Flat: hover changes a fill or the text colour, never lifts or scales, and only colour properties transition. Ink fills (`primary`, `hero`) keep the accent for the caret, focus and selection; `warning` takes each palette's warm red (`--danger`). Small controls (`icon`, `pill-icon`, `close`) get a 44px hit area on touch screens without changing their footprint. All variants share one focus ring, except `menu-row`, which shows keyboard focus as its hover fill.
+Description: Base `<button>` primitive with variant-driven styling, used for every clickable control in the app. Flat: hover changes a fill (ink and danger fills lighten toward the page, surface fills deepen toward the ink, quiet controls take a soft tint) and pressing deepens it further; nothing lifts or scales, and only colour properties transition. Ink fills (`primary`, `hero`) keep the accent for the caret, focus and selection; `warning` takes each palette's warm red (`--danger`). Small controls (`icon`, `pill-icon`, `close`) get a 44px hit area on touch screens without changing their footprint. All variants share one focus ring, except `menu-row`, which shows keyboard focus as its hover fill.
 
 ## Local State & Storage
 - State: None (stateless).
