@@ -22,7 +22,8 @@ import { useAtomValue, useSetAtom } from "jotai";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePaneFileActions } from "../hooks/use-pane-file-actions";
 import PaneEmptyState from "./PaneEmptyState";
-import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { atom_liveHandles } from "@/app/atoms/file-atoms";
+import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -40,7 +41,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
   const isMobileChrome = useIsMobileChrome();
 
-  const { openOrCreateLink } = useFileSystem();
+  const { openOrCreateLink, renameFile } = useFileSystem();
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const pinnedNotePaths = useAtomValue(atom_pinnedNotePaths);
   const toggleNotePin = useSetAtom(atom_toggleNotePin);
@@ -90,9 +91,21 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   };
 
   const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string } | null>(null);
-  const { open: openCommandPalette } = useCommandPalette();
-  // The note in front, as the title shows it.
+  // The note in front, as the title shows it, and its folder.
   const activeTitle = (activeFileState?.fileName || leaf.activeFilePath?.split("/").pop() || "Untitled").replace(/\.md$/i, "");
+  const activeFolder = leaf.activeFilePath && leaf.activeFilePath !== "draft" ? leaf.activeFilePath.split("/").slice(0, -1).join("/") : "";
+  // A vault note renames in place from its title; the draft has no file yet.
+  const activeHandle = useAtomValue(atom_liveHandles(filePath));
+  const canRename = hasVault && filePath !== "draft" && !!activeHandle;
+  const renameActive = (typed: string) => {
+    if (!activeHandle) return;
+    const name = /\.md$/i.test(filePath) && !/\.md$/i.test(typed) ? `${typed}.md` : typed;
+    void renameFile(activeHandle, name, filePath);
+  };
+  const sidebarOpen = useAtomValue(atom_sidebarOpen);
+  // Whether the note in front is scrolled down: shows the band behind the title.
+  const [scrolled, setScrolled] = React.useState(false);
+  React.useEffect(() => setScrolled(false), [filePath]);
 
   const hasFiles = leaf.openFilePaths.length > 0;
   const openFileInPane = (filePath = leaf.activeFilePath) => {
@@ -109,24 +122,39 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       // below it, and a board's own toolbar starts under it.
       style={isMobileChrome ? undefined : ({ "--pane-top-room": PANE_TOP_ROOM } as React.CSSProperties)}
       onClick={() => setActivePaneId(leaf.id)}
+      // Scroll doesn't bubble: catch the note's vertical scroller (CodeMirror,
+      // a board) on the way down; horizontal ones (wide tables) don't count.
+      onScrollCapture={(event) => {
+        const el = event.target as HTMLElement;
+        if (el.scrollHeight <= el.clientHeight) return;
+        setScrolled(el.scrollTop > 0);
+      }}
     >
-      {/* No toolbar (desktop): one quiet button at the top of the pane, the
-          note's name, as on mobile. A click opens the command palette, the
-          center of the app, where every note and command is; a right-click
-          opens the note's menu. It floats over the page's top margin, so the
-          text starts clear of it. Show sidebar is a corner button
-          (EditorShell). */}
+      {/* No toolbar (desktop): a quiet header at the pane's top left, the
+          note's folder and name. A click on the name renames the note in
+          place; a right-click opens its menu. The command palette has its own
+          button in the window's top-right corner, and Show sidebar sits in the
+          top-left one while the sidebar is hidden (EditorShell). It floats
+          over the page's top margin, so the text starts clear of it. */}
+      {!isMobileChrome && scrolled && (
+        // Once scrolled, text goes under a solid band the height of the top
+        // room, then fades out over a short gradient, so it never runs into
+        // the title. At the top there's none, so nothing at the start of the
+        // note (the Properties panel) is covered.
+        <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col">
+          <div style={{ height: PANE_TOP_ROOM }} className="bg-surface" />
+          <div className="h-4 bg-gradient-to-b from-surface to-transparent" />
+        </div>
+      )}
       {!isMobileChrome && (
-        <div className="pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-center px-12">
+        <div className={`pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-start pr-28 ${sidebarOpen ? "pl-3" : "pl-12"}`}>
           <div className="pointer-events-auto min-w-0">
             <PaneTitle
               title={hasFiles ? activeTitle : null}
+              folder={hasFiles ? activeFolder : ""}
               saveState={activeSaveState}
               saveErrorMessage={saveStatus.message}
-              onOpen={() => {
-                setActivePaneId(leaf.id);
-                openCommandPalette();
-              }}
+              onRename={hasFiles && canRename ? renameActive : undefined}
               onContextMenu={(e) => {
                 e.preventDefault();
                 e.stopPropagation();

@@ -3,7 +3,7 @@
 import React from "react";
 import { usePathname } from "next/navigation";
 import { useAtomValue } from "jotai";
-import { atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
+import { atom_fullWidth, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { PANE_HEADER_HEIGHT } from "./pane-header-classes";
 import { routeSkeleton, SKELETON_BAR as BAR, SUBPAGE_BACKDROP } from "./RouteSkeletons";
 
@@ -15,7 +15,7 @@ const PARAGRAPHS = [
 ];
 
 // What the editor will show, outlined while the saved vault loads: the
-// sidebar (desktop, when it's open), the pane's palette button, and the
+// sidebar (desktop, when it's open), the pane's title at its top left, and the
 // note's text column with a title and a few paragraphs of placeholder lines,
 // the panes starting beside the sidebar as the real ones do. It mirrors the
 // real layout's classes (`.editor-canvas`,
@@ -26,17 +26,18 @@ export default function EditorSkeleton() {
   const subpage = routeSkeleton(usePathname());
   const sidebarOpen = useAtomValue(atom_sidebarOpen);
   const sidebarWidth = useAtomValue(atom_sidebarWidth);
+  const fullWidth = useAtomValue(atom_fullWidth);
 
   return (
     <div role="status" aria-label="Loading vault" className={`fixed inset-0 z-40 flex select-none ${subpage ? SUBPAGE_BACKDROP : "bg-surface"}`}>
       <span className="sr-only">Loading your vault…</span>
-      {subpage ? <div aria-hidden="true" className="flex flex-1 min-w-0">{subpage}</div> : <WorkspaceSkeleton sidebarOpen={sidebarOpen} sidebarWidth={sidebarWidth} />}
+      {subpage ? <div aria-hidden="true" className="flex flex-1 min-w-0">{subpage}</div> : <WorkspaceSkeleton sidebarOpen={sidebarOpen} sidebarWidth={sidebarWidth} fullWidth={fullWidth} />}
     </div>
   );
 }
 
 // EditorShell's layout: the panes fill the window past the open sidebar.
-function WorkspaceSkeleton({ sidebarOpen, sidebarWidth }: { sidebarOpen: boolean; sidebarWidth: number }) {
+function WorkspaceSkeleton({ sidebarOpen, sidebarWidth, fullWidth }: { sidebarOpen: boolean; sidebarWidth: number; fullWidth: boolean }) {
   return (
     <div
       aria-hidden="true"
@@ -45,14 +46,15 @@ function WorkspaceSkeleton({ sidebarOpen, sidebarWidth }: { sidebarOpen: boolean
       className="relative flex-1 min-w-0 h-full"
     >
       <div className="app-sheet absolute inset-0 min-[769px]:left-[var(--skeleton-left)] overflow-hidden bg-surface flex flex-col">
-        {/* No toolbar: the palette button at the top of the pane. */}
-        <div className="pointer-events-none absolute inset-x-0 top-2 z-10 flex justify-center max-[768px]:hidden">
+        {/* No toolbar: the note's title at the top left of the pane. */}
+        <div className={`pointer-events-none absolute inset-x-0 top-2 z-10 flex justify-start max-[768px]:hidden ${sidebarOpen ? "pl-3" : "pl-12"}`}>
           <div className={`h-8 w-36 rounded-lg ${BAR}`} />
         </div>
 
         <div className="editor-canvas flex-1 min-h-0 overflow-hidden">
-          {/* MarkdownEditor's sheet: its margins, page padding and text column. */}
-          <div className="editor-sheet mx-auto w-full min-h-full pt-8 sm:pt-12 pb-8 pr-5 sm:pr-12 xl:pr-14 [--sheet-pad-left:2.390625rem] sm:[--sheet-pad-left:3rem] xl:[--sheet-pad-left:3.5rem] pl-[var(--sheet-pad-left)]">
+          {/* MarkdownEditor's sheet: its margins, page padding and text column
+              (filling the sheet with Full Width on, as the real one does). */}
+          <div data-full-width={fullWidth ? "" : undefined} className="editor-sheet mx-auto w-full min-h-full pt-8 sm:pt-12 pb-8 pr-5 sm:pr-12 xl:pr-14 [--sheet-pad-left:2.390625rem] sm:[--sheet-pad-left:3rem] xl:[--sheet-pad-left:3.5rem] pl-[var(--sheet-pad-left)]">
             <div className="editor-measure flex flex-col">
               <div className={`h-7 w-2/5 rounded-lg mb-10 ${BAR}`} />
               {PARAGRAPHS.map((lines, p) => (

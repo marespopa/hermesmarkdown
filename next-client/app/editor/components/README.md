@@ -35,7 +35,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [PrivateNoteVeil](PrivateNoteVeil.md) | The veil over a private note: lock, title, **Show note** and **Show all private notes this session**. |
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |
 | [PaneToolbarButton](PaneToolbarButton.md) | Icon-only toolbar button with a tooltip. |
-| [PaneTitle](PaneTitle.md) | The pane's one control, in place of a toolbar: the note's name with a chevron and a save dot, floating at the top; click opens the command palette, right-click the note's menu. `save-state.tsx` holds the save-state dot, icon and labels it shares with the mobile file bar. |
+| [PaneTitle](PaneTitle.md) | The pane's header, in place of a toolbar: the note's folder breadcrumb, its name and a save dot, at the top left; click renames the note in place, right-click opens its menu. `save-state.tsx` holds the save-state dot, icon and labels it shares with the mobile file bar. |
 | [PdfExport](PdfExport.md) | Mounts **Export as PDF** (palette and More menu): the focused note rendered with its `pdf_*` page setup, shown in the export dialog, and printed through the browser's dialog, on the device; also **Export as HTML**, a standalone `.html` download. |
 | [PdfExportDialog](PdfExportDialog.md) | The export dialog: the note's page setup beside a preview of its pages; Save as PDF… opens the print dialog. |
 | [TokenCostDialog](TokenCostDialog.md) | What sending the focused note to each AI model costs (o200k count, input prices); opened from the palette. |

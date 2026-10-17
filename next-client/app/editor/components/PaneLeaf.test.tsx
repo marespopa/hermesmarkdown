@@ -11,11 +11,13 @@ import {
   atom_workspaceLayout,
 } from "@/app/atoms/atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
-import { CommandPaletteProvider, useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { atom_liveHandles } from "@/app/atoms/file-atoms";
+import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 import React from "react";
 
 const push = vi.fn();
+const renameFile = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
   usePathname: () => "/editor",
@@ -27,6 +29,7 @@ vi.mock("@/app/hooks/use-file-system", () => ({
     openOrCreateLink: vi.fn(),
     saveFile: vi.fn(),
     exportFile: vi.fn(),
+    renameFile,
   }),
 }));
 
@@ -118,7 +121,7 @@ describe("PaneLeaf Tab Indicators", () => {
 
     // Saved needs no glance: the title shows no dot.
     expect(screen.queryByTitle("Saved")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "file1. Go to a note or command" })).toBeInTheDocument();
+    expect(screen.getByText("file1")).toBeInTheDocument();
   });
 
   it("renders a red dot when there is a save error", () => {
@@ -294,42 +297,79 @@ describe("PaneLeaf in a split", () => {
       </TestProvider>
     );
 
-  it("gives each pane its own button to the palette, and no toolbar", () => {
+  it("gives each pane its own title, and no toolbar", () => {
     renderSplit("right");
     const [leftPane, rightPane] = Array.from(document.querySelectorAll("[data-pane-id]")) as HTMLElement[];
 
-    expect(within(leftPane).getByRole("button", { name: "a. Go to a note or command" })).toBeInTheDocument();
-    expect(within(rightPane).getByRole("button", { name: "b. Go to a note or command" })).toBeInTheDocument();
+    expect(within(leftPane).getByText("a", { selector: "span" })).toBeInTheDocument();
+    expect(within(rightPane).getByText("b", { selector: "span" })).toBeInTheDocument();
     for (const name of ["More", "Close Pane", "Sidebar", "Hide toolbar"]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
     }
   });
 });
 
-describe("PaneLeaf palette button", () => {
-  const leaf = { id: "solo", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
+describe("PaneLeaf title rename", () => {
+  const leaf = { id: "solo", type: "editor" as const, openFilePaths: ["notes/a.md"], activeFilePath: "notes/a.md", isPinned: false };
+  const handle = { kind: "file", name: "a.md" };
 
   beforeEach(() => {
     cleanup();
+    renameFile.mockClear();
     localStorage.removeItem("sidebarOpen");
   });
 
-
-  it("opens the command palette from the note's title", () => {
-    const PaletteState = () => <output data-testid="palette-open">{String(useCommandPalette().isOpen)}</output>;
+  const renderNote = () =>
     render(
       <TestProvider initialValues={[
         [atom_activePaneId, "solo"],
-        [atom_openFiles, { "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" } }],
+        [atom_openFiles, { "notes/a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" } }],
         [atom_workspaceLayout, { rootContainer: leaf }],
+        [atom_vaultHandle, { name: "vault" }],
+        [atom_liveHandles("notes/a.md"), handle],
       ]}>
         <PaneLeaf leaf={leaf} />
-        <PaletteState />
       </TestProvider>
     );
-    expect(screen.getByTestId("palette-open")).toHaveTextContent("false");
-    fireEvent.click(screen.getByRole("button", { name: "a. Go to a note or command" }));
-    expect(screen.getByTestId("palette-open")).toHaveTextContent("true");
+
+  it("shows the note's folder before its name", () => {
+    renderNote();
+    expect(screen.getByTitle("notes")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "a. Rename" })).toBeInTheDocument();
   });
 
+  it("renames the note in place from its title", () => {
+    renderNote();
+    fireEvent.click(screen.getByRole("button", { name: "a. Rename" }));
+    const field = screen.getByRole("textbox", { name: "Note name" });
+    fireEvent.change(field, { target: { value: "b" } });
+    fireEvent.keyDown(field, { key: "Enter" });
+    expect(renameFile).toHaveBeenCalledWith(handle, "b.md", "notes/a.md");
+    expect(screen.queryByRole("textbox", { name: "Note name" })).not.toBeInTheDocument();
+  });
+
+  it("backs out of a rename with Escape", () => {
+    renderNote();
+    fireEvent.click(screen.getByRole("button", { name: "a. Rename" }));
+    const field = screen.getByRole("textbox", { name: "Note name" });
+    fireEvent.change(field, { target: { value: "b" } });
+    fireEvent.keyDown(field, { key: "Escape" });
+    expect(renameFile).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "a. Rename" })).toBeInTheDocument();
+  });
+
+  it("can't rename the draft", () => {
+    const draft = { ...leaf, openFilePaths: ["draft"], activeFilePath: "draft" };
+    render(
+      <TestProvider initialValues={[
+        [atom_activePaneId, "solo"],
+        [atom_openFiles, { draft: { fileName: "Untitled", content: "A", lastSavedContent: "A" } }],
+        [atom_workspaceLayout, { rootContainer: draft }],
+        [atom_vaultHandle, { name: "vault" }],
+      ]}>
+        <PaneLeaf leaf={draft} />
+      </TestProvider>
+    );
+    expect(screen.queryByRole("button", { name: /Rename/ })).not.toBeInTheDocument();
+  });
 });
