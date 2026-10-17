@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Button from "@/app/components/Button/Button.component";
 
 interface ToggleProps {
   active: boolean;
@@ -23,15 +24,15 @@ const trackStyles: Record<"default" | "soft", { on: string; off: string }> = {
 const Toggle = ({ active, onChange, label, variant = "default" }: ToggleProps) => {
   const track = trackStyles[variant];
   return (
-    <button
-      type="button"
+    <Button
+      variant="unstyled"
       role="switch"
       aria-checked={active}
       aria-label={label}
       onClick={() => onChange(!active)}
       className={`
         relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent
-        transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-4 focus-visible:ring-sage/20
+        transition-colors duration-200 ease-in-out
         ${active ? track.on : track.off}
       `}
     >
@@ -42,7 +43,7 @@ const Toggle = ({ active, onChange, label, variant = "default" }: ToggleProps) =
           ${active ? 'translate-x-5' : 'translate-x-0'}
         `}
       />
-    </button>
+    </Button>
   );
 };
 
