@@ -72,7 +72,7 @@ describe("TemplatesPage", () => {
   it("opens a template to edit it", async () => {
     renderPage();
     fireEvent.click(screen.getByRole("button", { name: "Edit Daily" }));
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/editor"));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/editor?file=templates/Journal/Daily.md"));
     expect(fileSystem.openFile).toHaveBeenCalledWith({ name: "templates/Journal/Daily.md" }, "templates/Journal/Daily.md", true);
   });
 

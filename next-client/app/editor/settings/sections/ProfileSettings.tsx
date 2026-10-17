@@ -45,7 +45,7 @@ export default function ProfileSettings() {
       <SettingGroup title="Profile">
         <SettingItem
           label="Your Name"
-          description="Used to greet you on the home feed. Leave empty for a generic greeting."
+          description="Used to greet you on the start page. Leave empty for a generic greeting."
           control={
             <BareInput
               value={userName}

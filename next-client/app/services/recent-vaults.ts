@@ -1,4 +1,4 @@
-// Vaults opened on this device, most recent first, for the Home feed's vault
+// Vaults opened on this device, most recent first, for the sidebar's vault
 // switcher and its no-vault start screen. Kept in IndexedDB because a disk
 // vault's entry holds its folder handle, which localStorage can't store.
 import type { GitHubVaultDescriptor } from "./github-vault-workspace";

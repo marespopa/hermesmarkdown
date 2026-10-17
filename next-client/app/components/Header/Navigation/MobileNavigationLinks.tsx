@@ -35,9 +35,9 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
         {/* Card */}
         <div className="relative z-10 w-full max-w-sm glass-panel rounded-[28px] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-500 ease-out">
           <Button
-            variant="icon"
+            variant="close"
             onClick={handleClose}
-            className="absolute top-4 right-4 z-20 p-1.5 rounded-full bg-neutral-200/50 dark:bg-neutral-800/50 hover:bg-neutral-300/80 dark:hover:bg-neutral-700/80 transition-all active:scale-90"
+            className="absolute top-4 right-4 z-20"
             aria-label="Close Menu"
           >
             <IoClose size={20} className="text-neutral-600 dark:text-neutral-300" />

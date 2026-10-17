@@ -60,9 +60,11 @@ const MainPage = ({ children }: Props) => {
               secondary: "var(--surface-raised)",
             },
           },
+          // Success takes the theme's accent; an error stays red whatever the
+          // theme (the accent may be blue or green), as the save-error dot is.
           error: {
             iconTheme: {
-              primary: "var(--clay)",
+              primary: "#DC2626",
               secondary: "var(--surface-raised)",
             },
           },

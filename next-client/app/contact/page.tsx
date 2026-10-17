@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "@/app/components/Button/Button.component";
+import TextLink from "@/app/components/TextLink";
 
 const BackgroundGraphics = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none" aria-hidden="true">
@@ -48,15 +49,16 @@ export default function ContactPage() {
           </p>
 
           <div className="pt-8">
-            <a
+            <TextLink
               href={`mailto:${email}`}
+              variant="unstyled"
               className="inline-flex items-center gap-4 bg-neutral-900 dark:bg-zinc-100 text-white dark:text-neutral-900 px-10 py-4 rounded-2xl transition-all font-bold text-sm uppercase tracking-widest group"
             >
               {email}
               <span className="group-hover:translate-x-1 transition-transform">
                 →
               </span>
-            </a>
+            </TextLink>
           </div>
         </section>
 
@@ -83,23 +85,17 @@ export default function ContactPage() {
               <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
                 HermesMarkdown is open source. If you&apos;ve encountered a
                 technical issue or have a code contribution, the best place is our&nbsp;
-                <a
+                <TextLink
                   href="https://github.com/marespopa/hermesmarkdown"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-4 hover:text-purple-600"
                 >
                   public repository
-                </a>
+                </TextLink>
                 . For a specific bug, open a&nbsp;
-                <a
+                <TextLink
                   href="https://github.com/marespopa/hermesmarkdown/issues"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-4 hover:text-purple-600"
                 >
                   GitHub issue
-                </a>
+                </TextLink>
                 .
               </p>
             </div>

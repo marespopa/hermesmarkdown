@@ -1,0 +1,57 @@
+// A note's outline: its H1–H3 ATX headings in order, with the 1-based line
+// each starts on (for jumping there). Headings inside fenced code blocks
+// and the frontmatter don't count.
+
+export interface OutlineHeading {
+  level: 1 | 2 | 3;
+  text: string;
+  line: number;
+}
+
+const HEADING = /^ {0,3}(#{1,3})[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$/;
+const FENCE = /^ {0,3}(`{3,}|~{3,})/;
+
+export function extractOutline(content: string): OutlineHeading[] {
+  const lines = content.split("\n");
+  const headings: OutlineHeading[] = [];
+  let index = 0;
+  if (lines[0]?.trim() === "---") {
+    const end = lines.findIndex((line, i) => i > 0 && line.trim() === "---");
+    if (end > 0) index = end + 1;
+  }
+  let fence: string | null = null;
+  for (; index < lines.length; index++) {
+    const line = lines[index];
+    const fenceMatch = FENCE.exec(line);
+    if (fenceMatch) {
+      const marker = fenceMatch[1];
+      if (!fence) fence = marker;
+      else if (marker[0] === fence[0] && marker.length >= fence.length) fence = null;
+      continue;
+    }
+    if (fence) continue;
+    const match = HEADING.exec(line);
+    if (match) headings.push({ level: match[1].length as 1 | 2 | 3, text: match[2], line: index + 1 });
+  }
+  return headings;
+}
+
+export interface OutlineNode {
+  heading: OutlineHeading;
+  children: OutlineNode[];
+}
+
+// The headings as a tree: each one holds the deeper headings after it, up to
+// the next heading of its level or above. A skipped level (an H3 straight
+// under an H1) nests one step, as the reader would expect.
+export function buildOutlineTree(headings: OutlineHeading[]): OutlineNode[] {
+  const roots: OutlineNode[] = [];
+  const stack: OutlineNode[] = [];
+  for (const heading of headings) {
+    const node: OutlineNode = { heading, children: [] };
+    while (stack.length && stack[stack.length - 1].heading.level >= heading.level) stack.pop();
+    (stack.length ? stack[stack.length - 1].children : roots).push(node);
+    stack.push(node);
+  }
+  return roots;
+}

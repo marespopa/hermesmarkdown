@@ -6,8 +6,8 @@ You are a senior software engineer agent working on HermesMarkdown. You must adh
 
 ### Component Usage
 - **Prioritize Project Components**: Always use established components from `app/components/` (e.g., `Button`, `Input`, `DialogModal`).
-- **No Raw HTML for UI**: Use `Button` (with `variant="unstyled"` for fully custom-styled controls) instead of `<button>`, and `Input` / `BareInput` instead of text `<input>`s. Raw HTML is only for elements with no project component — hidden `type="file"` pickers and checkboxes.
-- **Visual Consistency**: Use established `Button` variants (`primary`, `secondary`, `warning` for destructive actions, `tertiary`, `outlined`, `icon`, `menu-item`, …; see `app/components/Button/Button.component.tsx`) and maintain the design system's spacing and typography (see `DESIGN.md`).
+- **No Raw HTML for UI**: Use `Button` (with `variant="unstyled"` for fully custom-styled controls) instead of `<button>`, `TextLink` (`variant="unstyled"` likewise) instead of `<a>` or a styled `next/link`, and `Input` / `BareInput` instead of text `<input>`s. Raw HTML is only for elements with no project component — hidden `type="file"` pickers and checkboxes.
+- **Visual Consistency**: Use established `Button` variants (`primary`, `secondary`, `warning` for destructive actions, `tertiary`, `outlined`, `icon`, `menu-row` for pop-up menu rows, `segment` for segmented-control options, `close` for a dialog's ×, …; see `app/components/Button/Button.component.tsx`) and maintain the design system's spacing and typography (see `DESIGN.md`).
 
 ### File System Access API
 - **Safe Closure**: Always close `FileSystemWritableFileStream` in a `finally` block to prevent file locks.

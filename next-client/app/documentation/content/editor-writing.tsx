@@ -1,4 +1,5 @@
 import { Callout, Code, KV, type Subsection } from "../doc-primitives";
+import TextLink from "@/app/components/TextLink";
 
 // Documentation content: Editor group, writing features (writing through slash menu).
 export const editorWritingItems: Subsection[] = [
@@ -55,13 +56,13 @@ export const editorWritingItems: Subsection[] = [
             { label: "..tomorrow · ..yesterday", value: "Relative dates" },
             { label: "{iso} · {unix} · {day} · {week} · ..log", value: "Timestamps & log prefix" },
             { label: "{todo} · {done} · {table}", value: "Task line / starter table" },
-            { label: "{check} {error} {idea} {warn} {fix} {bug} {star}", value: "Emoji" },
+            { label: "{check} {error} {idea} {warn} {fix} {bug} {star} {note} {question} {info} {pin} {link} {fire} {rocket} {party} {target} {lock} {key}", value: "Emoji" },
             { label: "calc(2*21)=", value: "Inline calculation" },
           ]}
         />
         <p>
           For running totals that keep their working, use the{" "}
-          <a href="#inline-calculator" className="text-accent hover:underline">inline calculator</a> instead.
+          <TextLink href="#inline-calculator">inline calculator</TextLink> instead.
         </p>
         <Callout type="tip">
           Click actions work without touching raw syntax — CTRL+Click on a task&apos;s box moves it on a status,
@@ -114,8 +115,11 @@ export const editorWritingItems: Subsection[] = [
         <p>
           While the interface is hidden, move the mouse deliberately, or touch the top or left edge
           of the window, and everything comes back; a small nudge leaves the page alone. On a phone,
-          tap anywhere outside the text. The tabs and sidebar float over the page, so showing,
-          hiding or opening them never moves the line you&apos;re typing.
+          tap anywhere outside the text. As the interface fades, the page takes back its room: the
+          text slides up into the tab bar&apos;s space and over into the sidebar&apos;s. The sidebar
+          takes its own room beside the page and stays open until you close it; turn on{" "}
+          <strong>Close Sidebar While Writing</strong> (Settings → Editor) to have it put away as soon
+          as you type in a note.
         </p>
         <p>
           At the strongest level, the current paragraph is the run of non-blank lines around the
@@ -255,7 +259,7 @@ export const editorWritingItems: Subsection[] = [
         </Callout>
         <p>
           AI features know this syntax too. See{" "}
-          <a href="#ai-table-formulas" className="text-accent hover:underline">AI &amp; table formulas</a>.
+          <TextLink href="#ai-table-formulas">AI &amp; table formulas</TextLink>.
         </p>
       </>
     ),
@@ -431,7 +435,7 @@ graph TD
         <p>
           <code>CTRL+Click</code> a wikilink to open the note. A link to
           a note that doesn&apos;t exist yet creates it, after you confirm or pick a template; see{" "}
-          <a href="#templates" className="text-accent hover:underline">Templates</a>.
+          <TextLink href="#templates">Templates</TextLink>.
         </p>
       </>
     ),

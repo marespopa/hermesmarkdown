@@ -1,4 +1,4 @@
-import { Annotation, EditorState, StateEffect, StateField, Transaction } from "@codemirror/state";
+import { Annotation, EditorState, StateEffect, StateField, Text, Transaction } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import { parseFmFields } from "@/app/utils/frontmatter-utils";
 import { buildTagMatch, tagPillClassName } from "./tag-pills";
@@ -41,6 +41,42 @@ export function findFrontmatterFoldRange(doc: string): FrontmatterFoldRange | nu
   }
 
   return { titleOffset: 0, bodyFrom, bodyTo, closeTo };
+}
+
+// findFrontmatterFoldRange on the editor's own document, without turning
+// the whole note into a string: it reads lines from the top only as far as
+// the block goes (a note without frontmatter costs one line), and each
+// document is read once however many extensions ask during one update.
+const rangeByDoc = new WeakMap<Text, FrontmatterFoldRange | null>();
+const FENCE = /^---\s*$/;
+
+export function frontmatterFoldRangeOf(doc: Text): FrontmatterFoldRange | null {
+  const cached = rangeByDoc.get(doc);
+  if (cached !== undefined) return cached;
+  let range: FrontmatterFoldRange | null = null;
+  if (doc.lines >= 3 && FENCE.test(doc.line(1).text)) {
+    let closing = 0;
+    for (let n = 2; n <= doc.lines; n++) {
+      if (FENCE.test(doc.line(n).text)) {
+        closing = n;
+        break;
+      }
+    }
+    if (closing > 0) {
+      const closeTo = doc.line(closing).to;
+      let bodyTo = closeTo;
+      for (let n = closing + 1; n <= doc.lines; n++) {
+        const line = doc.line(n);
+        if (line.text.trim() !== "") {
+          bodyTo = line.from - 1;
+          break;
+        }
+      }
+      if (closeTo > 0) range = { titleOffset: 0, bodyFrom: 0, bodyTo, closeTo };
+    }
+  }
+  rangeByDoc.set(doc, range);
+  return range;
 }
 
 // Top-level keys of a frontmatter block, in order (`title`, `tags`, …). Read
@@ -221,7 +257,7 @@ interface CollapseState {
 }
 
 function hiddenRange(state: EditorState) {
-  return findFrontmatterFoldRange(state.doc.toString());
+  return frontmatterFoldRangeOf(state.doc);
 }
 
 function buildDecorations(state: EditorState, collapsed: boolean): DecorationSet {

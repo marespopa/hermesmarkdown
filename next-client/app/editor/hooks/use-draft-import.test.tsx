@@ -4,7 +4,6 @@ import { createStore, Provider } from "jotai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { atom_activePaneId, atom_openFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
 import { EMPTY_DRAFT } from "@/app/atoms/file-atoms";
-import { atom_homeFeedOpen } from "@/app/atoms/ui-atoms";
 import { useDraftImport } from "./use-draft-import";
 
 const toast = vi.hoisted(() => vi.fn());
@@ -27,7 +26,6 @@ function setup({ draft = "", noteActive = false } = {}) {
     },
   });
   store.set(atom_activePaneId, "pane");
-  store.set(atom_homeFeedOpen, true);
   const wrapper = ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
   const { result } = renderHook(() => useDraftImport(vi.fn()), { wrapper });
   return { store, result };
@@ -39,12 +37,11 @@ const activeFilePath = (store: ReturnType<typeof createStore>) =>
 describe("useDraftImport", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("fills an empty draft, shows it and closes the home feed", () => {
+  it("fills an empty draft and shows it", () => {
     const { store, result } = setup({ noteActive: true });
     act(() => result.current.offerDraft({ text: "# Table", name: "Markdown table", origin: "tool" }));
     expect(store.get(atom_openFiles).draft).toMatchObject({ content: "# Table", fileName: "Markdown table" });
     expect(activeFilePath(store)).toBe("draft");
-    expect(store.get(atom_homeFeedOpen)).toBe(false);
   });
 
   it("asks before replacing a draft with text", () => {

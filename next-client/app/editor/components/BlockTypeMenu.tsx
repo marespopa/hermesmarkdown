@@ -88,13 +88,12 @@ export default function BlockTypeMenu({ view, keepFocus, opensUp = false }: Bloc
           {OPTIONS.map((option) => (
             <Button
               key={option.type}
-              variant="unstyled"
+              variant="menu-row"
               role="menuitemradio"
               aria-checked={option.type === current}
               onPointerDown={keepFocus}
               onMouseDown={keepFocus}
               onClick={() => choose(option.type)}
-              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-ui-footnote text-fg hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
             >
               <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-edge text-ui-caption font-semibold text-fg-muted">
                 {option.glyph}

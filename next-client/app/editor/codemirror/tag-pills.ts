@@ -110,10 +110,14 @@ export function collectTagMatches(doc: string): TagMatch[] {
   const matches: TagMatch[] = [];
   const lines = doc.split("\n");
   let inFrontmatter = false;
+  // A running offset: summing every earlier line's length for each line
+  // made this quadratic, on every keystroke and caret move.
+  let nextLineStart = 0;
 
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
-    const lineStart = i === 0 ? 0 : lines.slice(0, i).reduce((len, part) => len + part.length + 1, 0);
+    const lineStart = nextLineStart;
+    nextLineStart += line.length + 1;
 
     if (i === 0 && /^---\s*$/.test(line)) {
       inFrontmatter = true;

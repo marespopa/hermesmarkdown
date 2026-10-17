@@ -14,7 +14,7 @@ const PRIVACY_MODE_COMMANDS: { id: string; label: string; description: string; l
   {
     id: "privacy-mode-hidden",
     label: "Privacy mode: Hide from lists",
-    description: "Leave private notes out of the home feed, quick open and tasks",
+    description: "Leave private notes out of pinned notes, quick open and tasks",
     level: "hidden",
   },
 ];

@@ -1,4 +1,5 @@
 import { Callout, KV, type Group } from "../doc-primitives";
+import TextLink from "@/app/components/TextLink";
 
 // Documentation content: Settings and Mobile groups.
 export const settingsGroup: Group = {
@@ -9,20 +10,23 @@ export const settingsGroup: Group = {
       id: "appearance",
       title: "Appearance",
       lead: "Pick a theme, the font you write in and the text size.",
-      keywords: "theme palette colors sepia porcelain sage midnight graphite dusk dark light font typography text size sidebar layout full width focus",
+      keywords: "theme palette colors solarized paper plain nord ink graphite dark light font typography text size sidebar layout full width focus",
       body: (
         <>
           <p>
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically.
-            Each mode has its own color theme: Paper, Sepia, Porcelain, Sage or Solarized for light,
-            and Ink, Midnight, Graphite, Dusk or Nord for dark. Settings → Appearance shows the colors for the
+            Each mode has its own color theme: Paper (the default), Solarized or Plain for light, and
+            Nord (the default), Ink or Graphite for dark. Paper and Ink are warm paper and ink (Ink is
+            the dark paper); Plain and Graphite are neutral, with no tint. Every theme has a faint paper grain. You can also pick them on the
+            home page before you start. Each theme has its own accent hue, kept to the
+            caret, text selection, focus rings, toggles and selections; icons and buttons stay quiet ink on paper. Settings → Appearance shows the colors for the
             mode you picked, and both under System; the command palette also has{" "}
             <strong>Light Theme: …</strong> and <strong>Dark Theme: …</strong>. The
             editor font, text size and Full Width (on by default) are set under Settings →
             Appearance → Typography and apply to every pane in a split workspace. Vim mode and{" "}
-            <a href="#focus" className="text-accent hover:underline">Focus</a> are under Settings →
+            <TextLink href="#focus">Focus</TextLink> are under Settings →
             Editor. Word wrap, line numbers and invisibles (¶ on empty lines, dots for spaces) are
             command palette toggles: <strong>Toggle Word Wrap</strong>,{" "}
             <strong>Toggle Line Numbers</strong>, <strong>Toggle Invisibles</strong>.
@@ -30,8 +34,8 @@ export const settingsGroup: Group = {
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
-              { label: "Light / Dark theme", value: "Paper, Sepia, Porcelain, Sage, Solarized / Ink, Midnight, Graphite, Dusk, Nord" },
-              { label: "Sidebar", value: "The toolbar's Sidebar button, CTRL/CMD+ALT+S or Toggle Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
+              { label: "Light / Dark theme", value: "Paper, Solarized, Plain / Nord, Ink, Graphite" },
+              { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Toggle Sidebar: navigation, notes and the vault's files on the window's left edge, on every editor page (desktop)" },
               { label: "Typeface", value: "Geist Mono by default, Duospace or Quattro" },
             ]}
           />
@@ -64,8 +68,8 @@ export const settingsGroup: Group = {
           <p>
             Templates are always in <code>templates/</code> at the root of your vault, made the
             first time you need it: every <code>.md</code> file directly in it, or one folder down
-            (a <a href="#template-packs" className="text-accent hover:underline">template pack</a>), is a{" "}
-            <a href="#templates" className="text-accent hover:underline">template</a>.
+            (a <TextLink href="#template-packs">template pack</TextLink>), is a{" "}
+            <TextLink href="#templates">template</TextLink>.
           </p>
         </>
       ),
@@ -79,7 +83,7 @@ export const settingsGroup: Group = {
         <>
           <p>
             Every shortcut in HermesMarkdown is built in and not user-configurable. See{" "}
-            <a href="#keyboard-shortcuts" className="text-accent hover:underline">Keyboard shortcuts</a>{" "}
+            <TextLink href="#keyboard-shortcuts">Keyboard shortcuts</TextLink>{" "}
             for the full reference grouped by context.
           </p>
         </>
@@ -105,12 +109,6 @@ export const mobileGroup: Group = {
             bar is the one always-present way to open it. From there, Show Files, Search, Open Tasks,
             New Note, and every other command work exactly as they do on desktop.
           </p>
-          <p>
-            The <strong>Home</strong> button at the left of that bar takes you back to the{" "}
-            <a href="#home-feed" className="text-accent hover:underline">home feed</a>.
-            On the feed, the search bar and the <strong>+</strong> button sit at the bottom, within
-            reach of your thumb.
-          </p>
           <p>Files and Search open full screen rather than as docked panels.</p>
         </>
       ),
@@ -130,7 +128,7 @@ export const mobileGroup: Group = {
             ]}
           />
           <p>
-            From the home feed&apos;s vault menu (or the command palette), choose <strong>Browser vaults…</strong>{" "}
+            From the command palette, choose <strong>Browser vaults…</strong>{" "}
             to create or reopen one. On iOS, use <em>Share → Add to Home Screen</em>: the installed
             app opens full-screen and starts without a connection.
           </p>
@@ -139,7 +137,7 @@ export const mobileGroup: Group = {
             to the home screen protects it, and <strong>Export vault as zip</strong> keeps a backup
             in Files. To import on iOS, pick a <code>.zip</code> or individual notes — folder picking
             isn&apos;t available there. See{" "}
-            <a href="#browser-vaults" className="text-accent hover:underline">Browser vaults</a>.
+            <TextLink href="#browser-vaults">Browser vaults</TextLink>.
           </Callout>
         </>
       ),

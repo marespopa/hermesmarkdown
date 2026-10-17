@@ -2,22 +2,18 @@
 
 import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import ConflictDialog from "./components/ConflictDialog";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf, contentStore } from "@/app/atoms/atoms";
 import { flushAllBoardWrites } from "@/app/utils/board/board-flush";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import useVisibleViewport from "@/app/hooks/use-visible-viewport";
 import FolderPrompt from "./components/FolderPrompt";
-import NewVaultDialog from "./components/NewVaultDialog";
-import GitHubVaultDialog from "./components/GitHubVaultDialog";
-import BrowserVaultDialog from "./components/BrowserVaultDialog";
 import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import PaneLeaf from "./components/PaneLeaf";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import LoadingBar from "@/app/components/LoadingBar";
 import EditorCommands from "./components/EditorCommands";
 import MobileFileIndicator from "./components/MobileFileIndicator";
-import WorkspaceSidebar from "./components/WorkspaceSidebar";
 import SelectionToolbar from "./components/SelectionToolbar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -34,7 +30,7 @@ import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
 import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_focusMode, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_focusMode, atom_newNoteRequested } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useToolHandoff } from "./hooks/use-tool-handoff";
@@ -44,10 +40,8 @@ import { useNavigateWithGuard } from "./hooks/use-navigate-with-guard";
 import { useSyncCurrentDirectory } from "./hooks/use-sync-current-directory";
 import DraftImportDialog from "./components/DraftImportDialog";
 import { useDraftFlow } from "./hooks/use-draft-flow";
-import { useHomeFeed } from "./hooks/use-home-feed";
-import HomeFeed from "./components/HomeFeed";
-import { HomeFeedSkeleton } from "./components/EditorSkeleton";
-import { useVaultOpenBehavior } from "./hooks/use-vault-open-behavior";
+import { usePaletteCreateNote } from "./hooks/use-palette-create-note";
+import { useActiveFileUrlSync } from "./hooks/use-active-file-url";
 import { useFirstRun } from "./hooks/use-first-run";
 import { useChooseFolder } from "./hooks/use-choose-folder";
 import { useRecentVaultTracker } from "./hooks/use-recent-vaults";
@@ -102,15 +96,12 @@ export default function LiteEditor() {
   const { flush } = useAutoSave(handleDraftAutosave);
   useFileWatcher();
   useVaultSync();
-  useVaultOpenBehavior();
   useFirstRun(isMobileChrome);
   const chooseFolder = useChooseFolder(materializeDraft);
   useRecentVaultTracker();
   // Both Focus levels above Off hide the interface while typing.
   const hideChromeWhileTyping = useAtomValue(atom_focusMode) !== "off";
   useFadeChromeWhileTyping(hideChromeWhileTyping);
-  const sidebarOpen = useAtomValue(atom_sidebarOpen);
-  const sidebarWidth = useAtomValue(atom_sidebarWidth);
 
   // "Open AI Chat" (keyboard shortcut / command palette) bumps this counter
   // from outside the editor; the actual open() call has to happen here since
@@ -126,11 +117,12 @@ export default function LiteEditor() {
   }, [aiBuilderRequest, openAiChat]);
 
   useSyncCurrentDirectory(activeFilePath, isVaultPending, syncCurrentDirectoryToPath);
-  // Until the saved vault is readable, neither the editor nor the home feed
+  // Until the saved vault is readable, the editor
   // is shown — only the skeleton. VaultAccessGate (editor layout) shows the
   // Restore Access prompt over every /editor route.
   const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
   const isVaultLocked = isVaultRestoring || isVaultPending;
+  useActiveFileUrlSync({ isVaultLocked, openFile });
 
   const { handleImport, fileInputRef, handleFileChange, pendingDraft, offerDraft, confirmPendingDraft, cancelPendingDraft } =
     useDraftImport(importFile);
@@ -199,13 +191,15 @@ export default function LiteEditor() {
     handleNewFileRef.current = handleNewFile;
   }, [handleNewFile]);
 
-  const { isHomeFeedOpen, feedProps } = useHomeFeed({
-    hasVault: !!vaultHandle,
-    openFile,
-    newNote: handleNewFile,
-    materializeDraft,
-    importFile: handleImport,
-  });
+  // The sidebar's New note, from this page or from another route.
+  const [newNoteRequested, setNewNoteRequested] = useAtom(atom_newNoteRequested);
+  useEffect(() => {
+    if (!newNoteRequested || isMounting || isVaultLocked) return;
+    setNewNoteRequested(false);
+    void handleNewFile();
+  }, [newNoteRequested, isMounting, isVaultLocked, setNewNoteRequested, handleNewFile]);
+
+  usePaletteCreateNote({ hasVault: !!vaultHandle, materializeDraft });
 
 
   // Export as Markdown: always a .md download of the note, vault note or
@@ -215,11 +209,6 @@ export default function LiteEditor() {
     downloadMarkdown(content, fileName);
     showSuccessToast("Download started");
   };
-
-  // The sidebar floats over the panes, so the text never moves for it; only
-  // the headers of panes on the leading edge start beside it (PaneLeaf).
-  const sidebarInset =
-    !isMobileChrome && !isVaultLocked && !isHomeFeedOpen && sidebarOpen ? `${sidebarWidth}px` : "0px";
 
   return (
     <ErrorBoundary onGoHome={() => router.push("/")}>
@@ -240,19 +229,22 @@ export default function LiteEditor() {
         onRunAIAction={aiActions.runAIActionById}
       />
       {/* On the feed, its skeleton (gate, then the main area) leads straight into it. */}
-      <LoadingOverlay isVisible={(isMounting && !isHomeFeedOpen) || !!navigatingLabel} text={navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
+      <LoadingOverlay isVisible={isMounting || !!navigatingLabel} text={navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
       {/* Switching files keeps the editor on screen; a slim bar (shown only if
           it takes >150ms) signals the read + re-render instead of a full veil. */}
       <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />
       <div
-        className={`typing-page fixed inset-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none transition-all duration-500`}
-        style={{ "--sidebar-inset": sidebarInset, ...visibleViewport } as CSSProperties}
+        className={`typing-page app-sheet fixed inset-y-0 right-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none`}
+        // Past the open sidebar, sliding with it (EditorShell); the whole
+        // window on mobile.
+        style={{
+          left: "var(--content-left, 0px)",
+          transition: "left 200ms ease-out, background-color 500ms, color 500ms",
+          ...visibleViewport,
+        } as CSSProperties}
       >
         <h1 className="sr-only">HermesMarkdown Editor</h1>
-        {/* Modals */}
-        <NewVaultDialog />
-        <GitHubVaultDialog />
-        <BrowserVaultDialog />
+        {/* Modals (the vault dialogs live in EditorShell, for every route) */}
         <ConflictDialog />
         {/* Before MermaidDialog, so its "Open viewer" stacks on top. */}
         <RenderedBlockSourceDialog />
@@ -268,21 +260,11 @@ export default function LiteEditor() {
         {/* --- MAIN LAYOUT --- */}
         <div className="flex flex-1 min-h-0 overflow-hidden relative">
 
-        {/* Sidebar: navigation on the window's leading edge (desktop). The home
-            feed is a full-width landing view, so it has none. */}
-        {!isMobileChrome && !isVaultLocked && !isHomeFeedOpen && (
-          // A wrapper takes the fade: the sidebar's own transition is its slide.
-          // It takes no room: the sidebar floats over the editor from it.
-          <div className="typing-chrome absolute inset-y-0 left-0 w-0 z-30">
-            <WorkspaceSidebar onOpenTasks={() => navigateWithGuard("/editor/tasks", "Tasks")} onOpenTemplates={() => navigateWithGuard("/editor/templates", "Templates")} />
-          </div>
-        )}
-
         {/* Workspace Content */}
         <div className="flex-1 flex min-w-0 bg-surface overflow-hidden relative">
           {/* Main Editor Area */}
           <div className="flex-1 flex flex-col min-w-0 relative">
-            {isMobileChrome && !isHomeFeedOpen && !isVaultLocked && (
+            {isMobileChrome && !isVaultLocked && (
               <MobileFileIndicator
                 onSave={() => handleSaveRef.current()}
                 onOpenAIChat={isAiConfigured ? openAiChat : undefined}
@@ -292,17 +274,13 @@ export default function LiteEditor() {
               <main
                 className="h-full"
               >
-                {(isMounting || isVaultLocked) && isHomeFeedOpen ? (
-                  <HomeFeedSkeleton />
-                ) : isMounting || isVaultLocked ? (
+                {isMounting || isVaultLocked ? (
                   <div className="animate-pulse opacity-10 space-y-6 pt-20 px-12 max-w-2xl mx-auto">
                     <div className="h-8 bg-current w-1/3 rounded-lg mb-16" />
                     <div className="h-4 bg-current w-full rounded-md" />
                     <div className="h-4 bg-current w-11/12 rounded-md" />
                     <div className="h-4 bg-current w-5/6 rounded-md" />
                   </div>
-                ) : isHomeFeedOpen ? (
-                  <HomeFeed {...feedProps} />
                 ) : isMobileChrome ? (
                   <PaneLeaf leaf={mobileLeaf} />
                 ) : (
@@ -314,7 +292,7 @@ export default function LiteEditor() {
         </div>
         </div>{/* end MAIN LAYOUT */}
 
-        {!vaultHandle && !isMounting && !isVaultLocked && !isHomeFeedOpen && (
+        {!vaultHandle && !isMounting && !isVaultLocked && (
           <FolderPrompt
             onChooseFolder={() => void chooseFolder()}
             onDownload={handleExport}

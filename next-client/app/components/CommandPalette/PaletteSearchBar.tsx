@@ -23,7 +23,7 @@ interface PaletteSearchBarProps {
   children?: React.ReactNode;
 }
 
-// The palette's search field, drawn as the same pill as the home feed's
+// The palette's search field, drawn as the same pill as the toolbar's
 // search bar (they morph into each other; see CommandPaletteContext). After
 // the field, `>` toggles command mode.
 export default function PaletteSearchBar({

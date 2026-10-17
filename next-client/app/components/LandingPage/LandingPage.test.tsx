@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { Provider, createStore } from "jotai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { atom_openFiles } from "@/app/atoms/file-atoms";
-import { atom_resumeRequested, atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_userName } from "@/app/atoms/ui-atoms";
 import LandingPage from "./LandingPage";
 import { LANDING_FAQ } from "./landing-content";
 
@@ -101,11 +101,12 @@ describe("LandingPage", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Opening editor...");
   });
 
-  it("focuses Resume for a returning user with a name", async () => {
-    renderLandingPage({ draftContent: "# Draft", userName: "Ada" });
+  it("offers Resume to a returning user with a name, without focusing it", async () => {
+    renderLandingPage({ draftContent: "# Draft", userName: "Writer" });
 
-    expect(await screen.findByRole("status")).toHaveTextContent("Welcome back, Ada");
-    expect(screen.getByRole("button", { name: "Resume" })).toHaveFocus();
+    expect(await screen.findByRole("status")).toHaveTextContent("Welcome back, Writer");
+    // A plain button: focused on show, it drew its focus ring at once.
+    expect(screen.getByRole("button", { name: "Resume" })).not.toHaveFocus();
   });
 
   it("lets a returning user name themselves before resuming a draft", async () => {
@@ -113,21 +114,12 @@ describe("LandingPage", () => {
 
     expect(await screen.findByRole("status")).toHaveTextContent("Welcome Back");
     fireEvent.change(screen.getByPlaceholderText("What should we call you?"), {
-      target: { value: "Ada" },
+      target: { value: "Writer" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Resume" }));
 
-    expect(store.get(atom_userName)).toBe("Ada");
+    expect(store.get(atom_userName)).toBe("Writer");
     expect(router.push).toHaveBeenCalledWith("/editor");
   });
 
-  it("resumes into the open tabs, while Start Writing doesn't ask to", async () => {
-    const store = renderLandingPage({ draftContent: "# Draft", userName: "Ada" });
-
-    fireEvent.click(screen.getByRole("button", { name: "Start Writing" }));
-    expect(store.get(atom_resumeRequested)).toBe(false);
-
-    fireEvent.click(await screen.findByRole("button", { name: "Resume" }));
-    expect(store.get(atom_resumeRequested)).toBe(true);
-  });
 });

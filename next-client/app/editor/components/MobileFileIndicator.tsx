@@ -1,16 +1,15 @@
 "use client";
 
 import React from "react";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import {
   atom_workspaceLayout,
   atom_activePaneId,
-  atom_goHome,
   atom_openFiles,
   atom_saveStatus,
   findLeaf,
 } from "@/app/atoms/atoms";
-import { HiOutlineChevronDown, HiOutlineChatAlt2, HiOutlineHome } from "react-icons/hi";
+import { HiOutlineChevronDown, HiOutlineChatAlt2 } from "react-icons/hi";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { SaveStateIcon, TabSaveState, statusMeta } from "./PaneTab";
 import Button from "@/app/components/Button";
@@ -31,7 +30,6 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
   const openFiles = useAtomValue(atom_openFiles);
   const saveStatus = useAtomValue(atom_saveStatus);
   const { open: openCommandPalette } = useCommandPalette();
-  const goHome = useSetAtom(atom_goHome);
 
   const leaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
   const hasOpenFiles = !!leaf && leaf.openFilePaths.length > 0;
@@ -61,15 +59,7 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
   const meta = hasOpenFiles ? statusMeta[saveState] : null;
 
   return (
-    <div className="typing-chrome glass-bar relative shrink-0 flex items-center h-11 border-b border-edge-subtle">
-      <Button variant="unstyled"
-        onClick={() => goHome()}
-        aria-label="Home feed"
-        title="Home feed"
-        className="flex items-center justify-center h-11 min-w-11 shrink-0 text-fg-faint hover:text-sage transition-colors"
-      >
-        <HiOutlineHome size={18} />
-      </Button>
+    <div className="typing-chrome typing-chrome-collapse glass-bar relative shrink-0 flex items-center h-11 overflow-hidden border-b border-edge-subtle">
       {onOpenAIChat && (
         <Button variant="unstyled"
           onClick={onOpenAIChat}

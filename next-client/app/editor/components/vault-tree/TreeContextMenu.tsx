@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Button from "@/app/components/Button";
 import { isMacPlatform } from "@/app/utils/platform";
-import { MENU_ICON_CLASS, MENU_ITEM_CLASS, MENU_ITEM_DESTRUCTIVE_CLASS, MENU_PANEL_CLASS, MENU_SEPARATOR_CLASS, MENU_SHORTCUT_CLASS } from "../menu-classes";
+import { MENU_ICON_CLASS, MENU_ITEM_DESTRUCTIVE_CLASS, MENU_PANEL_CLASS, MENU_SEPARATOR_CLASS, MENU_SHORTCUT_CLASS } from "../menu-classes";
 
 export interface TreeMenuItem {
   label: string;
@@ -80,14 +80,14 @@ export function TreeContextMenu({ x, y, label, items, onClose }: TreeContextMenu
           <div key={item.label}>
             {item.separated && <div role="separator" className={MENU_SEPARATOR_CLASS} />}
             <Button
-              variant="unstyled"
+              variant="menu-row"
               role="menuitem"
               onClick={(e) => {
                 e.stopPropagation();
                 onClose();
                 item.onSelect();
               }}
-              className={`${MENU_ITEM_CLASS} ${item.destructive ? MENU_ITEM_DESTRUCTIVE_CLASS : ""}`}
+              className={item.destructive ? MENU_ITEM_DESTRUCTIVE_CLASS : ""}
             >
               <span className={`${MENU_ICON_CLASS} ${item.destructive ? "!text-current" : ""}`}>{item.icon}</span>
               <span className="flex-1 truncate">{item.label}</span>

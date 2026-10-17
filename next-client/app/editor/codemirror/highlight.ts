@@ -125,7 +125,10 @@ export function isHorizontalRule(text: string, previousLine: string, isFrontmatt
   return !text.trim().startsWith("-") || !previousLine.trim();
 }
 
-export function computeMarkdownDecorations(state: EditorState): DecorationSet {
+export function computeMarkdownDecorations(
+  state: EditorState,
+  range?: { from: number; to: number },
+): DecorationSet {
   const ranges: MarkRange[] = [];
   const lineDecos: { line: number; class: string }[] = [];
 
@@ -142,7 +145,19 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
   let isInsideFrontmatter = false;
 
   const doc = state.doc;
-  for (let i = 1; i <= doc.lines; i++) {
+  // With a range (the viewport), lines before it are still read, since a
+  // code block or callout above changes how the lines below look, but only
+  // the lines in it are decorated, and reading stops one line past it (enough
+  // to see whether a callout ends there). Without one, the whole note.
+  const firstLine = range ? doc.lineAt(range.from).number : 1;
+  const emitLast = range ? doc.lineAt(range.to).number : doc.lines;
+  const lastLine = Math.min(doc.lines, emitLast + 1);
+  let emit = true;
+  const markIf: typeof mark = (...args) => { if (emit) mark(...args); };
+  const inlineIf: typeof processInline = (...args) => { if (emit) processInline(...args); };
+  const pushLine = (deco: { line: number; class: string }) => { if (emit) lineDecos.push(deco); };
+  for (let i = 1; i <= lastLine; i++) {
+    emit = i >= firstLine && i <= emitLast;
     const line = doc.line(i);
     const text = line.text;
     const base = line.from;
@@ -151,7 +166,7 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
     const isFrontmatterLine = isInsideFrontmatter;
     if (isInsideFrontmatter) {
       const isClosingLine = i > 1 && /^---\s*$/.test(text);
-      lineDecos.push({
+      pushLine({
         line: i,
         class: [
           "cm-frontmatter-line",
@@ -164,8 +179,8 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
         if (field) {
           const keyFrom = base + field[1].length;
           const keyTo = keyFrom + field[2].length;
-          mark(ranges, keyFrom, keyTo, "cm-frontmatter-key");
-          mark(ranges, keyTo, base + field[0].length, "cm-frontmatter-separator");
+          markIf(ranges, keyFrom, keyTo, "cm-frontmatter-key");
+          markIf(ranges, keyTo, base + field[0].length, "cm-frontmatter-separator");
         }
       }
       if (isClosingLine) isInsideFrontmatter = false;
@@ -195,14 +210,14 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       // The fold sign (`+`/`-`) is syntax like the rest of `> [!type]`: same
       // faded look. The fold chevron writes it (callout-fold.ts).
       const prefixEnd = bracketEndAbs + (fold ? 1 : 0);
-      mark(ranges, base, base + prefixEnd, FADED);
+      markIf(ranges, base, base + prefixEnd, FADED);
       const cursor = prefixEnd;
       const rest = text.slice(cursor);
       if (rest.trim()) {
-        mark(ranges, base + cursor, line.to, `${style.text} font-bold`);
+        markIf(ranges, base + cursor, line.to, `${style.text} font-bold`);
       }
       calloutLastDeco = { line: i, class: `cm-callout cm-callout-start ${style.bg}` };
-      lineDecos.push(calloutLastDeco);
+      pushLine(calloutLastDeco);
     } else if (
       calloutType !== null &&
       (text.match(REGEX_OBSIDIAN_QUOTE_DEPTH)?.[0].match(/>/g) || []).length >= calloutDepth
@@ -211,52 +226,52 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       const style = CALLOUT_META[resolvedType] ?? CALLOUT_META.note;
       const bodyDepthMatch = text.match(REGEX_OBSIDIAN_QUOTE_DEPTH);
       const bodyPrefix = bodyDepthMatch ? bodyDepthMatch[0] : "";
-      mark(ranges, base, base + bodyPrefix.length, FADED);
-      processInline(ranges, text.slice(bodyPrefix.length), base + bodyPrefix.length);
+      markIf(ranges, base, base + bodyPrefix.length, FADED);
+      inlineIf(ranges, text.slice(bodyPrefix.length), base + bodyPrefix.length);
       calloutLastDeco = { line: i, class: `cm-callout ${style.bg}` };
-      lineDecos.push(calloutLastDeco);
+      pushLine(calloutLastDeco);
     } else if (calloutType !== null) {
       endCallout();
       calloutType = null;
       calloutDepth = 0;
-      processInline(ranges, text, base);
+      inlineIf(ranges, text, base);
     } else if (text.startsWith("```") || text.startsWith("~~~")) {
       // Fences and body share one tinted, monospaced block (editor-typography.scss);
       // the fences cap it top and bottom.
       const edge = isInsideCodeBlock ? "cm-codeblock-end" : "cm-codeblock-start";
       isInsideCodeBlock = !isInsideCodeBlock;
-      mark(ranges, base, line.to, FADED);
-      lineDecos.push({ line: i, class: `cm-codeblock ${edge}` });
+      markIf(ranges, base, line.to, FADED);
+      pushLine({ line: i, class: `cm-codeblock ${edge}` });
     } else if (isInsideCodeBlock) {
-      lineDecos.push({ line: i, class: "cm-codeblock" });
+      pushLine({ line: i, class: "cm-codeblock" });
     } else if (!text.trim()) {
       // blank line, nothing to decorate
     } else if (REGEX_THEMATIC_BREAK.test(text)) {
       if (isHorizontalRule(text, i > 1 ? doc.line(i - 1).text : "", isFrontmatterLine)) {
         // Drawn as a rule (theme.ts); the dashes show only while the caret
         // is on the line (horizontalRuleCursorPlugin).
-        mark(ranges, base, line.to, "cm-hr-marks");
-        lineDecos.push({ line: i, class: "cm-hr" });
+        markIf(ranges, base, line.to, "cm-hr-marks");
+        pushLine({ line: i, class: "cm-hr" });
       } else {
-        mark(ranges, base, line.to, FADED);
+        markIf(ranges, base, line.to, FADED);
       }
     } else if (isFrontmatterLine && text.startsWith("#")) {
       // A YAML comment (templates use them for hints), not a heading.
-      mark(ranges, base, line.to, "cm-frontmatter-comment");
+      markIf(ranges, base, line.to, "cm-frontmatter-comment");
     } else if (text.startsWith("#") && REGEX_HEADING.test(text)) {
       const m = text.match(REGEX_HEADING_PARTS)!;
       const hashes = m[1];
       const level = hashes.match(/^#+/)![0].length;
-      mark(ranges, base, base + hashes.length, FADED);
-      mark(ranges, base + hashes.length, line.to, "font-semibold text-ink-light dark:text-ink-dark");
-      lineDecos.push({ line: i, class: headingLineClass(level) });
-      processInline(ranges, m[2], base + hashes.length);
+      markIf(ranges, base, base + hashes.length, FADED);
+      markIf(ranges, base + hashes.length, line.to, "font-semibold text-ink-light dark:text-ink-dark");
+      pushLine({ line: i, class: headingLineClass(level) });
+      inlineIf(ranges, m[2], base + hashes.length);
     } else if (text.startsWith(">")) {
       const m = text.match(REGEX_BLOCKQUOTE_PARTS)!;
       const quote = m[1];
-      mark(ranges, base, base + quote.length, FADED);
-      mark(ranges, base + quote.length, line.to, "text-ink-muted dark:text-stone");
-      processInline(ranges, m[2], base + quote.length);
+      markIf(ranges, base, base + quote.length, FADED);
+      markIf(ranges, base + quote.length, line.to, "text-ink-muted dark:text-stone");
+      inlineIf(ranges, m[2], base + quote.length);
     } else if (REGEX_LIST_ITEM.test(text)) {
       const m = text.match(REGEX_LIST_PARTS)!;
       const bull = m[1];
@@ -267,38 +282,40 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
       let cursor = bull.length;
       if (check) cursor += check.length;
       const state = check?.[1].toLowerCase();
-      if (state === "x") mark(ranges, base + cursor, line.to, "cm-task-done");
-      else if (state === "-") mark(ranges, base + cursor, line.to, "cm-task-cancelled");
-      processInline(ranges, label, base + cursor);
+      if (state === "x") markIf(ranges, base + cursor, line.to, "cm-task-done");
+      else if (state === "-") markIf(ranges, base + cursor, line.to, "cm-task-cancelled");
+      inlineIf(ranges, label, base + cursor);
     } else if (isPipeLine) {
       const isSeparator = REGEX_TABLE_SEPARATOR.test(text);
       const nextLine = i < doc.lines ? doc.line(i + 1).text : "";
       const isHeader = tableRowCounter === 0 && REGEX_TABLE_SEPARATOR.test(nextLine);
 
       if (isSeparator) {
-        mark(ranges, base, line.to, FADED);
+        markIf(ranges, base, line.to, FADED);
       } else {
         let cellStart = 0;
         const cells = text.split("|");
         cells.forEach((cell, ci) => {
           const cellBase = base + cellStart;
-          if (ci > 0) mark(ranges, cellBase - 1, cellBase, FADED);
-          processInline(ranges, cell, cellBase);
-          if (isHeader) mark(ranges, cellBase, cellBase + cell.length, "font-bold text-ink-light dark:text-ink-dark");
+          if (ci > 0) markIf(ranges, cellBase - 1, cellBase, FADED);
+          inlineIf(ranges, cell, cellBase);
+          if (isHeader) markIf(ranges, cellBase, cellBase + cell.length, "font-bold text-ink-light dark:text-ink-dark");
           cellStart += cell.length + 1;
         });
       }
 
       if (isHeader) {
-        lineDecos.push({ line: i, class: "bg-paper-softgray/60 dark:bg-paper-dark-surface/50" });
+        pushLine({ line: i, class: "bg-paper-softgray/60 dark:bg-paper-dark-surface/50" });
       } else if (!isSeparator && tableRowCounter >= 2 && tableRowCounter % 2 === 1) {
-        lineDecos.push({ line: i, class: "bg-black/[0.03] dark:bg-white/[0.04]" });
+        pushLine({ line: i, class: "bg-black/[0.03] dark:bg-white/[0.04]" });
       }
     } else {
-      processInline(ranges, text, base);
+      inlineIf(ranges, text, base);
     }
   }
-  endCallout();
+  // A callout still open where reading stopped carries on below; it only
+  // gets its end cap when the note itself ends.
+  if (lastLine === doc.lines) endCallout();
 
   const decoRanges: Range<Decoration>[] = ranges
     .filter((r) => r.to > r.from)
@@ -315,12 +332,15 @@ export function computeMarkdownDecorations(state: EditorState): DecorationSet {
 export const markdownHighlightPlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
+    // Only the viewport (what CodeMirror renders, plus its margin) is
+    // decorated, so typing and scrolling in a long note never rebuild
+    // decorations for lines that aren't drawn.
     constructor(view: EditorView) {
-      this.decorations = computeMarkdownDecorations(view.state);
+      this.decorations = computeMarkdownDecorations(view.state, view.viewport);
     }
     update(update: ViewUpdate) {
       if (update.docChanged || update.viewportChanged) {
-        this.decorations = computeMarkdownDecorations(update.state);
+        this.decorations = computeMarkdownDecorations(update.state, update.view.viewport);
       }
     }
   },

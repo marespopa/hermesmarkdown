@@ -12,6 +12,7 @@ import {
   HiOutlineSparkles,
 } from "react-icons/hi";
 import type { Group } from "../doc-primitives";
+import TextLink from "@/app/components/TextLink";
 
 const ICONS: Record<string, IconType> = {
   "get-started": HiOutlinePlay,
@@ -32,8 +33,9 @@ export default function TopicCards({ groups }: { groups: Group[] }) {
           const Icon = ICONS[group.id] ?? HiOutlineBookOpen;
           return (
             <li key={group.id}>
-              <a
+              <TextLink
                 href={`#${group.id}`}
+                variant="unstyled"
                 className="group flex h-full flex-col rounded-[22px] border border-edge-subtle bg-surface-raised p-6 transition-shadow duration-300 hover:shadow-[0_10px_30px_rgba(0,0,0,0.08)]"
               >
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-chrome text-accent">
@@ -44,7 +46,7 @@ export default function TopicCards({ groups }: { groups: Group[] }) {
                 <span className="mt-4 text-[15px] text-accent group-hover:underline">
                   {group.items.length} {group.items.length === 1 ? "article" : "articles"} ›
                 </span>
-              </a>
+              </TextLink>
             </li>
           );
         })}

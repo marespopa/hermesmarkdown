@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { HiOutlineArrowLeft, HiOutlineColorSwatch, HiOutlineFolder, HiOutlinePencilAlt, HiOutlineAdjustments, HiOutlineLightningBolt } from "react-icons/hi";
+import { useEffect, useState } from "react";
+import { HiOutlineColorSwatch, HiOutlineFolder, HiOutlinePencilAlt, HiOutlineAdjustments, HiOutlineLightningBolt } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import AiSettings from "./sections/AiSettings";
 import AppearanceSettings from "./sections/AppearanceSettings";
@@ -10,9 +9,12 @@ import EditorSettings from "./sections/EditorSettings";
 import FilesSettings from "./sections/FilesSettings";
 import GuideSettings from "./sections/GuideSettings";
 import ProfileSettings from "./sections/ProfileSettings";
+import ShellPage from "../components/ShellPage";
+import { readUrlParam, replaceUrlParam, SECTION_PARAM } from "../utils/editor-url";
 
+// Settings, one section at a time; the open one is in the URL
+// (`?section=editor`), so a refresh or a link lands on it.
 const SettingsPage = () => {
-  const router = useRouter();
 
   const sections = [
     {
@@ -56,22 +58,21 @@ const SettingsPage = () => {
   const [activeSection, setActiveSection] = useState(sections[0].id);
   const active = sections.find((s) => s.id === activeSection) ?? sections[0];
 
-  return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden overscroll-none bg-paper-pale font-sans text-ink-light selection:bg-sage/10 dark:bg-paper-dark dark:text-ink-dark lg:flex-row">
-      <aside className="glass-bar flex shrink-0 flex-col border-b border-edge-subtle lg:w-72 lg:border-b-0 lg:border-r">
-        <div className="border-b border-edge-subtle px-4 pb-3 pt-4">
-          <Button
-            variant="unstyled"
-            onClick={() => router.push("/editor")}
-            title="Back to editor"
-            className="group mb-3 inline-flex items-center gap-1.5 rounded-md px-1 py-1 text-ui-footnote font-medium text-ink-muted transition-colors hover:bg-paper-light/70 hover:text-ink-light focus:outline-none dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark"
-          >
-            <HiOutlineArrowLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" />
-            Editor
-          </Button>
-          <h1 className="text-ui-title-3 font-semibold tracking-tight">Settings</h1>
-        </div>
+  // Read after mount: the URL doesn't exist on the server.
+  useEffect(() => {
+    const fromUrl = readUrlParam(SECTION_PARAM);
+    if (fromUrl && sections.some((s) => s.id === fromUrl)) setActiveSection(fromUrl);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const openSection = (id: string) => {
+    setActiveSection(id);
+    replaceUrlParam(SECTION_PARAM, id === sections[0].id ? null : id);
+  };
+
+  return (
+    <ShellPage title="Settings">
+    <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+      <aside className="flex shrink-0 flex-col border-b border-edge-subtle lg:w-60 lg:border-b-0 lg:border-r">
         <nav aria-label="Settings sections" className="flex gap-0.5 overflow-x-auto px-3 py-3 lg:flex-col lg:overflow-visible">
           {sections.map((s) => {
             const Icon = s.icon;
@@ -80,7 +81,8 @@ const SettingsPage = () => {
               <Button
                 variant="unstyled"
                 key={s.id}
-                onClick={() => setActiveSection(s.id)}
+                onClick={() => openSection(s.id)}
+                aria-current={isActive ? "page" : undefined}
                 className={`flex h-8 shrink-0 items-center gap-2 px-2.5 rounded-lg text-ui-subhead font-medium transition-colors focus:outline-none ${
                   isActive
                     ? "bg-paper-light/80 text-ink-light shadow-sm dark:bg-white/10 dark:text-ink-dark"
@@ -95,13 +97,14 @@ const SettingsPage = () => {
         </nav>
       </aside>
 
-      <main className="min-h-0 flex-1 overflow-y-auto bg-paper-pale custom-scrollbar dark:bg-paper-dark">
+      <main className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
         <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-10 lg:px-12 xl:px-16">
           <h2 className="mb-5 text-ui-title-2 font-semibold tracking-tight">{active.label}</h2>
           {active.content}
         </div>
       </main>
     </div>
+    </ShellPage>
   );
 };
 

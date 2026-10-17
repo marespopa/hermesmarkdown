@@ -109,7 +109,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       id: "toggle-sidebar",
       label: "Toggle Sidebar",
       keywords: "sidebar open notes files tree navigation panel show hide",
-      shortcut: formatShortcut("S", { alt: true }),
+      shortcut: formatShortcut("\\"),
       action: () => setSidebarOpen(!sidebarOpen),
     },
   ];

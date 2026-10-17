@@ -1,6 +1,6 @@
 # ThemePicker
 
-Description: Picks a color theme (palette) for one mode — the light or the dark one. Each card previews its palette in the palette's own colors (chrome strip, surface, text and accent dot), so both pickers read correctly whichever mode is showing.
+Description: Picks a color theme (palette) for one mode — the light or the dark one. Each card previews its palette in the palette's own colors, as the editor is laid out: the sidebar (its rows in neutral grey) in the chrome colour beside the page, a line of text and the accent as a single dot, as the caret, so both pickers read correctly whichever mode is showing.
 
 ## Local State & Storage
 - State: None (controlled).
@@ -26,5 +26,5 @@ import { LIGHT_THEMES } from "@/app/theme-palettes";
 | onChange | `(value: T) => void` |  | Called with the clicked palette |
 
 ## Logic
-- Two columns, four from `sm` up; the selected card gets the sage border and an always-mounted check (opacity toggled, so heights never shift).
+- Three columns, one per palette; the selected card gets the sage border and an always-mounted check (opacity toggled, so heights never shift).
 - Colors on the preview come from `swatch`; the real palette colors live in `app/theme-palettes.scss`.

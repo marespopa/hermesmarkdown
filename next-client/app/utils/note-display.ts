@@ -2,7 +2,7 @@ import type { FileMetadata } from "@/app/atoms/metadata";
 import { isPrivateFrontmatter } from "./note-privacy";
 
 // The display factory: the one place that decides how a note appears in a
-// listing (home feed, command palette, Tasks page). Surfaces read the items
+// listing (pinned notes, command palette, Tasks page). Surfaces read the items
 // this builds instead of slicing note content themselves. Any future note
 // preview (e.g. a wiki-link hover card) must go through createNoteDisplayItem.
 

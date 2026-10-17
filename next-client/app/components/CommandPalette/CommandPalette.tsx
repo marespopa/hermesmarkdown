@@ -1,7 +1,7 @@
 "use client";
 
 import { atom_visibleTasks } from "@/app/atoms/task-atoms";
-import { atom_activeEditorView, atom_commandUseCounts, atom_editorFontFamily, atom_palettePinnedItems, atom_pendingScrollTarget, atom_recentFilePaths, atom_showHiddenFiles, atom_theme, type PalettePinnedItem } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_commandUseCounts, atom_editorFontFamily, atom_pendingScrollTarget, atom_recentFilePaths, atom_showHiddenFiles, atom_theme, type PalettePinnedItem } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import { showErrorToast } from "@/app/components/Toastr";
@@ -23,7 +23,8 @@ import PaletteSearchBar from "./PaletteSearchBar";
 import PaletteRow from "./PaletteRow";
 import { usePaletteContentSearch } from "./use-palette-content-search";
 import { usePaletteFiles } from "./use-palette-files";
-import { buildCreateRow, buildTaskRows, SEARCH_OR_CREATE_PLACEHOLDER, COMMAND_MODE_DEFAULT_ORDER, MAX_PINS, MAX_VISIBLE_ROWS, pinnedKey, type Row, type Scope, scopeFromPrefix, scopePrefix, type TaggedFileMatch, THEME_CYCLE } from "./palette-model";
+import { usePalettePins } from "./use-palette-pins";
+import { buildCreateRow, buildTaskRows, SEARCH_OR_CREATE_PLACEHOLDER, COMMAND_MODE_DEFAULT_ORDER, MAX_VISIBLE_ROWS, pinnedKey, type Row, type Scope, scopeFromPrefix, scopePrefix, type TaggedFileMatch, THEME_CYCLE } from "./palette-model";
 
 
 export default function CommandPalette() {
@@ -34,7 +35,8 @@ export default function CommandPalette() {
   const fontFamily = useAtomValue(atom_editorFontFamily);
   const commandUseCounts = useAtomValue(atom_commandUseCounts);
   const [recentFilePaths, setRecentFilePaths] = useAtom(atom_recentFilePaths);
-  const [pinnedItems, setPinnedItems] = useAtom(atom_palettePinnedItems);
+  // Pinned notes (shared with the sidebar's Files) and pinned commands.
+  const { pinnedItems, isPinned, togglePin: togglePinnedRow } = usePalettePins();
   const [theme, setTheme] = useAtom(atom_theme);
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
   const { openFile } = useFileSystem();
@@ -251,17 +253,7 @@ export default function CommandPalette() {
   };
 
   const togglePin = (row: Row | undefined) => {
-    if (!row || (row.kind !== "file" && row.kind !== "command")) return;
-    const item: PalettePinnedItem = { kind: row.kind, id: row.id };
-    setPinnedItems((previous) => {
-      const exists = previous.some((candidate) => pinnedKey(candidate) === pinnedKey(item));
-      if (exists) return previous.filter((candidate) => pinnedKey(candidate) !== pinnedKey(item));
-      if (previous.length >= MAX_PINS) {
-        showErrorToast(`You can pin up to ${MAX_PINS} items`);
-        return previous;
-      }
-      return [...previous, item];
-    });
+    togglePinnedRow(row);
     setContextRow(null);
   };
 
@@ -283,7 +275,6 @@ export default function CommandPalette() {
     }
   };
 
-  const isPinned = (row: Row) => (row.kind === "file" || row.kind === "command") && pinnedItems.some((item) => pinnedKey(item) === `${row.kind}:${row.id}`);
   const displayQuery = scope ? `${scopePrefix(scope)}${query}` : query;
   const contentMessage = scope !== "content" ? null
     : contentSearch.status === "unavailable" ? "Note text search isn't available in this browser."
@@ -301,7 +292,7 @@ export default function CommandPalette() {
     containerClassName={isMobileChrome ? "" : "items-start justify-center pt-[18vh] px-4"}
     panelClassName={isMobileChrome
       ? `flex-1 flex flex-col bg-overlay duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-bottom-2 ease-out" : "animate-out fade-out slide-out-to-bottom-2 ease-in"}`
-      : `w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-18vh-2rem)] flex flex-col glass-panel rounded-2xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-top-1 ease-out" : "animate-out fade-out slide-out-to-top-1 ease-in"}`}>
+      : `w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-18vh-2rem)] flex flex-col glass-panel glass-panel-soft rounded-2xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-top-1 ease-out" : "animate-out fade-out slide-out-to-top-1 ease-in"}`}>
     <div className="flex min-h-0 flex-1 flex-col" onKeyDown={handleKeyDown}>
     <PaletteSearchBar
       inputRef={inputRef}

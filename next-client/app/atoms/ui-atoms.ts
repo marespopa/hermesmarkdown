@@ -1,8 +1,7 @@
 import { atom } from "jotai";
-import { atomWithStorage, createJSONStorage } from "jotai/utils";
+import { atomWithStorage } from "jotai/utils";
 import type { EditorView } from "@codemirror/view";
 import { atomWithChoiceStorage } from "./choice-storage";
-import { tabSessionStorage } from "./session-storage";
 import { DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, type DarkTheme, type LightTheme } from "@/app/theme-palettes";
 
 // AI provider, keys and the AI Features switch live in ai-atoms; re-exported here.
@@ -67,6 +66,10 @@ export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
 export const SIDEBAR_MIN_WIDTH = 200;
 export const SIDEBAR_MAX_WIDTH = 420;
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 256);
+// Settings → Editor → Close Sidebar While Writing: typing in a note puts the
+// sidebar away, so the page has the window to itself. Off by default: the
+// sidebar otherwise closes only when you close it.
+export const atom_closeSidebarWhileWriting = atomWithStorage<boolean>("closeSidebarWhileWriting", false);
 // Sidebar sections the user folded (by title: "Open Notes", "Files"), remembered.
 export const atom_sidebarCollapsed = atomWithStorage<Record<string, boolean>>("sidebarCollapsed", {}, undefined, { getOnInit: true });
 // Each stack falls back to the Apple system face with the same role.
@@ -155,47 +158,24 @@ export const atom_renderedFontSize = atomWithStorage<string>(
 );
 export const atom_isEditorFocused = atom<boolean>(false);
 
-// Whether the editor page shows the home feed in place of the workspace.
-// Ephemeral: opening a note closes it.
-export const atom_homeFeedOpen = atom<boolean>(false);
-// Set by the landing page's "Resume": the next vault-open behavior keeps the
-// restored tabs in front instead of opening the home feed, then clears it.
-// In memory: it only has to survive the client-side navigation to /editor.
-export const atom_resumeRequested = atom<boolean>(false);
-// Bumped when Home is pressed while the feed is already open; HomeFeed
-// scrolls back to the top on each change.
-export const atom_homeFeedTopRequest = atom(0);
-// The Home button and command: opens the feed, or, when it's already open,
-// asks it to scroll back to the top.
-export const atom_goHome = atom(null, (get, set) => {
-  if (get(atom_homeFeedOpen)) set(atom_homeFeedTopRequest, (count) => count + 1);
-  else set(atom_homeFeedOpen, true);
-});
 // Set by "Show Files" (desktop); WorkspaceSidebar focuses its Files tree and
 // clears it. In memory: it only has to survive a navigation to /editor.
 export const atom_filesFocusRequested = atom<boolean>(false);
-// "Show Files" on desktop: shows the sidebar with its Files section unfolded,
-// leaves the home feed (which has no sidebar) and asks for the tree's focus.
+// Set by the sidebar's New note button on any /editor route; the editor page
+// starts the new note (its draft flow) and clears it. In memory: it only has
+// to survive a navigation to /editor.
+export const atom_newNoteRequested = atom<boolean>(false);
+// "Show Files" on desktop: shows the sidebar with its Files section unfolded
+// and asks for the tree's focus.
 export const atom_showFiles = atom(null, (get, set) => {
   set(atom_sidebarOpen, true);
   if (get(atom_sidebarCollapsed).Files) set(atom_sidebarCollapsed, (previous) => ({ ...previous, Files: false }));
-  set(atom_homeFeedOpen, false);
   set(atom_filesFocusRequested, true);
 });
 // The New Notes folder ("" = vault root; created on demand): where drafts are
 // saved on their first save, and where notes made from a template or a link
 // without a folder go.
 export const atom_newNoteFolder = atomWithStorage<string>("newNoteFolder", "");
-// Vault key the vault-open behavior last ran for, so returning to the editor
-// from another route doesn't replace the file just opened there. Kept in
-// sessionStorage: a refresh of the same tab reopens where you were (the note,
-// or the feed via `?view=home`); a new tab or window runs it again.
-export const atom_vaultOpenBehaviorAppliedFor = atomWithStorage<string | null>(
-  "vaultOpenBehaviorAppliedFor",
-  null,
-  createJSONStorage<string | null>(tabSessionStorage),
-  { getOnInit: true },
-);
 
 export const AUTOSAVE_MODES = ["afterDelay", "manual"] as const;
 export type AutosaveMode = (typeof AUTOSAVE_MODES)[number];
@@ -259,12 +239,11 @@ export const atom_fileTreeExpansion = atomWithStorage<Record<string, FileTreeExp
   "hermes_file_tree_expansion",
   {},
 );
-// Notes pinned to the top of the Home feed, keyed by vault (see
-// atom_vaultKey), newest pin first. Read and toggled through
-// home-pin-atoms.ts.
-export const atom_homePins = atomWithStorage<Record<string, string[]>>("hermes_home_pins", {});
-// The home feed's open-tasks list: folded until you open it.
-export const atom_homeTasksCollapsed = atomWithStorage<boolean>("hermes_home_tasks_collapsed", true);
+// Pinned notes, keyed by vault (see atom_vaultKey), newest pin first: shown
+// first in the command palette and at the top of the sidebar's Files. Read
+// and toggled through note-pin-atoms.ts. The storage key is from when they
+// pinned notes to the old home feed, kept so existing pins carry over.
+export const atom_notePins = atomWithStorage<Record<string, string[]>>("hermes_home_pins", {});
 
 // Vault creation flow — transient, never persisted
 export type VaultCreationSubStep = "name-and-folder" | "installing";

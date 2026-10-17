@@ -3,11 +3,12 @@ export const SUBTLE =
 // Document lifecycle states — mirrors the `status:` frontmatter field so inline tags
 // carry the same semantic weight as structured metadata.
 export const WORKFLOW_TAGS = ["draft", "review", "active", "archived"];
+// The palette's own status colours, so they follow the theme.
 export const TAG_COLORS: Record<string, string> = {
-  draft:    "text-amber-600 dark:text-amber-400",
-  review:   "text-sage dark:text-sage",
-  active:   "text-emerald-600 dark:text-emerald-400",
-  archived: "text-ink-muted dark:text-stone",
+  draft:    "text-task-hold",
+  review:   "text-sage",
+  active:   "text-task-done",
+  archived: "text-fg-faint",
 };
 
 export const SHORTCODES: Record<string, () => string> = {
@@ -78,6 +79,17 @@ export const SHORTCODES: Record<string, () => string> = {
   "{fix}": () => "🛠️ ",
   "{bug}": () => "🐛 ",
   "{star}": () => "⭐ ",
+  "{note}": () => "📝 ",
+  "{question}": () => "❓ ",
+  "{info}": () => "ℹ️ ",
+  "{pin}": () => "📌 ",
+  "{link}": () => "🔗 ",
+  "{fire}": () => "🔥 ",
+  "{rocket}": () => "🚀 ",
+  "{party}": () => "🎉 ",
+  "{target}": () => "🎯 ",
+  "{lock}": () => "🔒 ",
+  "{key}": () => "🔑 ",
 };
 
 export const LINK_EDITOR_SENTINEL = "__OPEN_LINK_EDITOR__";

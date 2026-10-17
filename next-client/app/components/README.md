@@ -21,6 +21,7 @@ Shared, app-agnostic UI primitives. Each component has a sibling `<Name>.md` (st
 | [KeyboardShortcutsOverlay](KeyboardShortcutsOverlay/KeyboardShortcutsOverlay.md) | Overlay listing every registered command that has a shortcut, grouped by category and formatted for the user's platform. |
 | [LandingPage](LandingPage/LandingPage.md) | Home route hero with an entry point into the editor, plus a "welcome back" toast when a local file is already open, and a floating Start Writing button once the hero scrolls away. |
 | [FloatingStartButton](LandingPage/FloatingStartButton.md) | The home page's floating Start Writing pill, shown while the hero's button is scrolled out of view. |
+| [LandingThemePicker](LandingPage/LandingThemePicker.md) | The home page's theme selector: light/dark mode and the palettes for each, the same picks as Settings → Appearance. |
 | [LoadingBar](LoadingBar/LoadingBar.md) | Slim top-of-viewport progress bar for short waits (file switching); appears after 150ms. |
 | [LoadingOverlay](LoadingOverlay/LoadingOverlay.md) | Full-screen loading veil with optional text, set in the user's rendered font. |
 | [MainPage](MainPage.md) | Root layout shell that mounts providers, the palette, toasts, `GlobalDialog`, and the header/footer. |
@@ -30,6 +31,7 @@ Shared, app-agnostic UI primitives. Each component has a sibling `<Name>.md` (st
 | [ServiceWorkerRegister](ServiceWorkerRegister.md) | Registers the offline service worker; new versions activate silently. |
 | [ThemeProvider](ThemeProvider.md) | Applies the resolved light/dark theme class to `<html>` in a layout effect, so the theme switches without a flash. |
 | [TemplateDialog](TemplateDialog/README.md) | Vault template picker and "Fill in the template" questions form, driven by `atom_templateDialog` via `useTemplateDialog()`; `TemplateDialogHost` is mounted once in `MainPage`. |
+| [TextLink](TextLink/TextLink.md) | The one link primitive: site paths through `next/link`, same-page anchors and mail as plain links, other sites in a new tab; `inline` (ink, underlined), `quiet` and `unstyled` variants, all with the shared focus ring. |
 | [Toast](Toast/Toast.md) | Persistent call-to-action card with icon, title, action button, and an optional inline name field. |
 | [Toastr](Toastr/Toastr.md) | Styled `react-hot-toast` helpers for transient success, error, copy, and save-state notifications. |
 | [Toggle](Toggle/Toggle.md) | Accessible on/off switch for boolean settings. |

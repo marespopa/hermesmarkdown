@@ -68,6 +68,10 @@ export function useCodeMirrorEditor({
 }: UseCodeMirrorEditorOptions) {
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  // The text the view last reported through onChange: when it comes back as
+  // `value`, the view already holds it, so the sync below skips re-reading
+  // and diffing the whole note on every keystroke.
+  const lastEmittedRef = useRef<string | null>(null);
   const onCursorActivityRef = useRef(onCursorActivity);
   onCursorActivityRef.current = onCursorActivity;
   const onViewportChangeRef = useRef(onViewportChange);
@@ -141,7 +145,9 @@ export function useCodeMirrorEditor({
         dispatchTransactions: (trs: any) => {
           view.update(trs);
           if (trs.some((tr: any) => tr.docChanged)) {
-            onChangeRef.current(view.state.doc.toString());
+            const text = view.state.doc.toString();
+            lastEmittedRef.current = text;
+            onChangeRef.current(text);
           }
         },
       });
@@ -230,6 +236,7 @@ export function useCodeMirrorEditor({
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;
+    if (value === lastEmittedRef.current) return;
     const change = changedRange(view.state.doc.toString(), value);
     if (!change) return;
     view.dispatch({

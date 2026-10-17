@@ -62,12 +62,9 @@ const DialogModal = ({
       {/* Close Button */}
       {!hideCloseButton && (
         <Button
-          variant="icon"
+          variant="close"
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 p-1.5 rounded-full
-                    bg-neutral-200/50 dark:bg-neutral-800/50
-                    hover:bg-neutral-300/80 dark:hover:bg-neutral-700/80
-                    transition-all active:scale-90"
+          className="absolute top-4 right-4 z-20"
           aria-label="Close modal"
         >
           <IoClose

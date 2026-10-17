@@ -199,40 +199,28 @@ export default function WikiLinkDialog({
             role="tablist"
             aria-label="WikiLink target type"
           >
-            <Button variant="unstyled"
+            <Button variant="segment"
               role="tab"
               aria-selected={mode === "existing"}
               onClick={() => setMode("existing")}
-              className={`rounded-lg px-3 py-2 text-ui-footnote font-medium transition-colors ${
-                mode === "existing"
-                  ? "bg-white text-ink-light shadow-sm dark:bg-paper-dark dark:text-ink-dark"
-                  : "text-ink-muted dark:text-stone"
-              }`}
+              className="h-9 rounded-lg"
             >
               Existing note
             </Button>
-            <Button variant="unstyled"
+            <Button variant="segment"
               role="tab"
               aria-selected={mode === "new"}
               onClick={() => setMode("new")}
-              className={`rounded-lg px-3 py-2 text-ui-footnote font-medium transition-colors ${
-                mode === "new"
-                  ? "bg-white text-ink-light shadow-sm dark:bg-paper-dark dark:text-ink-dark"
-                  : "text-ink-muted dark:text-stone"
-              }`}
+              className="h-9 rounded-lg"
             >
               New note
             </Button>
             {showTemplateTab && (
-              <Button variant="unstyled"
+              <Button variant="segment"
                 role="tab"
                 aria-selected={mode === "template"}
                 onClick={openTemplateMode}
-                className={`rounded-lg px-3 py-2 text-ui-footnote font-medium transition-colors ${
-                  mode === "template"
-                    ? "bg-white text-ink-light shadow-sm dark:bg-paper-dark dark:text-ink-dark"
-                    : "text-ink-muted dark:text-stone"
-                }`}
+              className="h-9 rounded-lg"
               >
                 From template
               </Button>

@@ -62,27 +62,25 @@ export default function Toast({
             <p className="text-xs text-fg-muted">{description}</p>
           </div>
           {!hasNameField && (
-            // Focused on show, so Enter takes the action (the name field
-            // takes focus instead when there is one).
+            // A plain button, not focused on show: a focused one drew its
+            // keyboard focus ring the moment the toast appeared.
             <Button
               variant="primary"
               onClick={onAction}
-              autoFocus
               tabIndex={0}
               className="h-9 px-4 !text-ui-footnote shrink-0"
             >
               {actionLabel}
             </Button>
           )}
-          <button
-            type="button"
+          <Button
+            variant="close"
             onClick={dismiss}
             aria-label="Dismiss"
             tabIndex={2}
-            className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10 hover:scale-110 active:scale-90 transition-all duration-150"
           >
             <FiX size={14} />
-          </button>
+          </Button>
         </div>
         {hasNameField && (
           <div className="flex items-center gap-2 pl-12">

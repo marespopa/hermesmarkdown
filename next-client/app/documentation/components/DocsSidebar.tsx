@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { Group } from "../doc-primitives";
+import TextLink from "@/app/components/TextLink";
 
 interface DocsSidebarProps {
   groups: Group[];
@@ -19,20 +20,22 @@ export default function DocsSidebar({ groups, activeId, onNavigate }: DocsSideba
     <nav aria-label="Table of contents" className="space-y-7">
       {groups.map((group) => (
         <div key={group.id}>
-          <a
+          <TextLink
             href={`#${group.id}`}
+            variant="unstyled"
             onClick={onNavigate}
             className="block px-3 mb-1.5 text-[13px] font-semibold text-fg hover:text-accent transition-colors"
           >
             {group.label}
-          </a>
+          </TextLink>
           <ul className="space-y-0.5">
             {group.items.map((item) => {
               const active = item.id === activeId;
               return (
                 <li key={item.id}>
-                  <a
+                  <TextLink
                     href={`#${item.id}`}
+                    variant="unstyled"
                     onClick={onNavigate}
                     aria-current={active ? "location" : undefined}
                     className={`block rounded-lg px-3 py-1.5 text-[14px] leading-snug transition-colors ${
@@ -40,7 +43,7 @@ export default function DocsSidebar({ groups, activeId, onNavigate }: DocsSideba
                     }`}
                   >
                     {item.title}
-                  </a>
+                  </TextLink>
                 </li>
               );
             })}

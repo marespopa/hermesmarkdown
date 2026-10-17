@@ -7,7 +7,7 @@ import {
   atom_fileMetadata,
   atom_fileTreeExpansion,
   atom_forgetFileTreePaths,
-  atom_homePins,
+  atom_notePins,
   atom_liveHandles,
   atom_openFiles,
   atom_remapVaultPaths,
@@ -166,9 +166,9 @@ describe("atom_remapVaultPaths", () => {
   });
 
   it("moves Home pins with a folder move", async () => {
-    store.set(atom_homePins, { "local:vault": ["notes/deep/idea.md", "notes-old.md"] });
+    store.set(atom_notePins, { "local:vault": ["notes/deep/idea.md", "notes-old.md"] });
     await store.set(atom_remapVaultPaths, { oldPath: "notes", newPath: "archive" });
-    expect(store.get(atom_homePins)["local:vault"]).toEqual(["archive/deep/idea.md", "notes-old.md"]);
+    expect(store.get(atom_notePins)["local:vault"]).toEqual(["archive/deep/idea.md", "notes-old.md"]);
   });
 
   it("moves walked folders, empty ones included, with a folder move", async () => {

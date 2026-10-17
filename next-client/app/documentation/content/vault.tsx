@@ -1,4 +1,5 @@
 import { Callout, Code, KV, type Group } from "../doc-primitives";
+import TextLink from "@/app/components/TextLink";
 
 // Documentation content: Vault group.
 export const vaultGroup: Group = {
@@ -38,7 +39,7 @@ export const vaultGroup: Group = {
           />
           <p>
             A{" "}
-            <a href="#browser-vaults" className="text-accent hover:underline">browser vault</a>{" "}
+            <TextLink href="#browser-vaults">browser vault</TextLink>{" "}
             holds the same plain files, just inside the browser&apos;s private storage instead of a
             folder you can see. Nothing is locked in: <strong>Export vault as zip</strong> hands you
             every file, and <strong>Import files into vault…</strong> brings a zip or folder into any
@@ -169,7 +170,7 @@ export const vaultGroup: Group = {
           <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">private</h4>
           <p>
             <code>private: true</code>, or a <code>private</code> tag, marks a note as{" "}
-            <a href="#private-notes" className="text-accent hover:underline">private</a>.
+            <TextLink href="#private-notes">private</TextLink>.
           </p>
         </>
       ),
@@ -210,8 +211,8 @@ tags: [finance, private]
           </p>
           <KV
             rows={[
-              { label: "Mask in lists (default)", value: "Home feed, quick open and Tasks show the title with a lock; preview and task text are bullets" },
-              { label: "Hide from lists", value: "Left out of the home feed, quick open and Tasks" },
+              { label: "Mask in lists (default)", value: "Pinned notes, quick open and Tasks show the title with a lock; preview and task text are bullets" },
+              { label: "Hide from lists", value: "Left out of pinned notes, quick open and Tasks" },
             ]}
           />
           <Callout type="note">

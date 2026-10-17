@@ -1,4 +1,5 @@
 import { Callout, KV, type Group } from "../doc-primitives";
+import TextLink from "@/app/components/TextLink";
 
 // Documentation content: AI Features group.
 export const aiFeaturesGroup: Group = {
@@ -30,7 +31,7 @@ export const aiFeaturesGroup: Group = {
             Nothing is sent until you use an AI feature. The key is stored in your browser. Each AI
             request passes through HermesMarkdown&apos;s servers on its way to Anthropic or Google — the
             key is never logged or saved there. See{" "}
-            <a href="#privacy-model" className="text-accent hover:underline">Privacy model</a>{" "}
+            <TextLink href="#privacy-model">Privacy model</TextLink>{" "}
             for the full picture.
           </p>
           <Callout type="note">
@@ -89,7 +90,7 @@ export const aiFeaturesGroup: Group = {
             Mention a template in AI Chat, for example &ldquo;make me an RFC template that asks for
             an owner&rdquo;, or start a message with <code>/template</code>. From then on, the chat
             knows the{" "}
-            <a href="#templates" className="text-accent hover:underline">template tokens</a>. Each
+            <TextLink href="#templates">template tokens</TextLink>. Each
             template in a reply shows a card with its path (for example <code>templates/rfc.md</code>) and any problems
             it spotted, like an unknown token.
           </p>

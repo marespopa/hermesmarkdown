@@ -1,11 +1,14 @@
 // The vault's Trash: deleted notes and folders move to `.hermes/trash/` so
 // a delete can be undone. Each deleted item gets its own slot folder, named
 // by when it was deleted, so two items with the same name never clash and
-// old slots can be emptied by age. The Trash is never indexed, synced or
-// exported.
+// old slots can be emptied by age, and records where its item came from
+// (TRASH_ORIGIN_FILE) so it can be put back. The Trash is never indexed,
+// synced or exported.
 
 export const TRASH_DIR = ".hermes/trash";
 export const TRASH_RETENTION_DAYS = 30;
+// In each slot beside the item: the vault path it was deleted from.
+export const TRASH_ORIGIN_FILE = ".origin";
 
 export function isTrashPath(path: string): boolean {
   return path === TRASH_DIR || path.startsWith(`${TRASH_DIR}/`);

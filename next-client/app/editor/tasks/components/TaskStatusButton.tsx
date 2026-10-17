@@ -103,7 +103,7 @@ export default function TaskStatusButton({
           e.preventDefault();
           setOwnMenu({ x: e.clientX, y: e.clientY });
         }}
-        className="relative -m-1.5 flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full transition-transform duration-150 active:scale-90 [@media(pointer:coarse)]:h-9 [@media(pointer:coarse)]:w-9"
+        className="relative -m-1.5 flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full [@media(pointer:coarse)]:h-9 [@media(pointer:coarse)]:w-9"
       >
         <TaskStatusIcon status={status} />
       </Button>

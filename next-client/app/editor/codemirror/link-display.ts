@@ -1,5 +1,6 @@
 import { EditorSelection, Range } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
+import { collectInVisibleLines } from "./visible-lines";
 
 export interface LinkDisplayMatch {
   from: number;
@@ -118,7 +119,8 @@ export function buildLinkDisplayDecorations(view: EditorView): DecorationSet {
   const ranges: Range<Decoration>[] = [];
   const selection = view.state.selection;
 
-  for (const match of collectLinkDisplayMatches(view.state.doc.toString())) {
+  // Links never cross a line, so only the lines on screen are matched.
+  for (const match of collectInVisibleLines(view, collectLinkDisplayMatches)) {
     const visible = view.visibleRanges.some((range) => range.from <= match.from && match.to <= range.to);
     if (!visible) continue;
     if (!selectionTouchesLink(selection, match.from, match.to)) {

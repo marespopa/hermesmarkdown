@@ -3,6 +3,7 @@ import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import {
   findFrontmatterFoldRange,
+  frontmatterFoldRangeOf,
   frontmatterCollapse,
   frontmatterKeys,
   frontmatterRowLabel,
@@ -169,5 +170,21 @@ describe("frontmatter summary", () => {
     expect(frontmatterRowSummary("---\ntitle: \ntags: []\nstatus:\n---\n")).toEqual({
       status: null, tags: [], moreTags: 0, keys: "title, tags, status",
     });
+  });
+});
+
+describe("frontmatterFoldRangeOf", () => {
+  it("matches findFrontmatterFoldRange on the editor's document", () => {
+    for (const doc of [
+      "---\ntitle: Note\n---\nBody",
+      "---\ntitle: Note\n---\n\n\nBody after blanks",
+      "---\ntitle: Note\n---",
+      "---\nunclosed: true\nBody",
+      "No frontmatter\n---\nhere",
+      "---\n---",
+      "",
+    ]) {
+      expect(frontmatterFoldRangeOf(EditorState.create({ doc }).doc)).toEqual(findFrontmatterFoldRange(doc));
+    }
   });
 });

@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Button from "@/app/components/Button/Button.component";
+import TextLink from "@/app/components/TextLink";
 
 const BackgroundGraphics = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none" aria-hidden="true">
@@ -102,7 +103,7 @@ export default function PrivacyPolicy() {
 
           <div className="pt-8 border-t border-black/5 dark:border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-ui-footnote uppercase tracking-widest font-bold opacity-30">
             <span>Last Updated: May 30, 2026</span>
-            <a href="mailto:office@marespopa.com" className="hover:opacity-100 transition-opacity">Contact: office@marespopa.com</a>
+            <TextLink href="mailto:office@marespopa.com" variant="quiet">Contact: office@marespopa.com</TextLink>
           </div>
         </section>
 

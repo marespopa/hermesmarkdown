@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { atom_hasOpenFileContent } from "@/app/atoms/atoms";
-import { atom_resumeRequested, atom_userName } from "@/app/atoms/ui-atoms";
+import { atom_userName } from "@/app/atoms/ui-atoms";
 import LoadingOverlay from "@/app/components/LoadingOverlay/LoadingOverlay";
 import Button from "@/app/components/Button/Button.component";
 import Toast from "@/app/components/Toast";
 import { FiFileText } from "react-icons/fi";
 import FloatingStartButton from "./FloatingStartButton";
+import LandingThemePicker from "./LandingThemePicker";
 import { LANDING_FAQ, LANDING_FEATURES, LANDING_PLATFORMS } from "./landing-content";
 
 const SECTION = "container max-w-screen-xl border-t border-black/5 py-20 dark:border-white/10";
@@ -24,7 +25,6 @@ export default function LandingPage() {
   const [nameDraft, setNameDraft] = useState("");
   const [showLoading, setShowLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const setResumeRequested = useSetAtom(atom_resumeRequested);
   const heroCtaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,11 +38,6 @@ export default function LandingPage() {
     router.push("/editor");
   };
 
-  // Back to the open tabs, not the home feed the editor would otherwise open.
-  const handleResume = () => {
-    setResumeRequested(true);
-    handleStart();
-  };
 
   return (
     <main className="min-h-screen overflow-x-hidden font-sans selection:bg-sage/30">
@@ -54,7 +49,7 @@ export default function LandingPage() {
         title={userName.trim() ? `Welcome back, ${userName.trim()}` : "Welcome Back"}
         description="You have a draft waiting in your local vault."
         actionLabel="Resume"
-        onAction={handleResume}
+        onAction={handleStart}
         {...(!userName.trim() && {
           nameValue: nameDraft,
           onNameChange: setNameDraft,
@@ -92,6 +87,21 @@ export default function LandingPage() {
           <p className="text-ui-footnote text-neutral-500 dark:text-neutral-500">
             Private by default. Your notes stay in files you control.
           </p>
+        </div>
+      </section>
+
+      <section className={SECTION} aria-labelledby="landing-theme">
+        <div className="max-w-3xl space-y-4">
+          <h2 id="landing-theme" className={H2}>
+            Pick your paper
+          </h2>
+          <p className={`text-lg ${BODY}`}>
+            Choose the colors you write on, for light and dark. The page
+            changes as you pick, and you can change them later in Settings.
+          </p>
+        </div>
+        <div className="mt-10">
+          <LandingThemePicker />
         </div>
       </section>
 

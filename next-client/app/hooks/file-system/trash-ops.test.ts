@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { MemoryDirectoryHandle } from "@/app/services/memory-file-system.test-utils";
 import { isTrashSlotExpired, trashSlotDate, trashSlotName } from "@/app/services/vault-trash";
 import { relocateEntry, uniqueFolderName } from "./directory-ops";
-import { moveToTrash, purgeExpiredTrash, removeEmptyTrashSlot } from "./trash-ops";
+import { deleteTrashSlot, listTrash, moveToTrash, purgeExpiredTrash, removeEmptyTrashSlot, restoreFromTrash } from "./trash-ops";
 import { outermostItems } from "./use-delete-item";
 
 const NOW = new Date("2026-10-06T09:43:55.123Z");
@@ -60,7 +60,7 @@ describe("Trash", () => {
     await vault.writeText("notes/a.md", "x");
     const trashPath = await moveToTrash(vault.asHandle(), "notes/a.md", NOW);
     expect(trashPath).toBe(".hermes/trash/2026-10-06T09-43-55-123Z-0/a.md");
-    expect(vault.listPaths()).toEqual([trashPath]);
+    expect(vault.listPaths().sort()).toEqual([".hermes/trash/2026-10-06T09-43-55-123Z-0/.origin", trashPath]);
 
     await relocateEntry(vault.asHandle(), trashPath, "notes/a.md");
     await removeEmptyTrashSlot(vault.asHandle(), trashPath);
@@ -76,7 +76,54 @@ describe("Trash", () => {
     await moveToTrash(vault.asHandle(), "old.md", new Date("2026-08-01T00:00:00Z"));
     const kept = await moveToTrash(vault.asHandle(), "new.md", NOW);
     expect(await purgeExpiredTrash(vault.asHandle(), NOW)).toBe(1);
-    expect(vault.listPaths()).toEqual([kept]);
+    expect(vault.listPaths().filter((path) => !path.endsWith("/.origin"))).toEqual([kept]);
+  });
+
+  it("lists trashed items newest first, with where they came from", async () => {
+    const vault = new MemoryDirectoryHandle("vault");
+    await vault.writeText("notes/a.md", "x");
+    await vault.writeText("drafts/b.md", "y");
+    await moveToTrash(vault.asHandle(), "notes/a.md", new Date("2026-10-01T00:00:00Z"));
+    await moveToTrash(vault.asHandle(), "drafts", NOW);
+    const items = await listTrash(vault.asHandle());
+    expect(items.map(({ name, kind, originalPath }) => ({ name, kind, originalPath }))).toEqual([
+      { name: "drafts", kind: "directory", originalPath: "drafts" },
+      { name: "a.md", kind: "file", originalPath: "notes/a.md" },
+    ]);
+    expect(items[0].deletedAt?.toISOString()).toBe(NOW.toISOString());
+  });
+
+  it("has an empty list before anything is trashed", async () => {
+    expect(await listTrash(new MemoryDirectoryHandle("vault").asHandle())).toEqual([]);
+  });
+
+  it("puts an item back where it was, making its folder again, and drops the slot", async () => {
+    const vault = new MemoryDirectoryHandle("vault");
+    await vault.writeText("notes/a.md", "x");
+    await moveToTrash(vault.asHandle(), "notes/a.md", NOW);
+    const [item] = await listTrash(vault.asHandle());
+    expect(await restoreFromTrash(vault.asHandle(), item)).toBe("notes/a.md");
+    expect(vault.listPaths()).toEqual(["notes/a.md"]);
+    expect(await listTrash(vault.asHandle())).toEqual([]);
+  });
+
+  it("won't put an item back over one with its name", async () => {
+    const vault = new MemoryDirectoryHandle("vault");
+    await vault.writeText("a.md", "old");
+    await moveToTrash(vault.asHandle(), "a.md", NOW);
+    await vault.writeText("a.md", "new");
+    const [item] = await listTrash(vault.asHandle());
+    await expect(restoreFromTrash(vault.asHandle(), item)).rejects.toThrow("already exists");
+    expect(await vault.fileAt("a.md")!.text()).toBe("new");
+  });
+
+  it("deletes a slot for good", async () => {
+    const vault = new MemoryDirectoryHandle("vault");
+    await vault.writeText("a.md", "x");
+    await moveToTrash(vault.asHandle(), "a.md", NOW);
+    const [item] = await listTrash(vault.asHandle());
+    await deleteTrashSlot(vault.asHandle(), item.slot);
+    expect(vault.listPaths()).toEqual([]);
   });
 
   it("leaves a vault without a Trash alone", async () => {

@@ -1,5 +1,5 @@
 // Plain-text views of Markdown for names and previews: draft titles
-// (app/editor/utils/draft-title.ts) and the home feed's note previews, which
+// (app/editor/utils/draft-title.ts) and note previews, which
 // the metadata worker computes. Pure and dependency-free, so the worker can
 // import it.
 

@@ -3,6 +3,7 @@
 import React, { forwardRef, useRef, useState } from "react";
 import { FaTimes } from "react-icons/fa";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
+import Button from "@/app/components/Button/Button.component";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
@@ -125,25 +126,26 @@ const Input = forwardRef<HTMLInputElement, Props>(
           {(isPassword || (onClear && value && String(value).length > 0)) && (
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
               {isPassword && (
-                <button
-                  type="button"
+                <Button
+                  variant="unstyled"
                   onClick={() => setIsPasswordVisible((v) => !v)}
                   className="text-stone hover:text-ink-light dark:hover:text-ink-dark p-1.5 transition-colors rounded-full hover:bg-beige/50 dark:hover:bg-clay/50"
                   tabIndex={-1}
                   aria-label={isPasswordVisible ? "Hide value" : "Show value"}
                 >
                   {isPasswordVisible ? <HiOutlineEyeOff size={16} /> : <HiOutlineEye size={16} />}
-                </button>
+                </Button>
               )}
               {onClear && value && String(value).length > 0 && (
-                <button
-                  type="button"
+                <Button
+                  variant="unstyled"
                   onClick={onClear}
                   className="text-stone hover:text-ink-light dark:hover:text-ink-dark p-1.5 transition-colors rounded-full hover:bg-beige/50 dark:hover:bg-clay/50"
                   tabIndex={-1}
+                  aria-label="Clear"
                 >
                   <FaTimes size={12} />
-                </button>
+                </Button>
               )}
             </div>
           )}

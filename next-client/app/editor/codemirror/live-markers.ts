@@ -2,7 +2,7 @@ import { syntaxTree } from "@codemirror/language";
 import { EditorState, type Range } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate, WidgetType } from "@codemirror/view";
 import type { SyntaxNode } from "@lezer/common";
-import { findFrontmatterFoldRange } from "./frontmatter-fold";
+import { frontmatterFoldRangeOf } from "./frontmatter-fold";
 import { liveMarkersTheme } from "./live-markers-theme";
 import { taskStatusFromChar, type TaskStatus } from "@/app/utils/task-status";
 import { cycleTaskBox } from "./live-markers-widgets";
@@ -117,7 +117,7 @@ export function buildLiveMarkerDecorations(
   const ranges: Range<Decoration>[] = [];
   const { doc } = state;
   // Frontmatter's closing `---` parses as a setext underline; leave it alone.
-  const frontmatterEnd = findFrontmatterFoldRange(doc.toString())?.closeTo ?? -1;
+  const frontmatterEnd = frontmatterFoldRangeOf(doc)?.closeTo ?? -1;
   const quotedLines = new Set<number>();
   const calloutLines = new Set<number>();
   const listGapLines = new Set<number>();

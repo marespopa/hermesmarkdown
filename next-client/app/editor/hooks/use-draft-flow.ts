@@ -10,7 +10,6 @@ import {
   atom_openDraft,
   atom_openFiles,
 } from "@/app/atoms/atoms";
-import { atom_homeFeedOpen } from "@/app/atoms/ui-atoms";
 import { useMaterializeDraft } from "./use-materialize-draft";
 import { isDraftTitleSettled } from "../utils/draft-title";
 import { focusPaneEditorWhenReady } from "../utils/focus-pane-editor";
@@ -57,7 +56,6 @@ export function useDraftFlow({ vaultHandle, scanVault, indexVaultTags }: UseDraf
   // In a vault, a draft already holding text is saved first; if it still
   // holds text (save failed, or it sits in a background tab), it's brought forward instead of being cleared.
   const handleNewFile = useCallback(async () => {
-    store.set(atom_homeFeedOpen, false);
     if (vaultHandle) {
       await materializeDraft();
       if (store.get(atom_openFiles).draft?.content.trim()) openDraft();
