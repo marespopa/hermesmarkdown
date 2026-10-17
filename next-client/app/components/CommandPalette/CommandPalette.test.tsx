@@ -267,8 +267,8 @@ describe("CommandPalette", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
-  it("Show Files from another route comes back to the editor", async () => {
-    pathname = "/editor/tasks";
+  it("Show Files from outside the editor comes back to it", async () => {
+    pathname = "/documentation";
     const store = renderPaletteWithStore();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 

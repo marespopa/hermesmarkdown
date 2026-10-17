@@ -54,6 +54,9 @@ describe("SettingsPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     cleanup();
+    // Opening a section writes ?section= to the URL, which the next test
+    // would otherwise open on.
+    window.history.replaceState(null, "", "/editor/settings");
 
     (useAtom as any).mockImplementation((atom: any) => {
       const atomStr = atom.toString();

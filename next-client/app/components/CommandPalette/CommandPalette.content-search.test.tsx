@@ -103,7 +103,7 @@ describe("CommandPalette / note text scope", () => {
     const row = await screen.findByRole("option", { name: /Write needle tests/ });
     expect(row).toHaveAccessibleName("Write needle tests Plan.md:3 projects");
     expect(row).toHaveTextContent("Plan.md:3");
-    const highlighted = Array.from(row.querySelectorAll("strong.text-accent")).map((node) => node.textContent).join("");
+    const highlighted = Array.from(row.querySelectorAll("strong.font-bold")).map((node) => node.textContent).join("");
     expect(highlighted).toBe("needle");
   });
 

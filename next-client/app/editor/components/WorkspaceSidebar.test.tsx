@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, cleanup, fireEvent, waitFor, within } from "@testing-library/react";
+import { act, render, screen, cleanup, fireEvent, waitFor, within } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createStore, Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
@@ -191,7 +191,8 @@ describe("WorkspaceSidebar", () => {
     for (const name of ["Pinned", "Recent", "Open Notes"]) {
       expect(screen.queryByRole("region", { name })).not.toBeInTheDocument();
     }
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    // Within the sidebar: the test's own atom probes are <output>s (status).
+    expect(within(screen.getByRole("navigation")).queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("titles its header with the vault's name, beside a button that hides it", () => {
@@ -244,7 +245,10 @@ describe("WorkspaceSidebar", () => {
     document.body.append(editor);
     return { editor, content: editor.querySelector(".cm-content")! };
   };
-  const typeInto = (target: Element) => target.dispatchEvent(new Event("beforeinput", { bubbles: true }));
+  // In act(), so the sidebar's re-render (closing it) lands before the check.
+  const typeInto = (target: Element) => act(() => {
+    target.dispatchEvent(new Event("beforeinput", { bubbles: true }));
+  });
 
   it("stays open when the editor is clicked or typed in", () => {
     renderSidebar();

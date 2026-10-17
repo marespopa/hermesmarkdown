@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { Provider, createStore } from "jotai";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { atom_darkTheme, atom_lightTheme, atom_theme } from "@/app/atoms/ui-atoms";
 import LandingThemePicker from "./LandingThemePicker";
 
@@ -16,6 +16,9 @@ function renderPicker(theme: "light" | "dark" | "system" = "light") {
 }
 
 describe("LandingThemePicker", () => {
+  // The picks persist to localStorage, which the next test would read.
+  beforeEach(() => window.localStorage.clear());
+
   it("shows the light palettes in light mode, Paper picked by default", () => {
     renderPicker("light");
 
