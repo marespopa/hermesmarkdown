@@ -1,11 +1,16 @@
 // Color themes per mode: the light mode and the dark mode each pick one of
-// their own palettes (Settings → Appearance, the Theme commands). The colors
-// live in globals.scss, keyed by <html data-light-theme / data-dark-theme>;
-// the first palette of each list is the default and has no override there.
+// their own palettes (Settings → Appearance, the Theme commands). Three a
+// mode, in pairs: Paper / Ink (warm paper and ink; Ink is the dark paper),
+// Solarized / Nord, and Plain / Graphite (neutral, no tint at all). Paper is
+// the light default, Nord the dark one. The colors live
+// in theme-palettes.scss, keyed by <html data-light-theme / data-dark-theme>;
+// the first palette of each list is the default, set on <html> before the
+// first paint (layout.tsx) when nothing else was picked. Paper and Ink are
+// the plain globals.scss tokens, with no block of their own.
 // The swatch values here only draw the picker's previews.
 
-export type LightTheme = "paper" | "sepia" | "porcelain" | "sage" | "solarized";
-export type DarkTheme = "ink" | "midnight" | "graphite" | "dusk" | "nord";
+export type LightTheme = "paper" | "solarized" | "plain";
+export type DarkTheme = "nord" | "ink" | "graphite";
 
 export interface ThemePalette<T extends string> {
   value: T;
@@ -18,26 +23,8 @@ export const LIGHT_THEMES: ThemePalette<LightTheme>[] = [
   {
     value: "paper",
     label: "Paper",
-    description: "Soft off-white",
-    swatch: { surface: "#FAF9F7", chrome: "#F0EFEC", fg: "#2A2825", accent: "#A2563E" },
-  },
-  {
-    value: "sepia",
-    label: "Sepia",
-    description: "Warm cream",
-    swatch: { surface: "#F7F1E5", chrome: "#ECE3D1", fg: "#3A2F23", accent: "#8A5A2B" },
-  },
-  {
-    value: "porcelain",
-    label: "Porcelain",
-    description: "Cool white",
-    swatch: { surface: "#F8F9FB", chrome: "#ECEFF3", fg: "#1F2329", accent: "#3F6EA8" },
-  },
-  {
-    value: "sage",
-    label: "Sage",
-    description: "Soft green",
-    swatch: { surface: "#F4F6F1", chrome: "#E7ECE1", fg: "#232A22", accent: "#4F6B3A" },
+    description: "Warm paper, ink blue",
+    swatch: { surface: "#F6F3EC", chrome: "#ECE8DE", fg: "#2E2A25", accent: "#3A5A8C" },
   },
   {
     value: "solarized",
@@ -45,50 +32,54 @@ export const LIGHT_THEMES: ThemePalette<LightTheme>[] = [
     description: "Classic cream",
     swatch: { surface: "#FDF6E3", chrome: "#EEE8D5", fg: "#073642", accent: "#1A6BA6" },
   },
+  {
+    value: "plain",
+    label: "Plain",
+    description: "Neutral white",
+    swatch: { surface: "#FCFCFC", chrome: "#F1F1F1", fg: "#1C1C1C", accent: "#2B2B2B" },
+  },
 ];
 
 export const DARK_THEMES: ThemePalette<DarkTheme>[] = [
-  {
-    value: "ink",
-    label: "Ink",
-    description: "Warm dark",
-    swatch: { surface: "#211E1B", chrome: "#181614", fg: "#ECE7E0", accent: "#D88B68" },
-  },
-  {
-    value: "midnight",
-    label: "Midnight",
-    description: "Deep blue",
-    swatch: { surface: "#1A1F29", chrome: "#12161E", fg: "#E4E8EF", accent: "#7AA7E8" },
-  },
-  {
-    value: "graphite",
-    label: "Graphite",
-    description: "Neutral gray",
-    swatch: { surface: "#1C1C1E", chrome: "#111112", fg: "#E9E9EB", accent: "#A3ACB9" },
-  },
-  {
-    value: "dusk",
-    label: "Dusk",
-    description: "Muted violet",
-    swatch: { surface: "#221E2A", chrome: "#19161F", fg: "#ECE6F2", accent: "#B49BE0" },
-  },
   {
     value: "nord",
     label: "Nord",
     description: "Arctic blue",
     swatch: { surface: "#2E3440", chrome: "#262B35", fg: "#ECEFF4", accent: "#88C0D0" },
   },
+  {
+    value: "ink",
+    label: "Ink",
+    description: "Dark paper, ink blue",
+    swatch: { surface: "#211E1B", chrome: "#181614", fg: "#E6E0D6", accent: "#8FA8D0" },
+  },
+  {
+    value: "graphite",
+    label: "Graphite",
+    description: "Neutral dark",
+    swatch: { surface: "#1C1C1E", chrome: "#111112", fg: "#E9E9EB", accent: "#C8C8CC" },
+  },
 ];
 
-export const DEFAULT_LIGHT_THEME: LightTheme = "paper";
-export const DEFAULT_DARK_THEME: DarkTheme = "ink";
+// Palettes from earlier versions, moved to their closest current one.
+const LEGACY_LIGHT_THEMES: Record<string, LightTheme> = { sepia: "paper", sage: "paper", porcelain: "plain" };
+const LEGACY_DARK_THEMES: Record<string, DarkTheme> = { midnight: "nord", dusk: "ink" };
 
-// Stored values come from localStorage, so anything unknown (a removed
-// palette, a hand-edited value) falls back to the default.
+export const DEFAULT_LIGHT_THEME: LightTheme = "paper";
+export const DEFAULT_DARK_THEME: DarkTheme = "nord";
+
+// Stored values come from localStorage, so a palette from an earlier version
+// moves to its closest current one, and anything else unknown (a
+// hand-edited value) falls back to the default.
 export function resolveLightTheme(value: unknown): LightTheme {
-  return LIGHT_THEMES.some((t) => t.value === value) ? (value as LightTheme) : DEFAULT_LIGHT_THEME;
+  if (LIGHT_THEMES.some((t) => t.value === value)) return value as LightTheme;
+  return (typeof value === "string" && LEGACY_LIGHT_THEMES[value]) || DEFAULT_LIGHT_THEME;
 }
 
 export function resolveDarkTheme(value: unknown): DarkTheme {
-  return DARK_THEMES.some((t) => t.value === value) ? (value as DarkTheme) : DEFAULT_DARK_THEME;
+  if (DARK_THEMES.some((t) => t.value === value)) return value as DarkTheme;
+  return (typeof value === "string" && LEGACY_DARK_THEMES[value]) || DEFAULT_DARK_THEME;
 }
+
+// For the pre-paint script (layout.tsx), which can't import the resolvers.
+export const LEGACY_THEME_MAP = { light: LEGACY_LIGHT_THEMES, dark: LEGACY_DARK_THEMES };

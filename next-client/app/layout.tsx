@@ -7,7 +7,7 @@ import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import InlineScript from "./components/InlineScript";
 import { Metadata, Viewport } from "next";
 import { plusJakarta, instrumentSerif, geistMono, duospace, quattro } from "./fonts";
-import { DARK_THEMES, LIGHT_THEMES } from "./theme-palettes";
+import { DARK_THEMES, DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, LEGACY_THEME_MAP, LIGHT_THEMES } from "./theme-palettes";
 
 const SITE_DESCRIPTION =
   "Edit local Markdown folders in your browser, saved to disk or to a browser vault on Safari, Firefox and mobile. Works offline. No accounts, no cloud.";
@@ -98,8 +98,13 @@ const THEME_INIT_SCRIPT = `
     if (isDark) document.documentElement.classList.add("dark");
     var lightTheme = JSON.parse(localStorage.getItem("lightTheme") || "null");
     var darkTheme = JSON.parse(localStorage.getItem("darkTheme") || "null");
-    if (${JSON.stringify(LIGHT_THEMES.map((t) => t.value))}.indexOf(lightTheme) >= 0) document.documentElement.dataset.lightTheme = lightTheme;
-    if (${JSON.stringify(DARK_THEMES.map((t) => t.value))}.indexOf(darkTheme) >= 0) document.documentElement.dataset.darkTheme = darkTheme;
+    // A palette from an earlier version: its closest current one. Nothing
+    // picked (or unknown): the defaults. Mirrors resolveLight/DarkTheme.
+    var legacy = ${JSON.stringify(LEGACY_THEME_MAP)};
+    if (legacy.light[lightTheme]) lightTheme = legacy.light[lightTheme];
+    if (legacy.dark[darkTheme]) darkTheme = legacy.dark[darkTheme];
+    document.documentElement.dataset.lightTheme = ${JSON.stringify(LIGHT_THEMES.map((t) => t.value))}.indexOf(lightTheme) >= 0 ? lightTheme : ${JSON.stringify(DEFAULT_LIGHT_THEME)};
+    document.documentElement.dataset.darkTheme = ${JSON.stringify(DARK_THEMES.map((t) => t.value))}.indexOf(darkTheme) >= 0 ? darkTheme : ${JSON.stringify(DEFAULT_DARK_THEME)};
   } catch (e) {}
 })();
 `;
@@ -113,6 +118,10 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
+      // The default palettes, so the server-rendered page already paints in
+      // them; THEME_INIT_SCRIPT swaps in the reader's own picks.
+      data-light-theme={DEFAULT_LIGHT_THEME}
+      data-dark-theme={DEFAULT_DARK_THEME}
       className={`h-full overscroll-none ${plusJakarta.variable} ${instrumentSerif.variable} ${geistMono.variable} ${duospace.variable} ${quattro.variable}`}
     >
       <head>

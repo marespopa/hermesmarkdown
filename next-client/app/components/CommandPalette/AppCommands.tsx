@@ -126,7 +126,7 @@ export default function AppCommands() {
     action: () => setTheme(value),
   }));
 
-  // One command per palette of each mode, e.g. "Light Theme: Sepia".
+  // One command per palette of each mode, e.g. "Light Theme: Paper".
   const currentLight = resolveLightTheme(lightTheme);
   const currentDark = resolveDarkTheme(darkTheme);
   const paletteCommands: Command[] = [

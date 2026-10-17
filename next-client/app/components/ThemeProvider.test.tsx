@@ -45,4 +45,32 @@ describe("ThemeProvider", () => {
       expect(document.documentElement.classList.contains("dark")).toBe(true);
     });
   });
+
+  it("keeps the pre-painted palettes until storage hydrates, never the defaults", async () => {
+    document.documentElement.dataset.lightTheme = "plain";
+    document.documentElement.dataset.darkTheme = "graphite";
+    window.localStorage.setItem("lightTheme", JSON.stringify("plain"));
+    window.localStorage.setItem("darkTheme", JSON.stringify("graphite"));
+    const seen: string[] = [];
+    const observer = new MutationObserver(() => {
+      seen.push(`${document.documentElement.dataset.lightTheme}/${document.documentElement.dataset.darkTheme}`);
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-light-theme", "data-dark-theme"] });
+
+    render(
+      <JotaiProvider store={createStore()}>
+        <ThemeProvider>
+          <ThemeProbe />
+        </ThemeProvider>
+      </JotaiProvider>,
+    );
+
+    await waitFor(() => {
+      expect(document.documentElement.dataset.lightTheme).toBe("plain");
+      expect(document.documentElement.dataset.darkTheme).toBe("graphite");
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    observer.disconnect();
+    expect(seen.filter((v) => v.startsWith("paper/") || v.endsWith("/nord"))).toEqual([]);
+  });
 });

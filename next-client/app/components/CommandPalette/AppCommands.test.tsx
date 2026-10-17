@@ -75,20 +75,20 @@ describe("AppCommands and SettingsCommands", () => {
     expect(store.get(atom_theme)).toBe("light");
   });
 
-  it("offers five palettes for each mode and disables the current ones", () => {
+  it("offers three palettes for each mode and disables the current ones", () => {
     const store = createStore();
-    store.set(atom_lightTheme, "sepia");
+    store.set(atom_lightTheme, "paper");
     renderCommands(store);
 
-    for (const id of ["paper", "sepia", "porcelain", "sage", "solarized"]) expect(command(`set-light-theme-${id}`)).toBeDefined();
-    for (const id of ["ink", "midnight", "graphite", "dusk", "nord"]) expect(command(`set-dark-theme-${id}`)).toBeDefined();
-    expect(command("set-light-theme-sepia")?.label).toBe("Light Theme: Sepia");
-    expect(command("set-light-theme-sepia")?.disabledReason).toBe("Current light theme");
-    expect(command("set-dark-theme-ink")?.disabledReason).toBe("Current dark theme");
+    for (const id of ["solarized", "paper", "plain"]) expect(command(`set-light-theme-${id}`)).toBeDefined();
+    for (const id of ["nord", "ink", "graphite"]) expect(command(`set-dark-theme-${id}`)).toBeDefined();
+    expect(command("set-light-theme-paper")?.label).toBe("Light Theme: Paper");
+    expect(command("set-light-theme-paper")?.disabledReason).toBe("Current light theme");
+    expect(command("set-dark-theme-nord")?.disabledReason).toBe("Current dark theme");
 
-    act(() => { void command("set-dark-theme-midnight")?.action(); });
-    expect(store.get(atom_darkTheme)).toBe("midnight");
-    expect(store.get(atom_lightTheme)).toBe("sepia");
+    act(() => { void command("set-dark-theme-graphite")?.action(); });
+    expect(store.get(atom_darkTheme)).toBe("graphite");
+    expect(store.get(atom_lightTheme)).toBe("paper");
   });
 
   it("uses verb-object names for the global commands", () => {

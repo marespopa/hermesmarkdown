@@ -22,36 +22,42 @@ body {
   --landing-hero: var(--font-instrument-serif), 'Instrument Serif', Georgia, serif;
   --landing-body: var(--font-plus-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, ui-sans-serif, sans-serif;
 
-  --surface:        #FAF9F7;  /* editor surface — soft off-white, no color cast */
-  --surface-raised: #F2F1EE;  /* elevated cards / panels */
-  --chrome:         #F0EFEC;  /* tab bar, file indicator, palette footer — visibly distinct from editor */
-  --overlay:        #FAF9F7;  /* modals / popovers / command palette */
-  --input-bg:       #FFFFFF;  /* form inputs */
+  /* Paper: a warm sheet of writing paper with soft brown-black ink. */
+  --surface:        #F6F3EC;  /* editor surface — warm paper */
+  --surface-raised: #EEEAE1;  /* elevated cards / panels */
+  --chrome:         #ECE8DE;  /* tab bar, file indicator, palette footer — visibly distinct from editor */
+  --overlay:        #F6F3EC;  /* modals / popovers / command palette */
+  --input-bg:       #FBF9F4;  /* form inputs */
 
-  --border:         #DEDCD7;
-  --border-subtle:  rgba(60, 56, 50, 0.10);
+  --border:         #DCD6CA;
+  --border-subtle:  rgba(70, 60, 45, 0.10);
 
-  --fg:             #2A2825;  /* primary text — near-black, slight warmth */
-  --fg-muted:       #5E5B56;  /* secondary text */
-  --fg-faint:       #6D6B67;  /* placeholder / tertiary — ≥4.5:1 on surface, raised and chrome */
+  --fg:             #2E2A25;  /* primary text — soft ink, never pure black */
+  --fg-muted:       #5C564D;  /* secondary text */
+  --fg-faint:       #69635A;  /* placeholder / tertiary — ≥4.5:1 on surface, raised and chrome */
 
-  --clay:           #A2563E;  /* primary accent — active states, focus, links, unsaved dot */
-  --moss:           #626F54;  /* secondary accent — icons, muted interactive */
-  --moss-hover:     #5C6A4E;  /* moss, darkened — hover/active state for sage buttons */
-  /* Task status (box character): in progress, on hold, done. To do and
-     cancelled stay neutral (--fg-faint). */
-  --task-prog:      var(--clay);
+  /* Paper's one identity hue, a muted ink blue, for both accent roles
+     (clay and moss), as every palette in theme-palettes.scss: the caret,
+     selection, focus rings, toggles and the current row. ≥4.5:1 on
+     surface, raised and chrome. */
+  --clay:           #3A5A8C;
+  --moss:           #3A5A8C;
+  --moss-hover:     #324E7A;  /* the blue, darkened — hover/active state for sage buttons */
+  /* Task status (box character): in progress, on hold, done. Status
+     colours of their own, apart from the accent, as in every palette. To
+     do and cancelled stay neutral (--fg-faint). */
+  --task-prog:      #A2563E;  /* terracotta */
   --task-hold:      #85692F;  /* ochre */
-  --task-done:      var(--moss);
-  --link:           #2C66D1;  /* Apple-style editor links */
-  --link-hover:     #1764D8;
-  --caret:          #3B82F6;  /* editor caret — the one blue outside links */
-  --selection:      rgba(59, 130, 246, 0.22);  /* text selection — caret blue, translucent */
-  --frontmatter-bg: rgba(60, 56, 50, 0.035);
-  --frontmatter-bg-hover: rgba(60, 56, 50, 0.055);
-  --frontmatter-bg-active: rgba(60, 56, 50, 0.085);  /* Properties on hover/focus (rest is -hover) */
+  --task-done:      #5A6B55;  /* green */
+  --link:           #34568E;  /* editor links — the ink blue */
+  --link-hover:     #2A4775;
+  --caret:          var(--clay);
+  --selection:      rgba(58, 90, 140, 0.18);  /* text selection — the accent, translucent */
+  --frontmatter-bg: rgba(70, 60, 45, 0.035);
+  --frontmatter-bg-hover: rgba(70, 60, 45, 0.055);
+  --frontmatter-bg-active: rgba(70, 60, 45, 0.085);  /* Properties on hover/focus (rest is -hover) */
   --frontmatter-label-opacity: 0.4;
-  --row-stripe:     rgba(60, 56, 50, 0.035);  /* alternate rows in list views (Explorer) */
+  --row-stripe:     rgba(70, 60, 45, 0.035);  /* alternate rows in list views (Explorer) */
   /* Materials for what floats over the page (.glass-bar, .glass-panel
      below). Flat, as a plain writing app: solid fills (the chrome for bars,
      the overlay for panels), no blur, a hairline edge and a soft shadow so
@@ -60,28 +66,29 @@ body {
   --material-bar:       var(--chrome);
   --material-panel:     var(--overlay);
   --material-blur:      none;
-  --material-edge:      rgba(0, 0, 0, 0.08);
+  --material-edge:      rgba(70, 60, 45, 0.10);
   --material-highlight: transparent;
-  --material-shadow:    0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -10px rgba(0, 0, 0, 0.14);
+  --material-shadow:    0 1px 2px rgba(70, 60, 45, 0.06), 0 8px 24px -10px rgba(70, 60, 45, 0.14);
   --ease-spring:    cubic-bezier(0.16, 1, 0.3, 1);
   /* Static aliases (Tailwind paper-*, ink-*, beige, clay) as RGB channels,
      so opacity modifiers work and the color themes (theme-palettes.scss)
      can repaint them. Light-mode values first, then dark-mode ones. */
-  --paper-pale:         250 249 247;  /* #FAF9F7 */
-  --paper-light:        242 241 238;  /* #F2F1EE */
-  --paper-softgray:     233 231 226;  /* #E9E7E2 */
-  --beige:              216 213 206;  /* #D8D5CE */
-  --beige-light:        233 231 226;  /* #E9E7E2 */
-  --ink-light:          42 40 37;     /* #2A2825 */
-  --ink-hover:          58 55 51;     /* #3A3733 */
-  --ink-muted:          107 104 98;   /* #6B6862 */
+  --paper-pale:         246 243 236;  /* #F6F3EC */
+  --paper-light:        238 234 225;  /* #EEEAE1 */
+  --paper-softgray:     230 225 214;  /* #E6E1D6 */
+  --beige:              220 214 202;  /* #DCD6CA */
+  --beige-light:        230 225 214;  /* #E6E1D6 */
+  --ink-light:          46 42 37;     /* #2E2A25 */
+  --ink-hover:          62 57 50;     /* #3E3932 */
+  --ink-muted:          105 99 90;    /* #69635A */
   --paper-dark:         24 22 20;     /* #181614 */
   --paper-dark-surface: 42 38 34;     /* #2A2622 */
-  --ink-dark:           236 231 224;  /* #ECE7E0 */
+  --ink-dark:           230 224 214;  /* #E6E0D6 */
   --clay-surface:       58 54 49;     /* #3A3631 */
-  /* Fine paper grain over the editor surface: tiled SVG fractal noise, the
-     red channel thresholded into sparse specks (see .editor-sheet). */
-  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.24 0 0 0 0 0.22 0 0 0 0 0.2 0.9 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.16'/%3E%3C/svg%3E");
+  /* Fine paper grain, on every theme's page (.app-sheet, editor.scss):
+     tiled SVG fractal noise, the red channel thresholded into sparse
+     specks. Faint, since it always shows. */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.24 0 0 0 0 0.22 0 0 0 0 0.2 0.9 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.12'/%3E%3C/svg%3E");
 }
 
 html.dark {
@@ -94,21 +101,25 @@ html.dark {
   --border:         #3D3833;
   --border-subtle:  rgba(214, 207, 198, 0.10);
 
-  --fg:             #ECE7E0;  /* warm off-white */
+  --fg:             #E6E0D6;  /* warm off-white, a little softer than white ink */
   --fg-muted:       #A8A199;
   --fg-faint:       #948F87;
 
-  --clay:           #D88B68;  /* brightened for contrast on dark surfaces */
-  --moss:           #8FA178;
-  --link:           #64A8FF;
-  --link-hover:     #8DBEFF;
-  --caret:          #3B82F6;
-  --selection:      rgba(59, 130, 246, 0.32);
+  /* Ink: Paper's dark pair. Its identity hue is Paper's ink blue,
+     lightened for contrast on the dark surfaces. */
+  --clay:           #8FA8D0;
+  --moss:           #8FA8D0;
+  --task-prog:      #D88B68;
+  --task-done:      #93A884;
+  --link:           #93B0DE;
+  --link-hover:     #AFC4E6;
+  --caret:          var(--clay);
+  --selection:      rgba(143, 168, 208, 0.28);
   --frontmatter-bg: rgba(214, 207, 198, 0.04);
   --frontmatter-bg-hover: rgba(214, 207, 198, 0.065);
   --frontmatter-bg-active: rgba(214, 207, 198, 0.1);
   --frontmatter-label-opacity: 0.5;
-  --moss-hover:     #A3B58C;  /* moss, brightened — hover/active state for sage buttons */
+  --moss-hover:     #A3B8DA;  /* the blue, brightened — hover/active state for sage buttons */
   --task-hold:      #CDB173;
   --row-stripe:     rgba(214, 207, 198, 0.035);
   --material-edge:      rgba(255, 255, 255, 0.10);

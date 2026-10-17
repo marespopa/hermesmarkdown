@@ -21,6 +21,7 @@ Shared, app-agnostic UI primitives. Each component has a sibling `<Name>.md` (st
 | [KeyboardShortcutsOverlay](KeyboardShortcutsOverlay/KeyboardShortcutsOverlay.md) | Overlay listing every registered command that has a shortcut, grouped by category and formatted for the user's platform. |
 | [LandingPage](LandingPage/LandingPage.md) | Home route hero with an entry point into the editor, plus a "welcome back" toast when a local file is already open, and a floating Start Writing button once the hero scrolls away. |
 | [FloatingStartButton](LandingPage/FloatingStartButton.md) | The home page's floating Start Writing pill, shown while the hero's button is scrolled out of view. |
+| [LandingThemePicker](LandingPage/LandingThemePicker.md) | The home page's theme selector: light/dark mode and the palettes for each, the same picks as Settings → Appearance. |
 | [LoadingBar](LoadingBar/LoadingBar.md) | Slim top-of-viewport progress bar for short waits (file switching); appears after 150ms. |
 | [LoadingOverlay](LoadingOverlay/LoadingOverlay.md) | Full-screen loading veil with optional text, set in the user's rendered font. |
 | [MainPage](MainPage.md) | Root layout shell that mounts providers, the palette, toasts, `GlobalDialog`, and the header/footer. |

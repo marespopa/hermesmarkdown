@@ -1,9 +1,9 @@
 # ThemeProvider
 
-Description: Applies the resolved light/dark theme class to `<html>` in a layout effect, so the theme switches without a flash, and keeps the chosen palettes on `<html data-light-theme data-dark-theme>` (colors in `app/theme-palettes.scss`; the pre-paint script in `app/layout.tsx` sets the same attributes).
+Description: Applies the resolved light/dark theme class to `<html>` in a layout effect, so the theme switches without a flash, and keeps the chosen palettes on `<html data-light-theme data-dark-theme>` (colors in `app/theme-palettes.scss`; the pre-paint script in `app/layout.tsx` sets the same attributes). The pre-paint script paints the stored picks before React loads, so each effect writes only once its atoms agree with `localStorage` (`atomWithStorage` reads it after mount): writing the atoms' defaults on the first render flashed the default theme for a frame on every load.
 
 ## Local State & Storage
-- State: `useResolvedTheme()`, which is `atom_theme` combined with the system preference; `atom_lightTheme`, `atom_darkTheme` (unknown values fall back to Paper / Ink).
+- State: `useResolvedTheme()`, which is `atom_theme` combined with the system preference; `atom_lightTheme`, `atom_darkTheme` (palettes from earlier versions move to their closest current one, anything else unknown falls back to Paper / Nord).
 - Persistence: `atom_theme` → `localStorage["theme"]` (default `"system"`), `atom_lightTheme` → `localStorage["lightTheme"]`, `atom_darkTheme` → `localStorage["darkTheme"]`.
 
 ## Dependencies

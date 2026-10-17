@@ -11,6 +11,7 @@ import Button from "@/app/components/Button/Button.component";
 import Toast from "@/app/components/Toast";
 import { FiFileText } from "react-icons/fi";
 import FloatingStartButton from "./FloatingStartButton";
+import LandingThemePicker from "./LandingThemePicker";
 import { LANDING_FAQ, LANDING_FEATURES, LANDING_PLATFORMS } from "./landing-content";
 
 const SECTION = "container max-w-screen-xl border-t border-black/5 py-20 dark:border-white/10";
@@ -86,6 +87,21 @@ export default function LandingPage() {
           <p className="text-ui-footnote text-neutral-500 dark:text-neutral-500">
             Private by default. Your notes stay in files you control.
           </p>
+        </div>
+      </section>
+
+      <section className={SECTION} aria-labelledby="landing-theme">
+        <div className="max-w-3xl space-y-4">
+          <h2 id="landing-theme" className={H2}>
+            Pick your paper
+          </h2>
+          <p className={`text-lg ${BODY}`}>
+            Choose the colors you write on, for light and dark. The page
+            changes as you pick, and you can change them later in Settings.
+          </p>
+        </div>
+        <div className="mt-10">
+          <LandingThemePicker />
         </div>
       </section>
 

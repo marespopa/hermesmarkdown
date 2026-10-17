@@ -4,15 +4,21 @@
 /* ─── Color themes ───────────────────────────────────────────────────────────
    Alternative palettes for each mode (app/theme-palettes.ts). ThemeProvider
    keeps both picks on <html data-light-theme data-dark-theme>; the light one
-   applies without `.dark`, the dark one with it. The defaults (Paper, Ink)
-   are the plain globals.scss tokens and have no block here. Each palette
+   applies without `.dark`, the dark one with it. Three a mode, in pairs:
+   Paper / Ink, warm paper and ink (Ink is the dark paper), the plain
+   globals.scss tokens with no block here; Solarized / Nord; Plain /
+   Graphite, neutral with no tint. Paper and Nord are the defaults
+   (DEFAULT_*_THEME, set on <html> before the first paint). Every
+   page carries the paper grain (editor.scss). Each palette
    keeps --fg-faint and the accents at ≥4.5:1 on surface, raised and chrome.
    The materials (globals.scss) follow on their own: bars are --chrome,
    panels --overlay. Light palettes also tint the panels' edge and shadow
    with their own hue rather than neutral black; dark ones keep the default
    white edge and black shadow.
    Each palette has one identity hue, used for both accents (clay and moss):
-   the caret, focus rings, toggles and selections follow it. Icons and
+   the caret, text selection, focus rings, toggles and selections follow
+   it (Paper and Ink share one blue, in globals.scss). Task statuses keep
+   their own warm / green colours, apart from it. Icons and
    buttons stay neutral (ink on paper). It clears 4.5:1 on surface, raised
    and chrome.
    ─────────────────────────────────────────────────────────────────────── */
@@ -45,10 +51,13 @@
   --link:           #{map.get($p, link)};
   --link-hover:     #{map.get($p, link-hover)};
   --row-stripe:     #{color.change(map.get($p, tint), $alpha: 0.035)};
+  // The caret and text selection take the identity hue too.
+  --caret:          #{map.get($p, clay)};
 }
 
 @mixin light-palette($p) {
   @include palette($p);
+  --selection:       #{color.change(map.get($p, clay), $alpha: 0.2)};
   --material-edge:   #{color.change(map.get($p, tint), $alpha: 0.1)};
   --material-shadow: 0 1px 2px #{color.change(map.get($p, tint), $alpha: 0.06)},
     0 8px 24px -10px #{color.change(map.get($p, tint), $alpha: 0.14)};
@@ -67,6 +76,7 @@
 
 @mixin dark-palette($p) {
   @include palette($p);
+  --selection:           #{color.change(map.get($p, clay), $alpha: 0.3)};
   --frontmatter-bg:        #{color.change(map.get($p, tint), $alpha: 0.04)};
   --frontmatter-bg-hover:  #{color.change(map.get($p, tint), $alpha: 0.065)};
   --frontmatter-bg-active: #{color.change(map.get($p, tint), $alpha: 0.1)};
@@ -76,39 +86,16 @@
   --clay-surface:       #{channels(map.get($p, border))};
 }
 
-/* Light: Sepia — warm cream, browner ink. */
-html[data-light-theme="sepia"]:not(.dark) {
+/* Light: Plain — neutral white, no tint; near-black ink, and the accent
+   is the ink itself (a grey selection, a black caret). */
+html[data-light-theme="plain"]:not(.dark) {
   @include light-palette((
-    surface: #F7F1E5, raised: #EFE7D7, chrome: #ECE3D1, softgray: #E5DAC5,
-    input: #FBF7EF, border: #D9CCB4, tint: rgb(90, 70, 40),
-    fg: #3A2F23, fg-muted: #5F5244, fg-faint: #6C5F50, ink-hover: #4A3D2F,
-    clay: #8A5A2B, moss: #8A5A2B, moss-hover: #7C5127, hold: #7A5F27,
-    prog: #9C4F36, done: #5C6A4C,
-    link: #2B5FBF, link-hover: #1F57C4,
-  ));
-}
-
-/* Light: Porcelain — cool white, blue-gray ink. */
-html[data-light-theme="porcelain"]:not(.dark) {
-  @include light-palette((
-    surface: #F8F9FB, raised: #EFF1F5, chrome: #ECEFF3, softgray: #E4E8EE,
-    input: #FFFFFF, border: #D5DBE3, tint: rgb(40, 50, 70),
-    fg: #1F2329, fg-muted: #4E5662, fg-faint: #5F6773, ink-hover: #2F343C,
-    clay: #3F6EA8, moss: #3F6EA8, moss-hover: #396397, hold: #80652C,
-    prog: #A2563E, done: #5A6B55,
+    surface: #FCFCFC, raised: #F3F3F3, chrome: #F1F1F1, softgray: #E8E8E8,
+    input: #FFFFFF, border: #DDDDDD, tint: rgb(0, 0, 0),
+    fg: #1C1C1C, fg-muted: #555555, fg-faint: #6B6B6B, ink-hover: #2E2E2E,
+    clay: #2B2B2B, moss: #2B2B2B, moss-hover: #111111, hold: #806426,
+    prog: #A24B32, done: #4F6B45,
     link: #2563C9, link-hover: #1A5CD0,
-  ));
-}
-
-/* Light: Sage — soft green paper, green-black ink. */
-html[data-light-theme="sage"]:not(.dark) {
-  @include light-palette((
-    surface: #F4F6F1, raised: #EBEFE6, chrome: #E7ECE1, softgray: #DFE5D8,
-    input: #FAFBF8, border: #CFD8C6, tint: rgb(45, 60, 40),
-    fg: #232A22, fg-muted: #4D5949, fg-faint: #5D6858, ink-hover: #333D31,
-    clay: #4F6B3A, moss: #4F6B3A, moss-hover: #476034, hold: #7A5F27,
-    prog: #9A5039, done: #55663F,
-    link: #285FBF, link-hover: #1E57C4,
   ));
 }
 
@@ -125,39 +112,16 @@ html[data-light-theme="solarized"]:not(.dark) {
   ));
 }
 
-/* Dark: Midnight — deep blue-black. */
-html.dark[data-dark-theme="midnight"] {
-  @include dark-palette((
-    surface: #1A1F29, raised: #232A37, chrome: #12161E,
-    input: #161B24, border: #333C4D, tint: rgb(200, 210, 230),
-    fg: #E4E8EF, fg-muted: #A3ACBA, fg-faint: #8E98A8,
-    clay: #7AA7E8, moss: #7AA7E8, moss-hover: #8EB4EB, hold: #D1B676,
-    prog: #E0937A, done: #93A884,
-    link: #6EAEFF, link-hover: #94C2FF,
-  ));
-}
-
-/* Dark: Graphite — neutral gray, no warmth. */
+/* Dark: Graphite — neutral gray, no tint; the accent is a light grey, as
+   Plain's is its ink. */
 html.dark[data-dark-theme="graphite"] {
   @include dark-palette((
     surface: #1C1C1E, raised: #2A2A2D, chrome: #111112,
     input: #18181A, border: #3A3A3D, tint: rgb(210, 210, 215),
     fg: #E9E9EB, fg-muted: #A6A6AB, fg-faint: #919196,
-    clay: #A3ACB9, moss: #A3ACB9, moss-hover: #B1B8C4, hold: #CFB475,
+    clay: #C8C8CC, moss: #C8C8CC, moss-hover: #D8D8DB, hold: #CFB475,
     prog: #DC8E6C, done: #94A67E,
     link: #68ABFF, link-hover: #8FC0FF,
-  ));
-}
-
-/* Dark: Dusk — muted violet. */
-html.dark[data-dark-theme="dusk"] {
-  @include dark-palette((
-    surface: #221E2A, raised: #2C2736, chrome: #19161F,
-    input: #1D1924, border: #3D3649, tint: rgb(220, 210, 235),
-    fg: #ECE6F2, fg-muted: #ADA4BA, fg-faint: #968DA3,
-    clay: #B49BE0, moss: #B49BE0, moss-hover: #BFAAE5, hold: #D4B878,
-    prog: #E3957A, done: #9AAE86,
-    link: #80B1FF, link-hover: #A3C6FF,
   ));
 }
 

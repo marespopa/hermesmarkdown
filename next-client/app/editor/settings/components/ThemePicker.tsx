@@ -20,7 +20,7 @@ const previewTint = (color: string, percent: number) => `color-mix(in srgb, ${co
 // whatever mode the app is in right now.
 export default function ThemePicker<T extends string>({ themes, value, onChange }: ThemePickerProps<T>) {
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
+    <div className="grid grid-cols-3 gap-2">
       {themes.map((t) => {
         const isActive = value === t.value;
         return (

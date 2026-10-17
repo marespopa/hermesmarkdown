@@ -9,16 +9,18 @@ export const settingsGroup: Group = {
       id: "appearance",
       title: "Appearance",
       lead: "Pick a theme, the font you write in and the text size.",
-      keywords: "theme palette colors sepia porcelain sage midnight graphite dusk dark light font typography text size sidebar layout full width focus",
+      keywords: "theme palette colors solarized paper plain nord ink graphite dark light font typography text size sidebar layout full width focus",
       body: (
         <>
           <p>
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically.
-            Each mode has its own color theme: Paper, Sepia, Porcelain, Sage or Solarized for light,
-            and Ink, Midnight, Graphite, Dusk or Nord for dark. Each theme has its own accent hue, kept to the
-            caret, focus rings, toggles and selections; icons and buttons stay quiet ink on paper. Settings → Appearance shows the colors for the
+            Each mode has its own color theme: Paper (the default), Solarized or Plain for light, and
+            Nord (the default), Ink or Graphite for dark. Paper and Ink are warm paper and ink (Ink is
+            the dark paper); Plain and Graphite are neutral, with no tint. Every theme has a faint paper grain. You can also pick them on the
+            home page before you start. Each theme has its own accent hue, kept to the
+            caret, text selection, focus rings, toggles and selections; icons and buttons stay quiet ink on paper. Settings → Appearance shows the colors for the
             mode you picked, and both under System; the command palette also has{" "}
             <strong>Light Theme: …</strong> and <strong>Dark Theme: …</strong>. The
             editor font, text size and Full Width (on by default) are set under Settings →
@@ -31,7 +33,7 @@ export const settingsGroup: Group = {
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
-              { label: "Light / Dark theme", value: "Paper, Sepia, Porcelain, Sage, Solarized / Ink, Midnight, Graphite, Dusk, Nord" },
+              { label: "Light / Dark theme", value: "Paper, Solarized, Plain / Nord, Ink, Graphite" },
               { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Toggle Sidebar: navigation, notes and the vault's files on the window's left edge, on every editor page (desktop)" },
               { label: "Typeface", value: "Geist Mono by default, Duospace or Quattro" },
             ]}
