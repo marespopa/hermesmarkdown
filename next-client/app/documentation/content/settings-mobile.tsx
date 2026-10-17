@@ -36,6 +36,7 @@ export const settingsGroup: Group = {
               { label: "Theme", value: "Settings → Appearance" },
               { label: "Light / Dark theme", value: "Paper, Solarized, Plain / Nord, Ink, Graphite" },
               { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Toggle Sidebar: navigation, notes and the vault's files on the window's left edge, on every editor page (desktop)" },
+              { label: "Tab bar", value: "Hide tab bar (the toolbar's right end), CTRL/CMD+SHIFT+\\ or Toggle Tab Bar; remembered, with Show tab bar in the corner while it's hidden (desktop)" },
               { label: "Typeface", value: "Geist Mono by default, Duospace or Quattro" },
             ]}
           />

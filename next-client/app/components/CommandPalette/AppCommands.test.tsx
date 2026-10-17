@@ -109,13 +109,13 @@ describe("AppCommands and SettingsCommands", () => {
 
     expect(command("toggle-flow-mode")).toBeUndefined();
     expect(command("toggle-hide-chrome-while-typing")).toBeUndefined();
-    expect(["set-focus-off", "set-focus-hide", "set-focus-dim", "set-focus-sentence"].map((id) => command(id)?.label)).toEqual([
+    expect(command("set-focus-hide")).toBeUndefined();
+    expect(["set-focus-off", "set-focus-dim", "set-focus-sentence"].map((id) => command(id)?.label)).toEqual([
       "Focus: Off",
-      "Focus: Hide interface while typing",
-      "Focus: Hide interface and dim other paragraphs",
-      "Focus: Hide interface and dim other sentences",
+      "Focus: Dim other paragraphs",
+      "Focus: Dim other sentences",
     ]);
-    expect(command("set-focus-hide")?.disabledReason).toBe("Current setting");
+    expect(command("set-focus-off")?.disabledReason).toBe("Current setting");
     act(() => { void command("set-focus-dim")?.action(); });
     expect(store.get(atom_focusMode)).toBe("dim");
   });

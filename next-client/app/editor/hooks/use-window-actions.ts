@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { atom_activePaneId, atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen, atom_tabBarVisible } from "@/app/atoms/ui-atoms";
 import { atom_pinnedNotePaths, atom_toggleNotePin } from "@/app/atoms/note-pin-atoms";
 import { findLeaf } from "@/app/atoms/utils";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
@@ -17,6 +17,7 @@ export function useWindowActions() {
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
+  const setTabBarVisible = useSetAtom(atom_tabBarVisible);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const activePaneId = useAtomValue(atom_activePaneId);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
@@ -42,6 +43,7 @@ export function useWindowActions() {
     openSettings: () => router.push("/editor/settings"),
     openHelp: () => router.push("/documentation"),
     toggleSidebar: () => setSidebarOpen(!sidebarOpen),
+    hideTabBar: () => setTabBarVisible(false),
     copyActiveMarkdown: () => void handleCopy(),
     exportActivePdf,
     exportActiveHtml,

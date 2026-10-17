@@ -28,6 +28,7 @@ import {
   atom_aiBuilderRequest,
   atom_browserVaultDialogOpen,
   atom_sidebarOpen,
+  atom_tabBarVisible,
   atom_aiEnabled,
   atom_isAiConfigured,
   atom_newVaultFlowOpen,
@@ -102,6 +103,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [, splitPane] = useAtom(atom_splitPane);
   const [, closePane] = useAtom(atom_closePane);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
+  const [tabBarVisible, setTabBarVisible] = useAtom(atom_tabBarVisible);
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
   const [, setTaskTagFilter] = useAtom(atom_taskTagFilter);
@@ -166,6 +168,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     closePane,
     sidebarOpen,
     setSidebarOpen,
+    tabBarVisible,
+    setTabBarVisible,
     setTasksGroupBy,
     setTaskSearchQuery,
     setTaskTagFilter,

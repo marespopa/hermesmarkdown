@@ -4,7 +4,6 @@ import type { FocusMode } from "@/app/atoms/ui-atoms";
 // palette commands), mildest first.
 export const FOCUS_OPTIONS: { value: FocusMode; label: string }[] = [
   { value: "off", label: "Off" },
-  { value: "hide", label: "Hide interface while typing" },
-  { value: "dim", label: "Hide interface and dim other paragraphs" },
-  { value: "sentence", label: "Hide interface and dim other sentences" },
+  { value: "dim", label: "Dim other paragraphs" },
+  { value: "sentence", label: "Dim other sentences" },
 ];

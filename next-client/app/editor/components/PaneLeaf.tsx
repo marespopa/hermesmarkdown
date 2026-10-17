@@ -7,11 +7,11 @@ import PrivateNoteGate from "./PrivateNoteGate";
 import TabContextMenu, { TabContextMenuItem } from "./TabContextMenu";
 import { useAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_splitPane, atom_closePane, atom_activeFilePath, atom_saveStatus, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
-import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_sidebarOpen, atom_tabBarVisible } from "@/app/atoms/ui-atoms";
 import { atom_pinnedNotePaths, atom_toggleNotePin } from "@/app/atoms/note-pin-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineCode } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineClipboardCopy, HiOutlineViewBoards, HiOutlineCode, HiOutlineChevronDown } from "react-icons/hi";
 import BoardViewLoader from "./board/BoardViewLoader";
 import { isBoard } from "@/app/utils/board/is-board";
 import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
@@ -64,6 +64,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const isBoardFile = React.useMemo(() => isBoard(filePath, content), [filePath, content]);
   const showBoard = isBoardFile && !boardMarkdownPaths.has(filePath);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
+  // The tab bar shows unless you hide it (remembered, atom_tabBarVisible).
+  const [tabBarVisible, setTabBarVisible] = useAtom(atom_tabBarVisible);
+  const showHeader = !isMobileChrome && tabBarVisible;
 
   // The editor remounts on every tab switch, except when the draft was just
   // saved as a file: that keeps the caret, scroll and undo history.
@@ -121,22 +124,22 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   return (
     <div
       data-pane-id={leaf.id}
-      className={`typing-page relative h-full flex flex-col transition-all duration-300 overflow-hidden ${
+      className={`relative h-full flex flex-col transition-all duration-300 overflow-hidden ${
         isActive ? "z-10" : ""
       }`}
       // The header floats over the content, which starts below it
       // (--pane-header-inset) and scrolls under its glass.
-      style={isMobileChrome ? undefined : ({ "--pane-header-inset": PANE_HEADER_INSET } as React.CSSProperties)}
+      style={showHeader ? ({ "--pane-header-inset": PANE_HEADER_INSET } as React.CSSProperties) : undefined}
       onClick={() => setActivePaneId(leaf.id)}
     >
       {/* Pane tabs are the editor's desktop header, even for a single note.
           It floats over the editor, so showing, fading or moving it never
           reflows the text. */}
-      {!isMobileChrome && (
+      {showHeader && (
       <div
         className="absolute top-0 left-0 right-0 z-20"
       >
-      <div className={`typing-chrome ${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT}`}>
+      <div className={`${PANE_HEADER_CLASS} ${PANE_HEADER_HEIGHT}`}>
         {/* Show sidebar sits at the far left while the sidebar is hidden; once
             it's open, the sidebar's own header carries the hide button. Its
             right margin matches the header's left padding (px-2 sm:px-3), so it
@@ -223,6 +226,19 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           {hostsWindowActions && <PaneWindowActions />}
       </div>
       </div>
+      )}
+
+      {/* With the tab bar hidden, the top-right pane keeps one way back. */}
+      {!isMobileChrome && !tabBarVisible && hostsWindowActions && (
+        <div className={`${PANE_SECTION_CLASS} absolute top-1.5 right-2 z-20`}>
+          <PaneToolbarButton
+            icon={<HiOutlineChevronDown size={PANE_ICON_SIZE} />}
+            label="Show tab bar"
+            shortcut={formatShortcut("\\", { shift: true })}
+            tooltipPosition="bottom-end"
+            onClick={() => setTabBarVisible(true)}
+          />
+        </div>
       )}
 
       {/* Pane Content */}

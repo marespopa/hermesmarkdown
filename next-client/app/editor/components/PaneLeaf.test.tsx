@@ -438,4 +438,27 @@ describe("PaneLeaf toolbar menu and sidebar toggle", () => {
     expect(screen.queryByRole("button", { name: "Sidebar" })).not.toBeInTheDocument();
   });
 
+  it("hides the tab bar only when asked, remembers it, and offers it back", () => {
+    localStorage.removeItem("tabBarVisible");
+    const values = [
+      [atom_activePaneId, "pane-1"],
+      [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
+      [atom_workspaceLayout, { rootContainer: { ...mockLeaf, openFilePaths: ["file1.md"] } }],
+    ];
+    render(
+      <TestProvider initialValues={values}>
+        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
+      </TestProvider>
+    );
+
+    expect(screen.getByLabelText("Close tab")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Hide tab bar" }));
+    expect(screen.queryByLabelText("Close tab")).not.toBeInTheDocument();
+    expect(localStorage.getItem("tabBarVisible")).toBe("false");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show tab bar" }));
+    expect(screen.getByLabelText("Close tab")).toBeInTheDocument();
+    expect(localStorage.getItem("tabBarVisible")).toBe("true");
+    localStorage.removeItem("tabBarVisible");
+  });
 });

@@ -12,8 +12,7 @@ import { formatShortcut } from "@/app/utils/platform";
 // palette's morph anchor
 // (`data-palette-anchor` and the shared view-transition name), so opening
 // the palette grows this pill into its field; it hides while the palette is
-// open. Only one is on screen at a time. Where it sits
-// in the pane toolbar it fades with the interface while you type.
+// open. Only one is on screen at a time.
 export default function SearchPill({ className = "" }: { className?: string }) {
   const palette = useOptionalCommandPalette();
   if (!palette) return null;

@@ -30,7 +30,7 @@ import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
 import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_focusMode, atom_newNoteRequested } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_newNoteRequested } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useToolHandoff } from "./hooks/use-tool-handoff";
@@ -45,7 +45,6 @@ import { useActiveFileUrlSync } from "./hooks/use-active-file-url";
 import { useFirstRun } from "./hooks/use-first-run";
 import { useChooseFolder } from "./hooks/use-choose-folder";
 import { useRecentVaultTracker } from "./hooks/use-recent-vaults";
-import { useFadeChromeWhileTyping } from "./hooks/use-fade-chrome-while-typing";
 import { showSuccessToast } from "@/app/components/Toastr";
 import { downloadMarkdown } from "@/app/utils/download-markdown";
 
@@ -99,9 +98,6 @@ export default function LiteEditor() {
   useFirstRun(isMobileChrome);
   const chooseFolder = useChooseFolder(materializeDraft);
   useRecentVaultTracker();
-  // Both Focus levels above Off hide the interface while typing.
-  const hideChromeWhileTyping = useAtomValue(atom_focusMode) !== "off";
-  useFadeChromeWhileTyping(hideChromeWhileTyping);
 
   // "Open AI Chat" (keyboard shortcut / command palette) bumps this counter
   // from outside the editor; the actual open() call has to happen here since
@@ -234,7 +230,7 @@ export default function LiteEditor() {
           it takes >150ms) signals the read + re-render instead of a full veil. */}
       <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />
       <div
-        className={`typing-page app-sheet fixed inset-y-0 right-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none`}
+        className={`app-sheet fixed inset-y-0 right-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none`}
         // Past the open sidebar, sliding with it (EditorShell); the whole
         // window on mobile.
         style={{

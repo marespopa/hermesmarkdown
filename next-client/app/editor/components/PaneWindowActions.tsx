@@ -3,6 +3,7 @@
 import React, { useRef, useState } from "react";
 import {
   HiOutlineChatAlt2,
+  HiOutlineChevronUp,
   HiOutlineClipboardCopy,
   HiOutlineCode,
   HiOutlineCog,
@@ -27,6 +28,8 @@ import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 //   Export as PDF, Export as HTML and Pin Note / Unpin Note for the
 //   focused pane, Settings, Documentation). Split panes and Token Cost are
 //   palette commands.
+// - Hide tab bar, last: tucks the whole bar away (remembered); PaneLeaf
+//   then shows a Show tab bar button in the same corner.
 export default function PaneWindowActions() {
   const actions = useWindowActions();
   const moreRef = useRef<HTMLButtonElement>(null);
@@ -66,6 +69,16 @@ export default function PaneWindowActions() {
             if (moreMenu) setMoreMenu(null);
             else openMoreMenu();
           }}
+        />
+      </div>
+
+      <div className={PANE_SECTION_CLASS} role="group" aria-label="Tab bar">
+        <PaneToolbarButton
+          icon={<HiOutlineChevronUp size={PANE_ICON_SIZE} />}
+          label="Hide tab bar"
+          shortcut={formatShortcut("\\", { shift: true })}
+          tooltipPosition="bottom-end"
+          onClick={actions.hideTabBar}
         />
       </div>
 

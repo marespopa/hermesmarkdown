@@ -58,7 +58,6 @@ The editor route (`page.tsx`) composes these:
 | `use-choose-folder.ts` | Where notes live, for writing begun with no vault (`FolderPrompt`, Cmd/Ctrl+S): the OS folder picker or the browser-vault dialog, then, once the vault is open, puts back the draft (opening a vault clears every tab), saves it into the vault and keeps it in front. |
 | `use-sync-current-directory.ts` | Points the vault's current directory at the active file's folder. |
 | `use-editor-paste-handlers.ts`, `use-scroll-to-pending-target.ts` | `MarkdownEditor` helpers: CSV-to-table confirm and image saving on paste; jump-to-line requests (`atom_pendingScrollTarget`; the caret goes to the optional `column`). |
-| `use-fade-chrome-while-typing.ts` | Hide interface while typing (on for every Focus level but Off, `atom_focusMode`): typing in an editor sets `<html data-chrome-faded>`, which fades every `.typing-chrome` element (pane header, sidebar, mobile file bar; `editor.scss`) and the editor takes back their room: the pane header's inset and the sidebar's width ease to 0, so the text slides up and over; a deliberate mouse move anywhere (`REVEAL_DISTANCE`, 40px of travel without a `REVEAL_PAUSE` of 300ms), any move within `EDGE_REVEAL_ZONE` (12px) of the window's top or left edge, or a tap or focus outside the editor, brings it back. |
 | `use-tab-drag-drop.ts` | Tab drag-and-drop between panes (`PaneLeaf`). |
 | `use-active-file-url.ts` | The note in front as `?file=<path>`: on load, once the vault is readable, opens it (or brings its tab forward, in whichever pane); after that rewrites the URL as tabs change, and clears it on the draft. |
 | `use-palette-create-note.ts` | The palette's "Create '…'" row (with a vault): a note titled with the query, saved at once, caret below the heading; draft text in progress is saved first. |
@@ -77,7 +76,7 @@ The editor route (`page.tsx`) composes these:
 
 ## Flow mode (Focus: dim, sentence)
 
-`codemirror/flow-mode.ts` is the two strongest levels of the Focus setting (**Hide interface and dim other paragraphs** / **… other sentences**, Settings → Editor or **Focus: …** in the command palette), read from `atom_focusMode` (`"dim"` → `flowMode("paragraph")`, `"sentence"` → `flowMode("sentence")`) and toggled through a CodeMirror compartment.
+`codemirror/flow-mode.ts` is the two strongest levels of the Focus setting (**Dim other paragraphs** / **Dim other sentences**, Settings → Editor or **Focus: …** in the command palette), read from `atom_focusMode` (`"dim"` → `flowMode("paragraph")`, `"sentence"` → `flowMode("sentence")`) and toggled through a CodeMirror compartment.
 
 `codemirror/bullet-autospace.ts` (an `EditorView.inputHandler`) turns a `-` typed at the start of a line (after any indent or `> `) into `- `. A space typed right after that bare bullet is swallowed, and a second `-` turns it back into `--`, so `---` still types as a rule or frontmatter fence. Code blocks and multi-cursor edits are left alone.
 

@@ -24,7 +24,7 @@ Each section is set apart by a hairline and led by a caption with an always-visi
 ## Quick Usage
 ```tsx
 // EditorShell, desktop only, once the vault is readable:
-<div className="typing-chrome fixed inset-y-0 left-0 w-0 z-30"><WorkspaceSidebar /></div>
+<div className="fixed inset-y-0 left-0 w-0 z-30"><WorkspaceSidebar /></div>
 ```
 
 ## Props Overview

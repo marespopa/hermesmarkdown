@@ -6,7 +6,7 @@ Description: Asks where notes live, once there is something to keep. There is no
 - **Keep Notes in This Browser** where it can't (Safari, Firefox, phones): opens the browser-vault dialog; the vault made there gets the draft the same way.
 - **Download** where neither works: downloads the note as Markdown.
 
-It sits at the bottom of the window, and on phones at the top, under the file bar, clear of the keyboard and of the formatting toolbar docked above it. **Not Now** shrinks it to a small "Not saved to a folder" mark for the rest of the visit; clicking the mark opens the bar again. The bar fades with the rest of the chrome while you type (`.typing-chrome`). Cmd/Ctrl+S with no vault runs the same choice (the editor page's `handleSave`).
+It sits at the bottom of the window, and on phones at the top, under the file bar, clear of the keyboard and of the formatting toolbar docked above it. **Not Now** shrinks it to a small "Not saved to a folder" mark for the rest of the visit; clicking the mark opens the bar again. Cmd/Ctrl+S with no vault runs the same choice (the editor page's `handleSave`).
 
 ## Local State & Storage
 - State: `atom_openFiles` (the draft's text), `atom_folderPromptDismissed` (in memory, so the next visit asks again), `useFileSystem` (`isVaultSupported`, `isBrowserVaultSupported`).

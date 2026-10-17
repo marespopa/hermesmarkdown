@@ -39,18 +39,17 @@ export const atom_showWordCount = atomWithStorage<boolean>("showWordCount", fals
 // Lets the editor's text column fill the sheet instead of stopping at the
 // reading width (--editor-measure, editor-typography.scss). On by default.
 export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
-// Focus (Settings → Editor): "hide" fades the pane header, sidebar and
-// mobile file bar while you type, and moving the mouse brings them back
-// (hooks/use-fade-chrome-while-typing.ts); "dim" does that too, and also
-// fades every paragraph but the caret's and keeps the caret line centred
-// (codemirror/flow-mode.ts); "sentence" is "dim" narrowed to the caret's
-// sentence. "hide" by default.
-export const FOCUS_MODES = ["off", "hide", "dim", "sentence"] as const;
+// Focus (Settings → Editor): "dim" fades every paragraph but the caret's
+// and keeps the caret line centred (codemirror/flow-mode.ts); "sentence" is
+// "dim" narrowed to the caret's sentence. Off by default. Focus never hides
+// the interface: the sidebar and the tab bar go away only when you close
+// them. A "hide" saved by an older version reads as "off".
+export const FOCUS_MODES = ["off", "dim", "sentence"] as const;
 export type FocusMode = (typeof FOCUS_MODES)[number];
-export const atom_focusMode = atomWithChoiceStorage<FocusMode>("focusMode", FOCUS_MODES, "hide");
+export const atom_focusMode = atomWithChoiceStorage<FocusMode>("focusMode", FOCUS_MODES, "off");
 // Toggle Sentence Focus (Ctrl/Cmd+Alt+F): sentence focus on, or back to the
-// level used before it ("hide" when there was none).
-const atom_focusBeforeSentence = atom<FocusMode>("hide");
+// level used before it ("off" when there was none).
+const atom_focusBeforeSentence = atom<FocusMode>("off");
 export const atom_toggleSentenceFocus = atom(null, (get, set) => {
   const current = get(atom_focusMode);
   if (current === "sentence") {
@@ -63,6 +62,11 @@ export const atom_toggleSentenceFocus = atom(null, (get, set) => {
 // The window's sidebar (desktop): open notes and the vault's file tree, on the
 // leading edge. Hidden by default; toggled from the toolbar or Ctrl/Cmd+Alt+S.
 export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
+// The pane tab bar (desktop): shown unless you hide it (its toolbar button,
+// Ctrl/Cmd+Shift+\ or Toggle Tab Bar), and remembered. Read on init: the
+// editor renders only after the vault restores, on the client, so a hidden
+// bar never flashes in first.
+export const atom_tabBarVisible = atomWithStorage<boolean>("tabBarVisible", true, undefined, { getOnInit: true });
 export const SIDEBAR_MIN_WIDTH = 200;
 export const SIDEBAR_MAX_WIDTH = 420;
 export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 256);

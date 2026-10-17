@@ -93,8 +93,8 @@ export const editorWritingItems: Subsection[] = [
   {
     id: "focus",
     title: "Focus",
-    lead: "Let the interface fade while you type, and optionally dim everything but the paragraph you're writing.",
-    keywords: "focus word count words hide interface chrome toolbar tabs sidebar fade typing distraction free minimal typewriter scrolling dim paragraph flow writing settings setup",
+    lead: "Dim everything but the paragraph or sentence you're writing.",
+    keywords: "focus word count words hide interface chrome toolbar tabs tab bar sidebar collapse distraction free minimal typewriter scrolling dim paragraph sentence flow writing settings setup",
     body: (
       <>
         <p>
@@ -106,18 +106,18 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <KV
           rows={[
-            { label: "Off", value: "The interface stays put while you type" },
-            { label: "Hide interface while typing", value: "The toolbar, tabs and sidebar fade once you start typing (default)" },
-            { label: "Hide interface and dim other paragraphs", value: "The same, plus other paragraphs fade and the caret line stays centered" },
-            { label: "Hide interface and dim other sentences", value: "The same, but only the sentence you're writing stays at full strength" },
+            { label: "Off", value: "Every line at full strength (default)" },
+            { label: "Dim other paragraphs", value: "Other paragraphs fade and the caret line stays centered" },
+            { label: "Dim other sentences", value: "Only the sentence you're writing stays at full strength" },
           ]}
         />
         <p>
-          While the interface is hidden, move the mouse deliberately, or touch the top or left edge
-          of the window, and everything comes back; a small nudge leaves the page alone. On a phone,
-          tap anywhere outside the text. As the interface fades, the page takes back its room: the
-          text slides up into the tab bar&apos;s space and over into the sidebar&apos;s. The sidebar
-          takes its own room beside the page and stays open until you close it; turn on{" "}
+          Nothing hides while you type. To be alone with the text, close the sidebar (
+          <code>CTRL/CMD+\</code>) and hide the tab bar (<code>CTRL/CMD+SHIFT+\</code>, the{" "}
+          <strong>Hide tab bar</strong> button at the right of the toolbar, or{" "}
+          <strong>Toggle Tab Bar</strong>); the page takes their room, and both stay that way, across
+          reloads, until you bring them back. With the tab bar hidden, <strong>Show tab bar</strong>{" "}
+          sits in the top-right corner. The sidebar stays open until you close it; turn on{" "}
           <strong>Close Sidebar While Writing</strong> (Settings → Editor) to have it put away as soon
           as you type in a note.
         </p>

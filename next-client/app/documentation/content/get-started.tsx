@@ -300,9 +300,9 @@ export const getStartedGroup: Group = {
             drag tabs between panes, and resize with the divider.
           </p>
           <p>
-            To be alone with the text, set{" "}
-            <TextLink href="#focus">Focus</TextLink> under Settings →
-            Editor: the toolbar, tabs and sidebar fade while you type and come back when you move the mouse.
+            To be alone with the text, close the sidebar and hide the tab bar (
+            <code>CTRL/CMD+SHIFT+\</code>); both stay how you leave them. See{" "}
+            <TextLink href="#focus">Focus</TextLink> to dim everything but the paragraph you&apos;re writing.
           </p>
         </>
       ),
