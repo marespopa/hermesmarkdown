@@ -440,14 +440,15 @@ describe("PaneLeaf toolbar menu and sidebar toggle", () => {
 
   it("hides the tab bar only when asked, remembers it, and offers it back", () => {
     localStorage.removeItem("tabBarVisible");
+    const leaf = { id: "pane-1", type: "editor" as const, openFilePaths: ["file1.md"], activeFilePath: "file1.md", isPinned: false };
     const values = [
       [atom_activePaneId, "pane-1"],
       [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" } }],
-      [atom_workspaceLayout, { rootContainer: { ...mockLeaf, openFilePaths: ["file1.md"] } }],
+      [atom_workspaceLayout, { rootContainer: leaf }],
     ];
     render(
       <TestProvider initialValues={values}>
-        <PaneLeaf leaf={{ ...mockLeaf, openFilePaths: ["file1.md"] }} />
+        <PaneLeaf leaf={leaf} />
       </TestProvider>
     );
 
