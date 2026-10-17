@@ -21,6 +21,12 @@ interface UseCodeMirrorCalloutFoldOptions {
 // is simpler than the old text-mutation approach. This hook only tracks
 // what the chevron buttons need to render (title-line position + collapse
 // state); CM6 itself owns hiding/showing the folded text.
+function sameChevrons(a: Chevron[], b: Chevron[]): boolean {
+  return a.length === b.length && a.every((c, i) =>
+    c.blockId === b[i].blockId && c.top === b[i].top && c.collapsed === b[i].collapsed
+      && c.bodyFrom === b[i].bodyFrom && c.bodyTo === b[i].bodyTo);
+}
+
 export function useCodeMirrorCalloutFold({ containerRef }: UseCodeMirrorCalloutFoldOptions) {
   const [chevrons, setChevrons] = useState<Chevron[]>([]);
 
@@ -36,7 +42,7 @@ export function useCodeMirrorCalloutFold({ containerRef }: UseCodeMirrorCalloutF
     // Callouts outside CodeMirror's rendered viewport have no coordinates
     // yet; they get a chevron once scrolled near (see onViewportChange).
     // Placing them at top 0 instead stacked them all on the note's first line.
-    setChevrons(positioned.flatMap(({ r, coords }) => {
+    const next = positioned.flatMap(({ r, coords }) => {
       if (!coords) return [];
       return [{
         blockId: r.blockId,
@@ -45,7 +51,11 @@ export function useCodeMirrorCalloutFold({ containerRef }: UseCodeMirrorCalloutF
         bodyFrom: r.bodyFrom,
         bodyTo: r.bodyTo,
       }];
-    }));
+    });
+    // This runs on every caret move; keeping the same list when nothing
+    // moved spares the editor a React render per keystroke (most notes have
+    // no callouts at all).
+    setChevrons((current) => (sameChevrons(current, next) ? current : next));
   }, [containerRef]);
 
   // Seeds initial fold state (callouts marked `> [!type]-` start collapsed,

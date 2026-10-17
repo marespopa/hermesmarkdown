@@ -11,6 +11,7 @@ import {
 } from "../components/regex";
 import { REGEX_TASK_PRIORITY, type TaskPriority } from "@/app/utils/taskExtractor";
 import { collectLinkDisplayMatches } from "./link-display";
+import { collectInVisibleLines } from "./visible-lines";
 
 type DateKind = "iso" | "slashed" | "dotted" | "wiki" | "due" | "started" | "done";
 
@@ -105,7 +106,9 @@ function annotationClassName(match: AnnotationDisplayMatch): string {
 export function buildAnnotationDisplayDecorations(view: EditorView): DecorationSet {
   const ranges: Range<Decoration>[] = [];
 
-  for (const match of collectAnnotationDisplayMatches(view.state.doc.toString())) {
+  // Dates and priorities never cross a line, so only the lines on screen
+  // are matched.
+  for (const match of collectInVisibleLines(view, collectAnnotationDisplayMatches)) {
     const visible = view.visibleRanges.some((range) => range.from <= match.from && match.to <= range.to);
     if (!visible) continue;
     // The raw text styled as a chip, never swapped for a label widget: swapping

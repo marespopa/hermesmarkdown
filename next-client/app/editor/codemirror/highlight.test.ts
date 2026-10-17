@@ -9,9 +9,9 @@ interface FlatDeco {
   class: string;
 }
 
-function decorationsFor(doc: string): FlatDeco[] {
+function decorationsFor(doc: string, range?: { from: number; to: number }): FlatDeco[] {
   const state = EditorState.create({ doc });
-  const set = computeMarkdownDecorations(state);
+  const set = computeMarkdownDecorations(state, range);
   const out: FlatDeco[] = [];
   set.between(0, doc.length, (from, to, value: any) => {
     const cls = value.spec.class ?? value.spec.attributes?.class;
@@ -185,5 +185,49 @@ describe("isHorizontalRule", () => {
     expect(isHorizontalRule("***", "Paragraph")).toBe(true);
     expect(isHorizontalRule("- - -", "")).toBe(true);
     expect(isHorizontalRule("---", "", true)).toBe(false);
+  });
+
+});
+
+describe("computeMarkdownDecorations with a viewport range", () => {
+  const doc = [
+    "# Title",
+    "```",
+    "code above",
+    "```",
+    "> [!note] Callout",
+    "> still the callout",
+    "> and its last line",
+    "After **bold**",
+    "| a | b |",
+    "| - | - |",
+    "| 1 | 2 |",
+  ].join("\n");
+  const lineRange = (state: EditorState, first: number, last: number) => ({
+    from: state.doc.line(first).from,
+    to: state.doc.line(last).to,
+  });
+
+  it("decorates the lines in range exactly as the full scan does", () => {
+    const state = EditorState.create({ doc });
+    const range = lineRange(state, 6, 9);
+    const full = decorationsFor(doc).filter((d) => d.from >= range.from && d.from <= range.to);
+    expect(decorationsFor(doc, range)).toEqual(full);
+  });
+
+  it("decorates nothing outside the range", () => {
+    const state = EditorState.create({ doc });
+    const range = lineRange(state, 6, 7);
+    for (const d of decorationsFor(doc, range)) {
+      expect(d.from).toBeGreaterThanOrEqual(range.from);
+      expect(d.from).toBeLessThanOrEqual(range.to);
+    }
+  });
+
+  it("caps a callout that ends just past the range", () => {
+    const state = EditorState.create({ doc });
+    const lastCalloutLine = state.doc.line(7);
+    const decos = decorationsFor(doc, lineRange(state, 5, 7));
+    expect(decos.find((d) => d.from === lastCalloutLine.from && d.class.includes("cm-callout"))?.class).toContain("cm-callout-end");
   });
 });

@@ -100,6 +100,8 @@ Math typed on its own line gets a faint `= result` label at the end of the line:
 
 ## Live markers
 
+Performance: CodeMirror draws only the lines in its viewport, and the decorations follow it. `highlight.ts` still reads the note from the top, since a code block or callout above changes the lines below, but it decorates only the viewport and stops one line past it. Links, dates and priorities are matched only on the visible lines (`codemirror/visible-lines.ts`). Frontmatter is found by reading lines from the top (`frontmatterFoldRangeOf`, cached per document) rather than turning the note into a string. The React side skips work when nothing changed: the text the editor just reported isn't diffed again when it comes back as `value`, and the callout chevrons keep the same list across caret moves.
+
 There's one mode: every Markdown character stays as typed, so writing is plain typing and what's on screen is what's in the file. Syntax is dimmed, never hidden, and nothing changes with the caret, so text never moves (`codemirror/live-markers.ts`, a `ViewPlugin` over the visible ranges that reads the Lezer tree, plus the dimming in `highlight.ts`):
 
 - **Inline marks** (`**`, `*`/`_`, `~~`, inline-code backticks) stay as typed, dimmed (`highlight.ts`).
