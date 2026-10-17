@@ -235,7 +235,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                   {highlighted?.kind === "template" ? (
                     <TemplatePreview raw={bodies?.[pickerEntryKey(highlighted.entry)] ?? null} name={highlighted.entry.name} />
                   ) : (
-                    <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-edge-subtle text-ui-caption text-fg-faint">
+                    <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-edge-subtle text-ui-caption text-fg-faint">
                       {highlighted?.kind === "board" ? "An empty drawing board" : "An empty note"}
                     </div>
                   )}

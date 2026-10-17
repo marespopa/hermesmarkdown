@@ -33,7 +33,7 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
         <div className="absolute inset-0 bg-black/5 dark:bg-black/20 backdrop-blur-md animate-in fade-in duration-300" />
 
         {/* Card */}
-        <div className="relative z-10 w-full max-w-sm glass-panel rounded-[28px] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-500 ease-out">
+        <div className="relative z-10 w-full max-w-sm glass-panel rounded-xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-500 ease-out">
           <Button
             variant="close"
             onClick={handleClose}

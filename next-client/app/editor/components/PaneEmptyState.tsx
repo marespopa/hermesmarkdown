@@ -63,7 +63,7 @@ export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
   return (
     <div className="flex h-full items-center justify-center p-6">
       <div className="flex w-full max-w-md flex-col items-center text-center">
-        <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl border border-edge bg-paper-light text-sage dark:bg-paper-dark-surface">
+        <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-edge bg-paper-light text-sage dark:bg-paper-dark-surface">
           <HiOutlineDocumentText size={26} />
         </div>
         <h2 className="text-ui-title-3 text-fg">Start writing</h2>

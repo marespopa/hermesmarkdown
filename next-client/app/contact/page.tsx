@@ -52,7 +52,7 @@ export default function ContactPage() {
             <TextLink
               href={`mailto:${email}`}
               variant="unstyled"
-              className="inline-flex items-center gap-4 bg-neutral-900 dark:bg-zinc-100 text-white dark:text-neutral-900 px-10 py-4 rounded-2xl transition-all font-bold text-sm uppercase tracking-widest group"
+              className="inline-flex items-center gap-4 bg-neutral-900 dark:bg-zinc-100 text-white dark:text-neutral-900 px-10 py-4 rounded-xl transition-all font-bold text-sm uppercase tracking-widest group"
             >
               {email}
               <span className="group-hover:translate-x-1 transition-transform">
@@ -65,7 +65,7 @@ export default function ContactPage() {
         {/* --- CHANNELS SECTION --- */}
         <section className="border-t border-black/5 dark:border-white/10 pt-24">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-[2rem] border border-black/5 dark:border-white/5 space-y-4 transition-all group">
+            <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-xl border border-black/5 dark:border-white/5 space-y-4 transition-all group">
               <div className="h-px w-8 bg-sage group-hover:w-12 transition-all duration-500" />
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] opacity-40">
                 Electronic Mail
@@ -77,7 +77,7 @@ export default function ContactPage() {
               </p>
             </div>
 
-            <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-[2rem] border border-black/5 dark:border-white/5 space-y-4 transition-all group">
+            <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-xl border border-black/5 dark:border-white/5 space-y-4 transition-all group">
               <div className="h-px w-8 bg-purple-600 group-hover:w-12 transition-all duration-500" />
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] opacity-40">
                 GitHub Community

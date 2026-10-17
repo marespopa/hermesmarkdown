@@ -292,7 +292,7 @@ export default function CommandPalette() {
     containerClassName={isMobileChrome ? "" : "items-start justify-center pt-[18vh] px-4"}
     panelClassName={isMobileChrome
       ? `flex-1 flex flex-col bg-overlay duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-bottom-2 ease-out" : "animate-out fade-out slide-out-to-bottom-2 ease-in"}`
-      : `w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-18vh-2rem)] flex flex-col glass-panel glass-panel-soft rounded-2xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-top-1 ease-out" : "animate-out fade-out slide-out-to-top-1 ease-in"}`}>
+      : `w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-18vh-2rem)] flex flex-col glass-panel glass-panel-soft rounded-xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-top-1 ease-out" : "animate-out fade-out slide-out-to-top-1 ease-in"}`}>
     <div className="flex min-h-0 flex-1 flex-col" onKeyDown={handleKeyDown}>
     <PaletteSearchBar
       inputRef={inputRef}

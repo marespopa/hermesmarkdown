@@ -106,7 +106,7 @@ export default function MarkdownEditorPage() {
             {EDITORS.map((editor) => (
               <div
                 key={editor.name}
-                className="p-6 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-2xl border border-black/5 dark:border-white/5"
+                className="p-6 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-xl border border-black/5 dark:border-white/5"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                   <h3 className="font-bold text-lg">

@@ -8,7 +8,7 @@ import { MODEL_PRICES } from "../token-cost/model-prices";
 // layout and sizes, so the tool lands in place. Static black / white fills
 // so the opacity modifier works; pulses only when motion is allowed.
 const BAR = "bg-black/[0.06] dark:bg-white/[0.08] motion-safe:animate-pulse";
-const PANEL = "rounded-2xl border border-edge-subtle bg-surface-raised";
+const PANEL = "rounded-xl border border-edge-subtle bg-surface-raised";
 // The form fields' box (Input, Textarea, Select): same fill and edge.
 const FIELD = "rounded-xl border border-beige bg-paper-softgray dark:border-clay dark:bg-paper-dark-surface/50";
 
@@ -43,7 +43,7 @@ function Chips({ labels }: { labels: string[] }) {
   return (
     <div className="flex flex-wrap gap-2">
       {labels.map((label) => (
-        <span key={label} className="flex h-8 items-center rounded-2xl border border-beige px-3 text-ui-footnote font-semibold text-transparent dark:border-clay sm:text-ui-subhead">
+        <span key={label} className="flex h-8 items-center rounded-xl border border-beige px-3 text-ui-footnote font-semibold text-transparent dark:border-clay sm:text-ui-subhead">
           {label}
         </span>
       ))}
@@ -67,7 +67,7 @@ function Actions({ widths }: { widths: string[] }) {
   return (
     <div className="flex flex-wrap items-center gap-3">
       {widths.map((width, index) => (
-        <div key={index} className={`h-11 rounded-2xl ${width} ${index === 0 ? BAR : "border border-beige dark:border-clay"}`} />
+        <div key={index} className={`h-11 rounded-xl ${width} ${index === 0 ? BAR : "border border-beige dark:border-clay"}`} />
       ))}
     </div>
   );
@@ -140,7 +140,7 @@ export function TokenizerSkeleton() {
       <div className={`${PANEL} space-y-3 p-4`}>
         <div className="flex items-center justify-between gap-3">
           <Line textClass="text-ui-subhead" barClass="h-3 w-14" />
-          <div className="h-8 w-32 rounded-2xl border border-beige dark:border-clay" />
+          <div className="h-8 w-32 rounded-xl border border-beige dark:border-clay" />
         </div>
         {["w-full", "w-11/12", "w-2/3"].map((width, index) => (
           <Line key={index} textClass="text-ui-callout leading-relaxed" barClass={`h-3 ${width}`} />
@@ -162,7 +162,7 @@ export function TokenCostSkeleton() {
         <Field height={INPUT_HEIGHT} helper className="my-0" />
       </div>
       <div className="space-y-2">
-        <div className="overflow-hidden rounded-2xl border border-edge-subtle">
+        <div className="overflow-hidden rounded-xl border border-edge-subtle">
           <div className="border-b border-edge-subtle px-3 py-2">
             <Line textClass="text-ui-footnote" barClass="h-2.5 w-1/3" />
           </div>
@@ -189,11 +189,11 @@ export function TableSkeleton() {
       <div className="flex flex-wrap items-end gap-3">
         <Field height={INPUT_HEIGHT} className="my-0 w-28" />
         <Field height={INPUT_HEIGHT} className="my-0 w-28" />
-        <div className="h-11 w-32 rounded-2xl border border-beige bg-paper-light dark:border-clay dark:bg-paper-dark-surface" />
-        <div className="h-11 w-32 rounded-2xl border border-beige dark:border-clay" />
+        <div className="h-11 w-32 rounded-xl border border-beige bg-paper-light dark:border-clay dark:bg-paper-dark-surface" />
+        <div className="h-11 w-32 rounded-xl border border-beige dark:border-clay" />
       </div>
       {/* The grid: the default 3 × 2 table on the editor's paper sheet. */}
-      <div className="editor-sheet overflow-hidden rounded-2xl px-4 py-5 sm:px-6">
+      <div className="editor-sheet overflow-hidden rounded-xl px-4 py-5 sm:px-6">
         {[0, 1, 2].map((row) => (
           <div key={row} className="grid grid-cols-3 gap-3 border-b border-edge-subtle py-2.5 last:border-0">
             {[0, 1, 2].map((col) => (

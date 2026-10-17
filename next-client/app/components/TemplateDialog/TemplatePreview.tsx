@@ -47,7 +47,7 @@ export default function TemplatePreview({ raw, name }: TemplatePreviewProps) {
   return (
     <div
       aria-label={`Preview of ${name}`}
-      className="h-full min-h-0 overflow-hidden rounded-2xl border border-edge-subtle bg-surface px-4 py-3 text-[0.8rem] leading-relaxed"
+      className="h-full min-h-0 overflow-hidden rounded-xl border border-edge-subtle bg-surface px-4 py-3 text-[0.8rem] leading-relaxed"
     >
       <p className="mb-2 font-sans text-ui-caption font-semibold uppercase tracking-wider text-fg-faint">Preview</p>
       {model === null ? (

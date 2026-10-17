@@ -36,7 +36,7 @@ export default function TopicCards({ groups }: { groups: Group[] }) {
               <TextLink
                 href={`#${group.id}`}
                 variant="unstyled"
-                className="group flex h-full flex-col rounded-[22px] border border-edge-subtle bg-surface-raised p-6 transition-shadow duration-300 hover:shadow-[0_10px_30px_rgba(0,0,0,0.08)]"
+                className="group flex h-full flex-col rounded-xl border border-edge-subtle bg-surface-raised p-6 transition-shadow duration-300 hover:shadow-[0_10px_30px_rgba(0,0,0,0.08)]"
               >
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-chrome text-accent">
                   <Icon size={22} aria-hidden="true" />

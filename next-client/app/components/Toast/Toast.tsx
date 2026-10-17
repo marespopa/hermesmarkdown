@@ -50,7 +50,7 @@ export default function Toast({
         isClosing ? "animate-toast-out" : "animate-toast-in"
       }`}
     >
-      <div className="glass-panel rounded-2xl p-4 flex flex-col gap-3">
+      <div className="glass-panel rounded-xl p-4 flex flex-col gap-3">
         <div className="flex items-center gap-3">
           <div className="shrink-0 w-9 h-9 rounded-full bg-sage/15 text-sage flex items-center justify-center">
             {icon}

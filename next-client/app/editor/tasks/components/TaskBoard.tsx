@@ -51,7 +51,7 @@ export default function TaskBoard({
               endDrag();
               if (task && task.status !== status) onMove(task, status);
             }}
-            className={`flex min-h-0 snap-start flex-col rounded-2xl pt-2.5 transition-colors ${
+            className={`flex min-h-0 snap-start flex-col rounded-xl pt-2.5 transition-colors ${
               over === status ? "bg-sage/10 ring-1 ring-sage/40" : "bg-paper-softgray/50 dark:bg-paper-dark-surface/40"
             }`}
           >

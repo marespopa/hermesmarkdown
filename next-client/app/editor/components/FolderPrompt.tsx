@@ -61,7 +61,7 @@ export default function FolderPrompt({ onChooseFolder, onDownload, placement = "
     <div className={bar}>
       <section
         aria-label="Where your notes live"
-        className="glass-panel pointer-events-auto flex max-w-xl flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl py-2 pl-4 pr-2"
+        className="glass-panel pointer-events-auto flex max-w-xl flex-wrap items-center gap-x-4 gap-y-2 rounded-xl py-2 pl-4 pr-2"
       >
         <p className="min-w-0 flex-1 basis-56 text-ui-footnote text-fg">
           <span className="font-semibold">Choose where your notes live.</span>{" "}

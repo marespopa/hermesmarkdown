@@ -281,7 +281,7 @@ export default function AIChatDialog({
             <MentionMenu options={mentionOptions} activeIndex={mentionIndex} query={mention.query} onSelect={selectMention} />
           )}
 
-          <div className={`rounded-2xl border transition-colors ${
+          <div className={`rounded-xl border transition-colors ${
             isLoading
               ? "border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50"
               : "border-neutral-300 dark:border-neutral-600 bg-paper-light dark:bg-neutral-900 focus-within:border-sage/50 focus-within:ring-2 focus-within:ring-sage/15"

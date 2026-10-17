@@ -25,7 +25,7 @@ export default function PrivateNoteVeil({ title, isActivePane, onShowNote, onSho
     <div className="flex h-full items-center justify-center p-6" data-testid="private-note-veil">
       <section
         aria-label="Private note"
-        className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-edge bg-surface p-6 text-center"
+        className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border border-edge bg-surface p-6 text-center"
       >
         <div className="flex flex-col items-center gap-1.5">
           <span className="flex items-center gap-1.5 text-ui-footnote font-medium text-fg-muted">

@@ -86,7 +86,7 @@ export default function ChatMessageItem({
       )}
       <div className={`flex flex-col gap-1.5 ${isUser ? "items-end max-w-[82%]" : "items-start flex-1 min-w-0"}`}>
         {isUser ? (
-          <div className="px-3.5 py-2.5 rounded-2xl rounded-tr-sm bg-sage text-white text-ui-footnote whitespace-pre-wrap leading-relaxed">
+          <div className="px-3.5 py-2.5 rounded-xl rounded-tr-sm bg-sage text-white text-ui-footnote whitespace-pre-wrap leading-relaxed">
             {renderWithMentions(message.displayContent)}
           </div>
         ) : isEditing ? (

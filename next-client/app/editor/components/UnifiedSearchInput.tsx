@@ -250,7 +250,7 @@ export default function UnifiedSearchInput({
 
       {/* ── Tag suggestion popover ────────────────────────────────────── */}
       {showPopover && (
-        <div className="absolute top-[calc(theme(spacing.11)+theme(spacing.1))] sm:top-[calc(theme(spacing.9)+theme(spacing.1))] left-0 right-0 z-50 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-xl border border-beige/60 dark:border-clay/60 rounded-2xl py-1 overflow-hidden">
+        <div className="absolute top-[calc(theme(spacing.11)+theme(spacing.1))] sm:top-[calc(theme(spacing.9)+theme(spacing.1))] left-0 right-0 z-50 bg-paper-light/95 dark:bg-paper-dark/95 backdrop-blur-xl border border-beige/60 dark:border-clay/60 rounded-xl py-1 overflow-hidden">
           {filteredSuggestions.map((tag, idx) => (
             <Button variant="unstyled"
               key={tag}
