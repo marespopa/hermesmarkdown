@@ -26,7 +26,7 @@ export const LIST_INDENT_PX = 16;
 // Selected rows: accent while the tree has focus, gray otherwise (Finder).
 export function selectionClass(isSelected: boolean, treeFocused: boolean): string {
   if (!isSelected) return "";
-  return treeFocused ? "bg-accent/25 text-fg" : "bg-fg/10 text-fg";
+  return treeFocused ? "bg-accent/25 text-fg" : "bg-black/[0.08] dark:bg-white/10 text-fg";
 }
 
 export interface RowEditing {

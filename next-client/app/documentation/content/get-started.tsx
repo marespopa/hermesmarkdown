@@ -124,8 +124,7 @@ export const getStartedGroup: Group = {
             where the folder will be created, then click <em>Create Vault</em>.
           </p>
           <p>
-            HermesMarkdown creates the folder and opens the vault on its{" "}
-            <a href="#home-feed" className="text-accent hover:underline">home feed</a>.
+            HermesMarkdown creates the folder and opens the vault, with its files in the sidebar.
             No example content is added.
           </p>
           <Callout type="note">
@@ -143,13 +142,13 @@ export const getStartedGroup: Group = {
       body: (
         <>
           <p>
-            Press <code>CTRL+ALT+N</code>, click <strong>+</strong> on the home feed, or choose{" "}
-            <strong>New Note</strong> from the command palette. A blank note opens, ready to type,
+            Press <code>CTRL+ALT+N</code>, click <strong>New note</strong> at the top of the sidebar, or
+            choose <strong>New Note</strong> from the command palette. A blank note opens, ready to type,
             with no name prompt.
           </p>
           <p>
-            The first time you open HermesMarkdown there is nothing to set up: you land on the
-            home feed, where <strong>New Note</strong> starts a blank note. Once it has text, a bar
+            The first time you open HermesMarkdown there is nothing to set up: you land in the
+            editor on a blank note, ready to type. Once it has text, a bar
             at the bottom asks where your notes live. <strong>Choose Folder…</strong> picks a folder (you can make a new one in the
             picker) and saves the note there; in browsers that can&apos;t open folders it reads{" "}
             <strong>Keep Notes in This Browser</strong> and creates a{" "}
@@ -198,85 +197,24 @@ export const getStartedGroup: Group = {
       ),
     },
     {
-      id: "home-feed",
-      title: "Home feed",
-      lead: "Your recent notes, newest first. It's where a vault opens.",
-      keywords: "home feed vim keys keyboard j k gg recent notes pin pinned unpin start screen today yesterday preview search create new note welcome no vault open vault create vault browser vault open file open tasks todo",
+      id: "pinned-notes",
+      title: "Pinned notes",
+      lead: "Keep the notes you come back to at hand: first in the command palette and at the top of Files.",
+      keywords: "pin pinned unpin favorite favourite top quick access palette files sidebar",
       body: (
         <>
           <p>
-            <strong>Tasks</strong> lists the unchecked <code>- [ ]</code> tasks from notes you
-            changed in the last 7 days. Click one to open its note with the cursor on that task.
-            The list starts folded: click <strong>N open tasks</strong> to open it, and it stays the way you leave it. Tasks from private notes aren&apos;t
-            listed.
+            To pin a note, right-click it in the sidebar&apos;s <strong>Files</strong> and choose{" "}
+            <strong>Pin</strong>, choose <strong>Pin Note</strong> in the toolbar&apos;s{" "}
+            <strong>More</strong> menu or in its tab&apos;s right-click menu, run <strong>Pin Note</strong>{" "}
+            from the command palette, or press <code>CTRL/CMD+D</code> on it in the palette. Pinned notes
+            are listed first, newest pin first, at the top of <strong>Files</strong> and in the command
+            palette before you type anything. The same places unpin it. Each vault keeps its own pins;
+            a pinned note that&apos;s renamed or moved stays pinned.
           </p>
           <p>
-            Each row shows a note's title, the first few lines of its text and its file name. The column on the
-            left groups notes by the day they were last changed: <em>Today</em>,{" "}
-            <em>Yesterday</em>, the weekday for the rest of the week, then the date. If you add
-            your name in Settings → Profile, the feed greets you with it.
-          </p>
-          <p>
-            To keep a note at the top, click the pin at the top right of its row. It shows when you
-            hover the row, and always on a phone or tablet. You can also touch and hold the row, or
-            right-click it, and choose <strong>Pin to Home</strong>. From a note, choose{" "}
-            <strong>Pin to Home</strong> in the toolbar&apos;s <strong>More</strong> menu, in its
-            tab&apos;s right-click menu, or in the command palette. On a pinned note those read{" "}
-            <strong>Unpin from Home</strong>. Pinned notes sit under{" "}
-            <em>Pinned</em> above the days, newest pin first. Click the pin again, or run{" "}
-            <strong>Unpin from Home</strong>, to put the note back. Each vault keeps its own pins.
-          </p>
-          <p>
-            The feed works from the keyboard, Vim-style, as soon as it opens: <code>j</code> and{" "}
-            <code>k</code> move, <code>gg</code> and <code>G</code> jump to the newest and last
-            note, <code>o</code> or Enter opens, <code>p</code> pins, <code>/</code> searches and Escape goes back to your open notes.
-          </p>
-          <p>
-            With no vault open, the feed is where you start. Until you&apos;ve given a name, it asks
-            what to call you; press Enter and the greeting uses it. Under that are your recent
-            vaults, then <strong>Open Vault</strong>, <strong>Create Vault</strong> and{" "}
-            <strong>Browser Vault</strong>, or you can skip the vault: <strong>New Note</strong>{" "}
-            opens a blank draft and <strong>Open File…</strong> opens a file from your device. Once
-            a vault is open, your notes appear here.
-          </p>
-          <p>
-            At the bottom, <strong>Search or create a note…</strong> opens the command palette.
-            Type to find a note, or type a new title and pick <strong>Create &quot;…&quot;</strong>{" "}
-            to start that note. The <strong>&gt;</strong> button opens the palette&apos;s command
-            list, and <strong>+</strong> starts a blank note.
-          </p>
-          <KV
-            rows={[
-              { label: "Move between notes", value: "↑ / ↓ or J / K" },
-              { label: "Open the selected note", value: "ENTER" },
-              { label: "Search", value: "Start typing" },
-              { label: "Back to your open notes", value: "ESCAPE" },
-              { label: "Come back to the feed", value: "Home at the top of the sidebar, or the Open Home command" },
-              { label: "Back to the top of the feed", value: "Home again while the feed is open" },
-            ]}
-          />
-          <p>
-            On desktop, Home is at the top of the sidebar. On phones it&apos;s at the top left.
-          </p>
-          <p>
-            In a large vault, notes appear right away in the correct order. Their previews fill in
-            from the top down while <em>Indexing notes…</em> is shown. Notes that haven&apos;t
-            changed since last time load instantly from a cache kept in your browser.
-          </p>
-          <p>
-            A vault always opens on the feed, with the notes you had open last time waiting behind
-            it. The bar at the top names the open vault and where it lives (a folder on this
-            device, this browser or GitHub; on a phone, just the name). Click the name for the
-            vault menu: your five most recent other vaults, then <strong>Open vault…</strong>,{" "}
-            <strong>Create vault…</strong> and <strong>Browser vaults…</strong>, then{" "}
-            <strong>Refresh vault</strong> and <strong>Close vault</strong>. A folder on your device
-            may ask for access again when you switch back to it.
-          </p>
-          <p>
-            <strong>Close vault</strong> disconnects the vault after you confirm, and the feed becomes the
-            start screen, with your recent vaults listed so you can reopen one with a click. The{" "}
-            <strong>×</strong> next to a recent vault removes it from the list; its notes stay
-            where they are.
+            In the palette you can pin commands too (<code>CTRL/CMD+D</code> on a command, up to five);
+            those are the palette&apos;s own.
           </p>
         </>
       ),
@@ -296,20 +234,37 @@ export const getStartedGroup: Group = {
             The toolbar at the top shows your open notes as tabs, even when only one is open. Each pane keeps
             up to 20 open: opening another closes the one you looked at least recently, never one with unsaved
             changes. On the left:
-            the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, Search (the
+            the <strong> Sidebar</strong> button, while the sidebar is hidden. On the right: Save, the search bar (the
             command palette) and AI Chat (when an AI key is set). The <strong>&hellip; More</strong> menu holds Copy
-            Markdown, Export as PDF, Export as HTML, Pin to Home, Settings and Documentation — every one of them is also in the command palette.
+            Markdown, Export as PDF, Export as HTML, Pin Note, Settings and Documentation — every one of them is also in the command palette.
           </p>
           <p>
             Toolbar buttons are icons; hover one to see its name and shortcut.
           </p>
           <p>
-            The <strong>sidebar</strong> starts with Home and lists your open notes across every pane. With a vault it adds
-            Templates and Tasks below Home, and ends with <strong>Files</strong>, the vault&apos;s tree. Show
-            it with the Sidebar button at the toolbar's far left and hide it with the button in its own header, or toggle it with{" "}
-            <code>CTRL/CMD+ALT+S</code> or the <strong>Toggle Sidebar</strong>{" "}
-            command, and drag its edge to resize it (double-click the edge to
+            <strong>Search</strong> is the way around: the search bar in the toolbar and at the top of every page,
+            or <code>CTRL/CMD+K</code> anywhere, opens the command palette to find a note, run a command or go to
+            a page: Home, All Notes, Tags, Tasks, Templates, Trash or Settings. Every page has{" "}
+            <strong>← Editor</strong> at the top left to come back to the note you were on. While you write, the
+            toolbar and its search bar fade away; move the mouse to bring them back.
+          </p>
+          <p>
+            The <strong>sidebar</strong> is only your library, the same on every editor page: its header names the
+            vault (click it to switch to a recent vault or open another) beside <strong>New note</strong> and the
+            button that hides it; below come the <strong>Outline</strong> of the note in front (click a heading to
+            jump to it) and <strong>Files</strong>, the vault&apos;s tree, each with a chevron to fold or unfold it.
+            It sits beside the page and pushes it over rather than covering it.
+          </p>
+          <p>
+            Show it with the Sidebar button at the top left and hide it with the button in its own header, Escape
+            inside it, or toggle it with <code>CTRL/CMD+\</code>, <code>CTRL/CMD+ALT+S</code> or the{" "}
+            <strong>Toggle Sidebar</strong> command, and drag its edge to resize it (double-click the edge to
             reset; with the edge focused, the arrow keys resize it too). Folded sections stay folded.
+          </p>
+          <p>
+            Every place has its own address, so a refresh or a bookmark brings you back to it: the note in front
+            (<code>/editor?file=notes/plan.md</code>), Tasks, Templates, Trash, All Notes, a tag on the Tags page, and each
+            Settings section.
           </p>
           <p>
             <strong>Show Files</strong> (<code>CTRL/CMD+SHIFT+E</code>, or <code>CTRL/CMD+B</code>{" "}
@@ -327,8 +282,7 @@ export const getStartedGroup: Group = {
           </p>
           <KV
             rows={[
-              { label: "Home feed", value: "Home in the sidebar / Open Home command" },
-              { label: "Sidebar", value: "Show: Sidebar button at the toolbar's far left / Hide: button in the sidebar's header / CTRL/CMD+ALT+S" },
+              { label: "Sidebar", value: "Show: Sidebar button at the top left / Hide: button in the sidebar's header or Escape / CTRL/CMD+\\ or CTRL/CMD+ALT+S" },
               { label: "Show Files", value: "The sidebar's Files (full screen on a phone) / CTRL/CMD+SHIFT+E" },
               { label: "Quick switcher", value: "CTRL/CMD+K or CTRL/CMD+P" },
               { label: "Command palette", value: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },

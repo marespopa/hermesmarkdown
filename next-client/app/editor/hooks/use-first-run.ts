@@ -31,8 +31,8 @@ export function isFirstRun() {
   }
 }
 
-// The first visit has no setup screens: it lands on the home feed
-// (useVaultOpenBehavior), like any visit with no vault. Once the
+// The first visit has no setup screens: it lands in the editor, on an empty
+// draft, like any visit with no vault. Once the
 // saved vault has had its chance to restore, this applies the first-run
 // defaults (Medium text, full width) unless they are already stored, shows
 // the command palette shortcut once, and records that the visit happened.

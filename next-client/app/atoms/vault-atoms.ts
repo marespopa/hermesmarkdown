@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { atom_openFiles, atom_liveHandles } from "./file-atoms";
 import { atom_workspaceLayout } from "./workspace-atoms";
-import { atom_fileTreeExpansion, atom_homePins } from "./ui-atoms";
+import { atom_fileTreeExpansion, atom_notePins } from "./ui-atoms";
 import { atom_fileMetadata } from "./metadata";
 import { atom_revealedPrivatePaths } from "./privacy-atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
@@ -36,7 +36,7 @@ export const atom_fileUndoStack = atom<FileUndoGroup[]>([]);
 export const atom_isVaultPending = atom<boolean>(false);
 export const atom_hasLoadedVault = atom<boolean>(false);
 // True until the saved vault's permission is known on startup: the editor
-// and home feed stay hidden, and drafts aren't saved, until then.
+// stays hidden, and drafts aren't saved, until then.
 export const atom_isVaultRestoring = atom<boolean>(true);
 // True from the moment access is granted again until the vault is scanned and
 // "Vault restored" shows; the route stays behind the overlay until then.
@@ -254,7 +254,7 @@ export const atom_remapVaultPaths = atom(
           [vaultKey]: { expanded: entry.expanded.map(mapPath), collapsed: entry.collapsed.map(mapPath) },
         };
       });
-      set(atom_homePins, (prev) => {
+      set(atom_notePins, (prev) => {
         const pins = prev[vaultKey];
         if (!pins?.some((p) => remapPath(p, oldPath, newPath) !== null)) return prev;
         return { ...prev, [vaultKey]: pins.map(mapPath) };

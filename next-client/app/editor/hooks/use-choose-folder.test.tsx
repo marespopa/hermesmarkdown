@@ -3,7 +3,6 @@ import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore, Provider } from "jotai";
 import { atom_openFiles, EMPTY_DRAFT } from "@/app/atoms/atoms";
-import { atom_resumeRequested } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useChooseFolder } from "./use-choose-folder";
@@ -36,20 +35,17 @@ describe("useChooseFolder", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("brings the draft back after the vault opens, saves it, and keeps it in front", async () => {
-    const { store, openVault, materializeDraft, choose, draftAtSave } = setup(true);
+    const { openVault, materializeDraft, choose, draftAtSave } = setup(true);
     await act(() => choose());
     expect(openVault).toHaveBeenCalledTimes(1);
     expect(materializeDraft).toHaveBeenCalledTimes(1);
     expect(draftAtSave()).toBe("Trip ideas\n\nPack light.");
-    // Left for the vault-open behavior to consume, so the feed stays closed.
-    expect(store.get(atom_resumeRequested)).toBe(true);
   });
 
   it("changes nothing when the picker is cancelled", async () => {
     const { store, materializeDraft, choose } = setup(false);
     await act(() => choose());
     expect(materializeDraft).not.toHaveBeenCalled();
-    expect(store.get(atom_resumeRequested)).toBe(false);
     expect(store.get(atom_openFiles).draft?.content).toBe("Trip ideas\n\nPack light.");
   });
 
@@ -57,7 +53,6 @@ describe("useChooseFolder", () => {
     const { store, materializeDraft, choose, draftAtSave } = setup(false, false);
     await act(() => choose());
     expect(materializeDraft).not.toHaveBeenCalled();
-    expect(store.get(atom_resumeRequested)).toBe(true);
 
     act(() => {
       store.set(atom_openFiles, {});

@@ -5,8 +5,9 @@ import { atom_showFiles } from "@/app/atoms/ui-atoms";
 import useIsMobileChrome from "./use-mobile-chrome";
 
 // "Show Files" (command palette, Ctrl/Cmd+Shift+E). Desktop: shows the
-// sidebar and focuses its Files tree (atom_showFiles), coming back to the
-// editor first from any other route. Mobile has no sidebar, so it opens the
+// sidebar and focuses its Files tree (atom_showFiles) where you are on any
+// /editor route (every one has the sidebar), coming to the editor first
+// from anywhere else. Mobile has no sidebar, so it opens the
 // full-screen Files page (/editor/files). `navigate` lets the editor page
 // route through its unsaved-changes guard; router.push otherwise.
 export function useShowFiles(navigate?: (path: string) => void) {
@@ -22,6 +23,6 @@ export function useShowFiles(navigate?: (path: string) => void) {
       return;
     }
     showFiles();
-    if (pathname !== "/editor") go("/editor");
+    if (!pathname?.startsWith("/editor")) go("/editor");
   }, [isMobileChrome, navigate, pathname, router, showFiles]);
 }

@@ -11,8 +11,12 @@ interface ThemePickerProps<T extends string> {
   onChange: (value: T) => void;
 }
 
-// One card per palette, each drawn in its own colors (a chrome strip over the
-// surface, a line of text and an accent dot) so it previews the palette
+// A colour faded to `percent` (color-mix, as the app's own tints).
+const previewTint = (color: string, percent: number) => `color-mix(in srgb, ${color} ${percent}%, transparent)`;
+
+// One card per palette, each drawn in its own colors as the editor is laid
+// out (the sidebar in the chrome colour beside the page, a line of text and
+// the accent as a single dot, as the caret) so it previews the palette
 // whatever mode the app is in right now.
 export default function ThemePicker<T extends string>({ themes, value, onChange }: ThemePickerProps<T>) {
   return (
@@ -30,13 +34,22 @@ export default function ThemePicker<T extends string>({ themes, value, onChange 
               isActive ? "border-sage bg-sage/5 dark:bg-sage/10" : "border-edge hover:border-sage/40"
             }`}
           >
+            {/* The editor in miniature: the sidebar's rows in neutral grey
+                on the chrome, a hairline, then the page with its text. */}
             <span
               aria-hidden
-              className="flex h-14 w-full flex-col overflow-hidden rounded-lg border border-black/5 dark:border-white/10"
+              className="flex h-14 w-full overflow-hidden rounded-lg border border-black/5 dark:border-white/10"
               style={{ backgroundColor: t.swatch.surface }}
             >
-              <span className="h-3 w-full shrink-0" style={{ backgroundColor: t.swatch.chrome }} />
-              <span className="flex flex-1 items-center gap-1.5 px-2">
+              <span
+                className="flex w-1/4 shrink-0 flex-col gap-1 p-1.5"
+                style={{ backgroundColor: t.swatch.chrome, boxShadow: `inset -1px 0 0 ${previewTint(t.swatch.fg, 10)}` }}
+              >
+                {[0, 1, 2].map((row) => (
+                  <span key={row} className="h-1 w-full rounded-full" style={{ backgroundColor: previewTint(t.swatch.fg, 18) }} />
+                ))}
+              </span>
+              <span className="flex min-w-0 flex-1 items-center gap-1.5 px-2">
                 <span className="text-ui-footnote font-medium" style={{ color: t.swatch.fg }}>
                   Aa
                 </span>

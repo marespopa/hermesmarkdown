@@ -350,7 +350,7 @@ export function useVaultManager() {
         // gesture and will throw a SecurityError if called automatically.
         const granted = await queryPermission(savedHandle);
         if (granted) {
-          // The home feed shows its own indexing state, so reveal it now.
+          // The editor can show while the vault is read, so reveal it now.
           setIsVaultRestoring(false);
           setCurrentDirectoryHandle(savedHandle);
           detectCloudVault(savedHandle);

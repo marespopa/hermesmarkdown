@@ -192,7 +192,7 @@ describe("PaneLeaf Tab Indicators", () => {
     );
 
     expect(screen.getByRole("button", { name: /^Save/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Command palette" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Search or create a note…" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Sidebar" })).toBeInTheDocument();
     for (const name of ["Copy Markdown", "Split Right", "Settings", "Show toolbar"]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
@@ -203,7 +203,7 @@ describe("PaneLeaf Tab Indicators", () => {
     fireEvent.click(more);
     expect(more).toHaveAttribute("aria-expanded", "true");
     const menu = screen.getByRole("menu", { name: "More" });
-    for (const name of ["Copy Markdown", "Export as PDF", "Settings", "Documentation"]) {
+    for (const name of ["Copy Markdown", "Export as PDF", "Export as HTML", "Settings", "Documentation"]) {
       expect(within(menu).getByRole("menuitem", { name: new RegExp(`^${name}`) })).toBeInTheDocument();
     }
     for (const name of ["Split Right", "Token Cost", "Hide Toolbar"]) {
@@ -248,11 +248,11 @@ describe("PaneLeaf Tab Indicators", () => {
     );
 
     fireEvent.contextMenu(screen.getByText("file2.md"));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Pin to Home" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Pin Note" }));
     fireEvent.contextMenu(screen.getByText("file2.md"));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Unpin from Home" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Unpin Note" }));
     fireEvent.contextMenu(screen.getByText("file2.md"));
-    expect(screen.getByRole("menuitem", { name: "Pin to Home" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Pin Note" })).toBeInTheDocument();
   });
 
   it("pins the open note from the More menu, which shows whether it's pinned", () => {
@@ -270,14 +270,14 @@ describe("PaneLeaf Tab Indicators", () => {
 
     const more = screen.getByRole("button", { name: "More" });
     fireEvent.click(more);
-    fireEvent.click(within(screen.getByRole("menu", { name: "More" })).getByRole("menuitem", { name: "Pin to Home" }));
+    fireEvent.click(within(screen.getByRole("menu", { name: "More" })).getByRole("menuitem", { name: "Pin Note" }));
     fireEvent.click(more);
-    expect(within(screen.getByRole("menu", { name: "More" })).getByRole("menuitem", { name: "Unpin from Home" })).toBeInTheDocument();
+    expect(within(screen.getByRole("menu", { name: "More" })).getByRole("menuitem", { name: "Unpin Note" })).toBeInTheDocument();
     // The tab's own menu agrees.
     fireEvent.mouseDown(more);
     fireEvent.click(more);
     fireEvent.contextMenu(screen.getByText("file1.md"));
-    expect(screen.getByRole("menuitem", { name: "Unpin from Home" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Unpin Note" })).toBeInTheDocument();
   });
 
   it("offers no pin for a tab with no vault open", () => {
@@ -292,7 +292,7 @@ describe("PaneLeaf Tab Indicators", () => {
     );
 
     fireEvent.contextMenu(screen.getByText("file1.md"));
-    expect(screen.queryByRole("menuitem", { name: "Pin to Home" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Pin Note" })).not.toBeInTheDocument();
   });
 
   it("opens settings, help and the tools from the More menu", () => {

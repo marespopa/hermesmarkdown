@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import EditorShell from "./components/EditorShell";
 import VaultAccessGate from "./components/VaultAccessGate";
 
 export const metadata: Metadata = {
@@ -15,5 +16,10 @@ export default function EditorLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <VaultAccessGate>{children}</VaultAccessGate>;
+  // One shell for every /editor route, so the sidebar stays put between them.
+  return (
+    <VaultAccessGate>
+      <EditorShell>{children}</EditorShell>
+    </VaultAccessGate>
+  );
 }

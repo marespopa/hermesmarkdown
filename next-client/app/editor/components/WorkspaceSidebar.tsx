@@ -1,132 +1,41 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { HiChevronRight, HiOutlineCheckCircle, HiOutlineDocumentText, HiOutlineDotsHorizontal, HiOutlineHome, HiOutlineTemplate } from "react-icons/hi";
-import { atom_activeFilePath, atom_activePaneId, atom_openFiles, atom_workspaceLayout, findLeaf, getWorkspaceTabs } from "@/app/atoms/atoms";
-import { VscLayoutSidebarLeft } from "react-icons/vsc";
-import { atom_vaultName } from "@/app/atoms/vault-atoms";
-import { atom_filesFocusRequested, atom_goHome, atom_homeFeedOpen, atom_sidebarCollapsed, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
-import Button from "@/app/components/Button";
-import { useFileSystem } from "@/app/hooks/use-file-system";
+import { atom_activePaneId, atom_workspaceLayout, findLeaf } from "@/app/atoms/atoms";
+import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_pendingScrollTarget, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
-import { formatShortcut } from "@/app/utils/platform";
-import { PANE_HEADER_HEIGHT, PANE_ICON_SIZE } from "./pane-header-classes";
-import PaneToolbarButton from "./PaneToolbarButton";
-import TabContextMenu from "./TabContextMenu";
-import { statusDot } from "./PaneTab";
-import VaultFileTree from "./VaultFileTree";
-import { fileCreateActions } from "./vault-tree/file-create-actions";
+import SidebarFiles from "./sidebar/SidebarFiles";
+import SidebarHeader from "./sidebar/SidebarHeader";
+import SidebarOutline from "./sidebar/SidebarOutline";
+import { useSidebarNavigation } from "./sidebar/use-sidebar-navigation";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
 
+const DEFAULT_WIDTH = 256;
+// The sidebar lists the vault as it is; searching is the palette's job.
 const NO_TAGS: string[] = [];
-// Extra travel when hidden, past the reach of its shadow-xl.
-const SIDEBAR_SHADOW_ROOM = 32;
 
-// One fill for hover and the current row, the file tree's (FileRow), so
-// every row in the sidebar highlights alike; the current one is also bolder.
-const ITEM_FILL = "bg-paper-softgray/60 dark:bg-paper-dark-surface/50";
-const ITEM_CLASS = "flex items-center gap-2 h-7 px-2 rounded-md text-ui-footnote text-left transition-colors";
-const ITEM_CURRENT_CLASS = `${ITEM_FILL} text-ink-light dark:text-ink-dark font-medium`;
-const ITEM_IDLE_CLASS = "text-fg-muted hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50 hover:text-fg";
-
-interface SectionMenuItem {
-  label: string;
-  icon: React.ReactNode;
-  onSelect: () => void;
-}
-
-// A section header's ⋯ menu, in the shared menu look (TabContextMenu).
-function SectionMenu({ label, items }: { label: string; items: SectionMenuItem[] }) {
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
-
-  return (
-    <>
-      <Button
-        ref={buttonRef}
-        variant="unstyled"
-        aria-label={label}
-        aria-haspopup="menu"
-        aria-expanded={!!position}
-        title={label}
-        onClick={(event) => {
-          const rect = event.currentTarget.getBoundingClientRect();
-          setPosition(position ? null : { x: rect.right, y: rect.bottom + 4 });
-        }}
-        className={`shrink-0 inline-flex items-center justify-center w-6 h-6 mr-1 rounded-md transition-colors ${
-          position ? "text-fg bg-black/5 dark:bg-white/10" : "text-fg-faint hover:text-fg hover:bg-black/5 dark:hover:bg-white/10"
-        }`}
-      >
-        <HiOutlineDotsHorizontal size={14} aria-hidden="true" />
-      </Button>
-      {position && (
-        <TabContextMenu
-          x={position.x}
-          y={position.y}
-          align="end"
-          label={label}
-          anchorRef={buttonRef}
-          onClose={() => setPosition(null)}
-          items={items.map((item) => ({ label: item.label, icon: item.icon, onClick: item.onSelect }))}
-        />
-      )}
-    </>
-  );
-}
-
-// A titled, collapsible group. Collapsed sections are remembered
-// (atom_sidebarCollapsed, by title).
-function Section({ title, menu, children }: { title: string; menu?: SectionMenuItem[]; children: React.ReactNode }) {
-  const [collapsed, setCollapsed] = useAtom(atom_sidebarCollapsed);
-  const expanded = !collapsed[title];
-  const setExpanded = (next: boolean) => setCollapsed((prev) => ({ ...prev, [title]: !next }));
-  return (
-    <section aria-label={title} className="flex flex-col">
-      <div className="flex items-center">
-        <Button
-          variant="unstyled"
-          onClick={() => setExpanded(!expanded)}
-          aria-expanded={expanded}
-          className="flex flex-1 min-w-0 items-center gap-1 h-7 px-2 rounded-md text-ui-caption font-semibold text-fg-faint hover:text-fg-muted select-none"
-        >
-          {/* Disclosure chevron, always shown, as in a file explorer. */}
-          <HiChevronRight
-            size={12}
-            aria-hidden="true"
-            className={`shrink-0 transition-transform duration-150 ${expanded ? "rotate-90" : ""}`}
-          />
-          <span className="flex-1 text-left">{title}</span>
-        </Button>
-        {menu && <SectionMenu label={`${title} options`} items={menu} />}
-      </div>
-      {expanded && <div className="flex flex-col gap-px pb-3">{children}</div>}
-    </section>
-  );
-}
-
-// The window's sidebar (desktop): navigation only — Home, then with a vault
-// Templates and Tasks (their pages, through the page's unsaved-changes
-// guard), the open notes across
-// every pane, then the vault's file tree. Commands stay in the toolbar.
-// Floats over the window's leading edge on frosted glass, so opening it
-// never moves the text; slides out when hidden
-// (`atom_sidebarOpen`: hidden from its header's button, shown again from the toolbar's) and resizes by dragging its trailing edge
+// The window's sidebar (desktop), the same on every /editor route
+// (EditorShell hosts it), and kept to the library: the vault (a switcher),
+// New note and Hide; the note in front's Outline; the vault's Files.
+// Everything else (Home, All Notes, Tags, Tasks, Templates, Trash, Settings,
+// Export, search) is the command palette's (Ctrl/Cmd+K, SearchPill) or the
+// toolbar's More menu. A plain panel in the chrome colour with a hairline
+// edge; it takes room, pushing the page over (EditorShell), and slides out
+// when hidden. It stays open until you close it (`atom_sidebarOpen`: its
+// header's button, Escape inside it or Ctrl/Cmd+\; shown again from the
+// toolbar's), or, with Close Sidebar While Writing on (Settings → Editor),
+// until you type in a note. Resizes by dragging its trailing edge
 // (`atom_sidebarWidth`, double-click to reset).
-export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onOpenTasks?: () => void; onOpenTemplates?: () => void } = {}) {
+export default function WorkspaceSidebar() {
   const [open, setOpen] = useAtom(atom_sidebarOpen);
   const [width, setWidth] = useAtom(atom_sidebarWidth);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
-  const [activePaneId, setActivePaneId] = useAtom(atom_activePaneId);
-  const setActiveFilePath = useSetAtom(atom_activeFilePath);
-  const [homeFeedOpen, setHomeFeedOpen] = useAtom(atom_homeFeedOpen);
-  const goHome = useSetAtom(atom_goHome);
-  const openFiles = useAtomValue(atom_openFiles);
-  const vaultName = useAtomValue(atom_vaultName);
-  const {
-    vaultHandle, openFile, renameFile, deleteFile, trashItems, duplicateFile, moveItem, moveItems,
-    createNewFile, createFolder, undoFileOperation,
-  } = useFileSystem();
+  const activePaneId = useAtomValue(atom_activePaneId);
+  const hasVault = !!useAtomValue(atom_vaultHandle);
+  const navigation = useSidebarNavigation();
+  const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
   const treeController = useRef<VaultFileTreeController | null>(null);
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
 
@@ -139,45 +48,22 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
     setFilesFocusRequested(false);
   }, [filesFocusRequested, open, setFilesFocusRequested]);
 
-  // Opening notes leaves it open, so you can browse; a click in the editor
-  // (anywhere on a pane's sheet or canvas) means you're writing, and puts it away.
+  // Clicking in a note or opening one leaves it open. Only typing into a
+  // note puts it away, and only with Close Sidebar While Writing on.
+  const closeWhileWriting = useAtomValue(atom_closeSidebarWhileWriting);
   useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (event.target instanceof Element && event.target.closest(".editor-canvas")) setOpen(false);
+    if (!open || !closeWhileWriting) return;
+    const onBeforeInput = (event: Event) => {
+      if (event.target instanceof Element && event.target.closest(".cm-editor")) setOpen(false);
     };
-    document.addEventListener("pointerdown", onPointerDown, true);
-    return () => document.removeEventListener("pointerdown", onPointerDown, true);
-  }, [open, setOpen]);
+    document.addEventListener("beforeinput", onBeforeInput, true);
+    return () => document.removeEventListener("beforeinput", onBeforeInput, true);
+  }, [open, closeWhileWriting, setOpen]);
 
-  const tabs = getWorkspaceTabs(workspaceLayout.rootContainer);
-  const activeLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId);
-  const activeTabPath = activeLeaf?.activeFilePath ?? null;
-
-  const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
-    if (!path) return vaultHandle;
-    if (!vaultHandle) return null;
-    let dir: any = vaultHandle;
-    for (const segment of path.split("/")) {
-      try {
-        dir = await dir.getDirectoryHandle(segment);
-      } catch {
-        return null;
-      }
-    }
-    return dir;
-  }, [vaultHandle]);
-
-  // The tree shows no root row, so the Files ⋯ menu creates at the vault's
-  // root, named in place in the tree; a folder's own menu creates inside it.
-  const createAtRoot = (kind: "file" | "folder") => {
-    if (treeController.current) {
-      treeController.current.startCreate(kind, "");
-      return;
-    }
-    const create = kind === "file" ? createNewFile : createFolder;
-    if (vaultHandle) void create(vaultHandle);
-  };
+  // The note in front: the focused pane's tab, on the editor only.
+  const onWorkspace = navigation.onEditor;
+  const activeTabPath = findLeaf(workspaceLayout.rootContainer, activePaneId)?.activeFilePath ?? null;
+  const currentPath = onWorkspace ? activeTabPath : null;
 
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -197,119 +83,32 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
     <nav
       aria-label="Sidebar"
       inert={!open}
-      // Hidden, it slides a little past its own width so its shadow goes too.
-      style={{ width, left: open ? 0 : -(width + SIDEBAR_SHADOW_ROOM) }}
-      className="absolute inset-y-0 flex flex-col glass-bar transition-[left] duration-200 ease-out motion-reduce:transition-none"
+      // Escape that nothing inside handled (a menu, the tree's selection)
+      // hides the sidebar.
+      onKeyDown={(event) => {
+        if (event.key !== "Escape" || event.defaultPrevented) return;
+        event.preventDefault();
+        setOpen(false);
+      }}
+      // Hidden, it slides out by its own width as the page slides back.
+      style={{ width, left: open ? 0 : -width }}
+      className="absolute inset-y-0 flex flex-col bg-chrome border-r border-edge-subtle font-sans transition-[left] duration-200 ease-out motion-reduce:transition-none"
     >
-      {/* Header, level with the pane toolbar: the vault's name as the title,
-          as in a code editor's side bar, and the button that hides the
-          sidebar (the toolbar shows it again). */}
-      <div className={`flex items-center gap-2 shrink-0 pl-4 pr-2 sm:pr-3 border-b border-edge-subtle ${PANE_HEADER_HEIGHT}`}>
-        <h2 className="flex-1 min-w-0 truncate text-ui-caption font-semibold uppercase tracking-wider text-fg-faint select-none">
-          {vaultName ?? "Workspace"}
-        </h2>
-        {/* A plain icon button: alone, it needs no section capsule. */}
-        <PaneToolbarButton
-          icon={<VscLayoutSidebarLeft size={PANE_ICON_SIZE} />}
-          label="Hide sidebar"
-          shortcut={formatShortcut("S", { alt: true })}
-          tooltipPosition="bottom-end"
-          onClick={() => setOpen(false)}
-          className="shrink-0"
-        />
-      </div>
+      <SidebarHeader onNewNote={navigation.newNote} onHide={() => setOpen(false)} />
 
-      {/* The edge (hairline and shadow) starts below the header: the header
-          and the tab bar beside it read as one strip across the window. */}
-      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-2 border-r border-edge-subtle shadow-xl shadow-black/10">
-        <div className="flex flex-col gap-px pb-3">
-          <Button
-            variant="unstyled"
-            onClick={() => goHome()}
-            aria-current={homeFeedOpen ? "page" : undefined}
-            className={`${ITEM_CLASS} ${homeFeedOpen ? ITEM_CURRENT_CLASS : ITEM_IDLE_CLASS}`}
-          >
-            <HiOutlineHome size={15} aria-hidden="true" className="shrink-0 opacity-70" />
-            <span className="flex-1 min-w-0 truncate">Home</span>
-          </Button>
-          {vaultHandle && onOpenTemplates && (
-            <Button variant="unstyled" onClick={onOpenTemplates} className={`${ITEM_CLASS} ${ITEM_IDLE_CLASS}`}>
-              <HiOutlineTemplate size={15} aria-hidden="true" className="shrink-0 opacity-70" />
-              <span className="flex-1 min-w-0 truncate">Templates</span>
-            </Button>
-          )}
-          {vaultHandle && onOpenTasks && (
-            <Button variant="unstyled" onClick={onOpenTasks} className={`${ITEM_CLASS} ${ITEM_IDLE_CLASS}`}>
-              <HiOutlineCheckCircle size={15} aria-hidden="true" className="shrink-0 opacity-70" />
-              <span className="flex-1 min-w-0 truncate">Tasks</span>
-            </Button>
-          )}
-        </div>
-
-        <Section title="Open Notes">
-          {tabs.length === 0 ? (
-            <p className="px-2 py-1 text-ui-footnote text-fg-faint">No open notes</p>
-          ) : (
-            tabs.map(({ paneId, filePath }) => {
-              const fileState = openFiles[filePath];
-              const name = fileState?.fileName || filePath.split("/").pop() || "Untitled";
-              const isDirty = !!fileState && fileState.content !== fileState.lastSavedContent;
-              const isCurrent = !homeFeedOpen && paneId === activePaneId && filePath === activeTabPath;
-              return (
-                <Button
-                  key={`${paneId}\0${filePath}`}
-                  variant="unstyled"
-                  onClick={() => {
-                    setHomeFeedOpen(false);
-                    setActivePaneId(paneId);
-                    setActiveFilePath(filePath);
-                  }}
-                  aria-current={isCurrent ? "page" : undefined}
-                  title={filePath}
-                  className={`${ITEM_CLASS} ${isCurrent ? ITEM_CURRENT_CLASS : ITEM_IDLE_CLASS}`}
-                >
-                  <HiOutlineDocumentText size={15} aria-hidden="true" className="shrink-0 opacity-70" />
-                  <span className="flex-1 min-w-0 truncate">{name}</span>
-                  {isDirty && <span aria-label="Unsaved changes" className={`shrink-0 w-1.5 h-1.5 rounded-full ${statusDot.dirty.className}`} />}
-                </Button>
-              );
-            })
-          )}
-        </Section>
-
-        {vaultHandle && (
-          <Section
-            title="Files"
-            menu={fileCreateActions({
-              newNote: () => createAtRoot("file"),
-              newFolder: () => createAtRoot("folder"),
-            })}
-          >
-            <VaultFileTree
-              processedFiles={allFiles}
-              activeFilePath={activeTabPath}
-              openFile={(handle, path) => {
-                setHomeFeedOpen(false);
-                void openFile(handle, path);
-              }}
-              renameFile={renameFile}
-              deleteFile={deleteFile}
-              trashItems={trashItems}
-              duplicateFile={duplicateFile}
-              undoFileOperation={undoFileOperation}
-              controllerRef={treeController}
-              isSearchActive={false}
-              highlightQuery=""
-              treeView
-              singleClickOpen
-              folderPaths={folderPaths}
-              resolveFolderHandle={resolveFolderHandle}
-              createNewFile={createNewFile}
-              createFolder={createFolder}
-              moveItem={moveItem}
-              moveItems={moveItems}
-            />
-          </Section>
+      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-1">
+        {onWorkspace && activeTabPath && (
+          // The note is already in front: its pane just moves the caret there.
+          <SidebarOutline path={activeTabPath} onJump={(line) => setPendingScrollTarget({ path: activeTabPath, line })} />
+        )}
+        {hasVault && (
+          <SidebarFiles
+            treeController={treeController}
+            activeFilePath={currentPath}
+            openHandle={navigation.openHandle}
+            allFiles={allFiles}
+            folderPaths={folderPaths}
+          />
         )}
       </div>
 
@@ -334,12 +133,12 @@ export default function WorkspaceSidebar({ onOpenTasks, onOpenTemplates }: { onO
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        onDoubleClick={() => setWidth(256)}
+        onDoubleClick={() => setWidth(DEFAULT_WIDTH)}
         className="group absolute top-0 -right-1 bottom-0 w-2 cursor-col-resize z-10 outline-none"
       >
         <span
           aria-hidden="true"
-          className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-sage opacity-0 transition-opacity duration-150 delay-100 group-hover:opacity-60 group-active:opacity-100 group-focus-visible:opacity-100"
+          className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-fg-faint opacity-0 transition-opacity duration-150 delay-100 group-hover:opacity-60 group-active:opacity-100 group-focus-visible:opacity-100"
         />
       </div>
     </nav>

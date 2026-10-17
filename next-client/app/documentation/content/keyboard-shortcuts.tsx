@@ -38,7 +38,7 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "New note", shortcut: "CTRL+ALT+N" },
             { label: "Close current tab", shortcut: "CTRL/CMD+ALT+W" },
             { label: "Select workspace tab", shortcut: "CTRL/CMD+1–9" },
-            { label: "Show / hide sidebar", shortcut: "CTRL/CMD+ALT+S" },
+            { label: "Show / hide sidebar", shortcut: "CTRL/CMD+\\ or CTRL/CMD+ALT+S" },
             { label: "Sentence focus on / off", shortcut: "CTRL/CMD+ALT+F" },
           ],
         },
@@ -62,17 +62,6 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "Open Link or Date", shortcut: "CTRL+CLICK" },
             { label: "Cycle task status", shortcut: "CTRL+CLICK [ ]" },
             { label: "Cycle lifecycle tag", shortcut: "CLICK ‹ #tag ›" },
-          ],
-        },
-        {
-          context: "Home feed",
-          rows: [
-            { label: "Move between notes", shortcut: "↑ / ↓ or J / K" },
-            { label: "Newest / last note", shortcut: "G G / SHIFT+G" },
-            { label: "Open the selected note", shortcut: "ENTER or O" },
-            { label: "Pin or unpin the selected note", shortcut: "P" },
-            { label: "Search", shortcut: "/ or start typing" },
-            { label: "Back to your open notes", shortcut: "ESCAPE" },
           ],
         },
         {

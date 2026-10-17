@@ -3,7 +3,6 @@
 import { useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAtom, useAtomValue } from "jotai";
-import { HiOutlineArrowLeft } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { atom_vaultName } from "@/app/atoms/vault-atoms";
@@ -15,6 +14,8 @@ import VaultFileTree from "../components/VaultFileTree";
 import UnifiedSearchInput from "../components/UnifiedSearchInput";
 import { fileCreateActions } from "../components/vault-tree/file-create-actions";
 import type { VaultFileTreeController } from "../components/vault-tree/tree-model";
+import ShellPage from "../components/ShellPage";
+import { editorFileHref } from "../utils/editor-url";
 
 export default function FilesPage() {
   const router = useRouter();
@@ -86,28 +87,17 @@ export default function FilesPage() {
   const openSelectedFile = useCallback((handle: FileSystemFileHandle, path?: string) => {
     void openFile(handle, path);
     setActiveFilePath(path ?? handle.name);
-    router.push("/editor");
+    router.push(editorFileHref(path ?? handle.name));
   }, [openFile, router, setActiveFilePath]);
 
   if (!isMounted) return null;
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden overscroll-none bg-paper-pale font-sans text-ink-light dark:bg-paper-dark dark:text-ink-dark">
-      <header className="shrink-0 border-b border-beige/70 px-5 py-4 dark:border-paper-dark sm:px-8">
-        <Button
-          variant="bare"
-          onClick={() => router.push("/editor")}
-          className="group text-stone hover:text-ink-light dark:hover:text-ink-dark"
-          aria-label="Back to editor"
-        >
-          <HiOutlineArrowLeft size={13} className="transition-transform group-hover:-translate-x-0.5" />
-          Editor
-        </Button>
-      </header>
+    <ShellPage title="All Notes">
       <main className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-4 py-5 sm:px-8">
         <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="truncate text-ui-title-3 font-semibold">Files</h1>
+            <h1 className="truncate text-ui-title-3 font-semibold">All Notes</h1>
             <p className="truncate text-ui-caption text-stone">{vaultName ?? "No vault open"}</p>
           </div>
         {vaultHandle && (
@@ -181,6 +171,6 @@ export default function FilesPage() {
           </div>
         )}
       </main>
-    </div>
+    </ShellPage>
   );
 }

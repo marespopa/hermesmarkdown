@@ -7,6 +7,7 @@ import {
   HiOutlinePencil,
   HiOutlineTrash,
 } from "react-icons/hi";
+import { TbPinned } from "react-icons/tb";
 import { fileCreateActions } from "./file-create-actions";
 import { renameShortcut, trashShortcut, type TreeMenuItem } from "./TreeContextMenu";
 import type { VaultFileTreeProps } from "./tree-model";
@@ -79,6 +80,13 @@ export function treeMenuItems(
           label: "Open in Pane",
           icon: <HiOutlineTemplate {...ICON} />,
           onSelect: () => props.openFileInPane!(entry.handle as FileSystemFileHandle, target.path),
+        }]
+      : []),
+    ...(props.isPinned && props.togglePin
+      ? [{
+          label: props.isPinned(target.path) ? "Unpin" : "Pin",
+          icon: <TbPinned {...ICON} />,
+          onSelect: () => props.togglePin!(target.path),
         }]
       : []),
     { ...rename, separated: true },

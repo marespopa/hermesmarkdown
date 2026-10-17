@@ -39,8 +39,8 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     scanVault: vi.fn(),
     indexVaultTags: vi.fn(),
     closeVault: vi.fn(),
-    homePinnedPaths: [],
-    toggleHomePin: vi.fn(),
+    pinnedNotePaths: [],
+    toggleNotePin: vi.fn(),
     renameFile: vi.fn(),
     deleteFile: vi.fn(),
     duplicateFile: vi.fn(),
@@ -99,13 +99,13 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
 describe("buildEditorCommands", () => {
   it("pins the open note to Home, or unpins it when it's pinned", () => {
     const unpinned = createContext();
-    const pin = buildEditorCommands(unpinned).find((command) => command.id === "toggle-home-pin")!;
-    expect(pin.label).toBe("Pin to Home");
+    const pin = buildEditorCommands(unpinned).find((command) => command.id === "toggle-note-pin")!;
+    expect(pin.label).toBe("Pin Note");
     pin.action();
-    expect(unpinned.toggleHomePin).toHaveBeenCalledWith("Note.md");
+    expect(unpinned.toggleNotePin).toHaveBeenCalledWith("Note.md");
 
-    const pinned = buildEditorCommands(createContext({ homePinnedPaths: ["Note.md"] }));
-    expect(pinned.find((command) => command.id === "toggle-home-pin")?.label).toBe("Unpin from Home");
+    const pinned = buildEditorCommands(createContext({ pinnedNotePaths: ["Note.md"] }));
+    expect(pinned.find((command) => command.id === "toggle-note-pin")?.label).toBe("Unpin Note");
   });
 
   it("offers New board only with a vault, and runs createBoard", () => {
@@ -168,7 +168,7 @@ describe("buildEditorCommands", () => {
       "privacy-mode-show-title",
       "privacy-mode-hidden",
       "reveal-private-session",
-      "toggle-home-pin",
+      "toggle-note-pin",
       "close-vault",
       "copy-markdown",
       "rename-current-file",

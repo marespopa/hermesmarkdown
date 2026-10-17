@@ -25,8 +25,8 @@ export default function AppCommands() {
   const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
   const inEditor = pathname.startsWith("/editor");
 
-  // The marketing site's landing page. Inside the editor "Home" means the
-  // vault's home feed (`open-home-feed`), so this one stays out of the way.
+  // The marketing site's landing page: not part of writing, so the editor
+  // leaves it out.
   useRegisterCommand(
     inEditor
       ? null
@@ -75,6 +75,29 @@ export default function AppCommands() {
           action: () => router.push("/tools"),
         },
   );
+
+  // The editor's pages, from any route: the palette is the way around (the
+  // sidebar holds only the vault's files and the note's outline). On the
+  // editor itself Tasks and Templates come from its own commands, so they
+  // aren't listed twice.
+  const page = (id: string, label: string, href: string, keywords: string, onEditorToo = true): Command | null =>
+    !onEditorToo && pathname === "/editor"
+      ? null
+      : {
+          id,
+          label,
+          category: "Navigation",
+          keywords,
+          disabledReason: pathname.startsWith(href) ? `Already in ${label.replace("Open ", "")}` : undefined,
+          action: () => router.push(href),
+        };
+  const pageCommands = [
+    page("open-all-notes", "Open All Notes", "/editor/files", "files notes list library browse vault"),
+    page("open-tags", "Open Tags", "/editor/tags", "tags hashtags labels topics browse"),
+    page("open-trash", "Open Trash", "/editor/trash", "trash deleted restore put back recover bin"),
+    page("go-tasks", "Open Tasks", "/editor/tasks", "tasks todos checklist", false),
+    page("go-templates", "Open Templates", "/editor/templates", "templates template packs manage", false),
+  ].filter((command): command is Command => !!command);
 
   useRegisterCommand({
     id: "open-settings",
@@ -127,5 +150,5 @@ export default function AppCommands() {
     })),
   ];
 
-  return <RegisteredCommands commands={[...themeCommands, ...paletteCommands]} />;
+  return <RegisteredCommands commands={[...pageCommands, ...themeCommands, ...paletteCommands]} />;
 }

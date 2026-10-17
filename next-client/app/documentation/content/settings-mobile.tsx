@@ -17,7 +17,8 @@ export const settingsGroup: Group = {
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically.
             Each mode has its own color theme: Paper, Sepia, Porcelain, Sage or Solarized for light,
-            and Ink, Midnight, Graphite, Dusk or Nord for dark. Settings → Appearance shows the colors for the
+            and Ink, Midnight, Graphite, Dusk or Nord for dark. Each theme has its own accent hue, kept to the
+            caret, focus rings, toggles and selections; icons and buttons stay quiet ink on paper. Settings → Appearance shows the colors for the
             mode you picked, and both under System; the command palette also has{" "}
             <strong>Light Theme: …</strong> and <strong>Dark Theme: …</strong>. The
             editor font, text size and Full Width (on by default) are set under Settings →
@@ -31,7 +32,7 @@ export const settingsGroup: Group = {
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
               { label: "Light / Dark theme", value: "Paper, Sepia, Porcelain, Sage, Solarized / Ink, Midnight, Graphite, Dusk, Nord" },
-              { label: "Sidebar", value: "The toolbar's Sidebar button, CTRL/CMD+ALT+S or Toggle Sidebar: open notes and the vault's files on the window's left edge (desktop)" },
+              { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Toggle Sidebar: navigation, notes and the vault's files on the window's left edge, on every editor page (desktop)" },
               { label: "Typeface", value: "Geist Mono by default, Duospace or Quattro" },
             ]}
           />
@@ -105,12 +106,6 @@ export const mobileGroup: Group = {
             bar is the one always-present way to open it. From there, Show Files, Search, Open Tasks,
             New Note, and every other command work exactly as they do on desktop.
           </p>
-          <p>
-            The <strong>Home</strong> button at the left of that bar takes you back to the{" "}
-            <a href="#home-feed" className="text-accent hover:underline">home feed</a>.
-            On the feed, the search bar and the <strong>+</strong> button sit at the bottom, within
-            reach of your thumb.
-          </p>
           <p>Files and Search open full screen rather than as docked panels.</p>
         </>
       ),
@@ -130,7 +125,7 @@ export const mobileGroup: Group = {
             ]}
           />
           <p>
-            From the home feed&apos;s vault menu (or the command palette), choose <strong>Browser vaults…</strong>{" "}
+            From the command palette, choose <strong>Browser vaults…</strong>{" "}
             to create or reopen one. On iOS, use <em>Share → Add to Home Screen</em>: the installed
             app opens full-screen and starts without a connection.
           </p>

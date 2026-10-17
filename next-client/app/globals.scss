@@ -52,19 +52,17 @@ body {
   --frontmatter-bg-active: rgba(60, 56, 50, 0.085);  /* Properties on hover/focus (rest is -hover) */
   --frontmatter-label-opacity: 0.4;
   --row-stripe:     rgba(60, 56, 50, 0.035);  /* alternate rows in list views (Explorer) */
-  /* Materials: Apple-style frosted glass for everything that floats over
-     the page (.glass-bar, .glass-panel below). A tint of the surface it
-     stands for, a heavy blur with a saturation boost so colour behind it
-     glows through, a hairline edge, a light inner top edge and a layered
-     shadow. Bars and panels are tints of --chrome and --overlay, so the
-     dark values follow from those. Panels stay mostly opaque (90%): text
-     on them (toasts, menus, dialogs) must read over a busy page. */
-  --material-bar:       color-mix(in srgb, var(--chrome) 72%, transparent);
-  --material-panel:     color-mix(in srgb, var(--overlay) 90%, transparent);
-  --material-blur:      blur(24px) saturate(180%);
+  /* Materials for what floats over the page (.glass-bar, .glass-panel
+     below). Flat, as a plain writing app: solid fills (the chrome for bars,
+     the overlay for panels), no blur, a hairline edge and a soft shadow so
+     a menu still lifts off the page. The names stay from the frosted
+     version; the dark values follow from --chrome and --overlay. */
+  --material-bar:       var(--chrome);
+  --material-panel:     var(--overlay);
+  --material-blur:      none;
   --material-edge:      rgba(0, 0, 0, 0.08);
-  --material-highlight: rgba(255, 255, 255, 0.65);
-  --material-shadow:    0 1px 2px rgba(0, 0, 0, 0.05), 0 12px 32px -8px rgba(0, 0, 0, 0.18);
+  --material-highlight: transparent;
+  --material-shadow:    0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -10px rgba(0, 0, 0, 0.14);
   --ease-spring:    cubic-bezier(0.16, 1, 0.3, 1);
   /* Static aliases (Tailwind paper-*, ink-*, beige, clay) as RGB channels,
      so opacity modifiers work and the color themes (theme-palettes.scss)
@@ -114,8 +112,8 @@ html.dark {
   --task-hold:      #CDB173;
   --row-stripe:     rgba(214, 207, 198, 0.035);
   --material-edge:      rgba(255, 255, 255, 0.10);
-  --material-highlight: rgba(255, 255, 255, 0.07);
-  --material-shadow:    0 1px 2px rgba(0, 0, 0, 0.35), 0 16px 40px -8px rgba(0, 0, 0, 0.55);
+  --material-highlight: transparent;
+  --material-shadow:    0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -10px rgba(0, 0, 0, 0.5);
   --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.97 0 0 0 0 0.92 0.9 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.07'/%3E%3C/svg%3E");
 }
 
@@ -323,12 +321,12 @@ html.dark {
 
 /* List styling using Tailwind colors */
 ul li::marker {
-  color: theme('colors.accent.DEFAULT');
+  color: var(--clay);
 }
 
 /* Special styling for lists that contain • character */
 .bullet-list li::marker {
-  color: theme('colors.accent.DEFAULT');
+  color: var(--clay);
 }
 
 @keyframes blink {
@@ -577,6 +575,17 @@ ul li::marker {
     border: 1px solid var(--material-edge);
     box-shadow: inset 0 1px 0 var(--material-highlight), var(--material-shadow);
   }
+
+  /* A large panel that floats alone (the command palette): its edge is a
+     hairline in the text colour, so it tints with the theme instead of
+     reading as a white rim on dark glass, and the top highlight is fainter. */
+  .glass-panel-soft {
+    border-color: transparent;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--fg) 8%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--material-highlight) 35%, transparent),
+      var(--material-shadow);
+  }
 }
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -601,5 +610,15 @@ ul li::marker {
     --material-panel: var(--overlay);
     --material-blur: none;
     --material-edge: var(--border);
+  }
+
+  /* The light colour themes tint the edge (theme-palettes.scss) with a more
+     specific selector; Increase Contrast still wins. */
+  html[data-light-theme][data-light-theme]:not(.dark) {
+    --material-edge: var(--border);
+  }
+
+  .glass-panel-soft {
+    border-color: var(--material-edge);
   }
 }

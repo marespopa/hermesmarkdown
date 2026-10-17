@@ -78,7 +78,7 @@ export function parseNoteFile({ path, name, content, modifiedAt }: NoteFileInfo)
   // including a board's JSON, yields none.
   const tasks = extractTasks(path, content);
 
-  // Plain-text excerpt for the home feed
+  // Plain-text excerpt for note lists
   const preview = notePreview(text);
 
   return { path, name, tags, links, frontmatter, modifiedAt, wordCount, tasks, preview };

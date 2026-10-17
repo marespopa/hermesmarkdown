@@ -210,8 +210,8 @@ tags: [finance, private]
           </p>
           <KV
             rows={[
-              { label: "Mask in lists (default)", value: "Home feed, quick open and Tasks show the title with a lock; preview and task text are bullets" },
-              { label: "Hide from lists", value: "Left out of the home feed, quick open and Tasks" },
+              { label: "Mask in lists (default)", value: "Pinned notes, quick open and Tasks show the title with a lock; preview and task text are bullets" },
+              { label: "Hide from lists", value: "Left out of pinned notes, quick open and Tasks" },
             ]}
           />
           <Callout type="note">

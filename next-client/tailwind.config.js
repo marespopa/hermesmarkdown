@@ -86,9 +86,12 @@ module.exports = {
           dark:    'var(--moss)',
           hover:   'var(--moss-hover)',
         },
+        // Unlike the other var colors, `accent` takes opacity modifiers
+        // (`bg-accent/15`): color-mix fades the var by <alpha-value> (1 with
+        // no modifier, so plain `text-accent` is the colour itself).
         accent: {
-          DEFAULT: 'var(--clay)',
-          hover:   'var(--clay)',
+          DEFAULT: 'color-mix(in srgb, var(--clay) calc(<alpha-value> * 100%), transparent)',
+          hover:   'color-mix(in srgb, var(--clay) calc(<alpha-value> * 100%), transparent)',
         },
 
         // Task status (TaskStatusButton, Tasks page groups, editor task box).

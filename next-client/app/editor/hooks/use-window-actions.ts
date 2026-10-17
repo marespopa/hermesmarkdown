@@ -2,7 +2,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { atom_activePaneId, atom_workspaceLayout } from "@/app/atoms/atoms";
 import { atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
-import { atom_homePinnedPaths, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
+import { atom_pinnedNotePaths, atom_toggleNotePin } from "@/app/atoms/note-pin-atoms";
 import { findLeaf } from "@/app/atoms/utils";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
@@ -25,8 +25,8 @@ export function useWindowActions() {
   // The focused pane's note, when it can be pinned to Home: in the open
   // vault, not the draft.
   const hasVault = !!useAtomValue(atom_vaultHandle);
-  const homePinnedPaths = useAtomValue(atom_homePinnedPaths);
-  const toggleHomePin = useSetAtom(atom_toggleHomePin);
+  const pinnedNotePaths = useAtomValue(atom_pinnedNotePaths);
+  const toggleNotePin = useSetAtom(atom_toggleNotePin);
   const pinnablePath = hasVault && activeLeaf?.activeFilePath && activeLeaf.activeFilePath !== "draft" ? activeLeaf.activeFilePath : null;
 
   return {
@@ -34,8 +34,8 @@ export function useWindowActions() {
     sidebarOpen,
     activePaneHasFiles,
     canPinActiveNote: !!pinnablePath,
-    isActiveNotePinned: !!pinnablePath && homePinnedPaths.includes(pinnablePath),
-    toggleActiveNotePin: () => { if (pinnablePath) toggleHomePin(pinnablePath); },
+    isActiveNotePinned: !!pinnablePath && pinnedNotePaths.includes(pinnablePath),
+    toggleActiveNotePin: () => { if (pinnablePath) toggleNotePin(pinnablePath); },
     openCommandPalette: () => openCommandPalette(),
     // Same trigger as the Ctrl/Cmd+Shift+B shortcut; the editor page opens the chat.
     openAIChat: () => setAiBuilderRequest((value) => value + 1),

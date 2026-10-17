@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { atom_homePinnedPaths, atom_toggleHomePin } from "@/app/atoms/home-pin-atoms";
+import { atom_pinnedNotePaths, atom_toggleNotePin } from "@/app/atoms/note-pin-atoms";
 import { useRouter } from "next/navigation";
 import {
   atom_activeFilePath,
@@ -110,8 +110,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [revealAllPrivate, setRevealAllPrivate] = useAtom(atom_revealAllPrivate);
   const setRevealedPrivatePaths = useSetAtom(atom_revealedPrivatePaths);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
-  const homePinnedPaths = useAtomValue(atom_homePinnedPaths);
-  const toggleHomePin = useSetAtom(atom_toggleHomePin);
+  const pinnedNotePaths = useAtomValue(atom_pinnedNotePaths);
+  const toggleNotePin = useSetAtom(atom_toggleNotePin);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
@@ -131,8 +131,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     createBoard,
     boardMarkdownPaths,
     toggleBoardMarkdown,
-    homePinnedPaths,
-    toggleHomePin,
+    pinnedNotePaths,
+    toggleNotePin,
     renameFile,
     deleteFile,
     duplicateFile,

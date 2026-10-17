@@ -229,7 +229,7 @@ tags: []
         />
         <KV
           rows={[
-            { label: "Open Home", value: "Your vault's home feed: recent notes" },
+            { label: "Pin Note", value: "Keep the note first in the palette and in Files" },
             { label: "Export as PDF", value: "Print the note, or save it as a PDF" },
             { label: "Export as HTML", value: "Download the note as a standalone web page" },
             { label: "Show Files", value: "CTRL/CMD+SHIFT+E" },
@@ -255,7 +255,7 @@ tags: []
             { label: "New Folder", value: "Choose a vault folder, then enter a name" },
             { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },
             { label: "Open AI Chat", value: "CTRL+SHIFT+B · when AI is configured" },
-            { label: "Navigate", value: "Open Home, Open Settings, Open Documentation, Show Keyboard Shortcuts" },
+            { label: "Navigate", value: "Open All Notes, Open Tags, Open Tasks, Open Templates, Open Trash, Open Settings, Open Documentation, Show Keyboard Shortcuts" },
           ]}
         />
         <p>

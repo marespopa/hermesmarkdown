@@ -22,15 +22,18 @@ vi.mock("./components/TasksList", () => ({
 }));
 
 describe("TasksPage", () => {
-  it("returns to the editor and navigates selected tasks there", () => {
+  it("goes back to the editor from its title bar", () => {
     render(<TasksPage />);
-
     fireEvent.click(screen.getByTitle("Back to editor"));
     expect(push).toHaveBeenCalledWith("/editor");
+  });
+
+  it("opens a selected task's note at its URL in the editor", () => {
+    render(<TasksPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "Open task" }));
     expect(openFile).toHaveBeenCalledWith({ name: "note.md" }, "note.md");
     expect(setPendingScrollTarget).toHaveBeenCalledWith({ path: "note.md", line: 4 });
-    expect(push).toHaveBeenLastCalledWith("/editor");
+    expect(push).toHaveBeenLastCalledWith("/editor?file=note.md");
   });
 });

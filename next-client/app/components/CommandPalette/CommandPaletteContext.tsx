@@ -36,7 +36,7 @@ type CommandPaletteContextValue = {
 
 const CommandPaletteContext = createContext<CommandPaletteContextValue | null>(null);
 
-// Shared-element name linking a search anchor (e.g. the home feed's search
+// Shared-element name linking a search anchor (the toolbar's search
 // pill) and the palette's search row, so opening and closing morph one into
 // the other instead of showing two separate components.
 export const PALETTE_SEARCH_TRANSITION = "palette-search";
@@ -176,6 +176,12 @@ export function useCommandPalette() {
   const ctx = useContext(CommandPaletteContext);
   if (!ctx) throw new Error("useCommandPalette must be used within a CommandPaletteProvider");
   return ctx;
+}
+
+// For an entry point that can render outside the provider (a page under
+// test): null there, where it then renders nothing.
+export function useOptionalCommandPalette() {
+  return useContext(CommandPaletteContext);
 }
 
 // Registers a command for the lifetime of the calling component. `command`

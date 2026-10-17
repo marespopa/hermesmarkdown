@@ -42,8 +42,7 @@ import { QUATTRO_FONT_STACK, atom_focusMode } from "@/app/atoms/ui-atoms";
 import { atom_aiEnabled, atom_aiProvider, atom_availableClaudeModels, atom_claudeKey } from "@/app/atoms/atoms";
 
 // Helper: switch to the "Editor" category so its controls render.
-// The page has two "Editor" texts: the back-button breadcrumb and the nav item.
-// We target the nav item (last match in DOM order).
+// Target the nav item (last match in DOM order), past any other "Editor" text.
 const openEditorSection = () => {
   const matches = screen.getAllByText("Editor");
   fireEvent.click(matches[matches.length - 1]);
@@ -104,6 +103,7 @@ describe("SettingsPage", () => {
 
     expect(screen.getByText("Vim Mode")).toBeInTheDocument();
     expect(screen.getByText("Word Count")).toBeInTheDocument();
+    expect(screen.getByText("Close Sidebar While Writing")).toBeInTheDocument();
     expect(screen.queryByText("Full Width")).not.toBeInTheDocument();
     // Palette-only toggles and the sidebar have no settings rows.
     expect(screen.queryByText("Word Wrap")).not.toBeInTheDocument();
@@ -206,10 +206,27 @@ describe("SettingsPage", () => {
     expect(screen.getByText(/There's no account/)).toBeInTheDocument();
   });
 
-  it("navigates back to the editor when back button is clicked", () => {
+  it("goes back to the editor from its title bar", () => {
     render(<SettingsPage />);
-
     fireEvent.click(screen.getByTitle("Back to editor"));
     expect(pushMock).toHaveBeenCalledWith("/editor");
+  });
+
+  it("keeps the open section in the URL", () => {
+    window.history.replaceState(null, "", "/editor/settings");
+    render(<SettingsPage />);
+
+    openFilesSection();
+    expect(window.location.search).toBe("?section=files");
+    fireEvent.click(screen.getByText("Appearance"));
+    expect(window.location.search).toBe("");
+  });
+
+  it("opens the section the URL names", () => {
+    window.history.replaceState(null, "", "/editor/settings?section=ai");
+    render(<SettingsPage />);
+
+    expect(screen.getByRole("heading", { level: 2, name: "AI Features" })).toBeInTheDocument();
+    window.history.replaceState(null, "", "/editor/settings");
   });
 });

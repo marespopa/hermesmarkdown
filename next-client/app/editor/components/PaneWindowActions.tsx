@@ -9,22 +9,24 @@ import {
   HiOutlineDocumentDownload,
   HiOutlineDotsHorizontal,
   HiOutlineQuestionMarkCircle,
-  HiOutlineSearch,
 } from "react-icons/hi";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import { formatShortcut } from "@/app/utils/platform";
 import { useWindowActions } from "../hooks/use-window-actions";
 import PaneToolbarButton from "./PaneToolbarButton";
+import SearchPill from "./SearchPill";
 import TabContextMenu from "./TabContextMenu";
 import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 
 // Window-wide toolbar sections. They change the whole app, not one pane, so
 // `PaneLeaf` renders them once — in the top-right pane's header — where they
 // stay put while focus moves between panes. Each section is its own capsule:
-// - Tools: command palette and AI chat.
+// - Search: the command palette's pill (SearchPill), the app's main way
+//   in, widest of the toolbar's controls; then AI chat when it's set up.
 // - More: a pull-down menu with the secondary commands (Copy Markdown,
-//   Export as PDF, Export as HTML and Pin to Home / Unpin from Home for the focused pane,
-//   Settings, Help). Split panes and Token Cost are palette commands.
+//   Export as PDF, Export as HTML and Pin Note / Unpin Note for the
+//   focused pane, Settings, Documentation). Split panes and Token Cost are
+//   palette commands.
 export default function PaneWindowActions() {
   const actions = useWindowActions();
   const moreRef = useRef<HTMLButtonElement>(null);
@@ -38,24 +40,17 @@ export default function PaneWindowActions() {
 
   return (
     <div className="flex items-center shrink-0" role="toolbar" aria-label="Window">
-      <div className={PANE_SECTION_CLASS} role="group" aria-label="Tools">
-        <PaneToolbarButton
-          icon={<HiOutlineSearch size={PANE_ICON_SIZE} />}
-          label="Search"
-          tooltip="Command palette"
-          aria-label="Command palette"
-          shortcut={formatShortcut("K")}
-          onClick={actions.openCommandPalette}
-        />
-        {actions.isAiConfigured && (
+      <SearchPill className="ml-2 w-[clamp(9rem,22vw,18rem)]" />
+      {actions.isAiConfigured && (
+        <div className={PANE_SECTION_CLASS} role="group" aria-label="Tools">
           <PaneToolbarButton
             icon={<HiOutlineChatAlt2 size={PANE_ICON_SIZE} />}
             label="AI Chat"
             shortcut={formatShortcut("B", { shift: true })}
             onClick={actions.openAIChat}
           />
-        )}
-      </div>
+        </div>
+      )}
 
       <div className={PANE_SECTION_CLASS} role="group" aria-label="More">
         <PaneToolbarButton
@@ -90,7 +85,7 @@ export default function PaneWindowActions() {
             // Its label and filled pin say whether the open note is pinned.
             ...(actions.canPinActiveNote
               ? [{
-                  label: actions.isActiveNotePinned ? "Unpin from Home" : "Pin to Home",
+                  label: actions.isActiveNotePinned ? "Unpin Note" : "Pin Note",
                   icon: actions.isActiveNotePinned ? <TbPinnedFilled size={15} className="text-accent" /> : <TbPinned size={15} />,
                   onClick: actions.toggleActiveNotePin,
                 }]

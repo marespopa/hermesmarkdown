@@ -7,6 +7,14 @@
    applies without `.dark`, the dark one with it. The defaults (Paper, Ink)
    are the plain globals.scss tokens and have no block here. Each palette
    keeps --fg-faint and the accents at ≥4.5:1 on surface, raised and chrome.
+   The materials (globals.scss) follow on their own: bars are --chrome,
+   panels --overlay. Light palettes also tint the panels' edge and shadow
+   with their own hue rather than neutral black; dark ones keep the default
+   white edge and black shadow.
+   Each palette has one identity hue, used for both accents (clay and moss):
+   the caret, focus rings, toggles and selections follow it. Icons and
+   buttons stay neutral (ink on paper). It clears 4.5:1 on surface, raised
+   and chrome.
    ─────────────────────────────────────────────────────────────────────── */
 
 // A color as space-separated RGB channels, for the `rgb(var(--x) / a)` aliases.
@@ -31,6 +39,9 @@
   --moss:           #{map.get($p, moss)};
   --moss-hover:     #{map.get($p, moss-hover)};
   --task-hold:      #{map.get($p, hold)};
+  // Task statuses keep their own warm / green pair, apart from the accent.
+  --task-prog:      #{map.get($p, prog)};
+  --task-done:      #{map.get($p, done)};
   --link:           #{map.get($p, link)};
   --link-hover:     #{map.get($p, link-hover)};
   --row-stripe:     #{color.change(map.get($p, tint), $alpha: 0.035)};
@@ -38,6 +49,9 @@
 
 @mixin light-palette($p) {
   @include palette($p);
+  --material-edge:   #{color.change(map.get($p, tint), $alpha: 0.1)};
+  --material-shadow: 0 1px 2px #{color.change(map.get($p, tint), $alpha: 0.06)},
+    0 8px 24px -10px #{color.change(map.get($p, tint), $alpha: 0.14)};
   --frontmatter-bg:        #{color.change(map.get($p, tint), $alpha: 0.035)};
   --frontmatter-bg-hover:  #{color.change(map.get($p, tint), $alpha: 0.055)};
   --frontmatter-bg-active: #{color.change(map.get($p, tint), $alpha: 0.085)};
@@ -68,7 +82,8 @@ html[data-light-theme="sepia"]:not(.dark) {
     surface: #F7F1E5, raised: #EFE7D7, chrome: #ECE3D1, softgray: #E5DAC5,
     input: #FBF7EF, border: #D9CCB4, tint: rgb(90, 70, 40),
     fg: #3A2F23, fg-muted: #5F5244, fg-faint: #6C5F50, ink-hover: #4A3D2F,
-    clay: #9C4F36, moss: #5C6A4C, moss-hover: #56644A, hold: #7A5F27,
+    clay: #8A5A2B, moss: #8A5A2B, moss-hover: #7C5127, hold: #7A5F27,
+    prog: #9C4F36, done: #5C6A4C,
     link: #2B5FBF, link-hover: #1F57C4,
   ));
 }
@@ -79,7 +94,8 @@ html[data-light-theme="porcelain"]:not(.dark) {
     surface: #F8F9FB, raised: #EFF1F5, chrome: #ECEFF3, softgray: #E4E8EE,
     input: #FFFFFF, border: #D5DBE3, tint: rgb(40, 50, 70),
     fg: #1F2329, fg-muted: #4E5662, fg-faint: #5F6773, ink-hover: #2F343C,
-    clay: #A2563E, moss: #5A6B55, moss-hover: #546450, hold: #80652C,
+    clay: #3F6EA8, moss: #3F6EA8, moss-hover: #396397, hold: #80652C,
+    prog: #A2563E, done: #5A6B55,
     link: #2563C9, link-hover: #1A5CD0,
   ));
 }
@@ -90,7 +106,8 @@ html[data-light-theme="sage"]:not(.dark) {
     surface: #F4F6F1, raised: #EBEFE6, chrome: #E7ECE1, softgray: #DFE5D8,
     input: #FAFBF8, border: #CFD8C6, tint: rgb(45, 60, 40),
     fg: #232A22, fg-muted: #4D5949, fg-faint: #5D6858, ink-hover: #333D31,
-    clay: #9A5039, moss: #55663F, moss-hover: #4F5F3A, hold: #7A5F27,
+    clay: #4F6B3A, moss: #4F6B3A, moss-hover: #476034, hold: #7A5F27,
+    prog: #9A5039, done: #55663F,
     link: #285FBF, link-hover: #1E57C4,
   ));
 }
@@ -102,7 +119,8 @@ html[data-light-theme="solarized"]:not(.dark) {
     surface: #FDF6E3, raised: #F4EDD8, chrome: #EEE8D5, softgray: #E6DFCA,
     input: #FFFBF0, border: #DDD6C1, tint: rgb(7, 54, 66),
     fg: #073642, fg-muted: #4D5E63, fg-faint: #566A70, ink-hover: #0B4250,
-    clay: #B23F0E, moss: #5F6E00, moss-hover: #566300, hold: #7F6300,
+    clay: #1A6BA6, moss: #1A6BA6, moss-hover: #176095, hold: #7F6300,
+    prog: #B23F0E, done: #5F6E00,
     link: #1A6BA6, link-hover: #155D92,
   ));
 }
@@ -113,7 +131,8 @@ html.dark[data-dark-theme="midnight"] {
     surface: #1A1F29, raised: #232A37, chrome: #12161E,
     input: #161B24, border: #333C4D, tint: rgb(200, 210, 230),
     fg: #E4E8EF, fg-muted: #A3ACBA, fg-faint: #8E98A8,
-    clay: #E0937A, moss: #93A884, moss-hover: #A7BB98, hold: #D1B676,
+    clay: #7AA7E8, moss: #7AA7E8, moss-hover: #8EB4EB, hold: #D1B676,
+    prog: #E0937A, done: #93A884,
     link: #6EAEFF, link-hover: #94C2FF,
   ));
 }
@@ -124,7 +143,8 @@ html.dark[data-dark-theme="graphite"] {
     surface: #1C1C1E, raised: #2A2A2D, chrome: #111112,
     input: #18181A, border: #3A3A3D, tint: rgb(210, 210, 215),
     fg: #E9E9EB, fg-muted: #A6A6AB, fg-faint: #919196,
-    clay: #DC8E6C, moss: #94A67E, moss-hover: #A8BA92, hold: #CFB475,
+    clay: #A3ACB9, moss: #A3ACB9, moss-hover: #B1B8C4, hold: #CFB475,
+    prog: #DC8E6C, done: #94A67E,
     link: #68ABFF, link-hover: #8FC0FF,
   ));
 }
@@ -135,7 +155,8 @@ html.dark[data-dark-theme="dusk"] {
     surface: #221E2A, raised: #2C2736, chrome: #19161F,
     input: #1D1924, border: #3D3649, tint: rgb(220, 210, 235),
     fg: #ECE6F2, fg-muted: #ADA4BA, fg-faint: #968DA3,
-    clay: #E3957A, moss: #9AAE86, moss-hover: #AEC09B, hold: #D4B878,
+    clay: #B49BE0, moss: #B49BE0, moss-hover: #BFAAE5, hold: #D4B878,
+    prog: #E3957A, done: #9AAE86,
     link: #80B1FF, link-hover: #A3C6FF,
   ));
 }
@@ -147,7 +168,8 @@ html.dark[data-dark-theme="nord"] {
     surface: #2E3440, raised: #3B4252, chrome: #262B35,
     input: #2A2F3A, border: #434C5E, tint: rgb(216, 222, 233),
     fg: #ECEFF4, fg-muted: #C5CCD8, fg-faint: #A9B2C2,
-    clay: #E3A893, moss: #A3BE8C, moss-hover: #B7CDA3, hold: #EBCB8B,
+    clay: #88C0D0, moss: #88C0D0, moss-hover: #9AC9D7, hold: #EBCB8B,
+    prog: #E3A893, done: #A3BE8C,
     link: #88C0D0, link-hover: #A3D0DC,
   ));
 }

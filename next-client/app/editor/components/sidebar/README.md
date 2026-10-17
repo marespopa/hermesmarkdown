@@ -1,0 +1,12 @@
+# sidebar
+
+The parts of `WorkspaceSidebar` (one level up), top to bottom, and what they share. The sidebar is only the library (vault, Outline, Files); everything else is the command palette's.
+
+| Item | Purpose |
+|---|---|
+| [SidebarHeader](SidebarHeader.md) | Vault switcher, New note, Hide sidebar. |
+| [SidebarOutline](SidebarOutline.md) | The note in front's H1–H3 headings; a click jumps there. |
+| [SidebarFiles](SidebarFiles.md) | The vault's file tree. |
+| [SidebarSection](SidebarSection.md) | A collapsible group set apart by a hairline, its chevron always shown, with an optional ⋯ menu. |
+| `sidebar-classes.ts` | The quiet look every part uses: 28px rows in the primary text colour, neutral grey icons (`SIDEBAR_ICON_CLASS`), the current row on a soft accent fill (`SIDEBAR_ACCENT_FILL`, the file tree's active-row fill), quiet icon buttons. |
+| `use-sidebar-navigation.ts` | Opening a tree row and New note from any /editor route: in place on the editor, else back to it at the note's URL. |

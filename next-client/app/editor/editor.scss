@@ -3,8 +3,10 @@
    border. The editor's own textarea is unaffected and keeps the clay outline. */
 /* The sheet's edges line up with the first tab: the pane header's padding
    (px-2 sm:px-3) + the tab strip's (px-1.5) + the tab's margin (mx-0.5). */
+/* Clear: the page behind shows through (.app-sheet). While typing it takes
+   the paper (.typing-page, below). */
 .editor-canvas {
-  background-color: var(--chrome);
+  background-color: transparent;
   padding-inline: 1rem;
 }
 
@@ -32,12 +34,6 @@
   }
 }
 
-html.dark .editor-canvas {
-  background:
-    radial-gradient(circle at 50% -10%, rgb(255 255 255 / 3%), transparent 42%),
-    var(--chrome);
-}
-
 .editor-sheet {
   background-color: var(--surface);
   border: 1px solid var(--border-subtle);
@@ -45,19 +41,11 @@ html.dark .editor-canvas {
   box-shadow: 0 8px 30px -12px rgb(0 0 0 / 10%);
 }
 
-/* Paper grain on the editor panel. It moves with the panel rather than
-   being fixed to the viewport: a fixed grain stays still while the panel
-   resizes as the sidebar slides, so it shimmers and repaints every frame. */
+/* Paper grain on the panel (the tool pages' editors). It moves with the
+   panel rather than being fixed to the viewport, so resizing it never
+   shimmers. */
 .editor-sheet {
   background-image: var(--paper-grain);
-}
-
-.editor-no-wrap-viewport {
-  max-width: 100%;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: clip;
-  overscroll-behavior-x: contain;
 }
 
 html.dark .editor-sheet {
@@ -66,6 +54,24 @@ html.dark .editor-sheet {
   box-shadow:
     0 18px 42px -24px rgb(0 0 0 / 80%),
     0 1px 0 rgb(255 255 255 / 3%) inset;
+}
+
+/* In the editor the note's page is one with the page behind it (.app-sheet,
+   the editor route's content): no fill, edge or shadow of its own, just the
+   text column. While typing it all turns to paper (.typing-page, below). */
+.app-sheet .editor-sheet,
+html.dark .app-sheet .editor-sheet {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.editor-no-wrap-viewport {
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: clip;
+  overscroll-behavior-x: contain;
 }
 
 .editor-container textarea:focus-visible {
@@ -122,8 +128,8 @@ html.dark .editor-sheet {
    the chrome fades slowly once you type and returns quickly when the mouse
    moves. Opacity and colour only, so nothing reflows under the caret. The
    window then reads as one page: everything behind the chrome
-   (`.typing-page`: the pane, the canvas around the sheet) takes the sheet's
-   paper, and the sheet drops its edge and shadow. */
+   (`.typing-page`: the content sheet, the pane, the canvas around the
+   note) takes the paper. */
 .typing-chrome {
   transition: opacity 150ms ease-out;
 }
@@ -133,7 +139,7 @@ html.dark .editor-sheet {
 }
 
 .editor-sheet.editor-container {
-  transition-property: padding, max-width, border-color, box-shadow;
+  transition-property: padding, max-width;
 }
 
 html[data-chrome-faded] .typing-chrome {
@@ -146,11 +152,6 @@ html[data-chrome-faded] .typing-page,
 html[data-chrome-faded] .editor-canvas {
   background: var(--paper-grain), var(--surface);
   transition-duration: 600ms;
-}
-
-html[data-chrome-faded] .editor-sheet.editor-container {
-  border-color: transparent;
-  box-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

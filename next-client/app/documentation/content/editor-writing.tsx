@@ -114,8 +114,10 @@ export const editorWritingItems: Subsection[] = [
         <p>
           While the interface is hidden, move the mouse deliberately, or touch the top or left edge
           of the window, and everything comes back; a small nudge leaves the page alone. On a phone,
-          tap anywhere outside the text. The tabs and sidebar float over the page, so showing,
-          hiding or opening them never moves the line you&apos;re typing.
+          tap anywhere outside the text. Fading never moves the line you&apos;re typing. The sidebar
+          takes its own room beside the page and stays open until you close it; turn on{" "}
+          <strong>Close Sidebar While Writing</strong> (Settings → Editor) to have it put away as soon
+          as you type in a note.
         </p>
         <p>
           At the strongest level, the current paragraph is the run of non-blank lines around the

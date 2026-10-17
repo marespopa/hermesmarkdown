@@ -28,7 +28,7 @@ const barPlacement = {
 // opened, or Download where neither works) and Not Now, which shrinks it to
 // a quiet "Not saved to a folder" mark that opens it again. It fades with
 // the rest of the chrome while you type. The editor page decides when it
-// can show (no vault, not locked, not on the home feed).
+// can show (no vault, not locked).
 export default function FolderPrompt({ onChooseFolder, onDownload, placement = "bottom" }: FolderPromptProps) {
   const bar = `${barBase} ${barPlacement[placement]}`;
   const hasText = !!useAtomValue(atom_openFiles).draft?.content.trim();

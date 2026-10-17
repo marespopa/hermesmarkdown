@@ -8,12 +8,13 @@ import CommandPalette from "./CommandPalette";
 import { CommandPaletteProvider, useCommandPalette, useRegisterCommand } from "./CommandPaletteContext";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
+import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { MASKED_TEXT } from "@/app/utils/note-display";
 import {
   atom_activeEditorView,
   atom_commandUseCounts,
   atom_filesFocusRequested,
-  atom_homeFeedOpen,
+  atom_notePins,
   atom_palettePinnedItems,
   atom_recentFilePaths,
   atom_sidebarCollapsed,
@@ -29,6 +30,10 @@ vi.mock("@/app/hooks/use-file-system", () => ({
 }));
 
 let isMobileChrome = false;
+
+// Notes are pinned per vault (note-pin-atoms.ts): a vault named "Notes".
+const VAULT = [atom_vaultHandle, { name: "Notes" }] as const;
+const pinnedNotes = (...paths: string[]) => [atom_notePins, { "local:Notes": paths }] as const;
 let pathname = "/editor";
 
 vi.mock("@/app/hooks/use-mobile-chrome", () => ({
@@ -240,7 +245,6 @@ describe("CommandPalette", () => {
 
   function renderPaletteWithStore() {
     const store = createStore();
-    store.set(atom_homeFeedOpen, true);
     store.set(atom_sidebarCollapsed, { Files: true });
     render(
       <Provider store={store}>
@@ -259,7 +263,6 @@ describe("CommandPalette", () => {
     fireEvent.click(await screen.findByRole("option", { name: /Show Files/ }));
     await waitFor(() => expect(store.get(atom_sidebarOpen)).toBe(true));
     expect(store.get(atom_sidebarCollapsed).Files).toBe(false);
-    expect(store.get(atom_homeFeedOpen)).toBe(false);
     expect(store.get(atom_filesFocusRequested)).toBe(true);
     expect(push).not.toHaveBeenCalled();
   });
@@ -345,7 +348,8 @@ describe("CommandPalette", () => {
           tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
         },
       }],
-      [atom_palettePinnedItems, [{ kind: "file", id: "Projects/Roadmap.md" }]],
+      VAULT,
+      pinnedNotes("Projects/Roadmap.md"),
       [atom_recentFilePaths, ["Projects/Roadmap.md"]],
       [atom_commandUseCounts, { "test-command": 3 }],
     ]);
@@ -360,6 +364,7 @@ describe("CommandPalette", () => {
 
   it("pins and opens the selected item with keyboard shortcuts", async () => {
     renderPalette([
+      VAULT,
       [atom_fileMetadata, {
         "Roadmap.md": {
           path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
@@ -381,6 +386,7 @@ describe("CommandPalette", () => {
 
   it("offers row pinning through the context menu", async () => {
     renderPalette([
+      VAULT,
       [atom_fileMetadata, {
         "Roadmap.md": {
           path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
@@ -396,6 +402,42 @@ describe("CommandPalette", () => {
     fireEvent.change(input, { target: { value: "" } });
 
     expect(screen.getByRole("listbox")).toHaveTextContent("Roadmap.md");
+  });
+
+  it("asks for a vault before pinning a note", async () => {
+    renderPalette([
+      [atom_fileMetadata, {
+        "Roadmap.md": {
+          path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
+          tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+        },
+      }],
+    ]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    const input = await screen.findByRole("combobox");
+    fireEvent.change(input, { target: { value: "road" } });
+    fireEvent.keyDown(input, { key: "d", ctrlKey: true });
+    fireEvent.change(input, { target: { value: "" } });
+    expect(screen.getByRole("listbox")).not.toHaveTextContent("Roadmap.md");
+  });
+
+  it("moves notes it pinned on its own into the vault's pinned notes", async () => {
+    const store = createStore();
+    render(
+      <Provider store={store}>
+        <Hydrate values={[
+          VAULT,
+          [atom_palettePinnedItems, [{ kind: "file", id: "Roadmap.md" }, { kind: "command", id: "test-command" }]],
+        ]}>
+          <CommandPaletteProvider>
+            <TestCommand />
+            <CommandPalette />
+          </CommandPaletteProvider>
+        </Hydrate>
+      </Provider>,
+    );
+    await waitFor(() => expect(store.get(atom_notePins)).toEqual({ "local:Notes": ["Roadmap.md"] }));
+    expect(store.get(atom_palettePinnedItems)).toEqual([{ kind: "command", id: "test-command" }]);
   });
 
   it("keeps Ctrl/Cmd+Enter in the active-pane file-open workflow", async () => {
@@ -744,7 +786,8 @@ describe("CommandPalette", () => {
       renderPalette([
         [atom_fileMetadata, privateNotes],
         [atom_privacyLevel, "hidden"],
-        [atom_palettePinnedItems, [{ kind: "file", id: "Payroll.md" }]],
+        VAULT,
+        pinnedNotes("Payroll.md"),
         [atom_recentFilePaths, ["Payroll.md", "Planning.md"]],
       ]);
       fireEvent.keyDown(document, { key: "k", ctrlKey: true });

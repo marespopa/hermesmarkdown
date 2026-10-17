@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { HiOutlineArrowLeft } from "react-icons/hi";
 import { TASK_VIEWS } from "@/app/editor/tasks/task-views";
 import { BUILTIN_PACKS } from "@/app/utils/templates/template-packs";
 
@@ -9,8 +8,9 @@ import { BUILTIN_PACKS } from "@/app/utils/templates/template-packs";
 // (the var-backed tokens drop it); pulses only when motion is allowed.
 export const SKELETON_BAR = "bg-black/[0.06] dark:bg-white/[0.08] motion-safe:animate-pulse";
 
-// The page backdrop the /editor sub-pages share (Templates, Tasks, Files, Settings).
-export const SUBPAGE_BACKDROP = "bg-paper-pale dark:bg-paper-dark text-ink-light dark:text-ink-dark";
+// The page the /editor sub-pages share (Templates, Tasks, Files, Trash,
+// Tags, Settings), as ShellPage: plain, the whole window.
+export const SUBPAGE_BACKDROP = "bg-surface text-ink-light dark:text-ink-dark";
 
 // A bar in a line box set in the real text's type, so it takes that text's height.
 function Text({ textClass, barClass }: { textClass: string; barClass: string }) {
@@ -24,14 +24,11 @@ function Text({ textClass, barClass }: { textClass: string; barClass: string }) 
   );
 }
 
-// The sub-pages' top bar: "← Editor". Static, so it's the real text.
-function BackHeader() {
+// ShellPage's title bar. Static, so it's the real title.
+function TitleHeader({ title }: { title: string }) {
   return (
-    <header className="shrink-0 border-b border-beige/70 px-5 py-4 dark:border-paper-dark sm:px-8">
-      <span className="inline-flex items-center gap-1.5 text-ui-footnote font-medium text-fg-faint">
-        <HiOutlineArrowLeft size={13} />
-        Editor
-      </span>
+    <header className="flex h-11 shrink-0 items-center border-b border-edge-subtle px-5 sm:px-8">
+      <span className="text-ui-subhead font-semibold">{title}</span>
     </header>
   );
 }
@@ -46,7 +43,7 @@ function SearchField() {
 export function TemplatesSkeleton() {
   return (
     <div className="flex h-full w-full flex-col">
-      <BackHeader />
+      <TitleHeader title="Templates" />
       <div className="mx-auto w-full max-w-3xl space-y-10 overflow-hidden px-4 py-8 sm:px-8">
         <div className="flex flex-wrap items-end gap-3">
           <div className="min-w-0 flex-1">
@@ -140,7 +137,7 @@ function TaskRowSkeleton({ width }: { width: string }) {
 export function TasksSkeleton() {
   return (
     <div className="flex h-full w-full flex-col">
-      <BackHeader />
+      <TitleHeader title="Tasks" />
       <div className="mx-auto min-h-0 w-full max-w-5xl flex-1 px-4 py-5 sm:px-8">
         <div className="flex h-full min-h-0 flex-col overflow-hidden bg-paper-pale/40 dark:bg-paper-dark/30">
           <div className="shrink-0 space-y-2.5 px-3 pb-3 pt-3">
@@ -179,11 +176,11 @@ export function TasksSkeleton() {
 export function FilesSkeleton() {
   return (
     <div className="flex h-full w-full flex-col">
-      <BackHeader />
+      <TitleHeader title="All Notes" />
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-4 py-5 sm:px-8">
         <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-ui-title-3 font-semibold">Files</h1>
+            <h1 className="text-ui-title-3 font-semibold">All Notes</h1>
             <Text textClass="text-ui-caption" barClass="h-2 w-24" />
           </div>
           <div className="flex items-center gap-1">
@@ -214,15 +211,10 @@ export function FilesSkeleton() {
 // the open section's title over a few setting rows.
 export function SettingsSkeleton() {
   return (
-    <div className="flex h-full w-full flex-col lg:flex-row">
-      <div className="glass-bar flex shrink-0 flex-col border-b border-edge-subtle lg:w-72 lg:border-b-0 lg:border-r">
-        <div className="border-b border-edge-subtle px-4 pb-3 pt-4">
-          <span className="mb-3 inline-flex items-center gap-1.5 px-1 py-1 text-ui-footnote font-medium text-ink-muted dark:text-stone">
-            <HiOutlineArrowLeft size={13} />
-            Editor
-          </span>
-          <h1 className="text-ui-title-3 font-semibold tracking-tight">Settings</h1>
-        </div>
+    <div className="flex h-full w-full flex-col">
+      <TitleHeader title="Settings" />
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+      <div className="flex shrink-0 flex-col border-b border-edge-subtle lg:w-60 lg:border-b-0 lg:border-r">
         <div className="flex gap-0.5 overflow-hidden px-3 py-3 lg:flex-col">
           {["w-24", "w-16", "w-14", "w-20", "w-16"].map((width, index) => (
             <div key={index} className="flex h-8 shrink-0 items-center gap-2 px-2.5">
@@ -242,6 +234,40 @@ export function SettingsSkeleton() {
           </div>
         </div>
       </div>
+      </div>
+    </div>
+  );
+}
+
+// Trash: its title and a few item rows.
+export function TrashSkeleton() {
+  return (
+    <div className="flex h-full w-full flex-col">
+      <TitleHeader title="Trash" />
+      <div className="mx-auto w-full max-w-3xl space-y-6 overflow-hidden px-4 py-8 sm:px-8">
+        <div>
+          <h1 className="text-ui-title-2 font-semibold tracking-tight">Trash</h1>
+          <Text textClass="mt-1 text-ui-footnote" barClass="h-2.5 w-3/5" />
+        </div>
+        <div className={`h-40 rounded-xl ${SKELETON_BAR}`} />
+      </div>
+    </div>
+  );
+}
+
+// Tags: the tag list beside the notes column.
+export function TagsSkeleton() {
+  return (
+    <div className="flex h-full w-full flex-col">
+      <TitleHeader title="Tags" />
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+        <div className="flex shrink-0 flex-col gap-1 border-b border-edge-subtle p-3 md:w-60 md:border-b-0 md:border-r">
+          {["w-20", "w-28", "w-16", "w-24"].map((width, index) => (
+            <div key={index} className={`h-2.5 my-2 rounded-full ${width} ${SKELETON_BAR}`} />
+          ))}
+        </div>
+        <div className="flex-1" />
+      </div>
     </div>
   );
 }
@@ -252,5 +278,7 @@ export function routeSkeleton(pathname: string | null): React.ReactNode {
   if (pathname?.startsWith("/editor/tasks")) return <TasksSkeleton />;
   if (pathname?.startsWith("/editor/files")) return <FilesSkeleton />;
   if (pathname?.startsWith("/editor/settings")) return <SettingsSkeleton />;
+  if (pathname?.startsWith("/editor/trash")) return <TrashSkeleton />;
+  if (pathname?.startsWith("/editor/tags")) return <TagsSkeleton />;
   return null;
 }

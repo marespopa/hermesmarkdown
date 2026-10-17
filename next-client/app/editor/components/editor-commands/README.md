@@ -34,8 +34,7 @@ App-wide commands are not registered here, so each command exists once: Open
 Settings, Open Documentation, `Theme: …` and Show Keyboard Shortcuts come from
 `components/CommandPalette/AppCommands.tsx`; word wrap, line numbers, Focus and
 the other editor preferences from `settings/components/SettingsCommands.tsx`;
-Show Files from the palette itself; and the editor's Home command, `Open
-Home` (the vault's home feed), from `hooks/use-home-feed.ts`.
+Show Files from the palette itself.
 - `github-vault-commands.ts` defines the `GitHub: Commit / Push / Sync / Pull`
   commands, registered only while a GitHub vault is open.
 - `vault-storage-commands.ts` defines `Browser vaults…` (where browser storage

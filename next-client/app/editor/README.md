@@ -29,6 +29,20 @@ The Templates page (`app/editor/templates`, sidebar **Templates**, palette **Ope
 - **Template packs**: the built-in packs (`BUILTIN_PACKS` in `app/utils/templates/template-packs.ts`: Journal, Meetings, Writing, Projects, Engineering) with **Add to vault**, which copies them into `templates/<pack>/` without replacing files that exist (**Add N missing**, **Added**).
 - Opened directly (a reload), the page scans the vault once when nothing is indexed.
 
+## Navigation and URLs
+
+Every /editor route shares one frame, `components/EditorShell`: a plain page with the sidebar beside it; (in `layout.tsx`, inside `VaultAccessGate`): the desktop `WorkspaceSidebar` (only the library: vault switcher, New note, Outline, Files; the pages, Settings and search are the command palette's, `AppCommands`), the sidebar shortcuts (`Ctrl/Cmd+\`, `Ctrl/Cmd+Alt+S`) and the vault dialogs. Pages render in `components/ShellPage` (a title bar with the `SearchPill`, beside the open sidebar; ← Editor on mobile, which has no sidebar). Searching is always the command palette's (Ctrl/Cmd+K, or the `SearchPill` in the toolbar and title bars). Every place has a URL (`utils/editor-url.ts`), so a refresh or a link lands back on it:
+
+| URL | Shows |
+|---|---|
+| `/editor?file=notes/plan.md` | The note in front (`hooks/use-active-file-url.ts`: opened, or its tab brought forward, once the vault is readable; then kept in step with the focused tab) |
+| `/editor` | The draft |
+| `/editor/tasks`, `/editor/templates`, `/editor/trash`, `/editor/files` | Tasks, Templates, Trash (Put Back / Delete, `app/hooks/file-system/trash-ops.ts`), All Notes |
+| `/editor/tags?tag=release` | Tags: every tag with its count, and the chosen tag's notes |
+| `/editor/settings?section=editor` | A Settings section (the first one has no parameter) |
+
+Query parameters are rewritten in place (`replaceState`), so switching notes adds no history entries; a note opened from a page goes back to the editor at its URL.
+
 ## Editor page hooks (`app/editor/hooks`)
 
 The editor route (`page.tsx`) composes these:
@@ -40,14 +54,15 @@ The editor route (`page.tsx`) composes these:
 | `use-github-vault-actions.ts` | `GitHub: Commit / Pull` command handlers. |
 | `use-draft-import.ts` | Import into the draft, never the active tab (with `DraftImportDialog` for overwrite confirmation): `offerDraft` fills an empty draft and opens it, or asks first when the draft has text. Used by "Open Note from Disk…" and tool handoffs. |
 | `use-tool-handoff.ts` | Work handed over from a tool page (`app/utils/tool-handoff.ts`, `sessionStorage["hermes_tool_handoff"]`): read once on mount, offered to the draft once the vault has settled and the vault-open behavior has run, then cleared. |
-| `use-first-run.ts` | The first visit, with no setup screens: lands on the home feed like any visit with no vault (`useVaultOpenBehavior`); applies the first-run defaults (Medium text, Full Width) unless stored, and shows the command palette shortcut once as a toast. `isFirstRun` reads `localStorage["hasCompletedOnboarding"]` directly. |
-| `use-choose-folder.ts` | Where notes live, for writing begun with no vault (`FolderPrompt`, Cmd/Ctrl+S): the OS folder picker or the browser-vault dialog, then, once the vault is open, puts back the draft (opening a vault clears every tab), saves it into the vault and keeps it in front (`atom_resumeRequested`). |
+| `use-first-run.ts` | The first visit, with no setup screens: lands in the editor on a blank draft like any visit with no vault; applies the first-run defaults (Medium text, Full Width) unless stored, and shows the command palette shortcut once as a toast. `isFirstRun` reads `localStorage["hasCompletedOnboarding"]` directly. |
+| `use-choose-folder.ts` | Where notes live, for writing begun with no vault (`FolderPrompt`, Cmd/Ctrl+S): the OS folder picker or the browser-vault dialog, then, once the vault is open, puts back the draft (opening a vault clears every tab), saves it into the vault and keeps it in front. |
 | `use-sync-current-directory.ts` | Points the vault's current directory at the active file's folder. |
 | `use-editor-paste-handlers.ts`, `use-scroll-to-pending-target.ts` | `MarkdownEditor` helpers: CSV-to-table confirm and image saving on paste; jump-to-line requests (`atom_pendingScrollTarget`; the caret goes to the optional `column`). |
-| `use-fade-chrome-while-typing.ts` | Hide interface while typing (on for every Focus level but Off, `atom_focusMode`): typing in an editor sets `<html data-chrome-faded>`, which fades every `.typing-chrome` element (pane header, sidebar, mobile file bar; `editor.scss`) and turns the pane, the canvas and the sheet's edge into one plain page (`.typing-page`); the sidebar and pane header float over the text (frosted `.glass-bar`), so neither showing nor fading them moves the text; a deliberate mouse move anywhere (`REVEAL_DISTANCE`, 40px of travel without a `REVEAL_PAUSE` of 300ms), any move within `EDGE_REVEAL_ZONE` (12px) of the window's top or left edge, or a tap or focus outside the editor, brings it back. |
+| `use-fade-chrome-while-typing.ts` | Hide interface while typing (on for every Focus level but Off, `atom_focusMode`): typing in an editor sets `<html data-chrome-faded>`, which fades every `.typing-chrome` element (pane header, sidebar, mobile file bar; `editor.scss`) and turns the pane, the canvas and the sheet's edge into one plain page (`.typing-page`); the pane header floats over the text (frosted `.glass-bar`) and the sidebar keeps its room, so fading neither moves the text; a deliberate mouse move anywhere (`REVEAL_DISTANCE`, 40px of travel without a `REVEAL_PAUSE` of 300ms), any move within `EDGE_REVEAL_ZONE` (12px) of the window's top or left edge, or a tap or focus outside the editor, brings it back. |
 | `use-tab-drag-drop.ts` | Tab drag-and-drop between panes (`PaneLeaf`). |
-| `use-home-feed.ts` | The home feed's wiring: opening notes and open tasks (the feed closes and a draft with text is saved first), the new-note button, the palette's "Create '…'" row and the "Open Home" command (the editor's only Home command). |
-| `use-export-pdf.ts` | **Export as PDF** (palette, and the More menu's `hermes:export-pdf` event): the active note through `noteToHtml` (`app/utils/print/`), vault images as object URLs (`vaultImagePath`), Mermaid (light theme) and MathML rendered in, then `utils/print-note.ts` prints it from a hidden iframe. Disabled for an empty note or a veiled private one. |
+| `use-active-file-url.ts` | The note in front as `?file=<path>`: on load, once the vault is readable, opens it (or brings its tab forward, in whichever pane); after that rewrites the URL as tabs change, and clears it on the draft. |
+| `use-palette-create-note.ts` | The palette's "Create '…'" row (with a vault): a note titled with the query, saved at once, caret below the heading; draft text in progress is saved first. |
+| `use-export-pdf.ts` | **Export as PDF** (palette, and the sidebar footer's Export menu, through the `hermes:export-pdf` event): the active note through `noteToHtml` (`app/utils/print/`), vault images as object URLs (`vaultImagePath`), Mermaid (light theme) and MathML rendered in, then `utils/print-note.ts` prints it from a hidden iframe. Disabled for an empty note or a veiled private one. |
 | `useAIEditorActions.ts` + `ai-action-prompts.ts` | AI Chat state and the one-click AI actions (prompt table keyed by action id). AI text passes through `keepTablesUnderHeadings` before it goes into the note. |
 
 ## Interactions

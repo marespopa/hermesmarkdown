@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
@@ -15,7 +15,7 @@ import {
   contentStore,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_homeFeedOpen, atom_isFileLoading } from "@/app/atoms/ui-atoms";
+import { atom_isFileLoading } from "@/app/atoms/ui-atoms";
 import { nextPaint } from "@/app/utils/next-paint";
 import { useDialog } from "../use-dialog";
 import { resolveFileMetaByName } from "./resolve-file-by-name";
@@ -31,7 +31,6 @@ export function useOpenFile() {
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [, setIsFileLoading] = useAtom(atom_isFileLoading);
-  const setHomeFeedOpen = useSetAtom(atom_homeFeedOpen);
   const dialog = useDialog();
 
   const openFile = useCallback(
@@ -118,10 +117,9 @@ export function useOpenFile() {
           };
         });
 
-        // 2. Switch active path (leaving the home feed, if it's showing). The
+        // 2. Switch active path. The
         // sidebar stays as it is: it's put away only when asked.
         setActiveFilePath(finalPath);
-        setHomeFeedOpen(false);
 
         // 3. Store the "live" handle separately (non-persisted)
         setActiveFileHandle(fileHandle);
@@ -189,7 +187,6 @@ export function useOpenFile() {
       lastSavedContent,
       setOpenFiles,
       setIsFileLoading,
-      setHomeFeedOpen,
       dialog,
     ],
   );

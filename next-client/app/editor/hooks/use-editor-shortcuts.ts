@@ -3,7 +3,7 @@ import type React from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_activateWorkspaceTab, atom_workspaceTabs } from "@/app/atoms/atoms";
 import { openSearchPanel } from "@codemirror/search";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_sidebarOpen, atom_toggleSentenceFocus, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_toggleSentenceFocus, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { useShowFiles } from "@/app/hooks/use-show-files";
 import { focusPaneEditor } from "../utils/focus-pane-editor";
@@ -20,7 +20,8 @@ interface EditorShortcutOptions {
 }
 
 // Window-level editor shortcuts (Show Files, search, new note, close/select tab,
-// show/hide sidebar, sentence focus, AI chat, save, undo flush). Editor-local keys live in CodeMirror's
+// sentence focus, AI chat, save, undo flush). Show / hide sidebar is
+// EditorShell's, so it works on every /editor route. Editor-local keys live in CodeMirror's
 // keymaps, which run first — so a key CodeMirror handled arrives here with
 // defaultPrevented set.
 export function useEditorShortcuts({
@@ -38,7 +39,6 @@ export function useEditorShortcuts({
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const workspaceTabs = useAtomValue(atom_workspaceTabs);
   const activateWorkspaceTab = useSetAtom(atom_activateWorkspaceTab);
-  const setSidebarOpen = useSetAtom(atom_sidebarOpen);
   const toggleSentenceFocus = useSetAtom(atom_toggleSentenceFocus);
   // Desktop shows the sidebar's Files tree; mobile leaves for the Files page
   // through the unsaved-changes guard.
@@ -103,12 +103,6 @@ export function useEditorShortcuts({
         }
       }
 
-      // Show / hide the sidebar (Ctrl/Cmd+Alt+S); `code`, since Alt changes `key` on macOS.
-      if ((e.ctrlKey || e.metaKey) && e.altKey && !e.shiftKey && e.code === "KeyS") {
-        e.preventDefault();
-        setSidebarOpen((open) => !open);
-      }
-
       // Sentence focus on / off (Ctrl/Cmd+Alt+F).
       if ((e.ctrlKey || e.metaKey) && e.altKey && !e.shiftKey && e.code === "KeyF") {
         e.preventDefault();
@@ -135,5 +129,5 @@ export function useEditorShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeEditorView, activateWorkspaceTab, setSidebarOpen, toggleSentenceFocus, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, workspaceTabs, showFiles, saveRef, newFileRef]);
+  }, [activeEditorView, activateWorkspaceTab, toggleSentenceFocus, closeTabWithAutosave, flush, isAiConfigured, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, workspaceTabs, showFiles, saveRef, newFileRef]);
 }

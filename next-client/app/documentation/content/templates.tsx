@@ -137,7 +137,7 @@ export const templatesItems: Subsection[] = [
         <p>
           Use these in headings and links, for example in weekly, monthly or yearly notes. Frontmatter
           lines (author, status, …) are copied into each new note. Templates stay out of the Tasks
-          page and the home feed. AI Chat can write templates for you; see{" "}
+          page. AI Chat can write templates for you; see{" "}
           <a href="#ai-templates" className="text-accent hover:underline">AI templates</a>.
         </p>
       </>

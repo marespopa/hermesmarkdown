@@ -21,8 +21,6 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [BlockTypeMenu](BlockTypeMenu.md) | The selection toolbar's "Turn into" dropdown: shows the line's block type and turns selected lines into text, a heading, a list, a to-do or a quote. |
 | [BrowserVaultDialog](BrowserVaultDialog.md) | Create, reopen, or delete vaults stored in browser storage (Safari, Firefox, mobile). |
 | [GitHubVaultDialog](GitHubVaultDialog.md) | Sign in to GitHub, pick or create a repository, and open it as a vault. |
-| [HomeFeed](HomeFeed.md) | The vault's home screen: recent notes newest first with day labels and previews, a search/create pill and a new-note button; keyboard navigable. |
-| [home-feed/](home-feed/README.md) | `HomeFeed` building blocks: feed model, header, row, skeleton, indexing status, bottom bar. |
 | [ImageDialog](ImageDialog.md) | Lightbox for note images; resolves vault-relative paths locally. |
 | [LinkPill](LinkPill.md) | Floating pill over a Markdown or wiki link in the editor, offering open and edit (label and URL). |
 | [MarkdownEditor](MarkdownEditor.md) | CodeMirror 6 Markdown editor with inline pills, callouts, slash templates, and folding. |
@@ -46,14 +44,14 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [RenderedBlockSourceDialog](RenderedBlockSourceDialog.md) | Source editor with live preview for an inline-rendered Mermaid diagram or math block; Save writes the body back as one undo step. |
 | [SectionHeader](SectionHeader.md) | Collapsible section header with a title, a chevron toggle, and an optional trailing action. |
 | [SelectionToolbar](SelectionToolbar.md) | Floating toolbar on a text selection, desktop and mobile: Turn into menu, Bold, Italic, Link, and Ask AI when AI is configured. |
-| [TabContextMenu](TabContextMenu.md) | The app's pop-up menu (tab, toolbar More, sidebar ⋯, Home feed, Tasks page): at a point or right-aligned under a button, clamped to the viewport, arrow-key navigation. `menu-classes.ts` holds the shared menu look, also used by the file tree's `TreeContextMenu`. |
+| [TabContextMenu](TabContextMenu.md) | The app's pop-up menu (tab, toolbar More, sidebar ⋯, Tasks page): at a point or right-aligned under a button, clamped to the viewport, arrow-key navigation. `menu-classes.ts` holds the shared menu look, also used by the file tree's `TreeContextMenu`. |
 | [TabStripScroller](TabStripScroller.md) | Horizontally scrolling tab strip that shows left/right scroll arrows at its end when the tabs overflow. |
 | [EmptyNoteTemplates](EmptyNoteTemplates.md) | Quick-start template pills under the first line of an empty note. |
 | [TemplateStrip](TemplateStrip.md) | Line at the top of a template note: field count, Add field, lint warnings. |
 | [TaskDialog](TaskDialog.md) | Form for building a task line (title, status, priority, due date, tags). |
 | [UnifiedSearchInput](UnifiedSearchInput.md) | Search field that turns `#tag` entries into removable tag chips alongside free text, with tag autocomplete. |
-| [EditorSkeleton](EditorSkeleton.md) | Shown while the saved vault loads: the home feed with placeholder rows (On vault open → Home), or the workspace outline (sidebar, tab pills, paper panel); on an /editor sub-page, that page's outline (RouteSkeletons). |
-| [RouteSkeletons](RouteSkeletons.md) | Loading outlines of the /editor sub-pages (Templates, Tasks, Files, Settings), chosen by path for EditorSkeleton. |
+| [EditorSkeleton](EditorSkeleton.md) | Shown while the saved vault loads: the editor's outline (sidebar, tab pills, the note's text column); on an /editor sub-page, that page's outline (RouteSkeletons). |
+| [RouteSkeletons](RouteSkeletons.md) | Loading outlines of the /editor sub-pages (Templates, Tasks, All Notes, Trash, Settings), chosen by path for EditorSkeleton. |
 | [VaultAccessGate](VaultAccessGate.md) | Wraps every /editor route: restores the saved vault on load and keeps the route hidden until it is readable, with the Restore Access prompt when needed. |
 | [VaultPendingOverlay](VaultPendingOverlay.md) | Prompt shown after reload when the stored vault handle needs the user to grant permission again. |
 | [VaultActionButtons](VaultActionButtons.md) | Open / Create / Browser Vault buttons, shown where no vault is open. |
@@ -61,7 +59,11 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [vault-tree/](vault-tree/README.md) | `VaultFileTree` building blocks: tree model, `FileRow`, `FolderRow`, `TreeNodes`. |
 | [FolderPrompt](FolderPrompt.md) | The only first-run question, asked late: once a draft has text and no vault is open, a quiet bottom bar offers Choose Folder… (or Keep Notes in This Browser) and Not Now. |
 | [WikiLinkDialog](WikiLinkDialog.md) | Picks or creates a `[[WikiLink]]` target, with substring-matched suggestions from vault file metadata. |
-| [WorkspaceSidebar](WorkspaceSidebar.md) | The window's sidebar (desktop): Home, Templates and Tasks, open notes and the vault's file tree, on the leading edge; hideable and resizable. |
+| [EditorShell](EditorShell.md) | The frame of every /editor route: hosts the sidebar (a plain panel that takes room), sets `--content-left`, owns the sidebar shortcuts and the vault dialogs. |
+| [SearchPill](SearchPill.md) | The command palette's search field at rest, in the toolbar and every page's title bar: the app's main way in. |
+| [ShellPage](ShellPage.md) | The frame of every /editor page (Tasks, Templates, Trash, All Notes, Settings): a title bar and the page, beside the open sidebar. |
+| [WorkspaceSidebar](WorkspaceSidebar.md) | The window's sidebar (desktop), the same on every /editor route and only the library: vault switcher, New note, Outline and Files; hideable and resizable. |
+| [sidebar/](sidebar/README.md) | `WorkspaceSidebar`'s parts and its navigation hook. |
 | [WorkspaceSplitter](WorkspaceSplitter.md) | Recursively renders the workspace layout tree as resizable panel groups, with a `PaneLeaf` at each leaf. |
 
 ## Outside this directory

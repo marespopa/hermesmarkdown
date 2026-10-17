@@ -64,10 +64,13 @@ const surfaceLift =
 const variantStyles = (variant: ButtonVariant): string => {
   switch (variant) {
     case "hero":
-      return `${baseStyles} h-12 px-8 bg-accent text-white border-accent hover:bg-accent-hover ${solidLift}`;
+      return `${baseStyles} h-12 px-8 bg-accent text-white dark:text-surface border-accent hover:bg-accent-hover ${solidLift}`;
 
     case "primary":
-      return `${baseStyles} h-11 px-6 bg-sage border-sage text-white hover:bg-sage-hover hover:border-sage-hover ${solidLift}`;
+      // Ink on paper: the text colour as the fill, the page colour as the
+      // label, in every theme and mode. The accent is kept for the caret,
+      // focus and selections.
+      return `${baseStyles} h-11 px-6 bg-fg border-fg text-surface hover:opacity-90 ${solidLift}`;
 
     case "warning":
       return `${baseStyles} h-11 px-6 bg-amber-500 text-white border-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:border-amber-600 dark:hover:bg-amber-700 ${solidLift}`;

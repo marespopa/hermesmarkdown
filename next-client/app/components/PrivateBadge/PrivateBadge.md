@@ -1,6 +1,6 @@
 # PrivateBadge
 
-Description: A small lock icon that marks a private note in listings: home feed rows, command palette file and task rows, Tasks page rows and the editor veil.
+Description: A small lock icon that marks a private note in listings: pinned notes, command palette file and task rows, Tasks page rows and the editor veil.
 
 ## Local State & Storage
 - State: None (presentational).

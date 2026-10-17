@@ -19,6 +19,9 @@ export interface VaultFileTreeProps {
   activeFilePath: string | null;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
   openFileInPane?: (handle: FileSystemFileHandle, path?: string) => void;
+  // Pinned notes (note-pin-atoms.ts): with both, a note's menu offers Pin / Unpin.
+  isPinned?: (path: string) => boolean;
+  togglePin?: (path: string) => void;
   // Resolves to the new vault path when it renamed (the inline name field
   // selects the renamed row).
   renameFile: (handle: FileSystemHandle, newName?: string, path?: string) => unknown;

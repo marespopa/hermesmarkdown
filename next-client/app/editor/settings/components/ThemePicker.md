@@ -1,6 +1,6 @@
 # ThemePicker
 
-Description: Picks a color theme (palette) for one mode — the light or the dark one. Each card previews its palette in the palette's own colors (chrome strip, surface, text and accent dot), so both pickers read correctly whichever mode is showing.
+Description: Picks a color theme (palette) for one mode — the light or the dark one. Each card previews its palette in the palette's own colors, as the editor is laid out: the sidebar (its rows in neutral grey) in the chrome colour beside the page, a line of text and the accent as a single dot, as the caret, so both pickers read correctly whichever mode is showing.
 
 ## Local State & Storage
 - State: None (controlled).
