@@ -226,6 +226,12 @@ describe("SettingsPage", () => {
   });
 
   it("opens the section the URL names", () => {
+    // The AI section needs a provider to list its models.
+    (useAtom as any).mockImplementation((atom: any) => {
+      if (atom === atom_aiProvider) return ["claude", vi.fn()];
+      if (atom === atom_availableClaudeModels) return [[], vi.fn()];
+      return ["", vi.fn()];
+    });
     window.history.replaceState(null, "", "/editor/settings?section=ai");
     render(<SettingsPage />);
 
