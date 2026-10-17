@@ -3,9 +3,10 @@
 import React from "react";
 import { useAtomValue } from "jotai";
 import { HiOutlineX } from "react-icons/hi";
-import { atom_activePaneId, atom_openFiles, atom_saveStatus, atom_workspaceLayout } from "@/app/atoms/atoms";
+import { atom_activePaneId, atom_openFiles, atom_saveStatus, atom_workspaceLayout, atom_workspaceTabs } from "@/app/atoms/atoms";
 import { findLeaf, getFirstLeaf } from "@/app/atoms/utils";
 import Button from "@/app/components/Button";
+import { formatShortcut } from "@/app/utils/platform";
 import { usePaneFileActions } from "../../hooks/use-pane-file-actions";
 import { statusDot, type SaveState } from "../save-state";
 import SidebarSection from "./SidebarSection";
@@ -14,6 +15,9 @@ import { sidebarItemClass } from "./sidebar-classes";
 // The focused pane's open notes, for switching with one click: each by name,
 // the one in front highlighted (on the editor), a small dot while one is
 // unsaved, saving or failed to save, and a close button on hover or focus.
+// On the editor, the first nine also show their Ctrl/Cmd+1–9 shortcut (its
+// number counts every pane's notes, as the shortcut does), which gives way
+// to the close button.
 // `onOpen` brings a note to the front of its pane (and back to the editor
 // from another page). Renders nothing while no note is open.
 export default function SidebarOpenNotes({
@@ -29,6 +33,7 @@ export default function SidebarOpenNotes({
   const saveStatus = useAtomValue(atom_saveStatus);
   const leaf = (activePaneId ? findLeaf(layout.rootContainer, activePaneId) : null) ?? getFirstLeaf(layout.rootContainer);
   const { closeTabWithAutosave } = usePaneFileActions(leaf);
+  const workspaceTabs = useAtomValue(atom_workspaceTabs);
 
   if (!leaf || leaf.openFilePaths.length === 0) return null;
 
@@ -46,6 +51,8 @@ export default function SidebarOpenNotes({
         const state = saveStateOf(path);
         const dot = state === "idle" ? null : statusDot[state];
         const dotTitle = state === "error" ? saveStatus.message || statusDot.error.title : dot?.title;
+        const tabIndex = workspaceTabs.findIndex((tab) => tab.paneId === leaf.id && tab.filePath === path);
+        const shortcut = onEditor && tabIndex >= 0 && tabIndex < 9 ? formatShortcut(String(tabIndex + 1)) : null;
         return (
           <div key={path} className="group/open relative flex items-center">
             <Button
@@ -53,12 +60,18 @@ export default function SidebarOpenNotes({
               onClick={() => onOpen(leaf.id, path)}
               aria-current={isCurrent ? "page" : undefined}
               aria-label={dot ? `${name} — ${dotTitle}` : name}
+              aria-keyshortcuts={shortcut ? `Control+${tabIndex + 1} Meta+${tabIndex + 1}` : undefined}
               title={path === "draft" ? name : path}
-              className={`${sidebarItemClass(isCurrent)} w-full pr-8`}
+              className={`${sidebarItemClass(isCurrent)} w-full ${shortcut && !shortcut.startsWith("⌘") ? "pr-12" : "pr-8"}`}
             >
               <span className="min-w-0 flex-1 truncate">{name}</span>
               {dot && <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot.className}`} />}
             </Button>
+            {shortcut && (
+              <kbd aria-hidden="true" className="pointer-events-none absolute right-1.5 font-mono text-[10px] text-fg-faint transition-opacity group-focus-within/open:opacity-0 group-hover/open:opacity-0 [@media(hover:none)]:hidden">
+                {shortcut}
+              </kbd>
+            )}
             <Button
               variant="unstyled"
               onClick={() => void closeTabWithAutosave(path)}

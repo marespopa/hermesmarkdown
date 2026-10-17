@@ -232,19 +232,23 @@ export const getStartedGroup: Group = {
             keyboard shortcuts, and the slash command menu.
           </p>
           <p>
-            There&apos;s no toolbar. One quiet button sits at the top of the page: the note in front, by
-            name, with a small dot while it has unsaved changes, is saving, or couldn&apos;t save. Click it (or
-            press <code>CTRL/CMD+K</code>) to open the command palette, where every note and command is: Save,
-            Copy Markdown, Export as PDF or HTML, Pin Note, Settings, AI Chat and the rest. Right-click it for
+            There&apos;s no toolbar. A quiet header sits at the top left of the page: the note&apos;s folder, its
+            name, and a small dot while it has unsaved changes, is saving, or couldn&apos;t save. It fades out
+            while you type and comes back when you move the pointer. Click the name to rename the note in
+            place: press <code>Enter</code> or click away to keep the new name, <code>Esc</code> to back out. The
+            button in the top-right corner (or <code>CTRL/CMD+K</code>) opens the command palette, where every note
+            and command is: Save, Copy Markdown, Export as PDF or HTML, Pin Note, Settings, Documentation, Ask or Edit with AI and the rest.
+            Right-click the name for
             the note&apos;s menu (Copy Markdown, Open in pane, Pin Note, Close). Each pane keeps up to 20 notes
             open behind the one in front, listed in the sidebar&apos;s Open Notes: opening another closes the
             one you looked at least recently, never one with unsaved changes, and <code>CTRL/CMD+1–9</code>{" "}
-            jumps between them. While the sidebar is hidden, its button sits in the top-left corner.
+            jumps between them (each of the first nine shows its shortcut there). While the sidebar is hidden, its button sits in the top-left corner.
           </p>
           <p>
-            <strong>Search</strong> is the way around: the button at the top of the editor, the search bar at
+            <strong>Search</strong> is the way around: the button in the editor&apos;s top-right corner, the search bar at
             the top of every page, or <code>CTRL/CMD+K</code> anywhere, opens the command palette to find a note, run a command or go to
-            a page: Home, All Notes, Tags, Tasks, Templates, Trash or Settings. Every page has{" "}
+            a page: Home, All Notes, Tags, Tasks, Templates, Trash or Settings. <code>CTRL/CMD+SHIFT+F</code>{" "}
+            searches the text of your notes. Every page has{" "}
             <strong>← Editor</strong> at the top left to come back to the note you were on.
           </p>
           <p>
@@ -291,6 +295,7 @@ export const getStartedGroup: Group = {
               { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings · / note text" },
               { label: "Commands on or off", value: "The > button in the search field" },
               { label: "Files controls", value: "New note, new folder, and file actions" },
+              { label: "Ask or Edit with AI…", value: "CTRL/CMD+J" },
               { label: "AI Chat", value: "CTRL+SHIFT+B" },
               { label: "Keyboard shortcuts", value: "Show Keyboard Shortcuts command" },
             ]}

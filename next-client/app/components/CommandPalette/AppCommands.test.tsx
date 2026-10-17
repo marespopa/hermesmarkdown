@@ -58,6 +58,20 @@ describe("AppCommands and SettingsCommands", () => {
     expect(command("open-documentation")?.label).toBe("Open Documentation");
   });
 
+  it("opens Documentation in a new tab and marks the commands that leave the note", () => {
+    const open = vi.spyOn(window, "open").mockImplementation(() => null);
+    pathname = "/editor";
+    renderCommands();
+    command("open-documentation")?.action();
+    expect(open).toHaveBeenCalledWith("/documentation", "_blank", "noopener");
+    expect(push).not.toHaveBeenCalled();
+    expect(command("open-documentation")?.opens).toBe("tab");
+    expect(command("open-settings")?.opens).toBe("page");
+    expect(command("open-all-notes")?.opens).toBe("page");
+    expect(command("toggle-word-wrap")?.opens).toBeUndefined();
+    open.mockRestore();
+  });
+
   it("offers one command per theme and disables the current one", () => {
     const store = createStore();
     store.set(atom_theme, "dark");

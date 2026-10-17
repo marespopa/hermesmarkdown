@@ -19,10 +19,10 @@ const NO_TAGS: string[] = [];
 
 // The window's sidebar (desktop), the same on every /editor route
 // (EditorShell hosts it), and kept to the library: the vault (a switcher),
-// New note and Hide; the note in front's Outline; the vault's Files.
-// Everything else (Home, All Notes, Tags, Tasks, Templates, Trash, Settings,
-// Export, search) is the command palette's (Ctrl/Cmd+K, SearchPill) or the
-// toolbar's More menu. A plain panel in the chrome colour with a hairline
+// New note and Hide; the note in front's Outline; and the vault's Files.
+// Everything else (Home, All Notes, Tags, Tasks, Templates, Trash, Export,
+// Settings, Documentation, search) is the command palette's (Ctrl/Cmd+K,
+// SearchPill) or the toolbar's More menu. A plain panel in the chrome colour with a hairline
 // edge; it takes room, pushing the page over (EditorShell), and slides out
 // when hidden. It stays open until you close it (`atom_sidebarOpen`: its
 // header's button, Escape inside it or Ctrl/Cmd+\; shown again from the

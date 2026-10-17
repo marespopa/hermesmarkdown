@@ -41,12 +41,14 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     {
       id: "open-tasks-panel",
       label: "Open Tasks",
+      opens: "page",
       keywords: "tasks todos checklist",
       action: onOpenTasks,
     },
     {
       id: "open-templates",
       label: "Open Templates",
+      opens: "page",
       keywords: "templates template packs journal daily weekly meeting manage",
       action: onOpenTemplates,
     },

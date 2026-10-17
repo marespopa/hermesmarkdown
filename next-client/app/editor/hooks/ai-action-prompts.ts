@@ -1,8 +1,8 @@
 import { FORMULA_PRESERVATION_RULE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "../utils/formula-ai-guide";
 import { HERMES_SYNTAX_GUIDE, SYNTAX_PRESERVATION_RULE } from "../utils/hermes-syntax-guide";
 
-// Prompt definitions for the one-click AI actions (the palette's "AI: …"
-// commands), keyed by action id. The slash menu has only AI Chat.
+// Prompt definitions for the one-click AI actions (the palette's Ask or
+// Edit with AI… menu), keyed by action id. The slash menu has only AI Chat.
 
 /** Rewrites the selection; the result is reviewed as a diff. */
 export interface SelectionAction {
@@ -109,5 +109,25 @@ export const AI_ACTIONS: Record<string, AIAction> = {
     label: "Continue writing",
     system: `You are a writing partner who continues a piece of writing seamlessly from where it left off, matching its existing tone, style, and Markdown formatting. Do not repeat or summarize what came before. ${FORMULA_PRESERVATION_RULE} ${SYNTAX_PRESERVATION_RULE} Return ONLY the continuation text ${NO_PREAMBLE}\n\n${HERMES_SYNTAX_GUIDE}\n\n${TABLE_FORMULA_GUIDE}\n\n${NOTE_CALC_GUIDE}`,
     build: (preceding) => `CONTINUE WRITING FROM HERE:\n${preceding}`,
+  },
+  // Insert Element: built from the selection, or the start of the note
+  // without one; the result goes in at the caret (or over the selection).
+  table: {
+    kind: "context",
+    label: "Generate table",
+    system: `You turn notes into a Markdown pipe table with a header row, choosing columns that fit the content. Keep every fact from the source and invent nothing. Return ONLY the table ${NO_PREAMBLE}\n\n${TABLE_FORMULA_GUIDE}`,
+    build: (_preceding, excerpt) => `MAKE A TABLE FROM THIS TEXT:\n${excerpt}`,
+  },
+  diagram: {
+    kind: "context",
+    label: "Generate Mermaid diagram",
+    system: `You draw notes as a Mermaid diagram (a flowchart, sequence, timeline or whatever fits best) in one \`\`\`mermaid fenced code block with valid Mermaid syntax. Return ONLY the fenced block ${NO_PREAMBLE}`,
+    build: (_preceding, excerpt) => `DRAW THIS AS A MERMAID DIAGRAM:\n${excerpt}`,
+  },
+  formula: {
+    kind: "context",
+    label: "Generate formula",
+    system: `You write the formula the text asks for: a table formula when it's about a table, an inline calculation for a plain figure, or display math in $$ … $$ (KaTeX) for an equation. Return ONLY the formula, or the table with its formula filled in, ${NO_PREAMBLE}\n\n${TABLE_FORMULA_GUIDE}\n\n${NOTE_CALC_GUIDE}`,
+    build: (preceding, excerpt) => `WRITE THE FORMULA FOR THIS:\n${excerpt}\n\nTEXT BEFORE THE CARET (for context):\n${preceding}`,
   },
 };

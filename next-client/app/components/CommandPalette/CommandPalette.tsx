@@ -1,7 +1,8 @@
 "use client";
 
 import { atom_visibleTasks } from "@/app/atoms/task-atoms";
-import { atom_activeEditorView, atom_commandUseCounts, atom_editorFontFamily, atom_pendingScrollTarget, atom_recentFilePaths, atom_showHiddenFiles, atom_theme, type PalettePinnedItem } from "@/app/atoms/ui-atoms";
+import { atom_templates } from "@/app/atoms/template-atoms";
+import { atom_activeEditorView, atom_commandUseCounts, atom_editorFontFamily, atom_pendingScrollTarget, atom_recentFilePaths, atom_showHiddenFiles, type PalettePinnedItem } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import { showErrorToast } from "@/app/components/Toastr";
@@ -15,21 +16,22 @@ import { EditorView } from "@codemirror/view";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { HiOutlineCog, HiOutlineX } from "react-icons/hi";
-import { version } from "../../../package.json";
+import { HiOutlineChevronLeft, HiOutlineX } from "react-icons/hi";
 import { fuzzyMatch, matchCommand, matchFile } from "./command-search";
 import { type Command, useCommandPalette } from "./CommandPaletteContext";
+import PaletteFooter from "./PaletteFooter";
 import PaletteSearchBar from "./PaletteSearchBar";
 import PaletteRow from "./PaletteRow";
 import { usePaletteContentSearch } from "./use-palette-content-search";
 import { usePaletteFiles } from "./use-palette-files";
 import { usePalettePins } from "./use-palette-pins";
-import { buildCreateRow, buildTaskRows, SEARCH_OR_CREATE_PLACEHOLDER, COMMAND_MODE_DEFAULT_ORDER, MAX_VISIBLE_ROWS, pinnedKey, type Row, type Scope, scopeFromPrefix, scopePrefix, type TaggedFileMatch, THEME_CYCLE } from "./palette-model";
+import { buildCreateRow, buildMenuRows, buildTagRows, buildTaskRows, buildTemplateRows, commandRow, SEARCH_OR_CREATE_PLACEHOLDER, MAX_VISIBLE_ROWS, pinnedKey, rowGroup, type Row, type Scope, scopeFromPrefix, scopePrefix, TOP_LEVEL_MENU } from "./palette-model";
 
 
 export default function CommandPalette() {
-  const { isOpen, initialQuery, close, commands, markUsed, createNote, isMorphing } = useCommandPalette();
+  const { isOpen, initialQuery, initialMenuId, close, commands, markUsed, createNote, isMorphing } = useCommandPalette();
   const tasks = useAtomValue(atom_visibleTasks);
+  const templates = useAtomValue(atom_templates);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const fontFamily = useAtomValue(atom_editorFontFamily);
@@ -37,19 +39,18 @@ export default function CommandPalette() {
   const [recentFilePaths, setRecentFilePaths] = useAtom(atom_recentFilePaths);
   // Pinned notes (shared with the sidebar's Files) and pinned commands.
   const { pinnedItems, isPinned, togglePin: togglePinnedRow } = usePalettePins();
-  const [theme, setTheme] = useAtom(atom_theme);
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
-  const { openFile } = useFileSystem();
+  const { openFile, createNoteFromTemplate } = useFileSystem();
   const router = useRouter();
   const pathname = usePathname();
   const isMobileChrome = useIsMobileChrome();
-  const themeCycleIndex = THEME_CYCLE.findIndex((entry) => entry.value === theme);
-  const { label: themeCycleLabel, Icon: ThemeCycleIcon } = THEME_CYCLE[themeCycleIndex];
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<Scope | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [runningId, setRunningId] = useState<string | null>(null);
   const [contextRow, setContextRow] = useState<Row | null>(null);
+  // The menu commands (`subcommands`) opened, outermost first, by id.
+  const [menuPath, setMenuPath] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   // Registered here only, so it's on every route (useShowFiles).
   const showFilesAction = useShowFiles();
@@ -61,19 +62,44 @@ export default function CommandPalette() {
     keywords: "files navigator tree browse explorer folders",
     action: showFilesAction,
   }), [showFilesAction]);
+  // Search Notes…: the `/` scope (note text), from the palette's menu.
+  const searchNotesCommand = useMemo<Command>(() => ({
+    id: "search-notes",
+    label: "Search Notes…",
+    category: "Navigation",
+    shortcut: formatShortcut("F", { shift: true }),
+    keywords: "search find note text content full text",
+    closeOnRun: false,
+    action: () => { setScope("content"); setQuery(""); inputRef.current?.focus(); },
+  }), []);
   const paletteCommands = useMemo(
-    () => [filesCommand, ...commands.filter((command) => command.id !== filesCommand.id)],
-    [commands, filesCommand],
+    () => [filesCommand, searchNotesCommand, ...commands.filter((command) => command.id !== filesCommand.id && command.id !== searchNotesCommand.id)],
+    [commands, filesCommand, searchNotesCommand],
   );
+  // The open menus, resolved from the current commands so their state
+  // (disabled reasons) stays live.
+  const menuStack = useMemo(() => {
+    const stack: Command[] = [];
+    let options = paletteCommands;
+    for (const id of menuPath) {
+      const menu = options.find((command) => command.id === id);
+      if (!menu?.subcommands) break;
+      stack.push(menu);
+      options = menu.subcommands;
+    }
+    return stack;
+  }, [menuPath, paletteCommands]);
+  const menu = menuStack.at(-1) ?? null;
 
   useEffect(() => {
     if (!isOpen) return;
     const initialScope = scopeFromPrefix(initialQuery);
     setScope(initialScope?.scope ?? null);
     setQuery(initialScope?.query ?? initialQuery);
+    setMenuPath(initialMenuId ? [initialMenuId] : []);
     setSelectedIndex(0);
     requestAnimationFrame(() => inputRef.current?.focus());
-  }, [initialQuery, isOpen]);
+  }, [initialMenuId, initialQuery, isOpen]);
 
   const { files, filesByTag, existingFiles } = usePaletteFiles(showHiddenFiles);
   useContentIndexSync();
@@ -93,11 +119,14 @@ export default function CommandPalette() {
       }).filter((row): row is Extract<Row, { kind: "command" }> => row !== null)
         .sort((a, b) => {
           if (!query) {
+            // Pages after actions, as in the default list.
+            const pageDifference = Number(!!a.command.opens) - Number(!!b.command.opens);
+            if (pageDifference) return pageDifference;
             const useCountDifference = (commandUseCounts[b.id] ?? 0) - (commandUseCounts[a.id] ?? 0);
             if (useCountDifference) return useCountDifference;
 
-            const aDefaultIndex = COMMAND_MODE_DEFAULT_ORDER.indexOf(a.id);
-            const bDefaultIndex = COMMAND_MODE_DEFAULT_ORDER.indexOf(b.id);
+            const aDefaultIndex = TOP_LEVEL_MENU.indexOf(a.id);
+            const bDefaultIndex = TOP_LEVEL_MENU.indexOf(b.id);
             const defaultOrderDifference =
               (aDefaultIndex === -1 ? Number.MAX_SAFE_INTEGER : aDefaultIndex)
               - (bDefaultIndex === -1 ? Number.MAX_SAFE_INTEGER : bDefaultIndex);
@@ -107,49 +136,11 @@ export default function CommandPalette() {
           return b.score - a.score || a.label.localeCompare(b.label);
         });
     }
-    if (scope === "tag") {
-      const tagQueries = query.split(/[\s,]+/).map((term) => term.replace(/^#/, "")).filter(Boolean);
-      let matchedFiles: Map<string, TaggedFileMatch> | null = null;
-      for (const tagQuery of tagQueries.length ? tagQueries : [""]) {
-        const queryMatches = new Map<string, TaggedFileMatch>();
-        filesByTag.forEach((taggedFiles, tag) => {
-          const match = fuzzyMatch(tagQuery, tag);
-          if (!match) return;
-          taggedFiles.forEach((file) => {
-            const previous = queryMatches.get(file.path);
-            if (!previous || match.score > previous.score) {
-              queryMatches.set(file.path, { file, matches: [{ tag, score: match.score, indices: match.indices }], score: match.score });
-            }
-          });
-        });
-        if (!matchedFiles) {
-          matchedFiles = queryMatches;
-          continue;
-        }
-        matchedFiles.forEach((previous, path) => {
-          const next = queryMatches.get(path);
-          if (!next) matchedFiles!.delete(path);
-          else matchedFiles!.set(path, { file: previous.file, matches: [...previous.matches, ...next.matches], score: previous.score + next.score });
-        });
-      }
-      return Array.from(matchedFiles?.values() ?? [])
-        .map(({ file, matches, score }) => {
-          let offset = 0;
-          const detailIndices = matches.flatMap(({ tag, indices }) => {
-            const shiftedIndices = indices.map((index) => offset + index + 1);
-            offset += tag.length + 2;
-            return shiftedIndices;
-          });
-          return {
-            kind: "file" as const, id: file.path, label: file.name, detail: matches.map(({ tag }) => `#${tag}`).join(" "), file,
-            titleIndices: [] as number[], detailIndices, score,
-          };
-        })
-        .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
-    }
+    if (scope === "tag") return buildTagRows(query, filesByTag);
     if (scope === "task") {
       return buildTaskRows(query, tasks);
     }
+    if (scope === "template") return buildTemplateRows(query, templates);
     if (!activeEditorView) return [];
     const headings: Extract<Row, { kind: "heading" }>[] = [];
     for (let number = 1; number <= activeEditorView.state.doc.lines; number++) {
@@ -160,7 +151,7 @@ export default function CommandPalette() {
       if (match) headings.push({ kind: "heading", id: `${line.from}`, label: heading[2], detail: `H${heading[1].length}`, from: line.from, titleIndices: match.indices, detailIndices: [], score: match.score });
     }
     return headings.sort((a, b) => b.score - a.score || a.from - b.from);
-  }, [activeEditorView, commandUseCounts, filesByTag, paletteCommands, query, scope, tasks]);
+  }, [activeEditorView, commandUseCounts, filesByTag, paletteCommands, query, scope, tasks, templates]);
 
   const fileRows = useMemo<Row[]>(() => {
     if (scope || !query) return [];
@@ -178,7 +169,7 @@ export default function CommandPalette() {
       return file ? { kind: "file", id: file.path, label: file.name, detail: file.path, file, titleIndices: [], detailIndices: [], score: 0 } : null;
     }
     const command = paletteCommands.find((candidate) => candidate.id === item.id);
-    return command ? { kind: "command", id: command.id, label: command.label, detail: command.category ?? "Command", command, titleIndices: [], detailIndices: [], score: 0 } : null;
+    return command ? { ...commandRow(command), detail: command.category ?? "Command" } : null;
   }, [files, paletteCommands]);
 
   const createRow = useMemo(
@@ -187,6 +178,7 @@ export default function CommandPalette() {
   );
 
   const rows = useMemo(() => {
+    if (menu) return buildMenuRows(query, menu).slice(0, MAX_VISIBLE_ROWS);
     if (scope === "content") return contentSearch.rows.slice(0, MAX_VISIBLE_ROWS);
     if (scope) return scopedRows.slice(0, MAX_VISIBLE_ROWS);
     if (query) return createRow ? [...fileRows.slice(0, MAX_VISIBLE_ROWS - 1), createRow] : fileRows;
@@ -194,18 +186,18 @@ export default function CommandPalette() {
     const pinnedKeys = new Set(pinnedItems.map(pinnedKey));
     const recent = recentFilePaths.slice(0, 5).filter((path) => !pinnedKeys.has(`file:${path}`))
       .map((path) => resolvePinned({ kind: "file", id: path })).filter((row): row is Row => row !== null);
-    const frequent = paletteCommands.slice().sort((a, b) => (commandUseCounts[b.id] ?? 0) - (commandUseCounts[a.id] ?? 0) || a.label.localeCompare(b.label))
-      .filter((command) => command.id !== filesCommand.id && (commandUseCounts[command.id] ?? 0) > 0 && !pinnedKeys.has(`command:${command.id}`)).slice(0, 3)
-      .map((command) => resolvePinned({ kind: "command", id: command.id })).filter((row): row is Row => row !== null);
-    const showFiles = resolvePinned({ kind: "command", id: filesCommand.id });
-    const topActions = [showFiles, ...frequent].filter((row): row is Row => row !== null && !pinnedKeys.has(pinnedKey({ kind: "command", id: row.id })));
-    return [...pinned, ...recent, ...topActions].slice(0, MAX_VISIBLE_ROWS);
-  }, [commandUseCounts, contentSearch.rows, createRow, filesCommand.id, fileRows, paletteCommands, pinnedItems, query, recentFilePaths, resolvePinned, scope, scopedRows]);
+    // The notes first (Enter reopens the last one), then the top-level
+    // menu, which always fits.
+    const topMenu = TOP_LEVEL_MENU.filter((id) => !pinnedKeys.has(`command:${id}`))
+      .map((id) => resolvePinned({ kind: "command", id })).filter((row): row is Row => row !== null);
+    return [...[...pinned, ...recent].slice(0, MAX_VISIBLE_ROWS - topMenu.length), ...topMenu];
+  }, [contentSearch.rows, createRow, fileRows, menu, pinnedItems, query, recentFilePaths, resolvePinned, scope, scopedRows]);
 
-  useEffect(() => setSelectedIndex(0), [query, scope]);
+  useEffect(() => setSelectedIndex(0), [menuPath, query, scope]);
   useEffect(() => setSelectedIndex((index) => Math.min(index, Math.max(0, rows.length - 1))), [rows.length]);
 
-  const execute = async (row: Row | undefined) => {
+  // `newNote`: Ctrl/Cmd+Enter, which makes a template row start a new note.
+  const execute = async (row: Row | undefined, newNote = false) => {
     if (!row || runningId) return;
     if (row.kind === "file" || row.kind === "content") {
       // Close first and let that paint: reading the file and re-rendering the
@@ -234,6 +226,19 @@ export default function CommandPalette() {
       }
       return;
     }
+    if (row.kind === "template") {
+      // Into the note in front (no picker in between); Ctrl/Cmd+Enter, or no
+      // note open, makes a new note from it.
+      close();
+      await nextPaint();
+      if (!newNote && activeEditorView) {
+        document.dispatchEvent(new CustomEvent("hermes:insert-vault-template", { detail: { entry: row.entry } }));
+        return;
+      }
+      const path = await createNoteFromTemplate?.(row.entry);
+      if (path && !pathname.startsWith("/editor")) router.push("/editor");
+      return;
+    }
     if (row.kind === "task") { router.push("/editor/tasks"); close(); return; }
     if (row.kind === "heading") {
       activeEditorView?.dispatch({ selection: { anchor: row.from }, effects: EditorView.scrollIntoView(row.from, { y: "start", yMargin: 16 }) });
@@ -241,6 +246,26 @@ export default function CommandPalette() {
     }
     if (row.command.disabledReason) return;
     markUsed(row.id);
+    // A menu opens in place: its list replaces the results.
+    if (row.command.subcommands) {
+      setMenuPath((path) => [...path.slice(0, menuStack.length), row.id]);
+      setScope(null);
+      setQuery("");
+      inputRef.current?.focus();
+      return;
+    }
+    // Hand-offs (a dialog of their own, a change to the note) run once the
+    // palette is gone, so their result shows at once and keeps the focus.
+    if (row.command.closeFirst) {
+      close();
+      await nextPaint();
+      try {
+        await row.command.action();
+      } catch (error) {
+        showErrorToast(error instanceof Error ? error.message : `Failed to run ${row.label}`);
+      }
+      return;
+    }
     setRunningId(row.id);
     try {
       await row.command.action();
@@ -261,6 +286,10 @@ export default function CommandPalette() {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
       event.preventDefault(); togglePin(rows[selectedIndex]); return;
     }
+    // Backspace in an empty menu search goes back a level.
+    if (event.key === "Backspace" && menu && !query) {
+      event.preventDefault(); setMenuPath((path) => path.slice(0, -1)); return;
+    }
     if (event.key === "Tab") {
       event.preventDefault();
       setSelectedIndex((index) => rows.length ? (index + (event.shiftKey ? rows.length - 1 : 1)) % rows.length : 0);
@@ -271,75 +300,74 @@ export default function CommandPalette() {
     if (event.key === "ArrowUp") { event.preventDefault(); setSelectedIndex((index) => rows.length ? (index - 1 + rows.length) % rows.length : 0); return; }
     if (event.key === "Enter") {
       event.preventDefault();
-      void execute(rows[selectedIndex]);
+      void execute(rows[selectedIndex], event.ctrlKey || event.metaKey);
     }
   };
 
   const displayQuery = scope ? `${scopePrefix(scope)}${query}` : query;
-  const contentMessage = scope !== "content" ? null
+  const menuTitle = menuStack.map((command) => command.label.replace(/…$/, "")).join(" › ");
+  const scopeMessage = scope === "template" && templates.length === 0 ? "No templates yet. Open Templates to add one or a pack."
+    : scope !== "content" ? null
     : contentSearch.status === "unavailable" ? "Note text search isn't available in this browser."
       : contentSearch.status === "short" ? "Type at least 2 characters to search note text." : null;
   const contentFootnote = scope !== "content" || contentSearch.status === "unavailable" ? null
     : contentSearch.capped ? "Note text search covers part of this vault (size limit reached)."
       : contentSearch.pending > 0 ? `Indexing note text… ${contentSearch.pending} note${contentSearch.pending === 1 ? "" : "s"} left` : null;
-  const showsEmptyState = rows.length === 0 && !!(query || scope) && !contentMessage && !(scope === "content" && contentSearch.status === "searching");
+  const showsEmptyState = rows.length === 0 && !!(query || scope) && !scopeMessage && !(scope === "content" && contentSearch.status === "searching");
 
   return <OverlayPanel isOpen={isOpen} onClose={close} variant={isMobileChrome ? "sheet" : "modal"} backdrop="dim"
     // During a search-pill morph the view transition animates; the panel's own
     // enter/exit animations and exit delay would hide it, so they're skipped.
     backdropClassName={`bg-surface/85 dark:bg-black/60 duration-overlay-backdrop motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in" : "animate-out fade-out"}`}
     exitDurationMs={isMorphing ? 0 : 200}
-    containerClassName={isMobileChrome ? "" : "items-start justify-center pt-[18vh] px-4"}
+    // Centred, at a fixed height so it doesn't jump as the results change.
+    containerClassName={isMobileChrome ? "" : "items-center justify-center p-4"}
     panelClassName={isMobileChrome
       ? `flex-1 flex flex-col bg-overlay duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-bottom-2 ease-out" : "animate-out fade-out slide-out-to-bottom-2 ease-in"}`
-      : `w-[560px] max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-18vh-2rem)] flex flex-col glass-panel glass-panel-soft rounded-xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-top-1 ease-out" : "animate-out fade-out slide-out-to-top-1 ease-in"}`}>
+      : `w-[600px] max-w-full h-[min(520px,calc(100dvh-2rem))] flex flex-col glass-panel glass-panel-soft rounded-xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in zoom-in-[0.98] ease-out" : "animate-out fade-out zoom-out-[0.98] ease-in"}`}>
     <div className="flex min-h-0 flex-1 flex-col" onKeyDown={handleKeyDown}>
     <PaletteSearchBar
       inputRef={inputRef}
       isOpen={isOpen}
       value={displayQuery}
-      placeholder={createNote ? SEARCH_OR_CREATE_PLACEHOLDER : "Search files or type a command..."}
+      placeholder={menu ? `${menuTitle}…` : createNote ? SEARCH_OR_CREATE_PLACEHOLDER : "Search files or type a command..."}
       hasQuery={!!query}
-      isCommandMode={scope === "command"}
       activeDescendant={rows[selectedIndex] ? `command-palette-option-${selectedIndex}` : undefined}
-      onChange={(value) => { const parsed = scopeFromPrefix(value); setScope(parsed?.scope ?? null); setQuery(parsed?.query ?? value); }}
+      onChange={(value) => { if (menu) { setQuery(value); return; } const parsed = scopeFromPrefix(value); setScope(parsed?.scope ?? null); setQuery(parsed?.query ?? value); }}
       onClear={() => { setQuery(""); inputRef.current?.focus(); }}
-      onToggleCommands={() => { setScope((current) => (current === "command" ? null : "command")); inputRef.current?.focus(); }}
     >
+      {menu && <Button variant="icon" onClick={() => { setMenuPath((path) => path.slice(0, -1)); inputRef.current?.focus(); }} aria-label="Back" title="Back (Backspace)" className="!h-7 !w-7 shrink-0 -order-1 -ml-2 -mr-1"><HiOutlineChevronLeft size={16} /></Button>}
       {isMobileChrome && <Button variant="icon" onClick={close} aria-label="Close" className="shrink-0"><HiOutlineX size={20} /></Button>}
     </PaletteSearchBar>
     <div id="command-palette-results" role="listbox" aria-label="Command palette results" className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto" style={{ fontFamily }}>
       {rows.length === 0 && !query && !scope && (
         <div className="animate-in fade-in slide-in-from-top-1 px-6 py-8 text-center text-ui-footnote text-fg-muted duration-200 motion-reduce:animate-none">
           <p className="font-medium text-fg">Start typing to find a note or action.</p>
-          <p className="mt-1">Use # for tags, &gt; for commands, ! for tasks, @ for headings, or / for note text.</p>
         </div>
       )}
-      {contentMessage && <p className="px-6 py-8 text-center text-ui-footnote text-fg-muted">{contentMessage}</p>}
+      {scopeMessage && <p className="px-6 py-8 text-center text-ui-footnote text-fg-muted">{scopeMessage}</p>}
       {showsEmptyState && (
         <div className="animate-in fade-in slide-in-from-top-1 px-6 py-8 text-center duration-200 motion-reduce:animate-none">
           <span aria-hidden="true" className="text-lg">🪴</span>
           <p className="mt-2 text-ui-footnote text-fg">No matches found</p>
-          <p className="mt-1 text-ui-footnote text-fg-muted">Try a file name, #tag, &gt;command, !task, @heading, or /note text.</p>
+          <p className="mt-1 text-ui-footnote text-fg-muted">Try a file name, or a mode below: #tag, !task, @heading, /text, ~template, &gt;command.</p>
         </div>
       )}
-      <div className="py-2">{rows.map((row, index) => (
-        <PaletteRow key={`${row.kind}:${row.id}`} row={row} index={index} selected={index === selectedIndex} scope={scope} runningId={runningId} isMobileChrome={isMobileChrome}
-          onExecute={(target) => void execute(target)} onHover={setSelectedIndex} onContextMenu={setContextRow} />
+      <div className="py-1.5">{rows.map((row, index) => (
+        <React.Fragment key={`${row.kind}:${row.id}`}>
+          {/* The default list and an empty `>` list: hairlines between the
+              notes, the actions and the pages. */}
+          {!query && (!scope || scope === "command") && !menu && index > 0 && rowGroup(row) !== rowGroup(rows[index - 1]) && (
+            <div role="presentation" className="mx-5 my-1.5 h-px bg-edge-subtle" />
+          )}
+          <PaletteRow row={row} index={index} selected={index === selectedIndex} scope={scope} inMenu={!!menu} runningId={runningId} isMobileChrome={isMobileChrome}
+            onExecute={(target) => void execute(target)} onHover={setSelectedIndex} onContextMenu={setContextRow} />
+        </React.Fragment>
       ))}</div>
       {contentFootnote && <p className="px-5 pb-2 text-ui-footnote text-fg-muted">{contentFootnote}</p>}
     </div>
-    <footer className="flex items-center justify-between border-t border-edge-subtle bg-black/[0.03] dark:bg-white/[0.03] px-3 py-1 text-ui-caption text-fg-muted">
-      <div className="flex items-center gap-0.5">
-        <Button variant="icon" onClick={() => setTheme(THEME_CYCLE[(themeCycleIndex + 1) % THEME_CYCLE.length].value)} aria-label={themeCycleLabel} title={themeCycleLabel} className="!w-7 !h-7" suppressHydrationWarning>
-          <ThemeCycleIcon size={14} />
-        </Button>
-        <Button variant="icon" onClick={() => { router.push("/editor/settings"); close(); }} aria-label="Settings" title="Settings" className="!w-7 !h-7">
-          <HiOutlineCog size={14} />
-        </Button>
-      </div>
-      <span className="font-medium">HermesMarkdown v{version}</span>
-    </footer>
+    <PaletteFooter scope={menu ? null : scope}
+      onScope={(next) => { setMenuPath([]); setScope((current) => (current === next ? null : next)); setQuery(""); inputRef.current?.focus(); }} />
     {contextRow && <div role="menu" aria-label="Palette item actions" className="absolute right-3 top-28 z-10 animate-in fade-in zoom-in-95 slide-in-from-top-1 rounded-lg glass-panel p-1 duration-150 motion-reduce:animate-none"><Button variant="menu-item" role="menuitem" onClick={() => togglePin(contextRow)}>{isPinned(contextRow) ? "Unpin item" : "Pin item"} <span className="ml-auto text-fg-faint">Ctrl+D</span></Button></div>}
     </div>
   </OverlayPanel>;

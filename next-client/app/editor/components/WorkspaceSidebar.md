@@ -1,6 +1,6 @@
 # WorkspaceSidebar
 
-Description: The window's sidebar on desktop, one per window on its leading edge, the same on every /editor route (`EditorShell` hosts it in the editor layout), and kept to the library, as a plain writing app's is: the vault, the note's outline and its files. Everything else is the command palette's (`Ctrl/Cmd+K`, the editor's palette button (`PaneTitle`), the `SearchPill` in the page title bars): Home, All Notes, Tags, Tasks, Templates, Trash, Settings and search.
+Description: The window's sidebar on desktop, one per window on its leading edge, the same on every /editor route (`EditorShell` hosts it in the editor layout), and kept to the library, as a plain writing app's is: the vault, the note's outline and its files. Everything else is the command palette's (`Ctrl/Cmd+K`, the editor's palette button (`EditorShell`), the `SearchPill` in the page title bars): Home, All Notes, Tags, Tasks, Templates, Trash, Settings, Documentation and search.
 
 It is a plain panel in the page's own paper colour (`bg-surface`, so the window reads as one sheet) with a hairline on its trailing edge, no glass, no shadow, and nothing coloured but the current row: rows are 28px in the primary text colour with neutral grey icons (`sidebar/sidebar-classes.ts`), the current one on a soft accent fill (the file tree's active-row fill). The accent is otherwise kept for the caret and focus.
 

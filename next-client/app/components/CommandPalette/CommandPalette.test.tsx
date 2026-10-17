@@ -133,42 +133,27 @@ describe("CommandPalette", () => {
     }
   });
 
-  it("shows a unified default list with the Show Files action", async () => {
+  it("opens on the top-level menu, without Show Files", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    expect(await screen.findByRole("option", { name: /Show Files/ })).toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: /Search Notes…/ })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /New file/ })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: /Show Files/ })).not.toBeInTheDocument();
     expect(screen.queryByText("Recently Opened Files")).not.toBeInTheDocument();
     expect(screen.queryByText("Frequently Used Commands")).not.toBeInTheDocument();
   });
 
-  it("cycles the theme from the palette header", async () => {
-    renderPalette([[atom_theme, "system"]]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
-
-    fireEvent.click(await screen.findByRole("button", { name: "Theme: System" }));
-    expect(screen.getByRole("button", { name: "Theme: Light" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Theme: Light" }));
-    expect(screen.getByRole("button", { name: "Theme: Dark" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Theme: Dark" }));
-    expect(screen.getByRole("button", { name: "Theme: System" })).toBeInTheDocument();
-  });
-
-  it("opens Settings from the palette header", async () => {
+  it("keeps Settings and the theme out of the footer: the footer is the modes and the version", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    fireEvent.click(await screen.findByRole("button", { name: "Settings" }));
-
-    expect(push).toHaveBeenCalledWith("/editor/settings");
-  });
-
-  it("shows the app version without a help button in the footer", async () => {
-    renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
-
-    expect(await screen.findByText(`HermesMarkdown v${version}`)).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Documentation and help" })).not.toBeInTheDocument();
+    const footer = (await screen.findByText(`v${version}`)).closest("footer")!;
+    expect(within(footer).queryByRole("button", { name: "Settings" })).not.toBeInTheDocument();
+    expect(within(footer).queryByRole("button", { name: /Theme/ })).not.toBeInTheDocument();
+    expect(within(footer).getAllByRole("button").map((button) => button.getAttribute("aria-label"))).toEqual([
+      "Tags", "Tasks", "Headings", "Text", "Templates", "Commands",
+    ]);
   });
 
   it("keeps commands out of the default file search and shows them after >", async () => {
@@ -192,7 +177,7 @@ describe("CommandPalette", () => {
     fireEvent.change(input, { target: { value: "no-match" } });
 
     expect(screen.getByText("No matches found")).toBeInTheDocument();
-    expect(screen.getByText("Try a file name, #tag, >command, !task, @heading, or /note text.")).toBeInTheDocument();
+    expect(screen.getByText("Try a file name, or a mode below: #tag, !task, @heading, /text, ~template, >command.")).toBeInTheDocument();
     expect(screen.getByText("🪴")).toHaveAttribute("aria-hidden", "true");
   });
 
@@ -231,15 +216,14 @@ describe("CommandPalette", () => {
     expect(input).toHaveAttribute("aria-activedescendant", arrowActiveDescendant);
   });
 
-  it("keeps modes in the query without scope controls", async () => {
+  it("keeps the mode in the query, its footer chip lit", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
     fireEvent.change(input, { target: { value: "#plan" } });
     expect(input).toHaveValue("#plan");
-    expect(screen.queryByRole("button", { name: "Tags" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Commands" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tags" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.queryByRole("button", { name: "Explorer" })).not.toBeInTheDocument();
   });
 
@@ -260,7 +244,8 @@ describe("CommandPalette", () => {
     const store = renderPaletteWithStore();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    fireEvent.click(await screen.findByRole("option", { name: /Show Files/ }));
+    fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">show files" } });
+    fireEvent.click(screen.getByRole("option", { name: /Show Files/ }));
     await waitFor(() => expect(store.get(atom_sidebarOpen)).toBe(true));
     expect(store.get(atom_sidebarCollapsed).Files).toBe(false);
     expect(store.get(atom_filesFocusRequested)).toBe(true);
@@ -272,7 +257,8 @@ describe("CommandPalette", () => {
     const store = renderPaletteWithStore();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    fireEvent.click(await screen.findByRole("option", { name: /Show Files/ }));
+    fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">show files" } });
+    fireEvent.click(screen.getByRole("option", { name: /Show Files/ }));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/editor"));
     expect(store.get(atom_sidebarOpen)).toBe(true);
   });
@@ -282,7 +268,8 @@ describe("CommandPalette", () => {
     const store = renderPaletteWithStore();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    fireEvent.click(await screen.findByRole("option", { name: /Show Files/ }));
+    fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">show files" } });
+    fireEvent.click(screen.getByRole("option", { name: /Show Files/ }));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/editor/files"));
     expect(store.get(atom_sidebarOpen)).toBe(false);
   });
@@ -340,7 +327,7 @@ describe("CommandPalette", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
-  it("combines pinned, recent, and frequent items without section labels", async () => {
+  it("lists pinned and recent notes, then the menu, without section labels", async () => {
     renderPalette([
       [atom_fileMetadata, {
         "Projects/Roadmap.md": {
@@ -356,8 +343,10 @@ describe("CommandPalette", () => {
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
     expect(await screen.findByRole("option", { name: "Roadmap.md Projects" })).toBeInTheDocument();
-    expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
-    expect(screen.getByRole("listbox")).toHaveTextContent("Show Files");
+    const options = screen.getAllByRole("option");
+    expect(options[0]).toHaveAccessibleName("Roadmap.md Projects");
+    expect(options[1]).toHaveAccessibleName(/Search Notes…/);
+    expect(screen.getByRole("listbox")).not.toHaveTextContent("Test command");
     expect(screen.queryByText("Pinned")).not.toBeInTheDocument();
     expect(screen.queryByText("Frequently Used Commands")).not.toBeInTheDocument();
   });
@@ -652,20 +641,178 @@ describe("CommandPalette", () => {
     expect(focus).toHaveBeenCalled();
   });
 
-  it("toggles command mode with the > button and keeps actions in the footer", async () => {
+  it("closes before running a closeFirst command, so its result shows at once", async () => {
+    const palette = { isOpen: false };
+    const action = vi.fn(() => palette.isOpen);
+    function HandOff() {
+      palette.isOpen = useCommandPalette().isOpen;
+      useRegisterCommand({ id: "insert-template", label: "Insert template…", closeFirst: true, action });
+      return null;
+    }
+    render(
+      <Provider>
+        <CommandPaletteProvider>
+          <HandOff />
+          <CommandPalette />
+        </CommandPaletteProvider>
+      </Provider>,
+    );
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.click(await screen.findByRole("option", { name: /Insert template…/ }));
+
+    await waitFor(() => expect(action).toHaveBeenCalledOnce());
+    expect(action).toHaveReturnedWith(false);
+  });
+
+  it("lists the pages it opens after the actions, set apart and marked", async () => {
+    function Pages() {
+      useRegisterCommand({ id: "open-settings", label: "Open Settings", opens: "page", action: vi.fn() });
+      useRegisterCommand({ id: "open-documentation", label: "Open Documentation", opens: "tab", action: vi.fn() });
+      return null;
+    }
+    render(
+      <Provider>
+        <CommandPaletteProvider>
+          <TestCommand />
+          <Pages />
+          <CommandPalette />
+        </CommandPaletteProvider>
+      </Provider>,
+    );
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    await screen.findByRole("option", { name: /Search Notes…/ });
+
+    expect(screen.getAllByRole("option").map((option) => option.getAttribute("aria-label"))).toEqual([
+      expect.stringContaining("Search Notes…"), "New file", "Open Settings", "Open Documentation (opens in a new tab)",
+    ]);
+    expect(within(screen.getByRole("listbox")).getAllByRole("presentation")).toHaveLength(1);
+  });
+
+  it("Search Notes… switches to note text search without closing", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.click(await screen.findByRole("option", { name: /Search Notes…/ }));
+
+    expect(screen.getByRole("combobox")).toHaveValue("/");
+  });
+
+  describe("menus", () => {
+    const improve = vi.fn();
+    function MenuCommand() {
+      const { openMenu } = useCommandPalette();
+      useRegisterCommand({
+        id: "ai-menu",
+        label: "Ask or Edit with AI…",
+        category: "AI",
+        action: vi.fn(),
+        subcommands: [
+          { id: "ai-builder", label: "Freeform Prompt", description: "Ask anything in AI Chat", action: vi.fn() },
+          {
+            id: "ai-mode-improve", label: "Improve Writing", description: "Fix grammar, adjust tone, format", action: vi.fn(),
+            subcommands: [
+              { id: "ai-improve", label: "Improve writing", action: improve },
+              { id: "ai-fix-grammar", label: "Fix spelling and grammar", action: vi.fn() },
+            ],
+          },
+        ],
+      });
+      return <button type="button" onClick={() => openMenu("ai-menu")}>Open AI menu</button>;
+    }
+    function renderWithMenu() {
+      return render(
+        <Provider>
+          <CommandPaletteProvider>
+            <TestCommand />
+            <MenuCommand />
+            <CommandPalette />
+          </CommandPaletteProvider>
+        </Provider>,
+      );
+    }
+
+    it("is in the top-level menu and opens in place, showing what each mode does", async () => {
+      renderWithMenu();
+      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.click(await screen.findByRole("option", { name: /Ask or Edit with AI…/ }));
+
+      const input = screen.getByRole("combobox");
+      expect(input).toHaveAttribute("placeholder", "Ask or Edit with AI…");
+      expect(screen.getAllByRole("option").map((option) => option.textContent)).toEqual([
+        "Freeform PromptAsk anything in AI Chat",
+        "Improve WritingFix grammar, adjust tone, format",
+      ]);
+
+      fireEvent.click(screen.getByRole("option", { name: /Improve Writing/ }));
+      expect(input).toHaveAttribute("placeholder", "Ask or Edit with AI › Improve Writing…");
+      fireEvent.click(screen.getByRole("option", { name: "Improve writing" }));
+      await waitFor(() => expect(improve).toHaveBeenCalledOnce());
+    });
+
+    it("searches the actions inside its modes, and Backspace goes back a level", async () => {
+      renderWithMenu();
+      fireEvent.click(screen.getByRole("button", { name: "Open AI menu" }));
+      const input = await screen.findByRole("combobox");
+
+      fireEvent.change(input, { target: { value: "grammar" } });
+      expect(screen.getByRole("option", { name: /Fix spelling and grammar/ })).toBeInTheDocument();
+
+      fireEvent.change(input, { target: { value: "" } });
+      fireEvent.click(screen.getByRole("option", { name: /Improve Writing/ }));
+      fireEvent.keyDown(input, { key: "Backspace" });
+      expect(input).toHaveAttribute("placeholder", "Ask or Edit with AI…");
+      fireEvent.keyDown(input, { key: "Backspace" });
+      expect(screen.getByRole("option", { name: /Search Notes…/ })).toBeInTheDocument();
+    });
+  });
+
+  it("enters a mode from its footer chip, as its prefix would, and leaves it on a second click", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
-    fireEvent.click(screen.getByRole("button", { name: "Search commands" }));
+    fireEvent.click(screen.getByRole("button", { name: "Commands" }));
     expect(input).toHaveValue(">");
-    expect(screen.getByRole("button", { name: "Search files" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Commands" })).toHaveAttribute("aria-pressed", "true");
+    expect(input).toHaveFocus();
 
-    fireEvent.click(screen.getByRole("button", { name: "Search files" }));
+    fireEvent.click(screen.getByRole("button", { name: "Tags" }));
+    expect(input).toHaveValue("#");
+    fireEvent.click(screen.getByRole("button", { name: "Tags" }));
     expect(input).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Tags" })).toHaveAttribute("aria-pressed", "false");
+  });
 
-    const footer = screen.getByText(`HermesMarkdown v${version}`).closest("footer")!;
-    expect(footer).toContainElement(screen.getByRole("button", { name: "Settings" }));
+  describe("~ templates", () => {
+    const templateFiles = Object.fromEntries(["templates/Meeting.md", "templates/Journal/Daily.md", "Notes/Plan.md"].map((path) => [path, {
+      path, name: path.split("/").at(-1)!, handle: { kind: "file", name: path.split("/").at(-1)! },
+      tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+    }]));
+
+    it("lists the vault's templates with their pack, and inserts the chosen one into the note in front", async () => {
+      const inserted = vi.fn();
+      document.addEventListener("hermes:insert-vault-template", inserted);
+      renderPalette([[atom_fileMetadata, templateFiles], [atom_activeEditorView, {} as never]]);
+      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.change(await screen.findByRole("combobox"), { target: { value: "~" } });
+
+      expect(screen.getByRole("option", { name: "Daily Journal" })).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: "Meeting" })).toBeInTheDocument();
+      expect(screen.queryByRole("option", { name: /Plan/ })).not.toBeInTheDocument();
+
+      fireEvent.change(screen.getByRole("combobox"), { target: { value: "~meet" } });
+      fireEvent.keyDown(screen.getByRole("combobox"), { key: "Enter" });
+      await waitFor(() => expect(inserted).toHaveBeenCalledOnce());
+      expect((inserted.mock.calls[0][0] as CustomEvent).detail.entry).toMatchObject({ name: "Meeting", path: "templates/Meeting.md" });
+      document.removeEventListener("hermes:insert-vault-template", inserted);
+    });
+
+    it("says so when the vault has no templates", async () => {
+      renderPalette();
+      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.click(await screen.findByRole("button", { name: "Templates" }));
+
+      expect(screen.getByText("No templates yet. Open Templates to add one or a pack.")).toBeInTheDocument();
+    });
   });
 
   describe("Create row", () => {

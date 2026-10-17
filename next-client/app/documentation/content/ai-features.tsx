@@ -24,8 +24,8 @@ export const aiFeaturesGroup: Group = {
             <strong>AI features</strong>, pick a Provider (Claude or Gemini) and paste your API key. Then
             pick a Model (the refresh button reloads the list) and, if you like, <strong>Test connection</strong>.
             With a key set, AI Chat, the Ask AI toolbar and the AI items in the slash menu appear; the
-            palette lists its <code>AI: …</code> actions while the switch is on and runs them once a key
-            is set. With the switch off, none of them show.
+            palette lists <strong>Ask or Edit with AI…</strong> while the switch is on and runs its actions
+            once a key is set. With the switch off, none of them show.
           </p>
           <p>
             Nothing is sent until you use an AI feature. The key is stored in your browser. Each AI
@@ -50,7 +50,7 @@ export const aiFeaturesGroup: Group = {
         <>
           <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-0">AI Chat</h4>
           <p>
-            Open it with <code>CTRL+SHIFT+B</code>, the <strong>Open AI Chat</strong> command, or the{" "}
+            Open it with <code>CTRL+SHIFT+B</code>, <strong>Freeform Prompt</strong> in the palette&apos;s AI menu, or the{" "}
             <strong>💬 Ask AI</strong> button in the toolbar that appears on a text selection.
             The chat sees the current note and your selection. Type <code>@</code> to reference
             another note by name, or use <code>@folder:path</code> / <code>@vault</code> to share an
@@ -63,17 +63,19 @@ export const aiFeaturesGroup: Group = {
           </p>
           <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">One-click actions</h4>
           <p>
-            Common rewrites skip the conversation. Run them from the command palette
-            (<code>AI: …</code>) or the slash menu; they work on the selection, or on the note where
-            that makes sense. Each result opens in a diff review — red for removed, green for added —
+            Common rewrites skip the conversation. Press <code>CTRL/CMD+J</code> (or choose{" "}
+            <strong>Ask or Edit with AI…</strong> in the command palette) for one menu of four modes:{" "}
+            <strong>Freeform Prompt</strong> opens AI Chat, and <strong>Improve Writing</strong>,{" "}
+            <strong>Summarize / Structure</strong> and <strong>Insert Element</strong> each list their
+            actions. Type to search every action at once (&ldquo;grammar&rdquo;, &ldquo;table&rdquo;). They work
+            on the selection, or on the note where that makes sense. Each result opens in a diff review — red for removed, green for added —
             with Replace, Insert Below, or Cancel.
           </p>
           <KV
             rows={[
-              { label: "Rewrite", value: "Improve writing · Fix spelling and grammar · Shorten · Expand" },
-              { label: "Tone", value: "Formal · Casual · Direct · Polished" },
-              { label: "Structure", value: "Summarize · Extract tasks · Create outline · Generate title" },
-              { label: "Other", value: "Continue writing · Explain selection" },
+              { label: "Improve Writing", value: "Improve writing · Fix spelling and grammar · Shorten · Expand · Continue writing · Change tone (formal, casual, direct, polished)" },
+              { label: "Summarize / Structure", value: "Summarize · Extract tasks · Create outline · Generate title · Explain selection" },
+              { label: "Insert Element", value: "Generate table · Generate Mermaid diagram · Generate formula" },
             ]}
           />
         </>

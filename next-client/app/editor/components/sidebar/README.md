@@ -1,6 +1,6 @@
 # sidebar
 
-The parts of `WorkspaceSidebar` (one level up), top to bottom, and what they share. The sidebar is the library (vault, Open Notes, Outline, Files); everything else is the command palette's.
+The parts of `WorkspaceSidebar` (one level up), top to bottom, and what they share. The sidebar is the library (vault, Open Notes, Outline, Files) and nothing else; everything else (Settings and Documentation too) is the command palette's.
 
 | Item | Purpose |
 |---|---|

@@ -35,6 +35,7 @@ function getShortcutGroups(): ShortcutGroup[] {
         { label: "Show Files (outside a note)", keys: formatShortcut("B") },
         { label: "Show / hide sidebar", keys: `${formatShortcut("\\")} or ${formatShortcut("S", { alt: true })}` },
         { label: "Sentence focus on / off", keys: formatShortcut("F", { alt: true }) },
+        { label: "Ask or Edit with AI (AI features on)", keys: formatShortcut("J") },
         { label: "AI Chat (with an AI key)", keys: formatShortcut("B", { shift: true }) },
         { label: "Pin / unpin in the command palette", keys: formatShortcut("D") },
         { label: "Close dialog", keys: "Esc" },

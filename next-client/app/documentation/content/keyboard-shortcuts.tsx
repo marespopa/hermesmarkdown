@@ -27,6 +27,7 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "Plain line break (caret at the start of the next row)", shortcut: "SHIFT+ENTER" },
             { label: "Cycle task status", shortcut: "CTRL/CMD+ENTER" },
             { label: "Open helper at cursor (link, date, diagram, image)", shortcut: "CTRL/CMD+SHIFT+ENTER" },
+            { label: "Ask or Edit with AI…", shortcut: "CTRL/CMD+J" },
             { label: "AI Chat", shortcut: "CTRL+SHIFT+B" },
             { label: "Dismiss / close", shortcut: "ESCAPE" },
           ],

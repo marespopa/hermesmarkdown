@@ -188,6 +188,21 @@ describe("WorkspaceSidebar", () => {
     expect(openNotes.getByRole("button", { name: "Close a" })).toBeInTheDocument();
   });
 
+  it("shows each open note's Ctrl/Cmd+1–9 shortcut on the editor only", () => {
+    renderSidebar(true);
+    const openNotes = within(screen.getByRole("region", { name: "Open Notes" }));
+    expect(openNotes.getByRole("button", { name: "a" })).toHaveAttribute("aria-keyshortcuts", "Control+1 Meta+1");
+    expect(openNotes.getByText(/^(Ctrl\+1|⌘1)$/)).toBeInTheDocument();
+
+    cleanup();
+    navigation.pathname = "/editor/tasks";
+    renderSidebar(true);
+    const offEditor = within(screen.getByRole("region", { name: "Open Notes" }));
+    expect(offEditor.getByRole("button", { name: "a" })).not.toHaveAttribute("aria-keyshortcuts");
+    expect(offEditor.queryByText(/^(Ctrl\+1|⌘1)$/)).not.toBeInTheDocument();
+    navigation.pathname = "/editor";
+  });
+
   it("brings an open note to the front of its pane, and back to the editor from a page", () => {
     const twoNotes = { ...left, openFilePaths: ["a.md", "c.md"] };
     navigation.pathname = "/editor/tasks";
@@ -220,7 +235,7 @@ describe("WorkspaceSidebar", () => {
 
     expect(screen.getByRole("region", { name: "Outline" })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: "Files" })).toBeInTheDocument();
-    for (const name of ["Home", "All Notes", "Tags", "Tasks", "Templates", "Trash", "Settings", "Export"]) {
+    for (const name of ["Home", "All Notes", "Tags", "Tasks", "Templates", "Trash", "Export", "Settings", "Documentation"]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
     }
     expect(screen.getByRole("region", { name: "Open Notes" })).toBeInTheDocument();

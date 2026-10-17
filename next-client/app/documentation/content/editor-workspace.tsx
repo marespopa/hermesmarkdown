@@ -114,9 +114,9 @@ tags: []
 ---`}</Code>
         <p>
           The editor gives frontmatter a subtle background. Collapsed, it shrinks to one quiet{" "}
-          <strong>Properties</strong> row at the top of the note. A <code>status</code> and the first
-          few <code>tags</code> show as chips, followed by the names of the other keys (for example{" "}
-          <em>Properties · draft #work #ideas · title, created</em>). Click the row, or press the up arrow from the
+          <strong>Properties</strong> row at the top of the note. The <code>title</code> shows as itself, a{" "}
+          <code>status</code> and the first few <code>tags</code> as chips, followed by the names of the other
+          keys (for example <em>Properties · Release plan · draft #work #ideas · created</em>). Click the row, or press the up arrow from the
           first line, to expand it; the same row, now the top of the frontmatter panel, collapses it again.
           Clicking the row changes the note in front of you (in every split pane showing it) and is
           remembered: notes you open next start the same way.
@@ -190,6 +190,16 @@ tags: []
           where plain text searches note names and paths. To search inside notes, start with{" "}
           <code>/</code> or press <code>CTRL/CMD+SHIFT+F</code>.
         </p>
+        <p>
+          With nothing typed it lists your pinned and recent notes, then a short menu of what you
+          reach for most: <strong>Search Notes…</strong> (note text), <strong>Ask or Edit with AI…</strong>,{" "}
+          <strong>New Note</strong>, <strong>Insert template…</strong>, <strong>Toggle Focus Mode</strong>;
+          then, set apart, the pages it can take you to: <strong>Open Tasks</strong>,{" "}
+          <strong>Open Templates</strong>, <strong>Open Settings</strong> and <strong>Open Documentation</strong>.
+          An arrow marks a row that opens another page; <strong>Open Documentation</strong> opens in a new
+          tab, so your note stays put. A row with a chevron opens a menu in place; <code>Backspace</code> in its empty search field, or the back button, goes up a
+          level.
+        </p>
         <KV
           rows={[
             { label: "Plain text", value: "Files by name or path" },
@@ -198,6 +208,7 @@ tags: []
             { label: "!", value: "Tasks; choose one to open its note at the source line" },
             { label: "@", value: "Headings in the active note; choose one to place it at the top" },
             { label: "/", value: "Note text across the vault; choose a line to open the note at that match" },
+            { label: "~", value: "Your templates; Enter inserts one into the note, CTRL/CMD+Enter starts a new note from it" },
           ]}
         />
         <p>
@@ -206,6 +217,10 @@ tags: []
           blocks are. Exact phrases rank first, and each note shows up to three matching lines.
           Private notes never appear in note text results, whatever the Privacy Mode. Right after
           a vault opens, a footnote shows how many notes are still being indexed.
+        </p>
+        <p>
+          The palette&apos;s footer lists these modes as chips (Tags, Tasks, Headings, Text, Templates,
+          Commands): click one instead of typing its prefix, and click it again to go back to notes.
         </p>
         <Callout type="tip">
           Prefixes select a result type; they are not combined. For example, <code>#project</code>{" "}
@@ -225,7 +240,7 @@ tags: []
             { label: "Notes", value: "New Note, Open Note from Disk…, Export as Markdown (always a .md download, never a save), Copy Markdown, Rename / Duplicate / Move / Delete Note" },
             { label: "Folders", value: "New folder (one level at a time)" },
             { label: "Editing", value: "Undo, redo, focus, formatting, tasks, and templates" },
-            { label: "AI", value: "Chat and selection/document actions" },
+            { label: "AI", value: "Ask or Edit with AI… (CTRL/CMD+J): Freeform Prompt, Improve Writing, Summarize / Structure, Insert Element" },
           ]}
         />
         <KV
@@ -243,6 +258,7 @@ tags: []
             { label: "Theme: Light / Dark / System", value: "—" },
             { label: "Light Theme: … / Dark Theme: …", value: "The palette each mode uses" },
             { label: "Toggle Full Width / Word Wrap / Line Numbers / Invisibles / Word Count / Vim Mode", value: "—" },
+            { label: "Toggle Focus Mode", value: "Dim other paragraphs, or turn Focus off" },
             { label: "Focus: …", value: "Off, or dim other paragraphs or sentences" },
             { label: "Settings", value: "Editor Font, Text Size, Autosave, Open Settings" },
             { label: "GitHub", value: "Commit, push, sync, pull — GitHub vaults only" },
@@ -255,15 +271,13 @@ tags: []
             { label: "New Note", value: "Blank note, named from its first line" },
             { label: "New Folder", value: "Choose a vault folder, then enter a name" },
             { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },
-            { label: "Open AI Chat", value: "CTRL+SHIFT+B · when AI is configured" },
+            { label: "Ask or Edit with AI…", value: "CTRL/CMD+J · when AI features are on" },
             { label: "Navigate", value: "Open All Notes, Open Tags, Open Tasks, Open Templates, Open Trash, Open Settings, Open Documentation, Show Keyboard Shortcuts" },
           ]}
         />
         <p>
           Searching for a note that doesn&apos;t exist? The last result,{" "}
-          <strong>Create &quot;…&quot;</strong>, starts a new note with that title. The{" "}
-          <strong>&gt;</strong> button in the search field switches between searching files and
-          searching commands.
+          <strong>Create &quot;…&quot;</strong>, starts a new note with that title.
         </p>
         <p>
           Use <code>↑</code>/<code>↓</code> (or <code>Tab</code>/<code>Shift+Tab</code>) to move
