@@ -10,6 +10,7 @@
     "lint": "node --max-old-space-size=2048 ./node_modules/eslint/bin/eslint.js .",
     "check": "node --max-old-space-size=2048 ./node_modules/typescript/bin/tsc --noEmit && yarn lint",
     "test": "vitest",
+    "bench": "vitest bench --run --reporter=verbose",
     "test:related": "vitest related --run --passWithNoTests",
     "version": "node scripts/bump-version.mjs",
     "prepare": "cd .. && husky"
