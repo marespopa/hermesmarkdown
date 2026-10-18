@@ -68,6 +68,13 @@ export const liveMarkersTheme = EditorView.theme({
     borderBottomRightRadius: "12px",
     paddingBottom: "0.4em",
   },
+  // Code inside a callout (highlight-blocks.ts): monospaced on the callout's
+  // own tint, so the card stays one piece.
+  ".cm-callout-code": {
+    fontFamily: MONO_FONT_STACK,
+    fontSize: "0.875em",
+    letterSpacing: "0",
+  },
   // A blank line between list items: kept, but at half height, so a loose
   // list still reads as one list.
   ".cm-listGap": {

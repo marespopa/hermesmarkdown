@@ -30,7 +30,7 @@ import AIChatDialog from "./components/AIChatDialog";
 import { AIReviewDialog } from "./components/AIReviewDialog";
 import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import { useRouter } from "next/navigation";
-import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_newNoteRequested } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_newNoteRequested, atom_saveRequested } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useToolHandoff } from "./hooks/use-tool-handoff";
@@ -194,6 +194,14 @@ export default function LiteEditor() {
     setNewNoteRequested(false);
     void handleNewFile();
   }, [newNoteRequested, isMounting, isVaultLocked, setNewNoteRequested, handleNewFile]);
+
+  // The pane title's save indicator.
+  const [saveRequested, setSaveRequested] = useAtom(atom_saveRequested);
+  useEffect(() => {
+    if (!saveRequested) return;
+    setSaveRequested(false);
+    void handleSaveRef.current();
+  }, [saveRequested, setSaveRequested]);
 
   usePaletteCreateNote({ hasVault: !!vaultHandle, materializeDraft });
 

@@ -1,6 +1,6 @@
 # SearchPill
 
-Description: The command palette's search field at rest, in toolbar size: the app's main way in. It sits in every page's title bar (`ShellPage`); in the editor, a palette button in the top-right corner (`EditorShell`) opens it instead; the home feed has its own, larger one (`FeedBar`). A click (or Ctrl/Cmd+K anywhere) opens the palette. Like the feed's pill it is the palette's morph anchor (`data-palette-anchor` and the shared `PALETTE_SEARCH_TRANSITION` view-transition name), so opening the palette grows the pill into its field, and it turns invisible while the palette is open. Outside a `CommandPaletteProvider` (a page under test) it renders nothing (`useOptionalCommandPalette`).
+Description: The command palette's search field at rest, in toolbar size: the app's main way in. It sits in every page's title bar (`ShellPage`) and, in the editor, in the window's top-right corner at the same spot (`EditorShell`), always `SEARCH_PILL_WIDTH` wide (`clamp(9rem,28vw,18rem)`, exported so the editor's floating title keeps clear of it); the home feed has its own, larger one (`FeedBar`). A click (or Ctrl/Cmd+K anywhere) opens the palette. Like the feed's pill it is the palette's morph anchor (`data-palette-anchor` and the shared `PALETTE_SEARCH_TRANSITION` view-transition name), so opening the palette grows the pill into its field, and it turns invisible while the palette is open. Outside a `CommandPaletteProvider` (a page under test) it renders nothing (`useOptionalCommandPalette`).
 
 ## Local State & Storage
 - State: the palette's `isOpen` (read).
@@ -12,10 +12,10 @@ Description: The command palette's search field at rest, in toolbar size: the ap
 
 ## Quick Usage
 ```tsx
-<SearchPill className="ml-2 w-[clamp(9rem,22vw,18rem)]" />
+<SearchPill className="shrink" />
 ```
 
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| className? | `string` | `""` | Width and placement |
+| className? | `string` | `""` | Placement (e.g. `shrink`, or `fixed` in the editor corner) |

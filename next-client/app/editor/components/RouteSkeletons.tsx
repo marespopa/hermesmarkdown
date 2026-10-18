@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+import { HiOutlineArrowLeft } from "react-icons/hi";
 import { TASK_VIEWS } from "@/app/editor/tasks/task-views";
 import { BUILTIN_PACKS } from "@/app/utils/templates/template-packs";
+import { SEARCH_PILL_WIDTH } from "./SearchPill";
 
 // One placeholder shape. Static black / white so the opacity modifier works
 // (the var-backed tokens drop it); pulses only when motion is allowed.
@@ -24,11 +26,23 @@ function Text({ textClass, barClass }: { textClass: string; barClass: string }) 
   );
 }
 
-// ShellPage's title bar. Static, so it's the real title.
+// The SearchPill's shape: the editor's top-right corner and every title bar.
+export function SearchPillSkeleton({ className = "" }: { className?: string }) {
+  return <div style={{ width: SEARCH_PILL_WIDTH }} className={`h-8 min-w-0 rounded-lg ${SKELETON_BAR} ${className}`} />;
+}
+
+// ShellPage's title bar: ← Editor, the page's name, then the SearchPill.
+// Static, so it's the real title.
 function TitleHeader({ title }: { title: string }) {
   return (
-    <header className="flex h-11 shrink-0 items-center border-b border-edge-subtle px-5 sm:px-8">
-      <span className="text-ui-subhead font-semibold">{title}</span>
+    <header className="flex h-11 shrink-0 items-center gap-3 border-b border-edge-subtle pl-5 pr-5 sm:pr-8">
+      <span className="inline-flex shrink-0 items-center gap-1.5 text-ui-footnote font-medium text-fg-faint">
+        <HiOutlineArrowLeft size={13} />
+        Editor
+      </span>
+      <span className="h-4 w-px shrink-0 bg-edge-subtle" />
+      <span className="min-w-0 flex-1 truncate text-ui-subhead font-semibold">{title}</span>
+      <SearchPillSkeleton className="shrink" />
     </header>
   );
 }

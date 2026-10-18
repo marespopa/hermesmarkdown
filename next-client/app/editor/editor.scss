@@ -173,6 +173,24 @@ html.dark .app-sheet .editor-sheet {
   overflow: hidden;
 }
 
+/* A grid inside a callout or quote (codemirror/table-quote-frame.ts) wears
+   the block's frame, so the callout stays one card around it: the callout's
+   tint and its line inset, rounded at the bottom when the table ends it; a
+   quote's bar. */
+.cm-table-preview.cm-table-in-callout {
+  padding-inline: 0.9em 0.75em;
+}
+
+.cm-table-preview.cm-table-callout-end {
+  border-end-start-radius: 12px;
+  border-end-end-radius: 12px;
+}
+
+.cm-table-preview.cm-table-in-quote {
+  border-left: 3px solid var(--border);
+  padding-left: 0.9em;
+}
+
 .cm-table-preview-scroll {
   box-sizing: border-box;
   max-width: 100%;

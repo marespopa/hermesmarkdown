@@ -297,3 +297,29 @@ describe("table enhancements", () => {
     expect(parseCurrentTable(view)?.rows[0]).toEqual(["1", "2"]);
   });
 });
+
+describe("tables inside a callout", () => {
+  const CALLOUT = ["> [!note] Stock", "> | Item | Qty |", "> | --- | --- |", "> | Pen | 2 |", "After"].join("\n");
+
+  it("finds the table through its `>` prefix", () => {
+    const view = makeView(CALLOUT, CALLOUT.indexOf("Pen"));
+    const info = findTableInState(view.state, view.state.selection.main.head);
+    expect(info?.quotePrefix).toBe("> ");
+    expect(info?.cursorCol).toBe(0);
+  });
+
+  it("keeps every row in the callout when adding a row or a column", () => {
+    const view = makeView(CALLOUT, CALLOUT.indexOf("Pen"));
+    addRowAction(view, findTableInState(view.state, view.state.selection.main.head)!);
+    const rows = view.state.doc.toString().split("\n").slice(1, -1);
+    expect(rows).toHaveLength(4);
+    expect(rows.every((row) => row.startsWith("> |"))).toBe(true);
+
+    const cols = makeView(CALLOUT, CALLOUT.indexOf("Pen"));
+    addColumnAction(cols, findTableInState(cols.state, cols.state.selection.main.head)!);
+    const lines = cols.state.doc.toString().split("\n");
+    expect(lines[0]).toBe("> [!note] Stock");
+    expect(lines.slice(1, -1).every((row) => row.startsWith("> |") && row.split("|").length === 5)).toBe(true);
+    expect(lines.at(-1)).toBe("After");
+  });
+});

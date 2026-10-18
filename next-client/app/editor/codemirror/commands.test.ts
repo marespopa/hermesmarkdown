@@ -112,6 +112,21 @@ describe("continueQuoteOnEnter", () => {
     expect(view.state.doc.toString()).toBe("> hello\n");
   });
 
+  it("continues a list item inside a callout with the next marker", () => {
+    const view = makeView("> [!note] Steps\n> 1. first", { anchor: 26 });
+    continueQuoteOnEnter(view);
+    expect(view.state.doc.toString()).toBe("> [!note] Steps\n> 1. first\n> 2. ");
+    const task = makeView("> - [x] done", { anchor: 12 });
+    continueQuoteOnEnter(task);
+    expect(task.state.doc.toString()).toBe("> - [x] done\n> - [ ] ");
+  });
+
+  it("drops an empty item's marker but stays in the callout", () => {
+    const view = makeView("> - one\n> - ", { anchor: 12 });
+    continueQuoteOnEnter(view);
+    expect(view.state.doc.toString()).toBe("> - one\n> ");
+  });
+
   it("does nothing (returns false) on a non-quoted line", () => {
     const view = makeView("plain text", { anchor: 5 });
     expect(continueQuoteOnEnter(view)).toBe(false);

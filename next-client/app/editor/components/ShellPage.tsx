@@ -49,7 +49,7 @@ export default function ShellPage({ title, children }: { title: string; children
         </Button>
         <span aria-hidden="true" className="h-4 w-px shrink-0 bg-edge-subtle" />
         <span className="min-w-0 flex-1 truncate text-ui-subhead font-semibold select-none">{title}</span>
-        <SearchPill className="w-[clamp(9rem,28vw,18rem)] shrink" />
+        <SearchPill className="shrink" />
       </header>
       <div className="flex min-h-0 flex-1 flex-col">
         {children}

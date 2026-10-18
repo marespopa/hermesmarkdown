@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from "vitest";
 import { EditorState } from "@codemirror/state";
-import { computeMarkdownDecorations, isHorizontalRule } from "./highlight";
+import { computeMarkdownDecorations, isHorizontalRule, keepCheckpointsBefore, type ScanCheckpoint } from "./highlight";
 
 interface FlatDeco {
   from: number;
@@ -145,6 +145,61 @@ describe("computeMarkdownDecorations", () => {
     expect(lineClass("> [!tip]")).toContain("cm-callout-end");
   });
 
+  describe("inside a callout", () => {
+    const doc = [
+      "> [!note] Title",
+      "> ## Heading",
+      "> - [x] shipped",
+      ">   - nested",
+      ">",
+      "> | Name | Qty |",
+      "> |---|---|",
+      "> | Pen | 2 |",
+      "> ```",
+      "> # not a heading",
+      "> ```",
+      "> > quoted",
+      "> > #### Inner heading",
+      "After",
+    ].join("\n");
+    const decos = decorationsFor(doc);
+    const lineClass = (text: string) => decos
+      .filter((d) => d.from === doc.indexOf(text) && d.from === d.to)
+      .map((d) => d.class)
+      .join(" ");
+    const marksAt = (text: string) => decos.filter((d) => d.from === doc.indexOf(text) && d.to > d.from).map((d) => d.class);
+
+    it("sizes a heading and keeps the callout's tint on its line", () => {
+      expect(lineClass("> ## Heading")).toContain("cm-heading cm-heading-2");
+      expect(lineClass("> ## Heading")).toContain("cm-callout");
+      expect(marksAt("## Heading")).toContainEqual(expect.stringContaining("opacity-40"));
+      expect(marksAt("Heading")).toContainEqual(expect.stringContaining("font-semibold"));
+    });
+
+    it("styles a done task as it would outside the callout", () => {
+      expect(marksAt("shipped")).toContain("cm-task-done");
+    });
+
+    it("bolds a table's header row and fades its pipes", () => {
+      expect(marksAt(" Name ")).toContainEqual(expect.stringContaining("font-bold"));
+      expect(marksAt("|---|---|")).toContainEqual(expect.stringContaining("opacity-40"));
+      expect(marksAt(" Pen ")).not.toContainEqual(expect.stringContaining("font-bold"));
+    });
+
+    it("sets fenced code in monospace, without reading `#` in it as a heading", () => {
+      expect(marksAt("# not a heading")).toContain("cm-callout-code");
+      expect(lineClass("> # not a heading")).not.toContain("cm-heading");
+    });
+
+    it("styles a quote inside it, a heading in that quote sized, and ends at the first line without `>`", () => {
+      expect(marksAt("quoted")).toContainEqual(expect.stringContaining("text-ink-muted"));
+      expect(lineClass("> > #### Inner heading")).toContain("cm-heading cm-heading-4");
+      expect(marksAt("Inner heading")).toContainEqual(expect.stringContaining("font-semibold"));
+      expect(lineClass("> > #### Inner heading")).toContain("cm-callout-end");
+      expect(lineClass("After")).not.toContain("cm-callout");
+    });
+  });
+
   it("fades a fenced code block's opening fence", () => {
     const doc = "```js\ncode\n```";
     const decos = decorationsFor(doc);
@@ -229,5 +284,45 @@ describe("computeMarkdownDecorations with a viewport range", () => {
     const lastCalloutLine = state.doc.line(7);
     const decos = decorationsFor(doc, lineRange(state, 5, 7));
     expect(decos.find((d) => d.from === lastCalloutLine.from && d.class.includes("cm-callout"))?.class).toContain("cm-callout-end");
+  });
+});
+
+describe("reading from saved checkpoints", () => {
+  // Code blocks and callouts that cross the 256-line checkpoints.
+  const block = (n: number) => n % 3 === 0
+    ? ["```", ...Array.from({ length: 40 }, (_, i) => `# code ${n}.${i}`), "```", ""]
+    : ["> [!note] Callout " + n, ...Array.from({ length: 40 }, (_, i) => `> - item ${n}.${i}`), "", "Paragraph **bold**", ""];
+  const doc = Array.from({ length: 40 }, (_, n) => block(n)).flat().join("\n");
+  const flat = (state: EditorState, range: { from: number; to: number }, checkpoints?: ScanCheckpoint[]) => {
+    const out: string[] = [];
+    computeMarkdownDecorations(state, range, checkpoints).between(0, state.doc.length, (from, to, value: any) => {
+      out.push(`${from}-${to}:${value.spec.class ?? value.spec.attributes?.class}`);
+    });
+    return out;
+  };
+  const screenAt = (state: EditorState, line: number) => ({
+    from: state.doc.line(line).from,
+    to: state.doc.line(Math.min(state.doc.lines, line + 40)).to,
+  });
+
+  it("decorates a screen the same as reading from the top", () => {
+    const state = EditorState.create({ doc });
+    const checkpoints: ScanCheckpoint[] = [];
+    flat(state, screenAt(state, state.doc.lines - 41), checkpoints);
+    expect(checkpoints.length).toBeGreaterThan(3);
+    for (const line of [300, 700, 1100, state.doc.lines - 41]) {
+      expect(flat(state, screenAt(state, line), checkpoints)).toEqual(flat(state, screenAt(state, line)));
+    }
+  });
+
+  it("drops the checkpoints below an edit, so an opened fence reads through", () => {
+    const state = EditorState.create({ doc });
+    const checkpoints: ScanCheckpoint[] = [];
+    flat(state, screenAt(state, state.doc.lines - 41), checkpoints);
+    const tr = state.update({ changes: { from: state.doc.line(10).from, insert: "```\n" } });
+    const kept = keepCheckpointsBefore(checkpoints, tr);
+    expect(kept.every((checkpoint) => checkpoint.line <= 10)).toBe(true);
+    const screen = screenAt(tr.state, 900);
+    expect(flat(tr.state, screen, kept)).toEqual(flat(tr.state, screen));
   });
 });

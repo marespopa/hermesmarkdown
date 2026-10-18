@@ -16,8 +16,10 @@ export function sourceBlockAt(state: EditorState, pos: number): { from: number; 
   const doc = state.doc;
   let first = doc.lineAt(Math.min(pos, doc.length));
   let last = first;
-  while (first.number > 1 && doc.line(first.number - 1).text.trim()) first = doc.line(first.number - 1);
-  while (last.number < doc.lines && doc.line(last.number + 1).text.trim()) last = doc.line(last.number + 1);
+  // In a quote or callout a bare `>` line is the blank one.
+  const filled = (n: number) => !!doc.line(n).text.replace(/^(?:[ \t]*>)+/, "").trim();
+  while (first.number > 1 && filled(first.number - 1)) first = doc.line(first.number - 1);
+  while (last.number < doc.lines && filled(last.number + 1)) last = doc.line(last.number + 1);
   return { from: first.from, to: last.to };
 }
 

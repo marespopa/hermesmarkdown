@@ -7,7 +7,7 @@ Description: The Excalidraw canvas for a board note. Default export, loaded only
 
 ## Behavior
 - Parses `content` with `parseBoard`. On a conflict or invalid JSON it renders `BoardError` and no canvas; nothing is written.
-- Theme follows `useResolvedTheme()`. The canvas starts below the pane's palette button (`--pane-top-room`).
+- Theme follows `useResolvedTheme()`. The canvas starts below the editor's `SearchPill` (`--pane-top-room`).
 - Writes: `useBoardSync` compares `hashElementsVersion(elements)` plus the allow-listed `appState` (background, grid). Excalidraw's first `onChange` after load or `updateScene` is a baseline and never writes, so opening a board never dirties it. A change writes Markdown into `atom_fileContent(path)` about 500 ms later; autosave or Save persists it. Selection, tool, scroll and zoom never write.
 - Flushes: pending writes are forced on unmount, `pagehide`, hidden tab, and through the flush registry before every save read (Save, Cmd/Ctrl+S, close tab, autosave flush, tab switch).
 - External change (disk wins): the pending write is dropped and `updateScene` shows the new text, without a remount.
