@@ -289,7 +289,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   return (
     <div
       ref={paneRef}
-      // The pane's palette button floats over the sheet's top margin
+      // The editor's SearchPill floats over the sheet's top margin
       // (PaneLeaf); nothing else sits above the text.
       className="editor-canvas relative w-full h-full overflow-auto cursor-text"
       translate="no"

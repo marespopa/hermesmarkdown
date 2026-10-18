@@ -1,4 +1,4 @@
-import { render, screen, cleanup, fireEvent, within } from "@testing-library/react";
+import { act, render, screen, cleanup, fireEvent, within } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import PaneLeaf from "./PaneLeaf";
 import { Provider } from "jotai";
@@ -12,6 +12,7 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
+import { atom_autosaveMode } from "@/app/atoms/ui-atoms";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 import React from "react";
@@ -61,8 +62,9 @@ describe("PaneLeaf Tab Indicators", () => {
     vi.clearAllMocks();
   });
 
-  it("renders a regular dirty dot when file has unsaved changes", () => {
+  it("shows a dot after the title for unsaved changes with autosave off", () => {
     const initialValues = [
+      [atom_autosaveMode, "manual"],
       [atom_activePaneId, "pane-1"],
       [atom_openFiles, { 
         "file1.md": { fileName: "file1.md", content: "dirty", lastSavedContent: "clean" },
@@ -78,13 +80,34 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    const dot = screen.getByTitle("Unsaved changes");
-    expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-task-hold");
+    expect(screen.getByRole("button", { name: "Unsaved changes. Save" })).toBeInTheDocument();
   });
 
-  it("renders a pulsing dot when file is saving", () => {
+  it("hides the dot through autosave's wait, and shows it once the save is late", () => {
+    vi.useFakeTimers();
+    try {
+      render(
+        <TestProvider initialValues={[
+          [atom_autosaveMode, "afterDelay"],
+          [atom_activePaneId, "pane-1"],
+          [atom_openFiles, { "file1.md": { fileName: "file1.md", content: "dirty", lastSavedContent: "clean" } }],
+          [atom_saveStatus, { state: "idle", retryCount: 0 }],
+        ]}>
+          <PaneLeaf leaf={mockLeaf} />
+        </TestProvider>
+      );
+
+      expect(screen.queryByRole("button", { name: "Unsaved changes. Save" })).not.toBeInTheDocument();
+      act(() => { vi.advanceTimersByTime(3000); });
+      expect(screen.getByRole("button", { name: "Unsaved changes. Save" })).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("shows a dot while the note saves, with nothing to click", () => {
     const initialValues = [
+      [atom_autosaveMode, "manual"],
       [atom_activePaneId, "pane-1"],
       [atom_openFiles, { 
         "file1.md": { fileName: "file1.md", content: "dirty", lastSavedContent: "clean" }
@@ -98,13 +121,11 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    const dot = screen.getByTitle("Saving…");
-    expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-fg-faint");
-    expect(dot).toHaveClass("animate-pulse");
+    expect(screen.getByRole("status", { name: "Saving…" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Save$/ })).not.toBeInTheDocument();
   });
 
-  it("shows no dot when the note is saved", () => {
+  it("shows no save state when the note is saved", () => {
     const initialValues = [
       [atom_activePaneId, "pane-1"],
       [atom_openFiles, {
@@ -119,12 +140,13 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    // Saved needs no glance: the title shows no dot.
-    expect(screen.queryByTitle("Saved")).not.toBeInTheDocument();
+    // Saved needs no glance: nothing after the title.
+    expect(screen.queryByRole("button", { name: /Save$/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Saving…" })).not.toBeInTheDocument();
     expect(screen.getByText("file1")).toBeInTheDocument();
   });
 
-  it("renders a red dot when there is a save error", () => {
+  it("shows a failed save as a dot that retries", () => {
     const initialValues = [
       [atom_activePaneId, "pane-1"],
       [atom_openFiles, { 
@@ -139,13 +161,12 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    const dot = screen.getByTitle("Disk full");
-    expect(dot).toBeInTheDocument();
-    expect(dot).toHaveClass("bg-danger");
+    expect(screen.getByRole("button", { name: "Disk full. Try saving again" })).toBeInTheDocument();
   });
 
   it("does not show saving indicator for other files", () => {
     const initialValues = [
+      [atom_autosaveMode, "manual"],
       [atom_activePaneId, "pane-1"],
       [atom_openFiles, { 
         "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" },
@@ -161,7 +182,7 @@ describe("PaneLeaf Tab Indicators", () => {
     );
 
     // Only the note in front has a title, so another note's save shows nothing.
-    expect(screen.queryAllByTitle("Saving…")).toHaveLength(0);
+    expect(screen.queryByRole("status", { name: "Saving…" })).not.toBeInTheDocument();
   });
 
   it("shows the note's title instead of a tab strip", () => {
@@ -264,7 +285,6 @@ describe("PaneLeaf Tab Indicators", () => {
       </TestProvider>
     );
 
-    expect(screen.getByTitle("Unsaved changes")).toBeInTheDocument();
     fireEvent.contextMenu(screen.getByText("file1"));
     expect(screen.getByRole("menuitem", { name: "Close" })).toBeInTheDocument();
   });

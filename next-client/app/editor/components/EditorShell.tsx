@@ -3,20 +3,18 @@
 import React, { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { usePathname } from "next/navigation";
-import { HiOutlineSearch } from "react-icons/hi";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import { atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { atom_isVaultPending, atom_isVaultRestoring } from "@/app/atoms/vault-atoms";
-import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { formatShortcut } from "@/app/utils/platform";
 import BrowserVaultDialog from "./BrowserVaultDialog";
 import GitHubVaultDialog from "./GitHubVaultDialog";
 import NewVaultDialog from "./NewVaultDialog";
 import Button from "@/app/components/Button";
-import Tooltip from "@/app/components/Tooltip";
-import { PANE_ACTION_BUTTON_CLASS, PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
+import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 import PaneToolbarButton from "./PaneToolbarButton";
+import SearchPill from "./SearchPill";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 
 // Show / hide the sidebar: Ctrl/Cmd+\, or Ctrl/Cmd+Alt+S (`code`, since Alt
@@ -36,9 +34,9 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
 // ShellPage) fills the rest, starting at `--content-left` (the open
 // sidebar's width, else 0), so it is pushed over, never covered. While
 // the sidebar is hidden, a Show sidebar button sits in the top-left corner
-// of every page, the editor too (it has no toolbar). On the editor a
-// palette button (search icon and Ctrl/Cmd+K) sits in the top-right corner
-// (the pages have their own SearchPill), so the page itself stays bare. Nothing
+// of every page, the editor too (it has no toolbar). On the editor the
+// SearchPill sits in the top-right corner, where the pages' title bars have
+// theirs, so the page itself stays bare. Nothing
 // hides on its own: the sidebar opens and closes only when you toggle it,
 // remembered.
 export default function EditorShell({ children }: { children: ReactNode }) {
@@ -50,7 +48,6 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   const isVaultLocked = isVaultRestoring || isVaultPending;
   const hasSidebar = !isMobileChrome && !isVaultLocked;
   const onEditor = usePathname() === "/editor";
-  const { open: openCommandPalette } = useCommandPalette();
 
   useEffect(() => {
     if (!hasSidebar) return;
@@ -91,21 +88,9 @@ export default function EditorShell({ children }: { children: ReactNode }) {
       )}
       {hasSidebar && onEditor && (
         // The way into the command palette, the center of the app: every
-        // note and command (as Ctrl/Cmd+K).
-        <div className={`${PANE_SECTION_CLASS} fixed top-1.5 right-2 !ml-0 z-30`}>
-          <Tooltip label="Go to a note or command" position="bottom-end" portal>
-            <Button
-              variant="unstyled"
-              aria-label="Search or run a command"
-              aria-keyshortcuts="Control+K Meta+K"
-              onClick={() => openCommandPalette()}
-              className={`${PANE_ACTION_BUTTON_CLASS} !w-auto gap-1.5 px-2.5`}
-            >
-              <HiOutlineSearch size={14} aria-hidden="true" />
-              <span className="text-ui-caption tabular-nums">{formatShortcut("K")}</span>
-            </Button>
-          </Tooltip>
-        </div>
+        // note and command (as Ctrl/Cmd+K). Placed as in ShellPage's title
+        // bar, so it stays put moving between the editor and the pages.
+        <SearchPill className="fixed top-1.5 right-8 z-30" />
       )}
       <NewVaultDialog />
       <GitHubVaultDialog />

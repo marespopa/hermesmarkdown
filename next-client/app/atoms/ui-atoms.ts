@@ -166,6 +166,9 @@ export const atom_filesFocusRequested = atom<boolean>(false);
 // starts the new note (its draft flow) and clears it. In memory: it only has
 // to survive a navigation to /editor.
 export const atom_newNoteRequested = atom<boolean>(false);
+// Set by the pane title's save indicator; the editor page saves the note in
+// front (its Save command) and clears it.
+export const atom_saveRequested = atom<boolean>(false);
 // "Show Files" on desktop: shows the sidebar with its Files section unfolded
 // and asks for the tree's focus.
 export const atom_showFiles = atom(null, (get, set) => {

@@ -9,7 +9,8 @@ import { useAtom } from "jotai";
 import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_saveStatus, atom_workspaceLayout } from "@/app/atoms/atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar } from "react-icons/hi";
+import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineSave } from "react-icons/hi";
+import { formatShortcut } from "@/app/utils/platform";
 import BoardViewLoader from "./board/BoardViewLoader";
 import { isBoard } from "@/app/utils/board/is-board";
 import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
@@ -20,14 +21,18 @@ import { useAtomValue, useSetAtom } from "jotai";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useNoteMenuItems } from "../hooks/use-note-menu-items";
 import PaneEmptyState from "./PaneEmptyState";
+import { SEARCH_PILL_WIDTH } from "./SearchPill";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
-import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_autosaveMode, atom_saveRequested, AUTOSAVE_DELAY, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
 }
 
-// The palette button's height plus its offset from the top (top-2, h-8).
+// How long past autosave's delay an unsaved note waits before its dot shows.
+const AUTOSAVE_GRACE = 1000;
+
+// The SearchPill's height plus its offset from the top (top-1.5, h-8).
 const PANE_TOP_ROOM = "48px";
 
 export default function PaneLeaf({ leaf }: PaneLeafProps) {
@@ -66,7 +71,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   // Drives the title's save dot.
   const activeFileState = leaf.activeFilePath ? openFiles[leaf.activeFilePath] : undefined;
   const activeIsDirty = !!activeFileState && activeFileState.content !== activeFileState.lastSavedContent;
-  const activeSaveState: SaveState =
+  const savedState: SaveState =
     saveStatus.path === leaf.activeFilePath && saveStatus.state === "error"
       ? "error"
       : saveStatus.path === leaf.activeFilePath && saveStatus.state === "saving"
@@ -76,6 +81,19 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       : activeIsDirty
       ? "dirty"
       : "idle";
+  // With autosave on, unsaved changes are about to save on their own: the
+  // dot stays hidden through autosave's wait (restarted by every edit), and
+  // shows only if the note is still unsaved past it. Errors always show.
+  const autosave = useAtomValue(atom_autosaveMode) === "afterDelay";
+  const [saveLate, setSaveLate] = React.useState(false);
+  React.useEffect(() => {
+    setSaveLate(false);
+    if (!autosave || !activeIsDirty) return;
+    const timer = setTimeout(() => setSaveLate(true), AUTOSAVE_DELAY + AUTOSAVE_GRACE);
+    return () => clearTimeout(timer);
+  }, [autosave, activeIsDirty, activeFileState?.content, leaf.activeFilePath]);
+  const activeSaveState: SaveState =
+    autosave && !saveLate && (savedState === "dirty" || savedState === "saving") ? "idle" : savedState;
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -85,7 +103,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     }
   };
 
-  const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string } | null>(null);
+  const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string; fromButton?: boolean } | null>(null);
+  const menuButtonRef = React.useRef<HTMLButtonElement>(null);
   // The note in front, as the title shows it, and its folder.
   const activeTitle = (activeFileState?.fileName || leaf.activeFilePath?.split("/").pop() || "Untitled").replace(/\.md$/i, "");
   const activeFolder = leaf.activeFilePath && leaf.activeFilePath !== "draft" ? leaf.activeFilePath.split("/").slice(0, -1).join("/") : "";
@@ -98,6 +117,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     void renameFile(activeHandle, name, filePath);
   };
   const sidebarOpen = useAtomValue(atom_sidebarOpen);
+  const requestSave = useSetAtom(atom_saveRequested);
+  // Saves the note in front, so this pane's note comes forward first.
+  const saveActive = () => { setActivePaneId(leaf.id); requestSave(true); };
   // Whether the note in front is scrolled down: shows the band behind the title.
   const [scrolled, setScrolled] = React.useState(false);
   React.useEffect(() => setScrolled(false), [filePath]);
@@ -110,7 +132,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       className={`relative h-full flex flex-col transition-all duration-300 overflow-hidden ${
         isActive ? "z-10" : ""
       }`}
-      // Room at the top for the palette button: CodeMirror keeps the caret
+      // Room at the top for the SearchPill: CodeMirror keeps the caret
       // below it, and a board's own toolbar starts under it.
       style={isMobileChrome ? undefined : ({ "--pane-top-room": PANE_TOP_ROOM } as React.CSSProperties)}
       onClick={() => setActivePaneId(leaf.id)}
@@ -124,8 +146,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     >
       {/* No toolbar (desktop): a quiet header at the pane's top left, the
           note's folder and name. A click on the name renames the note in
-          place; a right-click opens its menu. The command palette has its own
-          button in the window's top-right corner, and Show sidebar sits in the
+          place; a right-click opens its menu. The command palette's SearchPill
+          sits in the window's top-right corner, and Show sidebar sits in the
           top-left one while the sidebar is hidden (EditorShell). It floats
           over the page's top margin, so the text starts clear of it. */}
       {!isMobileChrome && scrolled && (
@@ -139,7 +161,11 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         </div>
       )}
       {!isMobileChrome && (
-        <div className={`pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-start pr-28 ${sidebarOpen ? "pl-3" : "pl-12"}`}>
+        <div
+          // Clear of the SearchPill in the top-right corner (EditorShell).
+          style={{ paddingRight: `calc(${SEARCH_PILL_WIDTH} + 3rem)` }}
+          className={`pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-start ${sidebarOpen ? "pl-3" : "pl-12"}`}
+        >
           <div className="pointer-events-auto min-w-0">
             <PaneTitle
               title={hasFiles ? activeTitle : null}
@@ -147,6 +173,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               saveState={activeSaveState}
               saveErrorMessage={saveStatus.message}
               onRename={hasFiles && canRename ? renameActive : undefined}
+              onSave={hasFiles ? saveActive : undefined}
               onContextMenu={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -154,6 +181,14 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 setActivePaneId(leaf.id);
                 setTabMenu({ x: e.clientX, y: e.clientY, path: leaf.activeFilePath || "draft" });
               }}
+              // The same menu from the ⋯ button, under it; a second press closes it.
+              onMenu={hasFiles ? (anchor) => {
+                if (tabMenu?.fromButton) return setTabMenu(null);
+                setActivePaneId(leaf.id);
+                setTabMenu({ x: anchor.left, y: anchor.bottom + 4, path: leaf.activeFilePath || "draft", fromButton: true });
+              } : undefined}
+              menuOpen={!!tabMenu?.fromButton}
+              menuButtonRef={menuButtonRef}
             />
           </div>
         </div>
@@ -198,7 +233,14 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         <TabContextMenu
           x={tabMenu.x}
           y={tabMenu.y}
-          items={noteMenuItems(tabMenu.path)}
+          // The title's menu always belongs to the note in front, so it
+          // starts with Save (Ctrl/Cmd+S); the shared note menu follows.
+          items={[
+            { label: "Save", icon: <HiOutlineSave size={15} />, shortcut: formatShortcut("S"), disabled: activeSaveState === "saving", onClick: saveActive },
+            ...noteMenuItems(tabMenu.path).map((item, i) => (i === 0 ? { ...item, divider: true } : item)),
+          ]}
+          label="Note actions"
+          anchorRef={tabMenu.fromButton ? menuButtonRef : undefined}
           onClose={() => setTabMenu(null)}
         />
       )}
