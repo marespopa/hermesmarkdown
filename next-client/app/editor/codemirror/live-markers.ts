@@ -7,11 +7,11 @@ import { liveMarkersTheme } from "./live-markers-theme";
 import { taskStatusFromChar, type TaskStatus } from "@/app/utils/task-status";
 import { cycleTaskBox } from "./live-markers-widgets";
 
-// Live markers: every Markdown character stays as typed, so writing is plain
-// typing and what you see is what's in the file. Syntax is dimmed rather than
-// hidden (inline marks by highlight.ts), and nothing changes with the caret,
-// so the text never moves. A heading's `#`s and a quote's or callout's `>`
-// hang in the margin left of the text. List markers stay inline, as typed,
+// Live markers: on the caret's lines every Markdown character shows as typed,
+// so writing is plain typing; syntax-reveal.ts hides the marks on the other
+// lines. Shown syntax is dimmed (inline marks by highlight.ts). A heading's `#`s and a quote's or callout's `>`
+// hang in the margin left of the text (a heading inside a quote keeps its
+// `#`s inline, after the `>`). List markers stay inline, as typed,
 // with their real spaces; a task's marker takes its status colour, and
 // Mod-click on it moves the task on a status. Blank lines inside a list are
 // half height. Tables and frontmatter keep their own display.
@@ -86,6 +86,13 @@ function withTrailingSpace(state: EditorState, to: number): number {
   return state.doc.sliceString(to, to + 1) === " " ? to + 1 : to;
 }
 
+function insideQuote(node: SyntaxNode): boolean {
+  for (let parent = node.parent; parent; parent = parent.parent) {
+    if (parent.name === "Blockquote") return true;
+  }
+  return false;
+}
+
 export interface ListMarker {
   kind: "bullet" | "task" | "ordered";
   /** End of the marker, its following space and any task box. */
@@ -150,8 +157,10 @@ export function buildLiveMarkerDecorations(
             return;
           }
           case "HeaderMark": {
-            // Setext underlines and closing `#`s stay as typed.
+            // Setext underlines and closing `#`s stay as typed, and so do a
+            // quote's or callout's: its `>` already hangs in the margin.
             if (ref.from !== node.parent?.from || !node.parent.name.startsWith("ATXHeading")) return;
+            if (insideQuote(node)) return;
             const to = withTrailingSpace(state, ref.to);
             ranges.push(...marginMarkRanges(state, ref.from, to));
             return;
@@ -168,9 +177,12 @@ export function buildLiveMarkerDecorations(
           case "ListMark": {
             const marker = listMarker(state, node);
             if (!marker) return;
+            // A nested item's spaces, after a quote's or callout's `> ` if any.
             const line = doc.lineAt(ref.from);
-            if (ref.from > line.from && /^[ \t]+$/.test(doc.sliceString(line.from, ref.from))) {
-              ranges.push(listIndent.range(line.from, ref.from));
+            const quote = REGEX_QUOTE_PREFIX.exec(line.text)?.[0] ?? "";
+            const indentFrom = line.from + (insideQuote(node) ? quote.length : 0);
+            if (ref.from > indentFrom && /^[ \t]+$/.test(doc.sliceString(indentFrom, ref.from))) {
+              ranges.push(listIndent.range(indentFrom, ref.from));
             }
             ranges.push((marker.kind === "task" ? taskMarker(marker.task!) : listMarkerMark).range(ref.from, marker.to));
             return;

@@ -64,6 +64,17 @@ describe("buildLiveMarkerDecorations", () => {
     expect(markers(doc, 0)).toEqual(["margin:> ", "margin:> "]);
   });
 
+  it("keeps a heading's `#`s inline inside a callout, after its `>` in the margin", () => {
+    expect(markers("> [!note] Title\n> ## Heading\n\nEnd")).toEqual(["margin:> ", "margin:> "]);
+    expect(markers("> [!note] Title\n> > #### Heading\n\nEnd")).toEqual(["margin:> ", "margin:> > "]);
+  });
+
+  it("indents a nested list item inside a callout after its `> `", () => {
+    expect(markers("> [!note] Title\n> - one\n>   - two\n\nEnd")).toEqual([
+      "margin:> ", "margin:> ", "list:- ", "margin:> ", "indent:\"  \"", "list:- ",
+    ]);
+  });
+
   it("keeps list markers inline as typed, wherever the caret is", () => {
     const doc = "- one\n1. first\n10. tenth\n\nEnd";
     const expected = ["list:- ", "list:1. ", "list:10. "];

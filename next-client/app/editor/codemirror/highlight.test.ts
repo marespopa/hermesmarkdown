@@ -145,6 +145,61 @@ describe("computeMarkdownDecorations", () => {
     expect(lineClass("> [!tip]")).toContain("cm-callout-end");
   });
 
+  describe("inside a callout", () => {
+    const doc = [
+      "> [!note] Title",
+      "> ## Heading",
+      "> - [x] shipped",
+      ">   - nested",
+      ">",
+      "> | Name | Qty |",
+      "> |---|---|",
+      "> | Pen | 2 |",
+      "> ```",
+      "> # not a heading",
+      "> ```",
+      "> > quoted",
+      "> > #### Inner heading",
+      "After",
+    ].join("\n");
+    const decos = decorationsFor(doc);
+    const lineClass = (text: string) => decos
+      .filter((d) => d.from === doc.indexOf(text) && d.from === d.to)
+      .map((d) => d.class)
+      .join(" ");
+    const marksAt = (text: string) => decos.filter((d) => d.from === doc.indexOf(text) && d.to > d.from).map((d) => d.class);
+
+    it("sizes a heading and keeps the callout's tint on its line", () => {
+      expect(lineClass("> ## Heading")).toContain("cm-heading cm-heading-2");
+      expect(lineClass("> ## Heading")).toContain("cm-callout");
+      expect(marksAt("## Heading")).toContainEqual(expect.stringContaining("opacity-40"));
+      expect(marksAt("Heading")).toContainEqual(expect.stringContaining("font-semibold"));
+    });
+
+    it("styles a done task as it would outside the callout", () => {
+      expect(marksAt("shipped")).toContain("cm-task-done");
+    });
+
+    it("bolds a table's header row and fades its pipes", () => {
+      expect(marksAt(" Name ")).toContainEqual(expect.stringContaining("font-bold"));
+      expect(marksAt("|---|---|")).toContainEqual(expect.stringContaining("opacity-40"));
+      expect(marksAt(" Pen ")).not.toContainEqual(expect.stringContaining("font-bold"));
+    });
+
+    it("sets fenced code in monospace, without reading `#` in it as a heading", () => {
+      expect(marksAt("# not a heading")).toContain("cm-callout-code");
+      expect(lineClass("> # not a heading")).not.toContain("cm-heading");
+    });
+
+    it("styles a quote inside it, a heading in that quote sized, and ends at the first line without `>`", () => {
+      expect(marksAt("quoted")).toContainEqual(expect.stringContaining("text-ink-muted"));
+      expect(lineClass("> > #### Inner heading")).toContain("cm-heading cm-heading-4");
+      expect(marksAt("Inner heading")).toContainEqual(expect.stringContaining("font-semibold"));
+      expect(lineClass("> > #### Inner heading")).toContain("cm-callout-end");
+      expect(lineClass("After")).not.toContain("cm-callout");
+    });
+  });
+
   it("fades a fenced code block's opening fence", () => {
     const doc = "```js\ncode\n```";
     const decos = decorationsFor(doc);

@@ -70,8 +70,13 @@ export function toggleCheckboxOnLine(view: EditorView, lineNumber?: number): boo
   return true;
 }
 
+// A list item after a quote's prefix: bullet or "1." / "1)", spacing, task box.
+const REGEX_QUOTED_LIST_ITEM = /^([-*+]|(\d+)([.)]))(\s+)(\[[ xX/!-]\]\s+)?/;
+
 // Enter on a quoted/callout line continues the "> " prefix; on an empty
-// quoted line it exits the block by stripping the prefix instead.
+// quoted line it exits the block by stripping the prefix instead. On a list
+// item inside it, the next item follows the prefix (next number, a fresh
+// "[ ] " for a task); an empty item drops its marker and stays in the block.
 export function continueQuoteOnEnter(view: EditorView): boolean {
   const { state } = view;
   const pos = state.selection.main.head;
@@ -80,6 +85,27 @@ export function continueQuoteOnEnter(view: EditorView): boolean {
   if (!match) return false;
 
   const prefix = match[0];
+  const item = REGEX_QUOTED_LIST_ITEM.exec(line.text.slice(prefix.length));
+  if (item && pos >= line.from + prefix.length + item[0].length) {
+    const [marker, bullet, number, delimiter, spacing, task] = item;
+    if (line.text.slice(prefix.length + marker.length).trim() === "") {
+      view.dispatch(state.update({
+        changes: { from: line.from, to: line.to, insert: prefix },
+        selection: EditorSelection.cursor(line.from + prefix.length),
+        userEvent: "delete.format.list",
+      }));
+      return true;
+    }
+    const next = number !== undefined ? `${Number(number) + 1}${delimiter}` : bullet;
+    const insert = `\n${prefix}${next}${spacing}${task ? "[ ] " : ""}`;
+    view.dispatch(state.update({
+      changes: { from: pos, to: pos, insert },
+      selection: EditorSelection.cursor(pos + insert.length),
+      userEvent: "input.format.list",
+      scrollIntoView: true,
+    }));
+    return true;
+  }
   const isEmpty = line.text.slice(prefix.length).trim() === "";
 
   if (isEmpty) {

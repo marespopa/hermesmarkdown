@@ -1,14 +1,22 @@
 import { EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { EditorState, Range } from "@codemirror/state";
 import { CALLOUT_META, CALLOUT_ALIASES } from "../constants/callouts";
+import { FADED, type MarkRange, mark, processInline } from "./highlight-inline";
 import {
-  REGEX_CODE_INLINE,
-  REGEX_WIKILINK,
-  REGEX_LINK,
-  REGEX_BOLD,
-  REGEX_ITALIC,
-  REGEX_STRIKETHROUGH,
-} from "../components/regex";
+  type BlockStyler,
+  calloutBodyPrefixLength,
+  headingLineClass,
+  newCalloutBody,
+  REGEX_HEADING,
+  REGEX_LIST_ITEM,
+  REGEX_TABLE_LINE,
+  REGEX_TABLE_SEPARATOR,
+  styleCalloutBody,
+  styleHeading,
+  styleListItem,
+  styleQuote,
+  styleTableRow,
+} from "./highlight-blocks";
 
 // Direct port of MarkdownHighlighter.tsx's line-by-line tokenizer, ported
 // from "build an HTML string" to "emit CM6 mark/line decorations over the
@@ -23,99 +31,9 @@ import {
 // the link pill / date picker / table subsystems land — this pass only
 // covers static syntax coloring.
 
-const FADED = "opacity-40 dark:opacity-50 transition-opacity duration-500 hover:opacity-100";
-// Emphasis and inline-code marks, always shown as typed: dimmed like other
-// syntax, so the word they wrap stays what you read.
-const FADED_MARK = "opacity-40 dark:opacity-50";
-
 const REGEX_OBSIDIAN_CALLOUT = /^(>\s*)+\[!(\w+)\]([+-]?)\s*(.*)$/i;
 const REGEX_OBSIDIAN_QUOTE_DEPTH = /^(>\s*)+/;
 const REGEX_THEMATIC_BREAK = /^( {0,3}([-*_])(?:\s*\2){2,}\s*)$/;
-const REGEX_HEADING = /^#{1,6}\s/;
-const REGEX_HEADING_PARTS = /^(#{1,6}\s+)(.*)$/;
-const REGEX_BLOCKQUOTE_PARTS = /^(>\s?)(.*)$/;
-const REGEX_LIST_ITEM = /^\s*(?:[-*+]|\d+[.)])\s+/;
-const REGEX_LIST_PARTS = /^(\s*(?:[-*+]|\d+[.)])\s+)(\[[ xX/!-]\]\s+)?(.*)$/;
-const REGEX_TABLE_LINE = /^\s*\|/;
-const REGEX_TABLE_SEPARATOR = /^\s*\|[\s:|-]+\|/;
-
-// Heading lines carry `cm-heading cm-heading-N`; their size and tracking
-// live in editor-typography.scss.
-const headingLineClass = (level: number) => `cm-heading cm-heading-${level}`;
-
-interface MarkRange {
-  from: number;
-  to: number;
-  class: string;
-}
-
-function mark(ranges: MarkRange[], from: number, to: number, className: string) {
-  if (to > from) ranges.push({ from, to, class: className });
-}
-
-// Runs the inline regex passes (wikilinks, code, links, bold/italic,
-// strikethrough; tags and dates are chips, tag-pills.ts and
-// annotation-display.ts) over one line's label text, emitting
-// absolute-position mark decorations. `base` is the doc offset of label[0].
-function processInline(ranges: MarkRange[], label: string, base: number) {
-  const push = (from: number, to: number, cls: string) => mark(ranges, base + from, base + to, cls);
-
-  if (label.includes("[[")) {
-    for (const m of label.matchAll(REGEX_WIKILINK)) {
-      if (/^\[\[\d{4}-\d{2}-\d{2}\]\]$/.test(m[0])) continue;
-      push(m.index!, m.index! + 2, FADED);
-      push(m.index! + 2, m.index! + m[0].length - 2, "!text-sage dark:!text-sage font-bold underline cursor-pointer");
-      push(m.index! + m[0].length - 2, m.index! + m[0].length, FADED);
-    }
-  }
-
-  if (label.includes("`")) {
-    for (const m of label.matchAll(REGEX_CODE_INLINE)) {
-      const [full, open, inner] = m;
-      const i = m.index!;
-      push(i, i + open.length, FADED_MARK);
-      push(i + open.length, i + open.length + inner.length, "cm-inline-code");
-      push(i + open.length + inner.length, i + full.length, FADED_MARK);
-    }
-  }
-
-  if (label.includes("[")) {
-    for (const m of label.matchAll(REGEX_LINK)) {
-      const [, p1, p2, p3, p4, p5] = m;
-      let i = m.index!;
-      push(i, i + p1.length, FADED); i += p1.length;
-      push(i, i + p2.length, "!text-sage dark:!text-sage underline"); i += p2.length;
-      push(i, i + p3.length + p4.length + p5.length, FADED);
-    }
-  }
-
-  if (label.includes("*") || label.includes("_")) {
-    for (const m of label.matchAll(REGEX_BOLD)) {
-      const [full, marker, inner] = m;
-      const i = m.index!;
-      push(i, i + marker.length, FADED_MARK);
-      push(i + marker.length, i + marker.length + inner.length, "font-bold text-ink-light dark:text-ink-dark");
-      push(i + marker.length + inner.length, i + full.length, FADED_MARK);
-    }
-    for (const m of label.matchAll(REGEX_ITALIC)) {
-      const [full, marker, inner] = m;
-      const i = m.index!;
-      push(i, i + marker.length, FADED_MARK);
-      push(i + marker.length, i + marker.length + inner.length, "italic text-ink-light dark:text-ink-dark");
-      push(i + marker.length + inner.length, i + full.length, FADED_MARK);
-    }
-  }
-
-  if (label.includes("~~")) {
-    for (const m of label.matchAll(REGEX_STRIKETHROUGH)) {
-      const [, p1, p2, p3] = m;
-      let i = m.index!;
-      push(i, i + p1.length, FADED_MARK); i += p1.length;
-      push(i, i + p2.length, "line-through opacity-40"); i += p2.length;
-      push(i, i + p3.length, FADED_MARK);
-    }
-  }
-}
 
 // A thematic-break line that renders as a horizontal rule: not a
 // frontmatter fence, and not a `---` directly under a paragraph line (that
@@ -135,6 +53,8 @@ export function computeMarkdownDecorations(
   let isInsideCodeBlock = false;
   let calloutType: string | null = null;
   let calloutDepth = 0;
+  // What the callout's body has seen: an open code fence, a table's rows.
+  let calloutBody = newCalloutBody();
   // The callout's last line so far (its lineDecos entry), capped when it ends.
   let calloutLastDeco: { line: number; class: string } | null = null;
   const endCallout = () => {
@@ -156,6 +76,10 @@ export function computeMarkdownDecorations(
   const markIf: typeof mark = (...args) => { if (emit) mark(...args); };
   const inlineIf: typeof processInline = (...args) => { if (emit) processInline(...args); };
   const pushLine = (deco: { line: number; class: string }) => { if (emit) lineDecos.push(deco); };
+  const styler: BlockStyler = {
+    mark: (from, to, className) => markIf(ranges, from, to, className),
+    inline: (label, base) => inlineIf(ranges, label, base),
+  };
   for (let i = 1; i <= lastLine; i++) {
     emit = i >= firstLine && i <= emitLast;
     const line = doc.line(i);
@@ -203,6 +127,7 @@ export function computeMarkdownDecorations(
 
       calloutType = requestedType;
       calloutDepth = depth;
+      calloutBody = newCalloutBody();
 
       const remainder = text.slice(prefixText.length);
       const bracketEnd = remainder.indexOf("]");
@@ -224,11 +149,15 @@ export function computeMarkdownDecorations(
     ) {
       const resolvedType = CALLOUT_ALIASES[calloutType] ?? calloutType;
       const style = CALLOUT_META[resolvedType] ?? CALLOUT_META.note;
-      const bodyDepthMatch = text.match(REGEX_OBSIDIAN_QUOTE_DEPTH);
-      const bodyPrefix = bodyDepthMatch ? bodyDepthMatch[0] : "";
-      markIf(ranges, base, base + bodyPrefix.length, FADED);
-      inlineIf(ranges, text.slice(bodyPrefix.length), base + bodyPrefix.length);
-      calloutLastDeco = { line: i, class: `cm-callout ${style.bg}` };
+      // The body after the callout's own `>`s is styled as any other line:
+      // headings, lists, tables, code, quotes (highlight-blocks.ts).
+      const prefixLength = calloutBodyPrefixLength(text, calloutDepth);
+      markIf(ranges, base, base + prefixLength, FADED);
+      const next = i < doc.lines ? doc.line(i + 1).text : "";
+      const nextIn = (next.match(REGEX_OBSIDIAN_QUOTE_DEPTH)?.[0].match(/>/g) || []).length >= calloutDepth;
+      const nextBody = nextIn ? next.slice(calloutBodyPrefixLength(next, calloutDepth)) : null;
+      const extra = styleCalloutBody(styler, calloutBody, text.slice(prefixLength), base + prefixLength, nextBody);
+      calloutLastDeco = { line: i, class: `cm-callout ${style.bg}${extra ? ` ${extra}` : ""}` };
       pushLine(calloutLastDeco);
     } else if (calloutType !== null) {
       endCallout();
@@ -259,50 +188,17 @@ export function computeMarkdownDecorations(
       // A YAML comment (templates use them for hints), not a heading.
       markIf(ranges, base, line.to, "cm-frontmatter-comment");
     } else if (text.startsWith("#") && REGEX_HEADING.test(text)) {
-      const m = text.match(REGEX_HEADING_PARTS)!;
-      const hashes = m[1];
-      const level = hashes.match(/^#+/)![0].length;
-      markIf(ranges, base, base + hashes.length, FADED);
-      markIf(ranges, base + hashes.length, line.to, "font-semibold text-ink-light dark:text-ink-dark");
-      pushLine({ line: i, class: headingLineClass(level) });
-      inlineIf(ranges, m[2], base + hashes.length);
+      pushLine({ line: i, class: headingLineClass(styleHeading(styler, text, base)) });
     } else if (text.startsWith(">")) {
-      const m = text.match(REGEX_BLOCKQUOTE_PARTS)!;
-      const quote = m[1];
-      markIf(ranges, base, base + quote.length, FADED);
-      markIf(ranges, base + quote.length, line.to, "text-ink-muted dark:text-stone");
-      inlineIf(ranges, m[2], base + quote.length);
+      styleQuote(styler, text, base);
     } else if (REGEX_LIST_ITEM.test(text)) {
-      const m = text.match(REGEX_LIST_PARTS)!;
-      const bull = m[1];
-      const check = m[2];
-      const label = m[3];
-      // The marker itself is styled by live-markers.ts (muted, or a task's
-      // status colour), so it isn't faded here.
-      let cursor = bull.length;
-      if (check) cursor += check.length;
-      const state = check?.[1].toLowerCase();
-      if (state === "x") markIf(ranges, base + cursor, line.to, "cm-task-done");
-      else if (state === "-") markIf(ranges, base + cursor, line.to, "cm-task-cancelled");
-      inlineIf(ranges, label, base + cursor);
+      styleListItem(styler, text, base);
     } else if (isPipeLine) {
       const isSeparator = REGEX_TABLE_SEPARATOR.test(text);
       const nextLine = i < doc.lines ? doc.line(i + 1).text : "";
       const isHeader = tableRowCounter === 0 && REGEX_TABLE_SEPARATOR.test(nextLine);
 
-      if (isSeparator) {
-        markIf(ranges, base, line.to, FADED);
-      } else {
-        let cellStart = 0;
-        const cells = text.split("|");
-        cells.forEach((cell, ci) => {
-          const cellBase = base + cellStart;
-          if (ci > 0) markIf(ranges, cellBase - 1, cellBase, FADED);
-          inlineIf(ranges, cell, cellBase);
-          if (isHeader) markIf(ranges, cellBase, cellBase + cell.length, "font-bold text-ink-light dark:text-ink-dark");
-          cellStart += cell.length + 1;
-        });
-      }
+      styleTableRow(styler, text, base, isHeader);
 
       if (isHeader) {
         pushLine({ line: i, class: "bg-paper-softgray/60 dark:bg-paper-dark-surface/50" });
