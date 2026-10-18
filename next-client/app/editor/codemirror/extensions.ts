@@ -38,6 +38,7 @@ import { invisibles } from "./invisibles";
 import { editorLineNumbers } from "./line-numbers";
 import { findReplace } from "./find-replace";
 import { collapsedCalloutCorners } from "./callout-fold";
+import { syntaxReveal } from "./syntax-reveal";
 
 interface BuildExtensionsOptions {
   wordWrap: boolean;
@@ -73,7 +74,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     opts.lineNumbersCompartment.of(opts.lineNumbers ? editorLineNumbers() : []),
     opts.invisiblesCompartment.of(opts.showInvisibles ? invisibles() : []),
     opts.flowModeCompartment.of(opts.flowMode ? flowMode(opts.flowMode) : []),
-    // Keep the caret clear of the pane's floating palette button when
+    // Keep the caret clear of the editor's floating SearchPill when
     // scrolling it into view (--pane-top-room, PaneLeaf; unset on mobile).
     EditorView.scrollMargins.of((view) => ({
       top: parseFloat(getComputedStyle(view.dom).getPropertyValue("--pane-top-room")) || 0,
@@ -93,6 +94,8 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     tagPillPlugin,
     linkDisplayPlugin,
     liveMarkers,
+    // Markdown marks show only on the caret's lines.
+    syntaxReveal,
     listCaretGuard,
     templateFieldPills,
     annotationDisplayPlugin,

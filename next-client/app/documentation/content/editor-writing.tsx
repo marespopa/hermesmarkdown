@@ -149,10 +149,11 @@ export const editorWritingItems: Subsection[] = [
     body: (
       <>
         <p>
-          Every Markdown character stays on screen as you typed it, dimmed, and nothing changes
-          when the caret moves, so the words never shift. Bold, italic, strikethrough and
-          inline-code marks sit in the text. A heading&apos;s <code>#</code> and a quote&apos;s{" "}
-          <code>&gt;</code> hang faintly in the margin. Lists look just like their Markdown: the
+          Markdown shows where you&apos;re writing: on the line with the caret (or every line a
+          selection covers), each mark appears as you typed it, dimmed; everywhere else the marks
+          step aside and you read the formatted text. Bold, italic, strikethrough and inline-code
+          marks open up in the text. A heading&apos;s <code>#</code> and a quote&apos;s or
+          callout&apos;s <code>&gt;</code> hang faintly in the margin, so those lines don&apos;t move. Lists look just like their Markdown: the
           marker before the text, nested items indented by their own spaces, drawn as wide as a letter (Tab adds four), so
           copying a list gives you what you see. A task&apos;s marker takes its status colour. Typing <code>-</code> at the start of a line adds the space after it, so
           you can go straight to the item; keep typing dashes for a <code>---</code> rule. Tags and
@@ -160,12 +161,13 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <KV
           rows={[
-            { label: "**bold**, *italic*, ~~strike~~, `code`", value: "Marks stay as typed, dimmed" },
-            { label: "# Heading, > Quote", value: "Marks stay as typed, faint, in the margin" },
+            { label: "**bold**, *italic*, ~~strike~~, `code`", value: "Marks show on the caret's line, dimmed; hidden elsewhere" },
+            { label: "# Heading, > Quote", value: "Marks show on the caret's line, faint, in the margin; hidden elsewhere" },
             { label: "- List item", value: "Stays as typed: a faint marker before the text, nested items indented by their spaces" },
             { label: "- [ ] Task, 1. [ ] Task", value: "Stays as typed, the marker coloured by its status as on the Tasks page, so you can write the status ([/], [!], [x]); CTRL+Click it to go To Do → In Progress → Done" },
             { label: "1. Numbered item", value: "Stays as typed, the number faint" },
-            { label: "> [!note] Title", value: "Shown as a rounded, tinted card; the [!note] stays as typed, so edit the type in place" },
+            { label: "> [!note] Title", value: "Shown as a rounded, tinted card; the > and [!note] show on the caret's line, so edit the type in place" },
+            { label: "> ## Heading, > - item, > | table |", value: "Inside a callout, headings, lists, tasks, tables, code and quotes look as they do outside it; Enter on a list item adds the next one" },
             { label: "> [!note]- Title", value: "Starts collapsed when the note opens (+ starts expanded); folding with the chevron writes the sign for you" },
             { label: "```js … ```", value: "Fences stay as typed, language included" },
             { label: "#tag, 2026-10-08", value: "Stay chips while you edit them" },
