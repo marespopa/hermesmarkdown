@@ -3,11 +3,12 @@ import { ChangeSpec, Transaction } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { colIndexToLetter } from "../utils/formula-engine";
 import { findTableAtPos, TableInfo } from "../utils/table-detection";
+import { maskQuotedRows, quotedRowPrefix, restoreQuotePrefix } from "../utils/quoted-table";
 import { cycleAlignment, getColumnAlignment, insertColumnAt, insertRowAt, moveTableColumn, moveTableRow, removeColumn, removeRow, tableToCSV, tableToJSON } from "../utils/table-manipulation";
 import { type Alignment, extractTableSource, parseTable } from "../utils/tableParser";
 import { serializeTable } from "../utils/tableSerializer";
 import { type SortDirection, sortRows } from "../utils/tableSorter";
-import { appendRowAndFocus, applyTableChangeFor, applyTableData, cellCursorPos, currentTableData, isTotalsRow, realignTableLines, STRUCTURAL } from "./table-edit";
+import { appendRowAndFocus, applyTableChangeFor, applyTableData, cellCursorPos, currentTableData, indentRows, isTotalsRow, realignTableLines, STRUCTURAL } from "./table-edit";
 
 // Table menu actions (row/column/table menu from table-handles.ts and the
 // cell context menu): insert, move, delete, align, sort, sum, copy, paste.
@@ -249,17 +250,19 @@ function paddingChanges(from: number, before: string, after: string): ChangeSpec
 }
 
 // Rewrites the table starting at `startOffset` with realigned padding (and
-// outer pipes), kept out of undo history since nothing visible changes.
+// outer pipes), kept out of undo history since nothing visible changes. A
+// quoted table is compared through the mask, so its prefix is never touched.
 function realignTableAt(view: EditorView, startOffset: number) {
-  const current = findTableAtPos(view.state.doc.toString(), startOffset);
+  const current = findTableAtPos(maskQuotedRows(view.state.doc.toString()), startOffset);
   if (!current || current.tableStartOffset !== startOffset) return;
   const before = current.lines.slice(current.tableStart, current.tableEnd + 1).join("\n");
   const data = parseTable(before);
   if (!data) return;
-  const after = serializeTable(data, true);
+  const after = indentRows(serializeTable(data, true).split("\n"), current.lines[current.tableStart]).join("\n");
   if (after === before) return;
+  const prefix = quotedRowPrefix(view.state.doc.lineAt(startOffset).text);
   const changes = paddingChanges(startOffset, before, after)
-    ?? [{ from: startOffset, to: startOffset + before.length, insert: after }];
+    ?? [{ from: startOffset, to: startOffset + before.length, insert: restoreQuotePrefix(after, prefix) }];
   view.dispatch({
     changes,
     userEvent: "input.replace.table",

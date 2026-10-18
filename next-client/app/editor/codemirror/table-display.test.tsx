@@ -98,6 +98,25 @@ describe("tableDisplayExtension", () => {
     expect(view.contentDOM).not.toHaveTextContent("| A | B |");
   });
 
+  it("renders a table inside a callout as a grid in the callout's frame, and keeps its `>`s on edit", async () => {
+    const doc = "> [!tip] Stock\n> | Item | Qty |\n> | --- | --- |\n> | Pen | 2 |\n\nAfter";
+    const [match] = collectTableDisplayMatches(EditorState.create({ doc, extensions: [markdown({ base: markdownLanguage })] }));
+    expect(match.from).toBe(doc.indexOf("> | Item"));
+    expect(match.frame).toContain("cm-table-in-callout");
+    expect(match.frame).toContain("cm-table-callout-end");
+
+    const view = makeView(doc);
+    const cell = await cellAt(view, "2:1");
+    act(() => cell.focus());
+    await flush();
+    act(() => {
+      cell.textContent = "5";
+      fireEvent.input(cell);
+    });
+    expect(view.state.doc.toString()).toContain("> | Pen | 5 |");
+    expect(view.state.doc.toString()).toContain("> [!tip] Stock\n> | Item | Qty |");
+  });
+
   it("writes cell edits straight back into the Markdown source", async () => {
     const doc = "Intro\n\n| Item | Status |\n| --- | --- |\n| Draft | Ready |";
     const view = makeView(doc);

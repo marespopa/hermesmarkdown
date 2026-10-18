@@ -4,6 +4,7 @@ import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { isFormulaCell } from "../utils/formula-engine";
 import { findTableAtPos, isTableLine, TableInfo } from "../utils/table-detection";
+import { maskQuotedRow, maskQuotedRows, quotedRowPrefix, restoreQuotePrefix } from "../utils/quoted-table";
 import { addRow } from "../utils/table-manipulation";
 import { extractTableSource, parseTable, type TableData } from "../utils/tableParser";
 import { serializeTable } from "../utils/tableSerializer";
@@ -25,14 +26,24 @@ const NON_TABLE_BLOCKS = new Set(["FencedCode", "CodeBlock", "HTMLBlock", "Comme
 // The cursor-facing entry point for every table command and the toolbar.
 // Cheap rejection first (the caret's own line must look like a table row),
 // then the syntax tree vetoes code blocks, and only then the full-document
-// line scan that builds TableInfo runs.
+// line scan that builds TableInfo runs. A table in a quote or callout is
+// read through the mask (utils/quoted-table.ts) and carries its prefix.
 export function findTableInState(state: EditorState, pos: number): TableInfo | null {
-  if (!isTableLine(state.doc.lineAt(pos).text)) return null;
+  if (!isTableLine(maskQuotedRow(state.doc.lineAt(pos).text))) return null;
   type Node = ReturnType<typeof syntaxTree>["topNode"];
   for (let node: Node | null = syntaxTree(state).resolve(pos); node; node = node.parent) {
     if (NON_TABLE_BLOCKS.has(node.name)) return null;
   }
-  return findTableAtPos(state.doc.toString(), pos);
+  const info = findTableAtPos(maskQuotedRows(state.doc.toString()), pos);
+  const quotePrefix = info ? quotedRowPrefix(state.doc.line(info.tableStart + 1).text) : "";
+  return info && quotePrefix ? { ...info, quotePrefix } : info;
+}
+
+// Serialized rows keep the table's indent: a quoted table's masked prefix,
+// so offsets into them stay those of the document.
+export function indentRows(rows: string[], firstLine: string): string[] {
+  const indent = /^[ \t]*/.exec(firstLine)![0];
+  return indent ? rows.map((row) => indent + row) : rows;
 }
 
 export function tableAtCursor(view: EditorView): TableInfo | null {
@@ -75,7 +86,7 @@ export function realignTableLines(lines: string[], tableStart: number, tableEnd:
   const source = extractTableSource(lines, tableStart, tableEnd);
   const data = parseTable(source);
   if (!data) return lines;
-  const serialized = serializeTable(data, true).split("\n");
+  const serialized = indentRows(serializeTable(data, true).split("\n"), lines[tableStart]);
   return [...lines.slice(0, tableStart), ...serialized, ...lines.slice(tableEnd + 1)];
 }
 
@@ -96,9 +107,10 @@ export function applyTableChangeFor(
   const tableEndOffset = target.tableStartOffset + blockLength(target.lines, target.tableStart, target.tableEnd);
   const lineDelta = newLines.length - target.lines.length;
   const newTableLineCount = oldTableLineCount + lineDelta;
-  const newTableContent = newLines
-    .slice(target.tableStart, target.tableStart + newTableLineCount)
-    .join("\n");
+  const newTableContent = restoreQuotePrefix(
+    newLines.slice(target.tableStart, target.tableStart + newTableLineCount).join("\n"),
+    target.quotePrefix ?? "",
+  );
 
   view.dispatch(view.state.update({
     changes: { from: target.tableStartOffset, to: tableEndOffset, insert: newTableContent },
@@ -176,7 +188,7 @@ export function applyTableData(
   targetLineIdx: number,
   targetCol: number,
 ) {
-  const serialized = serializeTable(data, true).split("\n");
+  const serialized = indentRows(serializeTable(data, true).split("\n"), tableInfo.lines[tableInfo.tableStart]);
   const newLines = [
     ...tableInfo.lines.slice(0, tableInfo.tableStart),
     ...serialized,

@@ -6,6 +6,8 @@ export interface TableInfo {
   cursorCol: number;
   tableStartOffset: number;
   lines: string[];
+  /** A table in a quote or callout: its rows' `>` prefix (`lines` has it as spaces). */
+  quotePrefix?: string;
 }
 
 export function isTableLine(line: string): boolean {

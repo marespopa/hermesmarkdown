@@ -8,6 +8,8 @@ import { attachCellHandlers, refocusLater } from "./table-cell-handlers";
 import { CELL_ATTR, focusCellElement, focusTableCellAt, getTableHandle, setTableHandle, TABLE_WIDGET_CLASS } from "./table-focus";
 import { type ComputedCell, computeTableFormulas, formulaFileTablesField, setFormulaFileTables } from "./table-formulas";
 import { tableSourceBlock, tableSourceField } from "./table-source";
+import { maskQuotedRows, quotedRowPrefix } from "../utils/quoted-table";
+import { quoteFrameClass } from "./table-quote-frame";
 
 // Tables are always shown as a rendered grid whose cells are edited in
 // place — the pipe syntax is never visible. The document stays the single
@@ -26,18 +28,27 @@ export interface TableDisplayMatch {
   // Changes whenever any computed result changes, so a table re-renders
   // when a formula's inputs live in a different table or note.
   computedSignature: string;
+  /** A table in a quote or callout: the frame that carries its tint or bar on. */
+  frame: string;
 }
 
 export function collectTableDisplayMatches(state: EditorState): TableDisplayMatch[] {
-  const found: { from: number; to: number; source: string; data: TableData }[] = [];
+  const found: { from: number; to: number; source: string; data: TableData; frame: string }[] = [];
 
   syntaxTree(state).iterate({
     enter(node) {
       if (node.name !== "Table") return;
-      const source = state.doc.sliceString(node.from, node.to);
+      // In a quote or callout the grid takes the rows' whole lines, `>`s
+      // included; its source is read through the mask (utils/quoted-table.ts),
+      // so cell offsets stay those of the document.
+      const line = state.doc.lineAt(node.from);
+      const quoted = line.from < node.from && quotedRowPrefix(line.text) !== "";
+      const from = quoted ? line.from : node.from;
+      const raw = state.doc.sliceString(from, node.to);
+      const source = quoted ? maskQuotedRows(raw) : raw;
       const data = parseTable(source);
       if (!data) return;
-      found.push({ from: node.from, to: node.to, source, data });
+      found.push({ from, to: node.to, source, data, frame: quoted ? quoteFrameClass(state, node.node) : "" });
     },
   });
 
@@ -50,6 +61,7 @@ export function collectTableDisplayMatches(state: EditorState): TableDisplayMatc
     alignments: table.data.alignments,
     computed: computed[i],
     computedSignature: [...computed[i]].map(([key, cell]) => `${key}=${cell.display}`).join("\u0001"),
+    frame: table.frame,
   }));
 }
 
@@ -63,7 +75,8 @@ class TableEditorWidget extends WidgetType {
   eq(other: TableEditorWidget) {
     return other.match.from === this.match.from
       && other.match.source === this.match.source
-      && other.match.computedSignature === this.match.computedSignature;
+      && other.match.computedSignature === this.match.computedSignature
+      && other.match.frame === this.match.frame;
   }
 
   get estimatedHeight() {
@@ -72,7 +85,7 @@ class TableEditorWidget extends WidgetType {
 
   toDOM(view: EditorView) {
     const wrapper = document.createElement("div");
-    wrapper.className = `cm-table-preview ${TABLE_WIDGET_CLASS}`;
+    wrapper.className = `cm-table-preview ${TABLE_WIDGET_CLASS}${this.match.frame ? ` ${this.match.frame}` : ""}`;
     wrapper.setAttribute("contenteditable", "false");
     wrapper.setAttribute("aria-label", "Table. Click a cell to edit; Tab moves to the next cell.");
 
