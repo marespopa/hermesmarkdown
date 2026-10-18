@@ -157,7 +157,7 @@ class FrontmatterHeaderWidget extends WidgetType {
     button.addEventListener("mousedown", (event) => event.preventDefault());
     button.addEventListener("click", (event) => {
       event.preventDefault();
-      const range = findFrontmatterFoldRange(view.state.doc.toString());
+      const range = frontmatterFoldRangeOf(view.state.doc);
       if (range) {
         toggleFrontmatterFold(view, range, !this.collapsed);
         view.dom.dispatchEvent(new CustomEvent(FRONTMATTER_TOGGLE_EVENT, { detail: { collapsed: !this.collapsed } }));
@@ -208,11 +208,12 @@ function hiddenRange(state: EditorState) {
   return frontmatterFoldRangeOf(state.doc);
 }
 
+// Rebuilt on every edit, so it reads only the block itself (frontmatterFoldRangeOf
+// reads lines from the top), never the whole note.
 function buildDecorations(state: EditorState, collapsed: boolean): DecorationSet {
-  const doc = state.doc.toString();
-  const range = findFrontmatterFoldRange(doc);
+  const range = frontmatterFoldRangeOf(state.doc);
   if (!range) return Decoration.none;
-  const summary = frontmatterRowSummary(doc);
+  const summary = frontmatterRowSummary(state.doc.sliceString(0, range.closeTo));
   if (!collapsed) {
     const decorations = [
       Decoration.widget({ block: true, side: -1, widget: new FrontmatterHeaderWidget(summary, false) }).range(range.bodyFrom),
@@ -325,7 +326,7 @@ export function caretOutsideFrontmatter(state: EditorState, pos: number) {
 // frontmatter block, or inserts a starter `title` / `tags` block at the top
 // with the cursor on the title.
 export function insertOrRevealFrontmatter(view: EditorView) {
-  const existing = findFrontmatterFoldRange(view.state.doc.toString());
+  const existing = frontmatterFoldRangeOf(view.state.doc);
   if (existing) {
     toggleFrontmatterFold(view, existing, false);
     const titleLineEnd = view.state.doc.line(2).to;

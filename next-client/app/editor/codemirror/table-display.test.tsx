@@ -9,6 +9,7 @@ import { setCaretOffset } from "./table-cell-dom";
 import {
   collectTableDisplayMatches,
   tableDisplayExtension,
+  tableDisplayField,
 } from "./table-display";
 
 const views: EditorView[] = [];
@@ -115,6 +116,28 @@ describe("tableDisplayExtension", () => {
     });
     expect(view.state.doc.toString()).toContain("> | Pen | 5 |");
     expect(view.state.doc.toString()).toContain("> [!tip] Stock\n> | Item | Qty |");
+  });
+
+  it("keeps tables up to date when only the edited lines are looked at again", () => {
+    const table = (n: number) => `## Table ${n}\n\n| Item | Qty |\n| --- | --- |\n| Pen | ${n} |\n| Sum | =SUM(B2:B2) |\n\nText ${n}\n`;
+    const doc = Array.from({ length: 8 }, (_, n) => table(n)).join("\n");
+    const view = makeView(doc);
+    const fresh = () => collectTableDisplayMatches(EditorState.create({ doc: view.state.doc.toString(), extensions: [markdown({ base: markdownLanguage })] }));
+    const shown = () => view.state.field(tableDisplayField).matches;
+    const strip = (matches: ReturnType<typeof fresh>) => matches.map(({ from, to, source, cells, computedSignature }) => ({ from, to, source, cells, computedSignature }));
+
+    // Typing between tables shifts the ones below.
+    act(() => view.dispatch({ changes: { from: doc.indexOf("Text 2") + 4, insert: " more words" } }));
+    expect(strip(shown())).toEqual(strip(fresh()));
+    // A row typed straight under a table joins it.
+    const under = view.state.doc.toString().indexOf("| Sum | =SUM(B2:B2) |\n\nText 5");
+    act(() => view.dispatch({ changes: { from: under + "| Sum | =SUM(B2:B2) |".length, insert: "\n| Ink | 9 |" } }));
+    expect(strip(shown())).toEqual(strip(fresh()));
+    expect(shown()).toHaveLength(8);
+    // A code fence turns everything below into code.
+    act(() => view.dispatch({ changes: { from: view.state.doc.toString().indexOf("## Table 6"), insert: "```\n" } }));
+    expect(strip(shown())).toEqual(strip(fresh()));
+    expect(shown()).toHaveLength(6);
   });
 
   it("writes cell edits straight back into the Markdown source", async () => {

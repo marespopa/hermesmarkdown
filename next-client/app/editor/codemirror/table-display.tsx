@@ -1,5 +1,6 @@
 import { syntaxTree } from "@codemirror/language";
-import { EditorState, Extension, Prec, Range, StateField } from "@codemirror/state";
+import type { SyntaxNode } from "@lezer/common";
+import { EditorState, Extension, Prec, Range, StateField, type Transaction } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, keymap, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import { type CellOffset, getTableCellOffsetsFromSource } from "../utils/table-cell-offsets";
 import { type Alignment, parseTable, type TableData } from "../utils/tableParser";
@@ -32,37 +33,136 @@ export interface TableDisplayMatch {
   frame: string;
 }
 
-export function collectTableDisplayMatches(state: EditorState): TableDisplayMatch[] {
-  const found: { from: number; to: number; source: string; data: TableData; frame: string }[] = [];
+// A table as found in the document, before its formulas are computed.
+interface FoundTable {
+  from: number;
+  to: number;
+  source: string;
+  data: TableData;
+  frame: string;
+  cells: CellOffset[];
+  /** Its formula results, kept while no table and no table's name changes. */
+  computed?: Map<string, ComputedCell>;
+}
 
-  syntaxTree(state).iterate({
-    enter(node) {
-      if (node.name !== "Table") return;
-      // In a quote or callout the grid takes the rows' whole lines, `>`s
-      // included; its source is read through the mask (utils/quoted-table.ts),
-      // so cell offsets stay those of the document.
-      const line = state.doc.lineAt(node.from);
-      const quoted = line.from < node.from && quotedRowPrefix(line.text) !== "";
-      const from = quoted ? line.from : node.from;
-      const raw = state.doc.sliceString(from, node.to);
-      const source = quoted ? maskQuotedRows(raw) : raw;
-      const data = parseTable(source);
-      if (!data) return;
-      found.push({ from, to: node.to, source, data, frame: quoted ? quoteFrameClass(state, node.node) : "" });
-    },
+function foundTable(state: EditorState, node: SyntaxNode): FoundTable | null {
+  // In a quote or callout the grid takes the rows' whole lines, `>`s
+  // included; its source is read through the mask (utils/quoted-table.ts),
+  // so cell offsets stay those of the document.
+  const line = state.doc.lineAt(node.from);
+  const quoted = line.from < node.from && quotedRowPrefix(line.text) !== "";
+  const from = quoted ? line.from : node.from;
+  const raw = state.doc.sliceString(from, node.to);
+  const source = quoted ? maskQuotedRows(raw) : raw;
+  const data = parseTable(source);
+  if (!data) return null;
+  const frame = quoted ? quoteFrameClass(state, node) : "";
+  return { from, to: node.to, source, data, frame, cells: getTableCellOffsetsFromSource(source, from) };
+}
+
+// Every table in the document, or only those overlapping `ranges`.
+function findTables(state: EditorState, ranges?: readonly { from: number; to: number }[]): FoundTable[] {
+  const found: FoundTable[] = [];
+  const tree = syntaxTree(state);
+  for (const range of ranges ?? [{ from: 0, to: state.doc.length }]) {
+    tree.iterate({
+      from: range.from,
+      to: range.to,
+      enter(node) {
+        if (node.name !== "Table") return;
+        const table = foundTable(state, node.node);
+        if (table && !found.some((other) => other.from === table.from)) found.push(table);
+        return false;
+      },
+    });
+  }
+  return found.sort((a, b) => a.from - b.from);
+}
+
+// An edit that can change which lines are tables away from where it happened:
+// a code fence, a quote's `>`, an HTML block. The tables are found again
+// throughout.
+const REGEX_STRUCTURAL = /[`~<>]/;
+
+const withoutResults = (table: FoundTable): FoundTable => ({ ...table, computed: undefined });
+
+// An edit that can rename a table for formulas (`=Income!B3`): a heading
+// typed or removed, or lines moving a heading out of reach.
+const REGEX_RENAMES = /[#\n]/;
+
+// The tables after `transaction`, kept up to date with only the edited
+// lines looked at again: a note's tables aren't searched for on every
+// keystroke. Tables the edit doesn't touch (or sit next to) move with the
+// text, and keep their formula results unless a table or a table's name
+// may have changed; null when everything has to be found again.
+function updateTables(tables: readonly FoundTable[], transaction: Transaction): FoundTable[] | null {
+  const { changes, startState, state } = transaction;
+  let structural = false;
+  let renames = false;
+  const edited: { from: number; to: number }[] = [];
+  changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
+    if (REGEX_STRUCTURAL.test(startState.sliceDoc(fromA, toA)) || REGEX_STRUCTURAL.test(inserted.toString())) {
+      structural = true;
+    }
+    if (REGEX_RENAMES.test(startState.sliceDoc(fromA, toA)) || REGEX_RENAMES.test(inserted.toString())) renames = true;
+    // One line either side: a row typed under a table, or a blank line
+    // removed above one, joins it.
+    const first = state.doc.lineAt(fromB).number;
+    const last = state.doc.lineAt(toB).number;
+    edited.push({
+      from: state.doc.line(Math.max(1, first - 1)).from,
+      to: state.doc.line(Math.min(state.doc.lines, last + 1)).to,
+    });
   });
+  // The parse must reach the edited lines to see the tables in them.
+  if (structural || edited.some((range) => syntaxTree(state).length < range.to)) return null;
+  const doc = startState.doc;
+  const kept = tables
+    .filter((table) => {
+      const before = doc.line(Math.max(1, doc.lineAt(table.from).number - 1)).from;
+      const after = doc.line(Math.min(doc.lines, doc.lineAt(table.to).number + 1)).to;
+      return !changes.touchesRange(before, after);
+    })
+    .map((table) => {
+      const shift = changes.mapPos(table.from) - table.from;
+      if (shift === 0) return table;
+      const cells = table.cells.map((cell) => ({
+        ...cell,
+        start: cell.start + shift,
+        end: cell.end + shift,
+        fullStart: cell.fullStart + shift,
+        fullEnd: cell.fullEnd + shift,
+      }));
+      return { ...table, from: table.from + shift, to: table.to + shift, cells };
+    });
+  const fresh = findTables(state, edited).filter((table) => !kept.some((other) => other.from === table.from));
+  const next = [...kept, ...fresh].sort((a, b) => a.from - b.from);
+  const unchanged = !renames && fresh.length === 0 && kept.length === tables.length;
+  return unchanged ? next : next.map(withoutResults);
+}
 
-  const computed = computeTableFormulas(state, found);
+// Fills in each table's formula results: all at once, since one table's
+// formulas can read another's, unless every table still has its own.
+function withFormulas(state: EditorState, found: readonly FoundTable[]): TableDisplayMatch[] {
+  if (found.some((table) => !table.computed)) {
+    const results = computeTableFormulas(state, found as FoundTable[]);
+    found.forEach((table, i) => { table.computed = results[i]; });
+  }
+  const computed = found.map((table) => table.computed!);
   return found.map((table, i) => ({
     from: table.from,
     to: table.to,
     source: table.source,
-    cells: getTableCellOffsetsFromSource(table.source, table.from),
+    cells: table.cells,
     alignments: table.data.alignments,
     computed: computed[i],
     computedSignature: [...computed[i]].map(([key, cell]) => `${key}=${cell.display}`).join("\u0001"),
     frame: table.frame,
   }));
+}
+
+export function collectTableDisplayMatches(state: EditorState): TableDisplayMatch[] {
+  return withFormulas(state, findTables(state));
 }
 
 // Escaped pipes are a storage detail: cells show and edit a plain "|".
@@ -124,14 +224,15 @@ class TableEditorWidget extends WidgetType {
 }
 
 interface TableDisplayState {
+  tables: FoundTable[];
   matches: TableDisplayMatch[];
   decorations: DecorationSet;
 }
 
-function buildTableDisplayState(state: EditorState): TableDisplayState {
+function buildTableDisplayState(state: EditorState, tables: FoundTable[] = findTables(state)): TableDisplayState {
   // A table opened with "Edit as Markdown" stays plain text (table-source.ts).
   const source = tableSourceBlock(state);
-  const matches = collectTableDisplayMatches(state).filter((match) =>
+  const matches = withFormulas(state, tables).filter((match) =>
     !source || match.to < source.from || match.from > source.to);
   const ranges: Range<Decoration>[] = matches.map((match) =>
     Decoration.replace({
@@ -140,24 +241,32 @@ function buildTableDisplayState(state: EditorState): TableDisplayState {
       inclusive: true,
     }).range(match.from, match.to),
   );
-  return { matches, decorations: Decoration.set(ranges, true) };
+  return { tables, matches, decorations: Decoration.set(ranges, true) };
 }
 
 export const tableDisplayField = StateField.define<TableDisplayState>({
-  create: buildTableDisplayState,
+  create: (state) => buildTableDisplayState(state),
   update(value, transaction) {
     // Selection-only changes no longer matter (tables never switch back to
     // raw text), but the syntax tree can grow without a doc change as the
-    // background parser catches up.
-    if (
-      !transaction.docChanged
-      && syntaxTree(transaction.startState) === syntaxTree(transaction.state)
-      && !transaction.effects.some((effect) => effect.is(setFormulaFileTables))
-      && transaction.startState.field(tableSourceField, false) === transaction.state.field(tableSourceField, false)
-    ) {
-      return value;
+    // background parser catches up: then every table is found again.
+    const treeChanged = syntaxTree(transaction.startState) !== syntaxTree(transaction.state);
+    if (transaction.docChanged) {
+      const tables = updateTables(value.tables, transaction);
+      return buildTableDisplayState(transaction.state, tables ?? undefined);
     }
-    return buildTableDisplayState(transaction.state);
+    if (treeChanged) return buildTableDisplayState(transaction.state);
+    if (
+      transaction.effects.some((effect) => effect.is(setFormulaFileTables))
+      || transaction.startState.field(tableSourceField, false) !== transaction.state.field(tableSourceField, false)
+    ) {
+      const fileTables = transaction.effects.some((effect) => effect.is(setFormulaFileTables));
+      return buildTableDisplayState(
+        transaction.state,
+        fileTables ? value.tables.map(withoutResults) : value.tables,
+      );
+    }
+    return value;
   },
   provide: (field) => [
     EditorView.decorations.from(field, (value) => value.decorations),

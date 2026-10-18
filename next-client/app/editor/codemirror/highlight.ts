@@ -4,6 +4,7 @@ import { CALLOUT_META, CALLOUT_ALIASES } from "../constants/callouts";
 import { FADED, type MarkRange, mark, processInline } from "./highlight-inline";
 import {
   type BlockStyler,
+  type CalloutBody,
   calloutBodyPrefixLength,
   headingLineClass,
   newCalloutBody,
@@ -43,9 +44,29 @@ export function isHorizontalRule(text: string, previousLine: string, isFrontmatt
   return !text.trim().startsWith("-") || !previousLine.trim();
 }
 
+// What the reading has seen by the start of a line: an open code block or
+// callout, a table's row count, frontmatter. Saved every CHECKPOINT_EVERY
+// lines, so decorating the viewport starts reading from the nearest saved
+// line instead of the top of the note.
+export interface ScanCheckpoint {
+  line: number;
+  isInsideCodeBlock: boolean;
+  calloutType: string | null;
+  calloutDepth: number;
+  calloutBody: CalloutBody;
+  tableRowCounter: number;
+  isInsideFrontmatter: boolean;
+}
+
+const CHECKPOINT_EVERY = 256;
+
+// `checkpoints` (sorted by line, filled in as lines are read) carries the
+// saved readings from one call to the next; keep only those at or above the
+// first edited line when the note changes (keepCheckpointsBefore).
 export function computeMarkdownDecorations(
   state: EditorState,
   range?: { from: number; to: number },
+  checkpoints?: ScanCheckpoint[],
 ): DecorationSet {
   const ranges: MarkRange[] = [];
   const lineDecos: { line: number; class: string }[] = [];
@@ -72,6 +93,14 @@ export function computeMarkdownDecorations(
   const firstLine = range ? doc.lineAt(range.from).number : 1;
   const emitLast = range ? doc.lineAt(range.to).number : doc.lines;
   const lastLine = Math.min(doc.lines, emitLast + 1);
+  // Start from the last saved reading at or above the first line drawn.
+  let startLine = 1;
+  const saved = checkpoints?.filter((checkpoint) => checkpoint.line <= firstLine).at(-1);
+  if (saved) {
+    ({ isInsideCodeBlock, calloutType, calloutDepth, tableRowCounter, isInsideFrontmatter } = saved);
+    calloutBody = { ...saved.calloutBody };
+    startLine = saved.line;
+  }
   let emit = true;
   const markIf: typeof mark = (...args) => { if (emit) mark(...args); };
   const inlineIf: typeof processInline = (...args) => { if (emit) processInline(...args); };
@@ -80,7 +109,13 @@ export function computeMarkdownDecorations(
     mark: (from, to, className) => markIf(ranges, from, to, className),
     inline: (label, base) => inlineIf(ranges, label, base),
   };
-  for (let i = 1; i <= lastLine; i++) {
+  for (let i = startLine; i <= lastLine; i++) {
+    if (checkpoints && i % CHECKPOINT_EVERY === 0 && !checkpoints.some((checkpoint) => checkpoint.line === i)) {
+      checkpoints.push({
+        line: i, isInsideCodeBlock, calloutType, calloutDepth, calloutBody: { ...calloutBody }, tableRowCounter, isInsideFrontmatter,
+      });
+      checkpoints.sort((a, b) => a.line - b.line);
+    }
     emit = i >= firstLine && i <= emitLast;
     const line = doc.line(i);
     const text = line.text;
@@ -225,18 +260,31 @@ export function computeMarkdownDecorations(
   return Decoration.set(decoRanges, true);
 }
 
+// The saved readings still true after `update`: those at or above the first
+// edited line (lines above an edit read the same).
+export function keepCheckpointsBefore(checkpoints: ScanCheckpoint[], update: Pick<ViewUpdate, "changes" | "startState">) {
+  let first = Infinity;
+  update.changes.iterChangedRanges((fromA) => { first = Math.min(first, fromA); });
+  if (first === Infinity) return checkpoints;
+  const firstLine = update.startState.doc.lineAt(first).number;
+  return checkpoints.filter((checkpoint) => checkpoint.line <= firstLine);
+}
+
 export const markdownHighlightPlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
+    checkpoints: ScanCheckpoint[] = [];
     // Only the viewport (what CodeMirror renders, plus its margin) is
     // decorated, so typing and scrolling in a long note never rebuild
-    // decorations for lines that aren't drawn.
+    // decorations for lines that aren't drawn; the reading above it starts
+    // from the nearest saved checkpoint.
     constructor(view: EditorView) {
-      this.decorations = computeMarkdownDecorations(view.state, view.viewport);
+      this.decorations = computeMarkdownDecorations(view.state, view.viewport, this.checkpoints);
     }
     update(update: ViewUpdate) {
+      if (update.docChanged) this.checkpoints = keepCheckpointsBefore(this.checkpoints, update);
       if (update.docChanged || update.viewportChanged) {
-        this.decorations = computeMarkdownDecorations(update.state, update.view.viewport);
+        this.decorations = computeMarkdownDecorations(update.state, update.view.viewport, this.checkpoints);
       }
     }
   },

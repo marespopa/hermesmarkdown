@@ -1,7 +1,8 @@
-import { EditorSelection, Range } from "@codemirror/state";
+import { EditorSelection, Range, type Text } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import { WORKFLOW_TAGS } from "../components/constants";
 import { REGEX_HASHTAG } from "../components/regex";
+import { collectInVisibleLines } from "./visible-lines";
 
 export interface TagMatch {
   from: number;
@@ -106,7 +107,9 @@ export function collectFrontmatterTagLists(doc: string): FrontmatterTagList[] {
   return lists;
 }
 
-export function collectTagMatches(doc: string): TagMatch[] {
+// `detectFrontmatter`: whether a `---` first line opens frontmatter, as at the
+// top of a note; off for a stretch of lines from further down.
+export function collectTagMatches(doc: string, detectFrontmatter = true): TagMatch[] {
   const matches: TagMatch[] = [];
   const lines = doc.split("\n");
   let inFrontmatter = false;
@@ -119,7 +122,7 @@ export function collectTagMatches(doc: string): TagMatch[] {
     const lineStart = nextLineStart;
     nextLineStart += line.length + 1;
 
-    if (i === 0 && /^---\s*$/.test(line)) {
+    if (i === 0 && detectFrontmatter && /^---\s*$/.test(line)) {
       inFrontmatter = true;
       continue;
     }
@@ -227,11 +230,29 @@ class FrontmatterTagListWidget extends WidgetType {
   }
 }
 
+// Where the frontmatter block ends (its closing `---`), or 0 without one;
+// read from the top only as far as the block goes.
+function frontmatterEnd(doc: Text): number {
+  if (doc.lines < 3 || !/^---\s*$/.test(doc.line(1).text)) return 0;
+  for (let n = 2; n <= doc.lines; n++) {
+    if (/^---\s*$/.test(doc.line(n).text)) return doc.line(n).to;
+  }
+  return 0;
+}
+
+// Only what's on screen is matched, as tags never cross a line: the
+// frontmatter block (which needs its fences) when it shows, and the visible
+// lines below it. Runs on every keystroke and caret move.
 export function buildTagPillDecorations(view: EditorView): DecorationSet {
   const ranges: Range<Decoration>[] = [];
   const selection = view.state.selection;
-  const doc = view.state.doc.toString();
-  const frontmatterLists = collectFrontmatterTagLists(doc);
+  const fmEnd = frontmatterEnd(view.state.doc);
+  const fmText = fmEnd > 0 && view.visibleRanges.some((range) => range.from <= fmEnd) ? view.state.doc.sliceString(0, fmEnd) : "";
+  const frontmatterLists = fmText ? collectFrontmatterTagLists(fmText) : [];
+  const tagMatches = [
+    ...(fmText ? collectTagMatches(fmText) : []),
+    ...collectInVisibleLines(view, (text) => collectTagMatches(text, false)).filter((match) => match.from > fmEnd),
+  ];
 
   for (const list of frontmatterLists) {
     const visible = view.visibleRanges.some((range) => range.from <= list.from && list.to <= range.to);
@@ -242,7 +263,7 @@ export function buildTagPillDecorations(view: EditorView): DecorationSet {
     }).range(list.from, list.to));
   }
 
-  for (const match of collectTagMatches(doc)) {
+  for (const match of tagMatches) {
     if (frontmatterLists.some((list) => list.from <= match.from && match.to <= list.to)) continue;
     const visible = view.visibleRanges.some((range) => range.from <= match.from && match.to <= range.to);
     if (!visible) continue;
