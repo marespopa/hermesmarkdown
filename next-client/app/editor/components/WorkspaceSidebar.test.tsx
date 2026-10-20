@@ -266,13 +266,14 @@ describe("WorkspaceSidebar", () => {
       const rowOf = (name: string) => openNotes.getByRole("button", { name }).parentElement!;
       const dataTransfer = { setData: vi.fn(), effectAllowed: "", dropEffect: "" };
 
-      // Drop "c" on the top half of "a": it lands first.
-      fireEvent.dragStart(rowOf("c"), { dataTransfer });
-      fireEvent.dragOver(rowOf("a"), { dataTransfer, clientY: -1 });
-      fireEvent.drop(rowOf("a"), { dataTransfer });
+      // Drop "a" on the bottom half of "c": it lands last. (jsdom's rows
+      // measure 0×0 and drag events may drop clientY, so test below, not above.)
+      fireEvent.dragStart(rowOf("a"), { dataTransfer });
+      fireEvent.dragOver(rowOf("c"), { dataTransfer, clientY: 1 });
+      fireEvent.drop(rowOf("c"), { dataTransfer });
       expect(paths()).toEqual(["c.md", "a.md"]);
       expect(openNotes.getByRole("button", { name: "c" })).toHaveAttribute("aria-keyshortcuts", "Control+1 Meta+1");
-      // Reordering doesn't bring the dragged note to the front.
+      // Reordering leaves the note in front as it was.
       expect((store.get(atom_workspaceLayout).rootContainer as typeof left).activeFilePath).toBe("a.md");
 
       fireEvent.keyDown(openNotes.getByRole("button", { name: "c" }), { key: "ArrowDown", altKey: true });
