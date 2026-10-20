@@ -1,7 +1,7 @@
 import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it } from "vitest";
-import { blockTypeAt, parseBlockLine, setBlockType } from "./block-type";
+import { blockTypeAt, parseBlockLine, setBlockType, toggleBlockType } from "./block-type";
 
 let view: EditorView | null = null;
 
@@ -62,5 +62,21 @@ describe("setBlockType", () => {
     const v = makeView("- [x] done\nnext", EditorSelection.single(0, 15));
     setBlockType("todo")(v);
     expect(v.state.doc.toString()).toBe("- [x] done\n- [ ] next");
+  });
+});
+
+describe("toggleBlockType", () => {
+  it("turns lines into the type, and back to text when they all already are", () => {
+    const v = makeView("one\ntwo", EditorSelection.single(0, 7));
+    toggleBlockType("bullet")(v);
+    expect(v.state.doc.toString()).toBe("- one\n- two");
+    toggleBlockType("bullet")(v);
+    expect(v.state.doc.toString()).toBe("one\ntwo");
+  });
+
+  it("converts a mixed selection instead of removing", () => {
+    const v = makeView("> quoted\nplain", EditorSelection.single(0, 14));
+    toggleBlockType("quote")(v);
+    expect(v.state.doc.toString()).toBe("> quoted\n> plain");
   });
 });

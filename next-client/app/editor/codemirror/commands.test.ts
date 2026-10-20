@@ -11,6 +11,7 @@ import {
   indentCurrentSubtree,
   outdentCurrentSubtree,
   cycleTaskStatusOnCurrentLine,
+  formatKeymap,
 } from "./commands";
 
 // Headless EditorView: no `parent` DOM node, so no real layout — fine for
@@ -192,5 +193,34 @@ describe("cycleTaskStatusOnCurrentLine", () => {
     expect(runScopeHandlers(view, tabEvent, "editor")).toBe(true);
     expect(view.state.doc.toString()).toContain("  1. Ordered one");
     view.destroy();
+  });
+});
+
+describe("formatKeymap", () => {
+  function press(doc: string, cursor: number, init: KeyboardEventInit & { keyCode: number }) {
+    const view = new EditorView({
+      state: EditorState.create({ doc, selection: EditorSelection.cursor(cursor), extensions: [keymap.of(formatKeymap)] }),
+    });
+    const event = new KeyboardEvent("keydown", init);
+    Object.defineProperty(event, "keyCode", { value: init.keyCode });
+    const handled = runScopeHandlers(view, event, "editor");
+    const text = view.state.doc.toString();
+    view.destroy();
+    return { handled, text };
+  }
+
+  it("strikes through on Ctrl+Shift+S and codes on Ctrl+Shift+M", () => {
+    expect(press("", 0, { key: "S", keyCode: 83, ctrlKey: true, shiftKey: true }).text).toBe("~~~~");
+    expect(press("", 0, { key: "M", keyCode: 77, ctrlKey: true, shiftKey: true }).text).toBe("``");
+  });
+
+  it("turns the line into a list or quote on Ctrl+Shift+7 / 8 / 9, by the digit's key", () => {
+    expect(press("Item", 0, { key: "&", keyCode: 55, ctrlKey: true, shiftKey: true }).text).toBe("1. Item");
+    expect(press("Item", 0, { key: "*", keyCode: 56, ctrlKey: true, shiftKey: true }).text).toBe("- Item");
+    expect(press("Item", 0, { key: "(", keyCode: 57, ctrlKey: true, shiftKey: true }).text).toBe("> Item");
+  });
+
+  it("makes the line plain text on Ctrl+Alt+0", () => {
+    expect(press("## Title", 3, { key: "0", keyCode: 48, ctrlKey: true, altKey: true }).text).toBe("Title");
   });
 });

@@ -17,10 +17,12 @@ import PaneToolbarButton from "./PaneToolbarButton";
 import SearchPill from "./SearchPill";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 
-// Show / hide the sidebar: Ctrl/Cmd+\, or Ctrl/Cmd+Alt+S (`code`, since Alt
-// changes `key` on macOS).
+// Show / hide the sidebar: Ctrl/Cmd+\, Ctrl/Cmd+Alt+S (`code`, since Alt
+// changes `key` on macOS), or Ctrl+[ — Ctrl on macOS too, where Cmd+[ is the
+// browser's Back; skipped when the editor took it (Vim's Escape).
 export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
   if (!(event.ctrlKey || event.metaKey) || event.shiftKey) return false;
+  if (event.ctrlKey && !event.metaKey && !event.altKey && event.key === "[") return !event.defaultPrevented;
   return (!event.altKey && event.key === "\\") || (event.altKey && event.code === "KeyS");
 }
 

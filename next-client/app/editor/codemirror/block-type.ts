@@ -43,18 +43,23 @@ export function markerFor(type: BlockType, indent: string, index: number): strin
   return `${indent}${index}. `;
 }
 
+// The lines the selection touches, in order.
+function selectedLineNumbers(state: EditorState): number[] {
+  const lineNumbers = new Set<number>();
+  for (const range of state.selection.ranges) {
+    const last = state.doc.lineAt(range.to).number;
+    for (let n = state.doc.lineAt(range.from).number; n <= last; n++) lineNumbers.add(n);
+  }
+  return [...lineNumbers].sort((a, b) => a - b);
+}
+
 // Turns every line the selection touches into `type`, replacing whatever
 // marker each had and keeping its text; lines already of that type are left
 // alone. Numbered lines count up from 1.
 export function setBlockType(type: BlockType) {
   return (view: EditorView): boolean => {
     const { state } = view;
-    const lineNumbers = new Set<number>();
-    for (const range of state.selection.ranges) {
-      const last = state.doc.lineAt(range.to).number;
-      for (let n = state.doc.lineAt(range.from).number; n <= last; n++) lineNumbers.add(n);
-    }
-    const changes = state.changes([...lineNumbers].sort((a, b) => a - b).flatMap((n, index) => {
+    const changes = state.changes(selectedLineNumbers(state).flatMap((n, index) => {
       const line = state.doc.line(n);
       const parsed = parseBlockLine(line.text);
       if (parsed.type === type) return [];
@@ -67,5 +72,15 @@ export function setBlockType(type: BlockType) {
       scrollIntoView: true,
     });
     return true;
+  };
+}
+
+// Like setBlockType, but when every selected line already is `type` they go
+// back to plain text (the list and quote shortcuts).
+export function toggleBlockType(type: BlockType) {
+  return (view: EditorView): boolean => {
+    const { state } = view;
+    const isType = selectedLineNumbers(state).every((n) => parseBlockLine(state.doc.line(n).text).type === type);
+    return setBlockType(isType ? "text" : type)(view);
   };
 }

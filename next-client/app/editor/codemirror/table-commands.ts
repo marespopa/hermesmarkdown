@@ -1,7 +1,8 @@
 import { EditorSelection } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { appendRowAndFocus, computeLineOffset, hasSeparator, isSeparatorRow, moveToCell, nthPipeIndex, tableAtCursor } from "./table-edit";
-import { addRowAction, moveColumnAction, moveRowAction, removeRowAction } from "./table-menu-actions";
+import type { TableInfo } from "../utils/table-detection";
+import { addColumnAction, addRowAction, insertColumnLeftAction, insertRowAboveAction, moveColumnAction, moveRowAction, removeRowAction } from "./table-menu-actions";
 
 // Tab / Shift+Tab: jump between table cells, realigning as it goes. CM6's
 // keymap treats "Tab" and "Shift-Tab" as distinct bindings, so these are
@@ -126,7 +127,7 @@ export function tableArrowVerticalCommand(view: EditorView, direction: 1 | -1): 
   return true;
 }
 
-// Alt+↑/↓ (rows) and Mod+Alt+←/→ (columns). Inside a table these always
+// Alt+↑/↓ (rows) and Mod+Alt+Shift+←/→ (columns). Inside a table these always
 // consume the key, even when the move isn't possible (header row, edge
 // column) — otherwise Alt+↑/↓ would fall through to moveLineUp/Down and
 // tear a row out of the table.
@@ -160,6 +161,29 @@ export function tableDeleteRowCommand(view: EditorView): boolean {
   if (!tableInfo || tableInfo.lineIdx <= tableInfo.tableStart + 1) return false;
   removeRowAction(view, tableInfo);
   return true;
+}
+
+// Mod+Alt+arrows, or Mod+Alt+[ / ] and - / =: add a row above / below or a
+// column before / after the caret's cell. Keyed by `KeyboardEvent.code` for
+// the table grid (Alt changes `key` on macOS); `key` is CodeMirror's name.
+export const TABLE_INSERT_KEYS: { code: string; key: string; action: (view: EditorView, tableInfo: TableInfo) => void }[] = [
+  { code: "ArrowUp", key: "ArrowUp", action: insertRowAboveAction },
+  { code: "ArrowDown", key: "ArrowDown", action: addRowAction },
+  { code: "ArrowLeft", key: "ArrowLeft", action: insertColumnLeftAction },
+  { code: "ArrowRight", key: "ArrowRight", action: addColumnAction },
+  { code: "BracketLeft", key: "[", action: insertRowAboveAction },
+  { code: "BracketRight", key: "]", action: addRowAction },
+  { code: "Minus", key: "-", action: insertColumnLeftAction },
+  { code: "Equal", key: "=", action: addColumnAction },
+];
+
+export function tableInsertCommand(action: (view: EditorView, tableInfo: TableInfo) => void) {
+  return (view: EditorView): boolean => {
+    const tableInfo = tableAtCursor(view);
+    if (!tableInfo || !hasSeparator(tableInfo)) return false;
+    action(view, tableInfo);
+    return true;
+  };
 }
 
 // Public surface: the keyboard commands above plus the shared primitives

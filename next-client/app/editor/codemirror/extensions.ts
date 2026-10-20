@@ -125,7 +125,9 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     findReplace(),
     // formatKeymap first: its Mod-Shift-l (link) wins over searchKeymap's
     // select-all-matches binding.
-    keymap.of([...formatKeymap, ...searchKeymap, ...historyKeymap, ...defaultKeymap]),
+    // Without defaultKeymap's Ctrl/Cmd+[ / ] (indent less / more, which Tab
+    // and Shift+Tab do): Ctrl+[ shows / hides the sidebar (EditorShell).
+    keymap.of([...formatKeymap, ...searchKeymap, ...historyKeymap, ...defaultKeymap.filter((binding) => binding.key !== "Mod-[" && binding.key !== "Mod-]")]),
     EditorView.editable.of(!opts.readOnly),
     EditorView.domEventHandlers({
       keydown: (event, view) => {

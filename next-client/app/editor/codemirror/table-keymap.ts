@@ -1,8 +1,10 @@
 import type { KeyBinding } from "@codemirror/view";
 import {
+  TABLE_INSERT_KEYS,
   tableArrowVerticalCommand,
   tableDeleteRowCommand,
   tableEnterCommand,
+  tableInsertCommand,
   tableInsertRowCommand,
   tableMoveColumnCommand,
   tableMoveRowCommand,
@@ -23,8 +25,9 @@ export const tableKeyBindings: KeyBinding[] = [
   { key: "ArrowUp", run: (view) => tableArrowVerticalCommand(view, -1) },
   { key: "Alt-ArrowUp", run: (view) => tableMoveRowCommand(view, -1) },
   { key: "Alt-ArrowDown", run: (view) => tableMoveRowCommand(view, 1) },
-  { key: "Mod-Alt-ArrowLeft", run: (view) => tableMoveColumnCommand(view, -1) },
-  { key: "Mod-Alt-ArrowRight", run: (view) => tableMoveColumnCommand(view, 1) },
+  { key: "Mod-Alt-Shift-ArrowLeft", run: (view) => tableMoveColumnCommand(view, -1) },
+  { key: "Mod-Alt-Shift-ArrowRight", run: (view) => tableMoveColumnCommand(view, 1) },
+  ...TABLE_INSERT_KEYS.map(({ key, action }) => ({ key: `Mod-Alt-${key}`, run: tableInsertCommand(action) })),
   { key: "Mod-Enter", run: tableInsertRowCommand },
   { key: "Mod-Shift-Backspace", run: tableDeleteRowCommand },
 ];

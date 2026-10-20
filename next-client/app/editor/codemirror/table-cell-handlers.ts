@@ -4,7 +4,7 @@ import { EditorSelection } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { detectDelimitedTable, parseDelimitedText } from "../utils/table-manipulation";
 import { altHint, caretOffsetIn, expandCalcInCell, matchByWrapper, refreshHandles, renderCell, rulersByWrapper, selectionOffsetsIn, setCaretOffset, toDisplay, toRaw } from "./table-cell-dom";
-import { addColumnAction, addRowAction, appendRowAction, copyCSVAction, copyJSONAction, findTableInState, insertColumnLeftAction, insertRowAboveAction, moveColumnAction, moveRowAction, normalizeTableSource, pasteGridAction, removeColumnAction, removeRowAction, removeTableAction, setAlignmentAction, sortColumnAction, sumColumnAction } from "./table-commands";
+import { addColumnAction, addRowAction, appendRowAction, copyCSVAction, copyJSONAction, findTableInState, insertColumnLeftAction, insertRowAboveAction, moveColumnAction, moveRowAction, normalizeTableSource, pasteGridAction, removeColumnAction, removeRowAction, removeTableAction, setAlignmentAction, sortColumnAction, sumColumnAction, TABLE_INSERT_KEYS } from "./table-commands";
 import type { TableDisplayMatch } from "./table-display";
 import { CELL_ATTR, cellKey, exitTable, focusCellElement, focusTableCellAt, getTableHandle, placeCaret, TABLE_WIDGET_CLASS } from "./table-focus";
 import { closeTableMenu, createTableRulers, showTableMenu, type TableMenuEntry } from "./table-handles";
@@ -87,7 +87,7 @@ export function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
         ? []
         : ([
             { heading: "Row" },
-            { label: "Insert row above", run: run((info) => insertRowAboveAction(view, info)) },
+            { label: "Insert row above", hint: formatShortcut("↑", { alt: true }), run: run((info) => insertRowAboveAction(view, info)) },
             { label: "Insert row below", hint: formatShortcut("↵"), run: run((info) => addRowAction(view, info)) },
             { label: "Move row up", hint: altHint("↑"), disabled: row <= 2, run: run((info) => moveRowAction(view, info, -1)) },
             { label: "Move row down", hint: altHint("↓"), disabled: row >= rowCount, run: run((info) => moveRowAction(view, info, 1)) },
@@ -95,10 +95,10 @@ export function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
             { separator: true },
           ] as TableMenuEntry[])),
       { heading: "Column" },
-      { label: "Insert column left", run: run((info) => insertColumnLeftAction(view, info)) },
-      { label: "Insert column right", run: run((info) => addColumnAction(view, info)) },
-      { label: "Move column left", hint: formatShortcut("←", { alt: true }), disabled: col === 0, run: run((info) => moveColumnAction(view, info, -1)) },
-      { label: "Move column right", hint: formatShortcut("→", { alt: true }), disabled: col >= colCount - 1, run: run((info) => moveColumnAction(view, info, 1)) },
+      { label: "Insert column left", hint: formatShortcut("←", { alt: true }), run: run((info) => insertColumnLeftAction(view, info)) },
+      { label: "Insert column right", hint: formatShortcut("→", { alt: true }), run: run((info) => addColumnAction(view, info)) },
+      { label: "Move column left", hint: formatShortcut("←", { shift: true, alt: true }), disabled: col === 0, run: run((info) => moveColumnAction(view, info, -1)) },
+      { label: "Move column right", hint: formatShortcut("→", { shift: true, alt: true }), disabled: col >= colCount - 1, run: run((info) => moveColumnAction(view, info, 1)) },
       { label: "Sum column", run: run((info) => sumColumnAction(view, info)) },
       { label: "Sort A → Z", run: run((info) => sortColumnAction(view, info, "asc")) },
       { label: "Sort Z → A", run: run((info) => sortColumnAction(view, info, "desc")) },
@@ -145,7 +145,6 @@ export function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
     if (el.ownerDocument.activeElement !== el) focusCellElement(el);
     showTableMenu({ x: event.clientX, y: event.clientY, doc: el.ownerDocument }, menuFor(el), "Table options");
   });
-
 
   wrapper.addEventListener("focusin", (event) => {
     const el = cellOf(event.target);
@@ -315,10 +314,18 @@ export function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
       return;
     }
 
-    if (mod && event.altKey && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
+    if (mod && event.altKey && event.shiftKey && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {
       handled();
       const info = tableInfoFor(el);
       if (info) moveColumnAction(view, info, event.key === "ArrowLeft" ? -1 : 1);
+      return;
+    }
+
+    const insert = mod && event.altKey && !event.shiftKey && TABLE_INSERT_KEYS.find(({ code }) => code === event.code);
+    if (insert) {
+      handled();
+      const info = tableInfoFor(el);
+      if (info) insert.action(view, info);
       return;
     }
 

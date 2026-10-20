@@ -8,10 +8,12 @@ import { isInCode } from "./template-field-pills";
 //   - a space typed right after the bullet is swallowed (no "-  ");
 //   - a second "-" turns "- " back into "--", so "---" (a rule, or the
 //     frontmatter fence) still types as three dashes.
+// And "[] " (or "- [] ") as the first thing on a line becomes a task, "- [ ] ".
 // Code blocks and multi-cursor edits are left alone.
 
 const LINE_START = /^[\t ]*(>[\t ]?)*$/;
 const BARE_BULLET = /^[\t ]*(>[\t ]?)*- $/;
+const EMPTY_TASK = /^([\t ]*(?:>[\t ]?)*)(?:- )?\[\]$/;
 
 export const bulletAutospace = EditorView.inputHandler.of((view, from, to, text) => {
   const { state } = view;
@@ -21,6 +23,17 @@ export const bulletAutospace = EditorView.inputHandler.of((view, from, to, text)
   const before = line.text.slice(0, from - line.from);
   const after = line.text.slice(from - line.from);
   if (isInCode(state, from)) return false;
+
+  const task = text === " " ? EMPTY_TASK.exec(before) : null;
+  if (task) {
+    const start = line.from + task[1].length;
+    view.dispatch({
+      changes: { from: start, to: from, insert: "- [ ] " },
+      selection: EditorSelection.cursor(start + 6),
+      userEvent: "input.type",
+    });
+    return true;
+  }
 
   if (BARE_BULLET.test(before) && !after.trim()) {
     if (text === " ") return true;
