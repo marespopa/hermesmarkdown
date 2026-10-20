@@ -25,6 +25,8 @@ You are a senior software engineer agent working on HermesMarkdown. You must adh
 - **Behavioral Focus**: Test user interactions and state changes, not CSS classes or internal implementation details.
 - **Tests With Changes**: Add or update tests alongside every behavior change. Don't run the build or test suite automatically after each edit — run them when the user asks; CI runs the full suite on every pull request. Never push changes that break the test suite.
 - **Router Mocking**: Always mock `useRouter` from `next/navigation` to avoid "app router not mounted" errors.
+- **Lint-Clean Tests**: Don't assign to outer variables while a mock component renders (`react-hooks/globals`); capture props in an effect or a ref. Give wrapper components a name (`react/display-name`).
+- **Module-Load Storage**: `atomWithStorage(..., { getOnInit: true })` reads storage when the module loads, so seeding `sessionStorage`/`localStorage` in a test has no effect. Seed the atom through the store (`store.set(atom, …)`).
 
 ---
 
