@@ -8,6 +8,7 @@ import {
   atom_closePane,
   atom_closeTab,
   atom_moveTab,
+  atom_reorderOpenNote,
   atom_activateWorkspaceTab,
   atom_workspaceTabs,
   findLeaf,
@@ -183,6 +184,29 @@ describe("layout-actions", () => {
     expect(leaf2.openFilePaths).toEqual([fileA, fileB]);
     expect(leaf2.activeFilePath).toBe(fileA);
     expect(store.get(atom_activePaneId)).toBe(pane2Id);
+  });
+
+  it("reorders an open note without changing the note in front or the focused pane", () => {
+    const layout = store.get(atom_workspaceLayout);
+    const paneId = layout.rootContainer.id;
+    store.set(atom_workspaceLayout, {
+      ...layout,
+      rootContainer: { ...layout.rootContainer, openFilePaths: ["a.md", "b.md", "c.md"], activeFilePath: "b.md" } as PanelLeaf,
+    });
+    store.set(atom_activePaneId, null);
+
+    store.set(atom_reorderOpenNote, { paneId, filePath: "c.md", targetIndex: 0 });
+    const leaf = store.get(atom_workspaceLayout).rootContainer as PanelLeaf;
+    expect(leaf.openFilePaths).toEqual(["c.md", "a.md", "b.md"]);
+    expect(leaf.activeFilePath).toBe("b.md");
+    expect(store.get(atom_activePaneId)).toBeNull();
+    expect(store.get(atom_workspaceTabs).map((tab) => tab.filePath)).toEqual(["c.md", "a.md", "b.md"]);
+
+    // Out-of-range targets clamp; a note that isn't open is ignored.
+    store.set(atom_reorderOpenNote, { paneId, filePath: "c.md", targetIndex: 99 });
+    expect((store.get(atom_workspaceLayout).rootContainer as PanelLeaf).openFilePaths).toEqual(["a.md", "b.md", "c.md"]);
+    store.set(atom_reorderOpenNote, { paneId, filePath: "x.md", targetIndex: 0 });
+    expect((store.get(atom_workspaceLayout).rootContainer as PanelLeaf).openFilePaths).toEqual(["a.md", "b.md", "c.md"]);
   });
 
   it("enumerates workspace tabs in visual pane order and activates the selected tab", () => {

@@ -59,7 +59,7 @@ export const AIReviewDialog: React.FC<AIReviewDialogProps> = ({
         <textarea
           value={editedSuggestion}
           onChange={(e) => setEditedSuggestion(e.target.value)}
-          className="w-full rounded-xl border border-beige dark:border-clay bg-paper-light dark:bg-paper-dark-surface p-4 max-h-[60vh] lg:max-h-[65vh] overflow-y-auto font-mono text-ui-footnote leading-relaxed resize-none outline-none focus:ring-2 focus:ring-sage/30"
+          className="w-full rounded-xl border border-beige dark:border-clay bg-input-bg dark:bg-paper-dark-surface p-4 max-h-[60vh] lg:max-h-[65vh] overflow-y-auto font-mono text-ui-footnote leading-relaxed resize-none outline-none focus:ring-2 focus:ring-sage/30"
           rows={12}
           autoFocus
         />

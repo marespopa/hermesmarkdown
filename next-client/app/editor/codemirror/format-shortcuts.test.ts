@@ -1,7 +1,7 @@
 import { EditorSelection, EditorState, Text } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it } from "vitest";
-import { fencedBlockAt, setHeading, toggleCodeBlock, wrapAsLink } from "./format-shortcuts";
+import { fencedBlockAt, insertTable, setHeading, toggleCodeBlock, wrapAsLink } from "./format-shortcuts";
 
 let view: EditorView | null = null;
 
@@ -106,5 +106,28 @@ describe("toggleCodeBlock", () => {
     const v = makeView("```\n```", EditorSelection.single(0));
     toggleCodeBlock(v);
     expect(v.state.doc.toString()).toBe("");
+  });
+});
+
+describe("insertTable", () => {
+  const selected = (v: EditorView) => v.state.sliceDoc(v.state.selection.main.from, v.state.selection.main.to);
+
+  it("fills a blank line with an empty table, Header 1 selected", () => {
+    const v = makeView("");
+    insertTable(v);
+    expect(v.state.doc.toString()).toMatch(/^\| Header 1 +\| Header 2 +\| Header 3 +\|\n/);
+    expect(v.state.doc.lines).toBe(4);
+    expect(selected(v)).toBe("Header 1");
+  });
+
+  it("goes below a line of text, with blank lines around it", () => {
+    const v = makeView("Intro\nAfter", EditorSelection.single(2));
+    insertTable(v);
+    const lines = v.state.doc.toString().split("\n");
+    expect(lines[0]).toBe("Intro");
+    expect(lines[1]).toBe("");
+    expect(lines[2]).toContain("Header 1");
+    expect(lines.slice(-2)).toEqual(["", "After"]);
+    expect(selected(v)).toBe("Header 1");
   });
 });

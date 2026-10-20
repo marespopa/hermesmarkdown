@@ -260,6 +260,28 @@ describe("WorkspaceSidebar", () => {
       expect((store.get(atom_workspaceLayout).rootContainer as typeof left).openFilePaths).toEqual(["a.md"]);
     });
 
+    it("reorders notes by dragging a row or Alt+arrows, renumbering the shortcuts", () => {
+      const { store, openNotes } = renderTwoNotes();
+      const paths = () => (store.get(atom_workspaceLayout).rootContainer as typeof left).openFilePaths;
+      const rowOf = (name: string) => openNotes.getByRole("button", { name }).parentElement!;
+      const dataTransfer = { setData: vi.fn(), effectAllowed: "", dropEffect: "" };
+
+      // Drop "a" on the bottom half of "c": it lands last. (jsdom's rows
+      // measure 0×0 and drag events may drop clientY, so test below, not above.)
+      fireEvent.dragStart(rowOf("a"), { dataTransfer });
+      fireEvent.dragOver(rowOf("c"), { dataTransfer, clientY: 1 });
+      fireEvent.drop(rowOf("c"), { dataTransfer });
+      expect(paths()).toEqual(["c.md", "a.md"]);
+      expect(openNotes.getByRole("button", { name: "c" })).toHaveAttribute("aria-keyshortcuts", "Control+1 Meta+1");
+      // Reordering leaves the note in front as it was.
+      expect((store.get(atom_workspaceLayout).rootContainer as typeof left).activeFilePath).toBe("a.md");
+
+      fireEvent.keyDown(openNotes.getByRole("button", { name: "c" }), { key: "ArrowDown", altKey: true });
+      expect(paths()).toEqual(["a.md", "c.md"]);
+      fireEvent.keyDown(openNotes.getByRole("button", { name: "a" }), { key: "ArrowUp", altKey: true });
+      expect(paths()).toEqual(["a.md", "c.md"]);
+    });
+
     it("pins, renames and trashes a vault note from it", () => {
       fileSystem.renameFile.mockClear();
       const { openNotes } = renderTwoNotes(true);

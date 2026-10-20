@@ -115,7 +115,7 @@ describe("computeMarkdownDecorations", () => {
   it("tints a callout block in its type's colour, with no side border", () => {
     const doc = "> [!warning] Careful\n> body";
     const decos = decorationsFor(doc);
-    expect(decos.some((d) => d.class.includes("bg-amber-500/5"))).toBe(true);
+    expect(decos.some((d) => d.class.includes("bg-amber-500/10"))).toBe(true);
     expect(decos.some((d) => d.class.includes("border-l-2"))).toBe(false);
   });
 

@@ -1,5 +1,6 @@
 import { EditorSelection, type Text } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
+import { createEmptyTable } from "../utils/table-manipulation";
 
 const HEADING_PREFIX = /^(#{1,6})(?:[ \t]+|$)/;
 const FENCE = /^\s*(```|~~~)/;
@@ -94,6 +95,27 @@ export function toggleCodeBlock(view: EditorView): boolean {
     changes: { from: first.from, to: last.to, insert },
     selection: EditorSelection.cursor(anchor),
     userEvent: "input.format.codeblock",
+    scrollIntoView: true,
+  });
+  return true;
+}
+
+// Inserts an empty 3×2 table on the caret's line when it's blank, else below
+// it, with "Header 1" selected to type over. A blank line follows when more
+// text does, so the next line isn't read as a row.
+export function insertTable(view: EditorView): boolean {
+  const { doc } = view.state;
+  const line = doc.lineAt(view.state.selection.main.head);
+  const table = createEmptyTable(3, 2);
+  const blank = line.text.trim() === "";
+  const before = blank ? "" : "\n\n";
+  const after = line.number < doc.lines && doc.line(line.number + 1).text.trim() !== "" ? "\n" : "";
+  const from = blank ? line.from : line.to;
+  const header = from + before.length + table.indexOf("Header 1");
+  view.dispatch({
+    changes: { from, to: line.to, insert: `${before}${table}${after}` },
+    selection: EditorSelection.range(header, header + "Header 1".length),
+    userEvent: "input.format.table",
     scrollIntoView: true,
   });
   return true;

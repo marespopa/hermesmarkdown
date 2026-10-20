@@ -4,7 +4,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { atom_aiEnabled } from "@/app/atoms/ai-atoms";
 import { atom_activateWorkspaceTab, atom_workspaceTabs } from "@/app/atoms/atoms";
 import { openSearchPanel } from "@codemirror/search";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_toggleSentenceFocus, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_keyboardShortcutsOpen, atom_toggleSentenceFocus, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { useShowFiles } from "@/app/hooks/use-show-files";
 import { focusPaneEditor } from "../utils/focus-pane-editor";
@@ -21,7 +21,7 @@ interface EditorShortcutOptions {
 }
 
 // Window-level editor shortcuts (Show Files, search, new note, close/select tab,
-// sentence focus, the AI menu, AI chat, save, undo flush). Show / hide sidebar is
+// sentence focus, the AI menu, AI chat, save, undo flush, shortcut help). Show / hide sidebar is
 // EditorShell's, so it works on every /editor route. Editor-local keys live in CodeMirror's
 // keymaps, which run first — so a key CodeMirror handled arrives here with
 // defaultPrevented set.
@@ -42,6 +42,7 @@ export function useEditorShortcuts({
   const workspaceTabs = useAtomValue(atom_workspaceTabs);
   const activateWorkspaceTab = useSetAtom(atom_activateWorkspaceTab);
   const toggleSentenceFocus = useSetAtom(atom_toggleSentenceFocus);
+  const setKeyboardShortcutsOpen = useSetAtom(atom_keyboardShortcutsOpen);
   // Desktop shows the sidebar's Files tree; mobile leaves for the Files page
   // through the unsaved-changes guard.
   const navigateToFiles = useCallback((path: string) => void navigateWithGuard(path, "Files"), [navigateWithGuard]);
@@ -123,8 +124,14 @@ export function useEditorShortcuts({
         setAiBuilderRequest((v) => v + 1);
       }
 
-      // Manual save (Ctrl/Cmd+S)
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "s") {
+      // Keyboard shortcuts help (Ctrl/Cmd+?).
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "?" || (e.shiftKey && e.code === "Slash"))) {
+        e.preventDefault();
+        setKeyboardShortcutsOpen(true);
+      }
+
+      // Manual save (Ctrl/Cmd+S); Ctrl/Cmd+Shift+S in a note is strikethrough.
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "s" && !(e.shiftKey && e.defaultPrevented)) {
         e.preventDefault();
         void saveRef.current();
       }
@@ -137,5 +144,5 @@ export function useEditorShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeEditorView, activateWorkspaceTab, toggleSentenceFocus, closeTabWithAutosave, flush, isAiConfigured, isAiEnabled, openCommandMenu, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, workspaceTabs, showFiles, saveRef, newFileRef]);
+  }, [activeEditorView, activateWorkspaceTab, toggleSentenceFocus, setKeyboardShortcutsOpen, closeTabWithAutosave, flush, isAiConfigured, isAiEnabled, openCommandMenu, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, workspaceTabs, showFiles, saveRef, newFileRef]);
 }

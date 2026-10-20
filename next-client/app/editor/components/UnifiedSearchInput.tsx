@@ -159,7 +159,7 @@ export default function UnifiedSearchInput({
         className={[
           "flex items-center h-11 sm:h-9 px-3 gap-2 cursor-text",
           "rounded-xl",
-          "bg-paper-light dark:bg-paper-dark",
+          "bg-input-bg dark:bg-paper-dark",
           "border border-edge",
           "focus-within:ring-2 focus-within:ring-inset focus-within:ring-sage/20",
           "transition-all duration-150",

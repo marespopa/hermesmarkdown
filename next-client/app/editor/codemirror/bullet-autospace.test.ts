@@ -65,6 +65,22 @@ describe("bulletAutospace", () => {
     expect(text(view)).toBe("well - ok");
   });
 
+  it("turns [] and a space at the start of a line into a task", () => {
+    const view = makeView();
+    type(view, "[] Buy milk");
+    expect(text(view)).toBe("- [ ] Buy milk");
+
+    const bulleted = makeView("> ");
+    type(bulleted, "-[] x");
+    expect(text(bulleted)).toBe("> - [ ] x");
+  });
+
+  it("leaves [] mid-line alone", () => {
+    const view = makeView("see");
+    type(view, " [] ");
+    expect(text(view)).toBe("see [] ");
+  });
+
   it("leaves code blocks alone", () => {
     const view = makeView("```\n\n```", 4);
     type(view, "-");

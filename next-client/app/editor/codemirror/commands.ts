@@ -1,7 +1,7 @@
 import { EditorView } from "@codemirror/view";
 import { KeyBinding } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
-import { insertNewline } from "@codemirror/commands";
+import { insertNewline, redo } from "@codemirror/commands";
 import {
   REGEX_CHECKBOX,
   REGEX_QUOTE_PREFIX,
@@ -12,7 +12,8 @@ import { statusLineEdits } from "@/app/utils/task-line";
 import { detectDelimitedTable, delimitedTextToMarkdownTable } from "../utils/table-manipulation";
 import { indentSubtree, outdentSubtree, setTaskStatus, toggleTaskStatus } from "./lineMutations";
 import { continueListOnEnter, indentListOrLines, outdentListOrLines, removeListMarkerOnBackspace } from "./list-commands";
-import { setHeading, toggleCodeBlock, wrapAsLink } from "./format-shortcuts";
+import { insertTable, setHeading, toggleCodeBlock, wrapAsLink } from "./format-shortcuts";
+import { setBlockType, toggleBlockType } from "./block-type";
 
 function wrapSelection(marker: string, userEvent: string) {
   return (view: EditorView): boolean => {
@@ -249,10 +250,19 @@ export const formatKeymap: readonly KeyBinding[] = [
   { key: "Mod-b", run: toggleBold, preventDefault: true },
   { key: "Mod-i", run: toggleItalic, preventDefault: true },
   { key: "Mod-Shift-x", run: toggleStrikethrough, preventDefault: true },
+  { key: "Mod-Shift-s", run: toggleStrikethrough, preventDefault: true },
   { key: "Mod-e", run: toggleInlineCode, preventDefault: true },
+  { key: "Mod-Shift-m", run: toggleInlineCode, preventDefault: true },
+  { key: "Mod-Alt-0", run: setBlockType("text"), preventDefault: true },
   ...[1, 2, 3, 4, 5, 6].map((level) => ({ key: `Mod-Alt-${level}`, run: setHeading(level), preventDefault: true })),
+  { key: "Mod-Shift-7", run: toggleBlockType("numbered"), preventDefault: true },
+  { key: "Mod-Shift-8", run: toggleBlockType("bullet"), preventDefault: true },
+  { key: "Mod-Shift-9", run: toggleBlockType("quote"), preventDefault: true },
   { key: "Mod-Shift-l", run: wrapAsLink, preventDefault: true },
   { key: "Mod-Alt-c", run: toggleCodeBlock, preventDefault: true },
+  { key: "Mod-Shift-i", run: insertTable, preventDefault: true },
+  // Cmd+Y redoes on macOS too (historyKeymap only binds Cmd+Shift+Z there).
+  { mac: "Mod-y", run: redo, preventDefault: true },
   { key: "Enter", run: continueQuoteOnEnter },
   { key: "Enter", run: continueListOnEnter },
   // A plain line break: the caret goes to the start of the next row.

@@ -36,7 +36,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>(
       "w-full px-4 py-2.5 text-ui-subhead font-sans transition-all duration-150 ease-in-out border rounded-xl outline-none min-h-[120px] resize-y";
 
     const variantStyles =
-      "bg-paper-softgray border-beige text-ink-light placeholder:text-stone " +
+      "bg-input-bg border-beige text-ink-light placeholder:text-stone " +
       "dark:bg-paper-dark-surface/50 dark:border-clay dark:text-ink-dark dark:placeholder:text-stone " +
       "focus:ring-2 focus:ring-sage/15 dark:focus:ring-sage/20";
 

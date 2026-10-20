@@ -22,6 +22,7 @@ import {
   moveColumnAction,
   pasteGridAction,
   tableMoveRowCommand,
+  tableInsertCommand,
   sumColumnAction,
   realignExitedTable,
 } from "./table-commands";
@@ -238,6 +239,15 @@ describe("table enhancements", () => {
     const view = makeView(TABLE, 2); // header row can't move
     expect(tableMoveRowCommand(view, -1)).toBe(true);
     expect(view.state.doc.toString()).toBe(TABLE);
+  });
+
+  it("Ctrl/Cmd+Alt insert commands add rows and columns, and fall through outside a table", () => {
+    const view = makeView(TABLE, TABLE.indexOf("| 1 ") + 2);
+    expect(tableInsertCommand(addColumnAction)(view)).toBe(true);
+    expect(parseCurrentTable(view)?.headers).toHaveLength(3);
+    expect(tableInsertCommand(insertRowAboveAction)(view)).toBe(true);
+    expect(parseCurrentTable(view)?.rows).toHaveLength(3);
+    expect(tableInsertCommand(addRowAction)(makeView("plain text", 0))).toBe(false);
   });
 
   it("inserts a row above the caret's row", () => {

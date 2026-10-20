@@ -26,8 +26,8 @@ body {
   --surface:        #F6F3EC;  /* editor surface — warm paper */
   --surface-raised: #EEEAE1;  /* elevated cards / panels */
   --chrome:         #ECE8DE;  /* tab bar, file indicator, palette footer — visibly distinct from editor */
-  --overlay:        #F6F3EC;  /* modals / popovers / command palette */
-  --input-bg:       #FBF9F4;  /* form inputs */
+  --overlay:        #FCFAF6;  /* modals / popovers / command palette — lighter than the page, so they lift off it */
+  --input-bg:       #FFFFFF;  /* form inputs — white, set off from page and overlay by their border */
 
   --border:         #DCD6CA;
   --border-subtle:  rgba(70, 60, 45, 0.10);

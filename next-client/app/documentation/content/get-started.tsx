@@ -244,7 +244,8 @@ export const getStartedGroup: Group = {
             Each pane keeps up to 20 notes
             open behind the one in front, listed in the sidebar&apos;s Open Notes: opening another closes the
             one you looked at least recently, never one with unsaved changes, and <code>CTRL/CMD+1–9</code>{" "}
-            jumps between them (each of the first nine shows its shortcut there). Right-click a note there, or
+            jumps between them (each of the first nine shows its shortcut there). Drag a note up or down the
+            list (or press <code>ALT+↑/↓</code> on it) to put it on the number you want. Right-click a note there, or
             the note&apos;s name at the top, for its menu: Copy Markdown, Open in pane, Pin Note, Rename…, Move
             to Trash, and Close, Close Others or Close All. While the sidebar is hidden, its button sits in the top-left corner.
           </p>

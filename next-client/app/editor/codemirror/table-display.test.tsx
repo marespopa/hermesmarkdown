@@ -256,7 +256,7 @@ describe("tableDisplayExtension", () => {
     expect(menu).toHaveTextContent("Insert column right");
     expect(menu).toHaveTextContent("Copy as CSV");
 
-    const insertRight = [...menu!.querySelectorAll("button")].find((b) => b.textContent === "Insert column right")!;
+    const insertRight = [...menu!.querySelectorAll("button")].find((b) => b.textContent?.startsWith("Insert column right"))!;
     act(() => {
       fireEvent.click(insertRight);
     });

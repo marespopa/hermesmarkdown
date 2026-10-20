@@ -41,6 +41,25 @@ describe("createEmojiSource", () => {
     expect(getResult("{nothing")).toBeNull();
   });
 
+  it("opens on : at a word's start once a letter follows", () => {
+    expect(getResult("Ship it :ro")?.options.map((option) => option.label)).toEqual([":rocket:", ":error:"]);
+    expect(getResult(":fi")?.from).toBe(0);
+    expect(getResult("Note:")).toBeNull();
+    expect(getResult("Note :")).toBeNull();
+    expect(getResult("at 10:3")).toBeNull();
+    expect(getResult("word:fi")).toBeNull();
+  });
+
+  it("replaces :name and a closing : after the caret with the emoji", () => {
+    const doc = "Hot :fi:";
+    const result = getResult(doc, false, 7)!;
+    const view = new EditorView({ state: EditorState.create({ doc }) });
+    const option = result.options.find((entry) => entry.label === ":fire:")!;
+    (option.apply as (...args: unknown[]) => void)(view, option, result.from, result.to);
+
+    expect(view.state.doc.toString()).toBe("Hot 🔥 ");
+  });
+
   it("replaces what was typed, and a closing } after the caret, with the emoji", () => {
     const doc = "Hot {fi}";
     const result = getResult(doc, false, 7)!;
