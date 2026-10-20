@@ -4,6 +4,10 @@
 
 The `CI` workflow runs type-checking, linting, unit tests, and a production build (Node 22, Yarn via Corepack) for pull requests targeting `trunk` and for direct pushes to `trunk`. Configure the repository branch-protection rule for `trunk` to require the `Verify application` check before merging.
 
+## Dependency updates
+
+Dependabot (`.github/dependabot.yml`) opens pull requests against `trunk`: one weekly group with every minor and patch npm update in `next-client/`, and one monthly group for the pinned workflow actions. Major versions are ignored; upgrade those by hand on a release branch. CI checks these pull requests like any other, and merging one doesn't release (they carry no `release` label), so the next release picks them up.
+
 ## Releasing
 
 Add the `release` label to a pull request only after it includes the desired version bump. When that pull request is merged into `trunk`, `Create release` checks out and validates `trunk`, then creates the annotated `vX.Y.Z` tag and its GitHub Release before dispatching `CD`. The workflow can also be run manually as an emergency fallback. Deployments also run when a maintainer pushes a matching `v*` tag. Both paths require approval from the protected `production` environment.

@@ -1,0 +1,34 @@
+# Housekeeping updates. CI (Verify application) checks every PR, so a green
+# Dependabot PR is safe to merge; majors are left out because they usually
+# need code changes and go through a release branch instead.
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /next-client
+    target-branch: trunk
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major
+
+  # Workflow actions are pinned by commit SHA; Dependabot bumps the SHA and
+  # its version comment together.
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: trunk
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns:
+          - "*"
