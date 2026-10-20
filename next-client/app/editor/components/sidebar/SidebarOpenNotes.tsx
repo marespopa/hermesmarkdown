@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { HiOutlineX } from "react-icons/hi";
-import { atom_activePaneId, atom_openFiles, atom_saveStatus, atom_workspaceLayout, atom_workspaceTabs } from "@/app/atoms/atoms";
+import { atom_activePaneId, atom_openFiles, atom_reorderOpenNote, atom_saveStatus, atom_workspaceLayout, atom_workspaceTabs } from "@/app/atoms/atoms";
 import { findLeaf, getFirstLeaf } from "@/app/atoms/utils";
 import Button from "@/app/components/Button";
 import { formatShortcut } from "@/app/utils/platform";
@@ -21,8 +21,13 @@ import { sidebarItemClass } from "./sidebar-classes";
 // number counts every pane's notes, as the shortcut does), which gives way
 // to the close button. A right-click (or the menu key) opens the note's
 // menu, the same as on the pane's title (useNoteMenuItems).
+// Dragging a row (or Alt+↑/↓ on it) reorders the pane's notes, and with them
+// the shortcut numbers, so a note can be put on the number wanted.
 // `onOpen` brings a note to the front of its pane (and back to the editor
 // from another page). Renders nothing while no note is open.
+// The drag's payload type: only this list accepts it, and the editor ignores it.
+const DRAG_TYPE = "application/x-hermes-open-note";
+
 export default function SidebarOpenNotes({
   onEditor,
   onOpen,
@@ -39,6 +44,11 @@ export default function SidebarOpenNotes({
   const workspaceTabs = useAtomValue(atom_workspaceTabs);
   const noteMenuItems = useNoteMenuItems(leaf);
   const [menu, setMenu] = useState<{ x: number; y: number; path: string } | null>(null);
+  const reorder = useSetAtom(atom_reorderOpenNote);
+  // The row being dragged and where it would land: an insertion point, 0 above
+  // the first row up to the count below the last.
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [dropAt, setDropAt] = useState<number | null>(null);
 
   if (!leaf || leaf.openFilePaths.length === 0) return null;
 
@@ -48,9 +58,22 @@ export default function SidebarOpenNotes({
     return file && file.content !== file.lastSavedContent ? "dirty" : "idle";
   };
 
+  const endDrag = () => {
+    setDragging(null);
+    setDropAt(null);
+  };
+
+  const drop = () => {
+    if (dragging && dropAt !== null) {
+      const from = leaf.openFilePaths.indexOf(dragging);
+      reorder({ paneId: leaf.id, filePath: dragging, targetIndex: dropAt > from ? dropAt - 1 : dropAt });
+    }
+    endDrag();
+  };
+
   return (
     <SidebarSection title="Open Notes">
-      {leaf.openFilePaths.map((path) => {
+      {leaf.openFilePaths.map((path, index) => {
         const name = (openFiles[path]?.fileName || path.split("/").pop() || "Untitled").replace(/\.md$/i, "");
         const isCurrent = onEditor && leaf.activeFilePath === path;
         const state = saveStateOf(path);
@@ -59,7 +82,32 @@ export default function SidebarOpenNotes({
         const tabIndex = workspaceTabs.findIndex((tab) => tab.paneId === leaf.id && tab.filePath === path);
         const shortcut = onEditor && tabIndex >= 0 && tabIndex < 9 ? formatShortcut(String(tabIndex + 1)) : null;
         return (
-          <div key={path} className="group/open relative flex items-center">
+          <div
+            key={path}
+            draggable
+            onDragStart={(event) => {
+              event.dataTransfer.setData(DRAG_TYPE, path);
+              event.dataTransfer.effectAllowed = "move";
+              setDragging(path);
+            }}
+            onDragEnd={endDrag}
+            onDragOver={(event) => {
+              if (!dragging) return;
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+              const rect = event.currentTarget.getBoundingClientRect();
+              setDropAt(event.clientY < rect.top + rect.height / 2 ? index : index + 1);
+            }}
+            onDrop={(event) => {
+              if (!dragging) return;
+              event.preventDefault();
+              drop();
+            }}
+            className={`group/open relative flex items-center ${dragging === path ? "opacity-50" : ""}`}
+          >
+            {dragging && (dropAt === index || (dropAt === index + 1 && index === leaf.openFilePaths.length - 1)) && (
+              <span aria-hidden="true" className={`pointer-events-none absolute inset-x-1 h-0.5 rounded-full bg-fg-faint ${dropAt === index ? "-top-px" : "-bottom-px"}`} />
+            )}
             <Button
               variant="unstyled"
               onClick={() => onOpen(leaf.id, path)}
@@ -69,6 +117,11 @@ export default function SidebarOpenNotes({
                 const rect = event.currentTarget.getBoundingClientRect();
                 const fromKeyboard = event.clientX === 0 && event.clientY === 0;
                 setMenu({ x: fromKeyboard ? rect.left + 8 : event.clientX, y: fromKeyboard ? rect.bottom : event.clientY, path });
+              }}
+              onKeyDown={(event: React.KeyboardEvent) => {
+                if (!event.altKey || (event.key !== "ArrowUp" && event.key !== "ArrowDown")) return;
+                event.preventDefault();
+                reorder({ paneId: leaf.id, filePath: path, targetIndex: index + (event.key === "ArrowUp" ? -1 : 1) });
               }}
               aria-current={isCurrent ? "page" : undefined}
               aria-label={dot ? `${name} — ${dotTitle}` : name}

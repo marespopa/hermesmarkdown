@@ -158,6 +158,27 @@ export const atom_closeTab = atom(
   },
 );
 
+// Moves an open note to `targetIndex` among its pane's notes (dragged in the
+// sidebar's Open Notes), which renumbers the Ctrl/Cmd+1–9 shortcuts. Unlike
+// atom_moveTab it leaves the note in front and the focused pane alone.
+export const atom_reorderOpenNote = atom(
+  null,
+  (get, set, { paneId, filePath, targetIndex }: { paneId: string; filePath: string; targetIndex: number }) => {
+    const layout = get(atom_workspaceLayout);
+    const leaf = findLeaf(layout.rootContainer, paneId);
+    const from = leaf?.openFilePaths.indexOf(filePath) ?? -1;
+    if (!leaf || from < 0) return;
+    const paths = leaf.openFilePaths.filter((p) => p !== filePath);
+    const to = Math.max(0, Math.min(targetIndex, paths.length));
+    if (to === from) return;
+    paths.splice(to, 0, filePath);
+    set(atom_workspaceLayout, {
+      ...layout,
+      rootContainer: updateLeaf(layout.rootContainer, paneId, { openFilePaths: paths }),
+    });
+  },
+);
+
 export const atom_moveTab = atom(
   null,
   (
