@@ -24,8 +24,8 @@ These change between light and dark mode. Always prefer these over static colors
 | `bg-surface` | `--surface` | `#FAF9F7` | `#211E1B` | Editor / page background |
 | `bg-surface-raised` | `--surface-raised` | `#F2F1EE` | `#2A2622` | Elevated cards, panels |
 | `bg-chrome` | `--chrome` | `#F0EFEC` | `#181614` | Tab bar, file indicator, palette footer |
-| `bg-overlay` | `--overlay` | `#FAF9F7` | `#2A2622` | Modals, popovers, command palette |
-| `bg-input-bg` | `--input-bg` | `#FFFFFF` | `#1C1A17` | Form inputs |
+| `bg-overlay` | `--overlay` | `#FCFAF6` | `#2A2622` | Modals, popovers, command palette — never the page color: lighter in light themes, the raised gray in dark ones |
+| `bg-input-bg` | `--input-bg` | `#FFFFFF` | `#1C1A17` | Form inputs (`Input`, `Textarea`, select) — white in light themes |
 | `border-edge` | `--border` | `#DEDCD7` | `#3D3833` | Visible borders |
 | `border-edge-subtle` | `--border-subtle` | `rgba(60,56,50,0.10)` | `rgba(214,207,198,0.10)` | Hairline / ghost borders |
 | `text-fg` | `--fg` | `#2A2825` | `#ECE7E0` | Primary text |

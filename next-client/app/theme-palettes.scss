@@ -12,7 +12,9 @@
    page carries the paper grain (editor.scss). Each palette
    keeps --fg-faint and the accents at ≥4.5:1 on surface, raised and chrome.
    The materials (globals.scss) follow on their own: bars are --chrome,
-   panels --overlay. Light palettes also tint the panels' edge and shadow
+   panels --overlay, which never equals the page: lighter than it in light
+   palettes, the raised gray in dark ones. Light inputs are white, set off
+   by their border. Light palettes also tint the panels' edge and shadow
    with their own hue rather than neutral black; dark ones keep the default
    white edge and black shadow.
    Each palette has one identity hue, used for both accents (clay and moss):
@@ -34,7 +36,7 @@
   --surface:        #{map.get($p, surface)};
   --surface-raised: #{map.get($p, raised)};
   --chrome:         #{map.get($p, chrome)};
-  --overlay:        #{map.get($p, surface)};
+  --overlay:        #{map.get($p, overlay)};
   --input-bg:       #{map.get($p, input)};
   --border:         #{map.get($p, border)};
   --border-subtle:  #{color.change(map.get($p, tint), $alpha: 0.1)};
@@ -93,7 +95,7 @@
 html[data-light-theme="plain"]:not(.dark) {
   @include light-palette((
     surface: #FCFCFC, raised: #F3F3F3, chrome: #F1F1F1, softgray: #E8E8E8,
-    input: #FFFFFF, border: #DDDDDD, tint: rgb(0, 0, 0),
+    overlay: #FFFFFF, input: #FFFFFF, border: #DDDDDD, tint: rgb(0, 0, 0),
     fg: #1C1C1C, fg-muted: #555555, fg-faint: #6B6B6B, ink-hover: #2E2E2E,
     clay: #2B2B2B, moss: #2B2B2B, moss-hover: #111111, hold: #806426,
     prog: #A24B32, done: #4F6B45,
@@ -106,7 +108,7 @@ html[data-light-theme="plain"]:not(.dark) {
 html[data-light-theme="solarized"]:not(.dark) {
   @include light-palette((
     surface: #FDF6E3, raised: #F4EDD8, chrome: #EEE8D5, softgray: #E6DFCA,
-    input: #FFFBF0, border: #DDD6C1, tint: rgb(7, 54, 66),
+    overlay: #FFFBF0, input: #FFFFFF, border: #DDD6C1, tint: rgb(7, 54, 66),
     fg: #073642, fg-muted: #4D5E63, fg-faint: #566A70, ink-hover: #0B4250,
     clay: #1A6BA6, moss: #1A6BA6, moss-hover: #176095, hold: #7F6300,
     prog: #B23F0E, done: #5F6E00,
@@ -119,7 +121,7 @@ html[data-light-theme="solarized"]:not(.dark) {
 html.dark[data-dark-theme="graphite"] {
   @include dark-palette((
     surface: #1C1C1E, raised: #2A2A2D, chrome: #111112,
-    input: #18181A, border: #3A3A3D, tint: rgb(210, 210, 215),
+    overlay: #2A2A2D, input: #18181A, border: #3A3A3D, tint: rgb(210, 210, 215),
     fg: #E9E9EB, fg-muted: #A6A6AB, fg-faint: #919196,
     clay: #C8C8CC, moss: #C8C8CC, moss-hover: #D8D8DB, hold: #CFB475,
     prog: #DC8E6C, done: #94A67E,
@@ -132,7 +134,7 @@ html.dark[data-dark-theme="graphite"] {
 html.dark[data-dark-theme="nord"] {
   @include dark-palette((
     surface: #2E3440, raised: #3B4252, chrome: #262B35,
-    input: #2A2F3A, border: #434C5E, tint: rgb(216, 222, 233),
+    overlay: #3B4252, input: #2A2F3A, border: #434C5E, tint: rgb(216, 222, 233),
     fg: #ECEFF4, fg-muted: #C5CCD8, fg-faint: #A9B2C2,
     clay: #88C0D0, moss: #88C0D0, moss-hover: #9AC9D7, hold: #EBCB8B,
     prog: #E3A893, done: #A3BE8C,
