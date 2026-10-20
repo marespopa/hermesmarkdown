@@ -169,6 +169,7 @@ export const editorWritingItems: Subsection[] = [
             { label: "> [!note] Title", value: "Shown as a rounded, tinted card; the > and [!note] show on the caret's line, so edit the type in place" },
             { label: "> ## Heading, > - item, > | table |", value: "Inside a callout, headings, lists, tasks, tables, code and quotes look as they do outside it; Enter on a list item adds the next one" },
             { label: "> [!note]- Title", value: "Starts collapsed when the note opens (+ starts expanded); folding with the chevron writes the sign for you" },
+            { label: "<details><summary>Title</summary> … </details>", value: "Folds like a callout: the summary stays, the body folds. Starts collapsed unless the tag says open; the chevron writes open for you" },
             { label: "```js … ```", value: "Fences stay as typed, language included" },
             { label: "#tag, 2026-10-08", value: "Stay chips while you edit them" },
             { label: "Other editor", value: "A split pane you're not typing in shows no marks" },

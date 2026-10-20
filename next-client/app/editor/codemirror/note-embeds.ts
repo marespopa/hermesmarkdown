@@ -156,7 +156,7 @@ class NoteEmbedWidget extends WidgetType {
         const body = document.createElement("div");
         body.className = "cm-note-embed-body";
         // noteToHtml escapes everything; the only markup is its own.
-        const result = noteToHtml(section);
+        const result = noteToHtml(section, { openDetails: true });
         body.innerHTML = result.html;
         frame.appendChild(body);
         renderDeferred(body, result.blocks, measure);

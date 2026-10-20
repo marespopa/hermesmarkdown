@@ -33,6 +33,10 @@ blockquote { border-left: 3px solid #d6cfc6; padding-left: 0.9em; color: #4a4741
 .callout-warning, .callout-caution, .callout-danger, .callout-bug { border-left-color: #a2563e; }
 .callout-title { font-weight: 600; margin-bottom: 0.3em; }
 .callout > :last-child, blockquote > :last-child { margin-bottom: 0; }
+details { border: 1px solid #e3ded6; border-radius: 6px; padding: 0.6em 0.9em; margin: 0 0 0.8em; }
+summary { font-weight: 600; cursor: pointer; }
+details[open] > summary { margin-bottom: 0.3em; }
+details > :last-child { margin-bottom: 0; }
 table { border-collapse: collapse; width: 100%; }
 th, td { border: 1px solid #ddd6cc; padding: 0.35em 0.6em; text-align: left; vertical-align: top; }
 th { background: #f6f4f0; }

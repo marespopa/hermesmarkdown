@@ -64,3 +64,44 @@ describe("useCodeMirrorCalloutFold: toggle", () => {
     view.destroy();
   });
 });
+
+describe("useCodeMirrorCalloutFold: <details> sections", () => {
+  const section = (tag: string) => `${tag}\n<summary>Title</summary>\n\nBody\n\n</details>`;
+
+  function setup(text: string) {
+    const view = new EditorView({ state: EditorState.create({ doc: text, extensions: [codeFolding()] }), parent: document.body });
+    view.coordsAtPos = () => ({ top: 100, bottom: 120, left: 0, right: 0 });
+    const container = document.createElement("div");
+    container.getBoundingClientRect = () => ({ top: 0 } as DOMRect);
+    const hook = renderHook(() => useCodeMirrorCalloutFold({ containerRef: { current: container } }));
+    return { view, hook };
+  }
+  const folded = (view: EditorView) => isRangeFolded(view.state, view.state.doc.line(2).to, view.state.doc.length);
+
+  it("folds a closed section on open, leaves an open one expanded, and lists a details chevron", () => {
+    const closed = setup(section("<details>"));
+    act(() => closed.hook.result.current.onViewCreated(closed.view));
+    expect(folded(closed.view)).toBe(true);
+    expect(closed.hook.result.current.chevrons).toMatchObject([{ kind: "details", collapsed: true }]);
+    closed.view.destroy();
+
+    const open = setup(section("<details open>"));
+    act(() => open.hook.result.current.onViewCreated(open.view));
+    expect(folded(open.view)).toBe(false);
+    expect(open.hook.result.current.chevrons).toMatchObject([{ kind: "details", collapsed: false }]);
+    open.view.destroy();
+  });
+
+  it("writes and removes the open attribute as the chevron toggles", () => {
+    const { view, hook } = setup(section("<details>"));
+    act(() => hook.result.current.onViewCreated(view));
+    act(() => hook.result.current.toggle(view, hook.result.current.chevrons[0].blockId));
+    expect(view.state.doc.line(1).text).toBe("<details open>");
+    expect(folded(view)).toBe(false);
+
+    act(() => hook.result.current.toggle(view, hook.result.current.chevrons[0].blockId));
+    expect(view.state.doc.line(1).text).toBe("<details>");
+    expect(folded(view)).toBe(true);
+    view.destroy();
+  });
+});

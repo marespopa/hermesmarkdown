@@ -18,7 +18,7 @@ export const HTML_EXPORT_CSS = `
 }
 @media screen and (prefers-color-scheme: dark) {
   html { color: #ece7e0; background: #211e1b; }
-  h2, hr, pre, th, td, .callout { border-color: #3d3833; }
+  h2, hr, pre, th, td, .callout, details { border-color: #3d3833; }
   pre, th { background: #2a2622; }
   code { background: #2a2622; }
   blockquote { border-left-color: #4a443d; color: #a8a199; }

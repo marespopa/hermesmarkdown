@@ -77,6 +77,13 @@ describe("useExportPdf", () => {
     expect(html).toContain("Formula error: bad formula");
   });
 
+  it("prints every <details> section open", async () => {
+    const { hook } = setup("note.md", "<details>\n<summary>Closed</summary>\n\nBody\n\n</details>");
+    await act(async () => { await registered!.action(); });
+    await vi.waitFor(() => expect(hook.result.current.job).not.toBeNull());
+    expect(hook.result.current.job!.body).toContain("<details open><summary>Closed</summary>");
+  });
+
   it("answers the toolbar's More menu event", async () => {
     const { hook } = setup("note.md", "Plain note");
     await act(async () => {

@@ -88,7 +88,7 @@ export function useExportPdf() {
         const url = URL.createObjectURL(file);
         urls.push(url);
         return url;
-      });
+      }, { openDetails: true });
       const title = h1 ?? (store.get(atom_fileName) || "Untitled").replace(/\.md$/i, "");
       setJob({ title, body, date: printDate(), urls });
     } catch (err) {

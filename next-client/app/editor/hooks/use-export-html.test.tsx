@@ -65,6 +65,15 @@ describe("useExportHtml", () => {
     expect(toastSuccess).toHaveBeenCalledWith("Downloaded 2026-Q4.html");
   });
 
+  it("keeps each <details> section open or closed as the note has it", async () => {
+    setup("note.md", "<details>\n<summary>Closed</summary>\n\nBody\n\n</details>\n\n<details open>\n<summary>Open</summary>\n\nMore\n\n</details>");
+    await act(async () => { await registered!.action(); });
+    await vi.waitFor(() => expect(downloadText).toHaveBeenCalledOnce());
+    const html = downloadText.mock.calls[0][0];
+    expect(html).toContain("<details><summary>Closed</summary>");
+    expect(html).toContain("<details open><summary>Open</summary>");
+  });
+
   it("answers the toolbar's More menu event", async () => {
     setup("note.md", "Plain note");
     await act(async () => {
