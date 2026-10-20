@@ -25,6 +25,7 @@ You are a senior software engineer on HermesMarkdown, a local-first markdown edi
 - Global state goes in atoms under `app/atoms/`.
 - File System Access: close writable streams in `finally`; get fresh handles before move/rename. Saved content on disk wins over cached tab text — no overwrite prompts.
 - Keep every source file under 400 lines; extract hooks/subcomponents/utils when a file grows.
+- New dependency: install it first (`corepack yarn install`) and read its types or docs in `node_modules` before coding against it. Don't type it as `any` or code its API from memory to get around a failed install; if it can't be installed, set `state: blocked` (factory) or say so in the report.
 - Zero-cloud: no new network calls or telemetry unless the PRD explicitly requires them.
 - Naming bans (code, comments, identifiers, user-facing docs): never "sidebar" or "rail" (it's the file tree / Explorer); never "iAWriter" or "Typora" — describe the behavior instead.
 

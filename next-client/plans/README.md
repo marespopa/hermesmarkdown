@@ -17,7 +17,9 @@ NNN-<slug>/
 ├── reports/
 │   ├── architect.md
 │   ├── engineer.md
-│   └── review.md     # committed
+│   ├── review.md
+│   ├── pr.md         # hermes-engineer: this change's section of the release PR
+│   └── lessons.md    # factory learn: proposed rule changes (committed)
 ├── usage.tsv         # factory: cost, turns and tokens per stage run (committed)
 ├── .run.json         # factory bookkeeping: stage, attempts, last exit, session (gitignored)
 └── .run.log          # last headless session output (gitignored)
@@ -29,6 +31,7 @@ NNN-<slug>/
 ---
 state: new              # see States
 size: normal            # small: skip the architect, brief.md is the spec
+kind: feature           # or bug (ship: patch release, reproducing test first)
 blocked_from:           # state to resume at after unblock
 rejections: 0           # review rejections since the last unblock
 created: 2026-10-01T00:00:00Z
@@ -64,16 +67,20 @@ Answer:
 ## Commands
 
 ```bash
+scripts/factory ship "<request>" [--bug] [--small] [--commit]   # whole pipeline → release PR
+scripts/factory ship NNN [--commit]                            # continue a plan to the PR
 scripts/factory new <slug> [title...] [--small]
 scripts/factory list
+scripts/factory stats
 scripts/factory run [NNN] [--commit]      # dry run unless --commit
 scripts/factory unblock NNN [--commit]
+scripts/factory learn NNN [--commit]
 scripts/factory set NNN <state>
 ```
 
 ## Rails
 
-- **Agents never commit.**
+- **Agents never commit.** Only `factory ship` commits, after review approves, and pushes the release PR.
   - Every stage runs with `HERMES_FACTORY=1`, and `.claude/hooks/factory-guard.sh` blocks git writes (commit, push, reset, checkout, rebase, stash, branch, …).
   - The script records HEAD and the branch before each stage. If either moved, it blocks the plan.
 - **No runs on `trunk`/`main`.**
@@ -87,3 +94,8 @@ scripts/factory set NNN <state>
 - **Lean reading.** In factory mode the engineer and reviewer work from the PRD's citations, not `ARCHITECTURE.md`/`DESIGN.md`, so the PRD must cite everything they need.
 - **Fewer loops.** The reviewer only requests changes for blocker or major findings.
 - **Spend.** Each stage run appends a row to `usage.tsv`, and `factory list` shows each plan's total.
+- **Metrics.** `factory stats` reads every `usage.tsv`, archived plans included. It shows each plan's runs, failed runs, fix rounds and spend, plus the totals: spend per done plan (approved or merged), the share of done plans approved on their first review, and spend by agent.
+
+## Learning
+
+`factory learn NNN` runs on an approved or merged plan. hermes-review reads the plan's mailbox, review and usage, compares the corrections against `AGENT_RULES.md`, `AGENTS.md`, `.claude/agents/` and the stage prompts, and writes up to 5 rule proposals to `reports/lessons.md`. It edits nothing else; the human applies the proposals they accept. Its cost is logged in `usage.tsv` with `from: learn`.

@@ -72,7 +72,7 @@ Per phase: the Vitest files to add or update and the behaviors each must assert 
 Sibling `<Component>.md` files and directory `README.md` indexes to update; in-app docs under `app/documentation/content/` if user-visible behavior changes.
 
 ## Acceptance criteria
-A checklist the engineer and reviewer can verify one by one.
+A checklist the engineer and reviewer can verify one by one. No measurements nobody will take (bundle size, First Load JS, large-file or quota results): the engineer and reviewer don't run the build. Write "CI build stays under X" or "engineer notes the result if able" instead.
 
 ## Decisions
 Gaps you filled and the reasoning.
