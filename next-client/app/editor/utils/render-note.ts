@@ -33,6 +33,7 @@ export async function renderNote(
   notePath: string,
   vaultHandle: FileSystemDirectoryHandle | null | undefined,
   imageUrl: (file: File) => Promise<string>,
+  options: { openDetails?: boolean } = {},
 ): Promise<RenderedNote> {
   const images = new Map<string, string>();
   if (vaultHandle && notePath !== "draft") {
@@ -50,6 +51,7 @@ export async function renderNote(
   const result = noteToHtml(text, {
     imageSrc: (src) => images.get(src) ?? (/^(https?:|data:image\/)/i.test(src) ? src : null),
     pageBreak: DEFAULT_PAGE_BREAK,
+    openDetails: options.openDetails,
   });
   const rendered = await Promise.all(result.blocks.map(renderBlock));
   const body = result.html.replace(/(<div class="rendered [a-z]+") data-render="(\d+)"><\/div>/g, (_whole, open: string, index: string) => `${open}>${rendered[Number(index)] ?? ""}</div>`);

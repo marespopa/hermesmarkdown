@@ -1,0 +1,1 @@
+- engineer: implemented all phases (scanner, export, editor fold); tests/docs added, nothing run; see reports/engineer.md

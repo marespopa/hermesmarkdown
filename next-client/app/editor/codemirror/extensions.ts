@@ -39,6 +39,7 @@ import { editorLineNumbers } from "./line-numbers";
 import { findReplace } from "./find-replace";
 import { collapsedCalloutCorners } from "./callout-fold";
 import { syntaxReveal } from "./syntax-reveal";
+import { detailsMarks } from "./details-fold";
 
 interface BuildExtensionsOptions {
   wordWrap: boolean;
@@ -90,6 +91,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     frontmatterCollapse,
     markdownHighlightPlugin,
     collapsedCalloutCorners,
+    detailsMarks,
     horizontalRuleCursorPlugin,
     tagPillPlugin,
     linkDisplayPlugin,

@@ -7,12 +7,15 @@
 // Everything is HTML-escaped; the only markup is what this file emits. Raw
 // HTML in the note is dropped (comments, such as the rollup markers, too),
 // frontmatter is left out, wikilinks print as their text, folded callouts
-// print expanded, and links only keep web and mail URLs. A top-level line
+// print expanded, and links only keep web and mail URLs. The one raw HTML
+// that prints is `<details><summary>` sections: they come out as `<details>`
+// (open as the note has them, all open with `openDetails`). A top-level line
 // that is exactly the page-break marker becomes `<div class="page-break">`.
 
 import { markdownLanguage } from "@codemirror/lang-markdown";
 import type { SyntaxNode } from "@lezer/common";
 import { FM_REGEX } from "../frontmatter-utils";
+import { findDetailsBlocks, outermostDetailsBlocks } from "../details-blocks";
 
 export type PrintBlockKind = "mermaid" | "math";
 
@@ -34,6 +37,8 @@ export interface NoteHtmlOptions {
   imageSrc?: (src: string) => string | null;
   // A line that starts a new page (`<!-- pagebreak -->`, `---`, …); none by default.
   pageBreak?: string;
+  // Print every `<details>` section open, whatever the note says.
+  openDetails?: boolean;
 }
 
 export const PAGE_BREAK_HTML = '<div class="page-break"></div>';
@@ -59,6 +64,7 @@ interface Context {
   imageSrc: (src: string) => string | null;
   blocks: PrintBlock[];
   pageBreak?: string;
+  openDetails?: boolean;
 }
 
 const text = (ctx: Context, from: number, to: number) => ctx.src.slice(from, to);
@@ -262,7 +268,7 @@ function block(ctx: Context, node: SyntaxNode): string {
 
 // Renders `source` (already wikilink-marked) as blocks, sharing `ctx.blocks`.
 // Page breaks only count at the top level, not inside a list or quote.
-function renderInto(ctx: Context, source: string, top = false): string {
+function renderMarkdown(ctx: Context, source: string, top: boolean): string {
   const inner: Context = { ...ctx, src: source };
   const tree = markdownLanguage.parser.parse(source);
   const marker = top ? ctx.pageBreak?.trim() : undefined;
@@ -271,12 +277,34 @@ function renderInto(ctx: Context, source: string, top = false): string {
     .join("\n");
 }
 
+// `<details><summary>` sections become real `<details>`; the text around them
+// renders as Markdown. Raw HTML elsewhere is still dropped.
+function renderInto(ctx: Context, source: string, top = false): string {
+  const sections = outermostDetailsBlocks(findDetailsBlocks(source));
+  if (!sections.length) return renderMarkdown(ctx, source, top);
+  const parts: string[] = [];
+  let pos = 0;
+  const flush = (to: number) => {
+    const piece = source.slice(pos, to);
+    if (piece.trim()) parts.push(renderMarkdown(ctx, piece, top));
+  };
+  for (const b of sections) {
+    flush(b.openFrom);
+    const open = b.open || ctx.openDetails ? " open" : "";
+    const body = renderInto(ctx, source.slice(b.bodyFrom, b.closeFrom));
+    parts.push(`<details${open}><summary>${plain(b.summary?.text || "Details")}</summary>${body}</details>`);
+    pos = b.closeTo;
+  }
+  flush(source.length);
+  return parts.join("\n");
+}
+
 const REGEX_H1 = /^#[ \t]+(.+?)[ \t#]*$/m;
 
 export function noteToHtml(markdown: string, options: NoteHtmlOptions = {}): NoteHtml {
   const body = markdown.replace(FM_REGEX, "").replace(/\r\n?/g, "\n");
   const marked = body.replace(REGEX_WIKILINK, (_whole, target: string, label?: string) => `${WIKI_OPEN}${(label ?? target).trim()}${WIKI_CLOSE}`);
-  const ctx: Context = { src: marked, imageSrc: options.imageSrc ?? webUrl, blocks: [], pageBreak: options.pageBreak };
+  const ctx: Context = { src: marked, imageSrc: options.imageSrc ?? webUrl, blocks: [], pageBreak: options.pageBreak, openDetails: options.openDetails };
   const html = renderInto(ctx, marked, true);
   const h1 = REGEX_H1.exec(body.replace(/^```[\s\S]*?^```/gm, ""));
   const title = h1 ? h1[1].replace(REGEX_WIKILINK, (_w, target: string, label?: string) => (label ?? target).trim()).replace(/[*_`~]/g, "").trim() : null;

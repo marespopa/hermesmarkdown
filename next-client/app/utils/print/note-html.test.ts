@@ -86,4 +86,40 @@ describe("noteToHtml", () => {
     expect(noteToHtml("> ---\n\nA --- in text", { pageBreak: "---" }).html).not.toContain("page-break");
     expect(noteToHtml("One\n\n<!-- pagebreak -->\n\nTwo").html).not.toContain("page-break");
   });
+
+  describe("<details> sections", () => {
+    const note = "<details>\n<summary>Release notes</summary>\n\nBody in **Markdown**.\n\n</details>";
+
+    it("renders a section with its body as Markdown, closed unless the note says open", () => {
+      expect(html(note)).toBe("<details><summary>Release notes</summary><p>Body in <strong>Markdown</strong>.</p></details>");
+      expect(html(note.replace("<details>", "<details open>"))).toContain("<details open><summary>");
+    });
+
+    it("opens every section with openDetails", () => {
+      expect(noteToHtml(note, { openDetails: true }).html).toContain("<details open><summary>Release notes</summary>");
+    });
+
+    it("falls back to 'Details' without a summary", () => {
+      expect(html("<details>\n\nBody\n\n</details>")).toBe("<details><summary>Details</summary><p>Body</p></details>");
+    });
+
+    it("escapes the summary", () => {
+      expect(html("<details><summary><img src=x onerror=alert(1)></summary>x</details>")).not.toContain("<img");
+      expect(html("<details><summary>a &lt; b</summary>x</details>")).toContain("<summary>a &lt; b</summary>");
+    });
+
+    it("nests sections and keeps the text around them", () => {
+      const out = html("Before\n\n<details><summary>Outer</summary>\n\n<details><summary>Inner</summary>\n\nDeep\n\n</details>\n\n</details>\n\nAfter");
+      expect(out).toContain("<details><summary>Outer</summary><details><summary>Inner</summary><p>Deep</p></details></details>");
+      expect(out.startsWith("<p>Before</p>")).toBe(true);
+      expect(out.endsWith("<p>After</p>")).toBe(true);
+    });
+
+    it("still drops other raw HTML and keeps page breaks before a section", () => {
+      expect(html("<div>hi</div>\n\n" + note)).not.toContain("<div>");
+      const out = noteToHtml("One\n\n<!-- pagebreak -->\n\n" + note, { pageBreak: "<!-- pagebreak -->" }).html;
+      expect(out).toContain('<div class="page-break"></div>');
+      expect(out).toContain("<details>");
+    });
+  });
 });

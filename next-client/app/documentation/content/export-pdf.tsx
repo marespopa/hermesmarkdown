@@ -17,8 +17,8 @@ export const exportPdfItem: Subsection = {
       </p>
       <KV
         rows={[
-          { label: "Printed", value: "Headings, lists, task boxes, tables, code, callouts (folded ones open), Mermaid diagrams, math and vault images" },
-          { label: "Left out", value: "Frontmatter, raw HTML and comments" },
+          { label: "Printed", value: "Headings, lists, task boxes, tables, code, callouts (folded ones open), <details> sections (open), Mermaid diagrams, math and vault images" },
+          { label: "Left out", value: "Frontmatter, comments and other raw HTML" },
           { label: "Links", value: "Web links stay clickable; wikilinks print as their text" },
           { label: "Look", value: "Always light, whatever your theme, with page breaks that keep rows, code blocks and headings together" },
         ]}
@@ -63,7 +63,7 @@ export const exportHtmlItem: Subsection = {
       </p>
       <KV
         rows={[
-          { label: "Included", value: "Everything Export as PDF prints: headings, lists, task boxes, tables, code, callouts, Mermaid diagrams, math, embeds and vault images" },
+          { label: "Included", value: "Everything Export as PDF prints: headings, lists, task boxes, tables, code, callouts, <details> sections (open or closed as in the note), Mermaid diagrams, math, embeds and vault images" },
           { label: "Standalone", value: "Images, diagrams and styles are inside the file, so it opens offline and loads nothing else (images the note links to on the web stay links)" },
           { label: "Look", value: "A centred reading column that follows the reader's light or dark setting, and prints like the PDF" },
         ]}

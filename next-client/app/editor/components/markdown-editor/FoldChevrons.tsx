@@ -8,6 +8,7 @@ export interface FoldChevron {
   blockId: string;
   top: number;
   collapsed: boolean;
+  kind?: "callout" | "details";
 }
 
 interface FoldChevronsProps {
@@ -15,14 +16,15 @@ interface FoldChevronsProps {
   onToggle: (chevron: FoldChevron) => void;
 }
 
-// Collapse/expand chevrons drawn at the right edge of foldable callouts.
+// Collapse/expand chevrons drawn at the right edge of foldable callouts and
+// `<details>` sections.
 // Frontmatter toggles from its own header row in the text
 // (`codemirror/frontmatter-fold.ts`).
 export default function FoldChevrons({ chevrons, onToggle }: FoldChevronsProps) {
   return (
     <>
       {chevrons.map((chevron) => {
-        const label = `${chevron.collapsed ? "Expand" : "Collapse"} callout`;
+        const label = `${chevron.collapsed ? "Expand" : "Collapse"} ${chevron.kind === "details" ? "section" : "callout"}`;
         return (
           <Button
             variant="unstyled"
