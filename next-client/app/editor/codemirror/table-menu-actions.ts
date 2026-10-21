@@ -4,10 +4,11 @@ import { EditorView } from "@codemirror/view";
 import { colIndexToLetter } from "../utils/formula-engine";
 import { findTableAtPos, TableInfo } from "../utils/table-detection";
 import { maskQuotedRows, quotedRowPrefix, restoreQuotePrefix } from "../utils/quoted-table";
-import { cycleAlignment, getColumnAlignment, insertColumnAt, insertRowAt, moveTableColumn, moveTableRow, removeColumn, removeRow, shiftTableFormulas, tableToCSV, tableToJSON } from "../utils/table-manipulation";
+import { cycleAlignment, getColumnAlignment, insertColumnAt, insertRowAt, moveTableColumn, moveTableRow, removeColumn, removeRow, shiftDataFormulas, shiftTableFormulas, tableToCSV, tableToJSON } from "../utils/table-manipulation";
 import { type Alignment, extractTableSource, parseTable } from "../utils/tableParser";
 import { serializeTable } from "../utils/tableSerializer";
-import { type SortDirection, sortRows } from "../utils/tableSorter";
+import { reorderFromOrder, swapReorder } from "../utils/formula/shift-references";
+import { type SortDirection, sortRowIndices } from "../utils/tableSorter";
 import { appendRowAndFocus, applyTableChangeFor, applyTableData, cellCursorPos, currentTableData, indentRows, isTotalsRow, realignTableLines, STRUCTURAL } from "./table-edit";
 
 // Table menu actions (row/column/table menu from table-handles.ts and the
@@ -98,8 +99,10 @@ export function removeColumnAction(view: EditorView, tableInfo: TableInfo) {
 export function sortColumnAction(view: EditorView, tableInfo: TableInfo, direction: Exclude<SortDirection, "none">) {
   const data = currentTableData(tableInfo);
   if (!data) return;
-  const sortedRows = sortRows(data.rows, tableInfo.cursorCol, direction);
-  applyTableData(view, tableInfo, { ...data, rows: sortedRows }, tableInfo.lineIdx, tableInfo.cursorCol);
+  const order = sortRowIndices(data.rows, (row, i) => row[i] ?? "", tableInfo.cursorCol, direction);
+  const sorted = { ...data, rows: order.map((i) => data.rows[i]) };
+  // Data row i is A1 row i + 2.
+  applyTableData(view, tableInfo, shiftDataFormulas(sorted, reorderFromOrder("row", order, 2)), tableInfo.lineIdx, tableInfo.cursorCol);
 }
 
 // Swaps the caret's data row with its neighbour; returns false when there
@@ -110,7 +113,8 @@ export function moveRowAction(view: EditorView, tableInfo: TableInfo, direction:
   const data = currentTableData(tableInfo);
   const moved = data && moveTableRow(data, rowIdx, direction);
   if (!moved) return false;
-  applyTableData(view, tableInfo, moved, tableInfo.lineIdx + direction, tableInfo.cursorCol);
+  const shift = swapReorder("row", rowIdx + 2, rowIdx + 2 + direction);
+  applyTableData(view, tableInfo, shiftDataFormulas(moved, shift), tableInfo.lineIdx + direction, tableInfo.cursorCol);
   return true;
 }
 
@@ -119,7 +123,8 @@ export function moveColumnAction(view: EditorView, tableInfo: TableInfo, directi
   const data = currentTableData(tableInfo);
   const moved = data && moveTableColumn(data, tableInfo.cursorCol, direction);
   if (!moved) return false;
-  applyTableData(view, tableInfo, moved, tableInfo.lineIdx, tableInfo.cursorCol + direction);
+  const shift = swapReorder("col", tableInfo.cursorCol, tableInfo.cursorCol + direction);
+  applyTableData(view, tableInfo, shiftDataFormulas(moved, shift), tableInfo.lineIdx, tableInfo.cursorCol + direction);
   return true;
 }
 

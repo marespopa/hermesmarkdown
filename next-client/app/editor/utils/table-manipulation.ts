@@ -124,6 +124,12 @@ export function shiftTableFormulas(
   return result;
 }
 
+// shiftTableFormulas for parsed table data (moves and sorts work on it).
+export function shiftDataFormulas(data: TableData, shift: ReferenceShift): TableData {
+  const shiftCell = (cell: string) => (isFormulaCell(cell) ? shiftFormulaReferences(cell, shift) : cell);
+  return { ...data, headers: data.headers.map(shiftCell), rows: data.rows.map((row) => row.map(shiftCell)) };
+}
+
 type Alignment = "none" | "left" | "center" | "right";
 
 function detectAlignment(cell: string): Alignment {

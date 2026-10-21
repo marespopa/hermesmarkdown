@@ -2,30 +2,77 @@ import { colIndexToLetter, letterToColIndex } from "./addressing";
 
 // --- Reference shifting ---------------------------------------------------
 // Rewrites a formula's same-table references after a row or column is
-// inserted or deleted, the way a spreadsheet does: references past the edit
-// move with their cells, ranges grow or shrink, and a reference to a deleted
-// cell (or a fully deleted range/column) becomes `#REF!`. Cross-table
+// inserted, deleted or reordered (move, sort), the way a spreadsheet does:
+// references move with their cells, ranges grow or shrink, and a reference
+// to a deleted cell (or a fully deleted range/column) becomes `#REF!`. Cross-table
 // (`Name!C2`, `"Name"!B`) and cross-file (`[[Note]]!B4`) references point at
 // other tables and are left alone.
 
-export interface ReferenceShift {
-  axis: "row" | "col";
-  // Row: the A1 row number (header = 1). Column: the 0-based column index.
-  // For an insert it's the new row/column's index; for a delete, the
-  // removed one's.
-  at: number;
-  kind: "insert" | "delete";
+// Row indices are A1 row numbers (header = 1); column indices are 0-based.
+export type ReferenceShift =
+  | {
+      axis: "row" | "col";
+      kind: "insert" | "delete";
+      // For an insert, the new row/column's index; for a delete, the removed one's.
+      at: number;
+    }
+  | {
+      axis: "row" | "col";
+      kind: "reorder";
+      // Old index -> new index for every row/column that moved.
+      moved: Map<number, number>;
+    };
+
+// The reorder that `order` describes (`order[newPos] = oldPos`, as from a
+// sort), with positions offset by `base` (2 for data rows: row 2 is rows[0]).
+export function reorderFromOrder(axis: "row" | "col", order: number[], base: number): ReferenceShift {
+  const moved = new Map<number, number>();
+  order.forEach((oldPos, newPos) => {
+    if (oldPos !== newPos) moved.set(oldPos + base, newPos + base);
+  });
+  return { axis, kind: "reorder", moved };
+}
+
+// Swaps indices `a` and `b` (move row/column up, down, left or right).
+export function swapReorder(axis: "row" | "col", a: number, b: number): ReferenceShift {
+  return { axis, kind: "reorder", moved: new Map([[a, b], [b, a]]) };
 }
 
 export const REF_ERROR = "#REF!";
 
 function shiftIndex(k: number, shift: ReferenceShift): number | null {
+  if (shift.kind === "reorder") return shift.moved.get(k) ?? k;
   if (shift.kind === "insert") return k >= shift.at ? k + 1 : k;
   if (k === shift.at) return null;
   return k > shift.at ? k - 1 : k;
 }
 
+// A reordered range keeps covering the same cells when they still sit next
+// to each other (sorting inside it, moving a row within it). When they
+// don't (a row moved out across its edge), the range keeps its position.
+function reorderSpan(start: number, end: number, moved: Map<number, number>): [number, number] {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const [from, to] of moved) {
+    if (from < start || from > end) continue;
+    min = Math.min(min, to);
+    max = Math.max(max, to);
+  }
+  if (min === Infinity) return [start, end];
+  // The unmoved ends of the range, if any.
+  let lo = start;
+  while (lo <= end && moved.has(lo)) lo++;
+  let hi = end;
+  while (hi >= start && moved.has(hi)) hi--;
+  if (lo <= end) {
+    min = Math.min(min, lo);
+    max = Math.max(max, hi);
+  }
+  return max - min === end - start ? [min, max] : [start, end];
+}
+
 function shiftSpan(start: number, end: number, shift: ReferenceShift): [number, number] | null {
+  if (shift.kind === "reorder") return reorderSpan(start, end, shift.moved);
   if (shift.kind === "insert") {
     return [start >= shift.at ? start + 1 : start, end >= shift.at ? end + 1 : end];
   }
