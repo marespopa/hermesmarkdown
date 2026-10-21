@@ -248,7 +248,8 @@ export const editorWritingItems: Subsection[] = [
           amounts (<code>=C2/B2*100</code>) and a count are plain numbers. Errors show spreadsheet-style (<code>#REF!</code>, <code>#DIV/0!</code>,{" "}
           <code>#CIRCULAR!</code>, <code>#NAME?</code> for an unknown function,{" "}
           <code>#VALUE!</code> for text where a number is needed). Rows containing a formula are treated as summary rows and are
-          never moved by sorting.
+          never moved by sorting. Inserting or deleting a row or column updates the references in
+          the table's formulas; a reference to a deleted cell becomes <code>#REF!</code>.
         </p>
         <p>
           A table takes its name from the heading right above it, with only blank lines between

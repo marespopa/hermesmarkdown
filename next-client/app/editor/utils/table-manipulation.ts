@@ -1,3 +1,5 @@
+import { isFormulaCell } from "./formula/addressing";
+import { type ReferenceShift, shiftFormulaReferences } from "./formula/shift-references";
 import type { TableData } from "./tableParser";
 import { serializeTable } from "./tableSerializer";
 
@@ -94,6 +96,30 @@ export function removeColumn(
     if (colIdx < 0 || colIdx >= cells.length) continue;
     cells.splice(colIdx, 1);
     result[i] = isSep ? serializeSeparator(cells) : serializeRow(cells);
+  }
+  return result;
+}
+
+// Rewrites every formula cell in `tableStart..tableEnd` for a row/column
+// insert or delete (see shift-references.ts). Only the formula text inside
+// each cell changes; pipes, padding and indentation stay as they were.
+export function shiftTableFormulas(
+  lines: string[],
+  tableStart: number,
+  tableEnd: number,
+  shift: ReferenceShift,
+): string[] {
+  const result = [...lines];
+  for (let i = tableStart; i <= tableEnd; i++) {
+    if (isSeparatorRow(result[i])) continue;
+    const parts = result[i].split(/(?<!\\)\|/);
+    for (let p = 1; p < parts.length - 1; p++) {
+      const cell = parts[p].trim();
+      if (!isFormulaCell(cell)) continue;
+      const shifted = shiftFormulaReferences(cell, shift);
+      parts[p] = parts[p].replace(cell, () => shifted);
+    }
+    result[i] = parts.join("|");
   }
   return result;
 }
