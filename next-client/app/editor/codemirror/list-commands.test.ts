@@ -1,83 +1,30 @@
 import { describe, it, expect } from "vitest";
 import { EditorView } from "@codemirror/view";
 import { EditorState, EditorSelection } from "@codemirror/state";
-import {
-  continueListOnEnter,
-  indentListOrLines,
-  outdentListOrLines,
-  removeListMarkerOnBackspace,
-} from "./list-commands";
+import { indentListOrLines, listItemHome, outdentListOrLines } from "./list-commands";
 
 function makeView(doc: string, anchor = doc.length, head?: number) {
   return new EditorView({ state: EditorState.create({ doc, selection: EditorSelection.single(anchor, head) }) });
 }
 
-describe("continueListOnEnter", () => {
-  it("starts a new bullet item with the same marker and indent", () => {
-    const view = makeView("  * one");
-    expect(continueListOnEnter(view)).toBe(true);
-    expect(view.state.doc.toString()).toBe("  * one\n  * ");
-    expect(view.state.selection.main.head).toBe(view.state.doc.length);
+describe("listItemHome", () => {
+  it("goes to the start of the item's text, then to the start of the line", () => {
+    const view = makeView("  - groceries");
+    expect(listItemHome(view)).toBe(true);
+    expect(view.state.selection.main.head).toBe(4);
+    expect(listItemHome(view)).toBe(true);
+    expect(view.state.selection.main.head).toBe(0);
   });
 
-  it("increments ordered list numbers and keeps the delimiter", () => {
-    const view = makeView("9) nine");
-    continueListOnEnter(view);
-    expect(view.state.doc.toString()).toBe("9) nine\n10) ");
+  it("stops at a task's box", () => {
+    const view = makeView("- [ ] ship release");
+    listItemHome(view);
+    expect(view.state.selection.main.head).toBe(2);
   });
 
-  it("starts an unchecked task after a task item", () => {
-    const view = makeView("- [x] done");
-    continueListOnEnter(view);
-    expect(view.state.doc.toString()).toBe("- [x] done\n- [ ] ");
-  });
-
-  it("splits the item when the cursor is mid-text", () => {
-    const view = makeView("- hello world", 7);
-    continueListOnEnter(view);
-    expect(view.state.doc.toString()).toBe("- hello\n- world");
-    expect(view.state.selection.main.head).toBe(10);
-  });
-
-  it("outdents an empty nested item to its parent's level", () => {
-    const view = makeView("- a\n  - ");
-    continueListOnEnter(view);
-    expect(view.state.doc.toString()).toBe("- a\n- ");
-  });
-
-  it("outdents an empty nested ordered item and continues the parent numbering", () => {
-    const view = makeView("1. a\n2. b\n   1. ");
-    continueListOnEnter(view);
-    expect(view.state.doc.toString()).toBe("1. a\n2. b\n3. ");
-  });
-
-  it("ends the list on an empty top-level item, leaving a blank line after it", () => {
-    const view = makeView("- a\n- [ ] ");
-    continueListOnEnter(view);
-    expect(view.state.doc.toString()).toBe("- a\n\n");
-    expect(view.state.selection.main.head).toBe(view.state.doc.length);
-  });
-
-  it("just clears a lone empty item", () => {
-    const view = makeView("- ");
-    continueListOnEnter(view);
-    expect(view.state.doc.toString()).toBe("");
-  });
-
-  it("starts the next item from a continuation line lined up with the item's text", () => {
-    const view = makeView("1. a\n   more");
-    expect(continueListOnEnter(view)).toBe(true);
-    expect(view.state.doc.toString()).toBe("1. a\n   more\n2. ");
-  });
-
-  it("leaves indented text that isn't part of an item alone", () => {
-    expect(continueListOnEnter(makeView("    code"))).toBe(false);
-    expect(continueListOnEnter(makeView("- a\n\n  later"))).toBe(false);
-  });
-
-  it("falls through on plain lines and when the cursor is inside the marker", () => {
-    expect(continueListOnEnter(makeView("plain"))).toBe(false);
-    expect(continueListOnEnter(makeView("- item", 0))).toBe(false);
+  it("leaves other lines to the editor", () => {
+    expect(listItemHome(makeView("plain"))).toBe(false);
+    expect(listItemHome(makeView("- item", 0))).toBe(false);
   });
 });
 
@@ -138,31 +85,5 @@ describe("indentListOrLines / outdentListOrLines", () => {
     const view = makeView("- a", 3);
     expect(outdentListOrLines(view)).toBe(true);
     expect(view.state.doc.toString()).toBe("- a");
-  });
-});
-
-describe("removeListMarkerOnBackspace", () => {
-  it("turns an empty top-level item back into a plain line", () => {
-    const view = makeView("- a\n- [ ] ");
-    expect(removeListMarkerOnBackspace(view)).toBe(true);
-    expect(view.state.doc.toString()).toBe("- a\n");
-  });
-
-  it("keeps the text when removing the marker", () => {
-    const view = makeView("- text", 2);
-    removeListMarkerOnBackspace(view);
-    expect(view.state.doc.toString()).toBe("text");
-  });
-
-  it("outdents a nested item first", () => {
-    const view = makeView("- a\n  - ");
-    removeListMarkerOnBackspace(view);
-    expect(view.state.doc.toString()).toBe("- a\n- ");
-  });
-
-  it("falls through anywhere but right after the marker", () => {
-    expect(removeListMarkerOnBackspace(makeView("- text"))).toBe(false);
-    expect(removeListMarkerOnBackspace(makeView("plain"))).toBe(false);
-    expect(removeListMarkerOnBackspace(makeView("- text", 2, 4))).toBe(false);
   });
 });

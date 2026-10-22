@@ -165,15 +165,6 @@ describe("MarkdownEditor", () => {
     await waitFor(() => expect(screen.getByTestId("active-editor-state")).toHaveTextContent("registered"));
   });
 
-  it("doesn't claim the active view, or show template choices, when read-only", async () => {
-    const { container } = renderEditor("", { isActivePane: true, readOnly: true });
-    await waitForEditor(container);
-
-    expect(screen.getByTestId("active-editor-state")).toHaveTextContent("none");
-    expect(screen.queryByRole("group", { name: "Start from a template" })).not.toBeInTheDocument();
-    expect(getView(container).state.readOnly).toBe(true);
-  });
-
   it("focuses a queued task line after opening a file with frontmatter", async () => {
     const { container } = renderEditor(
       "---\ntitle: Note\n---\nFirst line\n- [ ] Target task",

@@ -10,7 +10,7 @@ import { hasMarkdownStructure } from "@/app/tools/cleaner/html-structure";
 // italics arrive as Markdown instead of flat text. A toast offers "Paste as
 // plain text", which swaps the result back for the clipboard's plain text.
 // Left to the normal paste: HTML with no structure (a code editor's copy),
-// a bare URL (the link paste), pastes into code, and when the converted
+// a bare URL, pastes into code, and when the converted
 // Markdown is just the plain text. Shift+Cmd/Ctrl+V pastes plain text as
 // usual (the browser leaves the HTML out).
 

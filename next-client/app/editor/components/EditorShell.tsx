@@ -14,8 +14,11 @@ import NewVaultDialog from "./NewVaultDialog";
 import Button from "@/app/components/Button";
 import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 import PaneToolbarButton from "./PaneToolbarButton";
+import CopyMarkdownButton from "./CopyMarkdownButton";
 import SearchPill from "./SearchPill";
 import WorkspaceSidebar from "./WorkspaceSidebar";
+import ActiveFileIndexer from "./ActiveFileIndexer";
+import RecoveryBanner from "./RecoveryBanner";
 
 // Show / hide the sidebar: Ctrl/Cmd+\, Ctrl/Cmd+Alt+S (`code`, since Alt
 // changes `key` on macOS), or Ctrl+[ — Ctrl on macOS too, where Cmd+[ is the
@@ -38,9 +41,10 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
 // the sidebar is hidden, a Show sidebar button sits in the top-left corner
 // of every page, the editor too (it has no toolbar). On the editor the
 // SearchPill sits in the top-right corner, where the pages' title bars have
-// theirs, so the page itself stays bare. Nothing
+// theirs, with Copy Markdown just left of it, so the page itself stays bare. Nothing
 // hides on its own: the sidebar opens and closes only when you toggle it,
-// remembered.
+// remembered. RecoveryBanner floats above the content while notes can't be
+// saved (lost vault access, a missing vault folder, full storage).
 export default function EditorShell({ children }: { children: ReactNode }) {
   const isMobileChrome = useIsMobileChrome();
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
@@ -92,10 +96,16 @@ export default function EditorShell({ children }: { children: ReactNode }) {
         // The way into the command palette, the center of the app: every
         // note and command (as Ctrl/Cmd+K). Placed as in ShellPage's title
         // bar, so it stays put moving between the editor and the pages.
-        <SearchPill className="fixed top-1.5 right-8 z-30" />
+        // Copy Markdown sits just left of it.
+        <div className="fixed top-1.5 right-8 z-30 flex items-center gap-1.5">
+          <CopyMarkdownButton />
+          <SearchPill />
+        </div>
       )}
+      {!isVaultLocked && <RecoveryBanner />}
       <NewVaultDialog />
       <GitHubVaultDialog />
+      <ActiveFileIndexer />
       <BrowserVaultDialog />
     </div>
   );

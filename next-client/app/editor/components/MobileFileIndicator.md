@@ -3,7 +3,7 @@
 Description: Compact mobile header chip showing the active file name and its save state, with save, command palette and AI chat shortcuts. It stays on screen while you type.
 
 ## Local State & Storage
-- State: `atom_workspaceLayout`, `atom_activePaneId`, `atom_openFiles`, `atom_saveStatus`, `atom_vaultHandle`, `useCommandPalette`.
+- State: `atom_workspaceLayout`, `atom_openFiles`, `atom_saveStatus`, `atom_vaultHandle`, `useCommandPalette`.
 - Persistence: None itself. It reads `localStorage["workspaceLayout"]` and `localStorage["openFiles"]` through the atoms.
 
 ## Dependencies

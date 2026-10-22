@@ -33,21 +33,21 @@ export function openImageDialog(src: string, alt: string) {
 
 export const TOKEN_COST_EVENT = "hermes:open-token-cost";
 
-// Prices the note in the focused pane.
+// Prices the note in front.
 export function openTokenCostDialog() {
   document.dispatchEvent(new CustomEvent(TOKEN_COST_EVENT));
 }
 
 export const EXPORT_PDF_EVENT = "hermes:export-pdf";
 
-// Exports the note in the focused pane as a PDF (the print dialog).
+// Exports the note in front as a PDF (the print dialog).
 export function exportActivePdf() {
   document.dispatchEvent(new CustomEvent(EXPORT_PDF_EVENT));
 }
 
 export const EXPORT_HTML_EVENT = "hermes:export-html";
 
-// Downloads the note in the focused pane as a self-contained .html file.
+// Downloads the note in front as a self-contained .html file.
 export function exportActiveHtml() {
   document.dispatchEvent(new CustomEvent(EXPORT_HTML_EVENT));
 }

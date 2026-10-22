@@ -11,7 +11,7 @@ vi.mock("@/app/hooks/use-file-system", () => ({
 vi.mock("./use-materialize-draft", () => ({ useMaterializeDraft: () => vi.fn() }));
 
 const handle = { name: "b.board.md" } as unknown as FileSystemFileHandle;
-const leaf = { id: "p", type: "editor" as const, openFilePaths: ["b.board.md"], activeFilePath: "b.board.md", isPinned: false };
+const leaf = { id: "p", openFilePaths: ["b.board.md"], activeFilePath: "b.board.md", isPinned: false };
 
 describe("usePaneFileActions with a board", () => {
   beforeEach(() => {

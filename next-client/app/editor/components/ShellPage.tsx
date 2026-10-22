@@ -33,10 +33,10 @@ export default function ShellPage({ title, children }: { title: string; children
     <div
       // Past the open sidebar, as the editor page (EditorShell).
       style={{ left: "var(--content-left, 0px)" }}
-      className="app-sheet fixed inset-y-0 right-0 flex flex-col bg-surface transition-[left] duration-200 ease-out motion-reduce:transition-none overflow-hidden overscroll-none font-sans text-ink-light selection:bg-sage/10 dark:text-ink-dark">
+      className="app-sheet fixed inset-y-0 right-0 flex flex-col bg-surface transition-[left] duration-layout ease-layout motion-reduce:transition-none overflow-hidden overscroll-none font-sans text-ink-light selection:bg-sage/10 dark:text-ink-dark">
       <header
         style={{ paddingLeft: leading }}
-        className={`flex shrink-0 items-center gap-3 border-b border-edge-subtle pr-5 sm:pr-8 ${PANE_HEADER_HEIGHT} transition-[padding] duration-200 ease-out motion-reduce:transition-none`}
+        className={`flex shrink-0 items-center gap-3 border-b border-edge-subtle pr-5 sm:pr-8 ${PANE_HEADER_HEIGHT} transition-[padding] duration-layout ease-layout motion-reduce:transition-none`}
       >
         <Button
           variant="unstyled"

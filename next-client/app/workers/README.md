@@ -16,10 +16,6 @@ Web Workers and the pure modules they run. Nothing here touches the DOM, React o
 
 A board's ` ```hermes-board ` JSON never counts as note text. `parse-note.ts#parseNoteFile` (the metadata worker's per-file parse, pure and tested) runs `stripBoardFence` before tags, wikilinks, word count and preview, and `ContentIndex.upsert` strips before its size caps, so search and hit line numbers ignore the JSON (fence lines are blanked, not removed). `extractTasks` skips all fenced code.
 
-## Unlinked mentions
-
-`content-mentions.ts#findMentions` (pure, over the `ContentIndex`) answers `content:mentions { searchId, phrases, paths, limit }` with the same `content:results` reply: whole-word, case-insensitive matches in a note body, never inside a `[[…]]` span, up to 3 lines per note, notes ordered by matching lines then path. The client's `findNoteMentions` has its own supersede slot, so it and the palette search never cancel each other.
-
 ## Metadata worker protocol
 
 Untyped messages are the original parse request:

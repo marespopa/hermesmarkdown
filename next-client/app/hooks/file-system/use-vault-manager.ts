@@ -76,7 +76,7 @@ export function useVaultManager() {
   const [, setFileMetadata] = useAtom(atom_fileMetadata);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
-  const [, setOpenFiles] = useAtom(atom_openFiles);
+  const setOpenFiles = useSetAtom(atom_openFiles);
   const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
   const [, setIsCloudVault] = useAtom(atom_isCloudVault);
   const [, setVaultDescriptor] = useAtom(atom_vaultDescriptor);
@@ -191,6 +191,8 @@ export function useVaultManager() {
       // Reopening the saved vault on page load: its tabs (persisted with the
       // workspace layout) stay open instead of starting from an empty pane.
       keepTabs?: boolean;
+      // Once the open notes are bound and the top folder listed (pre-index).
+      onReadable?: () => void;
     }
   ) => {
     const {
@@ -199,6 +201,7 @@ export function useVaultManager() {
       persist = true,
       announce = true,
       keepTabs = false,
+      onReadable,
     } = options ?? {};
 
     setFileMetadata({});
@@ -221,9 +224,12 @@ export function useVaultManager() {
       if (descriptor.kind === "browser") await saveBrowserVaultDescriptor(descriptor);
       else await saveGitHubVaultDescriptor(descriptor);
     }
-    await scanVault(handle);
-    await indexVaultTags(handle);
+    // The open notes first (a few files, read again from disk), then the top
+    // folder; the whole vault is indexed last, behind the editor.
     await rebindHandles(handle);
+    await scanVault(handle);
+    onReadable?.();
+    await indexVaultTags(handle);
     void purgeExpiredTrash(handle);
 
     if (announce) {
@@ -282,17 +288,18 @@ export function useVaultManager() {
     try {
       const granted = await verifyPermission(vaultHandle);
       if (granted) {
-        // Stay pending (route hidden and inert) until the vault is loaded, so
-        // nothing is reachable before "Vault restored".
+        // Pending (route hidden, inert) until the open notes are bound and the
+        // top folder listed; the vault is then indexed behind the editor.
         setIsVaultUnlocking(true);
         setCurrentDirectoryHandle(vaultHandle);
         setIsCloudVault(false);
         detectCloudVault(vaultHandle);
-        await scanVault(vaultHandle);
-        await indexVaultTags(vaultHandle);
         await rebindHandles(vaultHandle);
+        await scanVault(vaultHandle);
         setIsVaultPending(false);
+        setIsVaultUnlocking(false);
         toast.success("Vault restored");
+        await indexVaultTags(vaultHandle);
       }
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
@@ -354,9 +361,10 @@ export function useVaultManager() {
           setIsVaultRestoring(false);
           setCurrentDirectoryHandle(savedHandle);
           detectCloudVault(savedHandle);
+          // Open notes first: their disk text and saving don't wait for the index.
+          await rebindHandles(savedHandle);
           await scanVault(savedHandle);
           await indexVaultTags(savedHandle);
-          await rebindHandles(savedHandle);
         } else {
           setIsVaultPending(true);
         }
@@ -372,6 +380,7 @@ export function useVaultManager() {
             persist: false,
             announce: false,
             keepTabs: true,
+            onReadable: () => setIsVaultRestoring(false),
           });
         }
       } catch (err) {

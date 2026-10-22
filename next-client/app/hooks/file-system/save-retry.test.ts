@@ -94,7 +94,8 @@ describe("useFileEditor - saveFile retry logic", () => {
     };
     (jotai.useAtom as any).mockImplementation(mockImpl);
     (jotai.useAtomValue as any).mockImplementation((atom: any) => mockImpl(atom)[0]);
-    (jotai.useSetAtom as any).mockReturnValue(vi.fn());
+    // A setter-only atom gets the same setter a test's useAtom mock gives it.
+    (jotai.useSetAtom as any).mockImplementation((atom: any) => (jotai.useAtom as any)(atom)[1]);
   });
 
   it("retries with a fresh handle on InvalidStateError", async () => {

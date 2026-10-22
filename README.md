@@ -36,7 +36,7 @@ See [next-client/ARCHITECTURE.md](next-client/ARCHITECTURE.md) for the detailed 
 ### Local-first workspace
 
 - Open an existing folder or create a new vault; create, rename, move, duplicate, and delete Markdown files and folders.
-- Browse files in Files, the sidebar's vault tree (**Show Files**, `Ctrl/Cmd+Shift+E`; full screen on phones), open them in multiple editor panes with tabs, and see every task on the vault-wide Tasks page.
+- Browse files in Files, the sidebar's vault tree (**Show Files**, `Ctrl/Cmd+Shift+E`; full screen on phones), open them in the editor with tabs, and see every task on the vault-wide Tasks page.
 - Use the command-first quick switcher (`Ctrl/Cmd+K` or `Ctrl/Cmd+P`) to find files by name, and its prefixes to search tags (`#`), commands (`>`), tasks (`!`), headings in the current note (`@`), and note text across the vault (`/`, case-insensitive, all words must match; private notes are never listed). Pin up to five items with `Ctrl/Cmd+D`.
 - External file changes are detected by polling (and immediately when the window regains focus). If both local and external edits exist, a conflict dialog lets you accept the incoming version, keep yours, or resolve them in a merge editor.
 - Optionally connect a GitHub repository as a vault: Markdown files are imported into the browser, and the command palette's `GitHub: Commit / Push / Sync / Pull` commands write commits straight to the default branch.

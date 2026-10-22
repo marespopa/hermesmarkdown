@@ -106,7 +106,7 @@ describe("useVaultManager, opening another vault", () => {
 
   it("keeps the restored tabs when reopening the saved vault on load", async () => {
     const store = createStore();
-    const layout = { rootContainer: { id: "default-pane", type: "editor" as const, openFilePaths: ["a.md", "b.md"], activeFilePath: "b.md", isPinned: false } };
+    const layout = { rootContainer: { id: "default-pane", openFilePaths: ["a.md", "b.md"], activeFilePath: "b.md", isPinned: false } };
     const files = { "a.md": { content: "A", lastSavedContent: "A", fileName: "a", activeFilePath: "a.md" } };
     store.set(atom_workspaceLayout, layout);
     store.set(atom_openFiles, files);

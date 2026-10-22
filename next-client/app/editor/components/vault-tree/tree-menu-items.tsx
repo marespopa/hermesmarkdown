@@ -3,7 +3,6 @@
 import {
   HiOutlineDocumentText,
   HiOutlineDuplicate,
-  HiOutlineTemplate,
   HiOutlinePencil,
   HiOutlineTrash,
 } from "react-icons/hi";
@@ -75,13 +74,6 @@ export function treeMenuItems(
   const entry = actions.entryByPath.get(target.path);
   return [
     { label: "Open", icon: <HiOutlineDocumentText {...ICON} />, onSelect: () => actions.openPath(target.path) },
-    ...(props.openFileInPane && entry
-      ? [{
-          label: "Open in Pane",
-          icon: <HiOutlineTemplate {...ICON} />,
-          onSelect: () => props.openFileInPane!(entry.handle as FileSystemFileHandle, target.path),
-        }]
-      : []),
     ...(props.isPinned && props.togglePin
       ? [{
           label: props.isPinned(target.path) ? "Unpin" : "Pin",

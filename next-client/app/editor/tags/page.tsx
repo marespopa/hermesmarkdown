@@ -7,6 +7,7 @@ import { HiOutlineDocumentText } from "react-icons/hi";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
 import Button from "@/app/components/Button";
+import CountBadge from "@/app/components/CountBadge";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import ShellPage from "../components/ShellPage";
 import { SIDEBAR_ICON_CLASS, sidebarItemClass } from "../components/sidebar/sidebar-classes";
@@ -86,7 +87,7 @@ export default function TagsPage() {
               >
                 <span aria-hidden="true" className={`${SIDEBAR_ICON_CLASS} w-[15px] text-center`}>#</span>
                 <span className="flex-1 min-w-0 truncate">{tag}</span>
-                <span className="shrink-0 text-ui-caption text-fg-faint tabular-nums">{count}</span>
+                <CountBadge count={count} />
               </Button>
             ))}
           </nav>

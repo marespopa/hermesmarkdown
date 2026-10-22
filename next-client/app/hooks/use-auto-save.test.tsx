@@ -18,7 +18,7 @@ const handleA = { name: "a.md" } as unknown as FileSystemFileHandle;
 const handleB = { name: "b.md" } as unknown as FileSystemFileHandle;
 
 const layout = (active: string) => ({
-  rootContainer: { id: "p", type: "editor", openFilePaths: ["a.md", "b.md"], activeFilePath: active, isPinned: false },
+  rootContainer: { id: "p", openFilePaths: ["a.md", "b.md"], activeFilePath: active, isPinned: false },
 });
 
 function setup() {

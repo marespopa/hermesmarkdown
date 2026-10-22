@@ -5,7 +5,6 @@ import { Provider, createStore } from "jotai";
 import React from "react";
 import SidebarOpenNotes from "./SidebarOpenNotes";
 import { atom_activePaneId, atom_openFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_paneDrag } from "@/app/atoms/pane-drag-atoms";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import type { PanelLeaf } from "@/app/types/workspace";
 
@@ -19,7 +18,6 @@ vi.mock("@/app/hooks/use-file-system", () => ({
 
 const pane: PanelLeaf = {
   id: "p1",
-  type: "editor",
   openFilePaths: ["one.md", "two.md", "three.md"],
   activeFilePath: "one.md",
   isPinned: false,
@@ -48,16 +46,7 @@ const dataTransfer = () => ({ setData: vi.fn(), effectAllowed: "", dropEffect: "
 describe("SidebarOpenNotes dragging", () => {
   beforeEach(() => cleanup());
 
-  it("sets the open-note payload on drag start and clears it on drag end", () => {
-    const store = setup();
-    const row = screen.getByText("two").closest("[draggable]") as HTMLElement;
-    fireEvent.dragStart(row, { dataTransfer: dataTransfer() });
-    expect(store.get(atom_paneDrag)).toEqual({ kind: "open-note", path: "two.md", sourcePaneId: "p1" });
-    fireEvent.dragEnd(row);
-    expect(store.get(atom_paneDrag)).toBeNull();
-  });
-
-  it("still reorders when a row is dropped on another row", () => {
+  it("reorders when a row is dropped on another row", () => {
     const store = setup();
     const rows = ["one", "two", "three"].map((n) => screen.getByText(n).closest("[draggable]") as HTMLElement);
     rows.forEach((row) => {
@@ -72,6 +61,5 @@ describe("SidebarOpenNotes dragging", () => {
     fireEvent.drop(rows[0], { dataTransfer: dataTransfer() });
     const layout = store.get(atom_workspaceLayout).rootContainer as PanelLeaf;
     expect(layout.openFilePaths).toEqual(["three.md", "one.md", "two.md"]);
-    expect(store.get(atom_paneDrag)).toBeNull();
   });
 });

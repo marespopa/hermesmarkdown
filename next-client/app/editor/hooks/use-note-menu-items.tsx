@@ -2,10 +2,10 @@
 
 import React, { useCallback } from "react";
 import { useAtomValue, useSetAtom, useStore } from "jotai";
-import { HiOutlineClipboardCopy, HiOutlineCode, HiOutlineEye, HiOutlinePencil, HiOutlineTrash, HiOutlineViewBoards } from "react-icons/hi";
-import { TbLock, TbLockOpen, TbPinned, TbPinnedFilled } from "react-icons/tb";
+import { HiOutlineClipboardCopy, HiOutlineCode, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
+import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
-import { atom_liveHandles, atom_openFiles, atom_setPaneType, atom_splitPane, atom_toggleScrollLock, atom_workspaceLayout, lockablePair } from "@/app/atoms/atoms";
+import { atom_liveHandles, atom_openFiles } from "@/app/atoms/atoms";
 import { atom_pinnedNotePaths, atom_toggleNotePin } from "@/app/atoms/note-pin-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
@@ -16,7 +16,7 @@ import type { TabContextMenuItem } from "../components/TabContextMenu";
 import { usePaneFileActions } from "./use-pane-file-actions";
 
 // One open note's menu, the same wherever it's opened (the pane's title,
-// the sidebar's Open Notes): Copy Markdown, Open in pane, Edit as Markdown /
+// the sidebar's Open Notes): Copy Markdown, Edit as Markdown /
 // Open as Board for a board, Pin / Unpin; then Rename… and Move to Trash for
 // a vault note; then Close, Close Others and Close All (of `leaf`).
 export function useNoteMenuItems(leaf: PanelLeaf | null) {
@@ -27,13 +27,12 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
   const toggleNotePin = useSetAtom(atom_toggleNotePin);
   const boardMarkdownPaths = useAtomValue(atom_boardMarkdownPaths);
   const toggleBoardMarkdown = useSetAtom(atom_toggleBoardMarkdown);
-  const splitPane = useSetAtom(atom_splitPane);
-  const setPaneType = useSetAtom(atom_setPaneType);
-  const toggleScrollLock = useSetAtom(atom_toggleScrollLock);
   const { renameFile, deleteFile } = useFileSystem();
   const { buildTabMenuItems } = usePaneFileActions(leaf);
 
-  return useCallback((path: string): TabContextMenuItem[] => {
+  // `onRename` (the pane title, for its own note) renames in place instead of
+  // through a prompt.
+  return useCallback((path: string, options: { onRename?: () => void } = {}): TabContextMenuItem[] => {
     const content = openFiles[path]?.content ?? "";
     const items: TabContextMenuItem[] = [
       {
@@ -47,32 +46,6 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
         },
       },
     ];
-    if (leaf) {
-      items.push({
-        label: "Open in pane",
-        icon: <HiOutlineViewBoards size={15} />,
-        onClick: () => splitPane({ id: leaf.id, direction: "horizontal", filePath: path }),
-      });
-      items.push({
-        label: "Open preview to the side",
-        icon: <HiOutlineEye size={15} />,
-        onClick: () =>
-          splitPane({ id: leaf.id, direction: "horizontal", filePath: path, type: "preview", copy: true, focusNew: false, scrollLock: true }),
-      });
-      items.push({
-        label: leaf.type === "preview" ? "Show pane as editor" : "Show pane as preview",
-        icon: leaf.type === "preview" ? <HiOutlinePencil size={15} /> : <HiOutlineEye size={15} />,
-        onClick: () => setPaneType({ paneId: leaf.id, type: leaf.type === "preview" ? "editor" : "preview" }),
-      });
-      const pair = lockablePair(store.get(atom_workspaceLayout).rootContainer, leaf.id);
-      if (pair) {
-        items.push({
-          label: pair.scrollLock ? "Unlock scroll" : "Lock scroll with other pane",
-          icon: pair.scrollLock ? <TbLockOpen size={15} /> : <TbLock size={15} />,
-          onClick: () => toggleScrollLock(leaf.id),
-        });
-      }
-    }
     if (path !== "draft" && isBoard(path, content)) {
       items.push({
         label: boardMarkdownPaths.has(path) ? "Open as Board" : "Edit as Markdown",
@@ -92,11 +65,15 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
       const handle = store.get(atom_liveHandles(path));
       items.push(
         {
-          label: "Rename…",
+          label: options.onRename ? "Rename" : "Rename…",
           icon: <HiOutlinePencil size={15} />,
           disabled: !handle,
           divider: true,
-          onClick: () => { if (handle) void renameFile(handle, undefined, path); },
+          onClick: () => {
+            if (!handle) return;
+            if (options.onRename) options.onRename();
+            else void renameFile(handle, undefined, path);
+          },
         },
         {
           label: "Move to Trash",
@@ -109,5 +86,5 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
     const closeItems = buildTabMenuItems(path);
     closeItems[0] = { ...closeItems[0], divider: true };
     return [...items, ...closeItems];
-  }, [store, openFiles, leaf, hasVault, pinnedNotePaths, toggleNotePin, boardMarkdownPaths, toggleBoardMarkdown, splitPane, setPaneType, toggleScrollLock, renameFile, deleteFile, buildTabMenuItems]);
+  }, [store, openFiles, hasVault, pinnedNotePaths, toggleNotePin, boardMarkdownPaths, toggleBoardMarkdown, renameFile, deleteFile, buildTabMenuItems]);
 }

@@ -6,7 +6,7 @@ import { useAtomValue } from "jotai";
 import { atom_fullWidth, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { PANE_HEADER_HEIGHT } from "./pane-header-classes";
 import { routeSkeleton, SearchPillSkeleton, SKELETON_BAR as BAR, SUBPAGE_BACKDROP } from "./RouteSkeletons";
-import { SEARCH_PILL_WIDTH } from "./SearchPill";
+import { EDITOR_CORNER_WIDTH } from "./CopyMarkdownButton";
 
 // Paragraph line widths, as a share of the column, so the page reads as text.
 const PARAGRAPHS = [
@@ -19,7 +19,7 @@ const PARAGRAPHS = [
 // sidebar (desktop, when it's open), the pane's title at its top left, the
 // SearchPill in the top-right corner (desktop), and the
 // note's text column with a title and a few paragraphs of placeholder lines,
-// the panes starting beside the sidebar as the real ones do. It mirrors the
+// the pane starting beside the sidebar as the real one does. It mirrors the
 // real layout's classes (`.editor-canvas`,
 // `.editor-sheet`) so the page appears in place with no jump.
 export default function EditorSkeleton() {
@@ -50,13 +50,16 @@ function WorkspaceSkeleton({ sidebarOpen, sidebarWidth, fullWidth }: { sidebarOp
       <div className="app-sheet absolute inset-0 min-[769px]:left-[var(--skeleton-left)] overflow-hidden bg-surface flex flex-col">
         {/* No toolbar: the note's title at the top left of the pane. */}
         <div
-          style={{ paddingRight: `calc(${SEARCH_PILL_WIDTH} + 3rem)` }}
+          style={{ paddingRight: `calc(${EDITOR_CORNER_WIDTH} + 3rem)` }}
           className={`pointer-events-none absolute inset-x-0 top-2 z-10 flex justify-start max-[768px]:hidden ${sidebarOpen ? "pl-3" : "pl-12"}`}
         >
           <div className={`h-8 w-36 rounded-lg ${BAR}`} />
         </div>
-        {/* EditorShell's SearchPill, at the same spot. */}
-        <SearchPillSkeleton className="absolute top-1.5 right-8 z-10 max-[768px]:hidden" />
+        {/* EditorShell's Copy Markdown and SearchPill, at the same spot. */}
+        <div className="absolute top-1.5 right-8 z-10 flex items-center gap-1.5 max-[768px]:hidden">
+          <div className={`h-8 w-8 shrink-0 rounded-lg ${BAR}`} />
+          <SearchPillSkeleton />
+        </div>
 
         <div className="editor-canvas flex-1 min-h-0 overflow-hidden">
           {/* MarkdownEditor's sheet: its margins, page padding and text column

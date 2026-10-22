@@ -8,7 +8,7 @@ export const editorWorkspaceItems: Subsection[] = [
     title: "Tasks page",
     lead: "A vault-wide checklist — every checkbox task across every note, on a Board or in four lists: Now, Today, Upcoming and All.",
     keywords:
-      "task tasks checkbox status todo in progress hold blocked done cancelled pane aggregate due date priority tags filter now today upcoming overdue smart list swipe started done date stamp files board kanban columns drag",
+      "task tasks checkbox status todo in progress hold blocked done cancelled aggregate due date priority tags filter now today upcoming overdue smart list swipe started done date stamp files board kanban columns drag",
     body: (
       <>
         <p>
@@ -118,7 +118,7 @@ tags: []
           <code>status</code> and the first few <code>tags</code> as chips, followed by the names of the other
           keys (for example <em>Properties · Release plan · draft #work #ideas · created</em>). Click the row, or press the up arrow from the
           first line, to expand it; the same row, now the top of the frontmatter panel, collapses it again.
-          Clicking the row changes the note in front of you (in every split pane showing it) and is
+          Clicking the row changes the note in front of you and is
           remembered: notes you open next start the same way.
         </p>
       </>
@@ -181,7 +181,7 @@ tags: []
     id: "command-palette",
     title: "Command palette",
     lead: "A fuzzy-searchable list of every app-level action — open it instead of hunting for a menu.",
-    keywords: "palette commands fuzzy filter full-text search note text pane drag dock preview scroll lock",
+    keywords: "palette commands fuzzy filter full-text search note text",
     body: (
       <>
         <p>
@@ -228,8 +228,8 @@ tags: []
         </Callout>
         <p>
           Matching is fuzzy and deterministic. Recently opened files and recently run commands
-          receive a ranking boost. Commands that need a vault, active note, selection, AI provider
-          or another pane remain visible when useful and explain why they are disabled.
+          receive a ranking boost. Commands that need a vault, active note, selection, or AI provider
+          remain visible when useful and explain why they are disabled.
           Async commands show a running state and cannot be submitted twice. Press{" "}
           <code>CTRL/CMD+D</code> to pin the selected file or command (up to five) to the top of the
           palette.
@@ -251,7 +251,6 @@ tags: []
             { label: "Show Files", value: "CTRL/CMD+SHIFT+E" },
             { label: "Open Tasks", value: "—" },
             { label: "Open Templates", value: "Your templates and template packs" },
-            { label: "Panes", value: "Open in pane, split down, open preview to the side, lock scroll, next/previous, close" },
             { label: "Open notes", value: "Next/previous, close current/other/all" },
             { label: "Tasks", value: "Grouping, due-date filters, and clear filters" },
             { label: "Toggle Hidden Files / Toggle Sidebar", value: "—" },
@@ -275,14 +274,6 @@ tags: []
             { label: "Navigate", value: "Open All Notes, Open Tags, Open Tasks, Open Templates, Open Trash, Open Settings, Open Documentation, Show Keyboard Shortcuts" },
           ]}
         />
-        <p>
-          Panes tile freely: drag a note from Files or Open Notes, or a pane&apos;s grip (shown
-          beside its title on hover), onto another pane. Dropping on an edge splits that pane on
-          that side; dropping in the middle opens the note there. <strong>Open Preview to the Side</strong>{" "}
-          shows a read-only copy that scrolls with the note, and <strong>Lock Scroll With Other Pane</strong>{" "}
-          keeps two side-by-side panes scrolled together (click the lock beside a title to
-          unlock). Divider positions are remembered.
-        </p>
         <p>
           Searching for a note that doesn&apos;t exist? The last result,{" "}
           <strong>Create &quot;…&quot;</strong>, starts a new note with that title.

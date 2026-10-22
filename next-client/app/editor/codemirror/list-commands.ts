@@ -162,92 +162,18 @@ function currentItem(view: EditorView): ListItem | null {
   return parseItem(line);
 }
 
-// Enter on a list item starts the next item: same bullet, next number, and a
-// fresh "[ ] " for task items. Enter on an empty item outdents it one level,
-// or ends the list when it's already at the top level, leaving a blank line
-// so the text typed next isn't read as part of the last item.
-export function continueListOnEnter(view: EditorView): boolean {
-  const { state } = view;
-  const item = currentItem(view);
-  if (!item) return continueFromItemText(view);
-  const { from, to } = state.selection.main;
-  const prefixEnd = item.line.from + item.prefixLength;
-  if (from < prefixEnd) return false; // cursor sits in the marker: plain newline
-
-  if (item.line.text.slice(item.prefixLength).trim() === "") {
-    if (item.indent > 0) return outdentListItem(view, item);
-    const previous = item.line.number > 1 ? state.doc.line(item.line.number - 1).text : "";
-    const insert = previous.trim() === "" ? "" : "\n";
-    view.dispatch({
-      changes: { from: item.line.from, to: item.line.to, insert },
-      selection: EditorSelection.cursor(item.line.from + insert.length),
-      userEvent: "delete.format.list",
-      scrollIntoView: true,
-    });
-    return true;
-  }
-
-  // Splitting mid-text: the moved text starts right after the new marker.
-  let end = to;
-  while (end < item.line.to && state.doc.sliceString(end, end + 1) === " ") end += 1;
-  const indent = /^\s*/.exec(item.line.text)![0];
-  const marker = item.number !== undefined ? `${item.number + 1}${item.delimiter}` : item.bullet;
-  const insert = `\n${indent}${marker}${item.spacing}${item.task ? "[ ] " : ""}`;
-  view.dispatch({
-    changes: { from, to: end, insert },
-    selection: EditorSelection.cursor(from + insert.length),
-    userEvent: "input.format.list",
-    scrollIntoView: true,
-  });
-  return true;
-}
-
-// The item a marker-less line belongs to: a continuation line lined up with
-// the text of the item above it.
-function owningItem(state: EditorState, line: Line): ListItem | null {
-  const indent = lineIndent(line.text);
-  if (line.text.trim() === "" || indent === 0) return null;
-  for (let n = line.number - 1; n >= 1; n--) {
-    const above = state.doc.line(n);
-    if (above.text.trim() === "") return null;
-    const item = parseItem(above);
-    if (item) return indent >= item.contentColumn ? item : null;
-  }
-  return null;
-}
-
-// Enter at the end of such a line starts the item's next sibling.
-function continueFromItemText(view: EditorView): boolean {
-  const { state } = view;
-  const { from, to } = state.selection.main;
-  const line = state.doc.lineAt(from);
-  if (to !== line.to || state.doc.lineAt(to).number !== line.number) return false;
-  const item = owningItem(state, line);
-  if (!item) return false;
-  const indent = /^\s*/.exec(item.line.text)![0];
-  const marker = item.number !== undefined ? `${item.number + 1}${item.delimiter}` : item.bullet;
-  const insert = `\n${indent}${marker}${item.spacing}${item.task ? "[ ] " : ""}`;
-  view.dispatch({
-    changes: { from, to, insert },
-    selection: EditorSelection.cursor(from + insert.length),
-    userEvent: "input.format.list",
-    scrollIntoView: true,
-  });
-  return true;
-}
-
-// Backspace right after an item's marker: a nested item moves out a level, a
-// top-level one turns back into a plain line (its text stays).
-export function removeListMarkerOnBackspace(view: EditorView): boolean {
+// Home on a list item goes to where its text starts (a task's `[`), and from
+// there, or from in front of it, to the start of the line. Other lines, and
+// Shift-Home, keep the editor's own Home.
+export function listItemHome(view: EditorView): boolean {
   const { main } = view.state.selection;
   if (!main.empty) return false;
   const item = currentItem(view);
-  if (!item || main.head !== item.line.from + item.prefixLength) return false;
-  if (item.indent > 0) return outdentListItem(view, item);
-  view.dispatch({
-    changes: { from: item.line.from, to: main.head },
-    userEvent: "delete.format.list",
-  });
+  if (!item) return false;
+  const textStart = item.task ? item.markerTo + item.spacing.length : item.line.from + item.prefixLength;
+  const target = main.head > textStart ? textStart : item.line.from;
+  if (target === main.head) return false;
+  view.dispatch({ selection: EditorSelection.cursor(target), userEvent: "select", scrollIntoView: true });
   return true;
 }
 

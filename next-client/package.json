@@ -1,6 +1,6 @@
 {
   "name": "hermesmarkdown",
-  "version": "6.38.0",
+  "version": "6.39.0",
   "private": true,
   "scripts": {
     "dev": "node scripts/copy-excalidraw-assets.mjs && next dev --port 3000",
@@ -49,7 +49,6 @@
     "react-dom": "19.3.1",
     "react-hot-toast": "^2.6.1",
     "react-icons": "^5.7.0",
-    "react-resizable-panels": "^4.14.5",
     "sass": "^1.105.2",
     "tailwindcss": "^3.4.19",
     "turndown": "7.2.4",

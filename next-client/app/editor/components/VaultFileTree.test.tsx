@@ -2,7 +2,6 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { createStore, Provider } from "jotai";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import VaultFileTree from "./VaultFileTree";
-import { atom_paneDrag } from "@/app/atoms/pane-drag-atoms";
 
 vi.mock("jotai", async (importOriginal) => ({
   ...await importOriginal<typeof import("jotai")>(),
@@ -510,20 +509,5 @@ describe("VaultFileTree selection, keyboard and menus", () => {
     fireEvent.drop(target, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
 
     await waitFor(() => expect(moveItems).toHaveBeenCalledWith([files[0].handle, files[1].handle], folderHandle));
-  });
-
-  it("sets the pane drag payload for a single file drag, but not for a multi-selection", () => {
-    const { store } = renderFiles({ treeView: true, folderPaths: ["Folder"], processedFiles: files });
-    const dt = { effectAllowed: "", dropEffect: "", setData: vi.fn() };
-
-    fireEvent.dragStart(screen.getByText("b").closest("[draggable]")!, { dataTransfer: dt });
-    expect(store.get(atom_paneDrag)).toEqual({ kind: "file", path: files[1].path, handle: files[1].handle });
-    fireEvent.dragEnd(screen.getByText("b").closest("[draggable]")!);
-    store.set(atom_paneDrag, null);
-
-    fireEvent.click(screen.getByText("a"));
-    fireEvent.click(screen.getByText("b"), { ctrlKey: true });
-    fireEvent.dragStart(screen.getByText("b").closest("[draggable]")!, { dataTransfer: dt });
-    expect(store.get(atom_paneDrag)).toBeNull();
   });
 });

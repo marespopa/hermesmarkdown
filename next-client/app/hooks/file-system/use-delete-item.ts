@@ -47,7 +47,7 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const [activeFileHandle, setActiveFileHandle] = useAtom(atom_activeFileHandle);
-  const [, setOpenFiles] = useAtom(atom_openFiles);
+  const setOpenFiles = useSetAtom(atom_openFiles);
   const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
   const setFileMetadata = useSetAtom(atom_fileMetadata);
   const setVaultFiles = useSetAtom(atom_vaultFiles);

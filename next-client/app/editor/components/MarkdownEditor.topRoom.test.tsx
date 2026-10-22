@@ -8,23 +8,23 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 // The pane's floating title sits in the top room (`--pane-top-room`, PaneLeaf):
 // the first line, a frontmatter Properties row included, must start below it
-// in single and split panes. jsdom has no layout, so the sheet's top padding
+// jsdom has no layout, so the sheet's top padding
 // is checked as the rule it is: never less than the room.
 describe("MarkdownEditor top room", () => {
   beforeEach(() => cleanup());
 
-  const sheetFor = async (isSplit: boolean) => {
+  const sheetFor = async () => {
     const { container } = render(
       <Provider>
-        <MarkdownEditor value={"---\ntitle: Board\n---\n\ntext"} onChange={vi.fn()} isSplit={isSplit} />
+        <MarkdownEditor value={"---\ntitle: Board\n---\n\ntext"} onChange={vi.fn()} />
       </Provider>,
     );
     await waitFor(() => expect(container.querySelector(".cm-content")).not.toBeNull());
     return container.querySelector<HTMLElement>(".editor-sheet")!;
   };
 
-  it.each([false, true])("keeps the first line below the pane title (split: %s)", async (isSplit) => {
-    const sheet = await sheetFor(isSplit);
+  it("keeps the first line below the pane title", async () => {
+    const sheet = await sheetFor();
     expect(sheet.className).toContain("pt-[max(var(--sheet-pad-top),var(--pane-top-room,0px))]");
     expect(sheet.className).not.toMatch(/(^|\s)pt-\[var\(--sheet-pad-top\)\]/);
   });

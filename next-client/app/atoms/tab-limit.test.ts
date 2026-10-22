@@ -38,9 +38,9 @@ describe("touchRecent", () => {
 });
 
 describe("forgetClosedFiles", () => {
-  const leaf = (paths: string[]): PanelLeaf => ({ id: "p", type: "editor", openFilePaths: paths, isPinned: false });
+  const leaf = (paths: string[]): PanelLeaf => ({ id: "p", openFilePaths: paths, isPinned: false });
 
-  it("drops a closed note's cached text unless another pane shows it or it's unsaved", () => {
+  it("drops a closed note's cached text unless the pane still shows it or it's unsaved", () => {
     const files = { "a.md": clean(), "b.md": clean(), "c.md": dirty(), draft: clean("") };
     const next = forgetClosedFiles(files, leaf(["b.md"]), ["a.md", "b.md", "c.md", "draft"]);
     expect(Object.keys(next).sort()).toEqual(["b.md", "c.md", "draft"]);

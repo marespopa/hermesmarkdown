@@ -4,6 +4,9 @@ module.exports = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    // Tests and benchmarks hold no classes the app draws; leaving them out
+    // keeps the dev watcher smaller (and a deleted test from failing it).
+    "!./app/**/*.{test,bench}.{ts,tsx}",
   ],
   darkMode: "class",
   // `hover:` styles only apply on devices that can hover, so a tap on a phone
@@ -130,12 +133,16 @@ module.exports = {
       },
       transitionDuration: {
         'overlay-backdrop': '150ms', // OverlayLayer backdrop opacity fade
-        'overlay-panel':    '200ms', // OverlayLayer sheet/edge-panel/popover slide
+        'overlay-panel':    '150ms', // OverlayLayer sheet/edge-panel/popover slide
+        // --layout-duration (globals.scss): the sidebar, the content it
+        // pushes, the editor sheet. Pair with `ease-layout`.
+        layout: 'var(--layout-duration)',
       },
       // `ease-spring`: the --ease-spring curve from globals.scss. An arbitrary
       // `ease-[var(--ease-spring)]` is ambiguous to Tailwind and warns on build.
       transitionTimingFunction: {
         spring: 'var(--ease-spring)',
+        layout: 'var(--ease-layout)',
       },
     }
   },

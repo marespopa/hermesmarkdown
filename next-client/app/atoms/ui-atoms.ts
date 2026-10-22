@@ -177,6 +177,9 @@ export const atom_isEditorFocused = atom<boolean>(false);
 // Set by "Show Files" (desktop); WorkspaceSidebar focuses its Files tree and
 // clears it. In memory: it only has to survive a navigation to /editor.
 export const atom_filesFocusRequested = atom<boolean>(false);
+// With a focus request, the folder (or note) the Files tree should select and
+// scroll to instead of its own cursor row ("Show in Files"); cleared with it.
+export const atom_filesRevealPath = atom<string | null>(null);
 // Set by the sidebar's New note button on any /editor route; the editor page
 // starts the new note (its draft flow) and clears it. In memory: it only has
 // to survive a navigation to /editor.
@@ -228,11 +231,7 @@ export const atom_frontmatterCollapsedByDefault = atomWithStorage<boolean>(
   "frontmatterCollapsedByDefault",
   false,
 );
-// Frontmatter collapsed / expanded per open file, so split panes showing the
-// same note agree. In memory only; a missing entry follows the default above.
-export const atom_frontmatterCollapsedByFile = atom<Record<string, boolean>>({});
 
-// Fresh workspaces open directly in the source editor and never switch into a preview pane.
 export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   "frontmatterHasPrompted",
   false,

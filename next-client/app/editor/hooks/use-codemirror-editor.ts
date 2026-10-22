@@ -23,7 +23,6 @@ interface UseCodeMirrorEditorOptions {
   flowMode: FlowLevel | false;
   onOpenActiveHelperRef: { current: () => boolean };
   placeholder?: string;
-  readOnly: boolean;
   onFocusChange: (focused: boolean) => void;
   onCursorActivity?: (view: EditorView) => void;
   onViewportChange?: (view: EditorView) => void;
@@ -54,7 +53,6 @@ export function useCodeMirrorEditor({
   flowMode,
   onOpenActiveHelperRef,
   placeholder,
-  readOnly,
   onFocusChange,
   onCursorActivity,
   onViewportChange,
@@ -128,7 +126,6 @@ export function useCodeMirrorEditor({
           flowModeCompartment,
           onOpenActiveHelperRef,
           placeholder,
-          readOnly,
           onFocusChange,
           onCursorActivity: (view: any) => onCursorActivityRef.current?.(view),
           onViewportChange: (view: any) => onViewportChangeRef.current?.(view),

@@ -122,7 +122,7 @@ describe("file-atoms", () => {
     expect(localStorage.getItem("viewMode")).toBeNull();
   });
 
-  it("migrates legacy preview panes to the source editor", () => {
+  it("merges a legacy split layout, preview panes included, into one pane", () => {
     localStorage.setItem("workspaceLayout", JSON.stringify({
       rootContainer: {
         id: "split",
@@ -137,6 +137,11 @@ describe("file-atoms", () => {
 
     migrateLegacyWorkspaceLayout();
 
-    expect(JSON.parse(localStorage.getItem("workspaceLayout")!).rootContainer.children[0].type).toBe("editor");
+    expect(JSON.parse(localStorage.getItem("workspaceLayout")!).rootContainer).toEqual({
+      id: "preview-pane",
+      openFilePaths: ["note.md", "draft"],
+      activeFilePath: "note.md",
+      isPinned: false,
+    });
   });
 });

@@ -18,6 +18,17 @@ import { TabContextMenuItem } from "../components/TabContextMenu";
 import { useMaterializeDraft } from "./use-materialize-draft";
 import { flushBoardWrite } from "@/app/utils/board/board-flush";
 
+/** Copies a note's Markdown to the clipboard, with a toast either way. */
+export async function copyMarkdownToClipboard(content: string) {
+  try {
+    await navigator.clipboard.writeText(content);
+    showCopyToast("Markdown copied to clipboard!");
+  } catch (err) {
+    console.error("Failed to copy:", err);
+    showErrorToast("Failed to copy markdown");
+  }
+}
+
 // Shared between the desktop pane toolbar and the mobile control rail so
 // Save/Copy/Close behavior stays a single source of truth even though the
 // two surfaces render completely different UI around it.
@@ -81,15 +92,7 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
     await handleExport();
   }, [content, liveHandle, filePath, vaultHandle, saveFile, materializeDraft, leaf?.id, handleExport]);
 
-  const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(content);
-      showCopyToast("Markdown copied to clipboard!");
-    } catch (err) {
-      console.error("Failed to copy:", err);
-      showErrorToast("Failed to copy markdown");
-    }
-  }, [content]);
+  const handleCopy = useCallback(() => copyMarkdownToClipboard(content), [content]);
 
   const closeTabWithAutosave = useCallback(async (path: string) => {
     if (!leaf) return;

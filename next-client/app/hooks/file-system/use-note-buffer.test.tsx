@@ -39,7 +39,7 @@ function setup(handle: FileSystemFileHandle, openState?: FileState) {
   if (openState) {
     store.set(atom_openFiles, { draft: { content: "", lastSavedContent: "", fileName: "untitled", activeFilePath: null }, [PATH]: openState });
     store.set(atom_workspaceLayout, {
-      rootContainer: { id: "p", type: "editor", openFilePaths: [PATH], activeFilePath: PATH, isPinned: false },
+      rootContainer: { id: "p", openFilePaths: [PATH], activeFilePath: PATH, isPinned: false },
     });
   }
   const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(Provider, { store }, children);

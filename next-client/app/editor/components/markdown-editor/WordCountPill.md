@@ -1,6 +1,6 @@
 # WordCountPill
 
-Description: The note's word count, a faint chrome pill floating in the bottom-left corner of the active pane ("1,204 words"). It fades out as soon as text goes in and fades back after a 1.5s pause (`WORD_COUNT_PAUSE`) or on any mouse move, so nothing changes in view while you write. Hidden on an empty note. Only mounted when **Word Count** is on (`atom_showWordCount`, Settings → Editor, off by default). Words come from `countWords` (`app/editor/utils/count-words.ts`): frontmatter is left out, and so are tokens with no letter or digit (`#`, `-`, `>`, `|`, `---`).
+Description: The note's word count, a faint pill floating in the bottom-left corner of the active pane ("1,204 words"), drawn by [CountBadge](../../../components/CountBadge/CountBadge.md) (`floating`). It fades out as soon as text goes in and fades back after a 1.5s pause (`WORD_COUNT_PAUSE`) or on any mouse move, so nothing changes in view while you write. Hidden on an empty note. Only mounted when **Word Count** is on (`atom_showWordCount`, Settings → Editor, off by default). Words come from `countWords` (`app/editor/utils/count-words.ts`): frontmatter is left out, and so are tokens with no letter or digit (`#`, `-`, `>`, `|`, `---`).
 
 ## Local State & Storage
 - State: `typing` (text went in within the pause) and `shown`, the last count, kept while the pill is hidden so its fade-out shows the old number.

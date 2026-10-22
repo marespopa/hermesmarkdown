@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import {
@@ -29,7 +29,7 @@ export default function ConflictDialog() {
   const [lastSavedContent, setLastSavedContent] = useAtom(atom_lastSavedContent);
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
   const [activePath] = useAtom(atom_activeFilePath);
-  const [, setOpenFiles] = useAtom(atom_openFiles);
+  const setOpenFiles = useSetAtom(atom_openFiles);
   const { saveFile } = useFileSystem();
   const [isMergeOpen, setIsMergeOpen] = useState(false);
   const [mergedText, setMergedText] = useState("");

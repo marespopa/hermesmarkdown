@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
@@ -21,13 +21,15 @@ import { atom_autosaveMode, atom_snapshotOnConflict } from "@/app/atoms/ui-atoms
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { extractTasks } from "@/app/utils/taskExtractor";
 import { writeFileContent } from "@/app/services/file-writer";
+import { clearRecoveryIssue, isQuotaError, reportRecoveryIssue } from "@/app/atoms/recovery-atoms";
+import { checkVaultHealth } from "./vault-health";
 
 export function useSaveFile() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [activeFileHandle] = useAtom(atom_activeFileHandle);
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, setFileName] = useAtom(atom_fileName);
-  const [, setOpenFiles] = useAtom(atom_openFiles);
+  const setOpenFiles = useSetAtom(atom_openFiles);
   const [, setLastSavedContent] = useAtom(atom_lastSavedContent);
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
@@ -89,6 +91,7 @@ export function useSaveFile() {
               toast.error(msg, { id: "save-error" });
               setSaveStatus({ state: "error", retryCount: 0, message: msg, path: targetPath });
               setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 6000);
+              reportRecoveryIssue({ kind: "access-lost" });
               return false;
             }
             // Manual save has a user gesture — attempt to re-request permission
@@ -98,6 +101,7 @@ export function useSaveFile() {
                 toast.error("Write permission denied. Re-open the vault to restore access.", { id: "save-error" });
                 setSaveStatus({ state: "error", retryCount: 0, message: "Permission denied", path: targetPath });
                 setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 5000);
+                reportRecoveryIssue({ kind: "access-lost" });
                 return false;
               }
             } catch {
@@ -219,6 +223,7 @@ export function useSaveFile() {
           }
         }
 
+        clearRecoveryIssue("access-lost", "vault-missing");
         setSaveStatus({ state: "saved", retryCount, path: targetPath });
         setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 2000);
 
@@ -336,7 +341,16 @@ export function useSaveFile() {
         setSaveStatus({ state: "error", retryCount, message: errorMsg, path: targetPath });
         setTimeout(() => setSaveStatus({ state: "idle", retryCount: 0, path: undefined }), 5000);
 
+        if (isQuotaError(err)) {
+          reportRecoveryIssue({ kind: "storage-full" });
+        } else if (err.name === "NotFoundError" && vaultHandle) {
+          // A missing file is usually a sync client at work; a missing vault
+          // folder is not, and gets the banner.
+          void checkVaultHealth(vaultHandle);
+        }
+
         if (err.name === "NotAllowedError") {
+          reportRecoveryIssue({ kind: "access-lost" });
           const msg = isAutoSave
             ? "Auto-save needs permission — save manually to restore access."
             : "Write permission expired. Re-open the vault to restore access.";

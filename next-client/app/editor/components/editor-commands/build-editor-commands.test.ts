@@ -7,16 +7,8 @@ import type { EditorCommandContext } from "./use-editor-command-context";
 function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCommandContext {
   const activeLeaf = {
     id: "pane-one",
-    type: "editor" as const,
     activeFilePath: "Note.md",
     openFilePaths: ["Note.md", "Other.md"],
-    isPinned: false,
-  };
-  const secondLeaf = {
-    id: "pane-two",
-    type: "editor" as const,
-    activeFilePath: "Second.md",
-    openFilePaths: ["Second.md"],
     isPinned: false,
   };
 
@@ -59,23 +51,11 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     isAiEnabled: true,
     isAiConfigured: true,
     content: "Note content",
-    workspaceLayout: {
-      rootContainer: {
-        id: "root",
-        direction: "horizontal",
-        sizes: [50, 50],
-        children: [activeLeaf, secondLeaf],
-      },
-    },
+    workspaceLayout: { rootContainer: activeLeaf },
     activePaneId: activeLeaf.id,
-    setActivePaneId: vi.fn(),
     setActiveFilePath: vi.fn(),
     closeTab: vi.fn(),
     setNewVaultFlowOpen: vi.fn(),
-    splitPane: vi.fn(),
-    setPaneType: vi.fn(),
-    toggleScrollLock: vi.fn(),
-    closePane: vi.fn(),
     sidebarOpen: false,
     setSidebarOpen: vi.fn(),
     setTasksGroupBy: vi.fn(),
@@ -90,7 +70,6 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     activeFileHandle: { name: "Note.md" },
     activeEditorView: {},
     activeLeaf,
-    isOnlyPane: false,
     activeFilePath: "Note.md",
     handleCopy: vi.fn(),
     closeTabWithAutosave: vi.fn(),
@@ -143,44 +122,6 @@ describe("buildEditorCommands", () => {
     expect(buildEditorCommands(asMarkdown).find((c) => c.id === "toggle-board-markdown")?.label).toBe("Open as Board");
   });
 
-  it("opens a preview to the side with scroll lock on and focus left in place", () => {
-    const context = createContext();
-    buildEditorCommands(context).find((c) => c.id === "open-preview-side")?.action();
-    expect(context.splitPane).toHaveBeenCalledWith(
-      expect.objectContaining({ direction: "horizontal", type: "preview", copy: true, focusNew: false, scrollLock: true }),
-    );
-  });
-
-  it("switches the active pane between editor and preview", () => {
-    const context = createContext();
-    const toggle = buildEditorCommands(context).find((c) => c.id === "toggle-pane-preview");
-    expect(toggle?.label).toBe("Show Pane as Preview");
-    toggle?.action();
-    expect(context.setPaneType).toHaveBeenCalledWith({ paneId: context.activeLeaf!.id, type: "preview" });
-
-    const preview = createContext({ activeLeaf: { ...context.activeLeaf!, type: "preview" } } as Partial<EditorCommandContext>);
-    expect(buildEditorCommands(preview).find((c) => c.id === "toggle-pane-preview")?.label).toBe("Show Pane as Editor");
-  });
-
-  it("offers scroll lock only for a two-pane split, and labels it by state", () => {
-    const context = createContext();
-    const lock = buildEditorCommands(context).find((c) => c.id === "toggle-scroll-lock");
-    expect(lock?.label).toBe("Lock Scroll With Other Pane");
-    expect(lock?.disabledReason).toBeUndefined();
-
-    const locked = createContext({
-      workspaceLayout: {
-        rootContainer: { ...(context.workspaceLayout.rootContainer as object), scrollLock: true },
-      },
-    } as unknown as Partial<EditorCommandContext>);
-    expect(buildEditorCommands(locked).find((c) => c.id === "toggle-scroll-lock")?.label).toBe("Unlock Scroll");
-
-    const alone = createContext({
-      workspaceLayout: { rootContainer: context.activeLeaf },
-    } as unknown as Partial<EditorCommandContext>);
-    expect(buildEditorCommands(alone).find((c) => c.id === "toggle-scroll-lock")?.disabledReason).toBe("No side-by-side pane");
-  });
-
   it("preserves every command ID and its registration order", () => {
     const commands = buildEditorCommands(createContext());
     const templateIds = TEMPLATES
@@ -198,13 +139,8 @@ describe("buildEditorCommands", () => {
       "import-file",
       "open-tasks-panel",
       "open-templates",
-      "split-pane-right",
-      "open-preview-side",
-      "toggle-pane-preview",
-      "toggle-scroll-lock",
       "duplicate-current-file",
       "move-current-file",
-      "close-pane",
       "close-other-tabs",
       "toggle-hidden-files",
       "token-cost",
@@ -251,11 +187,8 @@ describe("buildEditorCommands", () => {
       "task-status-cancelled",
       "task-status-todo",
       ...templateIds,
-      "split-pane-down",
       "next-tab",
       "previous-tab",
-      "next-pane",
-      "previous-pane",
       "tasks-group-status",
       "tasks-group-file",
       "tasks-clear-filters",

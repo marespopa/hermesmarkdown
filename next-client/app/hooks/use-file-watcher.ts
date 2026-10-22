@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom, useStore } from "jotai";
+import { useAtom, useStore, useSetAtom } from "jotai";
 import { atom_openFiles, atom_liveHandles, atom_isVaultPending } from "@/app/atoms/atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
 import { createFileObserver } from "@/app/hooks/file-system/file-observer";
@@ -14,7 +14,7 @@ const BACKOFF = 2;
 const OBSERVER_DEBOUNCE = 250;
 
 export function useFileWatcher() {
-  const [, setOpenFiles] = useAtom(atom_openFiles);
+  const setOpenFiles = useSetAtom(atom_openFiles);
   const [isVaultPending] = useAtom(atom_isVaultPending);
   const store = useStore();
 

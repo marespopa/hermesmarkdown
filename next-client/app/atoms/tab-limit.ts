@@ -1,8 +1,8 @@
-import type { PanelLeaf, WorkspaceContainer } from "@/app/types/workspace";
+import type { PanelLeaf } from "@/app/types/workspace";
 import type { FileState } from "./file-atoms";
 import { getWorkspaceTabs } from "./utils";
 
-// Each pane keeps at most this many notes open. Opening one more closes the
+// The pane keeps at most this many notes open. Opening one more closes the
 // pane's least recently viewed note — never one with unsaved changes, the
 // draft, or the note being opened — so tabs (and the cached note text kept
 // for them in localStorage) can't pile up without bound. If every other tab
@@ -40,11 +40,11 @@ export function tabsToEvict(
     .map(({ path }) => path);
 }
 
-// Drops the cached state of `closed` notes that no pane shows any more,
+// Drops the cached state of `closed` notes the pane doesn't show any more,
 // unless they hold unsaved changes (those stay, so reopening restores them).
 export function forgetClosedFiles(
   openFiles: Record<string, FileState>,
-  root: WorkspaceContainer | PanelLeaf,
+  root: PanelLeaf,
   closed: string[],
 ): Record<string, FileState> {
   const stillOpen = new Set(getWorkspaceTabs(root).map((tab) => tab.filePath));

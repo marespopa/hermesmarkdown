@@ -3,9 +3,7 @@
 import React, { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { HiOutlineX } from "react-icons/hi";
-import { atom_activePaneId, atom_openFiles, atom_reorderOpenNote, atom_saveStatus, atom_workspaceLayout, atom_workspaceTabs } from "@/app/atoms/atoms";
-import { atom_paneDrag } from "@/app/atoms/pane-drag-atoms";
-import { findLeaf, getFirstLeaf } from "@/app/atoms/utils";
+import { atom_openFiles, atom_reorderOpenNote, atom_saveStatus, atom_workspaceLayout } from "@/app/atoms/atoms";
 import Button from "@/app/components/Button";
 import { formatShortcut } from "@/app/utils/platform";
 import { useNoteMenuItems } from "../../hooks/use-note-menu-items";
@@ -15,19 +13,17 @@ import { statusDot, type SaveState } from "../save-state";
 import SidebarSection from "./SidebarSection";
 import { sidebarItemClass } from "./sidebar-classes";
 
-// The focused pane's open notes, for switching with one click: each by name,
+// The pane's open notes, for switching with one click: each by name,
 // the one in front highlighted (on the editor), a small dot while one is
 // unsaved, saving or failed to save, and a close button on hover or focus.
-// On the editor, the first nine also show their Ctrl/Cmd+1–9 shortcut (its
-// number counts every pane's notes, as the shortcut does), which gives way
-// to the close button. A right-click (or the menu key) opens the note's
+// On the editor, the first nine also show their Ctrl/Cmd+1–9 shortcut, which
+// gives way to the close button. A right-click (or the menu key) opens the note's
 // menu, the same as on the pane's title (useNoteMenuItems).
 // Dragging a row (or Alt+↑/↓ on it) reorders the pane's notes, and with them
 // the shortcut numbers, so a note can be put on the number wanted.
-// `onOpen` brings a note to the front of its pane (and back to the editor
-// from another page). Renders nothing while no note is open.
-// The drag's payload type: this list reorders with it, and panes take the same
-// drag as a dock drop through atom_paneDrag (PaneDropLayer).
+// `onOpen` brings a note to the front (and back to the editor from another
+// page). Renders nothing while no note is open.
+// The drag's payload type: this list reorders with it.
 const DRAG_TYPE = "application/x-hermes-open-note";
 
 export default function SidebarOpenNotes({
@@ -38,16 +34,13 @@ export default function SidebarOpenNotes({
   onOpen: (paneId: string, path: string) => void;
 }) {
   const layout = useAtomValue(atom_workspaceLayout);
-  const activePaneId = useAtomValue(atom_activePaneId);
   const openFiles = useAtomValue(atom_openFiles);
   const saveStatus = useAtomValue(atom_saveStatus);
-  const leaf = (activePaneId ? findLeaf(layout.rootContainer, activePaneId) : null) ?? getFirstLeaf(layout.rootContainer);
+  const leaf = layout.rootContainer;
   const { closeTabWithAutosave } = usePaneFileActions(leaf);
-  const workspaceTabs = useAtomValue(atom_workspaceTabs);
   const noteMenuItems = useNoteMenuItems(leaf);
   const [menu, setMenu] = useState<{ x: number; y: number; path: string } | null>(null);
   const reorder = useSetAtom(atom_reorderOpenNote);
-  const setPaneDrag = useSetAtom(atom_paneDrag);
   // The row being dragged and where it would land: an insertion point, 0 above
   // the first row up to the count below the last.
   const [dragging, setDragging] = useState<string | null>(null);
@@ -62,7 +55,6 @@ export default function SidebarOpenNotes({
   };
 
   const endDrag = () => {
-    setPaneDrag(null);
     setDragging(null);
     setDropAt(null);
   };
@@ -83,8 +75,7 @@ export default function SidebarOpenNotes({
         const state = saveStateOf(path);
         const dot = state === "idle" ? null : statusDot[state];
         const dotTitle = state === "error" ? saveStatus.message || statusDot.error.title : dot?.title;
-        const tabIndex = workspaceTabs.findIndex((tab) => tab.paneId === leaf.id && tab.filePath === path);
-        const shortcut = onEditor && tabIndex >= 0 && tabIndex < 9 ? formatShortcut(String(tabIndex + 1)) : null;
+        const shortcut = onEditor && index < 9 ? formatShortcut(String(index + 1)) : null;
         return (
           <div
             key={path}
@@ -93,8 +84,6 @@ export default function SidebarOpenNotes({
               event.dataTransfer.setData(DRAG_TYPE, path);
               event.dataTransfer.effectAllowed = "move";
               setDragging(path);
-              // Panes take the row as a dock drop (PaneDropLayer).
-              setPaneDrag({ kind: "open-note", path, sourcePaneId: leaf.id });
             }}
             onDragEnd={endDrag}
             onDragOver={(event) => {
@@ -131,7 +120,7 @@ export default function SidebarOpenNotes({
               }}
               aria-current={isCurrent ? "page" : undefined}
               aria-label={dot ? `${name} — ${dotTitle}` : name}
-              aria-keyshortcuts={shortcut ? `Control+${tabIndex + 1} Meta+${tabIndex + 1}` : undefined}
+              aria-keyshortcuts={shortcut ? `Control+${index + 1} Meta+${index + 1}` : undefined}
               title={path === "draft" ? name : path}
               className={`${sidebarItemClass(isCurrent)} w-full ${shortcut && !shortcut.startsWith("⌘") ? "pr-12" : "pr-8"}`}
             >

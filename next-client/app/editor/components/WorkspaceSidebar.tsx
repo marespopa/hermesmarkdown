@@ -2,8 +2,8 @@
 
 import React, { useEffect, useRef } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { atom_activePaneId, atom_workspaceLayout, findLeaf } from "@/app/atoms/atoms";
-import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_pendingScrollTarget, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
+import { atom_workspaceLayout } from "@/app/atoms/atoms";
+import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesRevealPath, atom_pendingScrollTarget, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import LinkedFromSection from "./sidebar/LinkedFromSection";
@@ -11,7 +11,6 @@ import SidebarFiles from "./sidebar/SidebarFiles";
 import SidebarHeader from "./sidebar/SidebarHeader";
 import SidebarOpenNotes from "./sidebar/SidebarOpenNotes";
 import SidebarOutline from "./sidebar/SidebarOutline";
-import UnlinkedMentionsSection from "./sidebar/UnlinkedMentionsSection";
 import { useSidebarNavigation } from "./sidebar/use-sidebar-navigation";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
 
@@ -21,9 +20,8 @@ const NO_TAGS: string[] = [];
 
 // The window's sidebar (desktop), the same on every /editor route
 // (EditorShell hosts it), and kept to the library: the vault (a switcher),
-// New note and Hide; the note in front's Outline, Linked from (notes linking
-// to it) and Unlinked mentions (notes naming it in plain text); and the
-// vault's Files.
+// New note and Hide; the note in front's Outline and Linked from (notes
+// linking to it); and the vault's Files.
 // Everything else (Home, All Notes, Tags, Tasks, Templates, Trash, Export,
 // Settings, Documentation, search) is the command palette's (Ctrl/Cmd+K,
 // SearchPill) or the toolbar's More menu. A plain panel in the chrome colour with a hairline
@@ -37,7 +35,6 @@ export default function WorkspaceSidebar() {
   const [open, setOpen] = useAtom(atom_sidebarOpen);
   const [width, setWidth] = useAtom(atom_sidebarWidth);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
-  const activePaneId = useAtomValue(atom_activePaneId);
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const navigation = useSidebarNavigation();
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
@@ -45,13 +42,17 @@ export default function WorkspaceSidebar() {
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
 
   // "Show Files" (atom_showFiles): once the sidebar is open, its Files tree
-  // takes keyboard focus. Without a vault there's no tree; the request lapses.
+  // takes keyboard focus, on the folder "Show in Files" asked for if any.
+  // Without a vault there's no tree; the request lapses.
   const [filesFocusRequested, setFilesFocusRequested] = useAtom(atom_filesFocusRequested);
+  const [filesRevealPath, setFilesRevealPath] = useAtom(atom_filesRevealPath);
   useEffect(() => {
     if (!filesFocusRequested || !open) return;
-    treeController.current?.focus();
+    if (filesRevealPath) treeController.current?.reveal(filesRevealPath);
+    else treeController.current?.focus();
     setFilesFocusRequested(false);
-  }, [filesFocusRequested, open, setFilesFocusRequested]);
+    setFilesRevealPath(null);
+  }, [filesFocusRequested, filesRevealPath, open, setFilesFocusRequested, setFilesRevealPath]);
 
   // Clicking in a note or opening one leaves it open. Only typing into a
   // note puts it away, and only with Close Sidebar While Writing on.
@@ -65,9 +66,9 @@ export default function WorkspaceSidebar() {
     return () => document.removeEventListener("beforeinput", onBeforeInput, true);
   }, [open, closeWhileWriting, setOpen]);
 
-  // The note in front: the focused pane's tab, on the editor only.
+  // The note in front, on the editor only.
   const onWorkspace = navigation.onEditor;
-  const activeTabPath = findLeaf(workspaceLayout.rootContainer, activePaneId)?.activeFilePath ?? null;
+  const activeTabPath = workspaceLayout.rootContainer.activeFilePath ?? null;
   const currentPath = onWorkspace ? activeTabPath : null;
 
   const dragRef = useRef<{ startX: number; startWidth: number } | null>(null);
@@ -97,21 +98,18 @@ export default function WorkspaceSidebar() {
       }}
       // Hidden, it slides out by its own width as the page slides back.
       style={{ width, left: open ? 0 : -width }}
-      className="absolute inset-y-0 flex flex-col bg-surface paper-grain border-r border-edge-subtle font-sans transition-[left] duration-200 ease-out motion-reduce:transition-none"
+      className="absolute inset-y-0 flex flex-col bg-surface paper-grain border-r border-edge-subtle font-sans transition-[left] duration-layout ease-layout motion-reduce:transition-none"
     >
       <SidebarHeader onNewNote={navigation.newNote} onHide={() => setOpen(false)} />
 
       <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-1">
         <SidebarOpenNotes onEditor={onWorkspace} onOpen={navigation.openOpenNote} />
         {onWorkspace && activeTabPath && (
-          // The note is already in front: its pane just moves the caret there.
+          // The note is already in front: the editor just moves the caret there.
           <SidebarOutline path={activeTabPath} onJump={(line) => setPendingScrollTarget({ path: activeTabPath, line })} />
         )}
         {onWorkspace && hasVault && activeTabPath && activeTabPath !== "draft" && (
-          <>
-            <LinkedFromSection path={activeTabPath} onOpen={navigation.openHandle} />
-            <UnlinkedMentionsSection path={activeTabPath} onOpen={navigation.openHandle} />
-          </>
+          <LinkedFromSection path={activeTabPath} onOpen={navigation.openHandle} />
         )}
         {hasVault && (
           <SidebarFiles

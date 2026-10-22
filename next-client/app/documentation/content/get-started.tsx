@@ -224,7 +224,7 @@ export const getStartedGroup: Group = {
       id: "editor-layout",
       title: "Editor layout",
       lead: "A full-screen editor with a slim header. Everything else is in the command palette and a few dedicated views.",
-      keywords: "files show files search views tags tasks settings theme pane split toolbar sidebar command palette",
+      keywords: "files show files search views tags tasks settings theme toolbar sidebar command palette",
       body: (
         <>
           <p>
@@ -241,12 +241,12 @@ export const getStartedGroup: Group = {
             place: press <code>Enter</code> or click away to keep the new name, <code>Esc</code> to back out. The
             search bar in the top-right corner (or <code>CTRL/CMD+K</code>) opens the command palette, where every note
             and command is: Save, Copy Markdown, Export as PDF or HTML, Pin Note, Settings, Documentation, Ask or Edit with AI and the rest.
-            Each pane keeps up to 20 notes
+            The editor keeps up to 20 notes
             open behind the one in front, listed in the sidebar&apos;s Open Notes: opening another closes the
             one you looked at least recently, never one with unsaved changes, and <code>CTRL/CMD+1–9</code>{" "}
             jumps between them (each of the first nine shows its shortcut there). Drag a note up or down the
             list (or press <code>ALT+↑/↓</code> on it) to put it on the number you want. Right-click a note there, or
-            the note&apos;s name at the top, for its menu: Copy Markdown, Open in pane, Pin Note, Rename…, Move
+            the note&apos;s name at the top, for its menu: Copy Markdown, Pin Note, Rename…, Move
             to Trash, and Close, Close Others or Close All. While the sidebar is hidden, its button sits in the top-left corner.
           </p>
           <p>
@@ -259,7 +259,7 @@ export const getStartedGroup: Group = {
           <p>
             The <strong>sidebar</strong> is your library, the same on every editor page: its header names the
             vault (click it to switch to a recent vault or open another) beside <strong>New note</strong> and the
-            button that hides it; below come <strong>Open Notes</strong> (the notes open in the pane you&apos;re in:
+            button that hides it; below come <strong>Open Notes</strong> (the notes open in the editor:
             click one to switch to it, or its × to close it; a dot marks unsaved changes), the{" "}
             <strong>Outline</strong> of the note in front (click a heading to jump to it) and <strong>Files</strong>,
             the vault&apos;s tree. A line sets each section apart, and each has a chevron to fold or unfold it.
@@ -305,10 +305,6 @@ export const getStartedGroup: Group = {
               { label: "Keyboard shortcuts", value: "Show Keyboard Shortcuts command" },
             ]}
           />
-          <p>
-            Open several files side by side: run <strong>Split Pane Right</strong> from the command palette (or <strong>Open in pane</strong> in the title&apos;s right-click menu),
-            and resize with the divider. Each pane has its own title.
-          </p>
           <p>
             To be alone with the text, close the sidebar (<code>CTRL/CMD+\</code>); it stays how you leave
             it. See{" "}

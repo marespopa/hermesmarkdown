@@ -26,7 +26,7 @@ export const settingsGroup: Group = {
             mode you picked, and both under System; the command palette also has{" "}
             <strong>Light Theme: …</strong> and <strong>Dark Theme: …</strong>. The
             editor font, code font (for code blocks and inline code), text size and Full Width (on by default) are set under Settings →
-            Appearance → Typography and apply to every pane in a split workspace. Vim mode and{" "}
+            Appearance → Typography and apply across the editor. Vim mode and{" "}
             <TextLink href="#focus">Focus</TextLink> are under Settings →
             Editor. Word wrap, line numbers and invisibles (¶ on empty lines, dots for spaces) are
             command palette toggles: <strong>Toggle Word Wrap</strong>,{" "}

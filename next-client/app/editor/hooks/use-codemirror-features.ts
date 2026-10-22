@@ -29,6 +29,18 @@ interface UseCodeMirrorFeaturesOptions {
   onWikiLinkClick?: (name: string) => void;
 }
 
+// Links and dates sit on one line: only the line at `pos` is searched, not the
+// whole note, so a caret move doesn't copy and scan every character.
+function findOnLine<T extends { start: number; end: number }>(
+  view: EditorView,
+  pos: number,
+  find: (text: string, pos: number) => T | null,
+): T | null {
+  const line = view.state.doc.lineAt(pos);
+  const match = find(line.text, pos - line.from);
+  return match && { ...match, start: match.start + line.from, end: match.end + line.from };
+}
+
 // Positioned-widget layer (Step 4): link pill and date picker. Detection is
 // cursor-driven, not hover-driven; positions come from `view.coordsAtPos`,
 // converted to containerRef-relative coordinates for the existing
@@ -52,7 +64,7 @@ export function useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWik
   }, [containerRef]);
 
   const buildLinkPill = useCallback((view: EditorView, pos: number): LinkPillState | null => {
-    const link = findLinkAtPos(view.state.doc.toString(), pos);
+    const link = findOnLine(view, pos, findLinkAtPos);
     if (!link) return null;
     const p = posToXY(view, pos);
     const pillWidth = 70;
@@ -74,12 +86,11 @@ export function useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWik
 
   const runDetection = useCallback((view: EditorView) => {
     const sel = view.state.selection.main;
-    const value = view.state.doc.toString();
     const pos = sel.head;
 
     setLinkPill(sel.empty ? buildLinkPill(view, pos) : null);
 
-    const dm = findDateAtPos(value, pos);
+    const dm = findOnLine(view, pos, findDateAtPos);
     if (dm) {
       const p = posToXY(view, pos);
       const pEnd = posToXY(view, dm.end);
@@ -109,7 +120,7 @@ export function useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWik
       if (!e.ctrlKey && !e.metaKey) return;
       const pos = view.posAtCoords({ x: e.clientX, y: e.clientY });
       if (pos == null) return;
-      const link = findLinkAtPos(view.state.doc.toString(), pos);
+      const link = findOnLine(view, pos, findLinkAtPos);
       if (!link) return;
       e.preventDefault();
       if (link.type === "url") {

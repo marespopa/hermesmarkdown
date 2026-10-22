@@ -1,8 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSetAtom } from "jotai";
-import { atom_paneDrag } from "@/app/atoms/pane-drag-atoms";
 import type { RowEditing } from "./FileRow";
 import type { PendingCreate } from "./TreeNodes";
 import {
@@ -57,7 +55,6 @@ export function useTreeActions({
     processedFiles, openFile, onClose, renameFile, deleteFile, trashItems, moveItem, moveItems,
     resolveFolderHandle, createNewFile, createFolder,
   } = props;
-  const setPaneDrag = useSetAtom(atom_paneDrag);
   const [renamingPath, setRenamingPath] = useState<string | null>(null);
   const [creating, setCreating] = useState<{ kind: "file" | "folder"; parentPath: string } | null>(null);
   const [menu, setMenu] = useState<{ x: number; y: number; target: MenuTarget } | null>(null);
@@ -210,11 +207,6 @@ export function useTreeActions({
   const startDrag = useCallback((entry: DraggedEntry) => {
     if (!selection.selected.has(entry.path) || selection.selected.size < 2) {
       setDraggedEntry(entry);
-      // A single file can also be dropped on a pane (PaneDropLayer); the
-      // payload is cleared when any drag ends (use-pane-drag-reset).
-      if (entry.kind === "file" && entry.handle) {
-        setPaneDrag({ kind: "file", path: entry.path, handle: entry.handle as FileSystemFileHandle });
-      }
       return;
     }
     const group = [...selection.selected].map((path): DraggedEntry => {
@@ -224,7 +216,7 @@ export function useTreeActions({
         : { kind: "folder", path, name: path.split("/").pop() ?? path };
     });
     setDraggedEntry({ ...entry, group });
-  }, [selection.selected, entryByPath, setDraggedEntry, setPaneDrag]);
+  }, [selection.selected, entryByPath, setDraggedEntry]);
 
   // `entry` is passed by touch drag, whose handler outlives this render's
   // `draggedEntry`.

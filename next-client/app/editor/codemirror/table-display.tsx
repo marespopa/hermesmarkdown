@@ -16,7 +16,7 @@ import { quoteFrameClass } from "./table-quote-frame";
 // place — the pipe syntax is never visible. The document stays the single
 // source of truth: every keystroke in a cell is written straight back as a
 // minimal change to that cell's source range, so undo/redo, autosave,
-// split panes and merges all see the table exactly as displayed.
+// and merges all see the table exactly as displayed.
 
 export interface TableDisplayMatch {
   from: number;

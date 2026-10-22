@@ -21,7 +21,6 @@ import { renderedBlockExtension } from "./rendered-block";
 import { noteEmbedsExtension } from "./note-embeds";
 import { embedGhost } from "./embed-ghost";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
-import { bulletAutospace } from "./bullet-autospace";
 import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
 import { createEmojiSource } from "./emoji-completion";
@@ -31,9 +30,9 @@ import { templateBlanks } from "./template-blanks";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
 import { tableKeyBindings } from "./table-keymap";
 import { frontmatterCollapse } from "./frontmatter-fold";
+import { markdownProblems } from "./markdown-problems";
 import { flowMode, type FlowLevel } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
-import { listCaretGuard } from "./list-caret";
 import { invisibles } from "./invisibles";
 import { editorLineNumbers } from "./line-numbers";
 import { findReplace } from "./find-replace";
@@ -56,7 +55,6 @@ interface BuildExtensionsOptions {
   flowModeCompartment: Compartment;
   onOpenActiveHelperRef: { current: () => boolean };
   placeholder?: string;
-  readOnly: boolean;
   onFocusChange: (focused: boolean) => void;
   onCursorActivity?: (view: EditorView) => void;
   // Scrolling or layout changes (rendered viewport, line heights, size):
@@ -87,13 +85,14 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     EditorState.allowMultipleSelections.of(true),
     rectangularSelection(),
     crosshairCursor(),
-    // addKeymap: false — lang-markdown's built-in Enter continuation for
-    // lists/blockquotes stacks with our own continueQuoteOnEnter command
-    // (formatKeymap), producing doubled "> " prefixes. We own continuation
-    // logic explicitly instead: formatKeymap continues quotes and list items.
+    // addKeymap: false — no list or quote continuation on Enter, and
+    // Backspace deletes one character: typing is never rewritten
+    // (formatKeymap binds Enter to a plain line break).
     markdown({ base: markdownLanguage, codeLanguages: languages, addKeymap: false }),
     codeFolding(),
     frontmatterCollapse,
+    // Invalid frontmatter, unclosed code / math blocks: a notice above them.
+    markdownProblems,
     markdownHighlightPlugin,
     collapsedCalloutCorners,
     detailsMarks,
@@ -103,7 +102,6 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     liveMarkers,
     // Markdown marks show only on the caret's lines.
     syntaxReveal,
-    listCaretGuard,
     templateFieldPills,
     annotationDisplayPlugin,
     tableDisplayExtension,
@@ -113,7 +111,6 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     embedGhost(() => opts.slashMenuCallbacksRef.current.embedFiles?.() ?? []),
     noteCalcExtension,
     shortcodeExpandPlugin,
-    bulletAutospace,
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? loadedVim()?.vim() ?? [] : []),
     autocompletion({
@@ -136,8 +133,6 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // Without defaultKeymap's Ctrl/Cmd+[ / ] (indent less / more, which Tab
     // and Shift+Tab do): Ctrl+[ shows / hides the sidebar (EditorShell).
     keymap.of([...formatKeymap, ...searchKeymap, ...historyKeymap, ...defaultKeymap.filter((binding) => binding.key !== "Mod-[" && binding.key !== "Mod-]")]),
-    EditorView.editable.of(!opts.readOnly),
-    EditorState.readOnly.of(!!opts.readOnly),
     EditorView.domEventHandlers({
       keydown: (event, view) => {
         if (event.key === "Enter" && event.shiftKey && (event.ctrlKey || event.metaKey)) {

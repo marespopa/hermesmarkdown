@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createStore, Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { atom_activePaneId, atom_liveHandles, atom_openFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_newNoteRequested, atom_notePins, atom_pendingScrollTarget, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesRevealPath, atom_newNoteRequested, atom_notePins, atom_pendingScrollTarget, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import WorkspaceSidebar from "./WorkspaceSidebar";
@@ -15,7 +15,7 @@ const fileSystem = vi.hoisted(() => ({
   createFolder: vi.fn(),
   openFile: vi.fn(async () => {}),
   renameFile: vi.fn(),
-  treeController: null as null | { startCreate: () => void; focus: () => void },
+  treeController: null as null | { startCreate: () => void; focus: () => void; reveal: (path: string) => void },
 }));
 
 const navigation = vi.hoisted(() => ({ push: vi.fn(), pathname: "/editor" }));
@@ -66,16 +66,16 @@ const FocusRequest = () => <output data-testid="focus-request">{String(useAtomVa
 const NewNoteRequest = () => <output data-testid="new-note">{String(useAtomValue(atom_newNoteRequested))}</output>;
 const ScrollTarget = () => <output data-testid="scroll-target">{JSON.stringify(useAtomValue(atom_pendingScrollTarget))}</output>;
 
-const left = { id: "left", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
-const right = { id: "right", type: "editor" as const, openFilePaths: ["b.md"], activeFilePath: "b.md", isPinned: false };
+const left = { id: "left", openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
 
-const renderSidebar = (open = true, descriptor: unknown = null, focusRequested = false, openFiles: Record<string, unknown> = {}, leftActive = "a.md", metadata: Record<string, unknown> = {}) =>
+const renderSidebar = (open = true, descriptor: unknown = null, focusRequested = false, openFiles: Record<string, unknown> = {}, leftActive = "a.md", metadata: Record<string, unknown> = {}, revealPath: string | null = null) =>
   render(
     <Provider>
       <HydrateAtoms initialValues={[
         [atom_sidebarOpen, open],
         [atom_activePaneId, "left"],
         [atom_filesFocusRequested, focusRequested],
+        [atom_filesRevealPath, revealPath],
         [atom_vaultHandle, fileSystem.vaultHandle],
         [atom_vaultDescriptor, descriptor],
         [atom_fileMetadata, metadata as never],
@@ -84,7 +84,7 @@ const renderSidebar = (open = true, descriptor: unknown = null, focusRequested =
           "b.md": { fileName: "b.md", content: "B changed", lastSavedContent: "B" },
           ...openFiles,
         }],
-        [atom_workspaceLayout, { rootContainer: { id: "root", direction: "horizontal", sizes: [50, 50], children: [{ ...left, openFilePaths: [leftActive], activeFilePath: leftActive }, right] } }],
+        [atom_workspaceLayout, { rootContainer: { ...left, openFilePaths: [leftActive], activeFilePath: leftActive } }],
       ]}>
         <WorkspaceSidebar />
         <ActivePane />
@@ -110,17 +110,29 @@ describe("WorkspaceSidebar", () => {
   it("focuses the Files tree when Show Files asks for it, then clears the request", () => {
     const focus = vi.fn();
     fileSystem.vaultHandle = { name: "vault" };
-    fileSystem.treeController = { startCreate: vi.fn(), focus };
+    fileSystem.treeController = { startCreate: vi.fn(), focus, reveal: vi.fn() };
     renderSidebar(true, null, true);
 
     expect(focus).toHaveBeenCalledOnce();
     expect(screen.getByTestId("focus-request")).toHaveTextContent("false");
   });
 
+  it("reveals the folder Show in Files asked for instead of the tree's own row", () => {
+    const focus = vi.fn();
+    const reveal = vi.fn();
+    fileSystem.vaultHandle = { name: "vault" };
+    fileSystem.treeController = { startCreate: vi.fn(), focus, reveal };
+    renderSidebar(true, null, true, {}, "a.md", {}, "Projects/Launch");
+
+    expect(reveal).toHaveBeenCalledWith("Projects/Launch");
+    expect(focus).not.toHaveBeenCalled();
+    expect(screen.getByTestId("focus-request")).toHaveTextContent("false");
+  });
+
   it("leaves the tree alone without a focus request", () => {
     const focus = vi.fn();
     fileSystem.vaultHandle = { name: "vault" };
-    fileSystem.treeController = { startCreate: vi.fn(), focus };
+    fileSystem.treeController = { startCreate: vi.fn(), focus, reveal: vi.fn() };
     renderSidebar(true);
 
     expect(focus).not.toHaveBeenCalled();
@@ -181,12 +193,10 @@ describe("WorkspaceSidebar", () => {
     expect(screen.queryByTestId("file-tree")).not.toBeInTheDocument();
   });
 
-  it("lists the focused pane's open notes, the one in front highlighted", () => {
+  it("lists the open notes, the one in front highlighted", () => {
     renderSidebar(true);
     const openNotes = within(screen.getByRole("region", { name: "Open Notes" }));
     expect(openNotes.getByRole("button", { name: "a" })).toHaveAttribute("aria-current", "page");
-    // b.md is in the other pane.
-    expect(openNotes.queryByRole("button", { name: /^b/ })).not.toBeInTheDocument();
     expect(openNotes.getByRole("button", { name: "Close a" })).toBeInTheDocument();
   });
 
@@ -205,7 +215,7 @@ describe("WorkspaceSidebar", () => {
     navigation.pathname = "/editor";
   });
 
-  it("brings an open note to the front of its pane, and back to the editor from a page", () => {
+  it("brings an open note to the front, and back to the editor from a page", () => {
     const twoNotes = { ...left, openFilePaths: ["a.md", "c.md"] };
     navigation.pathname = "/editor/tasks";
     render(
@@ -255,7 +265,7 @@ describe("WorkspaceSidebar", () => {
 
       const menu = screen.getByRole("menu", { name: "a actions" });
       expect(within(menu).getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
-        "Copy Markdown", "Open in pane", "Open preview to the side", "Show pane as preview", "Close", "Close Others", "Close All",
+        "Copy Markdown", "Close", "Close Others", "Close All",
       ]);
       fireEvent.click(within(menu).getByRole("menuitem", { name: "Close Others" }));
       expect((store.get(atom_workspaceLayout).rootContainer as typeof left).openFilePaths).toEqual(["a.md"]);
@@ -334,7 +344,6 @@ describe("WorkspaceSidebar", () => {
     fileSystem.vaultHandle = null;
     renderSidebar(true, null, false, {}, "a.md", linked);
     expect(screen.queryByRole("region", { name: "Linked from" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: "Unlinked mentions" })).not.toBeInTheDocument();
   });
 
   it("titles its header with the vault's name, beside a button that hides it", () => {

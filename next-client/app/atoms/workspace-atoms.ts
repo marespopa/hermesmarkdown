@@ -34,7 +34,6 @@ export const atom_workspaceLayout = atomWithStorage<WorkspaceState>(
     version: WORKSPACE_LAYOUT_VERSION,
     rootContainer: {
       id: "default-pane",
-      type: "editor",
       openFilePaths: ["draft"],
       activeFilePath: "draft",
       isPinned: false,
@@ -42,4 +41,9 @@ export const atom_workspaceLayout = atomWithStorage<WorkspaceState>(
   },
 );
 
-export const atom_activePaneId = atom<string | null>("default-pane");
+// The editor has one pane, so the active pane is always it. Writable so
+// callers that focus "their" pane keep working; the write is a no-op.
+export const atom_activePaneId = atom(
+  (get): string | null => get(atom_workspaceLayout).rootContainer.id,
+  (_get, _set, _paneId: string | null) => {},
+);

@@ -57,7 +57,6 @@ function getShortcutGroups(): ShortcutGroup[] {
         { label: "Link", keys: formatShortcut("K", { alt: true }) },
         { label: "Code block", keys: formatShortcut("C", { alt: true }) },
         { label: "Insert a table", keys: formatShortcut("I", { shift: true }) },
-        { label: "Task (at the start of a line)", keys: "[] Space" },
         { label: "Emoji menu", keys: "{ or :name" },
         { label: "Find and replace in note", keys: formatShortcut("F") },
         { label: "Add next match to the selection", keys: formatShortcut("D") },

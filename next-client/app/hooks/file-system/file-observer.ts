@@ -106,14 +106,21 @@ export function changesFileList(record: FileSystemChangeRecord): boolean {
 }
 
 // Watches a whole vault folder (recursively) and calls `onChange` when its
-// file list changes (changesFileList). Returns a stop function, or null when
-// the browser has no FileSystemObserver or can't observe this folder.
-export async function observeVault(root: FileSystemDirectoryHandle, onChange: () => void): Promise<(() => void) | null> {
+// file list changes (changesFileList), and `onError` when the browser drops
+// the observation (the folder was deleted, moved or became unreadable).
+// Returns a stop function, or null when the browser has no
+// FileSystemObserver or can't observe this folder.
+export async function observeVault(
+  root: FileSystemDirectoryHandle,
+  onChange: () => void,
+  onError?: () => void,
+): Promise<(() => void) | null> {
   const Observer = getObserverConstructor();
   if (!Observer) return null;
   try {
     const observer = new Observer((records) => {
       if (records.some(changesFileList)) onChange();
+      if (onError && records.some((record) => record.type === "errored")) onError();
     });
     await observer.observe(root, { recursive: true });
     return () => observer.disconnect();

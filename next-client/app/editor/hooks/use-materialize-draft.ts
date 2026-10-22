@@ -4,7 +4,6 @@ import { useCallback } from "react";
 import { useStore } from "jotai";
 import toast from "react-hot-toast";
 import {
-  atom_activePaneId,
   atom_isVaultPending,
   atom_isVaultRestoring,
   atom_liveHandles,
@@ -12,8 +11,6 @@ import {
   atom_openFiles,
   atom_vaultHandle,
   atom_workspaceLayout,
-  findLeaf,
-  getFirstLeaf,
 } from "@/app/atoms/atoms";
 import { atom_newNoteFolder } from "@/app/atoms/ui-atoms";
 import { withRetry } from "@/app/hooks/file-system/shared";
@@ -38,7 +35,7 @@ let inFlight: Promise<string | null> | null = null;
 export function useMaterializeDraft({ scanVault, indexVaultTags }: UseMaterializeDraftOptions) {
   const store = useStore();
 
-  return useCallback(async (paneId?: string): Promise<string | null> => {
+  return useCallback(async (_paneId?: string): Promise<string | null> => {
     if (inFlight) return inFlight;
 
     // A restored draft waits until the vault is readable (startup, or
@@ -46,8 +43,7 @@ export function useMaterializeDraft({ scanVault, indexVaultTags }: UseMaterializ
     const vaultHandle = store.get(atom_vaultHandle);
     if (!vaultHandle || store.get(atom_isVaultRestoring) || store.get(atom_isVaultPending)) return null;
 
-    const root = store.get(atom_workspaceLayout).rootContainer;
-    const leaf = findLeaf(root, paneId ?? store.get(atom_activePaneId)) ?? getFirstLeaf(root);
+    const leaf = store.get(atom_workspaceLayout).rootContainer;
     if ((leaf.activeFilePath || "draft") !== "draft") return null;
 
     if (!store.get(atom_openFiles).draft?.content.trim()) return null;

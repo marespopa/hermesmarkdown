@@ -1,9 +1,10 @@
-import { atom, type Getter } from "jotai";
-import { atomWithStorage } from "jotai/utils";
+import { atom } from "jotai";
+import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { atomFamily } from "jotai-family";
 import { atom_workspaceLayout, atom_activePaneId } from "./workspace-atoms";
-import { findLeaf, getFirstLeaf, updateLeaf } from "./utils";
+import { findLeaf, updateLeaf } from "./utils";
 import { forgetClosedFiles, tabsToEvict, touchRecent } from "./tab-limit";
+import { clearRecoveryIssue, isQuotaError, reportRecoveryIssue } from "./recovery-atoms";
 import { PanelLeaf } from "../types/workspace";
 
 // File contents & metadata
@@ -23,6 +24,55 @@ export interface FileState {
   snapshots?: Snapshot[];
 }
 
+// Typing changes the open notes on every keystroke, and writing them all to
+// localStorage each time (a JSON copy of every open note and its snapshots)
+// cost the editor a frame per key. Writes wait for a pause in typing and go
+// out at once when the page is hidden or closed; reads see the pending value.
+const PERSIST_DELAY_MS = 400;
+
+type SyncStorage<T> = ReturnType<typeof createJSONStorage<T>>;
+
+export function debouncedJSONStorage<T>(delay = PERSIST_DELAY_MS): SyncStorage<T> {
+  const storage = createJSONStorage<T>(() => localStorage);
+  let pending: { key: string; value: T } | null = null;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const flush = () => {
+    clearTimeout(timer);
+    if (!pending) return;
+    const { key, value } = pending;
+    pending = null;
+    // A full localStorage throws; the notes stay in memory, so say so
+    // instead of losing the write silently.
+    try {
+      storage.setItem(key, value);
+      clearRecoveryIssue("storage-full");
+    } catch (err) {
+      if (!isQuotaError(err)) throw err;
+      reportRecoveryIssue({ kind: "storage-full" });
+    }
+  };
+  if (typeof window !== "undefined") {
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") flush();
+    });
+  }
+  return {
+    ...storage,
+    getItem: (key, initialValue) => (pending?.key === key ? pending.value : storage.getItem(key, initialValue)),
+    setItem: (key, value) => {
+      if (pending && pending.key !== key) flush();
+      pending = { key, value };
+      clearTimeout(timer);
+      timer = setTimeout(flush, delay);
+    },
+    removeItem: (key) => {
+      if (pending?.key === key) pending = null;
+      storage.removeItem(key);
+    },
+  };
+}
+
 export const atom_openFiles = atomWithStorage<Record<string, FileState>>(
   "openFiles",
   {
@@ -33,6 +83,7 @@ export const atom_openFiles = atomWithStorage<Record<string, FileState>>(
       activeFilePath: null,
     },
   },
+  debouncedJSONStorage(),
 );
 
 export const atom_hasOpenFileContent = atom((get) =>
@@ -64,7 +115,7 @@ export const atom_fileContent = atomFamily((path: string) =>
   ),
 );
 
-// Derived atoms for the "Active" file (focused pane)
+// Derived atoms for the "Active" file (the pane's front note)
 export const atom_activeFile = atom((get) => {
   const layout = get(atom_workspaceLayout);
   const activePaneId = get(atom_activePaneId);
@@ -232,22 +283,15 @@ export const EMPTY_DRAFT: FileState = {
   activeFilePath: null,
 };
 
-// Pane that receives draft actions: the active pane, or the first one when the
-// active id is stale (e.g. after a layout loaded from storage).
-function targetLeaf(get: Getter, paneId?: string | null) {
-  const root = get(atom_workspaceLayout).rootContainer;
-  return findLeaf(root, paneId ?? get(atom_activePaneId)) ?? getFirstLeaf(root);
-}
-
-// Focuses the draft tab in the given (default: active) pane, adding it when
-// absent. An unsaved draft keeps its text; otherwise it starts blank.
-export const atom_openDraft = atom(null, (get, set, paneId?: string) => {
-  const leaf = targetLeaf(get, paneId);
+// Focuses the draft tab, adding it when absent. An unsaved draft keeps its
+// text; otherwise it starts blank. The pane id is accepted for callers that
+// pass one; there is only one pane.
+export const atom_openDraft = atom(null, (get, set, _paneId?: string) => {
+  const leaf = get(atom_workspaceLayout).rootContainer;
   if (!get(atom_openFiles).draft) {
     set(atom_openFiles, (prev) => ({ ...prev, draft: { ...EMPTY_DRAFT } }));
   }
   set(atom_liveHandles("draft"), null);
-  set(atom_activePaneId, leaf.id);
   set(atom_workspaceLayout, (prev) => ({
     ...prev,
     rootContainer: updateLeaf(prev.rootContainer, leaf.id, {
@@ -286,7 +330,7 @@ export const atom_materializeDraft = atom(null, (get, set, draft: MaterializedDr
     },
   }));
   set(atom_materializedDraftPath, draft.path);
-  const leaf = targetLeaf(get, draft.paneId);
+  const leaf = get(atom_workspaceLayout).rootContainer;
   set(atom_workspaceLayout, (prev) => ({
     ...prev,
     rootContainer: updateLeaf(prev.rootContainer, leaf.id, {

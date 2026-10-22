@@ -30,7 +30,7 @@ without changing the public props contract or command behavior.
   Chat), then Improve Writing, Summarize / Structure and Insert Element (table,
   Mermaid diagram, formula), each a menu of one-click actions, disabled until a
   key is set.
-- `workspace-task-view-commands.ts` defines panels, panes, tabs, the editor-only
+- `workspace-task-view-commands.ts` defines panels, tabs, the editor-only
   toggles (Toggle Hidden Files, Toggle Sidebar), Show Token Cost, the welcome
   tour, tasks and views.
 
@@ -66,4 +66,3 @@ visible use their original `disabledReason`.
 When adding a command, place it in the contributor matching its behavior and
 insert its group in `build-editor-commands.ts` at the intended registration position.
 
-`pane-layout-commands.ts` contributes **Open Preview to the Side**, **Show Pane as Preview / Editor** and **Lock Scroll With Other Pane / Unlock Scroll** (disabled without a two-pane split); registered after Split Pane Right.
