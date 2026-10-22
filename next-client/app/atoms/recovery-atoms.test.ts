@@ -46,21 +46,18 @@ describe("open-note storage running out of room", () => {
     store.set(atom_recoveryIssue, null);
     vi.useFakeTimers();
   });
-  afterEach(() => {
-    vi.useRealTimers();
-    vi.restoreAllMocks();
-  });
+  afterEach(() => vi.useRealTimers());
 
   it("reports a full localStorage instead of throwing, and clears once a write succeeds", () => {
     const storage = debouncedJSONStorage<{ text: string }>(10);
-    const setItem = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+    // The test setup's localStorage is a mock; fail its next write only.
+    vi.mocked(window.localStorage.setItem).mockImplementationOnce(() => {
       throw new DOMException("full", "QuotaExceededError");
     });
     storage.setItem("openFiles", { text: "a" });
     expect(() => vi.advanceTimersByTime(10)).not.toThrow();
     expect(store.get(atom_recoveryIssue)).toEqual({ kind: "storage-full" });
 
-    setItem.mockRestore();
     storage.setItem("openFiles", { text: "b" });
     vi.advanceTimersByTime(10);
     expect(store.get(atom_recoveryIssue)).toBeNull();
