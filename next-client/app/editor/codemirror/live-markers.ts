@@ -7,9 +7,10 @@ import { liveMarkersTheme } from "./live-markers-theme";
 import { taskStatusFromChar, type TaskStatus } from "@/app/utils/task-status";
 import { cycleTaskBox } from "./live-markers-widgets";
 
-// Live markers: on the caret's lines every Markdown character shows as typed,
-// so writing is plain typing; syntax-reveal.ts hides the marks on the other
-// lines. Shown syntax is dimmed (inline marks by highlight.ts). A heading's `#`s and a quote's or callout's `>`
+// Live markers: inline marks show as typed while the caret touches their token,
+// a heading's `#`s and a quote's `>`s on the caret's lines;
+// syntax-reveal.ts hides the marks elsewhere.
+// Shown syntax is dimmed (inline marks by highlight.ts). A heading's `#`s and a quote's or callout's `>`
 // hang in the margin left of the text (a heading inside a quote keeps its
 // `#`s inline, after the `>`). List markers stay inline, as typed,
 // with their real spaces; a task's marker takes its status colour, and

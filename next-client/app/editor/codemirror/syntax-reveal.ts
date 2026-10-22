@@ -4,11 +4,11 @@ import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate
 import { quotedRowPrefix } from "../utils/quoted-table";
 import { frontmatterFoldRangeOf } from "./frontmatter-fold";
 
-// Syntax shows where you're writing: a line's Markdown marks (emphasis,
-// strikethrough and inline-code marks, a heading's `#`s, a quote's or
-// callout's `>`s, a callout's `[!type]`) are hidden on every line but the
-// ones the caret or selection is on, where they show as typed (dimmed by
-// highlight.ts, the `#`s and `>`s in the margin by live-markers.ts). An
+// Syntax shows where you're writing. An inline mark (emphasis, strikethrough,
+// inline code) shows, dimmed by highlight.ts, while the caret or a selection
+// touches its token (edges included); the rest of the line stays rendered. A
+// heading's `#`s, a quote's or callout's `>`s and a callout's `[!type]` show on
+// the caret's lines (the `#`s and `>`s in the margin by live-markers.ts). An
 // editor without focus shows none. List markers and task boxes, code fences,
 // tables and frontmatter keep their own display; links fold on their own
 // (link-display.ts) and rules show their dashes on the caret's line
@@ -18,6 +18,14 @@ const hidden = Decoration.replace({});
 // A callout's `[!type]`, its fold sign and the space after them.
 const REGEX_CALLOUT_TAG = /^((?:[ \t]*>)+[ \t]*)(\[![\w-]+\][+-]?[ \t]?)/;
 const INLINE_MARKS = new Set(["EmphasisMark", "StrikethroughMark"]);
+const INLINE_TOKENS = new Set(["Emphasis", "StrongEmphasis", "Strikethrough", "InlineCode"]);
+
+/** Where the selection reveals syntax: whole lines (block marks) and the
+ *  ranges themselves (inline tokens). Both empty when the editor isn't focused. */
+export interface RevealAt {
+  lines: Set<number>;
+  ranges: readonly { from: number; to: number }[];
+}
 
 /** Line numbers the selection touches, or none while the editor isn't focused. */
 export function activeLines(state: EditorState, hasFocus: boolean): Set<number> {
@@ -30,6 +38,15 @@ export function activeLines(state: EditorState, hasFocus: boolean): Set<number> 
   return lines;
 }
 
+export function revealAt(state: EditorState, hasFocus: boolean): RevealAt {
+  return { lines: activeLines(state, hasFocus), ranges: hasFocus ? state.selection.ranges : [] };
+}
+
+// Edges count, like a link's label (selectionTouchesLink).
+function touches(ranges: RevealAt["ranges"], from: number, to: number): boolean {
+  return ranges.some((r) => r.from <= to && r.to >= from);
+}
+
 // Extends a marker's range over the spaces after it ("## ", "> ").
 function withTrailingSpace(state: EditorState, to: number): number {
   return state.doc.sliceString(to, to + 1) === " " ? to + 1 : to;
@@ -38,11 +55,11 @@ function withTrailingSpace(state: EditorState, to: number): number {
 export function buildSyntaxRevealDecorations(
   state: EditorState,
   visibleRanges: readonly { from: number; to: number }[],
-  active: Set<number>,
+  reveal: RevealAt,
 ): DecorationSet {
   const ranges: Range<Decoration>[] = [];
   const { doc } = state;
-  const isActive = (pos: number) => active.has(doc.lineAt(pos).number);
+  const lineRevealed = (pos: number) => reveal.lines.has(doc.lineAt(pos).number);
   const hide = (from: number, to: number) => {
     if (to > from) ranges.push(hidden.range(from, to));
   };
@@ -64,18 +81,19 @@ export function buildSyntaxRevealDecorations(
           case "CommentBlock":
             return false;
         }
-        if (isActive(ref.from)) return;
-        if (INLINE_MARKS.has(ref.name)) {
-          hide(ref.from, ref.to);
-        } else if (ref.name === "CodeMark" && ref.node.parent?.name === "InlineCode") {
+        if (INLINE_MARKS.has(ref.name) || (ref.name === "CodeMark" && ref.node.parent?.name === "InlineCode")) {
+          const token = ref.node.parent;
+          if (token && INLINE_TOKENS.has(token.name) && touches(reveal.ranges, token.from, token.to)) return;
           hide(ref.from, ref.to);
         } else if (ref.name === "HeaderMark") {
+          if (lineRevealed(ref.from)) return;
           // Setext underlines and closing `#`s stay as typed.
           const heading = ref.node.parent;
           if (heading?.name.startsWith("ATXHeading") && ref.from === heading.from) {
             hide(ref.from, withTrailingSpace(state, ref.to));
           }
         } else if (ref.name === "QuoteMark") {
+          if (lineRevealed(ref.from)) return;
           // One range per line covers every `>` of a nested quote, and a
           // callout's `[!type]` after them.
           const line = doc.lineAt(ref.from);
@@ -97,7 +115,7 @@ export const syntaxReveal = ViewPlugin.fromClass(
     decorations: DecorationSet;
 
     constructor(view: EditorView) {
-      this.decorations = buildSyntaxRevealDecorations(view.state, view.visibleRanges, activeLines(view.state, view.hasFocus));
+      this.decorations = buildSyntaxRevealDecorations(view.state, view.visibleRanges, revealAt(view.state, view.hasFocus));
     }
 
     update(update: ViewUpdate) {
@@ -108,7 +126,7 @@ export const syntaxReveal = ViewPlugin.fromClass(
         this.decorations = buildSyntaxRevealDecorations(
           update.state,
           update.view.visibleRanges,
-          activeLines(update.state, update.view.hasFocus),
+          revealAt(update.state, update.view.hasFocus),
         );
       }
     }

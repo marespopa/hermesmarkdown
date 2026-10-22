@@ -326,3 +326,18 @@ describe("reading from saved checkpoints", () => {
     expect(flat(tr.state, screen, kept)).toEqual(flat(tr.state, screen));
   });
 });
+
+describe("heading size with the caret in the heading", () => {
+  it("keeps the heading line class wherever the selection is", () => {
+    const doc = "## Title\n\nBody";
+    for (const anchor of [3, doc.length]) {
+      const state = EditorState.create({ doc, selection: { anchor } });
+      const classes: string[] = [];
+      computeMarkdownDecorations(state).between(0, doc.length, (_f, _t, value: any) => {
+        const cls = value.spec.class ?? value.spec.attributes?.class;
+        if (cls) classes.push(cls);
+      });
+      expect(classes.some((c) => c.includes("cm-heading cm-heading-2"))).toBe(true);
+    }
+  });
+});
