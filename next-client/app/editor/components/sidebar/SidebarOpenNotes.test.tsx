@@ -31,7 +31,7 @@ function setup() {
   store.set(atom_activePaneId, "p1");
   store.set(
     atom_openFiles,
-    Object.fromEntries(pane.openFilePaths.map((p) => [p, { fileName: p, content: "x", lastSavedContent: "x" }])),
+    Object.fromEntries(pane.openFilePaths.map((p) => [p, { fileName: p, content: "x", lastSavedContent: "x", activeFilePath: p }])),
   );
   render(
     <Provider store={store}>

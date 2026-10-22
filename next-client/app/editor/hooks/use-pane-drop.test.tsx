@@ -33,7 +33,7 @@ function setup() {
   const store = createStore();
   store.set(atom_workspaceLayout, { version: 2, rootContainer: root });
   store.set(atom_activePaneId, "b");
-  store.set(atom_openFiles, { draft: { fileName: "Untitled", content: "", lastSavedContent: "" } });
+  store.set(atom_openFiles, { draft: { fileName: "Untitled", content: "", lastSavedContent: "", activeFilePath: "draft" } });
   const wrapper = ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
   const { result } = renderHook(() => usePaneDrop(), { wrapper });
   return { store, drop: result.current };
@@ -60,7 +60,7 @@ describe("usePaneDrop", () => {
 
   it("asks before replacing a dirty draft on a center drop, and stops when declined", async () => {
     const { store, drop } = setup();
-    store.set(atom_openFiles, { draft: { fileName: "Untitled", content: "unsaved", lastSavedContent: "" } });
+    store.set(atom_openFiles, { draft: { fileName: "Untitled", content: "unsaved", lastSavedContent: "", activeFilePath: "draft" } });
     confirm.mockResolvedValue(false);
     store.set(atom_paneDrag, { kind: "file", path: "n.md", handle });
     await drop("a", "center");

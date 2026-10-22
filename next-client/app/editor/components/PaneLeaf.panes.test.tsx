@@ -44,7 +44,7 @@ function renderPane(target: PanelLeaf, root: PanelLeaf | WorkspaceContainer = ta
   const store = createStore();
   store.set(atom_workspaceLayout, { version: 2, rootContainer: root });
   store.set(atom_activePaneId, target.id);
-  store.set(atom_openFiles, { "a.md": { fileName: "a.md", content: "# A", lastSavedContent: "# A" } });
+  store.set(atom_openFiles, { "a.md": { fileName: "a.md", content: "# A", lastSavedContent: "# A", activeFilePath: "a.md" } });
   render(
     <Provider store={store}>
       <CommandPaletteProvider>
