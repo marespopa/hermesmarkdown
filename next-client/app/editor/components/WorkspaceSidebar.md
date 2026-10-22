@@ -7,6 +7,7 @@ It is a plain panel in the page's own paper colour (`bg-surface`, so the window 
 Top to bottom:
 - **Header** (`sidebar/SidebarHeader`), at the top: the vault's name as a switcher (recent vaults, then Open / Create / Browser Vault), **New note** (sets `atom_newNoteRequested`; the editor page starts the note, coming back to the editor first from a page) and **Hide sidebar**.
 - **Open Notes** (`sidebar/SidebarOpenNotes`): the focused pane's open notes (`openFilePaths`), for one-click switching: the one in front highlighted on the editor, a save dot while one is unsaved, saving or failed, and a × on hover or focus that closes it (`closeTabWithAutosave`). A click brings the note to the front of its pane (`openOpenNote` in `use-sidebar-navigation`), coming back to the editor from a page. Hidden while nothing is open.
+- **Linked from** (`sidebar/LinkedFromSection`) and **Unlinked mentions** (`sidebar/UnlinkedMentionsSection`, collapsed by default), under Outline, for a vault note (not the draft) on the editor route: the notes linking to the note in front, and the notes naming it in plain text. Each renders only when it has results.
 - **Outline** (`sidebar/SidebarOutline`), on the workspace only: the note in front's H1–H3 as a tree; a click puts the caret on that heading (`atom_pendingScrollTarget`).
 - **Files** (`sidebar/SidebarFiles`): `VaultFileTree` in tree view, one click to open, with New Note / New Folder in its ⋯ menu.
 

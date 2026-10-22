@@ -137,4 +137,15 @@ describe("handleContentMessage", () => {
     handleContentMessage(index, { type: "content:remove", paths: ["b.md"] }, post);
     expect(index.has("b.md")).toBe(false);
   });
+
+  it("answers content:mentions with content:results under the same searchId", () => {
+    const index = new ContentIndex();
+    const post = vi.fn();
+    handleContentMessage(index, { type: "content:index", files: [{ path: "a.md", name: "a.md", content: "talks about Zebra Plan today", modifiedAt: 1 }] }, post);
+    const handled = handleContentMessage(index, { type: "content:mentions", searchId: 9, phrases: ["Zebra Plan"], paths: ["a.md"], limit: 50 }, post);
+    expect(handled).toBe(true);
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(post.mock.calls[0][0]).toMatchObject({ type: "content:results", searchId: 9, pending: 0 });
+    expect(post.mock.calls[0][0].hits[0].path).toBe("a.md");
+  });
 });

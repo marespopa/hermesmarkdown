@@ -66,6 +66,8 @@ export function tokenize(src: string): Token[] {
       i = end + 2;
       continue;
     }
+    // A reference whose row/column was deleted (see shift-references.ts).
+    if (src.startsWith("#REF!", i)) throw new ParseError("#REF!");
     if (ch === '"') {
       let j = i + 1;
       let s = "";

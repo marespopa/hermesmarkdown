@@ -10,14 +10,14 @@ beforeAll(async () => {
   await loadVim();
 });
 
-function createEditor(vimMode: boolean, onOpenActiveHelper = vi.fn(() => false)) {
+function createEditor(vimMode: boolean, onOpenActiveHelper = vi.fn(() => false), doc = "A note") {
   const parent = document.createElement("div");
   document.body.appendChild(parent);
   const vimModeCompartment = new Compartment();
   const view = new EditorView({
     parent,
     state: EditorState.create({
-      doc: "A note",
+      doc,
       extensions: buildExtensions({
         wordWrap: true,
         wordWrapCompartment: new Compartment(),
@@ -139,4 +139,47 @@ describe("buildExtensions", () => {
     view.destroy();
     parent.remove();
   });
+
+  it("adds the next match as another selection with Ctrl/Cmd+D", () => {
+    const { parent, view } = createEditor(false, undefined, "todo one todo two todo");
+    view.dispatch({ selection: { anchor: 0, head: 4 } });
+
+    pressKey(view, { key: "d", ctrlKey: true });
+    pressKey(view, { key: "d", ctrlKey: true });
+
+    expect(view.state.selection.ranges.map((range) => [range.from, range.to])).toEqual([[0, 4], [9, 13], [18, 22]]);
+
+    view.destroy();
+    parent.remove();
+  });
+
+  it("selects every match with Ctrl/Cmd+Shift+L", () => {
+    const { parent, view } = createEditor(false, undefined, "todo one todo two todo");
+    view.dispatch({ selection: { anchor: 0, head: 4 } });
+
+    // keyCode: CodeMirror maps a shifted letter back to its key through it.
+    pressKey(view, { key: "L", keyCode: 76, ctrlKey: true, shiftKey: true });
+
+    expect(view.state.selection.ranges).toHaveLength(3);
+    expect(view.state.doc.toString()).toBe("todo one todo two todo");
+
+    view.destroy();
+    parent.remove();
+  });
+
+  it("wraps the selection as a link with Ctrl/Cmd+Alt+K", () => {
+    const { parent, view } = createEditor(false, undefined, "docs");
+    view.dispatch({ selection: { anchor: 0, head: 4 } });
+
+    pressKey(view, { key: "k", ctrlKey: true, altKey: true });
+
+    expect(view.state.doc.toString()).toBe("[docs]()");
+
+    view.destroy();
+    parent.remove();
+  });
 });
+
+function pressKey(view: EditorView, init: KeyboardEventInit) {
+  view.contentDOM.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init }));
+}

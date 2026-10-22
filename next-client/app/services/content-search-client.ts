@@ -25,7 +25,8 @@ const SEARCH_TIMEOUT_MS = 5000;
 // warm-start backfill reads only notes the index doesn't have yet.
 const indexed = new Map<string, number>();
 let lastSearchId = 0;
-let supersede: (() => void) | null = null;
+type SearchSlot = "search" | "mentions";
+const supersedeBySlot: Record<SearchSlot, (() => void) | null> = { search: null, mentions: null };
 
 function post(message: ContentRequest) {
   metadataWorker?.postMessage(message);
@@ -72,23 +73,23 @@ export function remapNoteContent(oldPath: string, newPath: string): void {
   post({ type: "content:remap", oldPath, newPath });
 }
 
-// Searches the notes in `paths`. Resolves null when a newer search replaces
-// this one, when the worker doesn't answer within 5 s, or without a worker.
-export function searchNoteContent(
-  query: string,
-  paths: string[],
-  limit = DEFAULT_SEARCH_LIMIT,
-): Promise<ContentSearchResult | null> {
+// Distributes over the union so each request keeps its own fields.
+type WithoutSearchId<T> = T extends unknown ? Omit<T, "searchId"> : never;
+type SearchMessage = WithoutSearchId<Extract<ContentRequest, { type: "content:search" | "content:mentions" }>>;
+
+// One request/response round trip. A newer request in the same slot replaces
+// an older one (which resolves null); the slots never cancel each other.
+function request(message: SearchMessage, slot: SearchSlot): Promise<ContentSearchResult | null> {
   const worker = metadataWorker;
   if (!worker) return Promise.resolve(null);
-  supersede?.();
+  supersedeBySlot[slot]?.();
   const searchId = ++lastSearchId;
 
   return new Promise((resolve) => {
     const finish = (result: ContentSearchResult | null) => {
       clearTimeout(timer);
       worker.removeEventListener("message", onMessage);
-      if (supersede === cancel) supersede = null;
+      if (supersedeBySlot[slot] === cancel) supersedeBySlot[slot] = null;
       resolve(result);
     };
     const cancel = () => finish(null);
@@ -98,8 +99,28 @@ export function searchNoteContent(
       finish({ hits: data.hits, pending: data.pending, capped: data.capped });
     };
     const timer = setTimeout(cancel, SEARCH_TIMEOUT_MS);
-    supersede = cancel;
+    supersedeBySlot[slot] = cancel;
     worker.addEventListener("message", onMessage);
-    worker.postMessage({ type: "content:search", searchId, query, paths, limit } satisfies ContentRequest);
+    worker.postMessage({ ...message, searchId } as ContentRequest);
   });
+}
+
+// Searches the notes in `paths`. Resolves null when a newer search replaces
+// this one, when the worker doesn't answer within 5 s, or without a worker.
+export function searchNoteContent(
+  query: string,
+  paths: string[],
+  limit = DEFAULT_SEARCH_LIMIT,
+): Promise<ContentSearchResult | null> {
+  return request({ type: "content:search", query, paths, limit }, "search");
+}
+
+// Plain-text mentions of any phrase in the notes of `paths` (unlinked
+// mentions). Same null contract as searchNoteContent, its own supersede slot.
+export function findNoteMentions(
+  phrases: string[],
+  paths: string[],
+  limit = DEFAULT_SEARCH_LIMIT,
+): Promise<ContentSearchResult | null> {
+  return request({ type: "content:mentions", phrases, paths, limit }, "mentions");
 }

@@ -333,3 +333,33 @@ describe("tables inside a callout", () => {
     expect(lines.at(-1)).toBe("After");
   });
 });
+
+describe("formula references follow structural edits", () => {
+  const COSTS = ["| Item | Cost |", "| --- | --- |", "| Rent | 10 |", "| Food | 30 |", "| Gas | 20 |", "| Food cost | =B3 |"].join("\n");
+
+  function run(action: (view: EditorView, info: NonNullable<ReturnType<typeof findTableAtPos>>) => void, at: string) {
+    const view = makeView(COSTS, COSTS.indexOf(at) + 1);
+    action(view, findTableAtPos(view.state.doc.toString(), view.state.selection.main.head)!);
+    return parseCurrentTable(view)!;
+  }
+
+  it("deleting a row above moves the reference up", () => {
+    expect(run(removeRowAction, "Rent").rows.at(-1)).toEqual(["Food cost", "=B2"]);
+  });
+
+  it("moving the referenced row moves the reference with it", () => {
+    expect(run((view, info) => moveRowAction(view, info, -1), "Food").rows.at(-1)).toEqual(["Food cost", "=B2"]);
+  });
+
+  it("moving the referenced column moves the reference with it", () => {
+    const data = run((view, info) => moveColumnAction(view, info, 1), "Item");
+    expect(data.headers).toEqual(["Cost", "Item"]);
+    expect(data.rows.at(-1)).toEqual(["=A3", "Food cost"]);
+  });
+
+  it("sorting keeps the reference on the same item", () => {
+    const data = run((view, info) => sortColumnAction(view, info, "desc"), "Cost");
+    expect(data.rows.map((r) => r[0])).toEqual(["Food", "Gas", "Rent", "Food cost"]);
+    expect(data.rows.at(-1)).toEqual(["Food cost", "=B2"]);
+  });
+});

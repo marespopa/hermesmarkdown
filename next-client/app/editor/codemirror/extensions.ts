@@ -1,5 +1,5 @@
-import { Compartment, Extension } from "@codemirror/state";
-import { EditorView, keymap, drawSelection, placeholder as placeholderExt } from "@codemirror/view";
+import { Compartment, EditorState, Extension } from "@codemirror/state";
+import { EditorView, keymap, drawSelection, rectangularSelection, crosshairCursor, placeholder as placeholderExt } from "@codemirror/view";
 import { history, historyKeymap, defaultKeymap } from "@codemirror/commands";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
@@ -82,6 +82,11 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     })),
     history(),
     drawSelection(),
+    // Multi-cursor: Mod-d adds the next match, Mod-Shift-l selects every
+    // match (searchKeymap), Mod-click adds a caret, Alt-drag selects a column.
+    EditorState.allowMultipleSelections.of(true),
+    rectangularSelection(),
+    crosshairCursor(),
     // addKeymap: false — lang-markdown's built-in Enter continuation for
     // lists/blockquotes stacks with our own continueQuoteOnEnter command
     // (formatKeymap), producing doubled "> " prefixes. We own continuation
@@ -125,8 +130,6 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // table cell keeps its own Tab.
     templateBlanks,
     findReplace(),
-    // formatKeymap first: its Mod-Shift-l (link) wins over searchKeymap's
-    // select-all-matches binding.
     // Without defaultKeymap's Ctrl/Cmd+[ / ] (indent less / more, which Tab
     // and Shift+Tab do): Ctrl+[ shows / hides the sidebar (EditorShell).
     keymap.of([...formatKeymap, ...searchKeymap, ...historyKeymap, ...defaultKeymap.filter((binding) => binding.key !== "Mod-[" && binding.key !== "Mod-]")]),

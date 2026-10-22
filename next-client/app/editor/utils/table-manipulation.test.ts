@@ -14,6 +14,7 @@ import {
   parseDelimitedText,
   removeColumn,
   removeRow,
+  shiftTableFormulas,
   tableToCSV,
   tableToJSON,
 } from "./table-manipulation";
@@ -134,5 +135,29 @@ describe("createEmptyTable", () => {
 
   it("never makes a table smaller than 1 × 1", () => {
     expect(createEmptyTable(0, -3).split("\n")).toHaveLength(3);
+  });
+});
+
+describe("shiftTableFormulas", () => {
+  const table = [
+    "| Item | Cost |",
+    "| ---- | ---- |",
+    "| Rent | 10   |",
+    "| Food | 20   |",
+    "| Gas  | 30   |",
+    "| Sum  | =SUM(B2:B5) |",
+  ];
+
+  it("shrinks ranges and keeps padding when a row is deleted", () => {
+    const removed = removeRow(table, 3, 0);
+    const shifted = shiftTableFormulas(removed, 0, 4, { axis: "row", at: 3, kind: "delete" });
+    expect(shifted[4]).toBe("| Sum  | =SUM(B2:B4) |");
+    expect(shifted.slice(0, 4)).toEqual(removed.slice(0, 4));
+  });
+
+  it("moves references when a column is deleted", () => {
+    const lines = ["| A | B | C |", "| - | - | - |", "| 1 | 2 | =A2+C2 |"];
+    const shifted = shiftTableFormulas(lines, 0, 2, { axis: "col", at: 1, kind: "delete" });
+    expect(shifted[2]).toBe("| 1 | 2 | =A2+B2 |");
   });
 });

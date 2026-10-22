@@ -4,10 +4,11 @@ import { EditorView } from "@codemirror/view";
 import { colIndexToLetter } from "../utils/formula-engine";
 import { findTableAtPos, TableInfo } from "../utils/table-detection";
 import { maskQuotedRows, quotedRowPrefix, restoreQuotePrefix } from "../utils/quoted-table";
-import { cycleAlignment, getColumnAlignment, insertColumnAt, insertRowAt, moveTableColumn, moveTableRow, removeColumn, removeRow, tableToCSV, tableToJSON } from "../utils/table-manipulation";
+import { cycleAlignment, getColumnAlignment, insertColumnAt, insertRowAt, moveTableColumn, moveTableRow, removeColumn, removeRow, shiftDataFormulas, shiftTableFormulas, tableToCSV, tableToJSON } from "../utils/table-manipulation";
 import { type Alignment, extractTableSource, parseTable } from "../utils/tableParser";
 import { serializeTable } from "../utils/tableSerializer";
-import { type SortDirection, sortRows } from "../utils/tableSorter";
+import { reorderFromOrder, swapReorder } from "../utils/formula/shift-references";
+import { type SortDirection, sortRowIndices } from "../utils/tableSorter";
 import { appendRowAndFocus, applyTableChangeFor, applyTableData, cellCursorPos, currentTableData, indentRows, isTotalsRow, realignTableLines, STRUCTURAL } from "./table-edit";
 
 // Table menu actions (row/column/table menu from table-handles.ts and the
@@ -51,15 +52,22 @@ export function copyJSONAction(tableInfo: TableInfo) {
 
 export function addRowAction(view: EditorView, tableInfo: TableInfo) {
   const insertAfter = tableInfo.lineIdx <= tableInfo.tableStart + 1 ? tableInfo.tableStart + 1 : tableInfo.lineIdx;
-  const newLines = insertRowAt(tableInfo.lines, insertAfter);
   const newTableEnd = tableInfo.tableEnd + 1;
+  const newLines = shiftTableFormulas(insertRowAt(tableInfo.lines, insertAfter), tableInfo.tableStart, newTableEnd, {
+    axis: "row", at: insertAfter + 1 - tableInfo.tableStart, kind: "insert",
+  });
   const realigned = realignTableLines(newLines, tableInfo.tableStart, newTableEnd);
   applyTableChangeFor(view, tableInfo, realigned, cellCursorPos(realigned, insertAfter + 1, 0), STRUCTURAL);
 }
 
 export function removeRowAction(view: EditorView, tableInfo: TableInfo) {
-  const newLines = removeRow(tableInfo.lines, tableInfo.lineIdx, tableInfo.tableStart);
   const newTableEnd = tableInfo.tableEnd - 1;
+  const removed = removeRow(tableInfo.lines, tableInfo.lineIdx, tableInfo.tableStart);
+  // A data row's A1 number equals its line offset from the header: the
+  // separator takes offset 1, so the first data row (row 2) is at offset 2.
+  const newLines = removed === tableInfo.lines ? removed : shiftTableFormulas(removed, tableInfo.tableStart, newTableEnd, {
+    axis: "row", at: tableInfo.lineIdx - tableInfo.tableStart, kind: "delete",
+  });
   const targetLineIdx = Math.min(tableInfo.lineIdx, newTableEnd);
   const realigned = realignTableLines(newLines, tableInfo.tableStart, newTableEnd);
   const cursorPos = realigned[targetLineIdx] !== undefined
@@ -69,14 +77,20 @@ export function removeRowAction(view: EditorView, tableInfo: TableInfo) {
 }
 
 export function addColumnAction(view: EditorView, tableInfo: TableInfo) {
-  const newLines = insertColumnAt(tableInfo.lines, tableInfo.cursorCol, tableInfo.tableStart, tableInfo.tableEnd);
+  const newLines = shiftTableFormulas(
+    insertColumnAt(tableInfo.lines, tableInfo.cursorCol, tableInfo.tableStart, tableInfo.tableEnd),
+    tableInfo.tableStart, tableInfo.tableEnd, { axis: "col", at: tableInfo.cursorCol + 1, kind: "insert" },
+  );
   const realigned = realignTableLines(newLines, tableInfo.tableStart, tableInfo.tableEnd);
   const cursorPos = cellCursorPos(realigned, tableInfo.lineIdx, tableInfo.cursorCol + 1);
   applyTableChangeFor(view, tableInfo, realigned, cursorPos, STRUCTURAL);
 }
 
 export function removeColumnAction(view: EditorView, tableInfo: TableInfo) {
-  const newLines = removeColumn(tableInfo.lines, tableInfo.cursorCol, tableInfo.tableStart, tableInfo.tableEnd);
+  const newLines = shiftTableFormulas(
+    removeColumn(tableInfo.lines, tableInfo.cursorCol, tableInfo.tableStart, tableInfo.tableEnd),
+    tableInfo.tableStart, tableInfo.tableEnd, { axis: "col", at: tableInfo.cursorCol, kind: "delete" },
+  );
   const realigned = realignTableLines(newLines, tableInfo.tableStart, tableInfo.tableEnd);
   const cursorPos = cellCursorPos(realigned, tableInfo.lineIdx, Math.max(0, tableInfo.cursorCol - 1));
   applyTableChangeFor(view, tableInfo, realigned, cursorPos, STRUCTURAL);
@@ -85,8 +99,10 @@ export function removeColumnAction(view: EditorView, tableInfo: TableInfo) {
 export function sortColumnAction(view: EditorView, tableInfo: TableInfo, direction: Exclude<SortDirection, "none">) {
   const data = currentTableData(tableInfo);
   if (!data) return;
-  const sortedRows = sortRows(data.rows, tableInfo.cursorCol, direction);
-  applyTableData(view, tableInfo, { ...data, rows: sortedRows }, tableInfo.lineIdx, tableInfo.cursorCol);
+  const order = sortRowIndices(data.rows, (row, i) => row[i] ?? "", tableInfo.cursorCol, direction);
+  const sorted = { ...data, rows: order.map((i) => data.rows[i]) };
+  // Data row i is A1 row i + 2.
+  applyTableData(view, tableInfo, shiftDataFormulas(sorted, reorderFromOrder("row", order, 2)), tableInfo.lineIdx, tableInfo.cursorCol);
 }
 
 // Swaps the caret's data row with its neighbour; returns false when there
@@ -97,7 +113,8 @@ export function moveRowAction(view: EditorView, tableInfo: TableInfo, direction:
   const data = currentTableData(tableInfo);
   const moved = data && moveTableRow(data, rowIdx, direction);
   if (!moved) return false;
-  applyTableData(view, tableInfo, moved, tableInfo.lineIdx + direction, tableInfo.cursorCol);
+  const shift = swapReorder("row", rowIdx + 2, rowIdx + 2 + direction);
+  applyTableData(view, tableInfo, shiftDataFormulas(moved, shift), tableInfo.lineIdx + direction, tableInfo.cursorCol);
   return true;
 }
 
@@ -106,7 +123,8 @@ export function moveColumnAction(view: EditorView, tableInfo: TableInfo, directi
   const data = currentTableData(tableInfo);
   const moved = data && moveTableColumn(data, tableInfo.cursorCol, direction);
   if (!moved) return false;
-  applyTableData(view, tableInfo, moved, tableInfo.lineIdx, tableInfo.cursorCol + direction);
+  const shift = swapReorder("col", tableInfo.cursorCol, tableInfo.cursorCol + direction);
+  applyTableData(view, tableInfo, shiftDataFormulas(moved, shift), tableInfo.lineIdx, tableInfo.cursorCol + direction);
   return true;
 }
 
@@ -114,13 +132,18 @@ export function moveColumnAction(view: EditorView, tableInfo: TableInfo, directi
 // a row above it, so from the header this inserts the first data row).
 export function insertRowAboveAction(view: EditorView, tableInfo: TableInfo) {
   const insertAfter = Math.max(tableInfo.tableStart + 1, tableInfo.lineIdx - 1);
-  const newLines = insertRowAt(tableInfo.lines, insertAfter);
+  const newLines = shiftTableFormulas(insertRowAt(tableInfo.lines, insertAfter), tableInfo.tableStart, tableInfo.tableEnd + 1, {
+    axis: "row", at: insertAfter + 1 - tableInfo.tableStart, kind: "insert",
+  });
   const realigned = realignTableLines(newLines, tableInfo.tableStart, tableInfo.tableEnd + 1);
   applyTableChangeFor(view, tableInfo, realigned, cellCursorPos(realigned, insertAfter + 1, tableInfo.cursorCol), STRUCTURAL);
 }
 
 export function insertColumnLeftAction(view: EditorView, tableInfo: TableInfo) {
-  const newLines = insertColumnAt(tableInfo.lines, tableInfo.cursorCol - 1, tableInfo.tableStart, tableInfo.tableEnd);
+  const newLines = shiftTableFormulas(
+    insertColumnAt(tableInfo.lines, tableInfo.cursorCol - 1, tableInfo.tableStart, tableInfo.tableEnd),
+    tableInfo.tableStart, tableInfo.tableEnd, { axis: "col", at: tableInfo.cursorCol, kind: "insert" },
+  );
   const realigned = realignTableLines(newLines, tableInfo.tableStart, tableInfo.tableEnd);
   applyTableChangeFor(view, tableInfo, realigned, cellCursorPos(realigned, tableInfo.lineIdx, tableInfo.cursorCol), STRUCTURAL);
 }

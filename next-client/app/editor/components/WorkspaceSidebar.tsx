@@ -6,10 +6,12 @@ import { atom_activePaneId, atom_workspaceLayout, findLeaf } from "@/app/atoms/a
 import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_pendingScrollTarget, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
+import LinkedFromSection from "./sidebar/LinkedFromSection";
 import SidebarFiles from "./sidebar/SidebarFiles";
 import SidebarHeader from "./sidebar/SidebarHeader";
 import SidebarOpenNotes from "./sidebar/SidebarOpenNotes";
 import SidebarOutline from "./sidebar/SidebarOutline";
+import UnlinkedMentionsSection from "./sidebar/UnlinkedMentionsSection";
 import { useSidebarNavigation } from "./sidebar/use-sidebar-navigation";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
 
@@ -19,7 +21,9 @@ const NO_TAGS: string[] = [];
 
 // The window's sidebar (desktop), the same on every /editor route
 // (EditorShell hosts it), and kept to the library: the vault (a switcher),
-// New note and Hide; the note in front's Outline; and the vault's Files.
+// New note and Hide; the note in front's Outline, Linked from (notes linking
+// to it) and Unlinked mentions (notes naming it in plain text); and the
+// vault's Files.
 // Everything else (Home, All Notes, Tags, Tasks, Templates, Trash, Export,
 // Settings, Documentation, search) is the command palette's (Ctrl/Cmd+K,
 // SearchPill) or the toolbar's More menu. A plain panel in the chrome colour with a hairline
@@ -102,6 +106,12 @@ export default function WorkspaceSidebar() {
         {onWorkspace && activeTabPath && (
           // The note is already in front: its pane just moves the caret there.
           <SidebarOutline path={activeTabPath} onJump={(line) => setPendingScrollTarget({ path: activeTabPath, line })} />
+        )}
+        {onWorkspace && hasVault && activeTabPath && activeTabPath !== "draft" && (
+          <>
+            <LinkedFromSection path={activeTabPath} onOpen={navigation.openHandle} />
+            <UnlinkedMentionsSection path={activeTabPath} onOpen={navigation.openHandle} />
+          </>
         )}
         {hasVault && (
           <SidebarFiles

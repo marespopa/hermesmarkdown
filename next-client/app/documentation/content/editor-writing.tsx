@@ -33,8 +33,10 @@ export const editorWritingItems: Subsection[] = [
         <p>
           Press <strong>CTRL/CMD+F</strong> to find and replace in the note, with match case,
           whole word and regex options. CTRL/CMD+ALT+1…6 turns the line into a heading (press
-          it again to remove it), CTRL/CMD+SHIFT+L wraps the selection as a link and
+          it again to remove it), CTRL/CMD+ALT+K wraps the selection as a link and
           CTRL/CMD+ALT+C wraps it in a code block, or removes the block around the caret.
+          CTRL/CMD+D adds the next match of the selection as another cursor, CTRL/CMD+SHIFT+L
+          selects every match, and ALT+drag selects a column.
         </p>
         <p>
           Paste or drop an image and it&apos;s saved to the vault&apos;s <code>assets/</code>{" "}
@@ -248,7 +250,9 @@ export const editorWritingItems: Subsection[] = [
           amounts (<code>=C2/B2*100</code>) and a count are plain numbers. Errors show spreadsheet-style (<code>#REF!</code>, <code>#DIV/0!</code>,{" "}
           <code>#CIRCULAR!</code>, <code>#NAME?</code> for an unknown function,{" "}
           <code>#VALUE!</code> for text where a number is needed). Rows containing a formula are treated as summary rows and are
-          never moved by sorting.
+          never moved by sorting. Inserting, deleting, moving or sorting rows and columns updates the
+          references in the table's formulas so they keep pointing at the same cells; a reference to
+          a deleted cell becomes <code>#REF!</code>.
         </p>
         <p>
           A table takes its name from the heading right above it, with only blank lines between
@@ -426,7 +430,7 @@ graph TD
     id: "wikilinks",
     title: "Wikilinks",
     lead: "Link notes to each other with [[Note name]] — type [[ and pick a note.",
-    keywords: "wikilink wiki link backlink note [[ connect",
+    keywords: "wikilink wiki link backlink note [[ connect linked from unlinked mentions rename",
     body: (
       <>
         <p>
@@ -440,6 +444,16 @@ graph TD
           <code>CTRL+Click</code> a wikilink to open the note. A link to
           a note that doesn&apos;t exist yet creates it, after you confirm or pick a template; see{" "}
           <TextLink href="#templates">Templates</TextLink>.
+        </p>
+        <p>
+          In the library, <strong>Linked from</strong> lists the notes that link to the note you are
+          in; click one to open it at the link. <strong>Unlinked mentions</strong> (folded until you
+          open it) finds notes that name this note in plain text without linking it.
+        </p>
+        <p>
+          Renaming or moving a note, or renaming a folder, updates the wikilinks that would
+          otherwise break, in open and closed notes alike, and undoing the rename or move puts the
+          links back.
         </p>
       </>
     ),
