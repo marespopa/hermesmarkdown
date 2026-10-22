@@ -1,6 +1,8 @@
 "use client";
 
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_revealAllPrivate, atom_revealedPrivatePaths } from "@/app/atoms/privacy-atoms";
+import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import Button from "@/app/components/Button";
 import { showErrorToast } from "@/app/components/Toastr";
@@ -33,13 +35,23 @@ interface AIChatDialogProps {
 export default function AIChatDialog({
   isOpen,
   onClose,
-  documentContent,
+  documentContent: activeContent,
   selectedText,
   currentFilePath,
   onApply,
 }: AIChatDialogProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const vaultHandle = useAtomValue(atom_vaultHandle);
+  const revealAll = useAtomValue(atom_revealAllPrivate);
+  const revealedPaths = useAtomValue(atom_revealedPrivatePaths);
+
+  // A private note that is still veiled in the editor is never sent (same
+  // rule as PrivateNoteGate); once revealed it is shared like any note.
+  const activeIsPrivate =
+    isPrivateContent(activeContent) ||
+    isPrivateFrontmatter(currentFilePath ? fileMetadata[currentFilePath]?.frontmatter : undefined);
+  const documentContent =
+    activeIsPrivate && !revealAll && !(currentFilePath && revealedPaths.has(currentFilePath)) ? "" : activeContent;
 
   const { modelOptions, selectedAiModel, setSelectedAiModel, isFetchingModels } = useChatModels(isOpen);
   const skills = useChatSkills();
