@@ -141,3 +141,14 @@ describe("ChatMessageItem template save card", () => {
     expect(button?.disabled).toBe(true);
   });
 });
+
+describe("ChatMessageItem error", () => {
+  afterEach(cleanup);
+
+  it("shows a failed request as an alert with no reply actions", () => {
+    const text = "Invalid API Key.";
+    renderItem({ message: { role: "assistant", kind: "error", displayContent: text, apiContent: text } });
+    expect(screen.getByRole("alert").textContent).toBe(text);
+    expect(screen.queryByTitle("Copy response as Markdown")).toBeNull();
+  });
+});

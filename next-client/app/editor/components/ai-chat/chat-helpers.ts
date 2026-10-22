@@ -28,7 +28,7 @@ export interface ChatMessage {
   displayContent: string;
   apiContent: string | ApiPart[];
   /** "activity": a tool the AI ran (shown as a quiet line, never sent back). */
-  kind?: "activity";
+  kind?: "activity" | "error";
 }
 
 export interface Attachment {

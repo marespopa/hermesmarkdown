@@ -68,6 +68,13 @@ export default function ChatMessageItem({
       .then(() => setCopied(true))
       .catch(() => {});
   };
+  if (message.kind === "error") {
+    return (
+      <p role="alert" className="ml-8 text-ui-caption text-[#c65b4a] whitespace-pre-wrap">
+        {message.displayContent}
+      </p>
+    );
+  }
   if (message.kind === "activity") {
     return (
       <p className="ml-8 -my-2 flex items-center gap-1.5 text-ui-caption text-fg-faint">
