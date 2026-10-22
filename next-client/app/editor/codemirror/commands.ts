@@ -258,7 +258,8 @@ export const formatKeymap: readonly KeyBinding[] = [
   { key: "Mod-Shift-7", run: toggleBlockType("numbered"), preventDefault: true },
   { key: "Mod-Shift-8", run: toggleBlockType("bullet"), preventDefault: true },
   { key: "Mod-Shift-9", run: toggleBlockType("quote"), preventDefault: true },
-  { key: "Mod-Shift-l", run: wrapAsLink, preventDefault: true },
+  // Mod-k opens the quick switcher; Mod-Shift-l is searchKeymap's select all matches.
+  { key: "Mod-Alt-k", run: wrapAsLink, preventDefault: true },
   { key: "Mod-Alt-c", run: toggleCodeBlock, preventDefault: true },
   { key: "Mod-Shift-i", run: insertTable, preventDefault: true },
   // Cmd+Y redoes on macOS too (historyKeymap only binds Cmd+Shift+Z there).

@@ -140,7 +140,7 @@ export default function SelectionToolbar({ placement, onAsk, isAiLoading = false
           <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-edge" />
           {formatButton("Bold", `Bold (${formatShortcut("B")})`, toggleBold, "B", "font-bold")}
           {formatButton("Italic", `Italic (${formatShortcut("I")})`, toggleItalic, "I", "italic")}
-          {formatButton("Link", `Link (${formatShortcut("L", { shift: true })})`, wrapAsLink, <HiOutlineLink size={15} />)}
+          {formatButton("Link", `Link (${formatShortcut("K", { alt: true })})`, wrapAsLink, <HiOutlineLink size={15} />)}
           {onAsk && !isAiLoading && (
             <>
               <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-edge" />

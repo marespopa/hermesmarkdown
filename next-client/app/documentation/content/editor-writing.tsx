@@ -33,8 +33,10 @@ export const editorWritingItems: Subsection[] = [
         <p>
           Press <strong>CTRL/CMD+F</strong> to find and replace in the note, with match case,
           whole word and regex options. CTRL/CMD+ALT+1…6 turns the line into a heading (press
-          it again to remove it), CTRL/CMD+SHIFT+L wraps the selection as a link and
+          it again to remove it), CTRL/CMD+ALT+K wraps the selection as a link and
           CTRL/CMD+ALT+C wraps it in a code block, or removes the block around the caret.
+          CTRL/CMD+D adds the next match of the selection as another cursor, CTRL/CMD+SHIFT+L
+          selects every match, and ALT+drag selects a column.
         </p>
         <p>
           Paste or drop an image and it&apos;s saved to the vault&apos;s <code>assets/</code>{" "}
