@@ -31,6 +31,19 @@ describe("computeLineShapes", () => {
     });
   });
 
+  it("shapes a callout's first line, and its headings and code as at the top level", () => {
+    const doc = "> [!tip] Code\n> # Heading\n> > ### Quoted\n>\n> ```json\n> # key\n>``` \n> Text\n\n## After";
+    expect(shapesOf(doc)).toEqual({
+      1: "cm-gutter-callout-start",
+      2: "cm-gutter-heading-1",
+      3: "cm-gutter-heading-3",
+      5: "cm-gutter-codeblock-start",
+      6: "cm-gutter-codeblock",
+      7: "cm-gutter-codeblock",
+      10: "cm-gutter-heading-2",
+    });
+  });
+
   it("skips YAML comments in frontmatter", () => {
     expect(shapesOf("---\n# hint\ntitle: x\n---\n# Title")).toEqual({
       5: "cm-gutter-heading-1",

@@ -11,8 +11,9 @@ import { cycleTaskBox } from "./live-markers-widgets";
 // a heading's `#`s and a quote's `>`s on the caret's lines;
 // syntax-reveal.ts hides the marks elsewhere.
 // Shown syntax is dimmed (inline marks by highlight.ts). A heading's `#`s and a quote's or callout's `>`
-// hang in the margin left of the text (a heading inside a quote keeps its
-// `#`s inline, after the `>`). List markers stay inline, as typed,
+// hang in the margin left of the text (a heading inside a quote hangs its
+// `#`s there too, after the `>`s, and so do the `>`s of a quoted code
+// block's lines). List markers stay inline, as typed,
 // with their real spaces; a task's marker takes its status colour, and
 // Mod-click on it moves the task on a status. Blank lines inside a list are
 // half height. Tables and frontmatter keep their own display.
@@ -22,6 +23,8 @@ const listGap = Decoration.line({ class: "cm-listGap" });
 const REGEX_CALLOUT_START = /^(>\s*)+\[!\w+\]/;
 // A run of `>`s from a line's first QuoteMark: "> ", "> > ", ">>".
 const REGEX_QUOTE_PREFIX = /^>(?:[ \t]*>)*[ \t]?/;
+// The same run from the start of a line, after any indent.
+const REGEX_LINE_QUOTE_PREFIX = /^[ \t]*>(?:[ \t]*>)*[ \t]?/;
 // A task box right after a bullet or number: " [ ] ", " [x] ", " [/] " (in progress),
 // " [!] " (on hold), " [-] " (cancelled).
 const REGEX_TASK_BOX = /^[ \t]\[([ xX/!-])\](?=[ \t\n]|$)/;
@@ -87,11 +90,20 @@ function withTrailingSpace(state: EditorState, to: number): number {
   return state.doc.sliceString(to, to + 1) === " " ? to + 1 : to;
 }
 
-function insideQuote(node: SyntaxNode): boolean {
+export function insideQuote(node: SyntaxNode): boolean {
   for (let parent = node.parent; parent; parent = parent.parent) {
     if (parent.name === "Blockquote") return true;
   }
   return false;
+}
+
+/** Whether a quoted heading's `#`s (its HeaderMark at `from`) follow straight
+ *  on its line's `>`s, so they hang in the margin with them (`> ## `). A
+ *  heading after a quoted list marker keeps its `#`s inline. */
+export function headingHangsWithQuote(state: EditorState, from: number): boolean {
+  const line = state.doc.lineAt(from);
+  const prefix = REGEX_LINE_QUOTE_PREFIX.exec(line.text);
+  return prefix !== null && line.from + prefix[0].length === from;
 }
 
 export interface ListMarker {
@@ -126,7 +138,8 @@ export function buildLiveMarkerDecorations(
   const { doc } = state;
   // Frontmatter's closing `---` parses as a setext underline; leave it alone.
   const frontmatterEnd = frontmatterFoldRangeOf(doc)?.closeTo ?? -1;
-  const quotedLines = new Set<number>();
+  // Each quoted line's margin run: its `>`s, then a heading's `#`s if any.
+  const quoteMargins = new Map<number, { from: number; to: number }>();
   const calloutLines = new Set<number>();
   const listGapLines = new Set<number>();
 
@@ -139,9 +152,13 @@ export function buildLiveMarkerDecorations(
         const node = ref.node;
         switch (ref.name) {
           case "Table":
+          case "CodeText":
+            return false;
+          // A quoted code block's lines still start with the quote's `>`s;
+          // its code is left alone (CodeText).
           case "CodeBlock":
           case "FencedCode":
-            return false;
+            return insideQuote(node);
           case "BulletList":
           case "OrderedList": {
             const last = doc.lineAt(ref.to).number;
@@ -158,21 +175,24 @@ export function buildLiveMarkerDecorations(
             return;
           }
           case "HeaderMark": {
-            // Setext underlines and closing `#`s stay as typed, and so do a
-            // quote's or callout's: its `>` already hangs in the margin.
+            // Setext underlines and closing `#`s stay as typed.
             if (ref.from !== node.parent?.from || !node.parent.name.startsWith("ATXHeading")) return;
-            if (insideQuote(node)) return;
             const to = withTrailingSpace(state, ref.to);
-            ranges.push(...marginMarkRanges(state, ref.from, to));
+            if (!insideQuote(node)) {
+              ranges.push(...marginMarkRanges(state, ref.from, to));
+            } else if (headingHangsWithQuote(state, ref.from)) {
+              // A quote's or callout's heading: its `#`s hang after the `>`s.
+              const quote = quoteMargins.get(doc.lineAt(ref.from).number);
+              if (quote) quote.to = to;
+            }
             return;
           }
           case "QuoteMark": {
             // One range per line covers every `>` of a nested quote.
             const line = doc.lineAt(ref.from);
-            if (quotedLines.has(line.number)) return;
-            quotedLines.add(line.number);
+            if (quoteMargins.has(line.number)) return;
             const prefix = REGEX_QUOTE_PREFIX.exec(doc.sliceString(ref.from, line.to))![0];
-            ranges.push(...marginMarkRanges(state, ref.from, ref.from + prefix.length));
+            quoteMargins.set(line.number, { from: ref.from, to: ref.from + prefix.length });
             return;
           }
           case "ListMark": {
@@ -193,7 +213,8 @@ export function buildLiveMarkerDecorations(
     });
   }
 
-  for (const n of quotedLines) {
+  for (const [n, { from, to }] of quoteMargins) {
+    ranges.push(...marginMarkRanges(state, from, to));
     if (!calloutLines.has(n)) ranges.push(quoteLine.range(doc.line(n).from));
   }
   for (const n of listGapLines) ranges.push(listGap.range(doc.line(n).from));

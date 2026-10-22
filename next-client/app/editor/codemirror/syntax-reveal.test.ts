@@ -4,7 +4,10 @@ import { describe, expect, it } from "vitest";
 import { buildSyntaxRevealDecorations, revealAt } from "./syntax-reveal";
 
 // The text each hidden range covers, in order, for a selection (focused) or
-// none (unfocused).
+// none (unfocused). A line whose margin marks are made invisible (a line
+// decoration) counts as its run of `>`s and `#`s.
+const REGEX_MARGIN_RUN = /^[ \t]*(?:>[ \t]?)*(?:#{1,6}(?:[ \t]|$))?/;
+
 function hiddenTextSel(doc: string, sel: EditorSelection | null): string[] {
   const state = EditorState.create({
     doc,
@@ -14,7 +17,7 @@ function hiddenTextSel(doc: string, sel: EditorSelection | null): string[] {
   const set = buildSyntaxRevealDecorations(state, [{ from: 0, to: doc.length }], revealAt(state, sel !== null));
   const out: string[] = [];
   set.between(0, doc.length, (from, to) => {
-    out.push(state.doc.sliceString(from, to));
+    out.push(from === to ? REGEX_MARGIN_RUN.exec(state.doc.lineAt(from).text)![0] : state.doc.sliceString(from, to));
   });
   return out;
 }
@@ -70,6 +73,22 @@ describe("syntax reveal", () => {
     expect(hiddenText(d, d.length)).toEqual(["## ", "**", "**"]);
   });
 
+  it("keeps margin marks in the line, unseen, and replaces a quoted heading's inline `#`s", () => {
+    const d = "# Title\n\n> ## Quoted\n\n> - # Listed\n\nEnd";
+    const state = EditorState.create({ doc: d, extensions: [markdown({ base: markdownLanguage })] });
+    const set = buildSyntaxRevealDecorations(state, [{ from: 0, to: d.length }], revealAt(state, false));
+    const found: { text: string; line: boolean }[] = [];
+    set.between(0, d.length, (from, to, deco) => {
+      found.push({ text: state.doc.sliceString(from, to), line: deco.spec.class === "cm-marginMarksHidden" });
+    });
+    expect(found).toEqual([
+      { text: "", line: true },
+      { text: "", line: true },
+      { text: "", line: true },
+      { text: "# ", line: false },
+    ]);
+  });
+
   it("never hides intraword underscores or spaced asterisks", () => {
     const d = "snake_case_name and 2 * 3 * 4\n\nEnd";
     expect(hiddenText(d, d.length)).toEqual([]);
@@ -82,12 +101,17 @@ describe("syntax reveal", () => {
 
   it("hides a callout's `>`s and its `[!type]`, and a nested quote's run as one", () => {
     const callout = "> [!note]+ Title\n> > deep\n\nEnd";
-    expect(hiddenText(callout, callout.length)).toEqual(["> [!note]+ ", "> > "]);
+    expect(hiddenText(callout, callout.length)).toEqual(["> ", "[!note]+ ", "> > "]);
     expect(hiddenText(callout, 3)).toEqual(["> > "]);
   });
 
   it("leaves list markers, code blocks, quoted tables and frontmatter alone", () => {
     const other = "---\n# comment: x\n---\n- [ ] task\n\n```\n**not**\n```\n\n> [!tip] T\n> | a | b |\n> | - | - |\n\nEnd";
-    expect(hiddenText(other, other.length)).toEqual(["> [!tip] "]);
+    expect(hiddenText(other, other.length)).toEqual(["> ", "[!tip] "]);
+  });
+
+  it("hides a quoted code block's `>`s but none of its code", () => {
+    const code = "> [!tip] Code\n> ```json\n> **not** # x\n>```\n\nEnd";
+    expect(hiddenText(code, code.length)).toEqual(["> ", "[!tip] ", "> ", "> ", ">"]);
   });
 });

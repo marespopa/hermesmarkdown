@@ -186,9 +186,15 @@ describe("computeMarkdownDecorations", () => {
       expect(marksAt(" Pen ")).not.toContainEqual(expect.stringContaining("font-bold"));
     });
 
-    it("sets fenced code in monospace, without reading `#` in it as a heading", () => {
-      expect(marksAt("# not a heading")).toContain("cm-callout-code");
+    it("sets fenced code as a code block in the card, without reading `#` in it as a heading", () => {
+      const closing = doc.lastIndexOf("> ```");
+      const closingClass = decos.filter((d) => d.from === closing && d.from === d.to).map((d) => d.class).join(" ");
+      expect(lineClass("> ```")).toContain("cm-callout-codeblock cm-callout-codeblock-start");
+      expect(lineClass("> # not a heading")).toContain("cm-callout-codeblock");
+      expect(lineClass("> # not a heading")).toContain("cm-callout");
       expect(lineClass("> # not a heading")).not.toContain("cm-heading");
+      expect(closingClass).toContain("cm-callout-codeblock cm-callout-codeblock-end");
+      expect(lineClass("> > quoted")).not.toContain("cm-callout-codeblock");
     });
 
     it("styles a quote inside it, a heading in that quote sized, and ends at the first line without `>`", () => {

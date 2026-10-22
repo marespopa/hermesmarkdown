@@ -3,18 +3,24 @@ import { type EditorState, type Range } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { quotedRowPrefix } from "../utils/quoted-table";
 import { frontmatterFoldRangeOf } from "./frontmatter-fold";
+import { headingHangsWithQuote, insideQuote } from "./live-markers";
 
 // Syntax shows where you're writing. An inline mark (emphasis, strikethrough,
 // inline code) shows, dimmed by highlight.ts, while the caret or a selection
 // touches its token (edges included); the rest of the line stays rendered. A
 // heading's `#`s, a quote's or callout's `>`s and a callout's `[!type]` show on
-// the caret's lines (the `#`s and `>`s in the margin by live-markers.ts). An
+// the caret's lines (the `#`s and `>`s in the margin by live-markers.ts, a
+// quoted code block's `>`s included). Margin marks are only made invisible
+// elsewhere, so revealing them leaves the line's layout as it was and the
+// text doesn't jump; a callout's `[!type]`, inline, is hidden. An
 // editor without focus shows none. List markers and task boxes, code fences,
 // tables and frontmatter keep their own display; links fold on their own
 // (link-display.ts) and rules show their dashes on the caret's line
 // (horizontalRuleCursorPlugin).
 
 const hidden = Decoration.replace({});
+// A line whose margin marks (live-markers.ts) are kept but not shown.
+const marginMarksHidden = Decoration.line({ class: "cm-marginMarksHidden" });
 // A callout's `[!type]`, its fold sign and the space after them.
 const REGEX_CALLOUT_TAG = /^((?:[ \t]*>)+[ \t]*)(\[![\w-]+\][+-]?[ \t]?)/;
 const INLINE_MARKS = new Set(["EmphasisMark", "StrikethroughMark"]);
@@ -64,6 +70,8 @@ export function buildSyntaxRevealDecorations(
     if (to > from) ranges.push(hidden.range(from, to));
   };
   const quoteLines = new Set<number>();
+  // Lines whose margin marks are hidden: a heading's, a quote's or callout's.
+  const marginLines = new Set<number>();
   // Frontmatter's `# comments` and closing `---` aren't Markdown.
   const frontmatterEnd = frontmatterFoldRangeOf(doc)?.closeTo ?? -1;
 
@@ -74,8 +82,12 @@ export function buildSyntaxRevealDecorations(
       enter(ref) {
         if (ref.to <= frontmatterEnd) return ref.name === "Document";
         switch (ref.name) {
+          // A quoted code block's lines still start with the quote's `>`s;
+          // its code is left alone (CodeText).
           case "FencedCode":
           case "CodeBlock":
+            return insideQuote(ref.node);
+          case "CodeText":
           case "Table":
           case "HTMLBlock":
           case "CommentBlock":
@@ -90,23 +102,27 @@ export function buildSyntaxRevealDecorations(
           // Setext underlines and closing `#`s stay as typed.
           const heading = ref.node.parent;
           if (heading?.name.startsWith("ATXHeading") && ref.from === heading.from) {
-            hide(ref.from, withTrailingSpace(state, ref.to));
+            // A quoted heading's `#`s hang with the `>`s before them (the
+            // quote's line hides both), or sit inline after a list marker.
+            if (!insideQuote(ref.node)) marginLines.add(doc.lineAt(ref.from).number);
+            else if (!headingHangsWithQuote(state, ref.from)) hide(ref.from, withTrailingSpace(state, ref.to));
           }
         } else if (ref.name === "QuoteMark") {
           if (lineRevealed(ref.from)) return;
-          // One range per line covers every `>` of a nested quote, and a
-          // callout's `[!type]` after them.
+          // Every `>` of a nested quote hangs in one margin run; a callout's
+          // `[!type]` after them is inline.
           const line = doc.lineAt(ref.from);
           // A quoted table's rows are inside its grid.
           if (quoteLines.has(line.number) || quotedRowPrefix(line.text)) return;
           quoteLines.add(line.number);
+          marginLines.add(line.number);
           const tag = REGEX_CALLOUT_TAG.exec(line.text);
-          const prefix = /^(?:[ \t]*>)+[ \t]?/.exec(doc.sliceString(ref.from, line.to))![0];
-          hide(ref.from, tag ? line.from + tag[0].length : ref.from + prefix.length);
+          if (tag) hide(line.from + tag[1].length, line.from + tag[0].length);
         }
       },
     });
   }
+  for (const n of marginLines) ranges.push(marginMarksHidden.range(doc.line(n).from));
   return ranges.length ? Decoration.set(ranges, true) : Decoration.none;
 }
 

@@ -164,6 +164,11 @@
   padding-top: calc(var(--B) * 0.65625); /* 0.75em × 0.875 */
 }
 
+/* A callout's first line: the card's padding above it (live-markers-theme.ts). */
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutter-callout-start {
+  padding-top: calc(var(--B) * 0.4);
+}
+
 /* A title on the note's first line sits at the top of the sheet. */
 .editor-sheet.editor-container .cm-content > .cm-line.cm-heading:first-child {
   padding-top: 0;

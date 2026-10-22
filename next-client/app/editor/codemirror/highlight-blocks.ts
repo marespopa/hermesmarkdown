@@ -118,6 +118,8 @@ export interface CalloutBody {
   tableRow: number;
 }
 
+const CALLOUT_CODEBLOCK = "cm-callout-codeblock";
+
 export const newCalloutBody = (): CalloutBody => ({ inCode: false, tableRow: -1 });
 
 /**
@@ -125,7 +127,8 @@ export const newCalloutBody = (): CalloutBody => ({ inCode: false, tableRow: -1 
  * `base`: code (fences faded, the code monospaced), headings, quotes, list
  * items, table rows and rules, as outside a callout. `nextBody` is the next
  * line's body when it is still in the callout (a table's header row is the
- * one above its separator). Returns the line's extra class (a heading's), so
+ * one above its separator). Returns the line's extra class (a heading's, a
+ * code block's), so
  * the callout's tint and bar stay on every line.
  */
 export function styleCalloutBody(
@@ -139,15 +142,14 @@ export function styleCalloutBody(
   const isPipe = !body.inCode && !isFence && REGEX_TABLE_LINE.test(text);
   body.tableRow = isPipe ? body.tableRow + 1 : -1;
 
+  // Fenced code is a code block of its own inside the card, its fences
+  // capping it top and bottom (cm-callout-codeblock, live-markers-theme.ts).
   if (isFence) {
     body.inCode = !body.inCode;
     out.mark(base, base + text.length, FADED);
-    return "";
+    return `${CALLOUT_CODEBLOCK} ${body.inCode ? "cm-callout-codeblock-start" : "cm-callout-codeblock-end"}`;
   }
-  if (body.inCode) {
-    out.mark(base, base + text.length, "cm-callout-code");
-    return "";
-  }
+  if (body.inCode) return CALLOUT_CODEBLOCK;
   if (!text.trim()) return "";
   if (REGEX_THEMATIC_BREAK.test(text)) {
     out.mark(base, base + text.length, FADED);
