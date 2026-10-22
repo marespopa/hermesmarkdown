@@ -9,6 +9,7 @@ vi.mock("@/app/hooks/file-system/shared", () => ({
 }));
 
 import {
+  findNoteMentions,
   indexNoteContent,
   isContentSearchAvailable,
   markContentIndexed,
@@ -104,5 +105,27 @@ describe("content-search-client", () => {
       remapNoteContent("x.md", "y.md");
     }).not.toThrow();
     await expect(searchNoteContent("needle", [])).resolves.toBeNull();
+  });
+
+  it("keeps mentions and search in separate supersede slots", async () => {
+    const search = searchNoteContent("needle", ["a.md"]);
+    const mentions = findNoteMentions(["Title"], ["a.md"]);
+    const [searchMsg, mentionsMsg] = worker.postMessage.mock.calls.map((call) => call[0]);
+    expect(mentionsMsg).toMatchObject({ type: "content:mentions", phrases: ["Title"], paths: ["a.md"], limit: 50 });
+
+    worker.reply({ type: "content:results", searchId: searchMsg.searchId, hits: [{ path: "s.md" }], pending: 0, capped: false });
+    worker.reply({ type: "content:results", searchId: mentionsMsg.searchId, hits: [{ path: "m.md" }], pending: 1, capped: false });
+
+    await expect(search).resolves.toMatchObject({ hits: [{ path: "s.md" }] });
+    await expect(mentions).resolves.toEqual({ hits: [{ path: "m.md" }], pending: 1, capped: false });
+  });
+
+  it("resolves an older mentions request with null once a newer one starts", async () => {
+    const older = findNoteMentions(["First"], []);
+    const newer = findNoteMentions(["Second"], []);
+    await expect(older).resolves.toBeNull();
+    const { searchId } = worker.postMessage.mock.calls[1][0];
+    worker.reply({ type: "content:results", searchId, hits: [], pending: 0, capped: false });
+    await expect(newer).resolves.toEqual({ hits: [], pending: 0, capped: false });
   });
 });

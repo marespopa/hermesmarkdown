@@ -69,7 +69,7 @@ const ScrollTarget = () => <output data-testid="scroll-target">{JSON.stringify(u
 const left = { id: "left", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
 const right = { id: "right", type: "editor" as const, openFilePaths: ["b.md"], activeFilePath: "b.md", isPinned: false };
 
-const renderSidebar = (open = true, descriptor: unknown = null, focusRequested = false, openFiles: Record<string, unknown> = {}) =>
+const renderSidebar = (open = true, descriptor: unknown = null, focusRequested = false, openFiles: Record<string, unknown> = {}, leftActive = "a.md") =>
   render(
     <Provider>
       <HydrateAtoms initialValues={[
@@ -83,7 +83,7 @@ const renderSidebar = (open = true, descriptor: unknown = null, focusRequested =
           "b.md": { fileName: "b.md", content: "B changed", lastSavedContent: "B" },
           ...openFiles,
         }],
-        [atom_workspaceLayout, { rootContainer: { id: "root", direction: "horizontal", sizes: [50, 50], children: [left, right] } }],
+        [atom_workspaceLayout, { rootContainer: { id: "root", direction: "horizontal", sizes: [50, 50], children: [{ ...left, openFilePaths: [leftActive], activeFilePath: leftActive }, right] } }],
       ]}>
         <WorkspaceSidebar />
         <ActivePane />
@@ -311,6 +311,23 @@ describe("WorkspaceSidebar", () => {
     }
     // Within the sidebar: the test's own atom probes are <output>s (status).
     expect(within(screen.getByRole("navigation")).queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("shows Linked from for a vault note on the editor, and not for the draft or without a vault", () => {
+    fileSystem.vaultHandle = { name: "Notes" };
+    const first = renderSidebar();
+    expect(screen.getByRole("region", { name: "Linked from" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Unlinked mentions" })).toBeInTheDocument();
+    first.unmount();
+
+    renderSidebar(true, null, false, { draft: { fileName: "draft", content: "x", lastSavedContent: "" } }, "draft");
+    expect(screen.queryByRole("region", { name: "Linked from" })).not.toBeInTheDocument();
+    cleanup();
+
+    fileSystem.vaultHandle = null;
+    renderSidebar();
+    expect(screen.queryByRole("region", { name: "Linked from" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Unlinked mentions" })).not.toBeInTheDocument();
   });
 
   it("titles its header with the vault's name, beside a button that hides it", () => {

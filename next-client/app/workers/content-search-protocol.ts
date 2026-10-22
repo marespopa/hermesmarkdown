@@ -30,7 +30,8 @@ export type ContentRequest =
   | { type: "content:remove"; paths: string[] }
   | { type: "content:clear" }
   | { type: "content:remap"; oldPath: string; newPath: string }
-  | { type: "content:search"; searchId: number; query: string; paths: string[]; limit: number };
+  | { type: "content:search"; searchId: number; query: string; paths: string[]; limit: number }
+  | { type: "content:mentions"; searchId: number; phrases: string[]; paths: string[]; limit: number };
 
 export interface ContentResults {
   type: "content:results";

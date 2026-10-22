@@ -41,6 +41,8 @@ These edges matter when refactoring — break them carefully:
 - `vault-atoms` → `privacy-atoms` (path remaps carry `atom_revealedPrivatePaths`; imported from `./privacy-atoms`, not the barrel)
 - `layout-actions` → `workspace-atoms` + `utils`
 
+`link-atoms.ts`: `atom_backlinkIndex`, a derived map (target path to the notes linking to it) built from `atom_fileMetadata` links.
+
 ## Conventions
 
 - Every atom is named `atom_<camelCase>`.

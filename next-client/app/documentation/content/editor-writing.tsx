@@ -430,7 +430,7 @@ graph TD
     id: "wikilinks",
     title: "Wikilinks",
     lead: "Link notes to each other with [[Note name]] — type [[ and pick a note.",
-    keywords: "wikilink wiki link backlink note [[ connect",
+    keywords: "wikilink wiki link backlink note [[ connect linked from unlinked mentions rename",
     body: (
       <>
         <p>
@@ -444,6 +444,16 @@ graph TD
           <code>CTRL+Click</code> a wikilink to open the note. A link to
           a note that doesn&apos;t exist yet creates it, after you confirm or pick a template; see{" "}
           <TextLink href="#templates">Templates</TextLink>.
+        </p>
+        <p>
+          In the library, <strong>Linked from</strong> lists the notes that link to the note you are
+          in; click one to open it at the link. <strong>Unlinked mentions</strong> (folded until you
+          open it) finds notes that name this note in plain text without linking it.
+        </p>
+        <p>
+          Renaming or moving a note, or renaming a folder, updates the wikilinks that would
+          otherwise break, in open and closed notes alike, and undoing the rename or move puts the
+          links back.
         </p>
       </>
     ),

@@ -1,13 +1,15 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useSetAtom, useStore } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
   atom_vaultHandle,
   atom_currentDirectoryHandle,
 } from "@/app/atoms/atoms";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_remapVaultPaths, type FileUndoGroup } from "@/app/atoms/vault-atoms";
+import { useRewriteLinksAfterMove } from "./use-rewrite-links";
 import { useDialog } from "../use-dialog";
 import { moveDirectoryByCopy, moveFileByCopy } from "./directory-ops";
 
@@ -24,6 +26,8 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
   const [currentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const remapVaultPaths = useSetAtom(atom_remapVaultPaths);
   const dialog = useDialog();
+  const store = useStore();
+  const rewriteLinks = useRewriteLinksAfterMove();
 
   const renameFile = useCallback(
     // Resolves to the item's new vault path once renamed.
@@ -135,6 +139,7 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
         }
       };
 
+      const before = store.get(atom_fileMetadata);
       try {
         await attemptRename();
       } catch (err: any) {
@@ -149,6 +154,16 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
       try {
         await remapVaultPaths({ oldPath, newPath });
         recordUndo("Rename", [{ from: oldPath, to: newPath }]);
+        // Links to the renamed note(s) follow it; a failure here never
+        // undoes the rename or skips the rescan.
+        try {
+          const { updated, failed } = await rewriteLinks(before, [{ from: oldPath, to: newPath }]);
+          if (updated > 0) toast.success(`Updated links in ${updated} note${updated === 1 ? "" : "s"}`);
+          if (failed > 0) toast.error(`Couldn't update links in ${failed} note${failed === 1 ? "" : "s"}`);
+        } catch (err: any) {
+          console.error("Link update failed:", err?.message || err);
+          toast.error("Couldn't update links");
+        }
         // The whole vault: listing just the parent would replace the root
         // listing the file tree reads its top-level folders from.
         await scanVault(vaultHandle);
@@ -167,6 +182,8 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
       remapVaultPaths,
       recordUndo,
       dialog,
+      store,
+      rewriteLinks,
     ],
   );
 

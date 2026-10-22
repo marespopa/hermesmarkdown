@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { atom_fileUndoStack, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { MemoryDirectoryHandle } from "@/app/services/memory-file-system.test-utils";
 import { relocateEntry } from "./directory-ops";
@@ -11,6 +11,12 @@ vi.mock("react-hot-toast", () => ({
   default: Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() }),
 }));
 vi.mock("@/app/services/content-search-client", () => ({ remapNoteContent: vi.fn() }));
+const rewriteLinks = vi.fn();
+vi.mock("./use-rewrite-links", () => ({ useRewriteLinksAfterMove: () => rewriteLinks }));
+beforeEach(() => {
+  rewriteLinks.mockReset();
+  rewriteLinks.mockResolvedValue({ updated: 0, failed: 0 });
+});
 
 async function setup() {
   const vault = new MemoryDirectoryHandle("vault");
@@ -54,6 +60,20 @@ describe("useFileUndo", () => {
     await act(async () => { await result.current.undoFileOperation(); });
     await act(async () => { await result.current.undoFileOperation(first); });
     expect(vault.listPaths()).toEqual(["notes/a.md"]);
+  });
+
+  it("rewrites links with the reverse mapping when a rename is undone, never for Trash", async () => {
+    const { vault, result } = await setup();
+    await relocateEntry(vault.asHandle(), "notes/a.md", "notes/b.md");
+    act(() => { result.current.recordUndo("Rename", [{ from: "notes/a.md", to: "notes/b.md" }]); });
+    await act(async () => { await result.current.undoFileOperation(); });
+    expect(rewriteLinks).toHaveBeenCalledWith(expect.anything(), [{ from: "notes/b.md", to: "notes/a.md" }]);
+
+    rewriteLinks.mockClear();
+    const trashPath = await moveToTrash(vault.asHandle(), "notes/a.md", new Date("2026-10-06T09:00:00Z"));
+    act(() => { result.current.recordUndo("Move to Trash", [{ from: "notes/a.md", to: trashPath }]); });
+    await act(async () => { await result.current.undoFileOperation(); });
+    expect(rewriteLinks).not.toHaveBeenCalled();
   });
 
   it("has nothing to undo in another vault", async () => {
