@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+import type { Text } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import { findCalloutFoldRanges, toggleCalloutFold, isRangeFolded, setCalloutFoldSign } from "../codemirror/callout-fold";
 import { detailsFoldRanges, setDetailsOpen } from "../codemirror/details-fold";
@@ -33,14 +34,30 @@ function sameChevrons(a: Chevron[], b: Chevron[]): boolean {
       && c.bodyFrom === b[i].bodyFrom && c.bodyTo === b[i].bodyTo && c.openFrom === b[i].openFrom);
 }
 
+type FoldBlock = { blockId: string; kind: Chevron["kind"]; titleOffset: number; bodyFrom: number; bodyTo: number; openFrom?: number };
+
+function foldBlocksOf(doc: Text): FoldBlock[] {
+  return [
+    ...findCalloutFoldRanges(doc.toString()).map((r) => ({ ...r, kind: "callout" as const, openFrom: undefined })),
+    ...detailsFoldRanges(doc).map((r) => ({ ...r, kind: "details" as const })),
+  ];
+}
+
 export function useCodeMirrorCalloutFold({ containerRef }: UseCodeMirrorCalloutFoldOptions) {
   const [chevrons, setChevrons] = useState<Chevron[]>([]);
+  // The note's foldable blocks, read again only when the text changes: a
+  // caret move doesn't scan the whole note.
+  const rangesRef = useRef<{ doc: Text; ranges: FoldBlock[] } | null>(null);
 
   const recompute = useCallback((view: EditorView) => {
-    const ranges = [
-      ...findCalloutFoldRanges(view.state.doc.toString()).map((r) => ({ ...r, kind: "callout" as const, openFrom: undefined })),
-      ...detailsFoldRanges(view.state.doc).map((r) => ({ ...r, kind: "details" as const })),
-    ];
+    const { doc } = view.state;
+    if (rangesRef.current?.doc !== doc) rangesRef.current = { doc, ranges: foldBlocksOf(doc) };
+    const { ranges } = rangesRef.current;
+    // Most notes have no callouts: nothing to place, so no layout is read.
+    if (!ranges.length) {
+      setChevrons((current) => (current.length ? [] : current));
+      return;
+    }
     // Coordinates before the wrapper rect: coordsAtPos can flush a pending
     // CodeMirror measure (e.g. a pending scrollIntoView) that
     // scrolls the canvas, which would leave an earlier wrapper rect stale.

@@ -63,11 +63,11 @@ All file writes go through `writeFileContent()` in `app/services/file-writer.ts`
 
 | Hook | Purpose |
 |------|---------|
-| `use-file-editor.ts` | Composes open / save / export / index; registers background indexing on the active file |
+| `use-file-editor.ts` | Composes open / save / export (background indexing runs once, in `ActiveFileIndexer`) |
 | `use-open-file.ts` | Loads a file into the editor (and closes the home feed; the sidebar stays as it is); retries stale handles. Saved content on disk always wins: differing unsaved browser text for that file is kept as a `local` snapshot on the tab, never prompted. Only an unsaved draft asks before being replaced |
 | `use-save-file.ts` | Writes with exponential backoff (up to 8 retries for autosave, 2 for manual saves; capped at 1.5s); auto-enables cloud mode after repeated lock errors; updates metadata async |
 | `use-export-file.ts` | Desktop picker → Web Share API → blob download fallback chain |
-| `use-index-active-file.ts` | 1s-debounced re-index on content change (unsaved text included); the worker also updates the note-text index, and the path is marked text-indexed |
+| `use-index-active-file.ts` | 1s-debounced re-index on content change (unsaved text included); the worker also updates the note-text index, and the path is marked text-indexed. Mounted once, by `editor/components/ActiveFileIndexer.tsx` (not inside `useFileSystem`) |
 | `reconcile-disk.ts` | Pure `reconcileWithDisk()` — merges on-disk content into a tab's cached state (take disk if clean, keep local edits if disk unchanged; if both changed, disk wins and the local text is kept as a `local` snapshot — no conflict prompt). Shared by the file watcher and `atom_rebindHandles` |
 | `file-observer.ts` | `createFileObserver()` — wraps Chromium's `FileSystemObserver`: `sync()` observes exactly the given path→handle map and fires a callback on change records. `observeVault(root, onChange)` watches a whole vault folder recursively and calls back when its file list changes (`changesFileList`: appeared / disappeared / moved / unknown, outside hidden folders); null without the API. Returns `null` where unsupported; `isFileObserverSupported()` reports it. Used by the file watcher |
 

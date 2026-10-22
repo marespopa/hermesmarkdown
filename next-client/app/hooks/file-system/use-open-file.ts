@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
@@ -24,9 +24,8 @@ export function useOpenFile() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
-  const [content] = useAtom(atom_content);
   const [fileMetadata] = useAtom(atom_fileMetadata);
-  const [, setOpenFiles] = useAtom(atom_openFiles);
+  const setOpenFiles = useSetAtom(atom_openFiles);
   const [lastSavedContent] = useAtom(atom_lastSavedContent);
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
@@ -82,6 +81,9 @@ export function useOpenFile() {
 
       // The CURRENT active file being dirty is only a concern when it's the
       // draft, which has no file on disk to fall back to.
+      // Read when opening, not subscribed: a subscription would re-render
+      // every useFileSystem caller on each keystroke.
+      const content = contentStore.get(atom_content);
       if (!force && !browserOnlyEdit && (!activeFilePath || activeFilePath === "draft") && content !== lastSavedContent) {
         const confirmed = await dialog.confirm(
           "You have unsaved changes in your draft. Open this file and discard them?",
@@ -183,7 +185,6 @@ export function useOpenFile() {
       fileMetadata,
       setFileLastModified,
       setFileConflict,
-      content,
       lastSavedContent,
       setOpenFiles,
       setIsFileLoading,

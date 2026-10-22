@@ -17,6 +17,7 @@ import PaneToolbarButton from "./PaneToolbarButton";
 import CopyMarkdownButton from "./CopyMarkdownButton";
 import SearchPill from "./SearchPill";
 import WorkspaceSidebar from "./WorkspaceSidebar";
+import ActiveFileIndexer from "./ActiveFileIndexer";
 
 // Show / hide the sidebar: Ctrl/Cmd+\, Ctrl/Cmd+Alt+S (`code`, since Alt
 // changes `key` on macOS), or Ctrl+[ — Ctrl on macOS too, where Cmd+[ is the
@@ -101,6 +102,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
       )}
       <NewVaultDialog />
       <GitHubVaultDialog />
+      <ActiveFileIndexer />
       <BrowserVaultDialog />
     </div>
   );

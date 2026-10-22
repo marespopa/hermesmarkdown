@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { atomWithStorage } from "jotai/utils";
+import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { atomFamily } from "jotai-family";
 import { atom_workspaceLayout, atom_activePaneId } from "./workspace-atoms";
 import { findLeaf, updateLeaf } from "./utils";
@@ -23,6 +23,47 @@ export interface FileState {
   snapshots?: Snapshot[];
 }
 
+// Typing changes the open notes on every keystroke, and writing them all to
+// localStorage each time (a JSON copy of every open note and its snapshots)
+// cost the editor a frame per key. Writes wait for a pause in typing and go
+// out at once when the page is hidden or closed; reads see the pending value.
+const PERSIST_DELAY_MS = 400;
+
+type SyncStorage<T> = ReturnType<typeof createJSONStorage<T>>;
+
+export function debouncedJSONStorage<T>(delay = PERSIST_DELAY_MS): SyncStorage<T> {
+  const storage = createJSONStorage<T>(() => localStorage);
+  let pending: { key: string; value: T } | null = null;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const flush = () => {
+    clearTimeout(timer);
+    if (!pending) return;
+    const { key, value } = pending;
+    pending = null;
+    storage.setItem(key, value);
+  };
+  if (typeof window !== "undefined") {
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") flush();
+    });
+  }
+  return {
+    ...storage,
+    getItem: (key, initialValue) => (pending?.key === key ? pending.value : storage.getItem(key, initialValue)),
+    setItem: (key, value) => {
+      if (pending && pending.key !== key) flush();
+      pending = { key, value };
+      clearTimeout(timer);
+      timer = setTimeout(flush, delay);
+    },
+    removeItem: (key) => {
+      if (pending?.key === key) pending = null;
+      storage.removeItem(key);
+    },
+  };
+}
+
 export const atom_openFiles = atomWithStorage<Record<string, FileState>>(
   "openFiles",
   {
@@ -33,6 +74,7 @@ export const atom_openFiles = atomWithStorage<Record<string, FileState>>(
       activeFilePath: null,
     },
   },
+  debouncedJSONStorage(),
 );
 
 export const atom_hasOpenFileContent = atom((get) =>

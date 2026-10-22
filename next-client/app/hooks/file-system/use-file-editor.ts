@@ -7,11 +7,11 @@ import {
 import { useOpenFile } from "./use-open-file";
 import { useSaveFile } from "./use-save-file";
 import { useExportFile } from "./use-export-file";
-import { useIndexActiveFile } from "./use-index-active-file";
 
 /**
  * Main hook for File Editor operations.
- * Composes specialized hooks for opening, saving, exporting, and background indexing.
+ * Composes specialized hooks for opening, saving and exporting. Background
+ * indexing of the active note runs once, in ActiveFileIndexer.
  */
 export function useFileEditor() {
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
@@ -19,9 +19,6 @@ export function useFileEditor() {
   const { openFile, openFileByName } = useOpenFile();
   const { saveFile } = useSaveFile();
   const { exportFile } = useExportFile({ saveFile });
-  
-  // Register background indexing
-  useIndexActiveFile();
 
   return {
     activeFileHandle,

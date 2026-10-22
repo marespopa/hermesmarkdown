@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
@@ -27,7 +27,7 @@ export function useSaveFile() {
   const [activeFileHandle] = useAtom(atom_activeFileHandle);
   const [activeFilePath, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, setFileName] = useAtom(atom_fileName);
-  const [, setOpenFiles] = useAtom(atom_openFiles);
+  const setOpenFiles = useSetAtom(atom_openFiles);
   const [, setLastSavedContent] = useAtom(atom_lastSavedContent);
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);

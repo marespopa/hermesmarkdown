@@ -76,7 +76,7 @@ export function useVaultManager() {
   const [, setFileMetadata] = useAtom(atom_fileMetadata);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
-  const [, setOpenFiles] = useAtom(atom_openFiles);
+  const setOpenFiles = useSetAtom(atom_openFiles);
   const [, setWorkspaceLayout] = useAtom(atom_workspaceLayout);
   const [, setIsCloudVault] = useAtom(atom_isCloudVault);
   const [, setVaultDescriptor] = useAtom(atom_vaultDescriptor);
