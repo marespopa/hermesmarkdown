@@ -4,6 +4,9 @@ module.exports = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    // Tests and benchmarks hold no classes the app draws; leaving them out
+    // keeps the dev watcher smaller (and a deleted test from failing it).
+    "!./app/**/*.{test,bench}.{ts,tsx}",
   ],
   darkMode: "class",
   // `hover:` styles only apply on devices that can hover, so a tap on a phone
