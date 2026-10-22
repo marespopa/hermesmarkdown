@@ -57,7 +57,7 @@ function setup(
   store.set(atom_isVaultRestoring, false);
   store.set(atom_activePaneId, "pane");
   store.set(atom_workspaceLayout, {
-    rootContainer: { id: "pane", type: "editor", openFilePaths: ["other.md", "draft"], activeFilePath: activePath, isPinned: false },
+    rootContainer: { id: "pane", openFilePaths: ["other.md", "draft"], activeFilePath: activePath, isPinned: false },
   });
   store.set(atom_openFiles, { draft: { ...EMPTY_DRAFT, content: draftContent } });
   const scanVault = vi.fn().mockResolvedValue(undefined);

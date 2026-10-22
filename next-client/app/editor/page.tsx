@@ -3,12 +3,11 @@
 import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import ConflictDialog from "./components/ConflictDialog";
 import { useAtom, useAtomValue } from "jotai";
-import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_activePaneId, atom_isFileLoading, atom_isVaultRestoring, findLeaf, getFirstLeaf, contentStore } from "@/app/atoms/atoms";
+import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_isFileLoading, atom_isVaultRestoring, contentStore } from "@/app/atoms/atoms";
 import { flushAllBoardWrites } from "@/app/utils/board/board-flush";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import useVisibleViewport from "@/app/hooks/use-visible-viewport";
 import FolderPrompt from "./components/FolderPrompt";
-import WorkspaceSplitter from "./components/WorkspaceSplitter";
 import PaneLeaf from "./components/PaneLeaf";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import LoadingBar from "@/app/components/LoadingBar";
@@ -18,7 +17,6 @@ import SelectionToolbar from "./components/SelectionToolbar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileWatcher } from "@/app/hooks/use-file-watcher";
-import { usePaneDragReset } from "./hooks/use-pane-drag-reset";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useAutoSave } from "@/app/hooks/use-auto-save";
 import MermaidDialog from "./components/MermaidDialog";
@@ -56,11 +54,8 @@ export default function LiteEditor() {
   const fileName = useAtomValue(atom_fileName);
   const activeFilePath = useAtomValue(atom_activeFilePath);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
-  const activePaneId = useAtomValue(atom_activePaneId);
-  // No split panes on mobile — always resolve to a single leaf, ignoring
-  // any split tree a desktop session may have saved.
-  const mobileLeaf = findLeaf(workspaceLayout.rootContainer, activePaneId) ?? getFirstLeaf(workspaceLayout.rootContainer);
-  const { closeTabWithAutosave } = usePaneFileActions(mobileLeaf);
+  const leaf = workspaceLayout.rootContainer;
+  const { closeTabWithAutosave } = usePaneFileActions(leaf);
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const aiBuilderRequest = useAtomValue(atom_aiBuilderRequest);
@@ -95,7 +90,6 @@ export default function LiteEditor() {
   // Run sync hooks
   const { flush } = useAutoSave(handleDraftAutosave);
   useFileWatcher();
-  usePaneDragReset();
   useVaultSync();
   useFirstRun(isMobileChrome);
   const chooseFolder = useChooseFolder(materializeDraft);
@@ -180,7 +174,7 @@ export default function LiteEditor() {
     navigateWithGuard,
     saveRef: handleSaveRef,
     newFileRef: handleNewFileRef,
-    activeTabPath: mobileLeaf.activeFilePath,
+    activeTabPath: leaf.activeFilePath,
     closeTabWithAutosave,
     flush,
   });
@@ -287,10 +281,8 @@ export default function LiteEditor() {
                     <div className="h-4 bg-current w-11/12 rounded-md" />
                     <div className="h-4 bg-current w-5/6 rounded-md" />
                   </div>
-                ) : isMobileChrome ? (
-                  <PaneLeaf leaf={mobileLeaf} />
                 ) : (
-                  <WorkspaceSplitter node={workspaceLayout.rootContainer} />
+                  <PaneLeaf leaf={leaf} />
                 )}
               </main>
             </div>

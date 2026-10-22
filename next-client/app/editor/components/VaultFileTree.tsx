@@ -14,6 +14,7 @@ import { treeMenuItems } from "./vault-tree/tree-menu-items";
 import { TreeNodes } from "./vault-tree/TreeNodes";
 import { useFolderExpansion } from "./vault-tree/use-folder-expansion";
 import { useTouchTreeDrag } from "./vault-tree/use-touch-tree-drag";
+import { useTreeReveal } from "./vault-tree/use-tree-reveal";
 import { useTreeActions } from "./vault-tree/use-tree-actions";
 import { useTreeSelection } from "./vault-tree/use-tree-selection";
 
@@ -107,6 +108,8 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     scrollToPath,
   });
 
+  const reveal = useTreeReveal({ rows, selectOnly, scrollToPath, scrollRef });
+
   const focusPath = selection.focusPath;
   useEffect(() => {
     if (!controllerRef) return;
@@ -116,9 +119,10 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
         scrollRef.current?.focus({ preventScroll: true });
         if (focusPath) scrollToPath(focusPath);
       },
+      reveal,
     };
     return () => { controllerRef.current = null; };
-  }, [controllerRef, actions.startCreate, focusPath, scrollToPath]);
+  }, [controllerRef, actions.startCreate, focusPath, scrollToPath, reveal]);
 
   const canDropAtRoot = canDropInto(draggedEntry, "");
 

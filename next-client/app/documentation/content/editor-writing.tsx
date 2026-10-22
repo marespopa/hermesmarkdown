@@ -174,7 +174,6 @@ export const editorWritingItems: Subsection[] = [
             { label: "<details><summary>Title</summary> … </details>", value: "Folds like a callout: the summary stays, the body folds. Starts collapsed unless the tag says open; the chevron writes open for you" },
             { label: "```js … ```", value: "Fences stay as typed, language included" },
             { label: "#tag, 2026-10-08", value: "Stay chips while you edit them" },
-            { label: "Other editor", value: "A split pane you're not typing in shows no marks" },
           ]}
         />
       </>
@@ -194,8 +193,8 @@ export const editorWritingItems: Subsection[] = [
         <p>
           Click any cell to edit it in place. Tab moves to the next cell, and tabbing out of the last
           one adds a row. Enter moves down a column. The arrow keys cross cell edges and step out of
-          the table at its borders. The file is updated as you type, so undo, autosave and split
-          panes always match what you see. The file on disk is still a plain Markdown pipe table.
+          the table at its borders. The file is updated as you type, so undo and autosave
+          always match what you see. The file on disk is still a plain Markdown pipe table.
         </p>
         <p>
           A focused cell shows its raw Markdown, such as <code>**bold**</code> or links. Every other
@@ -263,7 +262,7 @@ export const editorWritingItems: Subsection[] = [
         <Callout type="note">
           Formulas are stored as plain text in the Markdown file (<code>| =SUM(B2:B5) |</code>),
           so other Markdown apps show the formula, not the result. References to other notes read
-          those notes when you open this one and refresh when you return to its pane.
+          those notes when you open this one and refresh when you return to it.
         </Callout>
         <p>
           AI features know this syntax too. See{" "}
@@ -391,7 +390,7 @@ graph TD
         <Callout type="note">
           Images aren&apos;t supported on boards yet. Undo history belongs to the canvas and starts
           fresh when the file changes on disk. If a sync leaves merge conflicts in a board, or its
-          data can&apos;t be read, the pane says so and offers <strong>Edit as Markdown</strong> so you
+          data can&apos;t be read, the editor says so and offers <strong>Edit as Markdown</strong> so you
           can repair it. Boards work offline and make no network requests.
         </Callout>
       </>
@@ -492,7 +491,7 @@ graph TD
           opens the menu there, so you can choose a note or type a file&apos;s path.
         </p>
         <p>
-          Embeds stay current: a note open in a pane shows its unsaved edits, and other files are
+          Embeds stay current: a note open in the editor shows its unsaved edits, and other files are
           checked again whenever you come back to the window, so a CSV you just changed in a
           spreadsheet app shows its new rows. Click a note&apos;s name above its embed to open it.
           Private notes stay hidden until you show them, and a board shows its caption.

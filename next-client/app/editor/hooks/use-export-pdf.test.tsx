@@ -33,7 +33,7 @@ function setup(path: string, content: string) {
     [path]: { content, lastSavedContent: content, fileName: path.split("/").pop()!, activeFilePath: path },
   });
   store.set(atom_workspaceLayout, {
-    rootContainer: { id: "default-pane", type: "editor", openFilePaths: [path], activeFilePath: path, isPinned: false },
+    rootContainer: { id: "default-pane", openFilePaths: [path], activeFilePath: path, isPinned: false },
   });
   const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(Provider, { store }, children);
   const hook = renderHook(() => useExportPdf(), { wrapper });

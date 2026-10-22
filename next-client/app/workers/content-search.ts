@@ -3,7 +3,6 @@
 // regex syntax), line ranking, snippets and highlight offsets. Pure.
 
 import { ContentIndex, foldCase } from "./content-index";
-import { findMentions } from "./content-mentions";
 import type { ContentHit, ContentRequest, ContentResults } from "./content-search-protocol";
 
 export const MIN_QUERY_CHARS = 2;
@@ -175,9 +174,6 @@ export function handleContentMessage(
       return true;
     case "content:search":
       post({ type: "content:results", searchId: data.searchId, ...searchContent(index, data.query, data.paths, data.limit) });
-      return true;
-    case "content:mentions":
-      post({ type: "content:results", searchId: data.searchId, ...findMentions(index, data.phrases, data.paths, data.limit) });
       return true;
     default:
       return false;

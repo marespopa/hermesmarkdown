@@ -3,7 +3,6 @@ import { buildDocumentVaultCommandGroups } from "./document-vault-commands";
 import { buildEditorAiCommandGroups } from "./editor-ai-commands";
 import type { EditorCommandContext } from "./use-editor-command-context";
 import { buildWorkspaceTaskViewCommandGroups } from "./workspace-task-view-commands";
-import { buildPaneLayoutCommands } from "./pane-layout-commands";
 import { buildGitHubVaultCommands } from "./github-vault-commands";
 import { buildPrivacyCommands } from "./privacy-commands";
 import { buildVaultStorageCommands } from "./vault-storage-commands";
@@ -18,10 +17,8 @@ export function buildEditorCommands(context: EditorCommandContext): Command[] {
   return [
     ...documentVault.lifecycle,
     ...workspaceTasksViews.panels,
-    ...workspaceTasksViews.splitPaneRight,
-    ...buildPaneLayoutCommands(context),
     ...documentVault.fileOperations,
-    ...workspaceTasksViews.paneClosure,
+    ...workspaceTasksViews.tabsClosure,
     ...workspaceTasksViews.preferencesAndNavigation,
     ...buildPrivacyCommands(context),
     ...documentVault.vaultActions,

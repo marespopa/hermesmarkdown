@@ -31,12 +31,12 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
 | [board/](board/README.md) | Boards: Markdown notes holding an Excalidraw scene, shown as a canvas (`BoardViewLoader` → lazy `BoardView`, `BoardError`). |
 | [PaneLeaf](PaneLeaf.md) | One workspace pane: its quiet title header, the drop layer, and the active file's editor or read-only preview (behind `PrivateNoteGate`). |
-| [PaneDropLayer](PaneDropLayer.md) | Drop zones over a pane while a note or pane is dragged (edge = split, center = open here). |
 | [PrivateNoteGate](PrivateNoteGate.md) | Wraps a pane's editor: shows `PrivateNoteVeil` instead of mounting it until a private note is revealed (per note or for the session). |
 | [PrivateNoteVeil](PrivateNoteVeil.md) | The veil over a private note: lock, title, **Show note** and **Show all private notes this session**. |
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |
 | [PaneToolbarButton](PaneToolbarButton.md) | Icon-only toolbar button with a tooltip. |
-| [PaneTitle](PaneTitle.md) | The pane's header, in place of a toolbar: the note's folder breadcrumb, its name and a save dot, at the top left; click renames the note in place, right-click opens its menu. `save-state.tsx` holds the save-state dot, icon and labels it shares with the mobile file bar. |
+| [FolderPopover](FolderPopover.md) | A breadcrumb folder's notes and subfolders, under the pane title: step in and up, filter, open a note, Show in Files. `folder-listing.ts` lists a folder. |
+| [PaneTitle](PaneTitle.md) | The pane's header, in place of a toolbar: the note's folder breadcrumb (each folder opens a `FolderPopover`), its name and a save dot, at the top left; a click on the name (or a right-click) opens the note's menu, whose Rename renames it in place. `save-state.tsx` holds the save-state dot, icon and labels it shares with the mobile file bar. |
 | [PdfExport](PdfExport.md) | Mounts **Export as PDF** (palette and More menu): the focused note rendered with its `pdf_*` page setup, shown in the export dialog, and printed through the browser's dialog, on the device; also **Export as HTML**, a standalone `.html` download. |
 | [PdfExportDialog](PdfExportDialog.md) | The export dialog: the note's page setup beside a preview of its pages; Save as PDF… opens the print dialog. |
 | [TokenCostDialog](TokenCostDialog.md) | What sending the focused note to each AI model costs (o200k count, input prices); opened from the palette. |
@@ -58,11 +58,11 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [FolderPrompt](FolderPrompt.md) | The only first-run question, asked late: once a draft has text and no vault is open, a quiet bottom bar offers Choose Folder… (or Keep Notes in This Browser) and Not Now. |
 | [WikiLinkDialog](WikiLinkDialog.md) | Picks or creates a `[[WikiLink]]` target, with substring-matched suggestions from vault file metadata. |
 | [EditorShell](EditorShell.md) | The frame of every /editor route: hosts the sidebar (a plain panel that takes room), sets `--content-left`, owns the sidebar shortcuts and the vault dialogs. |
+| [CopyMarkdownButton](CopyMarkdownButton.md) | Copies the active note as Markdown; sits just left of the SearchPill in the editor's top-right corner, in its look. |
 | [SearchPill](SearchPill.md) | The command palette's search field at rest, in the toolbar and every page's title bar: the app's main way in. |
 | [ShellPage](ShellPage.md) | The frame of every /editor page (Tasks, Templates, Trash, All Notes, Settings): a title bar and the page, beside the open sidebar. |
 | [WorkspaceSidebar](WorkspaceSidebar.md) | The window's sidebar (desktop), the same on every /editor route and only the library: vault switcher, New note, Outline and Files; hideable and resizable. |
 | [sidebar/](sidebar/README.md) | `WorkspaceSidebar`'s parts and its navigation hook. |
-| [WorkspaceSplitter](WorkspaceSplitter.md) | Recursively renders the workspace layout tree as resizable panel groups, with a `PaneLeaf` at each leaf. |
 
 ## Outside this directory
 

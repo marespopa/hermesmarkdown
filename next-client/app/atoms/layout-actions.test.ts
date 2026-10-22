@@ -4,19 +4,12 @@ import { describe, it, expect, beforeEach } from "vitest";
 import {
   atom_workspaceLayout,
   atom_activePaneId,
-  atom_splitPane,
-  atom_closePane,
   atom_closeTab,
-  atom_moveTab,
   atom_reorderOpenNote,
   atom_activateWorkspaceTab,
   atom_workspaceTabs,
-  atom_setSplitSizes,
-  atom_setPaneType,
-  atom_toggleScrollLock,
-  findLeaf,
 } from "./atoms";
-import { WorkspaceContainer, PanelLeaf, WorkspaceState } from "../types/workspace";
+import { PanelLeaf } from "../types/workspace";
 
 describe("layout-actions", () => {
   let store: ReturnType<typeof createStore>;
@@ -25,74 +18,12 @@ describe("layout-actions", () => {
     store = createStore();
   });
 
-  it("should split a pane and update activePaneId", () => {
-    const initialLayout = store.get(atom_workspaceLayout);
-    const initialPaneId = initialLayout.rootContainer.id;
-    
-    store.set(atom_splitPane, { id: initialPaneId, direction: "horizontal" });
-    
-    const newLayout = store.get(atom_workspaceLayout);
-    // Root should now be a container with two children
-    expect("direction" in newLayout.rootContainer).toBe(true);
-    const container = newLayout.rootContainer as WorkspaceContainer;
-    expect(container.direction).toBe("horizontal");
-    expect(container.children).toHaveLength(2);
-    expect(container.children[0].id).toBe(initialPaneId);
-    
-    const newPaneId = container.children[1].id;
-    expect(store.get(atom_activePaneId)).toBe(newPaneId);
-  });
-
-  it("should open only the selected tab in the new pane", () => {
-    const paneId = "default-pane";
+  it("always reports the one pane as active, ignoring writes", () => {
     const layout = store.get(atom_workspaceLayout);
-    store.set(atom_workspaceLayout, {
-      ...layout,
-      rootContainer: {
-        ...layout.rootContainer,
-        openFilePaths: ["a.md", "b.md"],
-        activeFilePath: "b.md",
-      } as PanelLeaf,
-    });
-
-    store.set(atom_splitPane, {
-      id: paneId,
-      direction: "horizontal",
-      filePath: "b.md",
-    });
-
-    const container = store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer;
-    expect((container.children[0] as PanelLeaf).openFilePaths).toEqual(["a.md"]);
-    expect((container.children[1] as PanelLeaf).openFilePaths).toEqual(["b.md"]);
-    expect((container.children[1] as PanelLeaf).activeFilePath).toBe("b.md");
-  });
-
-  it("should close a pane and reassign activePaneId", () => {
-    const initialPaneId = "default-pane";
-    store.set(atom_splitPane, { id: initialPaneId, direction: "vertical" });
-    
-    const splitLayout = store.get(atom_workspaceLayout);
-    const container = splitLayout.rootContainer as WorkspaceContainer;
-    const newPaneId = container.children[1].id;
-    
-    expect(store.get(atom_activePaneId)).toBe(newPaneId);
-    
-    // Close the new pane
-    store.set(atom_closePane, newPaneId);
-    
-    const finalLayout = store.get(atom_workspaceLayout);
-    // Should be back to a single leaf
-    expect("type" in finalLayout.rootContainer).toBe(true);
-    expect(finalLayout.rootContainer.id).toBe(initialPaneId);
-    expect(store.get(atom_activePaneId)).toBe(initialPaneId);
-  });
-
-  it("should not close the last remaining pane", () => {
-    const initialPaneId = "default-pane";
-    store.set(atom_closePane, initialPaneId);
-    
-    const layout = store.get(atom_workspaceLayout);
-    expect(layout.rootContainer.id).toBe(initialPaneId);
+    store.set(atom_workspaceLayout, { ...layout, rootContainer: { ...layout.rootContainer, id: "only" } });
+    expect(store.get(atom_activePaneId)).toBe("only");
+    store.set(atom_activePaneId, "elsewhere");
+    expect(store.get(atom_activePaneId)).toBe("only");
   });
 
   it("should close a tab and update activeFilePath if necessary", () => {
@@ -118,91 +49,18 @@ describe("layout-actions", () => {
     expect(leaf.activeFilePath).toBe(fileA);
   });
 
-  it("should move a tab within the same pane", () => {
-    const paneId = "default-pane";
-    const fileA = "a.md";
-    const fileB = "b.md";
-    const fileC = "c.md";
-    
-    const layout = store.get(atom_workspaceLayout);
-    store.set(atom_workspaceLayout, {
-      ...layout,
-      rootContainer: {
-        ...layout.rootContainer,
-        openFilePaths: [fileA, fileB, fileC],
-        activeFilePath: fileA
-      } as PanelLeaf
-    });
-    
-    // Move fileA to the end
-    store.set(atom_moveTab, {
-      sourcePaneId: paneId,
-      targetPaneId: paneId,
-      filePath: fileA,
-      targetIndex: 2
-    });
-    
-    const newLayout = store.get(atom_workspaceLayout);
-    const leaf = newLayout.rootContainer as PanelLeaf;
-    expect(leaf.openFilePaths).toEqual([fileB, fileC, fileA]);
-    expect(leaf.activeFilePath).toBe(fileA);
-  });
-
-  it("should move a tab to a different pane", () => {
-    const pane1Id = "default-pane";
-    store.set(atom_splitPane, { id: pane1Id, direction: "horizontal" });
-    
-    const splitLayout = store.get(atom_workspaceLayout);
-    const container = splitLayout.rootContainer as WorkspaceContainer;
-    const pane2Id = container.children[1].id;
-    
-    const fileA = "a.md";
-    const fileB = "b.md";
-    
-    // Setup: fileA in pane1, fileB in pane2
-    store.set(atom_workspaceLayout, {
-      rootContainer: {
-        ...container,
-        children: [
-          { ...container.children[0], openFilePaths: [fileA], activeFilePath: fileA } as PanelLeaf,
-          { ...container.children[1], openFilePaths: [fileB], activeFilePath: fileB } as PanelLeaf,
-        ]
-      }
-    });
-    
-    // Move fileA from pane1 to pane2 at index 0
-    store.set(atom_moveTab, {
-      sourcePaneId: pane1Id,
-      targetPaneId: pane2Id,
-      filePath: fileA,
-      targetIndex: 0
-    });
-    
-    const finalLayout = store.get(atom_workspaceLayout);
-    const finalContainer = finalLayout.rootContainer as WorkspaceContainer;
-    const leaf1 = finalContainer.children[0] as PanelLeaf;
-    const leaf2 = finalContainer.children[1] as PanelLeaf;
-    
-    expect(leaf1.openFilePaths).toEqual([]);
-    expect(leaf2.openFilePaths).toEqual([fileA, fileB]);
-    expect(leaf2.activeFilePath).toBe(fileA);
-    expect(store.get(atom_activePaneId)).toBe(pane2Id);
-  });
-
-  it("reorders an open note without changing the note in front or the focused pane", () => {
+  it("reorders an open note without changing the note in front", () => {
     const layout = store.get(atom_workspaceLayout);
     const paneId = layout.rootContainer.id;
     store.set(atom_workspaceLayout, {
       ...layout,
       rootContainer: { ...layout.rootContainer, openFilePaths: ["a.md", "b.md", "c.md"], activeFilePath: "b.md" } as PanelLeaf,
     });
-    store.set(atom_activePaneId, null);
 
     store.set(atom_reorderOpenNote, { paneId, filePath: "c.md", targetIndex: 0 });
     const leaf = store.get(atom_workspaceLayout).rootContainer as PanelLeaf;
     expect(leaf.openFilePaths).toEqual(["c.md", "a.md", "b.md"]);
     expect(leaf.activeFilePath).toBe("b.md");
-    expect(store.get(atom_activePaneId)).toBeNull();
     expect(store.get(atom_workspaceTabs).map((tab) => tab.filePath)).toEqual(["c.md", "a.md", "b.md"]);
 
     // Out-of-range targets clamp; a note that isn't open is ignored.
@@ -212,47 +70,21 @@ describe("layout-actions", () => {
     expect((store.get(atom_workspaceLayout).rootContainer as PanelLeaf).openFilePaths).toEqual(["a.md", "b.md", "c.md"]);
   });
 
-  it("enumerates workspace tabs in visual pane order and activates the selected tab", () => {
-    const pane = (id: string, openFilePaths: string[]): PanelLeaf => ({
-      id,
-      type: "editor",
-      openFilePaths,
-      activeFilePath: openFilePaths[0],
-      isPinned: false,
+  it("enumerates the pane's tabs and activates the selected one", () => {
+    const layout = store.get(atom_workspaceLayout);
+    store.set(atom_workspaceLayout, {
+      ...layout,
+      rootContainer: { id: "pane", openFilePaths: ["one.md", "two.md", "three.md"], activeFilePath: "one.md", isPinned: false },
     });
-    const layout: WorkspaceState = {
-      rootContainer: {
-        id: "root",
-        direction: "horizontal",
-        sizes: [50, 50],
-        children: [
-          pane("left", ["one.md", "two.md"]),
-          {
-            id: "right",
-            direction: "vertical",
-            sizes: [50, 50],
-            children: [
-              pane("top-right", ["three.md"]),
-              pane("bottom-right", ["four.md", "five.md"]),
-            ],
-          },
-        ],
-      },
-    };
-    store.set(atom_workspaceLayout, layout);
 
     expect(store.get(atom_workspaceTabs)).toEqual([
-      { paneId: "left", filePath: "one.md" },
-      { paneId: "left", filePath: "two.md" },
-      { paneId: "top-right", filePath: "three.md" },
-      { paneId: "bottom-right", filePath: "four.md" },
-      { paneId: "bottom-right", filePath: "five.md" },
+      { paneId: "pane", filePath: "one.md" },
+      { paneId: "pane", filePath: "two.md" },
+      { paneId: "pane", filePath: "three.md" },
     ]);
 
-    store.set(atom_activateWorkspaceTab, 3);
-
-    expect(store.get(atom_activePaneId)).toBe("bottom-right");
-    expect(findLeaf(store.get(atom_workspaceLayout).rootContainer, "bottom-right")?.activeFilePath).toBe("four.md");
+    store.set(atom_activateWorkspaceTab, 2);
+    expect(store.get(atom_workspaceLayout).rootContainer.activeFilePath).toBe("three.md");
   });
 
   it("does not activate tabs beyond the first nine workspace shortcuts", () => {
@@ -270,72 +102,5 @@ describe("layout-actions", () => {
     store.set(atom_activateWorkspaceTab, 9);
 
     expect((store.get(atom_workspaceLayout).rootContainer as PanelLeaf).activeFilePath).toBe(paths[0]);
-  });
-});
-
-describe("layout-actions: previews, sizes and scroll lock", () => {
-  let store: ReturnType<typeof createStore>;
-
-  beforeEach(() => {
-    store = createStore();
-    const layout = store.get(atom_workspaceLayout);
-    store.set(atom_workspaceLayout, {
-      ...layout,
-      rootContainer: { ...layout.rootContainer, openFilePaths: ["a.md"], activeFilePath: "a.md" } as PanelLeaf,
-    });
-  });
-
-  it("splits a preview that copies the note, keeps focus and locks scroll", () => {
-    store.set(atom_splitPane, {
-      id: "default-pane",
-      direction: "horizontal",
-      filePath: "a.md",
-      type: "preview",
-      copy: true,
-      focusNew: false,
-      scrollLock: true,
-    });
-    const root = store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer;
-    expect(root.scrollLock).toBe(true);
-    expect((root.children[0] as PanelLeaf).openFilePaths).toEqual(["a.md"]);
-    expect(root.children[1]).toMatchObject({ type: "preview", openFilePaths: ["a.md"], activeFilePath: "a.md" });
-    expect(store.get(atom_activePaneId)).toBe("default-pane");
-  });
-
-  it("makes an editor even when splitting a metrics pane", () => {
-    const layout = store.get(atom_workspaceLayout);
-    store.set(atom_workspaceLayout, { ...layout, rootContainer: { ...layout.rootContainer, type: "metrics" } as PanelLeaf });
-    store.set(atom_splitPane, { id: "default-pane", direction: "vertical" });
-    const root = store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer;
-    expect((root.children[1] as PanelLeaf).type).toBe("editor");
-  });
-
-  it("writes split sizes", () => {
-    store.set(atom_splitPane, { id: "default-pane", direction: "horizontal" });
-    const root = store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer;
-    store.set(atom_setSplitSizes, { containerId: root.id, sizes: [70, 30] });
-    expect((store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer).sizes).toEqual([70, 30]);
-  });
-
-  it("flips scroll lock only on a lockable pair", () => {
-    store.set(atom_toggleScrollLock, "default-pane");
-    expect(store.get(atom_workspaceLayout).rootContainer).not.toHaveProperty("scrollLock");
-
-    store.set(atom_splitPane, { id: "default-pane", direction: "horizontal" });
-    store.set(atom_toggleScrollLock, "default-pane");
-    expect((store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer).scrollLock).toBe(true);
-    store.set(atom_toggleScrollLock, "default-pane");
-    expect((store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer).scrollLock).toBe(false);
-
-    // Nest the second pane: the first one's sibling is a split now, so it can't lock.
-    const outer = store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer;
-    store.set(atom_splitPane, { id: outer.children[1].id, direction: "vertical" });
-    store.set(atom_toggleScrollLock, "default-pane");
-    expect((store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer).scrollLock).toBeFalsy();
-  });
-
-  it("sets a pane's type", () => {
-    store.set(atom_setPaneType, { paneId: "default-pane", type: "preview" });
-    expect((store.get(atom_workspaceLayout).rootContainer as PanelLeaf).type).toBe("preview");
   });
 });

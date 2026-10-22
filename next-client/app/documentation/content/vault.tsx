@@ -52,7 +52,7 @@ export const vaultGroup: Group = {
       id: "organizing-files",
       title: "Organizing files",
       lead: "Files, in the sidebar or on the mobile Files page, works like a Finder list: select, drag, rename in place, and undo.",
-      keywords: "folders rename move delete trash undo select drag keyboard shortcuts empty folder",
+      keywords: "folders rename move delete trash undo select drag keyboard shortcuts empty folder breadcrumb path",
       body: (
         <>
           <p>
@@ -66,6 +66,12 @@ export const vaultGroup: Group = {
           <p>
             New notes and folders, and renames, are named right in the list: type, then press{" "}
             <strong>Return</strong> or click away to keep the name, or <strong>Esc</strong> to back out.
+          </p>
+          <p>
+            The folder path above a note is clickable: click a folder in it to see that folder&apos;s
+            notes and subfolders right there. Click a subfolder to step in, the ← to step up, or a
+            note to open it; type to filter. <strong>Show in Files</strong> opens the folder in the
+            sidebar.
           </p>
           <KV
             rows={[
@@ -218,7 +224,7 @@ tags: [finance, private]
           <Callout type="note">
             <ul>
               <li>This is screen privacy, not encryption: the file stays readable on disk.</li>
-              <li>File names still show in Files and in the pane title. A new note is named after its first line, so give a private note a harmless first line.</li>
+              <li>File names still show in Files and in the editor title. A new note is named after its first line, so give a private note a harmless first line.</li>
             </ul>
           </Callout>
         </>

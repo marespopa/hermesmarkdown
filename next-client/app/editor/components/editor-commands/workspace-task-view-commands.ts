@@ -1,28 +1,19 @@
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
-import type { PanelLeaf, WorkspaceContainer } from "@/app/types/workspace";
 import { openTokenCostDialog } from "../../utils/open-helper-dialogs";
 import type { EditorCommandContext } from "./use-editor-command-context";
-
-function collectLeaves(node: WorkspaceContainer | PanelLeaf): PanelLeaf[] {
-  return "type" in node ? [node] : node.children.flatMap(collectLeaves);
-}
 
 export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContext) {
   const {
     activeFilePath,
     activeLeaf,
-    activePaneId,
-    closePane,
     closeTab,
     closeTabWithAutosave,
     indexVaultTags,
-    isOnlyPane,
     onOpenTasks,
     onOpenTemplates,
     scanVault,
     setActiveFilePath,
-    setActivePaneId,
     setSidebarOpen,
     setShowHiddenFiles,
     setTaskSearchQuery,
@@ -30,10 +21,8 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     setTaskTagFilter,
     setTaskView,
     showHiddenFiles,
-    splitPane,
     sidebarOpen,
     vaultHandle,
-    workspaceLayout,
   } = context;
 
   // "Show Files" is registered once, by the palette itself (every route).
@@ -54,24 +43,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     },
   ];
 
-  const splitPaneRight: Command[] = activeLeaf
-    ? [{
-        id: "split-pane-right",
-        label: "Split Pane Right",
-        keywords: "open in pane split right side by side horizontal layout workspace",
-        action: () => splitPane({ id: activeLeaf.id, direction: "horizontal", filePath: activeFilePath }),
-      }]
-    : [];
-
-  const paneClosure: Command[] = [
-    ...(activeLeaf && !isOnlyPane
-      ? [{
-          id: "close-pane",
-          label: "Close Pane",
-          keywords: "close pane layout workspace",
-          action: () => closePane(activeLeaf.id),
-        }]
-      : []),
+  const tabsClosure: Command[] = [
     ...(activeLeaf && activeLeaf.openFilePaths.length > 1
       ? [{
           id: "close-other-tabs",
@@ -139,20 +111,10 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       : []),
   ];
 
-  const leaves = collectLeaves(workspaceLayout.rootContainer);
-  const activeLeafIndex = leaves.findIndex((leaf) => leaf.id === activePaneId);
   const activeTabIndex = activeLeaf?.activeFilePath
     ? activeLeaf.openFilePaths.indexOf(activeLeaf.activeFilePath)
     : -1;
   const workspaceTasksAndViews: Command[] = [
-    {
-      id: "split-pane-down",
-      label: "Split Pane Down",
-      category: "Workspace",
-      keywords: "vertical below layout",
-      disabledReason: activeLeaf ? undefined : "No active pane",
-      action: () => activeLeaf && splitPane({ id: activeLeaf.id, direction: "vertical", filePath: activeFilePath }),
-    },
     {
       id: "next-tab",
       label: "Activate Next Tab",
@@ -174,22 +136,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
         if (!activeLeaf || activeTabIndex < 0) return;
         setActiveFilePath(activeLeaf.openFilePaths[(activeTabIndex - 1 + activeLeaf.openFilePaths.length) % activeLeaf.openFilePaths.length]);
       },
-    },
-    {
-      id: "next-pane",
-      label: "Focus Next Pane",
-      category: "Workspace",
-      keywords: "switch layout",
-      disabledReason: leaves.length > 1 ? undefined : "No other pane",
-      action: () => setActivePaneId(leaves[(activeLeafIndex + 1) % leaves.length]?.id ?? null),
-    },
-    {
-      id: "previous-pane",
-      label: "Focus Previous Pane",
-      category: "Workspace",
-      keywords: "switch layout",
-      disabledReason: leaves.length > 1 ? undefined : "No other pane",
-      action: () => setActivePaneId(leaves[(activeLeafIndex - 1 + leaves.length) % leaves.length]?.id ?? null),
     },
     {
       id: "tasks-group-status",
@@ -244,8 +190,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
 
   return {
     panels,
-    splitPaneRight,
-    paneClosure,
+    tabsClosure,
     preferencesAndNavigation,
     tabClosure,
     workspaceTasksAndViews,

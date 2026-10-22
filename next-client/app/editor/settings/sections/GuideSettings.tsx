@@ -29,7 +29,7 @@ export default function GuideSettings() {
       <SettingGroup title="Help">
         <SettingItem
           label="Keyboard Shortcuts"
-          description="See every shortcut for writing, navigation, and panes."
+          description="See every shortcut for writing, navigation, and tabs."
           control={
             <Button variant="secondary" onClick={() => setKeyboardShortcutsOpen(true)} className={actionButtonClass}>
               Show Shortcuts

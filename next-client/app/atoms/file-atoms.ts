@@ -1,8 +1,8 @@
-import { atom, type Getter } from "jotai";
+import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { atomFamily } from "jotai-family";
 import { atom_workspaceLayout, atom_activePaneId } from "./workspace-atoms";
-import { findLeaf, getFirstLeaf, updateLeaf } from "./utils";
+import { findLeaf, updateLeaf } from "./utils";
 import { forgetClosedFiles, tabsToEvict, touchRecent } from "./tab-limit";
 import { PanelLeaf } from "../types/workspace";
 
@@ -64,7 +64,7 @@ export const atom_fileContent = atomFamily((path: string) =>
   ),
 );
 
-// Derived atoms for the "Active" file (focused pane)
+// Derived atoms for the "Active" file (the pane's front note)
 export const atom_activeFile = atom((get) => {
   const layout = get(atom_workspaceLayout);
   const activePaneId = get(atom_activePaneId);
@@ -232,22 +232,15 @@ export const EMPTY_DRAFT: FileState = {
   activeFilePath: null,
 };
 
-// Pane that receives draft actions: the active pane, or the first one when the
-// active id is stale (e.g. after a layout loaded from storage).
-function targetLeaf(get: Getter, paneId?: string | null) {
-  const root = get(atom_workspaceLayout).rootContainer;
-  return findLeaf(root, paneId ?? get(atom_activePaneId)) ?? getFirstLeaf(root);
-}
-
-// Focuses the draft tab in the given (default: active) pane, adding it when
-// absent. An unsaved draft keeps its text; otherwise it starts blank.
-export const atom_openDraft = atom(null, (get, set, paneId?: string) => {
-  const leaf = targetLeaf(get, paneId);
+// Focuses the draft tab, adding it when absent. An unsaved draft keeps its
+// text; otherwise it starts blank. The pane id is accepted for callers that
+// pass one; there is only one pane.
+export const atom_openDraft = atom(null, (get, set, _paneId?: string) => {
+  const leaf = get(atom_workspaceLayout).rootContainer;
   if (!get(atom_openFiles).draft) {
     set(atom_openFiles, (prev) => ({ ...prev, draft: { ...EMPTY_DRAFT } }));
   }
   set(atom_liveHandles("draft"), null);
-  set(atom_activePaneId, leaf.id);
   set(atom_workspaceLayout, (prev) => ({
     ...prev,
     rootContainer: updateLeaf(prev.rootContainer, leaf.id, {
@@ -286,7 +279,7 @@ export const atom_materializeDraft = atom(null, (get, set, draft: MaterializedDr
     },
   }));
   set(atom_materializedDraftPath, draft.path);
-  const leaf = targetLeaf(get, draft.paneId);
+  const leaf = get(atom_workspaceLayout).rootContainer;
   set(atom_workspaceLayout, (prev) => ({
     ...prev,
     rootContainer: updateLeaf(prev.rootContainer, leaf.id, {

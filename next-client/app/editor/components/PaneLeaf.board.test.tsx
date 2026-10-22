@@ -31,7 +31,7 @@ const Hydrate = ({ values, children }: { values: any; children: React.ReactNode 
 };
 
 function renderPane(content: string, path = "Sketch.md", extra: any[] = []) {
-  const leaf = { id: "solo", type: "editor" as const, openFilePaths: [path], activeFilePath: path, isPinned: false };
+  const leaf = { id: "solo", openFilePaths: [path], activeFilePath: path, isPinned: false };
   return render(
     <Provider>
       <Hydrate

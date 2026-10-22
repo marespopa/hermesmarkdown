@@ -30,7 +30,6 @@ function createEditor(vimMode: boolean, onOpenActiveHelper = vi.fn(() => false),
         flowMode: false,
         flowModeCompartment: new Compartment(),
         onOpenActiveHelperRef: { current: onOpenActiveHelper },
-        readOnly: false,
         onFocusChange: vi.fn(),
         slashMenuCallbacksRef: { current: {} as never },
         wikiLinkTriggerRef: { current: null },
@@ -177,32 +176,6 @@ describe("buildExtensions", () => {
 
     view.destroy();
     parent.remove();
-  });
-});
-
-describe("buildExtensions readOnly", () => {
-  it("makes the state read-only, so commands and paste can't edit", () => {
-    const state = EditorState.create({
-      doc: "text",
-      extensions: buildExtensions({
-        wordWrap: true,
-        wordWrapCompartment: new Compartment(),
-        lineNumbers: false,
-        lineNumbersCompartment: new Compartment(),
-        showInvisibles: false,
-        invisiblesCompartment: new Compartment(),
-        vimMode: false,
-        vimModeCompartment: new Compartment(),
-        flowMode: false,
-        flowModeCompartment: new Compartment(),
-        onOpenActiveHelperRef: { current: () => false },
-        readOnly: true,
-        onFocusChange: vi.fn(),
-        slashMenuCallbacksRef: { current: {} as never },
-        wikiLinkTriggerRef: { current: null },
-      }),
-    });
-    expect(state.readOnly).toBe(true);
   });
 });
 

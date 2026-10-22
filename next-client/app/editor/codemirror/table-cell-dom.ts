@@ -98,7 +98,7 @@ export function syncTable(dom: HTMLElement, match: TableDisplayMatch) {
     el.style.textAlign = match.alignments[cell.col] ?? "left";
     if (el === active) {
       // Only rewrite the focused cell when the source changed underneath
-      // it (undo/redo, another pane) — never for the user's own typing.
+      // it (undo/redo, external edit) — never for the user's own typing.
       if (toRaw(el.textContent ?? "") !== cell.text) {
         el.textContent = toDisplay(cell.text);
         placeCaret(el, "end");

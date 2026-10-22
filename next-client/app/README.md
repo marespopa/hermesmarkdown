@@ -31,7 +31,7 @@ This directory contains the core logic and routing for the HermesMarkdown Markdo
 ## Key Concepts
 
 ### Workspace Layout
-- **Main Workspace**: A flush, multi-pane area with tabs; panes split and resize via `react-resizable-panels` (`editor/components/WorkspaceSplitter.tsx`).
+- **Main Workspace**: One flush pane (`editor/components/PaneLeaf.tsx`) with up to 20 open notes, switched from the sidebar's Open Notes, the palette or Ctrl/Cmd+1–9.
 - **Files**: The vault's tree, one name everywhere. On desktop it's the sidebar's Files section; **Show Files** (command palette, `Ctrl/Cmd+Shift+E`) shows the sidebar and focuses it. On mobile the same command opens the full-screen Files page (`/editor/files`).
 - **Tasks**: A dedicated full view at `/editor/tasks`.
 - **Command palette**: The primary navigation surface — quick switcher, commands, tags, tasks, and headings.
@@ -45,5 +45,5 @@ The app uses the browser **File System Access API** for local vaults, with hooks
 State is managed via **Jotai**. Atoms (re-exported from `app/atoms/atoms.ts`; see `app/atoms/README.md`) track:
 - Currently opened vault and directory handles.
 - Open files, active file content, and the metadata index.
-- Workspace panes and tabs.
+- The workspace pane and its open notes.
 - UI preferences (theme, font, autosave, AI provider, etc.).

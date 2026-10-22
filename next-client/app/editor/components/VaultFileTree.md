@@ -34,12 +34,12 @@ const tree = useRef<VaultFileTreeController | null>(null);
 |---|---|---|---|
 | processedFiles | `any[]` |  | File entries to render |
 | activeFilePath | `string \| null` |  | Highlighted file |
-| openFile / openFileInPane? | `(handle, path?) => void` |  | Open actions |
+| openFile | `(handle, path?) => void` |  | Opens a note |
 | renameFile | `(handle, newName?, path?) => unknown` |  | Renames (resolving to the new path); called with the typed name from the inline field |
 | deleteFile / trashItems? | callbacks |  | Move to Trash: `trashItems` takes the whole selection as one action; without it, `deleteFile` per item |
 | duplicateFile? | `(handle) => void` |  | Menu action |
 | undoFileOperation? | `() => unknown` |  | ⌘Z / Ctrl+Z in the tree |
-| controllerRef? | `MutableRefObject<VaultFileTreeController \| null>` |  | Lets the host start naming a new note / folder in place (`startCreate(kind, parentPath?)`; without a parent, in the selected folder) and give the tree keyboard focus with its cursor row in view (`focus()`, Show Files) |
+| controllerRef? | `MutableRefObject<VaultFileTreeController \| null>` |  | Lets the host start naming a new note / folder in place (`startCreate(kind, parentPath?)`; without a parent, in the selected folder) and give the tree keyboard focus with its cursor row in view (`focus()`, Show Files), or with the row at a path selected and in view once its folders are open (`reveal(path)`, Show in Files) |
 | treeView? | `boolean` | `false` | Tree layout instead of a flat list |
 | columns? | `boolean` | `false` | Tree only: Finder-like list view with a sticky Name / Date Modified / Kind header (Files page) |
 | folderPaths? | `string[]` | `[]` | Folders to include in the tree, so empty ones show (from `useVaultFileSearch`: the indexing walk's folders at every depth plus the latest listing) |

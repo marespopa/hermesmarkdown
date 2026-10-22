@@ -8,17 +8,18 @@ export const VIRTUALIZE_THRESHOLD = 200;
 // start naming a new note or folder in place. Without `parentPath`, it goes
 // in the selected folder (or the selected item's folder, else the root).
 // `focus` gives the tree keyboard focus, its cursor row scrolled into view
-// ("Show Files").
+// ("Show Files"); `reveal` does the same with the row at `path` selected,
+// once its folders are open ("Show in Files").
 export interface VaultFileTreeController {
   startCreate: (kind: "file" | "folder", parentPath?: string) => void;
   focus: () => void;
+  reveal: (path: string) => void;
 }
 
 export interface VaultFileTreeProps {
   processedFiles: any[];
   activeFilePath: string | null;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
-  openFileInPane?: (handle: FileSystemFileHandle, path?: string) => void;
   // Pinned notes (note-pin-atoms.ts): with both, a note's menu offers Pin / Unpin.
   isPinned?: (path: string) => boolean;
   togglePin?: (path: string) => void;

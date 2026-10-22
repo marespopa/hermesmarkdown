@@ -6,27 +6,24 @@ import MarkdownEditor from "./MarkdownEditor";
 import PrivateNoteGate from "./PrivateNoteGate";
 import TabContextMenu from "./TabContextMenu";
 import { useAtom } from "jotai";
-import { atom_activePaneId, atom_fileContent, atom_openFiles, atom_saveStatus, atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import { atom_fileContent, atom_openFiles, atom_saveStatus } from "@/app/atoms/atoms";
+import { atom_showFolderInFiles, atom_vaultHandle, atom_vaultName } from "@/app/atoms/vault-atoms";
 import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
-import { HiOutlineDocumentText, HiOutlineChartBar, HiOutlineSave } from "react-icons/hi";
+import { HiOutlineSave } from "react-icons/hi";
 import { formatShortcut } from "@/app/utils/platform";
 import BoardViewLoader from "./board/BoardViewLoader";
 import { isBoard } from "@/app/utils/board/is-board";
 import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
 import PaneTitle from "./PaneTitle";
-import PaneDropLayer from "./PaneDropLayer";
+import FolderPopover from "./FolderPopover";
 import { PANE_TOP_ROOM } from "./pane-header-classes";
-import { lockablePair } from "@/app/atoms/layout-tree";
-import { atom_toggleScrollLock } from "@/app/atoms/layout-actions";
-import { atom_paneDrag } from "@/app/atoms/pane-drag-atoms";
 import type { SaveState } from "./save-state";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue, useSetAtom } from "jotai";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useNoteMenuItems } from "../hooks/use-note-menu-items";
 import PaneEmptyState from "./PaneEmptyState";
-import { SEARCH_PILL_WIDTH } from "./SearchPill";
+import { EDITOR_CORNER_WIDTH } from "./CopyMarkdownButton";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
 import { atom_autosaveMode, atom_saveRequested, AUTOSAVE_DELAY, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 
@@ -38,20 +35,16 @@ interface PaneLeafProps {
 const AUTOSAVE_GRACE = 1000;
 
 export default function PaneLeaf({ leaf }: PaneLeafProps) {
-  const [activePaneId, setActivePaneId] = useAtom(atom_activePaneId);
   const [openFiles] = useAtom(atom_openFiles);
   const saveStatus = useAtomValue(atom_saveStatus);
-  const workspaceLayout = useAtomValue(atom_workspaceLayout);
-  const isOnlyPane = "type" in workspaceLayout.rootContainer;
   const isMobileChrome = useIsMobileChrome();
-  // A preview shows its note read-only; mobile has no panes, so it edits there.
-  const isPreview = leaf.type === "preview" && !isMobileChrome;
-  const lockPair = lockablePair(workspaceLayout.rootContainer, leaf.id);
-  const toggleScrollLock = useSetAtom(atom_toggleScrollLock);
-  const setPaneDrag = useSetAtom(atom_paneDrag);
 
-  const { openOrCreateLink, renameFile } = useFileSystem();
+  const { openOrCreateLink, renameFile, openFile } = useFileSystem();
   const hasVault = !!useAtomValue(atom_vaultHandle);
+  const vaultName = useAtomValue(atom_vaultName) ?? "Vault";
+  const showFolderInFiles = useSetAtom(atom_showFolderInFiles);
+  // The breadcrumb's folder popover: which folder, under which crumb.
+  const [folderMenu, setFolderMenu] = React.useState<{ folder: string; anchor: DOMRect } | null>(null);
   const filePath = leaf.activeFilePath || "draft";
   const [content, setContent] = useAtom(atom_fileContent(filePath));
   // A board (see board/) shows as a canvas unless opened as Markdown.
@@ -70,8 +63,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     const generation = previous.generation + 1;
     editorKeyRef.current = { path: filePath, key: keepEditor ? previous.key : `${filePath}#${generation}`, generation };
   }
-
-  const isActive = activePaneId === leaf.id;
 
   const noteMenuItems = useNoteMenuItems(leaf);
 
@@ -102,14 +93,6 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const activeSaveState: SaveState =
     autosave && !saveLate && (savedState === "dirty" || savedState === "saving") ? "idle" : savedState;
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case "editor": return <HiOutlineDocumentText size={14} />;
-      case "metrics": return <HiOutlineChartBar size={14} />;
-      default: return <HiOutlineDocumentText size={14} />;
-    }
-  };
-
   const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string; fromButton?: boolean } | null>(null);
   const menuButtonRef = React.useRef<HTMLButtonElement>(null);
   // The note in front, as the title shows it, and its folder.
@@ -118,6 +101,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   // A vault note renames in place from its title; the draft has no file yet.
   const activeHandle = useAtomValue(atom_liveHandles(filePath));
   const canRename = hasVault && filePath !== "draft" && !!activeHandle;
+  // The title menu's Rename: bumped to turn the name into a field in place.
+  const [renameRequest, setRenameRequest] = React.useState(0);
   const renameActive = (typed: string) => {
     if (!activeHandle) return;
     const name = /\.md$/i.test(filePath) && !/\.md$/i.test(typed) ? `${typed}.md` : typed;
@@ -125,8 +110,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   };
   const sidebarOpen = useAtomValue(atom_sidebarOpen);
   const requestSave = useSetAtom(atom_saveRequested);
-  // Saves the note in front, so this pane's note comes forward first.
-  const saveActive = () => { setActivePaneId(leaf.id); requestSave(true); };
+  // Saves the note in front.
+  const saveActive = () => requestSave(true);
   // Whether the note in front is scrolled down: shows the band behind the title.
   const [scrolled, setScrolled] = React.useState(false);
   React.useEffect(() => setScrolled(false), [filePath]);
@@ -136,17 +121,16 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   return (
     <div
       data-pane-id={leaf.id}
-      className={`relative h-full flex flex-col transition-all duration-300 overflow-hidden ${
-        isActive ? "z-10" : ""
-      }`}
+      className="relative h-full flex flex-col transition-all duration-300 overflow-hidden"
       // Room at the top for the SearchPill: CodeMirror keeps the caret
       // below it, and a board's own toolbar starts under it.
       style={isMobileChrome ? undefined : ({ "--pane-top-room": PANE_TOP_ROOM } as React.CSSProperties)}
-      onClick={() => setActivePaneId(leaf.id)}
       // Scroll doesn't bubble: catch the note's vertical scroller (CodeMirror,
       // a board) on the way down; horizontal ones (wide tables) don't count.
       onScrollCapture={(event) => {
         const el = event.target as HTMLElement;
+        // A portaled popover (the folder list) scrolls through here too.
+        if (!event.currentTarget.contains(el)) return;
         if (el.scrollHeight <= el.clientHeight) return;
         setScrolled(el.scrollTop > 0);
       }}
@@ -169,62 +153,50 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       )}
       {!isMobileChrome && (
         <div
-          // Clear of the SearchPill in the top-right corner (EditorShell).
-          style={{ paddingRight: `calc(${SEARCH_PILL_WIDTH} + 3rem)` }}
+          // Clear of Copy Markdown and the SearchPill in the top-right corner (EditorShell).
+          style={{ paddingRight: `calc(${EDITOR_CORNER_WIDTH} + 3rem)` }}
           className={`pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-start ${sidebarOpen ? "pl-3" : "pl-12"}`}
         >
           <div className="pointer-events-auto min-w-0">
             <PaneTitle
               title={hasFiles ? activeTitle : null}
               folder={hasFiles ? activeFolder : ""}
+              onOpenFolder={hasVault ? (folder, anchor) => setFolderMenu({ folder, anchor }) : undefined}
               saveState={activeSaveState}
               saveErrorMessage={saveStatus.message}
               onRename={hasFiles && canRename ? renameActive : undefined}
+              renameRequest={renameRequest}
               onSave={hasFiles ? saveActive : undefined}
               onContextMenu={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 if (!hasFiles) return;
-                setActivePaneId(leaf.id);
                 setTabMenu({ x: e.clientX, y: e.clientY, path: leaf.activeFilePath || "draft" });
               }}
-              // The same menu from the ⋯ button, under it; a second press closes it.
+              // The same menu from a click on the name, under it; a second press closes it.
               onMenu={hasFiles ? (anchor) => {
                 if (tabMenu?.fromButton) return setTabMenu(null);
-                setActivePaneId(leaf.id);
                 setTabMenu({ x: anchor.left, y: anchor.bottom + 4, path: leaf.activeFilePath || "draft", fromButton: true });
               } : undefined}
               menuOpen={!!tabMenu?.fromButton}
               menuButtonRef={menuButtonRef}
-              badge={isPreview ? "Preview" : undefined}
-              scrollLocked={!!lockPair?.scrollLock}
-              onToggleScrollLock={() => toggleScrollLock(leaf.id)}
-              onGripDragStart={isOnlyPane ? undefined : (e) => {
-                setPaneDrag({ kind: "pane", paneId: leaf.id });
-                e.dataTransfer.effectAllowed = "move";
-                // Firefox only starts a drag that carries some data.
-                e.dataTransfer.setData("application/x-hermes-pane", leaf.id);
-              }}
             />
           </div>
         </div>
       )}
 
-      {!isMobileChrome && <PaneDropLayer paneId={leaf.id} />}
-
       {/* Pane Content */}
       <div className="flex-1 min-h-0 overscroll-none overflow-auto">
         {leaf.openFilePaths.length === 0 ? (
           <PaneEmptyState onLoadDraft={setContent} />
-        ) : leaf.type === "editor" || leaf.type === "preview" ? (
+        ) : (
           // The gate carries the editor's key, so its "already shown" latch
           // follows the editor instance (a draft saved as a file keeps both).
-          <PrivateNoteGate key={editorKeyRef.current.key + (isPreview ? ":preview" : "")} filePath={filePath} content={content} isActivePane={isActive}>
+          <PrivateNoteGate key={editorKeyRef.current.key} filePath={filePath} content={content} isActivePane>
             {showBoard ? (
               <BoardViewLoader
                 path={filePath}
                 content={content}
-                isActivePane={isActive}
                 onEditAsMarkdown={() => toggleBoardMarkdown(filePath)}
               />
             ) : (
@@ -234,19 +206,23 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 filePath={leaf.activeFilePath || "draft"}
                 onWikiLinkClick={openOrCreateLink}
                 placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
-                isActivePane={isActive}
-                isSplit={!isOnlyPane}
-                readOnly={isPreview}
               />
             )}
           </PrivateNoteGate>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full opacity-20 space-y-2">
-            {getIcon(leaf.type)}
-            <span className="text-ui-caption font-medium">{leaf.type} view</span>
-          </div>
         )}
       </div>
+
+      {folderMenu && (
+        <FolderPopover
+          folder={folderMenu.folder}
+          anchor={folderMenu.anchor}
+          currentPath={leaf.activeFilePath ?? null}
+          rootName={vaultName}
+          onOpenNote={(handle, path) => { void openFile(handle, path); }}
+          onShowInFiles={(folder) => showFolderInFiles(folder)}
+          onClose={() => setFolderMenu(null)}
+        />
+      )}
 
       {tabMenu && (
         <TabContextMenu
@@ -256,7 +232,9 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           // starts with Save (Ctrl/Cmd+S); the shared note menu follows.
           items={[
             { label: "Save", icon: <HiOutlineSave size={15} />, shortcut: formatShortcut("S"), disabled: activeSaveState === "saving", onClick: saveActive },
-            ...noteMenuItems(tabMenu.path).map((item, i) => (i === 0 ? { ...item, divider: true } : item)),
+            ...noteMenuItems(tabMenu.path, {
+              onRename: canRename && tabMenu.path === filePath ? () => setRenameRequest((n) => n + 1) : undefined,
+            }).map((item, i) => (i === 0 ? { ...item, divider: true } : item)),
           ]}
           label="Note actions"
           anchorRef={tabMenu.fromButton ? menuButtonRef : undefined}

@@ -256,7 +256,6 @@ export function singlePaneLayout(openFilePaths: string[], activeFilePath: string
   return {
     rootContainer: {
       id: "default-pane",
-      type: "editor" as const,
       openFilePaths,
       activeFilePath: activeFilePath as any,
       isPinned: false,

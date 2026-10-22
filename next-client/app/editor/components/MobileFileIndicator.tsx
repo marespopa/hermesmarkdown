@@ -4,10 +4,8 @@ import React from "react";
 import { useAtomValue } from "jotai";
 import {
   atom_workspaceLayout,
-  atom_activePaneId,
   atom_openFiles,
   atom_saveStatus,
-  findLeaf,
 } from "@/app/atoms/atoms";
 import { HiOutlineChevronDown, HiOutlineChatAlt2 } from "react-icons/hi";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
@@ -26,12 +24,11 @@ interface MobileFileIndicatorProps {
 // happens by picking the file again in the palette.
 export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFileIndicatorProps) {
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
-  const activePaneId = useAtomValue(atom_activePaneId);
   const openFiles = useAtomValue(atom_openFiles);
   const saveStatus = useAtomValue(atom_saveStatus);
   const { open: openCommandPalette } = useCommandPalette();
 
-  const leaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
+  const leaf = workspaceLayout.rootContainer;
   const hasOpenFiles = !!leaf && leaf.openFilePaths.length > 0;
   const activePath = leaf?.activeFilePath;
   // Stays mounted (as "Search files…") even with nothing open — mobile has

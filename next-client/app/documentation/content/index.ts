@@ -20,7 +20,7 @@ export const GROUPS: Group[] = [
   {
     id: "editor",
     label: "Editor",
-    summary: "Writing, Markdown marks, tables, templates, tabs, split panes and PDF export.",
+    summary: "Writing, Markdown marks, tables, templates, tabs, and PDF export.",
     items: [...editorWritingItems, ...templatesItems, ...editorWorkspaceItems, exportPdfItem, exportHtmlItem],
   },
   { ...vaultGroup, summary: "How notes are stored: folders on disk, browser vaults and GitHub." },

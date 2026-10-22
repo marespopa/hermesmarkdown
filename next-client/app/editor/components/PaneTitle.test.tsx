@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom";
-import PaneTitle, { collapseCrumbs } from "./PaneTitle";
+import PaneTitle, { collapseCrumbs, crumbTargets } from "./PaneTitle";
 
 describe("collapseCrumbs", () => {
   it("keeps one or two folders as they are", () => {
@@ -14,6 +14,23 @@ describe("collapseCrumbs", () => {
   });
 });
 
+describe("crumbTargets", () => {
+  it("opens each shown folder at its own path", () => {
+    expect(crumbTargets(["Work", "Projects"])).toEqual([
+      { label: "Work", path: "Work" },
+      { label: "Projects", path: "Work/Projects" },
+    ]);
+  });
+
+  it("opens the folded middle at the last folder it hides", () => {
+    expect(crumbTargets(["Work", "Projects", "2026", "Clients"])).toEqual([
+      { label: "Work", path: "Work" },
+      { label: "…", path: "Work/Projects/2026", title: "Projects / 2026" },
+      { label: "Clients", path: "Work/Projects/2026/Clients" },
+    ]);
+  });
+});
+
 describe("PaneTitle", () => {
   const base = { title: "Roadmap", saveState: "idle" as const, onContextMenu: vi.fn() };
 
@@ -21,6 +38,17 @@ describe("PaneTitle", () => {
     render(<PaneTitle {...base} folder="Work/Projects/2026/Q4/Clients" />);
     expect(screen.getByText("Work / … / Clients")).toBeInTheDocument();
     expect(screen.getByTitle("Work / Projects / 2026 / Q4 / Clients")).toBeInTheDocument();
+  });
+
+  it("opens a breadcrumb's folder from its own button, the folded middle from its last folder", () => {
+    const onOpenFolder = vi.fn();
+    render(<PaneTitle {...base} folder="Work/Projects/2026/Clients" onOpenFolder={onOpenFolder} />);
+    fireEvent.click(screen.getByRole("button", { name: "Folder Work" }));
+    expect(onOpenFolder).toHaveBeenLastCalledWith("Work", expect.anything());
+    fireEvent.click(screen.getByRole("button", { name: "Folders Projects / 2026" }));
+    expect(onOpenFolder).toHaveBeenLastCalledWith("Work/Projects/2026", expect.anything());
+    fireEvent.click(screen.getByRole("button", { name: "Folder Clients" }));
+    expect(onOpenFolder).toHaveBeenLastCalledWith("Work/Projects/2026/Clients", expect.anything());
   });
 
   it("shows nothing after the name while the note is saved", () => {
@@ -48,44 +76,33 @@ describe("PaneTitle", () => {
     expect(screen.queryByRole("button", { name: /Save$/ })).not.toBeInTheDocument();
   });
 
-  it("opens the note's menu from the ⋯ button, without starting a rename", () => {
+  it("opens the note's menu from a click on its name, without starting a rename", () => {
     const onMenu = vi.fn();
     render(<PaneTitle {...base} onRename={vi.fn()} onMenu={onMenu} />);
-    fireEvent.click(screen.getByRole("button", { name: "Note actions" }));
+    fireEvent.click(screen.getByRole("button", { name: "Roadmap. Note actions" }));
     expect(onMenu).toHaveBeenCalledOnce();
     expect(screen.queryByRole("textbox", { name: "Note name" })).not.toBeInTheDocument();
   });
 
-  it("marks the ⋯ button expanded while its menu is open", () => {
+  it("marks the name expanded while its menu is open", () => {
     render(<PaneTitle {...base} onMenu={vi.fn()} menuOpen />);
-    expect(screen.getByRole("button", { name: "Note actions" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Roadmap. Note actions" })).toHaveAttribute("aria-expanded", "true");
   });
 
-  it("has no ⋯ button without a menu to open", () => {
+  it("shows the name as plain text without a menu to open", () => {
     render(<PaneTitle {...base} title={null} />);
-    expect(screen.queryByRole("button", { name: "Note actions" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Note actions/ })).not.toBeInTheDocument();
+    expect(screen.getByText("No note open")).toBeInTheDocument();
   });
 
-  it("shows the lock button only while scroll is locked, and unlocks on click", () => {
-    const onToggle = vi.fn();
-    const { rerender } = render(<PaneTitle {...base} onToggleScrollLock={onToggle} />);
-    expect(screen.queryByRole("button", { name: "Unlock scroll" })).not.toBeInTheDocument();
-    rerender(<PaneTitle {...base} scrollLocked onToggleScrollLock={onToggle} />);
-    fireEvent.click(screen.getByRole("button", { name: "Unlock scroll" }));
-    expect(onToggle).toHaveBeenCalledOnce();
-  });
-
-  it("shows a badge after the name", () => {
-    render(<PaneTitle {...base} badge="Preview" />);
-    expect(screen.getByText("Preview")).toBeInTheDocument();
-  });
-
-  it("shows the grip only when a drag handler is given", () => {
-    const onGrip = vi.fn();
-    const { rerender } = render(<PaneTitle {...base} />);
-    expect(screen.queryByRole("button", { name: "Drag to move pane" })).not.toBeInTheDocument();
-    rerender(<PaneTitle {...base} onGripDragStart={onGrip} />);
-    fireEvent.dragStart(screen.getByRole("button", { name: "Drag to move pane" }));
-    expect(onGrip).toHaveBeenCalledOnce();
+  it("renames in place when the menu's Rename asks", () => {
+    const onRename = vi.fn();
+    const { rerender } = render(<PaneTitle {...base} onRename={onRename} onMenu={vi.fn()} />);
+    expect(screen.queryByRole("textbox", { name: "Note name" })).not.toBeInTheDocument();
+    rerender(<PaneTitle {...base} onRename={onRename} onMenu={vi.fn()} renameRequest={1} />);
+    const field = screen.getByRole("textbox", { name: "Note name" });
+    fireEvent.change(field, { target: { value: "Launch plan" } });
+    fireEvent.keyDown(field, { key: "Enter" });
+    expect(onRename).toHaveBeenCalledWith("Launch plan");
   });
 });

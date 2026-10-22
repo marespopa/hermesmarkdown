@@ -13,7 +13,7 @@ const EDITORS = [
   {
     name: "HermesMarkdown",
     tagline: "Local-first, runs entirely in your browser",
-    notes: "No accounts, no cloud uploads — reads and writes files straight to disk. WikiLinks, spreadsheet-style tables with formulas, split panes, and optional bring-your-own-key AI.",
+    notes: "No accounts, no cloud uploads — reads and writes files straight to disk. WikiLinks, spreadsheet-style tables with formulas, and optional bring-your-own-key AI.",
     href: "/editor",
     internal: true,
   },
@@ -167,7 +167,7 @@ export default function MarkdownEditorPage() {
               are the only features that talk to a server.
             </p>
             <p>
-              It supports split panes for working on several notes at once, WikiLinks for connecting
+              It supports tabs for working on several notes, WikiLinks for connecting
               notes, tables you edit like a spreadsheet (with formulas), and a vault-wide tasks view.
               Because notes stay plain Markdown, AI coding tools can read the vault directly.
             </p>

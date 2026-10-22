@@ -54,9 +54,6 @@ interface MarkdownEditorProps {
   placeholder?: string;
   onWikiLinkClick?: (name: string) => void;
   isActivePane?: boolean;
-  isSplit?: boolean;
-  // A preview pane: shown without Markdown marks, never edited or focused.
-  readOnly?: boolean;
 }
 
 // The CM6 editor pane. Editing behavior lives in CodeMirror extensions
@@ -88,7 +85,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   }, [onChange]);
 
   const { fontFamily, displayFontSize, lineHeight, paneRef, contentPaddingX, contentPaddingLeft } =
-    useEditorAppearance(props.isSplit);
+    useEditorAppearance();
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -194,17 +191,10 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const { chevrons, toggle: toggleCalloutFold, onCursorActivity: onFoldCursorActivity, onViewCreated } =
     useCodeMirrorCalloutFold({ containerRef });
-    const {
-      onCursorActivity: onFrontmatterFoldCursorActivity,
-      onViewCreated: onFrontmatterFoldViewCreated,
-    } = useCodeMirrorFrontmatterFold({
-      viewRef,
-      filePath,
-    });
+  const { onViewCreated: onFrontmatterFoldViewCreated } = useCodeMirrorFrontmatterFold();
 
   const registerActiveView = useActiveEditorView(viewRef, {
     isActivePane: props.isActivePane !== false,
-    enabled: !props.readOnly,
   });
 
   const handleViewCreated = useCallback((view: EditorView) => {
@@ -220,8 +210,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onCodeLanguagePickerCursorActivity(view);
     onImageCursorActivity(view);
     onFoldCursorActivity(view);
-    onFrontmatterFoldCursorActivity(view);
-  }, [onCursorActivity, onTableCursorActivity,onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity, onFrontmatterFoldCursorActivity]);
+  }, [onCursorActivity, onTableCursorActivity,onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity]);
 
   // Fold chevrons follow scrolling: callouts get one as they're rendered.
   const onViewportChange = useCallback((view: EditorView) => {
@@ -238,7 +227,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     flowMode,
     onOpenActiveHelperRef: openActiveHelperRef,
     placeholder: props.placeholder || "Type / for templates",
-    readOnly: !!props.readOnly,
     onFocusChange: setIsEditorFocused,
     onCursorActivity: onCombinedCursorActivity,
     onViewportChange,
@@ -272,17 +260,14 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       translate="no"
     >
       <div
+        // A page's margins: room above the first line as on a sheet of
+        // paper, and room below the last so it can be written in the middle
+        // of the window rather than at its bottom edge. The top is never less
+        // than the pane title's room (--pane-top-room), so the first line, a
+        // Properties row included, starts below the title.
         className={`editor-sheet editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           transition-[padding,max-width] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
-          ${/* A page's margins: room above the first line as on a sheet of
-               paper, and room below the last so it can be written in the
-               middle of the window rather than at its bottom edge. Split
-               panes keep less of both. The top is never less than the pane
-               title's room (--pane-top-room), so the first line, a
-               Properties row included, starts below the title. */
-            props.isSplit
-            ? "[--sheet-pad-top:1.25rem] pb-[25vh] sm:[--sheet-pad-top:1.5rem]"
-            : "[--sheet-pad-top:2rem] pb-[40vh] sm:[--sheet-pad-top:3rem]"}
+          [--sheet-pad-top:2rem] pb-[40vh] sm:[--sheet-pad-top:3rem]
           pt-[max(var(--sheet-pad-top),var(--pane-top-room,0px))]
           mx-auto w-full
           text-ui-body
@@ -298,7 +283,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           paddingRight: contentPaddingX,
         } as React.CSSProperties}
       >
-        {isTemplateNote && !props.readOnly && <TemplateStrip name={filePath.split("/").pop()!.replace(/\.md$/i, "")} doc={editorValue} onAddField={insertTemplateField} />}
+        {isTemplateNote && <TemplateStrip name={filePath.split("/").pop()!.replace(/\.md$/i, "")} doc={editorValue} onAddField={insertTemplateField} />}
         <div className="editor-measure relative h-full">
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div
@@ -320,7 +305,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           />
 
           <EmptyNoteTemplates
-            isEmpty={!props.readOnly && !isTemplateNote && editorValue.trim() === ""}
+            isEmpty={!isTemplateNote && editorValue.trim() === ""}
             onPick={(source) => { void insertVaultTemplate(source); }}
             onMore={vaultHandle ? () => { void insertVaultTemplate(); } : undefined}
             onBoard={startBoard}

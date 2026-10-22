@@ -20,7 +20,7 @@ function setup({ draft = "", noteActive = false } = {}) {
   });
   store.set(atom_workspaceLayout, {
     rootContainer: {
-      id: "pane", type: "editor", isPinned: false,
+      id: "pane", isPinned: false,
       openFilePaths: noteActive ? [NOTE] : ["draft"],
       activeFilePath: noteActive ? NOTE : "draft",
     },

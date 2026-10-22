@@ -37,19 +37,10 @@ describe("remapPath", () => {
 });
 
 describe("remapPathsInLayout", () => {
-  it("maps tabs and the active tab in every pane, without duplicates", () => {
-    const layout = {
-      id: "root",
-      direction: "horizontal" as const,
-      sizes: [50, 50],
-      children: [
-        { id: "p1", type: "editor" as const, isPinned: false, openFilePaths: ["a/x.md", "b.md"], activeFilePath: "a/x.md" },
-        { id: "p2", type: "editor" as const, isPinned: false, openFilePaths: ["a/x.md", "z/x.md"], activeFilePath: "z/x.md" },
-      ],
-    };
-    const result = remapPathsInLayout(layout, (p) => remapPath(p, "a", "z") ?? p) as typeof layout;
-    expect(result.children[0]).toMatchObject({ openFilePaths: ["z/x.md", "b.md"], activeFilePath: "z/x.md" });
-    expect(result.children[1].openFilePaths).toEqual(["z/x.md"]);
+  it("maps tabs and the active tab, without duplicates", () => {
+    const layout = { id: "p1", isPinned: false, openFilePaths: ["a/x.md", "z/x.md", "b.md"], activeFilePath: "a/x.md" };
+    const result = remapPathsInLayout(layout, (p) => remapPath(p, "a", "z") ?? p);
+    expect(result).toMatchObject({ openFilePaths: ["z/x.md", "b.md"], activeFilePath: "z/x.md" });
   });
 });
 
@@ -89,7 +80,6 @@ describe("atom_remapVaultPaths", () => {
     store.set(atom_workspaceLayout, {
       rootContainer: {
         id: "default-pane",
-        type: "editor",
         isPinned: false,
         openFilePaths: ["notes/deep/idea.md", "notes-old.md"],
         activeFilePath: "notes/deep/idea.md",

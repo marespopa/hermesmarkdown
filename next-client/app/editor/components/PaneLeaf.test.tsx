@@ -1,4 +1,4 @@
-import { act, render, screen, cleanup, fireEvent, within } from "@testing-library/react";
+import { act, render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import PaneLeaf from "./PaneLeaf";
 import { Provider } from "jotai";
@@ -51,7 +51,6 @@ const TestProvider = ({ initialValues, children }: { initialValues: any, childre
 describe("PaneLeaf Tab Indicators", () => {
   const mockLeaf = {
     id: "pane-1",
-    type: "editor" as const,
     openFilePaths: ["file1.md", "file2.md"],
     activeFilePath: "file1.md",
     isPinned: false,
@@ -260,7 +259,6 @@ describe("PaneLeaf Tab Indicators", () => {
         <PaneLeaf
           leaf={{
             id: "empty-pane",
-            type: "editor",
             openFilePaths: [],
             isPinned: false,
           }}
@@ -290,47 +288,8 @@ describe("PaneLeaf Tab Indicators", () => {
   });
 });
 
-describe("PaneLeaf in a split", () => {
-  const left = { id: "left", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
-  const right = { id: "right", type: "editor" as const, openFilePaths: ["b.md"], activeFilePath: "b.md", isPinned: false };
-  const split = { rootContainer: { id: "root", direction: "horizontal", sizes: [50, 50], children: [left, right] } };
-  const openFiles = {
-    "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" },
-    "b.md": { fileName: "b.md", content: "B", lastSavedContent: "B" },
-  };
-
-  beforeEach(() => {
-    cleanup();
-    vi.clearAllMocks();
-  });
-
-  const renderSplit = (activePaneId: string) =>
-    render(
-      <TestProvider initialValues={[
-        [atom_activePaneId, activePaneId],
-        [atom_openFiles, openFiles],
-        [atom_workspaceLayout, split],
-        [atom_vaultHandle, { name: "vault" }],
-      ]}>
-        <PaneLeaf leaf={left} />
-        <PaneLeaf leaf={right} />
-      </TestProvider>
-    );
-
-  it("gives each pane its own title, and no toolbar", () => {
-    renderSplit("right");
-    const [leftPane, rightPane] = Array.from(document.querySelectorAll("[data-pane-id]")) as HTMLElement[];
-
-    expect(within(leftPane).getByText("a", { selector: "span" })).toBeInTheDocument();
-    expect(within(rightPane).getByText("b", { selector: "span" })).toBeInTheDocument();
-    for (const name of ["More", "Close Pane", "Sidebar", "Hide toolbar"]) {
-      expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
-    }
-  });
-});
-
 describe("PaneLeaf title rename", () => {
-  const leaf = { id: "solo", type: "editor" as const, openFilePaths: ["notes/a.md"], activeFilePath: "notes/a.md", isPinned: false };
+  const leaf = { id: "solo", openFilePaths: ["notes/a.md"], activeFilePath: "notes/a.md", isPinned: false };
   const handle = { kind: "file", name: "a.md" };
 
   beforeEach(() => {
@@ -355,12 +314,18 @@ describe("PaneLeaf title rename", () => {
   it("shows the note's folder before its name", () => {
     renderNote();
     expect(screen.getByTitle("notes")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "a. Rename" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "a. Note actions" })).toBeInTheDocument();
   });
 
-  it("renames the note in place from its title", () => {
+  // The name opens the note's menu; its Rename turns the name into a field.
+  const startRename = () => {
+    fireEvent.click(screen.getByRole("button", { name: "a. Note actions" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
+  };
+
+  it("renames the note in place from its title's menu", () => {
     renderNote();
-    fireEvent.click(screen.getByRole("button", { name: "a. Rename" }));
+    startRename();
     const field = screen.getByRole("textbox", { name: "Note name" });
     fireEvent.change(field, { target: { value: "b" } });
     fireEvent.keyDown(field, { key: "Enter" });
@@ -370,12 +335,12 @@ describe("PaneLeaf title rename", () => {
 
   it("backs out of a rename with Escape", () => {
     renderNote();
-    fireEvent.click(screen.getByRole("button", { name: "a. Rename" }));
+    startRename();
     const field = screen.getByRole("textbox", { name: "Note name" });
     fireEvent.change(field, { target: { value: "b" } });
     fireEvent.keyDown(field, { key: "Escape" });
     expect(renameFile).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "a. Rename" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "a. Note actions" })).toBeInTheDocument();
   });
 
   it("can't rename the draft", () => {
@@ -390,6 +355,7 @@ describe("PaneLeaf title rename", () => {
         <PaneLeaf leaf={draft} />
       </TestProvider>
     );
-    expect(screen.queryByRole("button", { name: /Rename/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Untitled. Note actions" }));
+    expect(screen.queryByRole("menuitem", { name: /Rename/ })).not.toBeInTheDocument();
   });
 });

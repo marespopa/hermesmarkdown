@@ -56,7 +56,6 @@ interface BuildExtensionsOptions {
   flowModeCompartment: Compartment;
   onOpenActiveHelperRef: { current: () => boolean };
   placeholder?: string;
-  readOnly: boolean;
   onFocusChange: (focused: boolean) => void;
   onCursorActivity?: (view: EditorView) => void;
   // Scrolling or layout changes (rendered viewport, line heights, size):
@@ -136,8 +135,6 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // Without defaultKeymap's Ctrl/Cmd+[ / ] (indent less / more, which Tab
     // and Shift+Tab do): Ctrl+[ shows / hides the sidebar (EditorShell).
     keymap.of([...formatKeymap, ...searchKeymap, ...historyKeymap, ...defaultKeymap.filter((binding) => binding.key !== "Mod-[" && binding.key !== "Mod-]")]),
-    EditorView.editable.of(!opts.readOnly),
-    EditorState.readOnly.of(!!opts.readOnly),
     EditorView.domEventHandlers({
       keydown: (event, view) => {
         if (event.key === "Enter" && event.shiftKey && (event.ctrlKey || event.metaKey)) {

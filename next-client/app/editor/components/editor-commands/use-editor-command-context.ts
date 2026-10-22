@@ -7,11 +7,7 @@ import {
   atom_activeFilePath,
   atom_activePaneId,
   atom_vaultDescriptor,
-  atom_closePane,
   atom_closeTab,
-  atom_splitPane,
-  atom_setPaneType,
-  atom_toggleScrollLock,
   atom_workspaceLayout,
   findLeaf,
 } from "@/app/atoms/atoms";
@@ -97,14 +93,10 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const content = useAtomValue(atom_content);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
-  const [activePaneId, setActivePaneId] = useAtom(atom_activePaneId);
+  const activePaneId = useAtomValue(atom_activePaneId);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, closeTab] = useAtom(atom_closeTab);
   const [, setNewVaultFlowOpen] = useAtom(atom_newVaultFlowOpen);
-  const [, splitPane] = useAtom(atom_splitPane);
-  const [, setPaneType] = useAtom(atom_setPaneType);
-  const [, toggleScrollLock] = useAtom(atom_toggleScrollLock);
-  const [, closePane] = useAtom(atom_closePane);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
@@ -118,7 +110,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const toggleNotePin = useSetAtom(atom_toggleNotePin);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
-  const isOnlyPane = "type" in workspaceLayout.rootContainer;
   const { filePath: activeFilePath, handleCopy, closeTabWithAutosave } = usePaneFileActions(activeLeaf);
   const runEditorCommand = (command: (view: NonNullable<typeof activeEditorView>) => unknown) => {
     if (activeEditorView) command(activeEditorView);
@@ -162,14 +153,9 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     content,
     workspaceLayout,
     activePaneId,
-    setActivePaneId,
     setActiveFilePath,
     closeTab,
     setNewVaultFlowOpen,
-    splitPane,
-    setPaneType,
-    toggleScrollLock,
-    closePane,
     sidebarOpen,
     setSidebarOpen,
     setTasksGroupBy,
@@ -184,7 +170,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     activeFileHandle,
     activeEditorView,
     activeLeaf,
-    isOnlyPane,
     activeFilePath,
     handleCopy,
     closeTabWithAutosave,

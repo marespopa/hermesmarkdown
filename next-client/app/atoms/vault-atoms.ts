@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { atom_openFiles, atom_liveHandles } from "./file-atoms";
 import { atom_workspaceLayout } from "./workspace-atoms";
-import { atom_fileTreeExpansion, atom_notePins } from "./ui-atoms";
+import { atom_fileTreeExpansion, atom_filesRevealPath, atom_notePins, atom_showFiles } from "./ui-atoms";
 import { atom_fileMetadata } from "./metadata";
 import { atom_revealedPrivatePaths } from "./privacy-atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
@@ -262,6 +262,29 @@ export const atom_remapVaultPaths = atom(
     }
   },
 );
+
+// "Show in Files" for a folder (the pane title's breadcrumb): opens it and
+// every folder above it in the tree, remembered like a manual toggle, then
+// shows the sidebar's Files with that folder selected and scrolled to.
+export const atom_showFolderInFiles = atom(null, (get, set, folderPath: string) => {
+  const vaultKey = get(atom_vaultKey);
+  if (vaultKey && folderPath) {
+    const segments = folderPath.split("/");
+    const chain = segments.map((_, i) => segments.slice(0, i + 1).join("/"));
+    set(atom_fileTreeExpansion, (prev) => {
+      const entry = prev[vaultKey] ?? { expanded: [], collapsed: [] };
+      return {
+        ...prev,
+        [vaultKey]: {
+          expanded: [...entry.expanded.filter((p) => !chain.includes(p)), ...chain],
+          collapsed: entry.collapsed.filter((p) => !chain.includes(p)),
+        },
+      };
+    });
+  }
+  set(atom_filesRevealPath, folderPath || null);
+  set(atom_showFiles);
+});
 
 // Forgets remembered expansion for a deleted folder and everything under it.
 export const atom_forgetFileTreePaths = atom(null, (get, set, deletedPath: string) => {

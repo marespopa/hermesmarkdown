@@ -11,7 +11,7 @@ const POSITION_CLASSES: Record<Position, string> = {
   bottom: "left-1/2 top-full -translate-x-1/2 mt-2",
   // Like "bottom", but grows leftward from the trigger's right edge instead
   // of centering — for triggers that sit near the right edge of a narrow
-  // container (e.g. a split pane's action row), where a centered tooltip's
+  // container (e.g. an action row), where a centered tooltip's
   // right half would overflow past the pane and get clipped/invisible.
   "bottom-end": "right-0 top-full mt-2",
   // Mirror of "bottom-end" for triggers at a left edge (e.g. the toolbar's

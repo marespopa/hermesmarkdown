@@ -5,29 +5,26 @@ import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 
 // AI actions and palette editor commands are single app-wide instances, not
 // one per pane: they act on whichever view `atom_activeEditorView` points at,
-// so an editor claims that slot while it is the active pane's. A read-only
-// editor (a preview pane) passes `enabled: false` and never claims it, nor
-// takes focus.
+// so an editor claims that slot while it is the active pane's.
 //
 // Returns the callback to run when the CodeMirror view is created: it
-// registers the view and auto-focuses it so typing works right after opening
-// (skipped for inactive split panes).
+// registers the view and auto-focuses it so typing works right after opening.
 export function useActiveEditorView(
   viewRef: RefObject<EditorView | null>,
-  { isActivePane, enabled }: { isActivePane: boolean; enabled: boolean },
+  { isActivePane }: { isActivePane: boolean },
 ): (view: EditorView) => void {
   const setActiveEditorView = useSetAtom(atom_activeEditorView);
   const registeredViewRef = useRef<EditorView | null>(null);
 
   const onCreated = useCallback((view: EditorView) => {
-    if (!enabled || !isActivePane) return;
+    if (!isActivePane) return;
     registeredViewRef.current = view;
     setActiveEditorView(view);
     view.focus();
-  }, [enabled, isActivePane, setActiveEditorView]);
+  }, [isActivePane, setActiveEditorView]);
 
   useEffect(() => {
-    if (!enabled || !isActivePane) return;
+    if (!isActivePane) return;
     const view = viewRef.current;
     if (view) {
       registeredViewRef.current = view;
@@ -42,7 +39,7 @@ export function useActiveEditorView(
       }
       registeredViewRef.current = null;
     };
-  }, [enabled, isActivePane, setActiveEditorView, viewRef]);
+  }, [isActivePane, setActiveEditorView, viewRef]);
 
   return onCreated;
 }

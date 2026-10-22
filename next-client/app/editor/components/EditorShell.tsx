@@ -14,6 +14,7 @@ import NewVaultDialog from "./NewVaultDialog";
 import Button from "@/app/components/Button";
 import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 import PaneToolbarButton from "./PaneToolbarButton";
+import CopyMarkdownButton from "./CopyMarkdownButton";
 import SearchPill from "./SearchPill";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 
@@ -38,7 +39,7 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
 // the sidebar is hidden, a Show sidebar button sits in the top-left corner
 // of every page, the editor too (it has no toolbar). On the editor the
 // SearchPill sits in the top-right corner, where the pages' title bars have
-// theirs, so the page itself stays bare. Nothing
+// theirs, with Copy Markdown just left of it, so the page itself stays bare. Nothing
 // hides on its own: the sidebar opens and closes only when you toggle it,
 // remembered.
 export default function EditorShell({ children }: { children: ReactNode }) {
@@ -92,7 +93,11 @@ export default function EditorShell({ children }: { children: ReactNode }) {
         // The way into the command palette, the center of the app: every
         // note and command (as Ctrl/Cmd+K). Placed as in ShellPage's title
         // bar, so it stays put moving between the editor and the pages.
-        <SearchPill className="fixed top-1.5 right-8 z-30" />
+        // Copy Markdown sits just left of it.
+        <div className="fixed top-1.5 right-8 z-30 flex items-center gap-1.5">
+          <CopyMarkdownButton />
+          <SearchPill />
+        </div>
       )}
       <NewVaultDialog />
       <GitHubVaultDialog />

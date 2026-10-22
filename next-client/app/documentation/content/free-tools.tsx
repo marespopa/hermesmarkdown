@@ -41,7 +41,7 @@ export const freeToolsItems: Subsection[] = [
         <p>
           To price a note you already have, run <strong>Show Token Cost</strong> from the
           editor&apos;s command palette. It counts the
-          note in the focused pane and shows what sending it costs on each model.
+          note in the editor and shows what sending it costs on each model.
         </p>
         <Callout type="note">
           Nothing from the tools is uploaded. Tables, diagrams, conversions and token counts are all

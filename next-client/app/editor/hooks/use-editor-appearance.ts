@@ -11,13 +11,10 @@ import {
 // Room the hanging margin marks need, in units of the editor's font size.
 export const MARGIN_MARKS_ROOM = 2.25;
 
-// Breakpoints below are keyed off the *pane's* own width (measured via
-// ResizeObserver), not window.innerWidth — a Tailwind md:/xl: prefix reacts
-// to the whole viewport, so in a split pane
-// the editor kept centering its max-width column as if it had the full
-// window to itself, leaving an oversized, pane-unaware margin.
+// Breakpoints below are keyed off the pane's own width (measured via
+// ResizeObserver), not window.innerWidth: the sidebar takes room from it.
 
-export function useEditorAppearance(isSplit = false) {
+export function useEditorAppearance() {
   const fontFamily = useAtomValue(atom_editorFontFamily);
   const fontSize = useAtomValue(atom_renderedFontSize);
   const lineHeight = useAtomValue(atom_lineHeight);
@@ -48,22 +45,20 @@ export function useEditorAppearance(isSplit = false) {
     return fontSize;
   }, [fontSize]);
 
-  // Base horizontal inset on the pane itself so split panes use their own width.
   // Generous page margins: the text column (--editor-measure, editor-typography.scss)
   // caps line length on wide panes; these keep mid-width panes from running
   // text into the sheet's edges.
   const contentPaddingX = useMemo(() => {
     if (paneWidth < 640) return 20;
-    if (isSplit) return paneWidth < 900 ? 24 : 40;
     if (paneWidth >= 1280) return 56;
     return 48;
-  }, [isSplit, paneWidth]);
+  }, [paneWidth]);
 
   // The leading margin also holds the heading `#`s and quote `>`s that hang
   // outside the text (`.cm-marginMarks`, live-markers-theme.ts): at most about
   // two letters of body text (`###### `, or H1's larger `# `, at 60%), so
-  // never less than that, in step with the text size. Narrow and split panes
-  // have the smallest margins; without this the marks spill past the sheet.
+  // never less than that, in step with the text size. Narrow panes have the
+  // smallest margins; without this the marks spill past the sheet.
   const contentPaddingLeft = `max(${contentPaddingX}px, calc(var(--editor-font-size, 17px) * ${MARGIN_MARKS_ROOM}))`;
 
   return {

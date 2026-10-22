@@ -38,7 +38,7 @@ function buildNoteCalcDecorations(view: EditorView, cache: NoteCalcCache): Decor
 export const noteCalcPlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
-    // One cache per EditorView: split panes compute independently.
+    // One cache per EditorView.
     private readonly cache = new NoteCalcCache();
 
     constructor(view: EditorView) {
