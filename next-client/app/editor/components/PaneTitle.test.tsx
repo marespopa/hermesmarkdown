@@ -51,6 +51,23 @@ describe("PaneTitle", () => {
     expect(onOpenFolder).toHaveBeenLastCalledWith("Work/Projects/2026/Clients", expect.anything());
   });
 
+  it("marks the crumb whose folder is open, as the name marks its open menu", () => {
+    render(<PaneTitle {...base} folder="Work/Projects" onOpenFolder={vi.fn()} openFolder="Work/Projects" />);
+    expect(screen.getByRole("button", { name: "Folder Projects" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Folder Work" })).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("keeps a second press on the open crumb from reaching the popover's click-outside", () => {
+    const outside = vi.fn();
+    document.addEventListener("mousedown", outside);
+    render(<PaneTitle {...base} folder="Work/Projects" onOpenFolder={vi.fn()} openFolder="Work" />);
+    fireEvent.mouseDown(screen.getByRole("button", { name: "Folder Work" }));
+    expect(outside).not.toHaveBeenCalled();
+    fireEvent.mouseDown(screen.getByRole("button", { name: "Folder Projects" }));
+    expect(outside).toHaveBeenCalledOnce();
+    document.removeEventListener("mousedown", outside);
+  });
+
   it("shows nothing after the name while the note is saved", () => {
     render(<PaneTitle {...base} onSave={vi.fn()} />);
     expect(screen.queryByRole("button", { name: /Save$/ })).not.toBeInTheDocument();

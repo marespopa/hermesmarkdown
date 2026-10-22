@@ -80,6 +80,11 @@ body {
   --material-highlight: transparent;
   --material-shadow:    0 1px 2px rgba(45, 58, 90, 0.06), 0 8px 24px -10px rgba(45, 58, 90, 0.14);
   --ease-spring:    cubic-bezier(0.16, 1, 0.3, 1);
+  /* Layout motion: the sidebar sliding, the content it pushes, the editor
+     sheet's width and margins, drawers and sheets. One timing everywhere so
+     nothing moves at its own speed (Tailwind `duration-layout ease-layout`). */
+  --layout-duration: 150ms;
+  --ease-layout:     cubic-bezier(0.4, 0, 0.2, 1);
   /* Static aliases (Tailwind paper-*, ink-*, beige, clay) as RGB channels,
      so opacity modifiers work and the color themes (theme-palettes.scss)
      can repaint them. Light-mode values first, then dark-mode ones. */

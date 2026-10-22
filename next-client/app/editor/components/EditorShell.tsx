@@ -18,6 +18,7 @@ import CopyMarkdownButton from "./CopyMarkdownButton";
 import SearchPill from "./SearchPill";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import ActiveFileIndexer from "./ActiveFileIndexer";
+import RecoveryBanner from "./RecoveryBanner";
 
 // Show / hide the sidebar: Ctrl/Cmd+\, Ctrl/Cmd+Alt+S (`code`, since Alt
 // changes `key` on macOS), or Ctrl+[ — Ctrl on macOS too, where Cmd+[ is the
@@ -42,7 +43,8 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
 // SearchPill sits in the top-right corner, where the pages' title bars have
 // theirs, with Copy Markdown just left of it, so the page itself stays bare. Nothing
 // hides on its own: the sidebar opens and closes only when you toggle it,
-// remembered.
+// remembered. RecoveryBanner floats above the content while notes can't be
+// saved (lost vault access, a missing vault folder, full storage).
 export default function EditorShell({ children }: { children: ReactNode }) {
   const isMobileChrome = useIsMobileChrome();
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
@@ -100,6 +102,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
           <SearchPill />
         </div>
       )}
+      {!isVaultLocked && <RecoveryBanner />}
       <NewVaultDialog />
       <GitHubVaultDialog />
       <ActiveFileIndexer />

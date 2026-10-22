@@ -30,6 +30,7 @@ import { templateBlanks } from "./template-blanks";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
 import { tableKeyBindings } from "./table-keymap";
 import { frontmatterCollapse } from "./frontmatter-fold";
+import { markdownProblems } from "./markdown-problems";
 import { flowMode, type FlowLevel } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
 import { invisibles } from "./invisibles";
@@ -90,6 +91,8 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     markdown({ base: markdownLanguage, codeLanguages: languages, addKeymap: false }),
     codeFolding(),
     frontmatterCollapse,
+    // Invalid frontmatter, unclosed code / math blocks: a notice above them.
+    markdownProblems,
     markdownHighlightPlugin,
     collapsedCalloutCorners,
     detailsMarks,

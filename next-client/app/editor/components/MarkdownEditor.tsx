@@ -266,7 +266,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         // than the pane title's room (--pane-top-room), so the first line, a
         // Properties row included, starts below the title.
         className={`editor-sheet editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
-          transition-[padding,max-width] duration-700 [transition-timing-function:cubic-bezier(0.4,0,0.2,1)]
+          transition-[padding,max-width] duration-layout ease-layout motion-reduce:transition-none
           [--sheet-pad-top:2rem] pb-[40vh] sm:[--sheet-pad-top:3rem]
           pt-[max(var(--sheet-pad-top),var(--pane-top-room,0px))]
           mx-auto w-full

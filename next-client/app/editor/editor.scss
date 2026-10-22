@@ -124,7 +124,7 @@ html.dark .app-sheet .editor-sheet {
    away only when you close it, and the page then takes its room
    (EditorShell's --content-left). */
 .editor-canvas {
-  transition: background-color 150ms ease-out, padding-top 200ms ease-out;
+  transition: background-color 150ms ease-out, padding-top var(--layout-duration) var(--ease-layout);
 }
 
 .editor-sheet.editor-container {
@@ -667,4 +667,32 @@ html.dark .app-sheet .editor-sheet {
 .vim-status-host .cm-vim-message {
   color: var(--clay) !important;
   white-space: pre-wrap !important;
+}
+
+/* markdown-problems.ts: a notice above invalid frontmatter or an unclosed
+   code / math block, with a button to the line at fault. */
+.cm-markdown-problem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25em 0.75em;
+  margin: 0.25em 0;
+  padding: 0.35em 0.75em;
+  border-left: 2px solid var(--danger);
+  color: var(--fg-muted);
+  font-family: var(--landing-body);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.cm-markdown-problem-jump {
+  color: var(--fg);
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.cm-markdown-problem-jump:hover,
+.cm-markdown-problem-jump:focus-visible {
+  text-decoration: underline;
 }

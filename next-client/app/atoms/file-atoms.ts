@@ -4,6 +4,7 @@ import { atomFamily } from "jotai-family";
 import { atom_workspaceLayout, atom_activePaneId } from "./workspace-atoms";
 import { findLeaf, updateLeaf } from "./utils";
 import { forgetClosedFiles, tabsToEvict, touchRecent } from "./tab-limit";
+import { clearRecoveryIssue, isQuotaError, reportRecoveryIssue } from "./recovery-atoms";
 import { PanelLeaf } from "../types/workspace";
 
 // File contents & metadata
@@ -40,7 +41,15 @@ export function debouncedJSONStorage<T>(delay = PERSIST_DELAY_MS): SyncStorage<T
     if (!pending) return;
     const { key, value } = pending;
     pending = null;
-    storage.setItem(key, value);
+    // A full localStorage throws; the notes stay in memory, so say so
+    // instead of losing the write silently.
+    try {
+      storage.setItem(key, value);
+      clearRecoveryIssue("storage-full");
+    } catch (err) {
+      if (!isQuotaError(err)) throw err;
+      reportRecoveryIssue({ kind: "storage-full" });
+    }
   };
   if (typeof window !== "undefined") {
     window.addEventListener("pagehide", flush);

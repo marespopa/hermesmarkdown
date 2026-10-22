@@ -121,7 +121,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   return (
     <div
       data-pane-id={leaf.id}
-      className="relative h-full flex flex-col transition-all duration-300 overflow-hidden"
+      className="relative h-full flex flex-col transition-all duration-layout ease-layout overflow-hidden"
       // Room at the top for the SearchPill: CodeMirror keeps the caret
       // below it, and a board's own toolbar starts under it.
       style={isMobileChrome ? undefined : ({ "--pane-top-room": PANE_TOP_ROOM } as React.CSSProperties)}
@@ -161,7 +161,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
             <PaneTitle
               title={hasFiles ? activeTitle : null}
               folder={hasFiles ? activeFolder : ""}
-              onOpenFolder={hasVault ? (folder, anchor) => setFolderMenu({ folder, anchor }) : undefined}
+              onOpenFolder={hasVault ? (folder, anchor) => setFolderMenu((open) => (open?.folder === folder ? null : { folder, anchor })) : undefined}
+              openFolder={folderMenu?.folder ?? null}
               saveState={activeSaveState}
               saveErrorMessage={saveStatus.message}
               onRename={hasFiles && canRename ? renameActive : undefined}

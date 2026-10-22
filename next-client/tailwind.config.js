@@ -133,12 +133,16 @@ module.exports = {
       },
       transitionDuration: {
         'overlay-backdrop': '150ms', // OverlayLayer backdrop opacity fade
-        'overlay-panel':    '200ms', // OverlayLayer sheet/edge-panel/popover slide
+        'overlay-panel':    '150ms', // OverlayLayer sheet/edge-panel/popover slide
+        // --layout-duration (globals.scss): the sidebar, the content it
+        // pushes, the editor sheet. Pair with `ease-layout`.
+        layout: 'var(--layout-duration)',
       },
       // `ease-spring`: the --ease-spring curve from globals.scss. An arbitrary
       // `ease-[var(--ease-spring)]` is ambiguous to Tailwind and warns on build.
       transitionTimingFunction: {
         spring: 'var(--ease-spring)',
+        layout: 'var(--ease-layout)',
       },
     }
   },

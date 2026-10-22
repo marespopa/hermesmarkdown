@@ -10,5 +10,6 @@ export * from "./metadata";
 export * from "./privacy-atoms";
 export * from "./link-atoms";
 export * from "./template-atoms";
+export * from "./recovery-atoms";
 export * from "./layout-actions";
 export * from "./utils";

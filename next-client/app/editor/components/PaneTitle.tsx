@@ -12,9 +12,11 @@ interface PaneTitleProps {
   title: string | null;
   /** The note's folder in the vault (`Work/Projects`); empty at the root. */
   folder?: string;
-  /** Opens a breadcrumb's folder (FolderPopover) below `anchor`; absent
-   *  leaves the breadcrumb plain text. */
+  /** Opens a breadcrumb's folder (FolderPopover) below `anchor`, or closes
+   *  it when it is `openFolder`; absent leaves the breadcrumb plain text. */
   onOpenFolder?: (folder: string, anchor: DOMRect) => void;
+  /** The folder whose popover is open: its crumb keeps the pressed look. */
+  openFolder?: string | null;
   saveState: SaveState;
   saveErrorMessage?: string;
   /** Renames the note in place; absent when it can't be (the draft, no vault). */
@@ -35,6 +37,11 @@ interface PaneTitleProps {
 }
 
 const TITLE_CLASS = "h-8 rounded-lg px-2 text-ui-footnote";
+// The name and every folder crumb share one box, hover and pressed look, so
+// a click on either reads the same. (Written out whole: Tailwind only sees
+// literal class names.)
+const PRESSABLE_CLASS = `${TITLE_CLASS} flex items-center truncate transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--fg)_6%,var(--surface))] hover:text-fg focus-visible:text-fg`;
+const PRESSED_CLASS = "bg-[color-mix(in_srgb,var(--fg)_6%,var(--surface))] text-fg";
 
 // A deep path keeps its first and last folders and folds the middle into
 // "…": `Work / … / Clients`. The full path is the breadcrumb's tooltip.
@@ -55,7 +62,9 @@ export function crumbTargets(crumbs: string[]): { label: string; path: string; t
   ];
 }
 
-const CRUMB_CLASS = "shrink-0 max-w-[10rem] truncate rounded-md px-1 transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--fg)_6%,var(--surface))] hover:text-fg focus-visible:text-fg";
+const CRUMB_CLASS = `${PRESSABLE_CLASS} shrink-0 max-w-[10rem]`;
+// Between crumbs and before the name alike.
+const SEPARATOR_CLASS = "shrink-0 px-0.5 opacity-60";
 
 // The pane's header, at its top left: the note's folder as a faint
 // breadcrumb (the middle of a deep one folded; with `onOpenFolder` each
@@ -68,7 +77,7 @@ const CRUMB_CLASS = "shrink-0 max-w-[10rem] truncate rounded-md px-1 transition-
 // Enter or clicking away renames the file, Escape backs out (no prompt, no
 // palette). The palette's SearchPill sits in the window's top-right corner
 // (EditorShell). Quiet, and always shown: it stays while you type.
-export default function PaneTitle({ title, folder = "", onOpenFolder, saveState, saveErrorMessage, onRename, renameRequest = 0, onSave, onContextMenu, onMenu, menuOpen = false, menuButtonRef }: PaneTitleProps) {
+export default function PaneTitle({ title, folder = "", onOpenFolder, openFolder = null, saveState, saveErrorMessage, onRename, renameRequest = 0, onSave, onContextMenu, onMenu, menuOpen = false, menuButtonRef }: PaneTitleProps) {
   const [editing, setEditing] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const finished = React.useRef(false);
@@ -108,19 +117,23 @@ export default function PaneTitle({ title, folder = "", onOpenFolder, saveState,
     >
       {crumbs.length > 0 && (
         // Shrinks before the name does; the slash before the name never goes.
-        <span className="hidden min-w-0 shrink-[2] items-center pl-2 sm:flex" title={onOpenFolder ? undefined : crumbs.join(" / ")}>
+        <span className="hidden min-w-0 shrink-[2] items-center sm:flex" title={onOpenFolder ? undefined : crumbs.join(" / ")}>
           {onOpenFolder ? (
             <nav aria-label="Folder" className="flex min-w-0 items-center overflow-hidden">
               {crumbTargets(crumbs).map((crumb, i) => (
                 <React.Fragment key={crumb.path}>
-                  {i > 0 && <span aria-hidden="true" className="shrink-0 px-0.5 opacity-60">/</span>}
+                  {i > 0 && <span aria-hidden="true" className={SEPARATOR_CLASS}>/</span>}
                   <Button
                     variant="unstyled"
+                    // As the name's menu: a second click closes the popover, so
+                    // the press mustn't reach its click-outside handler first.
+                    onMouseDown={(e) => { if (openFolder === crumb.path) e.stopPropagation(); }}
                     onClick={(e) => { e.stopPropagation(); onOpenFolder(crumb.path, e.currentTarget.getBoundingClientRect()); }}
                     title={crumb.title ?? crumb.path.split("/").join(" / ")}
                     aria-label={crumb.title ? `Folders ${crumb.title}` : `Folder ${crumb.label}`}
                     aria-haspopup="dialog"
-                    className={CRUMB_CLASS}
+                    aria-expanded={openFolder === crumb.path}
+                    className={`${CRUMB_CLASS} ${openFolder === crumb.path ? PRESSED_CLASS : ""}`}
                   >
                     {crumb.label}
                   </Button>
@@ -128,9 +141,9 @@ export default function PaneTitle({ title, folder = "", onOpenFolder, saveState,
               ))}
             </nav>
           ) : (
-            <span className="truncate">{shownCrumbs.join(" / ")}</span>
+            <span className={`${TITLE_CLASS} flex items-center truncate`}>{shownCrumbs.join(" / ")}</span>
           )}
-          <span aria-hidden="true" className="shrink-0 px-1.5 opacity-60">/</span>
+          <span aria-hidden="true" className={SEPARATOR_CLASS}>/</span>
         </span>
       )}
       {editing ? (
@@ -162,9 +175,7 @@ export default function PaneTitle({ title, folder = "", onOpenFolder, saveState,
           aria-label={`${label}. Note actions`}
           aria-haspopup="menu"
           aria-expanded={menuOpen}
-          className={`${TITLE_CLASS} flex min-w-0 items-center truncate text-fg-muted transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--fg)_6%,var(--surface))] hover:text-fg focus-visible:text-fg ${
-            menuOpen ? "bg-[color-mix(in_srgb,var(--fg)_6%,var(--surface))] text-fg" : ""
-          }`}
+          className={`${PRESSABLE_CLASS} min-w-0 text-fg-muted ${menuOpen ? PRESSED_CLASS : ""}`}
         >
           <span className="truncate">{label}</span>
         </Button>

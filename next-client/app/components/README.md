@@ -27,6 +27,7 @@ Shared, app-agnostic UI primitives. Each component has a sibling `<Name>.md` (st
 | [MainPage](MainPage.md) | Root layout shell that mounts providers, the palette, toasts, `GlobalDialog`, and the header/footer. |
 | [OverlayLayer](OverlayLayer/OverlayLayer.md) | `OverlayPanel`/`OverlayBackdrop`: portal, dismissal, focus trap, and scroll lock. |
 | [Portal](Portal/Portal.md) | Renders children into `document.body` via `createPortal` once the component has mounted on the client. |
+| [CountBadge](CountBadge/CountBadge.md) | The one look for a count (tags, task groups, the Tasks header and tabs, the word count): small, tabular, faint, `1,204`; `floating` puts it on a flat chip. |
 | [PrivateBadge](PrivateBadge/PrivateBadge.md) | Small lock icon (`aria-label="Private note"`) marking private notes and their tasks in listings. |
 | [ServiceWorkerRegister](ServiceWorkerRegister.md) | Registers the offline service worker; new versions activate silently. |
 | [ThemeProvider](ThemeProvider.md) | Applies the resolved light/dark theme class to `<html>` in a layout effect, so the theme switches without a flash. |

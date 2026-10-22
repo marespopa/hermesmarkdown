@@ -187,6 +187,14 @@ The editor font is user-selectable (Settings → Typography) from `app/editor/se
 
 ---
 
+## Motion
+
+Layout motion uses one timing: `--layout-duration` (150ms) on `--ease-layout` (`cubic-bezier(0.4, 0, 0.2, 1)`, ease-in-out), as Tailwind `duration-layout ease-layout`. That covers the sidebar sliding (`WorkspaceSidebar`), the content it pushes (the editor page and `ShellPage`), the editor sheet's width and margins (`MarkdownEditor`, `.editor-canvas`) and the pane. Overlay sheets and drawers slide in `duration-overlay-panel` (150ms) over a `duration-overlay-backdrop` fade (150ms). Colour changes on hover stay at 150ms. Anything that moves layout also takes `motion-reduce:transition-none`.
+
+## Counts
+
+Every count (tags, task groups, the Tasks header and tabs, the word count) is a `CountBadge` (`app/components/CountBadge`): `text-ui-caption`, tabular figures, `text-fg-faint`, thousands separators (`1,204`). A count floating over content uses its `floating` variant, a flat raised chip (no glass). Inline tags keep the editor's `.cm-tag-pill` look, which the frontmatter row's chips reuse.
+
 ## Dark Mode
 
 Dark mode is toggled by adding/removing the `dark` class on `<html>`. The implementation deliberately avoids `dark:` Tailwind variants for semantic colors — the CSS var layer handles it.

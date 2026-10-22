@@ -86,3 +86,13 @@ export async function clearMetadataCache(vaultKey: string): Promise<void> {
     console.warn("Failed to clear the metadata cache:", err);
   }
 }
+
+/** Forgets every vault's cache, to free browser storage. Each vault is read and parsed again on its next open. */
+export async function clearAllMetadataCaches(): Promise<void> {
+  if (!isSupported()) return;
+  try {
+    await run("readwrite", (store) => store.clear());
+  } catch (err) {
+    console.warn("Failed to clear the metadata caches:", err);
+  }
+}

@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { useFileSystem } from "./use-file-system";
 import { useInterval } from "./use-interval";
 import { observeVault } from "./file-system/file-observer";
+import { checkVaultHealth } from "./file-system/vault-health";
 
 const VAULT_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const CLOUD_VAULT_SYNC_INTERVAL = 1 * 60 * 1000; // 1 minute for cloud vaults
@@ -17,6 +18,9 @@ export const VAULT_WATCH_DEBOUNCE = 500;
 // button: where the browser can watch a folder (FileSystemObserver), any file
 // or folder appearing, going away or moving rescans it shortly after; every
 // browser also rescans when the window regains focus and on a timer.
+// Each of those first checks the vault folder is still there and writable
+// (checkVaultHealth), so losing it shows the RecoveryBanner instead of
+// leaving later saves to fail one by one.
 
 export function useVaultSync() {
   const [vaultHandle] = useAtom(atom_vaultHandle);
@@ -37,6 +41,11 @@ export function useVaultSync() {
     if (manual) toast.loading("Syncing vault…", { id: "vault-sync" });
 
     try {
+      const health = await checkVaultHealth(vaultHandle);
+      if (health !== "ok") {
+        if (manual) toast.dismiss("vault-sync");
+        return;
+      }
       // Rescan whichever folder is the current directory, not just
       // the vault root — otherwise external changes inside a subfolder
       // never appear until the user navigates away and back.
@@ -67,10 +76,13 @@ export function useVaultSync() {
     let timer: ReturnType<typeof setTimeout> | undefined;
     let stop: (() => void) | null = null;
     let cancelled = false;
-    void observeVault(vaultHandle, () => {
+    const resync = () => {
       clearTimeout(timer);
       timer = setTimeout(() => void syncVaultRef.current?.(false, true), VAULT_WATCH_DEBOUNCE);
-    }).then((stopWatching) => {
+    };
+    // An errored observation means the folder itself went away or became
+    // unreadable; the resync's health check tells which.
+    void observeVault(vaultHandle, resync, resync).then((stopWatching) => {
       if (cancelled) stopWatching?.();
       else stop = stopWatching;
     });

@@ -4,6 +4,7 @@ import React from "react";
 import { HiDotsHorizontal } from "react-icons/hi";
 import type { TaskView } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
+import CountBadge from "@/app/components/CountBadge";
 import TabContextMenu, { type TabContextMenuItem } from "@/app/editor/components/TabContextMenu";
 import UnifiedSearchInput from "@/app/editor/components/UnifiedSearchInput";
 import type { TaskSortDirection, TaskSortField } from "../task-sort";
@@ -83,7 +84,7 @@ export default function TasksToolbar({
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-baseline gap-2">
           <h2 className="text-ui-subhead font-semibold text-ink-light dark:text-ink-dark">Tasks</h2>
-          <span className="text-ui-footnote tabular-nums text-ink-muted dark:text-stone">{counts.all}</span>
+          <CountBadge count={counts.all} />
         </div>
         {view === "all" && (
           <Button
@@ -121,7 +122,7 @@ export default function TasksToolbar({
               className="!px-1"
             >
               <span className="truncate">{label}</span>
-              <span className="tabular-nums opacity-60">{counts[id]}</span>
+              <CountBadge count={counts[id]} />
             </Button>
           );
         })}

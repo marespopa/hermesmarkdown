@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import type { EditorView } from "@codemirror/view";
 import { countWords } from "@/app/editor/utils/count-words";
+import CountBadge from "@/app/components/CountBadge";
 
 // How long typing has to stop (ms) before the count comes back.
 export const WORD_COUNT_PAUSE = 1500;
@@ -46,14 +47,14 @@ export default function WordCountPill({ view, text }: { view: EditorView | null;
   const visible = !typing && shown > 0;
   return (
     <div className="pointer-events-none sticky bottom-0 z-10 h-0">
-      <div
+      <CountBadge
         role="status"
         aria-hidden={!visible}
-        className={`absolute bottom-4 left-4 rounded-full glass-panel px-2.5 py-0.5 text-ui-caption tabular-nums text-fg-muted
-          transition-opacity duration-300 ${visible ? "opacity-70" : "opacity-0"}`}
-      >
-        {shown.toLocaleString("en-US")} {shown === 1 ? "word" : "words"}
-      </div>
+        count={shown}
+        unit={["word", "words"]}
+        variant="floating"
+        className={`absolute bottom-4 left-4 transition-opacity duration-300 ${visible ? "opacity-70" : "opacity-0"}`}
+      />
     </div>
   );
 }

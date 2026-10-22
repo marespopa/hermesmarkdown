@@ -3,6 +3,7 @@
 import React from "react";
 import { HiChevronDown, HiChevronRight } from "react-icons/hi";
 import Button from "@/app/components/Button";
+import CountBadge from "@/app/components/CountBadge";
 import type { TaskStatus } from "@/app/utils/task-status";
 import { TaskStatusIcon } from "./TaskStatusButton";
 
@@ -33,7 +34,7 @@ export default function TaskSection({
     <>
       {status && <TaskStatusIcon status={status} size={11} />}
       <span className={`truncate ${overdue ? "text-red-600 dark:text-red-400" : ""}`}>{title}</span>
-      <span className="shrink-0 font-normal tabular-nums opacity-70">{count}</span>
+      <CountBadge count={count} />
     </>
   );
   const captionClass =

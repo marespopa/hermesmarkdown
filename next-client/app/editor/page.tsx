@@ -239,7 +239,7 @@ export default function LiteEditor() {
         // window on mobile.
         style={{
           left: "var(--content-left, 0px)",
-          transition: "left 200ms ease-out, background-color 500ms, color 500ms",
+          transition: "left var(--layout-duration) var(--ease-layout), background-color 500ms, color 500ms",
           ...visibleViewport,
         } as CSSProperties}
       >
