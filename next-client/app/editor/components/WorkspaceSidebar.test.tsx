@@ -255,7 +255,7 @@ describe("WorkspaceSidebar", () => {
 
       const menu = screen.getByRole("menu", { name: "a actions" });
       expect(within(menu).getAllByRole("menuitem").map((item) => item.textContent)).toEqual([
-        "Copy Markdown", "Open in pane", "Close", "Close Others", "Close All",
+        "Copy Markdown", "Open in pane", "Open preview to the side", "Show pane as preview", "Close", "Close Others", "Close All",
       ]);
       fireEvent.click(within(menu).getByRole("menuitem", { name: "Close Others" }));
       expect((store.get(atom_workspaceLayout).rootContainer as typeof left).openFilePaths).toEqual(["a.md"]);

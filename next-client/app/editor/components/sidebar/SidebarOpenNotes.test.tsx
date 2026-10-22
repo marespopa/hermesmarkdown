@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, createEvent, cleanup } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import "@testing-library/jest-dom";
 import { Provider, createStore } from "jotai";
@@ -64,7 +64,11 @@ describe("SidebarOpenNotes dragging", () => {
       row.getBoundingClientRect = () => ({ left: 0, top: 0, width: 100, height: 20, right: 100, bottom: 20, x: 0, y: 0, toJSON: () => ({}) });
     });
     fireEvent.dragStart(rows[2], { dataTransfer: dataTransfer() });
-    fireEvent.dragOver(rows[0], { clientY: 2, dataTransfer: dataTransfer() });
+    // jsdom has no DragEvent, so fireEvent ignores clientY: define it.
+    const over = createEvent.dragOver(rows[0]);
+    Object.defineProperty(over, "clientY", { value: 2 });
+    Object.defineProperty(over, "dataTransfer", { value: dataTransfer() });
+    fireEvent(rows[0], over);
     fireEvent.drop(rows[0], { dataTransfer: dataTransfer() });
     const layout = store.get(atom_workspaceLayout).rootContainer as PanelLeaf;
     expect(layout.openFilePaths).toEqual(["three.md", "one.md", "two.md"]);

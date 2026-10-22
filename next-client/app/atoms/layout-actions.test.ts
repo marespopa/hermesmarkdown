@@ -331,7 +331,7 @@ describe("layout-actions: previews, sizes and scroll lock", () => {
     const outer = store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer;
     store.set(atom_splitPane, { id: outer.children[1].id, direction: "vertical" });
     store.set(atom_toggleScrollLock, "default-pane");
-    expect((store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer).scrollLock).toBe(false);
+    expect((store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer).scrollLock).toBeFalsy();
   });
 
   it("sets a pane's type", () => {

@@ -83,8 +83,8 @@ describe("createEmojiSource", () => {
   });
 
   it("reuses the same options from one key press to the next", () => {
-    const first = getResult("{rock")!.options[0];
-    const second = getResult("{rocke")!.options[0];
+    const first = getResult("{rocke")!.options[0];
+    const second = getResult("{rocket")!.options[0];
     expect(second).toBe(first);
   });
 
