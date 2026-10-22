@@ -277,11 +277,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           ${/* A page's margins: room above the first line as on a sheet of
                paper, and room below the last so it can be written in the
                middle of the window rather than at its bottom edge. Split
-               panes keep less of both. */
+               panes keep less of both. The top is never less than the pane
+               title's room (--pane-top-room), so the first line, a
+               Properties row included, starts below the title. */
             props.isSplit
             ? "[--sheet-pad-top:1.25rem] pb-[25vh] sm:[--sheet-pad-top:1.5rem]"
             : "[--sheet-pad-top:2rem] pb-[40vh] sm:[--sheet-pad-top:3rem]"}
-          pt-[var(--sheet-pad-top)]
+          pt-[max(var(--sheet-pad-top),var(--pane-top-room,0px))]
           mx-auto w-full
           text-ui-body
         `}
