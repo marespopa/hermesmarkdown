@@ -73,7 +73,9 @@ export function remapNoteContent(oldPath: string, newPath: string): void {
   post({ type: "content:remap", oldPath, newPath });
 }
 
-type SearchMessage = Omit<Extract<ContentRequest, { type: "content:search" | "content:mentions" }>, "searchId">;
+// Distributes over the union so each request keeps its own fields.
+type WithoutSearchId<T> = T extends unknown ? Omit<T, "searchId"> : never;
+type SearchMessage = WithoutSearchId<Extract<ContentRequest, { type: "content:search" | "content:mentions" }>>;
 
 // One request/response round trip. A newer request in the same slot replaces
 // an older one (which resolves null); the slots never cancel each other.
