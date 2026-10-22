@@ -22,13 +22,12 @@ describe("ThemePicker", () => {
 });
 
 describe("theme palettes", () => {
-  it("offers three palettes per mode, in pairs", () => {
-    expect(LIGHT_THEMES.map((t) => t.value)).toEqual(["paper", "solarized", "plain"]);
+  it("offers the palettes in pairs, plus the light-only Sepia", () => {
+    expect(LIGHT_THEMES.map((t) => t.value)).toEqual(["paper", "sepia", "solarized", "plain"]);
     expect(DARK_THEMES.map((t) => t.value)).toEqual(["ink", "nord", "graphite"]);
   });
 
   it("moves palettes from earlier versions to their closest current one", () => {
-    expect(resolveLightTheme("sepia")).toBe("paper");
     expect(resolveLightTheme("sage")).toBe("paper");
     expect(resolveLightTheme("porcelain")).toBe("plain");
     expect(resolveDarkTheme("midnight")).toBe("nord");
@@ -37,6 +36,7 @@ describe("theme palettes", () => {
 
   it("falls back to the default palette for unknown stored values", () => {
     expect(resolveLightTheme("plain")).toBe("plain");
+    expect(resolveLightTheme("sepia")).toBe("sepia");
     expect(resolveLightTheme("nord")).toBe("paper");
     expect(resolveDarkTheme(undefined)).toBe("ink");
   });

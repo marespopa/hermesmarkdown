@@ -28,3 +28,8 @@ Description: The pane's header on desktop, at its top left, in place of a toolba
 | onMenu? | `(anchor: DOMRect) => void` |  | Opens or closes the menu from the ⋯ button; absent hides it |
 | menuOpen? | `boolean` | `false` | The ⋯ menu is open: keeps the button shown |
 | menuButtonRef? | `Ref<HTMLButtonElement>` |  | The ⋯ button, the menu's `anchorRef` |
+
+## Badge, lock and grip
+- `badge`: a faint label after the name (a preview pane's "Preview").
+- `scrollLocked` + `onToggleScrollLock`: while locked, a faint lock button (`aria-label="Unlock scroll"`) after the ⋯ button; clicking unlocks. Not shown otherwise.
+- `onGripDragStart`: when present (more than one pane), a leading draggable grip button ("Drag to move pane"), visible on title hover or focus.

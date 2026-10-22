@@ -8,7 +8,7 @@ import { frontmatterCollapse } from "./frontmatter-fold";
 import { computeMarkdownDecorations, markdownHighlightPlugin, type ScanCheckpoint } from "./highlight";
 import { linkDisplayPlugin } from "./link-display";
 import { buildLiveMarkerDecorations, liveMarkers } from "./live-markers";
-import { activeLines, buildSyntaxRevealDecorations, syntaxReveal } from "./syntax-reveal";
+import { buildSyntaxRevealDecorations, revealAt, syntaxReveal } from "./syntax-reveal";
 import { collectTableDisplayMatches, tableDisplayExtension } from "./table-display";
 import { tagPillPlugin } from "./tag-pills";
 
@@ -107,7 +107,7 @@ for (const lines of [2_000, 20_000]) {
     const state = parsedState(doc);
     const lastLine = state.doc.line(state.doc.lines);
     const lastScreen = [{ from: state.doc.line(Math.max(1, state.doc.lines - 60)).from, to: lastLine.to }];
-    const active = activeLines(state, true);
+    const active = revealAt(state, true);
     // As the editor keeps them: filled by an earlier read of the note.
     const checkpoints: ScanCheckpoint[] = [];
     computeMarkdownDecorations(state, lastScreen[0], checkpoints);

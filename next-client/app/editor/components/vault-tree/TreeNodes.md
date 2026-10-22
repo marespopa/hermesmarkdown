@@ -29,3 +29,5 @@ import { TreeNodes } from "./vault-tree/TreeNodes";
 | pendingCreate | `PendingCreate \| null` | | The new item being named, and where |
 | setDraggedEntry / onDragStartFile | | | Drag-and-drop |
 | touchDrag | `{ start, isPressing, dropTarget }` | | Touch drag from `useTouchTreeDrag` |
+
+Dragging a single file row also sets `atom_paneDrag` (in `use-tree-actions#startDrag`), so a pane's edge or center opens the file there. A multi-selection drag stays a folder move and sets none. The payload is cleared by `use-pane-drag-reset` on any `dragend`.

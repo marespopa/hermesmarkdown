@@ -6,7 +6,8 @@ import MainPage from "./components/MainPage";
 import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import InlineScript from "./components/InlineScript";
 import { Metadata, Viewport } from "next";
-import { plusJakarta, instrumentSerif, geistMono, duospace, quattro } from "./fonts";
+import { plusJakarta, instrumentSerif, geistMono, jetbrainsMono, firaCode, duospace, quattro } from "./fonts";
+import { CODE_FONT_STACKS } from "./atoms/ui-atoms";
 import { DARK_THEMES, DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, LEGACY_THEME_MAP, LIGHT_THEMES } from "./theme-palettes";
 
 const SITE_DESCRIPTION =
@@ -105,6 +106,9 @@ const THEME_INIT_SCRIPT = `
     if (legacy.dark[darkTheme]) darkTheme = legacy.dark[darkTheme];
     document.documentElement.dataset.lightTheme = ${JSON.stringify(LIGHT_THEMES.map((t) => t.value))}.indexOf(lightTheme) >= 0 ? lightTheme : ${JSON.stringify(DEFAULT_LIGHT_THEME)};
     document.documentElement.dataset.darkTheme = ${JSON.stringify(DARK_THEMES.map((t) => t.value))}.indexOf(darkTheme) >= 0 ? darkTheme : ${JSON.stringify(DEFAULT_DARK_THEME)};
+    // The code font, when one of the offered ones (atom_codeFontFamily).
+    var codeFont = JSON.parse(localStorage.getItem("codeFontFamily") || "null");
+    if (${JSON.stringify(CODE_FONT_STACKS)}.indexOf(codeFont) >= 0) document.documentElement.style.setProperty("--font-code", codeFont);
   } catch (e) {}
 })();
 `;
@@ -122,7 +126,7 @@ export default function RootLayout({
       // them; THEME_INIT_SCRIPT swaps in the reader's own picks.
       data-light-theme={DEFAULT_LIGHT_THEME}
       data-dark-theme={DEFAULT_DARK_THEME}
-      className={`h-full overscroll-none ${plusJakarta.variable} ${instrumentSerif.variable} ${geistMono.variable} ${duospace.variable} ${quattro.variable}`}
+      className={`h-full overscroll-none ${plusJakarta.variable} ${instrumentSerif.variable} ${geistMono.variable} ${jetbrainsMono.variable} ${firaCode.variable} ${duospace.variable} ${quattro.variable}`}
     >
       <head>
         <InlineScript html={THEME_INIT_SCRIPT} />

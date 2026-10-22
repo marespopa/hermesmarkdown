@@ -25,3 +25,8 @@ export const PANE_ACTION_BUTTON_CLASS = `${BUTTON_BASE} w-7 h-7 rounded-full`;
 export const PANE_ACTION_ACTIVE_CLASS = RAISED;
 // One glyph size for every pane-header icon.
 export const PANE_ICON_SIZE = 16;
+
+// The SearchPill's height plus its offset from the top (top-1.5, h-8): room
+// kept above a pane's text, also the line scroll lock aligns panes at.
+export const PANE_TOP_ROOM = "48px";
+export const PANE_TOP_ROOM_PX = 48;

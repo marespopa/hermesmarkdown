@@ -214,11 +214,15 @@ run_stage() { # dir agent expected prompt from_state
   state=$(fm_get "$dir/brief.md" state)
   if [ "$code" -ne 0 ] || [ -z "$state" ] || ! grep -qw -- "$state" <<<"$expected"; then
     mailbox "$dir" "RESUME: $agent stage from '$from' did not finish (exit $code, state '$state'). Check the working tree and $(rel "$dir")/.run.log, then continue rather than restart."
-    fm_set "$dir/brief.md" state "$from"
+    # A failed build leaves its own partial code in the tree; going back to
+    # 'specced' would trip the dirty-tree guard and stall the retry.
+    local back=$from
+    [ "$agent" = hermes-engineer ] && back=building
+    fm_set "$dir/brief.md" state "$back"
     if [ "$attempts" -ge "$MAX_ATTEMPTS" ]; then
-      block "$dir" "$from" "$agent failed $attempts times in a row (last exit $code). See .run.log."
+      block "$dir" "$back" "$agent failed $attempts times in a row (last exit $code). See .run.log."
     else
-      echo "  → stage incomplete (exit $code); state stays '$from'"
+      echo "  → stage incomplete (exit $code); state stays '$back'"
     fi
     return
   fi

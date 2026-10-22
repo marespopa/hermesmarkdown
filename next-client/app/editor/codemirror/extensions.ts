@@ -120,6 +120,9 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
       override: [createSlashMenuSource(opts.slashMenuCallbacksRef), createTemplateFieldSource(opts.slashMenuCallbacksRef), createEmojiSource()],
       activateOnTyping: true,
       icons: false,
+      // The menu draws only this many options around the selected one, so the
+      // emoji menu's ~1,900 options don't each become a DOM row.
+      maxRenderedOptions: 50,
     }),
     // Table shortcuts take priority over formatKeymap's plain quote-continue
     // Enter binding — mirrors the old handleGlobalKeyDown, which checked
@@ -134,6 +137,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // and Shift+Tab do): Ctrl+[ shows / hides the sidebar (EditorShell).
     keymap.of([...formatKeymap, ...searchKeymap, ...historyKeymap, ...defaultKeymap.filter((binding) => binding.key !== "Mod-[" && binding.key !== "Mod-]")]),
     EditorView.editable.of(!opts.readOnly),
+    EditorState.readOnly.of(!!opts.readOnly),
     EditorView.domEventHandlers({
       keydown: (event, view) => {
         if (event.key === "Enter" && event.shiftKey && (event.ctrlKey || event.metaKey)) {

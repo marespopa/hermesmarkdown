@@ -23,7 +23,7 @@ export const LANDING_FEATURES: LandingFeature[] = [
   },
   {
     title: "Make it yours",
-    body: "Pick from three light and three dark color themes, from warm paper and ink to plain neutral white and graphite. Hide the interface and dim everything but the sentence you're writing, or turn on Vim keys.",
+    body: "Pick from three light and three dark color themes, from paper and blue ink to plain neutral white and graphite. Hide the interface and dim everything but the sentence you're writing, or turn on Vim keys.",
   },
   {
     title: "Export and AI, both optional",

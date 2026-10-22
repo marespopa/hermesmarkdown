@@ -181,7 +181,7 @@ tags: []
     id: "command-palette",
     title: "Command palette",
     lead: "A fuzzy-searchable list of every app-level action — open it instead of hunting for a menu.",
-    keywords: "palette commands fuzzy filter full-text search note text",
+    keywords: "palette commands fuzzy filter full-text search note text pane drag dock preview scroll lock",
     body: (
       <>
         <p>
@@ -251,7 +251,7 @@ tags: []
             { label: "Show Files", value: "CTRL/CMD+SHIFT+E" },
             { label: "Open Tasks", value: "—" },
             { label: "Open Templates", value: "Your templates and template packs" },
-            { label: "Panes", value: "Open in pane, split down, next/previous, close" },
+            { label: "Panes", value: "Open in pane, split down, open preview to the side, lock scroll, next/previous, close" },
             { label: "Open notes", value: "Next/previous, close current/other/all" },
             { label: "Tasks", value: "Grouping, due-date filters, and clear filters" },
             { label: "Toggle Hidden Files / Toggle Sidebar", value: "—" },
@@ -275,6 +275,14 @@ tags: []
             { label: "Navigate", value: "Open All Notes, Open Tags, Open Tasks, Open Templates, Open Trash, Open Settings, Open Documentation, Show Keyboard Shortcuts" },
           ]}
         />
+        <p>
+          Panes tile freely: drag a note from Files or Open Notes, or a pane&apos;s grip (shown
+          beside its title on hover), onto another pane. Dropping on an edge splits that pane on
+          that side; dropping in the middle opens the note there. <strong>Open Preview to the Side</strong>{" "}
+          shows a read-only copy that scrolls with the note, and <strong>Lock Scroll With Other Pane</strong>{" "}
+          keeps two side-by-side panes scrolled together (click the lock beside a title to
+          unlock). Divider positions are remembered.
+        </p>
         <p>
           Searching for a note that doesn&apos;t exist? The last result,{" "}
           <strong>Create &quot;…&quot;</strong>, starts a new note with that title.

@@ -1,4 +1,11 @@
-import { DUOSPACE_FONT_STACK, MONO_FONT_STACK, QUATTRO_FONT_STACK } from "@/app/atoms/ui-atoms";
+import {
+  DUOSPACE_FONT_STACK,
+  FIRA_CODE_FONT_STACK,
+  JETBRAINS_MONO_FONT_STACK,
+  MONO_FONT_STACK,
+  QUATTRO_FONT_STACK,
+  SYSTEM_MONO_FONT_STACK,
+} from "@/app/atoms/ui-atoms";
 
 // The writing font, from fixed-width to proportional: Geist Mono, Duospace
 // and Quattro (the default). Plus Jakarta Sans stays the interface face only.
@@ -6,6 +13,14 @@ export const FONTS = [
   { label: "Geist Mono", value: MONO_FONT_STACK },
   { label: "Duospace", value: DUOSPACE_FONT_STACK },
   { label: "Quattro", value: QUATTRO_FONT_STACK },
+];
+
+// The code font: code blocks and inline code, apart from the writing font.
+export const CODE_FONTS = [
+  { label: "Geist Mono", value: MONO_FONT_STACK },
+  { label: "JetBrains Mono", value: JETBRAINS_MONO_FONT_STACK },
+  { label: "Fira Code", value: FIRA_CODE_FONT_STACK },
+  { label: "System", value: SYSTEM_MONO_FONT_STACK },
 ];
 
 // Reading text size: Settings → Appearance and the Text Size commands.

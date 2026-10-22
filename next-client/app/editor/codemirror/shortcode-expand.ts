@@ -3,6 +3,7 @@ import { EditorSelection } from "@codemirror/state";
 import { SHORTCODES } from "../components/constants";
 import { REGEX_CALC } from "../components/regex";
 import { evaluateMath } from "../utils/math-eval";
+import { emojiByName } from "./emoji-index";
 
 // `calc(…)=` at the end of `textBeforeCaret`, evaluated: how many characters
 // to replace and the result (rounded to 2 places), or null when there's no
@@ -67,6 +68,20 @@ function tryExpand(view: EditorView) {
       });
       return true;
     }
+  }
+
+  // `{thumbs_up}`: any emoji by name (emoji-index.ts), once the index has
+  // loaded — typing `{` loads it, for the menu.
+  const emojiCode = textUpToCursor.match(/(?<!\{)\{([\w+-]+)\}$/);
+  const emoji = emojiCode && emojiByName(emojiCode[1]);
+  if (emojiCode && emoji) {
+    const sliceStart = pos - emojiCode[0].length;
+    view.dispatch({
+      changes: { from: sliceStart, to: pos, insert: emoji },
+      selection: EditorSelection.cursor(sliceStart + emoji.length),
+      userEvent: "input.replace.shortcode",
+    });
+    return true;
   }
   return false;
 }

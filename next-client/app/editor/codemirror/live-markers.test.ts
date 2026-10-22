@@ -64,9 +64,18 @@ describe("buildLiveMarkerDecorations", () => {
     expect(markers(doc, 0)).toEqual(["margin:> ", "margin:> "]);
   });
 
-  it("keeps a heading's `#`s inline inside a callout, after its `>` in the margin", () => {
-    expect(markers("> [!note] Title\n> ## Heading\n\nEnd")).toEqual(["margin:> ", "margin:> "]);
-    expect(markers("> [!note] Title\n> > #### Heading\n\nEnd")).toEqual(["margin:> ", "margin:> > "]);
+  it("hangs a heading's `#`s inside a callout with its `>`s in the margin", () => {
+    expect(markers("> [!note] Title\n> ## Heading\n\nEnd")).toEqual(["margin:> ", "margin:> ## "]);
+    expect(markers("> [!note] Title\n> > #### Heading\n\nEnd")).toEqual(["margin:> ", "margin:> > #### "]);
+  });
+
+  it("keeps a quoted heading's `#`s inline after a list marker", () => {
+    expect(markers("> - # Listed\n\nEnd")).toEqual(["line", "margin:> ", "list:- "]);
+  });
+
+  it("hangs a quoted code block's `>`s in the margin, leaving its code alone", () => {
+    const doc = "> [!tip] Code\n> ```json\n> # not a heading\n>```\n\nEnd";
+    expect(markers(doc)).toEqual(["margin:> ", "margin:> ", "margin:> ", "margin:>"]);
   });
 
   it("indents a nested list item inside a callout after its `> `", () => {

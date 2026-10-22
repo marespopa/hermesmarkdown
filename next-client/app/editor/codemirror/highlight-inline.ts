@@ -11,7 +11,7 @@ import {
 // block styles it applies inside callouts too (highlight-blocks.ts).
 
 export const FADED = "opacity-40 dark:opacity-50 transition-opacity duration-500 hover:opacity-100";
-// Emphasis and inline-code marks, always shown as typed: dimmed like other
+// Emphasis and inline-code marks, dimmed wherever they show, like other
 // syntax, so the word they wrap stays what you read.
 export const FADED_MARK = "opacity-40 dark:opacity-50";
 

@@ -1,17 +1,7 @@
 import { atomWithStorage } from "jotai/utils";
 import { atom } from "jotai";
-import { WorkspaceState } from "@/app/types/workspace";
-
-function normalizeLegacyPaneTypes(node: unknown): unknown {
-  if (!node || typeof node !== "object" || Array.isArray(node)) return node;
-
-  const record = node as Record<string, unknown>;
-  if (Array.isArray(record.children)) {
-    return { ...record, children: record.children.map(normalizeLegacyPaneTypes) };
-  }
-
-  return record.type === "preview" ? { ...record, type: "editor" } : record;
-}
+import { WORKSPACE_LAYOUT_VERSION, WorkspaceState } from "@/app/types/workspace";
+import { normalizeWorkspaceLayout } from "./layout-normalize";
 
 export function migrateLegacyWorkspaceLayout() {
   if (typeof window === "undefined") return;
@@ -20,10 +10,15 @@ export function migrateLegacyWorkspaceLayout() {
     const stored = window.localStorage.getItem("workspaceLayout");
     if (!stored) return;
 
-    const layout = JSON.parse(stored) as WorkspaceState;
-    const rootContainer = normalizeLegacyPaneTypes(layout.rootContainer) as WorkspaceState["rootContainer"];
-    if (JSON.stringify(rootContainer) !== JSON.stringify(layout.rootContainer)) {
-      window.localStorage.setItem("workspaceLayout", JSON.stringify({ ...layout, rootContainer }));
+    const raw = JSON.parse(stored) as unknown;
+    const layout = normalizeWorkspaceLayout(raw);
+    if (!layout) {
+      // Nothing usable: let the atom default apply.
+      window.localStorage.removeItem("workspaceLayout");
+      return;
+    }
+    if (JSON.stringify(layout) !== JSON.stringify(raw)) {
+      window.localStorage.setItem("workspaceLayout", JSON.stringify(layout));
     }
   } catch {
     // Invalid persisted data is handled by atomWithStorage's default fallback.
@@ -32,10 +27,11 @@ export function migrateLegacyWorkspaceLayout() {
 
 migrateLegacyWorkspaceLayout();
 
-// Workspace Layout
+// Workspace Layout. The key is a legacy name kept so existing layouts load.
 export const atom_workspaceLayout = atomWithStorage<WorkspaceState>(
   "workspaceLayout",
   {
+    version: WORKSPACE_LAYOUT_VERSION,
     rootContainer: {
       id: "default-pane",
       type: "editor",

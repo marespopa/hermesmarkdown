@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_focusMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_showWordCount, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_aiBuilderRequest, atom_focusMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_showWordCount, atom_vimMode } from "@/app/atoms/ui-atoms";
 import type { TemplateEntry } from "@/app/utils/templates/template-registry";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
@@ -15,6 +15,7 @@ import { TEMPLATES } from "./constants";
 import { applyTemplate } from "../codemirror/slash-menu";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useEditorAppearance } from "../hooks/use-editor-appearance";
+import { useActiveEditorView } from "../hooks/use-active-editor-view";
 import { useCodeMirrorEditor } from "../hooks/use-codemirror-editor";
 import { useCodeMirrorFeatures } from "../hooks/use-codemirror-features";
 import { useCodeMirrorTemplates } from "../hooks/use-codemirror-templates";
@@ -54,6 +55,8 @@ interface MarkdownEditorProps {
   onWikiLinkClick?: (name: string) => void;
   isActivePane?: boolean;
   isSplit?: boolean;
+  // A preview pane: shown without Markdown marks, never edited or focused.
+  readOnly?: boolean;
 }
 
 // The CM6 editor pane. Editing behavior lives in CodeMirror extensions
@@ -199,21 +202,17 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       filePath,
     });
 
-  const setActiveEditorView = useSetAtom(atom_activeEditorView);
-  const registeredActiveViewRef = useRef<EditorView | null>(null);
+  const registerActiveView = useActiveEditorView(viewRef, {
+    isActivePane: props.isActivePane !== false,
+    enabled: !props.readOnly,
+  });
 
-  // Auto-focus so typing works immediately after opening the editor, no
-  // click required. Skipped for inactive split panes.
   const handleViewCreated = useCallback((view: EditorView) => {
     onViewCreated(view);
     onFrontmatterFoldViewCreated(view);
     setEditorView(view);
-    if (props.isActivePane !== false) {
-      registeredActiveViewRef.current = view;
-      setActiveEditorView(view);
-      view.focus();
-    }
-  }, [onFrontmatterFoldViewCreated, onViewCreated, props.isActivePane, setActiveEditorView]);
+    registerActiveView(view);
+  }, [onFrontmatterFoldViewCreated, onViewCreated, registerActiveView]);
 
   const onCombinedCursorActivity = useCallback((view: EditorView) => {
     onCursorActivity(view);
@@ -239,7 +238,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     flowMode,
     onOpenActiveHelperRef: openActiveHelperRef,
     placeholder: props.placeholder || "Type / for templates",
-    readOnly: false,
+    readOnly: !!props.readOnly,
     onFocusChange: setIsEditorFocused,
     onCursorActivity: onCombinedCursorActivity,
     onViewportChange,
@@ -264,28 +263,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   useScrollToPendingTarget(editorView, filePath);
 
-  // AI actions and palette editor commands are single app-wide instances,
-  // not one per pane: they act on whichever view this atom points at, so
-  // this pane claims that slot while it's the active one.
-  useEffect(() => {
-    if (props.isActivePane === false) return;
-    const view = viewRef.current;
-    if (view) {
-      registeredActiveViewRef.current = view;
-      setActiveEditorView(view);
-    }
-    // Cleared on unmount/deactivation so a later command can't target a
-    // torn-down view.
-    return () => {
-      const registeredView = registeredActiveViewRef.current;
-      if (registeredView) {
-        setActiveEditorView((current) => current === registeredView ? null : current);
-      }
-      registeredActiveViewRef.current = null;
-    };
-  }, [props.isActivePane, setActiveEditorView, viewRef]);
-
-
   return (
     <div
       ref={paneRef}
@@ -300,11 +277,13 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           ${/* A page's margins: room above the first line as on a sheet of
                paper, and room below the last so it can be written in the
                middle of the window rather than at its bottom edge. Split
-               panes keep less of both. */
+               panes keep less of both. The top is never less than the pane
+               title's room (--pane-top-room), so the first line, a
+               Properties row included, starts below the title. */
             props.isSplit
             ? "[--sheet-pad-top:1.25rem] pb-[25vh] sm:[--sheet-pad-top:1.5rem]"
             : "[--sheet-pad-top:2rem] pb-[40vh] sm:[--sheet-pad-top:3rem]"}
-          pt-[var(--sheet-pad-top)]
+          pt-[max(var(--sheet-pad-top),var(--pane-top-room,0px))]
           mx-auto w-full
           text-ui-body
         `}
@@ -319,7 +298,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           paddingRight: contentPaddingX,
         } as React.CSSProperties}
       >
-        {isTemplateNote && <TemplateStrip name={filePath.split("/").pop()!.replace(/\.md$/i, "")} doc={editorValue} onAddField={insertTemplateField} />}
+        {isTemplateNote && !props.readOnly && <TemplateStrip name={filePath.split("/").pop()!.replace(/\.md$/i, "")} doc={editorValue} onAddField={insertTemplateField} />}
         <div className="editor-measure relative h-full">
           <label htmlFor="md-editor" className="sr-only">Markdown editor</label>
           <div
@@ -341,7 +320,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           />
 
           <EmptyNoteTemplates
-            isEmpty={!isTemplateNote && editorValue.trim() === ""}
+            isEmpty={!props.readOnly && !isTemplateNote && editorValue.trim() === ""}
             onPick={(source) => { void insertVaultTemplate(source); }}
             onMore={vaultHandle ? () => { void insertVaultTemplate(); } : undefined}
             onBoard={startBoard}

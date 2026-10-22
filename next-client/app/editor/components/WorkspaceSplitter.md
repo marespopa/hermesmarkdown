@@ -21,3 +21,9 @@ import WorkspaceSplitter from "./WorkspaceSplitter";
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | node | `WorkspaceContainer \| PanelLeaf` |  | Layout subtree |
+
+## Splits (SplitGroup)
+- A container renders as `SplitGroup` (a component of its own, since it runs hooks). Panels get `id={child.id}`, a **string** percentage `defaultSize` (`"70%"`: a bare number means pixels in react-resizable-panels v4) and `minSize="10%"`.
+- `Group.onLayoutChanged` fires when a divider drag ends and writes the percentages back with `atom_setSplitSizes`, so sizes persist (`workspaceLayout`) and restore on reload. Unchanged sizes are not written.
+- Scroll lock: when the split has `scrollLock` and exactly two leaf children, `useScrollLock` (hooks/use-scroll-lock.ts) links the two panes' wrapper divs.
+- The `Separator` has no children on purpose: v4 hit-tests separator presses in the capture phase on the group, so a button inside would never get a click. The lock toggle lives in the pane titles.

@@ -1,0 +1,1 @@
+engineer: 020 done. Sheet pt is now max(sheet-pad-top, pane-top-room) in MarkdownEditor.tsx. The new MarkdownEditor.topRoom.test.tsx asserts the class because jsdom has no layout; that is the likeliest CI risk.

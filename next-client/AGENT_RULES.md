@@ -27,6 +27,7 @@ You are a senior software engineer agent working on HermesMarkdown. You must adh
 - **Router Mocking**: Always mock `useRouter` from `next/navigation` to avoid "app router not mounted" errors.
 - **Lint-Clean Tests**: Don't assign to outer variables while a mock component renders (`react-hooks/globals`); capture props in an effect or a ref. Give wrapper components a name (`react/display-name`).
 - **Module-Load Storage**: `atomWithStorage(..., { getOnInit: true })` reads storage when the module loads, so seeding `sessionStorage`/`localStorage` in a test has no effect. Seed the atom through the store (`store.set(atom, …)`).
+- **Event Coordinates**: jsdom has no `DragEvent` or `PointerEvent`, so `fireEvent.drop/dragOver/pointerDown(el, { clientX, clientY })` silently drops the coordinates. Build the event with `createEvent.*`, set `clientX`/`clientY` with `Object.defineProperty`, then `fireEvent(el, event)`. Assert a result that differs from the default (for example, not the `center` zone).
 
 ---
 

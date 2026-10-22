@@ -1,0 +1,3 @@
+finished	from	agent	model	attempt	exit	cost_usd	turns	duration_ms	input	cache_write	cache_read	output
+2026-10-22T17:56:00Z	new	hermes-engineer	sonnet	1	0	0.27076550000000005	17	221708	26	38298	457315	7179
+2026-10-22T17:56:59Z	review	hermes-review	sonnet	1	0	0.1017938	13	44081	18	15341	107838	2961

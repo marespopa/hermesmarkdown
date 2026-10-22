@@ -52,8 +52,9 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Shortcodes</h4>
         <p>
-          Type a shortcode and it expands in place. Type <code>{"{"}</code> for a menu of the
-          emoji shortcodes, and keep typing a name to narrow it (or <code>/emoji</code> in the slash menu).
+          Type a shortcode and it expands in place. Type <code>{"{"}</code> for a menu of every
+          emoji, and keep typing a name or keyword to narrow it (<code>{"{thumbs"}</code>, <code>{"{flame"}</code>), or
+          use <code>/emoji</code> in the slash menu. Any emoji's name expands too, like <code>{"{red_heart}"}</code>.
         </p>
         <KV
           rows={[
@@ -146,15 +147,14 @@ export const editorWritingItems: Subsection[] = [
   {
     id: "markdown-marks",
     title: "Markdown marks",
-    lead: "Plain typing: every Markdown character stays on screen, dimmed, exactly as it is in the file.",
+    lead: "Marks show where you're writing and step aside everywhere else.",
     keywords: "markdown syntax hidden marks bold italic strikethrough heading quote bullet list task checkbox numbered callout code block fence language tag date chip live preview",
     body: (
       <>
         <p>
-          Markdown shows where you&apos;re writing: on the line with the caret (or every line a
-          selection covers), each mark appears as you typed it, dimmed; everywhere else the marks
-          step aside and you read the formatted text. Bold, italic, strikethrough and inline-code
-          marks open up in the text. A heading&apos;s <code>#</code> and a quote&apos;s or
+          Markdown shows where you&apos;re writing: bold, italic, strikethrough and inline-code
+          marks appear, dimmed, only around the word or code span under the caret (or a selection),
+          so the rest of the line stays formatted. A heading&apos;s <code>#</code> and a quote&apos;s or
           callout&apos;s <code>&gt;</code> hang faintly in the margin, so those lines don&apos;t move. Lists look just like their Markdown: the
           marker before the text, nested items indented by their own spaces, drawn as wide as a letter (Tab adds four), so
           copying a list gives you what you see. A task&apos;s marker takes its status colour. Typing <code>-</code> at the start of a line adds the space after it, so
@@ -163,7 +163,7 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <KV
           rows={[
-            { label: "**bold**, *italic*, ~~strike~~, `code`", value: "Marks show on the caret's line, dimmed; hidden elsewhere" },
+            { label: "**bold**, *italic*, ~~strike~~, `code`", value: "Marks show while the caret is on or next to the word, dimmed; hidden elsewhere" },
             { label: "# Heading, > Quote", value: "Marks show on the caret's line, faint, in the margin; hidden elsewhere" },
             { label: "- List item", value: "Stays as typed: a faint marker before the text, nested items indented by their spaces" },
             { label: "- [ ] Task, 1. [ ] Task", value: "Stays as typed, the marker coloured by its status as on the Tasks page, so you can write the status ([/], [!], [x]); CTRL+Click it to go To Do → In Progress → Done" },

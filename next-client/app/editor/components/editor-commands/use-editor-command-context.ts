@@ -10,6 +10,8 @@ import {
   atom_closePane,
   atom_closeTab,
   atom_splitPane,
+  atom_setPaneType,
+  atom_toggleScrollLock,
   atom_workspaceLayout,
   findLeaf,
 } from "@/app/atoms/atoms";
@@ -100,6 +102,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [, closeTab] = useAtom(atom_closeTab);
   const [, setNewVaultFlowOpen] = useAtom(atom_newVaultFlowOpen);
   const [, splitPane] = useAtom(atom_splitPane);
+  const [, setPaneType] = useAtom(atom_setPaneType);
+  const [, toggleScrollLock] = useAtom(atom_toggleScrollLock);
   const [, closePane] = useAtom(atom_closePane);
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
@@ -163,6 +167,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     closeTab,
     setNewVaultFlowOpen,
     splitPane,
+    setPaneType,
+    toggleScrollLock,
     closePane,
     sidebarOpen,
     setSidebarOpen,

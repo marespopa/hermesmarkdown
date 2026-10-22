@@ -26,5 +26,5 @@ import { LIGHT_THEMES } from "@/app/theme-palettes";
 | onChange | `(value: T) => void` |  | Called with the clicked palette |
 
 ## Logic
-- Three columns, one per palette; the selected card gets the sage border and an always-mounted check (opacity toggled, so heights never shift).
+- One column per palette (four wrap two by two below `sm`); the selected card gets the sage border and an always-mounted check (opacity toggled, so heights never shift).
 - Colors on the preview come from `swatch`; the real palette colors live in `app/theme-palettes.scss`.

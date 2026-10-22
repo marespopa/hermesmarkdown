@@ -89,12 +89,12 @@ describe("AppCommands and SettingsCommands", () => {
     expect(store.get(atom_theme)).toBe("light");
   });
 
-  it("offers three palettes for each mode and disables the current ones", () => {
+  it("offers every palette of each mode and disables the current ones", () => {
     const store = createStore();
     store.set(atom_lightTheme, "paper");
     renderCommands(store);
 
-    for (const id of ["solarized", "paper", "plain"]) expect(command(`set-light-theme-${id}`)).toBeDefined();
+    for (const id of ["solarized", "paper", "sepia", "plain"]) expect(command(`set-light-theme-${id}`)).toBeDefined();
     for (const id of ["nord", "ink", "graphite"]) expect(command(`set-dark-theme-${id}`)).toBeDefined();
     expect(command("set-light-theme-paper")?.label).toBe("Light Theme: Paper");
     expect(command("set-light-theme-paper")?.disabledReason).toBe("Current light theme");

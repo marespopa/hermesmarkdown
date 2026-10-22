@@ -4,10 +4,11 @@
 /* ─── Color themes ───────────────────────────────────────────────────────────
    Alternative palettes for each mode (app/theme-palettes.ts). ThemeProvider
    keeps both picks on <html data-light-theme data-dark-theme>; the light one
-   applies without `.dark`, the dark one with it. Three a mode, in pairs:
-   Paper / Ink, warm paper and ink (Ink is the dark paper), the plain
+   applies without `.dark`, the dark one with it. In pairs: Paper / Ink,
+   grey-white paper and blue ink (Ink is the dark paper), the plain
    globals.scss tokens with no block here; Solarized / Nord; Plain /
-   Graphite, neutral with no tint. Paper and Ink are the defaults
+   Graphite, neutral with no tint; and Sepia, a warm cream reading page,
+   light only (Ink, the warm dark paper, is its night side). Paper and Ink are the defaults
    (DEFAULT_*_THEME, set on <html> before the first paint). Every
    page carries the paper grain (editor.scss). Each palette
    keeps --fg-faint and the accents at ≥4.5:1 on surface, raised and chrome.
@@ -57,6 +58,10 @@
   --row-stripe:     #{color.change(map.get($p, tint), $alpha: 0.035)};
   // The caret and text selection take the identity hue too.
   --caret:          #{map.get($p, clay)};
+  // Code syntax beside the accent keywords (globals.scss).
+  --code-string:    #{map.get($p, code-string)};
+  --code-number:    #{map.get($p, code-number)};
+  --code-function:  #{map.get($p, code-function)};
 }
 
 @mixin light-palette($p) {
@@ -100,6 +105,21 @@ html[data-light-theme="plain"]:not(.dark) {
     clay: #2B2B2B, moss: #2B2B2B, moss-hover: #111111, hold: #806426,
     prog: #A24B32, done: #4F6B45,
     link: #2563C9, link-hover: #1A5CD0,
+    code-string: #2F6B32, code-number: #A1461E, code-function: #6F42C1,
+  ));
+}
+
+/* Light: Sepia — warm cream, like a printed book's page, with espresso ink
+   and an olive accent; for long reading and editing. */
+html[data-light-theme="sepia"]:not(.dark) {
+  @include light-palette((
+    surface: #F4ECD8, raised: #EBE2CC, chrome: #E8DEC6, softgray: #E1D6BC,
+    overlay: #FAF5E9, input: #FFFFFF, border: #D8CCB0, tint: rgb(91, 70, 54),
+    fg: #4F3D2C, fg-muted: #68543F, fg-faint: #6E5A45, ink-hover: #5E4A37,
+    clay: #5E6624, moss: #5E6624, moss-hover: #4C5320, hold: #76591A,
+    prog: #9C4428, done: #3D6A4C,
+    link: #5E6624, link-hover: #4C5320,
+    code-string: #4A6A2E, code-number: #9A4A22, code-function: #7A4078,
   ));
 }
 
@@ -113,6 +133,7 @@ html[data-light-theme="solarized"]:not(.dark) {
     clay: #1A6BA6, moss: #1A6BA6, moss-hover: #176095, hold: #7F6300,
     prog: #B23F0E, done: #5F6E00,
     link: #1A6BA6, link-hover: #155D92,
+    code-string: #19685F, code-number: #A8366A, code-function: #5257A3,
   ));
 }
 
@@ -126,6 +147,7 @@ html.dark[data-dark-theme="graphite"] {
     clay: #C8C8CC, moss: #C8C8CC, moss-hover: #D8D8DB, hold: #CFB475,
     prog: #DC8E6C, done: #94A67E,
     link: #68ABFF, link-hover: #8FC0FF,
+    code-string: #A6C98B, code-number: #E2A07A, code-function: #C6A4E0,
   ));
 }
 
@@ -139,5 +161,6 @@ html.dark[data-dark-theme="nord"] {
     clay: #88C0D0, moss: #88C0D0, moss-hover: #9AC9D7, hold: #EBCB8B,
     prog: #E3A893, done: #A3BE8C,
     link: #88C0D0, link-hover: #A3D0DC,
+    code-string: #A3BE8C, code-number: #E3A893, code-function: #C9A6C2,
   ));
 }

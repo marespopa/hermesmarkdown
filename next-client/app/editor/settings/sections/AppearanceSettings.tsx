@@ -4,6 +4,7 @@ import React from "react";
 import { useAtom } from "jotai";
 import { HiOutlineDesktopComputer, HiOutlineMoon, HiOutlineSun } from "react-icons/hi";
 import {
+  atom_codeFontFamily,
   atom_darkTheme,
   atom_editorFontFamily,
   atom_lightTheme,
@@ -17,7 +18,7 @@ import { DARK_THEMES, LIGHT_THEMES, resolveDarkTheme, resolveLightTheme } from "
 import FontPicker from "../components/FontPicker";
 import ThemePicker from "../components/ThemePicker";
 import { SegmentedControl, SettingGroup, SettingItem } from "../components/SettingControls";
-import { FONTS, TEXT_SIZES } from "../font-options";
+import { CODE_FONTS, FONTS, TEXT_SIZES } from "../font-options";
 
 const THEME_OPTIONS: { label: string; value: Theme; Icon: React.ComponentType<{ size?: number }> }[] = [
   { label: "Light", value: "light", Icon: HiOutlineSun },
@@ -27,12 +28,13 @@ const THEME_OPTIONS: { label: string; value: Theme; Icon: React.ComponentType<{ 
 
 // Settings → Appearance: Theme (mode, then the palette that mode uses — both
 // light and dark palettes only under System, since either may show) and
-// Typography (font, text size, full width) groups.
+// Typography (font, code font, text size, full width) groups.
 export default function AppearanceSettings() {
   const [theme, setTheme] = useAtom(atom_theme);
   const [lightTheme, setLightTheme] = useAtom(atom_lightTheme);
   const [darkTheme, setDarkTheme] = useAtom(atom_darkTheme);
   const [editorFontFamily, setEditorFontFamily] = useAtom(atom_editorFontFamily);
+  const [codeFontFamily, setCodeFontFamily] = useAtom(atom_codeFontFamily);
   const [textSize, setTextSize] = useAtom(atom_renderedFontSize);
   const [fullWidth, setFullWidth] = useAtom(atom_fullWidth);
 
@@ -67,6 +69,14 @@ export default function AppearanceSettings() {
           description="The font you write in."
           layout="stack"
           control={<FontPicker fonts={FONTS} value={editorFontFamily} onChange={setEditorFontFamily} />}
+        />
+        <SettingItem
+          label="Code font"
+          description="The font for code blocks and inline code."
+          layout="stack"
+          control={
+            <FontPicker fonts={CODE_FONTS} value={codeFontFamily} onChange={setCodeFontFamily} previewText="const x = 0x1F; // =>" />
+          }
         />
         <SettingItem
           label="Text size"

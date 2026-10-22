@@ -20,3 +20,6 @@ Description: The sidebar's **Open Notes** section, for switching with one click:
 |---|---|---|---|
 | onEditor | `boolean` |  | On the editor route, so the note in front is highlighted |
 | onOpen | `(paneId: string, path: string) => void` |  | Brings a note to the front of its pane (and back to the editor) |
+
+## Docking into panes
+Dragging a row also sets `atom_paneDrag` (`{ kind: "open-note", path, sourcePaneId }`), so panes take it as a dock drop: an edge moves the note into a new pane (copied if it was the pane's only note), the center moves it into that pane. Reordering within the list is unchanged. The payload clears on drag end.

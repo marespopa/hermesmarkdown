@@ -1,7 +1,8 @@
 // Color themes per mode: the light mode and the dark mode each pick one of
-// their own palettes (Settings → Appearance, the Theme commands). Three a
-// mode, in pairs: Paper / Ink (warm paper and ink; Ink is the dark paper),
-// Solarized / Nord, and Plain / Graphite (neutral, no tint at all). Paper and
+// their own palettes (Settings → Appearance, the Theme commands), in pairs:
+// Paper / Ink (paper and blue ink; Ink is the dark paper), Solarized / Nord,
+// and Plain / Graphite (neutral, no tint at all), plus Sepia, a warm reading
+// page with no dark pair of its own (Ink is the warm dark one). Paper and
 // Ink, the paper pair, are the defaults. The colors live
 // in theme-palettes.scss, keyed by <html data-light-theme / data-dark-theme>;
 // the first palette of each list is the default, set on <html> before the
@@ -9,7 +10,7 @@
 // the plain globals.scss tokens, with no block of their own.
 // The swatch values here only draw the picker's previews.
 
-export type LightTheme = "paper" | "solarized" | "plain";
+export type LightTheme = "paper" | "sepia" | "solarized" | "plain";
 export type DarkTheme = "ink" | "nord" | "graphite";
 
 export interface ThemePalette<T extends string> {
@@ -23,8 +24,14 @@ export const LIGHT_THEMES: ThemePalette<LightTheme>[] = [
   {
     value: "paper",
     label: "Paper",
-    description: "Warm paper, ink blue",
-    swatch: { surface: "#F6F3EC", chrome: "#ECE8DE", fg: "#2E2A25", accent: "#3A5A8C" },
+    description: "Grey-white paper, blue ink",
+    swatch: { surface: "#F1F0EB", chrome: "#E8E7E0", fg: "#2A3A5E", accent: "#3A5A8C" },
+  },
+  {
+    value: "sepia",
+    label: "Sepia",
+    description: "Warm cream, for reading",
+    swatch: { surface: "#F4ECD8", chrome: "#E8DEC6", fg: "#4F3D2C", accent: "#5E6624" },
   },
   {
     value: "solarized",
@@ -62,7 +69,7 @@ export const DARK_THEMES: ThemePalette<DarkTheme>[] = [
 ];
 
 // Palettes from earlier versions, moved to their closest current one.
-const LEGACY_LIGHT_THEMES: Record<string, LightTheme> = { sepia: "paper", sage: "paper", porcelain: "plain" };
+const LEGACY_LIGHT_THEMES: Record<string, LightTheme> = { sage: "paper", porcelain: "plain" };
 const LEGACY_DARK_THEMES: Record<string, DarkTheme> = { midnight: "nord", dusk: "ink" };
 
 export const DEFAULT_LIGHT_THEME: LightTheme = "paper";

@@ -186,9 +186,15 @@ describe("computeMarkdownDecorations", () => {
       expect(marksAt(" Pen ")).not.toContainEqual(expect.stringContaining("font-bold"));
     });
 
-    it("sets fenced code in monospace, without reading `#` in it as a heading", () => {
-      expect(marksAt("# not a heading")).toContain("cm-callout-code");
+    it("sets fenced code as a code block in the card, without reading `#` in it as a heading", () => {
+      const closing = doc.lastIndexOf("> ```");
+      const closingClass = decos.filter((d) => d.from === closing && d.from === d.to).map((d) => d.class).join(" ");
+      expect(lineClass("> ```")).toContain("cm-callout-codeblock cm-callout-codeblock-start");
+      expect(lineClass("> # not a heading")).toContain("cm-callout-codeblock");
+      expect(lineClass("> # not a heading")).toContain("cm-callout");
       expect(lineClass("> # not a heading")).not.toContain("cm-heading");
+      expect(closingClass).toContain("cm-callout-codeblock cm-callout-codeblock-end");
+      expect(lineClass("> > quoted")).not.toContain("cm-callout-codeblock");
     });
 
     it("styles a quote inside it, a heading in that quote sized, and ends at the first line without `>`", () => {
@@ -324,5 +330,20 @@ describe("reading from saved checkpoints", () => {
     expect(kept.every((checkpoint) => checkpoint.line <= 10)).toBe(true);
     const screen = screenAt(tr.state, 900);
     expect(flat(tr.state, screen, kept)).toEqual(flat(tr.state, screen));
+  });
+});
+
+describe("heading size with the caret in the heading", () => {
+  it("keeps the heading line class wherever the selection is", () => {
+    const doc = "## Title\n\nBody";
+    for (const anchor of [3, doc.length]) {
+      const state = EditorState.create({ doc, selection: { anchor } });
+      const classes: string[] = [];
+      computeMarkdownDecorations(state).between(0, doc.length, (_f, _t, value: any) => {
+        const cls = value.spec.class ?? value.spec.attributes?.class;
+        if (cls) classes.push(cls);
+      });
+      expect(classes.some((c) => c.includes("cm-heading cm-heading-2"))).toBe(true);
+    }
   });
 });

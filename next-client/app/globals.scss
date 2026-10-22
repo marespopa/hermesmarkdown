@@ -21,20 +21,23 @@ body {
      editor's writing fonts are set separately (Settings → Typography). */
   --landing-hero: var(--font-instrument-serif), 'Instrument Serif', Georgia, serif;
   --landing-body: var(--font-plus-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, ui-sans-serif, sans-serif;
+  /* Code blocks and inline code (Settings → Typography → Code font):
+     ThemeProvider sets the reader's pick on <html>; Geist Mono until then. */
+  --font-code: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
 
-  /* Paper: a warm sheet of writing paper with soft brown-black ink. */
-  --surface:        #F6F3EC;  /* editor surface — warm paper */
-  --surface-raised: #EEEAE1;  /* elevated cards / panels */
-  --chrome:         #ECE8DE;  /* tab bar, file indicator, palette footer — visibly distinct from editor */
-  --overlay:        #FCFAF6;  /* modals / popovers / command palette — lighter than the page, so they lift off it */
+  /* Paper: a cool, grey-white sheet of writing paper with blue ink. */
+  --surface:        #F1F0EB;  /* editor surface — grey-white paper */
+  --surface-raised: #EBEAE4;  /* elevated cards / panels */
+  --chrome:         #E8E7E0;  /* tab bar, file indicator, palette footer — visibly distinct from editor */
+  --overlay:        #F9F8F5;  /* modals / popovers / command palette — lighter than the page, so they lift off it */
   --input-bg:       #FFFFFF;  /* form inputs — white, set off from page and overlay by their border */
 
-  --border:         #DCD6CA;
-  --border-subtle:  rgba(70, 60, 45, 0.10);
+  --border:         #D7D6CF;
+  --border-subtle:  rgba(45, 58, 90, 0.10);
 
-  --fg:             #2E2A25;  /* primary text — soft ink, never pure black */
-  --fg-muted:       #5C564D;  /* secondary text */
-  --fg-faint:       #69635A;  /* placeholder / tertiary — ≥4.5:1 on surface, raised and chrome */
+  --fg:             #2A3A5E;  /* primary text — blue ink, never pure black */
+  --fg-muted:       #4A5675;  /* secondary text */
+  --fg-faint:       #5A6380;  /* placeholder / tertiary — ≥4.5:1 on surface, raised and chrome */
 
   /* Paper's one identity hue, a muted ink blue, for both accent roles
      (clay and moss), as every palette in theme-palettes.scss: the caret,
@@ -46,19 +49,25 @@ body {
   /* Task status (box character): in progress, on hold, done. Status
      colours of their own, apart from the accent, as in every palette. To
      do and cancelled stay neutral (--fg-faint). */
-  --task-prog:      #A2563E;  /* terracotta */
-  --danger:         #A2563E;  /* destructive buttons and menu rows: the palette's warm red, ≥4.5:1 with --surface on it */
-  --task-hold:      #85692F;  /* ochre */
-  --task-done:      #5A6B55;  /* green */
+  --task-prog:      #984F38;  /* terracotta */
+  --danger:         #984F38;  /* destructive buttons and menu rows: the palette's warm red, ≥4.5:1 with --surface on it */
+  --task-hold:      #7C6229;  /* ochre */
+  --task-done:      #56674F;  /* green */
   --link:           #34568E;  /* editor links — the ink blue */
   --link-hover:     #2A4775;
   --caret:          var(--clay);
   --selection:      rgba(58, 90, 140, 0.18);  /* text selection — the accent, translucent */
-  --frontmatter-bg: rgba(70, 60, 45, 0.035);
-  --frontmatter-bg-hover: rgba(70, 60, 45, 0.055);
-  --frontmatter-bg-active: rgba(70, 60, 45, 0.085);  /* Properties on hover/focus (rest is -hover) */
+  /* Code syntax: keywords take the accent; strings, numbers and function
+     names a hue each, so a code block scans at a glance. Every palette sets
+     its own, ≥4.5:1 on surface, raised and chrome. */
+  --code-string:    #4A6A2E;
+  --code-number:    #9A4A22;
+  --code-function:  #74408A;
+  --frontmatter-bg: rgba(45, 58, 90, 0.035);
+  --frontmatter-bg-hover: rgba(45, 58, 90, 0.055);
+  --frontmatter-bg-active: rgba(45, 58, 90, 0.085);  /* Properties on hover/focus (rest is -hover) */
   --frontmatter-label-opacity: 0.4;
-  --row-stripe:     rgba(70, 60, 45, 0.035);  /* alternate rows in list views (Explorer) */
+  --row-stripe:     rgba(45, 58, 90, 0.035);  /* alternate rows in list views (Explorer) */
   /* Materials for what floats over the page (.glass-bar, .glass-panel
      below). Flat, as a plain writing app: solid fills (the chrome for bars,
      the overlay for panels), no blur, a hairline edge and a soft shadow so
@@ -67,21 +76,21 @@ body {
   --material-bar:       var(--chrome);
   --material-panel:     var(--overlay);
   --material-blur:      none;
-  --material-edge:      rgba(70, 60, 45, 0.10);
+  --material-edge:      rgba(45, 58, 90, 0.10);
   --material-highlight: transparent;
-  --material-shadow:    0 1px 2px rgba(70, 60, 45, 0.06), 0 8px 24px -10px rgba(70, 60, 45, 0.14);
+  --material-shadow:    0 1px 2px rgba(45, 58, 90, 0.06), 0 8px 24px -10px rgba(45, 58, 90, 0.14);
   --ease-spring:    cubic-bezier(0.16, 1, 0.3, 1);
   /* Static aliases (Tailwind paper-*, ink-*, beige, clay) as RGB channels,
      so opacity modifiers work and the color themes (theme-palettes.scss)
      can repaint them. Light-mode values first, then dark-mode ones. */
-  --paper-pale:         246 243 236;  /* #F6F3EC */
-  --paper-light:        238 234 225;  /* #EEEAE1 */
-  --paper-softgray:     230 225 214;  /* #E6E1D6 */
-  --beige:              220 214 202;  /* #DCD6CA */
-  --beige-light:        230 225 214;  /* #E6E1D6 */
-  --ink-light:          46 42 37;     /* #2E2A25 */
-  --ink-hover:          62 57 50;     /* #3E3932 */
-  --ink-muted:          105 99 90;    /* #69635A */
+  --paper-pale:         241 240 235;  /* #F1F0EB */
+  --paper-light:        235 234 228;  /* #EBEAE4 */
+  --paper-softgray:     228 227 220;  /* #E4E3DC */
+  --beige:              215 214 207;  /* #D7D6CF */
+  --beige-light:        228 227 220;  /* #E4E3DC */
+  --ink-light:          42 58 94;     /* #2A3A5E */
+  --ink-hover:          58 73 109;    /* #3A496D */
+  --ink-muted:          90 99 128;    /* #5A6380 */
   --paper-dark:         24 22 20;     /* #181614 */
   --paper-dark-surface: 42 38 34;     /* #2A2622 */
   --ink-dark:           230 224 214;  /* #E6E0D6 */
@@ -89,7 +98,7 @@ body {
   /* Fine paper grain, on every theme's page (.app-sheet, editor.scss):
      tiled SVG fractal noise, the red channel thresholded into sparse
      specks. Faint, since it always shows. */
-  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.24 0 0 0 0 0.22 0 0 0 0 0.2 0.9 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.12'/%3E%3C/svg%3E");
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.18 0 0 0 0 0.23 0 0 0 0 0.35 0.9 0 0 0 -0.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.12'/%3E%3C/svg%3E");
 }
 
 html.dark {
@@ -117,6 +126,9 @@ html.dark {
   --link-hover:     #AFC4E6;
   --caret:          var(--clay);
   --selection:      rgba(143, 168, 208, 0.28);
+  --code-string:    #A9C48A;
+  --code-number:    #E0A272;
+  --code-function:  #C9A3D9;
   --frontmatter-bg: rgba(214, 207, 198, 0.04);
   --frontmatter-bg-hover: rgba(214, 207, 198, 0.065);
   --frontmatter-bg-active: rgba(214, 207, 198, 0.1);

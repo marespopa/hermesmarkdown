@@ -72,7 +72,8 @@ describe("SettingsPage", () => {
     render(<SettingsPage />);
     // Typography is the default-active section — no nav click needed.
     expect(screen.getByText("Font")).toBeInTheDocument();
-    expect(screen.getByText("Geist Mono")).toBeInTheDocument();
+    // Offered for both the writing font and the code font.
+    expect(screen.getAllByText("Geist Mono")).toHaveLength(2);
     expect(screen.getByText("Duospace")).toBeInTheDocument();
     expect(screen.getByText("Quattro")).toBeInTheDocument();
     expect(screen.queryByText("Inter")).not.toBeInTheDocument();

@@ -3,6 +3,7 @@ import { EditorView } from "@codemirror/view";
 import { EditorState, EditorSelection } from "@codemirror/state";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
 import { noteCalcExtension } from "./note-calc";
+import { loadEmojiIndex } from "./emoji-index";
 
 function makeView() {
   const state = EditorState.create({ doc: "", extensions: [shortcodeExpandPlugin] });
@@ -52,6 +53,14 @@ describe("shortcodeExpandPlugin", () => {
     await type(view, "{rocket}");
     await type(view, "{question}");
     expect(view.state.doc.toString()).toBe("🚀 ❓ ");
+  });
+
+  it("expands any emoji by name once the emoji index has loaded", async () => {
+    await loadEmojiIndex();
+    const view = makeView();
+    await type(view, "{thumbs_up}");
+    await type(view, " {{red_heart}");
+    expect(view.state.doc.toString()).toBe("👍️ {{red_heart}");
   });
 
   it("expands ..d to today's date", async () => {

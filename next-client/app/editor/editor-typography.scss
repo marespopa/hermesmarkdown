@@ -164,18 +164,23 @@
   padding-top: calc(var(--B) * 0.65625); /* 0.75em × 0.875 */
 }
 
+/* A callout's first line: the card's padding above it (live-markers-theme.ts). */
+.editor-sheet.editor-container .cm-lineNumbers .cm-gutter-callout-start {
+  padding-top: calc(var(--B) * 0.4);
+}
+
 /* A title on the note's first line sits at the top of the sheet. */
 .editor-sheet.editor-container .cm-content > .cm-line.cm-heading:first-child {
   padding-top: 0;
 }
 
-/* Inline code: Geist Mono a step smaller, on a faint tint with slightly
+/* Inline code: the code font a step smaller, on a faint tint with slightly
    muted ink. Horizontal padding only, so the line box keeps the rhythm. */
 .editor-sheet.editor-container .cm-inline-code {
   border-radius: 0.3em;
   background-color: color-mix(in srgb, var(--fg) 6%, transparent);
   color: color-mix(in srgb, var(--fg) 82%, var(--surface));
-  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
+  font-family: var(--font-code);
   font-feature-settings: "calt" 1, "zero" 1;
   font-size: 0.875em;
   letter-spacing: 0;
@@ -195,7 +200,7 @@
   background-color: color-mix(in srgb, var(--fg) 4%, transparent);
   border-inline: 1.125rem solid transparent;
   box-shadow: -1px 0 var(--codeblock-edge), 1px 0 var(--codeblock-edge);
-  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
+  font-family: var(--font-code);
   /* Contextual alternates, and a slashed zero so 0 and O never mix. */
   font-feature-settings: "calt" 1, "zero" 1;
   font-size: 0.875em;
