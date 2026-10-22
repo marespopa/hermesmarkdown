@@ -31,5 +31,5 @@ import MarkdownEditor from "./MarkdownEditor";
 | onWikiLinkClick? | `(name: string) => void` |  | `[[link]]` navigation (`PaneLeaf` passes `openOrCreateLink`, which also creates missing notes) |
 | isActivePane? | `boolean` |  | Pane context |
 
-## readOnly and the active-view hook
+## The active-view hook
 - Active-view registration (claim on create/activation, release on unmount) lives in `hooks/use-active-editor-view.ts`, `useActiveEditorView(viewRef, { isActivePane, enabled })`.

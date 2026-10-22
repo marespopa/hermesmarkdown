@@ -17,9 +17,12 @@ import {
 
 vi.mock("jotai", async (importOriginal) => {
   const actual = await importOriginal<typeof import("jotai")>();
+  const useAtom = vi.fn();
   return {
     ...actual,
-    useAtom: vi.fn(),
+    useAtom,
+    // A setter-only atom gets the same setter the test's useAtom mock gives it.
+    useSetAtom: vi.fn((atom: unknown) => useAtom(atom)[1]),
   };
 });
 
