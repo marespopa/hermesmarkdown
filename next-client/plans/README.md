@@ -85,7 +85,7 @@ scripts/factory set NNN <state>
   - The script records HEAD and the branch before each stage. If either moved, it blocks the plan.
 - **No runs on `trunk`/`main`.**
 - **One build at a time.** A fresh build (`specced`) won't start while code outside `plans/` is uncommitted.
-- **Retries.** A stage that ends without a valid state change leaves a `RESUME:` note in `mailbox.md` and keeps the old state. The retry resumes the failed session (`--resume`) rather than starting cold. After 2 failed attempts in a row, the plan is blocked.
+- **Retries.** A stage that ends without a valid state change leaves a `RESUME:` note in `mailbox.md` and keeps the old state, except a failed engineer stage, which stays `building` so its partial code doesn't trip the dirty-tree guard. The retry resumes the failed session (`--resume`) rather than starting cold. After 2 failed attempts in a row, the plan is blocked.
 
 ## Cost
 
