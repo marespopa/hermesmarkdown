@@ -21,7 +21,6 @@ import { renderedBlockExtension } from "./rendered-block";
 import { noteEmbedsExtension } from "./note-embeds";
 import { embedGhost } from "./embed-ghost";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
-import { bulletAutospace } from "./bullet-autospace";
 import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
 import { createEmojiSource } from "./emoji-completion";
@@ -33,7 +32,6 @@ import { tableKeyBindings } from "./table-keymap";
 import { frontmatterCollapse } from "./frontmatter-fold";
 import { flowMode, type FlowLevel } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
-import { listCaretGuard } from "./list-caret";
 import { invisibles } from "./invisibles";
 import { editorLineNumbers } from "./line-numbers";
 import { findReplace } from "./find-replace";
@@ -86,10 +84,9 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     EditorState.allowMultipleSelections.of(true),
     rectangularSelection(),
     crosshairCursor(),
-    // addKeymap: false — lang-markdown's built-in Enter continuation for
-    // lists/blockquotes stacks with our own continueQuoteOnEnter command
-    // (formatKeymap), producing doubled "> " prefixes. We own continuation
-    // logic explicitly instead: formatKeymap continues quotes and list items.
+    // addKeymap: false — no list or quote continuation on Enter, and
+    // Backspace deletes one character: typing is never rewritten
+    // (formatKeymap binds Enter to a plain line break).
     markdown({ base: markdownLanguage, codeLanguages: languages, addKeymap: false }),
     codeFolding(),
     frontmatterCollapse,
@@ -102,7 +99,6 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     liveMarkers,
     // Markdown marks show only on the caret's lines.
     syntaxReveal,
-    listCaretGuard,
     templateFieldPills,
     annotationDisplayPlugin,
     tableDisplayExtension,
@@ -112,7 +108,6 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     embedGhost(() => opts.slashMenuCallbacksRef.current.embedFiles?.() ?? []),
     noteCalcExtension,
     shortcodeExpandPlugin,
-    bulletAutospace,
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? loadedVim()?.vim() ?? [] : []),
     autocompletion({

@@ -7,7 +7,6 @@ import {
   toggleStrikethrough,
   toggleInlineCode,
   toggleCheckboxOnLine,
-  continueQuoteOnEnter,
   indentCurrentSubtree,
   outdentCurrentSubtree,
   cycleTaskStatusOnCurrentLine,
@@ -97,43 +96,6 @@ describe("toggleCheckboxOnLine", () => {
   });
 });
 
-describe("continueQuoteOnEnter", () => {
-  it("continues the quote prefix onto a new line", () => {
-    const view = makeView("> hello", { anchor: 7 });
-    const applied = continueQuoteOnEnter(view);
-    expect(applied).toBe(true);
-    expect(view.state.doc.toString()).toBe("> hello\n> ");
-  });
-
-  it("exits the block by stripping the prefix on an empty quoted line", () => {
-    const view = makeView("> hello\n> ", { anchor: 10 });
-    // Move cursor onto the second (empty) quoted line before pressing Enter.
-    view.dispatch({ selection: EditorSelection.cursor(10) });
-    continueQuoteOnEnter(view);
-    expect(view.state.doc.toString()).toBe("> hello\n");
-  });
-
-  it("continues a list item inside a callout with the next marker", () => {
-    const view = makeView("> [!note] Steps\n> 1. first", { anchor: 26 });
-    continueQuoteOnEnter(view);
-    expect(view.state.doc.toString()).toBe("> [!note] Steps\n> 1. first\n> 2. ");
-    const task = makeView("> - [x] done", { anchor: 12 });
-    continueQuoteOnEnter(task);
-    expect(task.state.doc.toString()).toBe("> - [x] done\n> - [ ] ");
-  });
-
-  it("drops an empty item's marker but stays in the callout", () => {
-    const view = makeView("> - one\n> - ", { anchor: 12 });
-    continueQuoteOnEnter(view);
-    expect(view.state.doc.toString()).toBe("> - one\n> ");
-  });
-
-  it("does nothing (returns false) on a non-quoted line", () => {
-    const view = makeView("plain text", { anchor: 5 });
-    expect(continueQuoteOnEnter(view)).toBe(false);
-  });
-});
-
 describe("outline indentation commands", () => {
   it("indents and outdents the current list subtree", () => {
     const view = makeView("- Parent\n  - Child\n- Sibling", { anchor: 2 });
@@ -218,6 +180,14 @@ describe("formatKeymap", () => {
     expect(press("Item", 0, { key: "&", keyCode: 55, ctrlKey: true, shiftKey: true }).text).toBe("1. Item");
     expect(press("Item", 0, { key: "*", keyCode: 56, ctrlKey: true, shiftKey: true }).text).toBe("- Item");
     expect(press("Item", 0, { key: "(", keyCode: 57, ctrlKey: true, shiftKey: true }).text).toBe("> Item");
+  });
+
+  it("breaks the line on Enter without continuing a list or quote", () => {
+    const enter = { key: "Enter", keyCode: 13 };
+    expect(press("- item", 6, enter).text).toBe("- item\n");
+    expect(press("1. [ ] task", 11, enter).text).toBe("1. [ ] task\n");
+    expect(press("> quote", 7, enter).text).toBe("> quote\n");
+    expect(press("  - nested", 10, enter).text).toBe("  - nested\n");
   });
 
   it("makes the line plain text on Ctrl+Alt+0", () => {

@@ -2,16 +2,12 @@ import { EditorView } from "@codemirror/view";
 import { KeyBinding } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 import { insertNewline, redo } from "@codemirror/commands";
-import {
-  REGEX_CHECKBOX,
-  REGEX_QUOTE_PREFIX,
-  REGEX_URL_PASTE,
-} from "../components/regex";
+import { REGEX_CHECKBOX } from "../components/regex";
 import { taskStatusFromChar, toggledStatus, type TaskStatus } from "@/app/utils/task-status";
 import { statusLineEdits } from "@/app/utils/task-line";
 import { detectDelimitedTable, delimitedTextToMarkdownTable } from "../utils/table-manipulation";
 import { indentSubtree, outdentSubtree, setTaskStatus, toggleTaskStatus } from "./lineMutations";
-import { continueListOnEnter, indentListOrLines, outdentListOrLines, removeListMarkerOnBackspace } from "./list-commands";
+import { indentListOrLines, listItemHome, outdentListOrLines } from "./list-commands";
 import { insertTable, setHeading, toggleCodeBlock, wrapAsLink } from "./format-shortcuts";
 import { setBlockType, toggleBlockType } from "./block-type";
 
@@ -71,68 +67,8 @@ export function toggleCheckboxOnLine(view: EditorView, lineNumber?: number): boo
   return true;
 }
 
-// A list item after a quote's prefix: bullet or "1." / "1)", spacing, task box.
-const REGEX_QUOTED_LIST_ITEM = /^([-*+]|(\d+)([.)]))(\s+)(\[[ xX/!-]\]\s+)?/;
-
-// Enter on a quoted/callout line continues the "> " prefix; on an empty
-// quoted line it exits the block by stripping the prefix instead. On a list
-// item inside it, the next item follows the prefix (next number, a fresh
-// "[ ] " for a task); an empty item drops its marker and stays in the block.
-export function continueQuoteOnEnter(view: EditorView): boolean {
-  const { state } = view;
-  const pos = state.selection.main.head;
-  const line = state.doc.lineAt(pos);
-  const match = REGEX_QUOTE_PREFIX.exec(line.text);
-  if (!match) return false;
-
-  const prefix = match[0];
-  const item = REGEX_QUOTED_LIST_ITEM.exec(line.text.slice(prefix.length));
-  if (item && pos >= line.from + prefix.length + item[0].length) {
-    const [marker, bullet, number, delimiter, spacing, task] = item;
-    if (line.text.slice(prefix.length + marker.length).trim() === "") {
-      view.dispatch(state.update({
-        changes: { from: line.from, to: line.to, insert: prefix },
-        selection: EditorSelection.cursor(line.from + prefix.length),
-        userEvent: "delete.format.list",
-      }));
-      return true;
-    }
-    const next = number !== undefined ? `${Number(number) + 1}${delimiter}` : bullet;
-    const insert = `\n${prefix}${next}${spacing}${task ? "[ ] " : ""}`;
-    view.dispatch(state.update({
-      changes: { from: pos, to: pos, insert },
-      selection: EditorSelection.cursor(pos + insert.length),
-      userEvent: "input.format.list",
-      scrollIntoView: true,
-    }));
-    return true;
-  }
-  const isEmpty = line.text.slice(prefix.length).trim() === "";
-
-  if (isEmpty) {
-    view.dispatch(
-      state.update({
-        changes: { from: line.from, to: line.to, insert: "" },
-        userEvent: "delete.format.quote",
-      }),
-    );
-  } else {
-    view.dispatch(
-      state.update({
-        changes: { from: pos, to: pos, insert: `\n${prefix}` },
-        selection: EditorSelection.cursor(pos + 1 + prefix.length),
-        userEvent: "input.format.quote",
-        scrollIntoView: true,
-      }),
-    );
-  }
-  return true;
-}
-
-// Pasting a multi-line block onto a quoted line re-prefixes each pasted
-// line; pasting a bare URL wraps it as [link](url) with "link" selected;
-// pasting CSV/TSV-shaped text asks (via onConfirmCSV) whether to convert it
-// into a Markdown table before inserting.
+// Pasting CSV/TSV-shaped text asks (via onConfirmCSV) whether to convert it
+// into a Markdown table before inserting; anything else pastes as it is.
 export function handlePasteTransform(
   view: EditorView,
   event: ClipboardEvent,
@@ -140,8 +76,7 @@ export function handlePasteTransform(
 ): boolean {
   const pastedText = event.clipboardData?.getData("text") ?? "";
   if (!pastedText) return false;
-  const { state } = view;
-  const range = state.selection.main;
+  const range = view.state.selection.main;
 
   if (onConfirmCSV) {
     const delimiter = detectDelimitedTable(pastedText.trim());
@@ -159,44 +94,6 @@ export function handlePasteTransform(
           }),
         );
       });
-      return true;
-    }
-  }
-
-  if (REGEX_URL_PASTE.test(pastedText.trim())) {
-    const url = pastedText.trim();
-    const insert = `[link](${url})`;
-    const linkWordStart = range.from + 1;
-    const linkWordEnd = linkWordStart + 4;
-    view.dispatch(
-      state.update({
-        changes: { from: range.from, to: range.to, insert },
-        selection: EditorSelection.range(linkWordStart, linkWordEnd),
-        userEvent: "input.paste.link",
-        scrollIntoView: true,
-      }),
-    );
-    event.preventDefault();
-    return true;
-  }
-
-  if (pastedText.includes("\n")) {
-    const line = state.doc.lineAt(range.from);
-    const quoteMatch = REGEX_QUOTE_PREFIX.exec(line.text);
-    if (quoteMatch) {
-      const prefix = quoteMatch[0];
-      const insert = pastedText
-        .split("\n")
-        .map((l, i) => (i === 0 ? l : `${prefix}${l}`))
-        .join("\n");
-      view.dispatch(
-        state.update({
-          changes: { from: range.from, to: range.to, insert },
-          userEvent: "input.paste.quote",
-          scrollIntoView: true,
-        }),
-      );
-      event.preventDefault();
       return true;
     }
   }
@@ -264,9 +161,8 @@ export const formatKeymap: readonly KeyBinding[] = [
   { key: "Mod-Shift-i", run: insertTable, preventDefault: true },
   // Cmd+Y redoes on macOS too (historyKeymap only binds Cmd+Shift+Z there).
   { mac: "Mod-y", run: redo, preventDefault: true },
-  { key: "Enter", run: continueQuoteOnEnter },
-  { key: "Enter", run: continueListOnEnter },
-  // A plain line break: the caret goes to the start of the next row.
+  // Enter is a plain line break: no list or quote continuation, no indent.
+  { key: "Enter", run: insertNewline },
   { key: "Shift-Enter", run: insertNewline },
-  { key: "Backspace", run: removeListMarkerOnBackspace },
+  { key: "Home", run: listItemHome },
 ];

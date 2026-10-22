@@ -169,7 +169,7 @@ export const editorWritingItems: Subsection[] = [
             { label: "- [ ] Task, 1. [ ] Task", value: "Stays as typed, the marker coloured by its status as on the Tasks page, so you can write the status ([/], [!], [x]); CTRL+Click it to go To Do → In Progress → Done" },
             { label: "1. Numbered item", value: "Stays as typed, the number faint" },
             { label: "> [!note] Title", value: "Shown as a rounded, tinted card; the > and [!note] show on the caret's line, so edit the type in place" },
-            { label: "> ## Heading, > - item, > | table |", value: "Inside a callout, headings, lists, tasks, tables, code and quotes look as they do outside it; Enter on a list item adds the next one" },
+            { label: "> ## Heading, > - item, > | table |", value: "Inside a callout, headings, lists, tasks, tables, code and quotes look as they do outside it" },
             { label: "> [!note]- Title", value: "Starts collapsed when the note opens (+ starts expanded); folding with the chevron writes the sign for you" },
             { label: "<details><summary>Title</summary> … </details>", value: "Folds like a callout: the summary stays, the body folds. Starts collapsed unless the tag says open; the chevron writes open for you" },
             { label: "```js … ```", value: "Fences stay as typed, language included" },
@@ -399,18 +399,13 @@ graph TD
   {
     id: "links",
     title: "Links",
-    lead: "Insert a link from the slash menu, or just paste a URL — both give you a title to type over immediately.",
+    lead: "Insert a link from the slash menu; a pasted URL stays as you pasted it.",
     keywords: "link url hyperlink paste title pill edit",
     body: (
       <>
         <p>
           Type <code>/link</code> in the slash menu to open the Add Link dialog — fill in the link
           text and the URL, then Insert.
-        </p>
-        <p>
-          Pasting a bare URL on its own does the same thing automatically: it lands as a link with a
-          placeholder label already selected, so typing immediately replaces it with a real title
-          instead of leaving the raw URL as the visible text.
         </p>
         <p>
           Rest the cursor on any link and a small floating pill appears with two actions: the pencil
