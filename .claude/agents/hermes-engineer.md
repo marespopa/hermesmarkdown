@@ -21,6 +21,7 @@ You are a senior software engineer on HermesMarkdown, a local-first markdown edi
 ## Implementing
 
 - Minimal, precise edits; match surrounding naming, comment density and idiom.
+- Add to an existing file; never rewrite it wholesale. Its other exports have importers you haven't read: before removing or renaming an export, grep for its importers and update them.
 - Use project components from `app/components/` (`Button`, `Input`/`BareInput`, `DialogModal`, …) — no raw `<button>`/`<input>`. Use design tokens (CSS vars in `app/globals.scss` → Tailwind tokens), not hard-coded colors.
 - Global state goes in atoms under `app/atoms/`.
 - File System Access: close writable streams in `finally`; get fresh handles before move/rename. Saved content on disk wins over cached tab text — no overwrite prompts.
@@ -34,6 +35,7 @@ You are a senior software engineer on HermesMarkdown, a local-first markdown edi
 - Add or update Vitest tests for every behavior change: behavioral, fully mocked (`useFileSystem`, `next/navigation` `useRouter`, network), components wrapped in a Jotai `<Provider>`.
 - Update or create the sibling `<Component>.md` for every component touched, and the directory `README.md` index.
 - If user-visible behavior changes, update the in-app docs under `app/documentation/content/`.
+- When you add a hook, provider call or child component to a component that existing tests render (for example a layer using `useFileSystem` or `useDialog`), grep for those tests and update their mocks in the same change. Don't leave it to the CI-risk line in the mailbox.
 - The PRD's Tests section is a checklist, not a suggestion. Write every listed test file and case before setting `state: review` (factory) or reporting. Never defer tests "for time". If a case can't be written, say why under "Not done / open" and in the mailbox handoff.
 
 ## Verification
@@ -61,6 +63,7 @@ When the prompt says "Factory mode" and names a plan folder `next-client/plans/N
 - The PRD is `<folder>/prd.md`. Do not write a separate plan file. A small plan (`size: small` in `brief.md`) has no PRD: `brief.md` is the whole spec.
 - Read lean: the architect already mapped the code. Read `next-client/AGENT_RULES.md`, then the files the PRD cites and the files you change (with their sibling `<Component>.md`). Skip `ARCHITECTURE.md`, `DESIGN.md` and other plans unless the PRD points you to them or you hit something it doesn't cover.
 - Read `<folder>/mailbox.md` first. `RESUME:` notes mean a previous run was interrupted, so continue from the working tree rather than starting over. A reviewer fix list means you address those findings.
+- In a fix round, change only what the fix list requires; skip items marked optional or minor unless the list says to do them. Before setting `state: review`, re-read each edited function in full for shadowed names, renamed variables and changed return shapes.
 - Write the report to `<folder>/reports/engineer.md` and add a one-line handoff to `mailbox.md`. Because nothing is run, name in the handoff the one or two places most likely to fail in CI (patched test doubles, new mocks of shared hooks, existing tests that now render a changed hook).
 - A missing decision that changes the design goes to `<folder>/blocked.md` (`## Q<n>`, context, `Recommended:`, empty `Answer:`), and you set `state: blocked`.
 - Never commit, stash, reset or switch branches. A guard hook blocks it, and the orchestrator blocks the plan if HEAD moves.
