@@ -34,10 +34,10 @@ describe("LinkedFromSection", () => {
     expect(screen.getByText("b")).toBeInTheDocument();
   });
 
-  it("shows an empty line", () => {
+  it("stays hidden when no note links here", () => {
     const { rerender, view } = setup();
     rerender(view("Lonely.md"));
-    expect(screen.getByText("No notes link here")).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Linked from" })).not.toBeInTheDocument();
   });
 
   it("opens the source and puts the caret on the link", async () => {

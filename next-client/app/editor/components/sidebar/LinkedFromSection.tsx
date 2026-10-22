@@ -11,8 +11,6 @@ import SidebarSection from "./SidebarSection";
 import { jumpToFirstLink } from "./link-jump";
 import { SIDEBAR_ICON_CLASS, sidebarItemClass } from "./sidebar-classes";
 
-const ROW_TEXT = "px-2 h-7 flex items-center text-ui-footnote text-fg-faint";
-
 function parentLabel(path: string): string {
   const parts = path.split("/");
   return parts.length > 1 ? parts.slice(0, -1).join("/") : "/";
@@ -52,25 +50,24 @@ export default function LinkedFromSection({
     jumpToFirstLink(store, source, path);
   };
 
+  // Shown only when some note links here.
+  if (rows.length === 0) return null;
+
   return (
     <SidebarSection title="Linked from">
-      {rows.length === 0 ? (
-        <p className={ROW_TEXT}>No notes link here</p>
-      ) : (
-        rows.map(({ source, title, duplicate }) => (
-          <Button
-            key={source}
-            variant="unstyled"
-            title={source}
-            onClick={() => void open(source)}
-            className={`${sidebarItemClass(false)} w-full`}
-          >
-            <HiOutlineDocumentText size={14} aria-hidden="true" className={SIDEBAR_ICON_CLASS} />
-            <span className="min-w-0 truncate">{title}</span>
-            {duplicate && <span className="shrink-0 text-fg-faint">{parentLabel(source)}</span>}
-          </Button>
-        ))
-      )}
+      {rows.map(({ source, title, duplicate }) => (
+        <Button
+          key={source}
+          variant="unstyled"
+          title={source}
+          onClick={() => void open(source)}
+          className={`${sidebarItemClass(false)} w-full`}
+        >
+          <HiOutlineDocumentText size={14} aria-hidden="true" className={SIDEBAR_ICON_CLASS} />
+          <span className="min-w-0 truncate">{title}</span>
+          {duplicate && <span className="shrink-0 text-fg-faint">{parentLabel(source)}</span>}
+        </Button>
+      ))}
     </SidebarSection>
   );
 }

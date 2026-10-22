@@ -29,10 +29,13 @@ function setup(files: Record<string, FileMetadata>, path: string) {
 
 const expand = () => fireEvent.click(screen.getByRole("button", { name: "Unlinked mentions" }));
 const settle = () => act(async () => { await vi.advanceTimersByTimeAsync(700); });
+const region = () => screen.queryByRole("region", { name: "Unlinked mentions" });
 
 describe("UnlinkedMentionsSection", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    // Collapsed state is remembered in storage across renders.
+    localStorage.removeItem("sidebarCollapsed");
     search.available = true;
     search.find.mockReset();
     search.find.mockResolvedValue({ hits: [], pending: 0, capped: false });
@@ -43,31 +46,33 @@ describe("UnlinkedMentionsSection", () => {
     "Zebra Plan.md": meta("Zebra Plan.md", { title: "Stripes" }),
     "other/Notes.md": meta("other/Notes.md"),
   };
-
-  it("is collapsed by default and searches nothing until opened", async () => {
-    setup(files, "Zebra Plan.md");
-    await settle();
-    expect(search.find).not.toHaveBeenCalled();
-    expect(screen.queryByText("No unlinked mentions")).not.toBeInTheDocument();
-  });
+  const hit = { path: "other/Notes.md", name: "Notes.md", line: 4, column: 2, snippet: "about Zebra Plan" };
 
   it("searches the base name and frontmatter title in the other notes", async () => {
     setup(files, "Zebra Plan.md");
-    expand();
     await settle();
     expect(search.find).toHaveBeenCalledWith(["Zebra Plan", "Stripes"], ["other/Notes.md"], 50);
-    expect(screen.getByText("No unlinked mentions")).toBeInTheDocument();
+  });
+
+  it("stays hidden when nothing mentions the note", async () => {
+    setup(files, "Zebra Plan.md");
+    await settle();
+    expect(region()).not.toBeInTheDocument();
+  });
+
+  it("appears collapsed once there are mentions", async () => {
+    search.find.mockResolvedValue({ hits: [hit], pending: 0, capped: false });
+    setup(files, "Zebra Plan.md");
+    await settle();
+    expect(region()).toBeInTheDocument();
+    expect(screen.queryByTitle("other/Notes.md")).not.toBeInTheDocument();
   });
 
   it("opens a hit's note and puts the caret on the mention", async () => {
-    search.find.mockResolvedValue({
-      hits: [{ path: "other/Notes.md", name: "Notes.md", line: 4, column: 2, snippet: "about Zebra Plan" }],
-      pending: 1,
-      capped: false,
-    });
+    search.find.mockResolvedValue({ hits: [hit], pending: 1, capped: false });
     const { store, onOpen } = setup(files, "Zebra Plan.md");
-    expand();
     await settle();
+    expand();
     expect(screen.getByText("Some notes are still being indexed")).toBeInTheDocument();
     fireEvent.click(screen.getByTitle("other/Notes.md"));
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
@@ -75,20 +80,18 @@ describe("UnlinkedMentionsSection", () => {
     expect(store.get(atom_pendingScrollTarget)).toEqual({ path: "other/Notes.md", line: 4, column: 2 });
   });
 
-  it("says so when search is unavailable", async () => {
+  it("stays hidden without search", async () => {
     search.available = false;
     setup(files, "Zebra Plan.md");
-    expand();
     await settle();
-    expect(screen.getByText("Search isn't available in this browser")).toBeInTheDocument();
     expect(search.find).not.toHaveBeenCalled();
+    expect(region()).not.toBeInTheDocument();
   });
 
-  it("says so when the title is too short", async () => {
+  it("stays hidden when the title is too short to search", async () => {
     setup({ "A.md": meta("A.md"), "b.md": meta("b.md") }, "A.md");
-    expand();
     await settle();
-    expect(screen.getByText("Title too short to search")).toBeInTheDocument();
     expect(search.find).not.toHaveBeenCalled();
+    expect(region()).not.toBeInTheDocument();
   });
 });

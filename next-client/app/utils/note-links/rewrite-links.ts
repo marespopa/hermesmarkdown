@@ -20,8 +20,22 @@ export function mapMovedPath(path: string, moves: PathMove[]): string {
   return path;
 }
 
+function folderOf(path: string): string {
+  return path.split("/").slice(0, -1).join("/");
+}
+
+// True when a link written with a `/` still spells `expected` as a vault
+// path or a path relative to the source's folder (not just by basename).
+function spellsPath(target: string, expected: string, sourceNew: string): boolean {
+  const file = (target.endsWith(".md") ? target : target + ".md").toLowerCase();
+  const folder = folderOf(sourceNew);
+  const want = expected.toLowerCase();
+  return file === want || (folder !== "" && `${folder}/${file}`.toLowerCase() === want);
+}
+
 // True when `target`, written in a note moving `sourceOld` → `sourceNew`,
-// stops pointing at the note it pointed at.
+// stops pointing at the note it pointed at. A path link whose path went
+// stale counts too, even if its basename still finds the note.
 function breaks(
   target: string,
   sourceOld: string,
@@ -33,7 +47,8 @@ function breaks(
   const hit = before.resolve(target, sourceOld);
   if (!hit) return null;
   const expected = mapMovedPath(hit.path, moves);
-  return after.resolve(target, sourceNew)?.path === expected ? null : expected;
+  if (after.resolve(target, sourceNew)?.path !== expected) return expected;
+  return target.includes("/") && !spellsPath(target, expected, sourceNew) ? expected : null;
 }
 
 /** Old source paths whose metadata links may need rewriting. */

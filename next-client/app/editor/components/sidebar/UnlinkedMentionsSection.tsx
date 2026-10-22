@@ -27,7 +27,10 @@ function phrasesFor(name: string | undefined, title: unknown): string[] {
   return list.filter((phrase) => phrase.length >= MIN_PHRASE_CHARS);
 }
 
-function MentionList({ path, onOpen }: { path: string; onOpen: OnOpen }) {
+// Notes that name the note in front as plain text without linking it.
+// Shown only once the search finds some; collapsed by default. The search
+// runs while collapsed too, since an empty result hides the whole section.
+export default function UnlinkedMentionsSection({ path, onOpen }: { path: string; onOpen: OnOpen }) {
   const metadata = useAtomValue(atom_fileMetadata);
   const display = useAtomValue(atom_noteDisplayItems);
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
@@ -59,9 +62,7 @@ function MentionList({ path, onOpen }: { path: string; onOpen: OnOpen }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [available, path, phrasesKey, metadata, display]);
 
-  if (!available) return <p className={ROW_TEXT}>Search isn&apos;t available in this browser</p>;
-  if (phrases.length === 0) return <p className={ROW_TEXT}>Title too short to search</p>;
-  if (!result) return null;
+  if (!result || result.hits.length === 0) return null;
 
   const open = async (hit: ContentSearchResult["hits"][number]) => {
     const target = metadata[hit.path];
@@ -71,8 +72,7 @@ function MentionList({ path, onOpen }: { path: string; onOpen: OnOpen }) {
   };
 
   return (
-    <>
-      {result.hits.length === 0 && <p className={ROW_TEXT}>No unlinked mentions</p>}
+    <SidebarSection title="Unlinked mentions" defaultCollapsed>
       {result.hits.map((hit) => (
         <Button
           key={`${hit.path}:${hit.line}`}
@@ -86,17 +86,6 @@ function MentionList({ path, onOpen }: { path: string; onOpen: OnOpen }) {
         </Button>
       ))}
       {result.pending > 0 && <p className={ROW_TEXT}>Some notes are still being indexed</p>}
-    </>
-  );
-}
-
-// Notes that name the note in front as plain text without linking it.
-// Collapsed by default; the search only runs while it is open (a collapsed
-// section doesn't mount its children).
-export default function UnlinkedMentionsSection({ path, onOpen }: { path: string; onOpen: OnOpen }) {
-  return (
-    <SidebarSection title="Unlinked mentions" defaultCollapsed>
-      <MentionList path={path} onOpen={onOpen} />
     </SidebarSection>
   );
 }

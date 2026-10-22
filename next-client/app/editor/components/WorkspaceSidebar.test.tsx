@@ -69,7 +69,7 @@ const ScrollTarget = () => <output data-testid="scroll-target">{JSON.stringify(u
 const left = { id: "left", type: "editor" as const, openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
 const right = { id: "right", type: "editor" as const, openFilePaths: ["b.md"], activeFilePath: "b.md", isPinned: false };
 
-const renderSidebar = (open = true, descriptor: unknown = null, focusRequested = false, openFiles: Record<string, unknown> = {}, leftActive = "a.md") =>
+const renderSidebar = (open = true, descriptor: unknown = null, focusRequested = false, openFiles: Record<string, unknown> = {}, leftActive = "a.md", metadata: Record<string, unknown> = {}) =>
   render(
     <Provider>
       <HydrateAtoms initialValues={[
@@ -78,6 +78,7 @@ const renderSidebar = (open = true, descriptor: unknown = null, focusRequested =
         [atom_filesFocusRequested, focusRequested],
         [atom_vaultHandle, fileSystem.vaultHandle],
         [atom_vaultDescriptor, descriptor],
+        [atom_fileMetadata, metadata as never],
         [atom_openFiles, {
           "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A" },
           "b.md": { fileName: "b.md", content: "B changed", lastSavedContent: "B" },
@@ -313,19 +314,25 @@ describe("WorkspaceSidebar", () => {
     expect(within(screen.getByRole("navigation")).queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("shows Linked from for a vault note on the editor, and not for the draft or without a vault", () => {
+  it("shows Linked from for a linked vault note on the editor, and not for the draft or without a vault", () => {
+    const note = (path: string, links: string[] = []) => ({ path, name: path, tags: [], links, frontmatter: {}, modifiedAt: 0, wordCount: 0, tasks: [], handle: { path } });
+    const linked = { "a.md": note("a.md"), "b.md": note("b.md", ["a"]) };
     fileSystem.vaultHandle = { name: "Notes" };
-    const first = renderSidebar();
+    const first = renderSidebar(true, null, false, {}, "a.md", linked);
     expect(screen.getByRole("region", { name: "Linked from" })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Unlinked mentions" })).toBeInTheDocument();
     first.unmount();
 
-    renderSidebar(true, null, false, { draft: { fileName: "draft", content: "x", lastSavedContent: "" } }, "draft");
+    // Nothing links to b.md, so the section stays hidden.
+    const unlinked = renderSidebar(true, null, false, {}, "b.md", linked);
+    expect(screen.queryByRole("region", { name: "Linked from" })).not.toBeInTheDocument();
+    unlinked.unmount();
+
+    renderSidebar(true, null, false, { draft: { fileName: "draft", content: "x", lastSavedContent: "" } }, "draft", linked);
     expect(screen.queryByRole("region", { name: "Linked from" })).not.toBeInTheDocument();
     cleanup();
 
     fileSystem.vaultHandle = null;
-    renderSidebar();
+    renderSidebar(true, null, false, {}, "a.md", linked);
     expect(screen.queryByRole("region", { name: "Linked from" })).not.toBeInTheDocument();
     expect(screen.queryByRole("region", { name: "Unlinked mentions" })).not.toBeInTheDocument();
   });

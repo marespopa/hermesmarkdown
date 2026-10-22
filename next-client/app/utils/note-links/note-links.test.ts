@@ -50,10 +50,10 @@ describe("link resolver and backlinks", () => {
     expect(r.resolve("Nope")).toBeNull();
   });
 
-  it("breaks basename ties by folder distance, then alphabetically", () => {
+  it("breaks basename ties by folder distance, then depth, then alphabetically", () => {
     const r = createLinkResolver(vault(meta("b/Note.md"), meta("a/Note.md"), meta("c/d/Note.md")));
     expect(r.resolve("Note", "z.md")?.path).toBe("a/Note.md");
-    expect(r.resolve("Note", "c/z.md")?.path).toBe("a/Note.md");
+    expect(r.resolve("Note", "c/z.md")?.path).toBe("c/d/Note.md");
     expect(r.resolve("Note", "c/d/z.md")?.path).toBe("c/d/Note.md");
   });
 
