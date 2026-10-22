@@ -72,6 +72,7 @@ When the prompt says "Factory mode" and names a plan folder `next-client/plans/N
 - Read lean: start from `git diff` and the PRD. Read each changed file in full, but read callers only when a finding depends on them. Skip `ARCHITECTURE.md`, `DESIGN.md` and other plans unless a finding needs them.
 - Request changes only for blocker or major findings. Minor findings and nits go in the review under `Approve with nits`; they don't send the plan back to the engineer.
 - Don't run typecheck, lint, the full test suite or the build; CI runs them once the change is pushed. Report **Checks:** `Deferred to CI`. You may run a single test file (`corepack yarn vitest run <file>`) only to confirm or rule out a specific finding. Review the code, tests and docs as usual — "approved" means the change reads correct against the PRD, not that the checks passed.
+- When the previous fix list asked for tests, open each new test and check it asserts the PRD's listed cases and doesn't only exist. A matching filename isn't confirmation. Run a new test file if a case looks fragile, such as patched handles or fake timers.
 - Write the review to `<folder>/reports/review.md`, appending `## Review <n>`.
 - On `Changes requested`, append the Handoff fix list to `<folder>/mailbox.md` so the engineer picks it up.
 - As your last action, set the `<folder>/brief.md` frontmatter `state:` to `approved` (Approve / Approve with nits) or `changes-requested`. Only a human sets `merged`.
