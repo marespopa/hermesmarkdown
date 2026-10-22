@@ -180,6 +180,32 @@ describe("buildExtensions", () => {
   });
 });
 
+describe("buildExtensions readOnly", () => {
+  it("makes the state read-only, so commands and paste can't edit", () => {
+    const state = EditorState.create({
+      doc: "text",
+      extensions: buildExtensions({
+        wordWrap: true,
+        wordWrapCompartment: new Compartment(),
+        lineNumbers: false,
+        lineNumbersCompartment: new Compartment(),
+        showInvisibles: false,
+        invisiblesCompartment: new Compartment(),
+        vimMode: false,
+        vimModeCompartment: new Compartment(),
+        flowMode: false,
+        flowModeCompartment: new Compartment(),
+        onOpenActiveHelperRef: { current: () => false },
+        readOnly: true,
+        onFocusChange: vi.fn(),
+        slashMenuCallbacksRef: { current: {} as never },
+        wikiLinkTriggerRef: { current: null },
+      }),
+    });
+    expect(state.readOnly).toBe(true);
+  });
+});
+
 function pressKey(view: EditorView, init: KeyboardEventInit) {
   view.contentDOM.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init }));
 }

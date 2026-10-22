@@ -23,3 +23,9 @@ import PaneLeaf from "./PaneLeaf";
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | leaf | `PanelLeaf` (`app/types/workspace`) |  | Pane id, type, open tabs, active file |
+
+## Drop layer, preview and lock
+- Desktop panes render `PaneDropLayer` over their content while a note or pane is being dragged (see PaneDropLayer.md). Mobile chrome renders none.
+- `leaf.type === "preview"` renders the same `MarkdownEditor` with `readOnly` (marks hidden, never edited, never claims the active editor view). The editor key gets a `:preview` suffix so switching type remounts it. Under mobile chrome a preview leaf renders as a normal editor.
+- `PaneTitle` receives `badge="Preview"` for previews, `scrollLocked` / `onToggleScrollLock` from `lockablePair(...)`, and, while several panes exist, `onGripDragStart`, which sets `atom_paneDrag` to `{ kind: "pane", paneId }`.
+- `PANE_TOP_ROOM` lives in `pane-header-classes.ts` (shared with scroll lock).

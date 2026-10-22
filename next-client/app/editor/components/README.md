@@ -30,7 +30,8 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [MobileFileIndicator](MobileFileIndicator.md) | Compact mobile header chip showing the active file name and its save state, with save, command palette, and AI chat shortcuts. |
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
 | [board/](board/README.md) | Boards: Markdown notes holding an Excalidraw scene, shown as a canvas (`BoardViewLoader` → lazy `BoardView`, `BoardError`). |
-| [PaneLeaf](PaneLeaf.md) | One workspace pane: its header (tabs and toolbar) and the active file's editor (behind `PrivateNoteGate`). |
+| [PaneLeaf](PaneLeaf.md) | One workspace pane: its quiet title header, the drop layer, and the active file's editor or read-only preview (behind `PrivateNoteGate`). |
+| [PaneDropLayer](PaneDropLayer.md) | Drop zones over a pane while a note or pane is dragged (edge = split, center = open here). |
 | [PrivateNoteGate](PrivateNoteGate.md) | Wraps a pane's editor: shows `PrivateNoteVeil` instead of mounting it until a private note is revealed (per note or for the session). |
 | [PrivateNoteVeil](PrivateNoteVeil.md) | The veil over a private note: lock, title, **Show note** and **Show all private notes this session**. |
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |

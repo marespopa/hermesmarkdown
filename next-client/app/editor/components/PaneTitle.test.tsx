@@ -65,4 +65,27 @@ describe("PaneTitle", () => {
     render(<PaneTitle {...base} title={null} />);
     expect(screen.queryByRole("button", { name: "Note actions" })).not.toBeInTheDocument();
   });
+
+  it("shows the lock button only while scroll is locked, and unlocks on click", () => {
+    const onToggle = vi.fn();
+    const { rerender } = render(<PaneTitle {...base} onToggleScrollLock={onToggle} />);
+    expect(screen.queryByRole("button", { name: "Unlock scroll" })).not.toBeInTheDocument();
+    rerender(<PaneTitle {...base} scrollLocked onToggleScrollLock={onToggle} />);
+    fireEvent.click(screen.getByRole("button", { name: "Unlock scroll" }));
+    expect(onToggle).toHaveBeenCalledOnce();
+  });
+
+  it("shows a badge after the name", () => {
+    render(<PaneTitle {...base} badge="Preview" />);
+    expect(screen.getByText("Preview")).toBeInTheDocument();
+  });
+
+  it("shows the grip only when a drag handler is given", () => {
+    const onGrip = vi.fn();
+    const { rerender } = render(<PaneTitle {...base} />);
+    expect(screen.queryByRole("button", { name: "Drag to move pane" })).not.toBeInTheDocument();
+    rerender(<PaneTitle {...base} onGripDragStart={onGrip} />);
+    fireEvent.dragStart(screen.getByRole("button", { name: "Drag to move pane" }));
+    expect(onGrip).toHaveBeenCalledOnce();
+  });
 });

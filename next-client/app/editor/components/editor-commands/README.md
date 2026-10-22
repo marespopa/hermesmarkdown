@@ -65,3 +65,5 @@ visible use their original `disabledReason`.
 
 When adding a command, place it in the contributor matching its behavior and
 insert its group in `build-editor-commands.ts` at the intended registration position.
+
+`pane-layout-commands.ts` contributes **Open Preview to the Side**, **Show Pane as Preview / Editor** and **Lock Scroll With Other Pane / Unlock Scroll** (disabled without a two-pane split); registered after Split Pane Right.

@@ -11,6 +11,9 @@ import {
   atom_reorderOpenNote,
   atom_activateWorkspaceTab,
   atom_workspaceTabs,
+  atom_setSplitSizes,
+  atom_setPaneType,
+  atom_toggleScrollLock,
   findLeaf,
 } from "./atoms";
 import { WorkspaceContainer, PanelLeaf, WorkspaceState } from "../types/workspace";
@@ -267,5 +270,72 @@ describe("layout-actions", () => {
     store.set(atom_activateWorkspaceTab, 9);
 
     expect((store.get(atom_workspaceLayout).rootContainer as PanelLeaf).activeFilePath).toBe(paths[0]);
+  });
+});
+
+describe("layout-actions: previews, sizes and scroll lock", () => {
+  let store: ReturnType<typeof createStore>;
+
+  beforeEach(() => {
+    store = createStore();
+    const layout = store.get(atom_workspaceLayout);
+    store.set(atom_workspaceLayout, {
+      ...layout,
+      rootContainer: { ...layout.rootContainer, openFilePaths: ["a.md"], activeFilePath: "a.md" } as PanelLeaf,
+    });
+  });
+
+  it("splits a preview that copies the note, keeps focus and locks scroll", () => {
+    store.set(atom_splitPane, {
+      id: "default-pane",
+      direction: "horizontal",
+      filePath: "a.md",
+      type: "preview",
+      copy: true,
+      focusNew: false,
+      scrollLock: true,
+    });
+    const root = store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer;
+    expect(root.scrollLock).toBe(true);
+    expect((root.children[0] as PanelLeaf).openFilePaths).toEqual(["a.md"]);
+    expect(root.children[1]).toMatchObject({ type: "preview", openFilePaths: ["a.md"], activeFilePath: "a.md" });
+    expect(store.get(atom_activePaneId)).toBe("default-pane");
+  });
+
+  it("makes an editor even when splitting a metrics pane", () => {
+    const layout = store.get(atom_workspaceLayout);
+    store.set(atom_workspaceLayout, { ...layout, rootContainer: { ...layout.rootContainer, type: "metrics" } as PanelLeaf });
+    store.set(atom_splitPane, { id: "default-pane", direction: "vertical" });
+    const root = store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer;
+    expect((root.children[1] as PanelLeaf).type).toBe("editor");
+  });
+
+  it("writes split sizes", () => {
+    store.set(atom_splitPane, { id: "default-pane", direction: "horizontal" });
+    const root = store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer;
+    store.set(atom_setSplitSizes, { containerId: root.id, sizes: [70, 30] });
+    expect((store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer).sizes).toEqual([70, 30]);
+  });
+
+  it("flips scroll lock only on a lockable pair", () => {
+    store.set(atom_toggleScrollLock, "default-pane");
+    expect(store.get(atom_workspaceLayout).rootContainer).not.toHaveProperty("scrollLock");
+
+    store.set(atom_splitPane, { id: "default-pane", direction: "horizontal" });
+    store.set(atom_toggleScrollLock, "default-pane");
+    expect((store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer).scrollLock).toBe(true);
+    store.set(atom_toggleScrollLock, "default-pane");
+    expect((store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer).scrollLock).toBe(false);
+
+    // Nest the second pane: the first one's sibling is a split now, so it can't lock.
+    const outer = store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer;
+    store.set(atom_splitPane, { id: outer.children[1].id, direction: "vertical" });
+    store.set(atom_toggleScrollLock, "default-pane");
+    expect((store.get(atom_workspaceLayout).rootContainer as WorkspaceContainer).scrollLock).toBe(false);
+  });
+
+  it("sets a pane's type", () => {
+    store.set(atom_setPaneType, { paneId: "default-pane", type: "preview" });
+    expect((store.get(atom_workspaceLayout).rootContainer as PanelLeaf).type).toBe("preview");
   });
 });

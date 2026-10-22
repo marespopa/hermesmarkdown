@@ -30,3 +30,7 @@ import MarkdownEditor from "./MarkdownEditor";
 | placeholder? | `string` | `"Type / for templates"` | Empty-state text |
 | onWikiLinkClick? | `(name: string) => void` |  | `[[link]]` navigation (`PaneLeaf` passes `openOrCreateLink`, which also creates missing notes) |
 | isActivePane? / isSplit? | `boolean` |  | Pane context |
+
+## readOnly and the active-view hook
+- `readOnly` (a preview pane): the CodeMirror state is read-only and not editable, the editor never auto-focuses or claims `atom_activeEditorView`, and `TemplateStrip` / `EmptyNoteTemplates` are not rendered. An unfocused view already hides all Markdown marks, so it reads as a preview.
+- Active-view registration (claim on create/activation, release on unmount) lives in `hooks/use-active-editor-view.ts`, `useActiveEditorView(viewRef, { isActivePane, enabled })`.

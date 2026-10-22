@@ -62,6 +62,10 @@ The editor route (`page.tsx`) composes these:
 | `use-editor-paste-handlers.ts`, `use-scroll-to-pending-target.ts` | `MarkdownEditor` helpers: CSV-to-table confirm and image saving on paste; jump-to-line requests (`atom_pendingScrollTarget`; the caret goes to the optional `column`). |
 | `use-active-file-url.ts` | The note in front as `?file=<path>`: on load, once the vault is readable, opens it (or brings its tab forward, in whichever pane); after that rewrites the URL as tabs change, and clears it on the draft. |
 | `use-palette-create-note.ts` | The palette's "Create '…'" row (with a vault): a note titled with the query, saved at once, caret below the heading; draft text in progress is saved first. |
+| `use-pane-drop.ts` | Runs a drop of a file row, Open Notes row or pane grip on a pane zone (`atom_paneDrag`): docks it, then opens the file from disk (asks first when replacing a dirty draft). |
+| `use-pane-drag-reset.ts` | Clears `atom_paneDrag` on any window `dragend`. |
+| `use-scroll-lock.ts` | Keeps two panes of a locked split scrolled together (document line for the same note, scroll ratio otherwise; one sync per frame, echo-guarded). Pure maths in `utils/scroll-sync.ts`; drop zone maths in `utils/dock-zone.ts`. |
+| `use-active-editor-view.ts` | Registers a pane editor as `atom_activeEditorView` while it is the active pane (skipped when read-only). |
 | `use-export-pdf.ts` | **Export as PDF** (palette, and the sidebar footer's Export menu, through the `hermes:export-pdf` event): the active note through `noteToHtml` (`app/utils/print/`), vault images as object URLs (`vaultImagePath`), Mermaid (light theme) and MathML rendered in, (`<details>` sections print open) then `utils/print-note.ts` prints it from a hidden iframe. Disabled for an empty note or a veiled private one. |
 | `useAIEditorActions.ts` + `ai-action-prompts.ts` | AI Chat state and the one-click AI actions (prompt table keyed by action id). AI text passes through `keepTablesUnderHeadings` before it goes into the note. |
 

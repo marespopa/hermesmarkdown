@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { HiOutlineX } from "react-icons/hi";
 import { atom_activePaneId, atom_openFiles, atom_reorderOpenNote, atom_saveStatus, atom_workspaceLayout, atom_workspaceTabs } from "@/app/atoms/atoms";
+import { atom_paneDrag } from "@/app/atoms/pane-drag-atoms";
 import { findLeaf, getFirstLeaf } from "@/app/atoms/utils";
 import Button from "@/app/components/Button";
 import { formatShortcut } from "@/app/utils/platform";
@@ -25,7 +26,8 @@ import { sidebarItemClass } from "./sidebar-classes";
 // the shortcut numbers, so a note can be put on the number wanted.
 // `onOpen` brings a note to the front of its pane (and back to the editor
 // from another page). Renders nothing while no note is open.
-// The drag's payload type: only this list accepts it, and the editor ignores it.
+// The drag's payload type: this list reorders with it, and panes take the same
+// drag as a dock drop through atom_paneDrag (PaneDropLayer).
 const DRAG_TYPE = "application/x-hermes-open-note";
 
 export default function SidebarOpenNotes({
@@ -45,6 +47,7 @@ export default function SidebarOpenNotes({
   const noteMenuItems = useNoteMenuItems(leaf);
   const [menu, setMenu] = useState<{ x: number; y: number; path: string } | null>(null);
   const reorder = useSetAtom(atom_reorderOpenNote);
+  const setPaneDrag = useSetAtom(atom_paneDrag);
   // The row being dragged and where it would land: an insertion point, 0 above
   // the first row up to the count below the last.
   const [dragging, setDragging] = useState<string | null>(null);
@@ -59,6 +62,7 @@ export default function SidebarOpenNotes({
   };
 
   const endDrag = () => {
+    setPaneDrag(null);
     setDragging(null);
     setDropAt(null);
   };
@@ -89,6 +93,8 @@ export default function SidebarOpenNotes({
               event.dataTransfer.setData(DRAG_TYPE, path);
               event.dataTransfer.effectAllowed = "move";
               setDragging(path);
+              // Panes take the row as a dock drop (PaneDropLayer).
+              setPaneDrag({ kind: "open-note", path, sourcePaneId: leaf.id });
             }}
             onDragEnd={endDrag}
             onDragOver={(event) => {

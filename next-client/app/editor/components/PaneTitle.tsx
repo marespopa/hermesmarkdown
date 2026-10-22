@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { TbGripVertical, TbLock } from "react-icons/tb";
 import { HiOutlineDotsHorizontal, HiOutlineRefresh, HiOutlineSave } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import BareInput from "@/app/components/Input/BareInput";
@@ -27,6 +28,13 @@ interface PaneTitleProps {
   menuOpen?: boolean;
   /** The ⋯ button, so the menu can treat presses on it as a toggle. */
   menuButtonRef?: React.Ref<HTMLButtonElement>;
+  /** A faint label after the name (a preview pane's "Preview"). */
+  badge?: string;
+  /** Scroll is locked with the other pane: shows the lock button. */
+  scrollLocked?: boolean;
+  onToggleScrollLock?: () => void;
+  /** Starts dragging the whole pane; present only while several panes exist. */
+  onGripDragStart?: (event: React.DragEvent) => void;
 }
 
 const TITLE_CLASS = "h-8 rounded-lg px-2 text-ui-footnote";
@@ -48,7 +56,7 @@ export function collapseCrumbs(crumbs: string[]): string[] {
 // (faint, shown on hover or focus; always on touch screens). The palette's SearchPill sits in the
 // window's top-right corner (EditorShell). Quiet, and always shown: it
 // stays while you type.
-export default function PaneTitle({ title, folder = "", saveState, saveErrorMessage, onRename, onSave, onContextMenu, onMenu, menuOpen = false, menuButtonRef }: PaneTitleProps) {
+export default function PaneTitle({ title, folder = "", saveState, saveErrorMessage, onRename, onSave, onContextMenu, onMenu, menuOpen = false, menuButtonRef, badge, scrollLocked = false, onToggleScrollLock, onGripDragStart }: PaneTitleProps) {
   const [editing, setEditing] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const finished = React.useRef(false);
@@ -80,6 +88,18 @@ export default function PaneTitle({ title, folder = "", saveState, saveErrorMess
       onContextMenu={onContextMenu}
       className="group/title flex min-w-0 items-center gap-0.5 text-ui-footnote text-fg-faint"
     >
+      {onGripDragStart && !editing && (
+        <Button
+          variant="unstyled"
+          draggable
+          onDragStart={onGripDragStart}
+          aria-label="Drag to move pane"
+          title="Drag to move pane"
+          className="flex h-7 w-5 shrink-0 cursor-grab items-center justify-center rounded-lg opacity-0 transition-opacity duration-150 hover:text-fg group-hover/title:opacity-100 focus-visible:opacity-100"
+        >
+          <TbGripVertical size={14} aria-hidden="true" />
+        </Button>
+      )}
       {crumbs.length > 0 && (
         // Shrinks before the name does; the slash before the name never goes.
         <span className="hidden min-w-0 shrink-[2] items-center pl-2 sm:flex" title={crumbs.join(" / ")}>
@@ -122,6 +142,7 @@ export default function PaneTitle({ title, folder = "", saveState, saveErrorMess
           <span className="truncate">{label}</span>
         </span>
       )}
+      {badge && !editing && <span className="shrink-0 pl-1 text-ui-caption text-fg-faint">{badge}</span>}
       {showDot && !editing && <SaveDot state={saveState} errorMessage={saveErrorMessage} onSave={onSave} />}
       {onMenu && !editing && (
         <Button
@@ -137,6 +158,18 @@ export default function PaneTitle({ title, folder = "", saveState, saveErrorMess
           }`}
         >
           <HiOutlineDotsHorizontal size={15} aria-hidden="true" />
+        </Button>
+      )}
+      {scrollLocked && !editing && (
+        <Button
+          variant="unstyled"
+          onClick={(e) => { e.stopPropagation(); onToggleScrollLock?.(); }}
+          aria-label="Unlock scroll"
+          aria-pressed={true}
+          title="Scroll locked with the other pane — click to unlock"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--fg)_6%,var(--surface))] hover:text-fg focus-visible:text-fg"
+        >
+          <TbLock size={14} aria-hidden="true" />
         </Button>
       )}
     </div>

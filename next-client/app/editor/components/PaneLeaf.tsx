@@ -15,6 +15,11 @@ import BoardViewLoader from "./board/BoardViewLoader";
 import { isBoard } from "@/app/utils/board/is-board";
 import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
 import PaneTitle from "./PaneTitle";
+import PaneDropLayer from "./PaneDropLayer";
+import { PANE_TOP_ROOM } from "./pane-header-classes";
+import { lockablePair } from "@/app/atoms/layout-tree";
+import { atom_toggleScrollLock } from "@/app/atoms/layout-actions";
+import { atom_paneDrag } from "@/app/atoms/pane-drag-atoms";
 import type { SaveState } from "./save-state";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -32,9 +37,6 @@ interface PaneLeafProps {
 // How long past autosave's delay an unsaved note waits before its dot shows.
 const AUTOSAVE_GRACE = 1000;
 
-// The SearchPill's height plus its offset from the top (top-1.5, h-8).
-const PANE_TOP_ROOM = "48px";
-
 export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [activePaneId, setActivePaneId] = useAtom(atom_activePaneId);
   const [openFiles] = useAtom(atom_openFiles);
@@ -42,6 +44,11 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const isOnlyPane = "type" in workspaceLayout.rootContainer;
   const isMobileChrome = useIsMobileChrome();
+  // A preview shows its note read-only; mobile has no panes, so it edits there.
+  const isPreview = leaf.type === "preview" && !isMobileChrome;
+  const lockPair = lockablePair(workspaceLayout.rootContainer, leaf.id);
+  const toggleScrollLock = useSetAtom(atom_toggleScrollLock);
+  const setPaneDrag = useSetAtom(atom_paneDrag);
 
   const { openOrCreateLink, renameFile } = useFileSystem();
   const hasVault = !!useAtomValue(atom_vaultHandle);
@@ -189,19 +196,30 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               } : undefined}
               menuOpen={!!tabMenu?.fromButton}
               menuButtonRef={menuButtonRef}
+              badge={isPreview ? "Preview" : undefined}
+              scrollLocked={!!lockPair?.scrollLock}
+              onToggleScrollLock={() => toggleScrollLock(leaf.id)}
+              onGripDragStart={isOnlyPane ? undefined : (e) => {
+                setPaneDrag({ kind: "pane", paneId: leaf.id });
+                e.dataTransfer.effectAllowed = "move";
+                // Firefox only starts a drag that carries some data.
+                e.dataTransfer.setData("application/x-hermes-pane", leaf.id);
+              }}
             />
           </div>
         </div>
       )}
 
+      {!isMobileChrome && <PaneDropLayer paneId={leaf.id} />}
+
       {/* Pane Content */}
       <div className="flex-1 min-h-0 overscroll-none overflow-auto">
         {leaf.openFilePaths.length === 0 ? (
           <PaneEmptyState onLoadDraft={setContent} />
-        ) : leaf.type === "editor" ? (
+        ) : leaf.type === "editor" || leaf.type === "preview" ? (
           // The gate carries the editor's key, so its "already shown" latch
           // follows the editor instance (a draft saved as a file keeps both).
-          <PrivateNoteGate key={editorKeyRef.current.key} filePath={filePath} content={content} isActivePane={isActive}>
+          <PrivateNoteGate key={editorKeyRef.current.key + (isPreview ? ":preview" : "")} filePath={filePath} content={content} isActivePane={isActive}>
             {showBoard ? (
               <BoardViewLoader
                 path={filePath}
@@ -218,6 +236,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
                 isActivePane={isActive}
                 isSplit={!isOnlyPane}
+                readOnly={isPreview}
               />
             )}
           </PrivateNoteGate>

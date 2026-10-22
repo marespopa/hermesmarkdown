@@ -35,3 +35,5 @@ import { FileRow } from "./vault-tree/FileRow";
 | editing? | `RowEditing` | | Shows the inline name field |
 | draggable? / onDragStartEntry? / onDragEndEntry? | | | Drag-to-move |
 | onTouchDragStart? / isTouchPressing? / dropFolder? | | | Touch drag (`useTouchTreeDrag`); `dropFolder` is the folder a touch drop on this row goes into (its parent) |
+
+A single file row can also be dropped on a pane (edge: open in a new pane; center: open there). See `TreeNodes.md`.

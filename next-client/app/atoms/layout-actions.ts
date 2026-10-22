@@ -3,7 +3,8 @@ import { atom_workspaceLayout, atom_activePaneId } from "./workspace-atoms";
 import { findLeaf, updateLeaf, generateId, getWorkspaceTabs } from "./utils";
 import { atom_openFiles } from "./file-atoms";
 import { forgetClosedFiles } from "./tab-limit";
-import { WorkspaceContainer, PanelLeaf } from "@/app/types/workspace";
+import { WorkspaceContainer, PanelLeaf, PaneType } from "@/app/types/workspace";
+import { lockablePair, setContainer } from "./layout-tree";
 
 export const atom_workspaceTabs = atom((get) =>
   getWorkspaceTabs(get(atom_workspaceLayout).rootContainer),
@@ -37,7 +38,19 @@ export const atom_splitPane = atom(
       id,
       direction,
       filePath,
-    }: { id: string; direction: "horizontal" | "vertical"; filePath?: string },
+      type = "editor",
+      copy = false,
+      focusNew = true,
+      scrollLock,
+    }: {
+      id: string;
+      direction: "horizontal" | "vertical";
+      filePath?: string;
+      type?: PaneType;
+      copy?: boolean; // keep filePath in the source pane too
+      focusNew?: boolean;
+      scrollLock?: boolean;
+    },
   ) => {
     const layout = get(atom_workspaceLayout);
     const leaf = findLeaf(layout.rootContainer, id);
@@ -47,11 +60,12 @@ export const atom_splitPane = atom(
     const newLeaf: PanelLeaf = {
       ...leaf,
       id: newLeafId,
+      type,
       openFilePaths: filePath ? [filePath] : [...leaf.openFilePaths],
       activeFilePath: filePath ?? leaf.activeFilePath,
     };
 
-    const sourceLeaf: PanelLeaf = filePath
+    const sourceLeaf: PanelLeaf = filePath && !copy
       ? {
           ...leaf,
           openFilePaths: leaf.openFilePaths.filter((path) => path !== filePath),
@@ -72,12 +86,16 @@ export const atom_splitPane = atom(
             direction,
             sizes: [50, 50],
             children: [sourceLeaf, newLeaf],
+            ...(scrollLock ? { scrollLock: true } : {}),
           } as WorkspaceContainer;
         }
         return node;
       }
+      // A scroll lock pairs exactly two panes: splitting one of them voids it.
+      const { scrollLock: parentLock, ...rest } = node;
+      const pairBroken = node.children.some((child) => child.id === id);
       return {
-        ...node,
+        ...(pairBroken ? rest : { ...rest, ...(parentLock ? { scrollLock: parentLock } : {}) }),
         children: node.children.map((child) => splitNode(child)),
       } as WorkspaceContainer;
     };
@@ -86,10 +104,58 @@ export const atom_splitPane = atom(
       ...layout,
       rootContainer: splitNode(layout.rootContainer),
     });
-    set(atom_activePaneId, newLeafId);
+    if (focusNew) set(atom_activePaneId, newLeafId);
   },
 );
 
+function findContainerSizes(node: WorkspaceContainer | PanelLeaf, id: string): number[] | null {
+  if ("type" in node) return null;
+  if (node.id === id) return node.sizes;
+  for (const child of node.children) {
+    const found = findContainerSizes(child, id);
+    if (found) return found;
+  }
+  return null;
+}
+
+// Persists divider positions (percentages) after a drag ends.
+export const atom_setSplitSizes = atom(
+  null,
+  (get, set, { containerId, sizes }: { containerId: string; sizes: number[] }) => {
+    const layout = get(atom_workspaceLayout);
+    if (!sizes.every(Number.isFinite) || sizes.reduce((a, b) => a + b, 0) <= 0 || sizes.some((s) => s <= 0)) return;
+    const current = findContainerSizes(layout.rootContainer, containerId);
+    // The group reports its layout on mount too: unchanged sizes aren't a write.
+    if (current && current.length === sizes.length && current.every((s, i) => Math.abs(s - sizes[i]) < 0.01)) return;
+    set(atom_workspaceLayout, {
+      ...layout,
+      rootContainer: setContainer(layout.rootContainer, containerId, { sizes }),
+    });
+  },
+);
+
+export const atom_setPaneType = atom(
+  null,
+  (get, set, { paneId, type }: { paneId: string; type: PaneType }) => {
+    const layout = get(atom_workspaceLayout);
+    if (!findLeaf(layout.rootContainer, paneId)) return;
+    set(atom_workspaceLayout, {
+      ...layout,
+      rootContainer: updateLeaf(layout.rootContainer, paneId, { type }),
+    });
+  },
+);
+
+// Flips scroll lock on the split holding `paneId`, if it is a two-pane split.
+export const atom_toggleScrollLock = atom(null, (get, set, paneId: string) => {
+  const layout = get(atom_workspaceLayout);
+  const pair = lockablePair(layout.rootContainer, paneId);
+  if (!pair) return;
+  set(atom_workspaceLayout, {
+    ...layout,
+    rootContainer: setContainer(layout.rootContainer, pair.id, { scrollLock: !pair.scrollLock }),
+  });
+});
 
 export const atom_closePane = atom(null, (get, set, id: string) => {
   const layout = get(atom_workspaceLayout);

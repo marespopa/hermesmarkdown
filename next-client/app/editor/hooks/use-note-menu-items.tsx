@@ -2,10 +2,10 @@
 
 import React, { useCallback } from "react";
 import { useAtomValue, useSetAtom, useStore } from "jotai";
-import { HiOutlineClipboardCopy, HiOutlineCode, HiOutlinePencil, HiOutlineTrash, HiOutlineViewBoards } from "react-icons/hi";
-import { TbPinned, TbPinnedFilled } from "react-icons/tb";
+import { HiOutlineClipboardCopy, HiOutlineCode, HiOutlineEye, HiOutlinePencil, HiOutlineTrash, HiOutlineViewBoards } from "react-icons/hi";
+import { TbLock, TbLockOpen, TbPinned, TbPinnedFilled } from "react-icons/tb";
 import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
-import { atom_liveHandles, atom_openFiles, atom_splitPane } from "@/app/atoms/atoms";
+import { atom_liveHandles, atom_openFiles, atom_setPaneType, atom_splitPane, atom_toggleScrollLock, atom_workspaceLayout, lockablePair } from "@/app/atoms/atoms";
 import { atom_pinnedNotePaths, atom_toggleNotePin } from "@/app/atoms/note-pin-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
@@ -28,6 +28,8 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
   const boardMarkdownPaths = useAtomValue(atom_boardMarkdownPaths);
   const toggleBoardMarkdown = useSetAtom(atom_toggleBoardMarkdown);
   const splitPane = useSetAtom(atom_splitPane);
+  const setPaneType = useSetAtom(atom_setPaneType);
+  const toggleScrollLock = useSetAtom(atom_toggleScrollLock);
   const { renameFile, deleteFile } = useFileSystem();
   const { buildTabMenuItems } = usePaneFileActions(leaf);
 
@@ -51,6 +53,25 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
         icon: <HiOutlineViewBoards size={15} />,
         onClick: () => splitPane({ id: leaf.id, direction: "horizontal", filePath: path }),
       });
+      items.push({
+        label: "Open preview to the side",
+        icon: <HiOutlineEye size={15} />,
+        onClick: () =>
+          splitPane({ id: leaf.id, direction: "horizontal", filePath: path, type: "preview", copy: true, focusNew: false, scrollLock: true }),
+      });
+      items.push({
+        label: leaf.type === "preview" ? "Show pane as editor" : "Show pane as preview",
+        icon: leaf.type === "preview" ? <HiOutlinePencil size={15} /> : <HiOutlineEye size={15} />,
+        onClick: () => setPaneType({ paneId: leaf.id, type: leaf.type === "preview" ? "editor" : "preview" }),
+      });
+      const pair = lockablePair(store.get(atom_workspaceLayout).rootContainer, leaf.id);
+      if (pair) {
+        items.push({
+          label: pair.scrollLock ? "Unlock scroll" : "Lock scroll with other pane",
+          icon: pair.scrollLock ? <TbLockOpen size={15} /> : <TbLock size={15} />,
+          onClick: () => toggleScrollLock(leaf.id),
+        });
+      }
     }
     if (path !== "draft" && isBoard(path, content)) {
       items.push({
@@ -88,5 +109,5 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
     const closeItems = buildTabMenuItems(path);
     closeItems[0] = { ...closeItems[0], divider: true };
     return [...items, ...closeItems];
-  }, [store, openFiles, leaf, hasVault, pinnedNotePaths, toggleNotePin, boardMarkdownPaths, toggleBoardMarkdown, splitPane, renameFile, deleteFile, buildTabMenuItems]);
+  }, [store, openFiles, leaf, hasVault, pinnedNotePaths, toggleNotePin, boardMarkdownPaths, toggleBoardMarkdown, splitPane, setPaneType, toggleScrollLock, renameFile, deleteFile, buildTabMenuItems]);
 }
