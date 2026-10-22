@@ -17,10 +17,11 @@ const previewTint = (color: string, percent: number) => `color-mix(in srgb, ${co
 // One card per palette, each drawn in its own colors as the editor is laid
 // out (the sidebar in the chrome colour beside the page, a line of text and
 // the accent as a single dot, as the caret) so it previews the palette
-// whatever mode the app is in right now.
+// whatever mode the app is in right now. Four palettes (light) wrap two by
+// two on a phone and sit in one row from `sm` up; three keep one row.
 export default function ThemePicker<T extends string>({ themes, value, onChange }: ThemePickerProps<T>) {
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className={`grid gap-2 ${themes.length > 3 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
       {themes.map((t) => {
         const isActive = value === t.value;
         return (

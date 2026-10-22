@@ -10,21 +10,22 @@ export const settingsGroup: Group = {
       id: "appearance",
       title: "Appearance",
       lead: "Pick a theme, the font you write in and the text size.",
-      keywords: "theme palette colors solarized paper plain nord ink graphite dark light font typography text size sidebar layout full width focus",
+      keywords: "theme palette colors solarized sepia paper plain nord ink graphite dark light font code font monospace syntax typography text size sidebar layout full width focus",
       body: (
         <>
           <p>
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically.
-            Each mode has its own color theme: Paper (the default), Solarized or Plain for light, and
-            Ink (the default), Nord or Graphite for dark. Paper and Ink are warm paper and ink (Ink is
-            the dark paper); Plain and Graphite are neutral, with no tint. Every theme has a faint paper grain. You can also pick them on the
+            Each mode has its own color theme: Paper (the default), Sepia, Solarized or Plain for light,
+            and Ink (the default), Nord or Graphite for dark. Paper and Ink are paper and blue ink (Ink is
+            the dark paper); Sepia is a warm cream page for long reading; Plain and Graphite are neutral, with no tint. Every theme has a faint paper grain. You can also pick them on the
             home page before you start. Each theme has its own accent hue, kept to the
-            caret, text selection, focus rings, toggles and selections; icons and buttons stay quiet ink on paper. Settings → Appearance shows the colors for the
+            caret, text selection, focus rings, toggles and selections; icons and buttons stay quiet ink on paper. In code blocks, keywords take that accent, and
+            strings, numbers and function names each get a color of their own from the theme. Settings → Appearance shows the colors for the
             mode you picked, and both under System; the command palette also has{" "}
             <strong>Light Theme: …</strong> and <strong>Dark Theme: …</strong>. The
-            editor font, text size and Full Width (on by default) are set under Settings →
+            editor font, code font (for code blocks and inline code), text size and Full Width (on by default) are set under Settings →
             Appearance → Typography and apply to every pane in a split workspace. Vim mode and{" "}
             <TextLink href="#focus">Focus</TextLink> are under Settings →
             Editor. Word wrap, line numbers and invisibles (¶ on empty lines, dots for spaces) are
@@ -34,9 +35,10 @@ export const settingsGroup: Group = {
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
-              { label: "Light / Dark theme", value: "Paper, Solarized, Plain / Nord, Ink, Graphite" },
+              { label: "Light / Dark theme", value: "Paper, Sepia, Solarized, Plain / Nord, Ink, Graphite" },
               { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Toggle Sidebar: navigation, notes and the vault's files on the window's left edge, on every editor page (desktop)" },
               { label: "Typeface", value: "Quattro by default, Duospace or Geist Mono" },
+              { label: "Code font", value: "Geist Mono by default, JetBrains Mono, Fira Code or your system's monospace" },
             ]}
           />
           <Callout type="note">

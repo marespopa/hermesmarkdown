@@ -2,9 +2,11 @@
 
 import { useLayoutEffect } from "react";
 import { useAtomValue } from "jotai";
-import { atom_darkTheme, atom_lightTheme, atom_theme } from "@/app/atoms/atoms";
+import { atom_codeFontFamily, atom_darkTheme, atom_lightTheme, atom_theme } from "@/app/atoms/atoms";
 import { useResolvedTheme } from "@/app/hooks/use-resolved-theme";
 import { resolveDarkTheme, resolveLightTheme } from "@/app/theme-palettes";
+import { normalizeChoice } from "@/app/atoms/choice-storage";
+import { CODE_FONT_STACKS, MONO_FONT_STACK } from "@/app/atoms/ui-atoms";
 
 // A stored pick as atomWithStorage writes it (JSON), or null.
 function readStored(key: string): unknown {
@@ -27,6 +29,7 @@ export default function ThemeProvider({ children }: Props) {
   const lightTheme = resolveLightTheme(useAtomValue(atom_lightTheme));
   const darkTheme = resolveDarkTheme(useAtomValue(atom_darkTheme));
   const theme = useAtomValue(atom_theme);
+  const codeFont = useAtomValue(atom_codeFontFamily);
   // Until the atoms have read localStorage (atomWithStorage does that after
   // mount), they hold their defaults, not the reader's picks, while
   // THEME_INIT_SCRIPT (layout.tsx) has already painted <html> with the
@@ -59,6 +62,12 @@ export default function ThemeProvider({ children }: Props) {
     root.dataset.lightTheme = lightTheme;
     root.dataset.darkTheme = darkTheme;
   }, [lightTheme, darkTheme]);
+
+  // The code font, as --font-code (globals.scss) on <html>.
+  useLayoutEffect(() => {
+    if (normalizeChoice<string>(readStored("codeFontFamily"), CODE_FONT_STACKS, MONO_FONT_STACK) !== codeFont) return;
+    window.document.documentElement.style.setProperty("--font-code", codeFont);
+  }, [codeFont]);
 
   return <>{children}</>;
 }

@@ -52,8 +52,9 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Shortcodes</h4>
         <p>
-          Type a shortcode and it expands in place. Type <code>{"{"}</code> for a menu of the
-          emoji shortcodes, and keep typing a name to narrow it (or <code>/emoji</code> in the slash menu).
+          Type a shortcode and it expands in place. Type <code>{"{"}</code> for a menu of every
+          emoji, and keep typing a name or keyword to narrow it (<code>{"{thumbs"}</code>, <code>{"{flame"}</code>), or
+          use <code>/emoji</code> in the slash menu. Any emoji's name expands too, like <code>{"{red_heart}"}</code>.
         </p>
         <KV
           rows={[

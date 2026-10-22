@@ -1,7 +1,7 @@
 import { EditorView } from "@codemirror/view";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { tags as t } from "@lezer/highlight";
-import { MONO_FONT_STACK } from "@/app/atoms/ui-atoms";
+import { CODE_FONT } from "./live-markers-theme";
 
 // Structural theme only — no color literals. Colors come from the
 // HighlightStyle below, which references the same CSS custom properties
@@ -211,7 +211,7 @@ export const baseTheme = EditorView.theme({
     backgroundColor: "var(--frontmatter-bg-active)",
   },
   ".cm-frontmatter-summary:focus-visible": {
-    outline: "1px solid var(--sage)",
+    outline: "1px solid var(--moss)",
   },
   ".cm-frontmatter-summary-chevron": {
     width: "14px",
@@ -255,7 +255,7 @@ export const baseTheme = EditorView.theme({
     transform: "translateY(-0.05em)",
   },
   ".cm-tag-pill.cm-tag-pill-workflow": {
-    color: "var(--sage)",
+    color: "var(--moss)",
   },
   ".cm-tag-pill.cm-tag-pill-custom": {
     color: "var(--fg-muted)",
@@ -466,7 +466,7 @@ export const markdownHighlightStyle = HighlightStyle.define([
   { tag: t.strikethrough, textDecoration: "line-through", color: "var(--fg-muted)" },
   { tag: t.link, color: "var(--clay)", textDecoration: "underline" },
   { tag: t.url, color: "var(--clay)" },
-  { tag: t.monospace, fontFamily: MONO_FONT_STACK },
+  { tag: t.monospace, fontFamily: CODE_FONT },
   // Plain quotes are italic through their line (.cm-liveQuote); callouts,
   // also quotes in Markdown, stay upright.
   { tag: t.quote, color: "var(--fg-muted)" },
@@ -474,10 +474,12 @@ export const markdownHighlightStyle = HighlightStyle.define([
   { tag: t.meta, color: "var(--fg-faint)" },
   { tag: t.processingInstruction, color: "var(--fg-faint)" },
   { tag: t.comment, color: "var(--fg-faint)", fontStyle: "italic" },
+  // Code: keywords in the accent, strings, numbers and names each in a
+  // palette hue of their own (--code-*, globals.scss / theme-palettes.scss).
   { tag: [t.keyword, t.definitionKeyword, t.controlKeyword], color: "var(--clay)" },
-  { tag: [t.typeName, t.className], color: "var(--moss)" },
-  { tag: [t.string, t.special(t.string)], color: "var(--sage)" },
-  { tag: [t.number, t.bool, t.atom], color: "var(--clay)" },
+  { tag: [t.typeName, t.className, t.function(t.variableName), t.function(t.propertyName)], color: "var(--code-function)" },
+  { tag: [t.string, t.special(t.string), t.regexp], color: "var(--code-string)" },
+  { tag: [t.number, t.bool, t.atom], color: "var(--code-number)" },
   { tag: [t.variableName, t.propertyName], color: "var(--fg)" },
   { tag: t.operator, color: "var(--fg-muted)" },
 ]);

@@ -1,9 +1,10 @@
-import { Geist_Mono, Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
+import { Fira_Code, Geist_Mono, Instrument_Serif, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import localFont from "next/font/local";
 
 // Plus Jakarta Sans for the interface, Instrument Serif for the marketing
-// pages' hero headings, Geist Mono for code and writing, and two writing-only
-// faces, Duospace and Quattro. Fallbacks name the matching system face so a
+// pages' hero headings, Geist Mono for code and writing, two writing-only
+// faces, Duospace and Quattro, and two more code faces, JetBrains Mono and
+// Fira Code. Fallbacks name the matching system face so a
 // slow network still lands on something with the same voice.
 
 // Interface, body text and headings: a warm, humanist variable sans.
@@ -28,6 +29,22 @@ export const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
   display: "swap",
+});
+
+// Code only, when Settings → Typography → Code font picks them: two
+// monospaces made for code. Not preloaded, since Geist Mono is the default.
+export const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+  display: "swap",
+  preload: false,
+});
+
+export const firaCode = Fira_Code({
+  subsets: ["latin"],
+  variable: "--font-fira-code",
+  display: "swap",
+  preload: false,
 });
 
 // Writing only: a duospaced face (most letters share one width, m/M/w/W take

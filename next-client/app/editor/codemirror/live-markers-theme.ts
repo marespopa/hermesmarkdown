@@ -1,6 +1,10 @@
 import { EditorView } from "@codemirror/view";
 import { MONO_FONT_STACK } from "@/app/atoms/ui-atoms";
 
+// The reader's code font (--font-code, globals.scss), with the default face
+// where the variable isn't set, as on a highlighted copy outside the app.
+export const CODE_FONT = `var(--font-code, ${MONO_FONT_STACK})`;
+
 // Styles for live-markers.ts and the chips that stay in place while edited.
 export const liveMarkersTheme = EditorView.theme({
   ".cm-liveQuote": {
@@ -71,7 +75,7 @@ export const liveMarkersTheme = EditorView.theme({
   // Code inside a callout (highlight-blocks.ts): monospaced on the callout's
   // own tint, so the card stays one piece.
   ".cm-callout-code": {
-    fontFamily: MONO_FONT_STACK,
+    fontFamily: CODE_FONT,
     fontSize: "0.875em",
     letterSpacing: "0",
   },

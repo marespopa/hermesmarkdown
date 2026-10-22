@@ -78,6 +78,21 @@ export const UI_FONT_STACK =
   "var(--font-plus-jakarta), system-ui, -apple-system, ui-sans-serif, sans-serif";
 // The duospaced writing face (fonts.ts) falls back to the monospace stack.
 export const DUOSPACE_FONT_STACK = `var(--font-duospace), ${MONO_FONT_STACK}`;
+// The code faces (Settings → Typography → Code font): Geist Mono (the
+// default), JetBrains Mono, Fira Code, or the system's own monospace. Each
+// falls back to the monospace stack.
+export const JETBRAINS_MONO_FONT_STACK = `var(--font-jetbrains-mono), ${MONO_FONT_STACK}`;
+export const FIRA_CODE_FONT_STACK = `var(--font-fira-code), ${MONO_FONT_STACK}`;
+export const SYSTEM_MONO_FONT_STACK = '"SF Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+export const CODE_FONT_STACKS = [
+  MONO_FONT_STACK,
+  JETBRAINS_MONO_FONT_STACK,
+  FIRA_CODE_FONT_STACK,
+  SYSTEM_MONO_FONT_STACK,
+] as const;
+// Code blocks and inline code, as `--font-code` on <html> (ThemeProvider;
+// THEME_INIT_SCRIPT before the first paint).
+export const atom_codeFontFamily = atomWithChoiceStorage<string>("codeFontFamily", CODE_FONT_STACKS, MONO_FONT_STACK);
 // The proportional writing face (fonts.ts) falls back to the sans stack.
 export const QUATTRO_FONT_STACK = `var(--font-quattro), ${UI_FONT_STACK}`;
 // The writing face: Quattro, proportional, by default, so a note reads as a

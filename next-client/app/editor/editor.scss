@@ -247,7 +247,7 @@ html.dark .app-sheet .editor-sheet {
 .cm-table-preview code {
   border-radius: 0.3em;
   background-color: color-mix(in srgb, var(--fg) 6%, transparent);
-  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
+  font-family: var(--font-code);
   font-size: 0.9em;
   padding: 0.08em 0.28em;
 }
@@ -315,7 +315,7 @@ html.dark .app-sheet .editor-sheet {
 .cm-rendered-block-source {
   margin: 0.4em 0 0;
   color: var(--fg-muted);
-  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
+  font-family: var(--font-code);
   font-size: 0.85em;
   text-align: left;
   white-space: pre-wrap;
@@ -396,7 +396,7 @@ html.dark .app-sheet .editor-sheet {
   overscroll-behavior-x: contain;
   border-radius: 0.4em;
   background-color: color-mix(in srgb, var(--fg) 5%, transparent);
-  font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace;
+  font-family: var(--font-code);
   font-size: 0.85em;
   line-height: 1.5;
   white-space: pre;
@@ -425,7 +425,7 @@ html.dark .app-sheet .editor-sheet {
   ul { list-style: disc; }
   ol { list-style: decimal; }
   blockquote { padding-left: 0.8em; border-left: 2px solid var(--border-subtle); color: var(--fg-muted); }
-  code, pre { font-family: var(--font-geist-mono), "SF Mono", ui-monospace, monospace; font-size: 0.88em; }
+  code, pre { font-family: var(--font-code); font-size: 0.88em; }
   pre { padding: 0.6em 0.8em; border-radius: 0.4em; background-color: color-mix(in srgb, var(--fg) 5%, transparent); overflow-x: auto; }
   table { border-collapse: collapse; }
   th, td { padding: 0.25em 0.6em; border: 1px solid var(--border-subtle); }
