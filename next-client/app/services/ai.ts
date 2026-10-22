@@ -27,7 +27,7 @@ const getAIConfig = () => {
   return { provider, apiKey, modelKey };
 };
 
-const beautifyAIError = (error: string) => {
+export const beautifyAIError = (error: string) => {
   const lowerError = error.toLowerCase();
   
   if (lowerError.includes("quota exceeded") || lowerError.includes("exceeded your current quota")) {
@@ -47,9 +47,12 @@ const beautifyAIError = (error: string) => {
   if (
     lowerError.includes("unauthorized") ||
     lowerError.includes("authentication") ||
+    lowerError.includes("api key not valid") ||
+    lowerError.includes("api_key_invalid") ||
+    lowerError.includes("permission_denied") ||
     (lowerError.includes("invalid") && (lowerError.includes("api key") || lowerError.includes("api-key")))
   ) {
-    return "Invalid API Key. Please check your settings and ensure your key is correct.";
+    return "Invalid API Key. Update your key in Settings → AI and try again.";
   }
 
   if (lowerError.includes("failed to fetch") || lowerError.includes("network error")) {

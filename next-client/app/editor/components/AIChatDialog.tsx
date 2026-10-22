@@ -142,7 +142,7 @@ export default function AIChatDialog({
       if (inputRef.current) inputRef.current.style.height = "auto";
 
       const apiMessages: ApiMessage[] = newMessages
-        .filter((m) => m.kind !== "activity")
+        .filter((m) => !m.kind)
         .map((m) => ({ role: m.role, content: m.apiContent }));
       const skillInstructions = await skills.skillInstructionsFor(newMessages);
       const system = buildSystemPrompt(skillInstructions);
@@ -154,7 +154,10 @@ export default function AIChatDialog({
         : await callAIChat(system, apiMessages);
       setMessages((prev) => [...prev, { role: "assistant", displayContent: reply, apiContent: reply }]);
     } catch (err: any) {
-      showErrorToast(err.message || "AI request failed.");
+      const message = err.message || "AI request failed.";
+      showErrorToast(message);
+      // The toast is brief; the thread keeps the reason (timeout, wrong key).
+      setMessages((prev) => [...prev, { role: "assistant", kind: "error", displayContent: message, apiContent: message }]);
     } finally {
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);

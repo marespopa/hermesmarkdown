@@ -1,0 +1,43 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { beautifyAIError, callAIChat } from "./ai";
+
+describe("beautifyAIError", () => {
+  it.each([
+    "API key not valid. Please pass a valid API key.",
+    "API_KEY_INVALID",
+    "invalid x-api-key",
+    "401 Unauthorized",
+  ])("tells the user to update their key: %s", (raw) => {
+    expect(beautifyAIError(raw)).toMatch(/Invalid API Key.*Settings/);
+  });
+});
+
+describe("callAIChat errors", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    localStorage.clear();
+  });
+
+  it("rejects with the key hint when the proxy reports a bad Gemini key", async () => {
+    localStorage.setItem("hermes_ai_provider", "gemini");
+    localStorage.setItem("hermes_gemini_key", "k");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: "API key not valid. Please pass a valid API key." }),
+    }));
+    await expect(callAIChat("s", [{ role: "user", content: "hi" }])).rejects.toThrow(/Settings/);
+  });
+
+  it("rejects with a timeout message when the proxy never answers", async () => {
+    vi.useFakeTimers();
+    localStorage.setItem("hermes_claude_key", "k");
+    vi.stubGlobal("fetch", vi.fn((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
+      init.signal?.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })));
+    })));
+    const assertion = expect(callAIChat("s", [{ role: "user", content: "hi" }])).rejects.toThrow(/within 2 minutes/);
+    await vi.advanceTimersByTimeAsync(120_001);
+    await assertion;
+  });
+});

@@ -1,6 +1,6 @@
 # ChatMessageItem
 
-Description: One turn of the AI Chat thread. User messages render as a bubble with @mentions highlighted; assistant replies can be edited in place, copied to the clipboard as raw Markdown, and applied to the note (replace selection / insert at cursor, or replace all). Under an assistant reply, each `~~~~hermes-template` block (template skill) gets a [`TemplateSaveCard`](TemplateSaveCard.md); nothing is saved without its button.
+Description: One turn of the AI Chat thread. User messages render as a bubble with @mentions highlighted; assistant replies can be edited in place, copied to the clipboard as raw Markdown, and applied to the note (replace selection / insert at cursor, or replace all). Under an assistant reply, each `~~~~hermes-template` block (template skill) gets a [`TemplateSaveCard`](TemplateSaveCard.md); nothing is saved without its button. A message with `kind: "error"` (a failed request: timeout, invalid key, …) renders as a `role="alert"` notice with no actions; it stays in the thread and is never sent to the model.
 
 ## Local State & Storage
 - State: `copied` flag (reverts after 1.5s) for the Copy action's confirmation; edit state is owned by `AIChatDialog`.

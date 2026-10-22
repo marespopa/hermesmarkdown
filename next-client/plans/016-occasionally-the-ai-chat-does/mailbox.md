@@ -1,0 +1,1 @@
+- engineer: 016 done; errors persist in the chat thread + Gemini key error mapping. Likeliest CI failures: fake-timer test in services/ai.test.ts; any test matching the old "Please check your settings" text.
