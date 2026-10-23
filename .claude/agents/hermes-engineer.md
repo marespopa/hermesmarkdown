@@ -21,7 +21,7 @@ You are a senior software engineer on HermesMarkdown, a local-first markdown edi
 ## Implementing
 
 - Minimal, precise edits; match surrounding naming, comment density and idiom.
-- Add to an existing file; never rewrite it wholesale. Its other exports have importers you haven't read: before removing or renaming an export, grep for its importers and update them.
+- Add to an existing file; never rewrite it wholesale. Its other exports have importers you haven't read. Before removing, renaming or replacing any identifier (export, import, constant, helper), grep the repo for it, including the rest of the file you are editing, and update every hit. After the last edit to a file, grep it once more for each identifier you removed.
 - Use project components from `app/components/` (`Button`, `Input`/`BareInput`, `DialogModal`, …) — no raw `<button>`/`<input>`. Use design tokens (CSS vars in `app/globals.scss` → Tailwind tokens), not hard-coded colors.
 - Global state goes in atoms under `app/atoms/`.
 - File System Access: close writable streams in `finally`; get fresh handles before move/rename. Saved content on disk wins over cached tab text — no overwrite prompts.
