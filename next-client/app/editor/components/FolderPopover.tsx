@@ -6,6 +6,7 @@ import { HiOutlineArrowLeft, HiOutlineDocumentText, HiOutlineFolder } from "reac
 import { TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import Button from "@/app/components/Button";
 import BareInput from "@/app/components/Input/BareInput";
+import { FIELD_COMPACT_CLASS } from "@/app/components/Input/field-styles";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import { filterListing, folderName, listFolder, parentOf } from "./folder-listing";
 import { MENU_ICON_CLASS, MENU_PANEL_CLASS, MENU_SEPARATOR_CLASS } from "./menu-classes";
@@ -141,12 +142,11 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
     >
       <div className="flex items-center gap-1 px-1 pt-0.5">
         <Button
-          variant="unstyled"
+          variant="icon-small"
           onClick={up}
           isDisabled={!dir}
           aria-label={dir ? `Up to ${folderName(parentOf(dir), rootName)}` : "At the vault's top"}
           title={dir ? `Up to ${folderName(parentOf(dir), rootName)}` : undefined}
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-black/[0.05] hover:text-fg disabled:opacity-30 dark:hover:bg-white/[0.08]"
         >
           <HiOutlineArrowLeft size={14} aria-hidden="true" />
         </Button>
@@ -162,7 +162,7 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
         aria-controls="folder-popover-list"
         aria-activedescendant={rows.length ? `folder-popover-row-${activeIndex}` : undefined}
         spellCheck={false}
-        className="mx-1 my-1 h-8 rounded-lg bg-black/[0.04] px-2.5 text-ui-footnote text-fg outline-none placeholder:text-fg-faint dark:bg-white/[0.06]"
+        className={`${FIELD_COMPACT_CLASS} mx-1 my-1`}
       />
       <div id="folder-popover-list" role="listbox" aria-label={name} className="flex max-h-[min(22rem,50vh)] flex-col gap-px overflow-y-auto">
         {rows.map((row, index) => (

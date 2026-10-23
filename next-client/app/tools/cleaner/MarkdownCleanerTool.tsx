@@ -3,7 +3,7 @@
 import React, { useDeferredValue, useMemo } from "react";
 import { useAtom } from "jotai";
 import { atom_cleanerFormat, atom_cleanerInput, type CleanerFormat } from "@/app/atoms/tool-atoms";
-import Button from "@/app/components/Button";
+import Button, { SEGMENT_TRACK_CLASS } from "@/app/components/Button";
 import { Textarea } from "@/app/components/Input";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import { MAX_HANDOFF_CHARS } from "@/app/utils/tool-handoff";
@@ -21,7 +21,6 @@ const FORMATS: { value: CleanerFormat; label: string }[] = [
 ];
 
 const PANEL = "rounded-xl border border-edge-subtle bg-surface-raised";
-const CHIP = "h-8 px-3 rounded-full";
 
 // The Markdown Cleaner: messy Markdown, HTML, rich text or CSV on the left,
 // clean CommonMark/GFM on the right (stacked on narrow screens), recomputed
@@ -64,7 +63,7 @@ export default function MarkdownCleanerTool() {
             <Button
               key={example.id}
               variant="outlined"
-              className={CHIP}
+             
               onClick={() => {
                 setInput(example.text);
                 setChoice("auto");
@@ -74,16 +73,13 @@ export default function MarkdownCleanerTool() {
             </Button>
           ))}
         </div>
-        <div className="flex gap-1 p-1 rounded-full bg-black/[0.05] dark:bg-white/[0.07]" role="group" aria-label="Input format">
+        <div className={`flex gap-0.5 ${SEGMENT_TRACK_CLASS}`} role="group" aria-label="Input format">
           {FORMATS.map((option) => (
             <Button
               key={option.value}
-              variant="unstyled"
+              variant="segment"
               aria-pressed={choice === option.value}
               onClick={() => setChoice(option.value)}
-              className={`h-8 px-3 sm:px-4 rounded-full text-ui-footnote font-semibold transition-colors ${
-                choice === option.value ? "bg-surface text-fg shadow-sm" : "text-fg-muted hover:text-fg"
-              }`}
             >
               {option.label}
             </Button>

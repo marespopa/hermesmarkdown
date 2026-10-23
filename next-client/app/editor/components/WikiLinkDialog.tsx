@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import DialogModal from "../../components/DialogModal/DialogModal";
-import Button from "../../components/Button";
+import Button, { SEGMENT_TRACK_CLASS } from "../../components/Button";
 import Input from "../../components/Input";
 import { HiOutlineDocumentText } from "react-icons/hi";
 import { atom_templates } from "@/app/atoms/template-atoms";
@@ -195,7 +195,7 @@ export default function WikiLinkDialog({
 
         {onCreateAndConfirm && (
           <div
-            className={`grid ${showTemplateTab ? "grid-cols-3" : "grid-cols-2"} rounded-xl bg-paper-softgray p-1 dark:bg-paper-dark-surface`}
+            className={`grid ${showTemplateTab ? "grid-cols-3" : "grid-cols-2"} ${SEGMENT_TRACK_CLASS}`}
             role="tablist"
             aria-label="WikiLink target type"
           >
@@ -305,8 +305,8 @@ export default function WikiLinkDialog({
                     onClick={() => setPickedTemplatePath(template.path)}
                     className={`flex min-h-10 items-center gap-3 rounded-xl px-3 text-left text-ui-footnote transition-colors ${
                       isSelected
-                        ? "bg-paper-softgray text-ink-light dark:bg-paper-dark-surface dark:text-ink-dark"
-                        : "text-ink-muted hover:bg-paper-softgray dark:text-stone dark:hover:bg-paper-dark-surface/50"
+                        ? "bg-fill-hover text-fg"
+                        : "text-fg-muted hover:bg-fill"
                     }`}
                   >
                     <TemplateIcon name={template.name} />

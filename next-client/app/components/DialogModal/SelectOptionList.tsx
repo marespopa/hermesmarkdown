@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Button from "@/app/components/Button";
 import BareInput from "@/app/components/Input/BareInput";
+import { FIELD_CLASS } from "@/app/components/Input/field-styles";
 import type { DialogSelectOption } from "@/app/atoms/atoms";
 
 // Past this many options the list gets a filter field (typing narrows it,
@@ -58,7 +59,7 @@ export default function SelectOptionList({
               if (shown[activeIndex]) onSelect(shown[activeIndex].value);
             }
           }}
-          className="w-full rounded-xl border border-edge-subtle bg-paper-pale dark:bg-paper-dark px-3 py-2 text-ui-subhead text-fg placeholder:text-fg-faint focus:outline-none focus:ring-2 focus:ring-sage/40"
+          className={`${FIELD_CLASS} w-full`}
         />
       )}
       <div ref={listRef} role="listbox" aria-label="Options" className="flex flex-col gap-1.5 max-h-[50vh] overflow-y-auto">

@@ -44,4 +44,11 @@ describe("TokenCostDialog", () => {
     expect(within(row).getAllByRole("cell").map((cell) => cell.textContent)).toEqual(["$0.0049"]);
     expect(screen.queryByRole("spinbutton")).not.toBeInTheDocument();
   });
+
+  it("uses the singular for one token", () => {
+    tokenizer.useTokenizer.mockReturnValue({ loading: false, error: null, result: { tokenCount: 1, segments: [], truncated: false } });
+    setup();
+    act(() => openTokenCostDialog());
+    expect(screen.getByText("1 token")).toBeInTheDocument();
+  });
 });

@@ -18,7 +18,17 @@ import { cycleTaskBox } from "./live-markers-widgets";
 // Mod-click on it moves the task on a status. Blank lines inside a list are
 // half height. Tables and frontmatter keep their own display.
 
-const quoteLine = Decoration.line({ class: "cm-liveQuote" });
+// A quote's line, one bar per `>` (live-markers-theme.ts), so a nested
+// quote reads as nested.
+const quoteLines = new Map<number, Decoration>();
+function quoteLine(depth: number): Decoration {
+  let deco = quoteLines.get(depth);
+  if (!deco) {
+    deco = Decoration.line({ class: "cm-liveQuote", attributes: { style: `--quote-depth: ${depth}` } });
+    quoteLines.set(depth, deco);
+  }
+  return deco;
+}
 const listGap = Decoration.line({ class: "cm-listGap" });
 const REGEX_CALLOUT_START = /^(>\s*)+\[!\w+\]/;
 // A run of `>`s from a line's first QuoteMark: "> ", "> > ", ">>".
@@ -215,7 +225,8 @@ export function buildLiveMarkerDecorations(
 
   for (const [n, { from, to }] of quoteMargins) {
     ranges.push(...marginMarkRanges(state, from, to));
-    if (!calloutLines.has(n)) ranges.push(quoteLine.range(doc.line(n).from));
+    const depth = doc.sliceString(from, to).split(">").length - 1;
+    if (!calloutLines.has(n)) ranges.push(quoteLine(depth).range(doc.line(n).from));
   }
   for (const n of listGapLines) ranges.push(listGap.range(doc.line(n).from));
   return Decoration.set(ranges, true);

@@ -66,6 +66,12 @@ module.exports = {
           muted:   'var(--fg-muted)',
           faint:   'var(--fg-faint)',
         },
+        // Control fills (gray buttons, fields, tags; globals.scss): no `/N`.
+        fill: {
+          DEFAULT: 'var(--fill)',
+          hover:   'var(--fill-hover)',
+          press:   'var(--fill-press)',
+        },
         // Destructive actions (Button `warning`, menu rows): each palette's warm red.
         danger: 'var(--danger)',
         edge: {
@@ -132,10 +138,10 @@ module.exports = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
       transitionDuration: {
-        'overlay-backdrop': '150ms', // OverlayLayer backdrop opacity fade
-        'overlay-panel':    '150ms', // OverlayLayer sheet/edge-panel/popover slide
-        // --layout-duration (globals.scss): the sidebar, the content it
-        // pushes, the editor sheet. Pair with `ease-layout`.
+        'overlay-backdrop': 'var(--layout-duration)', // overlay/dialog backdrop opacity fade
+        'overlay-panel':    'var(--layout-duration)', // overlay sheet/edge-panel/popover/dialog slide
+        // --layout-duration (globals.scss): the library, the content it
+        // pushes, the editor sheet, overlay sheets and drawers. Pair with `ease-layout`.
         layout: 'var(--layout-duration)',
       },
       // `ease-spring`: the --ease-spring curve from globals.scss. An arbitrary

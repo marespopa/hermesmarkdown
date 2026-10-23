@@ -92,23 +92,29 @@ export function calloutBodyPrefixLength(text: string, depth: number): number {
   return i;
 }
 
+/** How many `>`s a quote inside a callout nests: one bar each (CALLOUT_QUOTE). */
+export const calloutQuoteDepth = (text: string) => (REGEX_QUOTE_RUN.exec(text)?.[0].match(/>/g) ?? []).length;
+
+export const CALLOUT_QUOTE = "cm-callout-quote";
+
 /**
  * A quote inside a callout (`> > text`): its `>`s faded, then a heading or
  * list item styled as such (a heading sized), any other text muted as a quote.
+ * The line wears the quote's bars on the card (CALLOUT_QUOTE).
  */
 function styleQuoteInCallout(out: BlockStyler, text: string, base: number): string {
   const prefix = REGEX_QUOTE_RUN.exec(text)![0];
   const rest = text.slice(prefix.length);
   const restBase = base + prefix.length;
   out.mark(base, restBase, FADED);
-  if (REGEX_HEADING.test(rest)) return headingLineClass(styleHeading(out, rest, restBase));
+  if (REGEX_HEADING.test(rest)) return `${CALLOUT_QUOTE} ${headingLineClass(styleHeading(out, rest, restBase))}`;
   if (REGEX_LIST_ITEM.test(rest)) {
     styleListItem(out, rest, restBase);
   } else {
     out.mark(restBase, base + text.length, "text-ink-muted dark:text-stone");
     out.inline(rest, restBase);
   }
-  return "";
+  return CALLOUT_QUOTE;
 }
 
 /** What a callout's body has seen so far: an open code fence, a table's rows. */
@@ -128,8 +134,7 @@ export const newCalloutBody = (): CalloutBody => ({ inCode: false, tableRow: -1 
  * items, table rows and rules, as outside a callout. `nextBody` is the next
  * line's body when it is still in the callout (a table's header row is the
  * one above its separator). Returns the line's extra class (a heading's, a
- * code block's), so
- * the callout's tint and bar stay on every line.
+ * code block's, a quote's), so the callout's tint stays on every line.
  */
 export function styleCalloutBody(
   out: BlockStyler,

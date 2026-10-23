@@ -85,8 +85,8 @@ const SettingsPage = () => {
                 aria-current={isActive ? "page" : undefined}
                 className={`flex h-8 shrink-0 items-center gap-2 px-2.5 rounded-lg text-ui-subhead font-medium transition-colors focus:outline-none ${
                   isActive
-                    ? "bg-paper-light/80 text-ink-light shadow-sm dark:bg-white/10 dark:text-ink-dark"
-                    : "text-ink-muted hover:bg-paper-light/70 hover:text-ink-light dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark"
+                    ? "bg-fill-hover text-fg"
+                    : "text-fg-muted hover:bg-fill hover:text-fg"
                 }`}
               >
                 <Icon size={16} className="shrink-0" />

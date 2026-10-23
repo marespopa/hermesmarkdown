@@ -237,42 +237,32 @@ export const baseTheme = EditorView.theme({
     cursor: "inherit",
     transform: "none",
   },
+  // The pill look (fill, colour, size) lives in components/TagPill.
+  // Laid out as text, like the chip being edited (live-markers-theme.ts): an
+  // inline-flex box sits taller in the line, so selecting the tag would make
+  // the text jump.
   ".cm-tag-pill": {
-    display: "inline-flex",
-    alignItems: "center",
-    verticalAlign: "middle",
-    borderRadius: "9999px",
-    border: "1px solid var(--border)",
-    backgroundColor: "color-mix(in srgb, var(--chrome) 72%, transparent)",
-    color: "var(--fg)",
-    fontSize: "0.9em",
-    lineHeight: "1.2",
-    padding: "0.1em 0.45em",
+    display: "inline",
+    verticalAlign: "baseline",
+    boxDecorationBreak: "clone",
+    WebkitBoxDecorationBreak: "clone",
     margin: "0 0.1em",
-    whiteSpace: "nowrap",
     cursor: "pointer",
     userSelect: "none",
-    transform: "translateY(-0.05em)",
-  },
-  ".cm-tag-pill.cm-tag-pill-workflow": {
-    color: "var(--moss)",
-  },
-  ".cm-tag-pill.cm-tag-pill-custom": {
-    color: "var(--fg-muted)",
   },
   // Template fields in a template note (template-field-pills.ts): a dashed
-  // pill reads "filled in later", unlike tags.
+  // pill reads "filled in later", unlike tags. Laid out as text at the
+  // text's own size and weight, so the line keeps its height and weight when
+  // the caret shows the `{{…}}` source in its place.
   ".cm-template-field": {
-    display: "inline-flex",
-    alignItems: "center",
+    display: "inline",
     verticalAlign: "baseline",
+    boxDecorationBreak: "clone",
+    WebkitBoxDecorationBreak: "clone",
     borderRadius: "0.4em",
     border: "1px dashed color-mix(in srgb, var(--moss) 55%, transparent)",
     backgroundColor: "color-mix(in srgb, var(--moss) 9%, transparent)",
     color: "var(--moss)",
-    fontSize: "0.85em",
-    fontWeight: "500",
-    lineHeight: "1.3",
     padding: "0 0.4em",
     margin: "0 0.05em",
     whiteSpace: "nowrap",
@@ -299,7 +289,9 @@ export const baseTheme = EditorView.theme({
     paddingInline: "0.1em",
     verticalAlign: "middle",
   },
+  // The list's pills are boxes, not text in a line being edited.
   ".cm-frontmatter-tag-list .cm-tag-pill": {
+    display: "inline-flex",
     margin: 0,
   },
   ".cm-frontmatter-tag-list-empty": {

@@ -1,6 +1,7 @@
 "use client";
 
 import Button from "@/app/components/Button";
+import TagPill from "@/app/components/TagPill";
 import PrivateBadge from "@/app/components/PrivateBadge";
 import React from "react";
 import type { IconType } from "react-icons";
@@ -8,7 +9,7 @@ import {
   HiOutlineArrowSmRight, HiOutlineBookOpen, HiOutlineCheckCircle, HiOutlineChevronRight, HiOutlineExternalLink, HiOutlineCog, HiOutlineDocumentAdd, HiOutlineDocumentText, HiOutlineEye,
   HiOutlineHashtag, HiOutlineLightningBolt, HiOutlinePlus, HiOutlineRefresh, HiOutlineSearch, HiOutlineSparkles, HiOutlineTemplate,
 } from "react-icons/hi";
-import { HighlightedText, parentFolder, type Row, type Scope, SEARCH_KBD_CLASS } from "./palette-model";
+import { HighlightedText, parentFolder, type Row, splitTagDetail, type Scope, SEARCH_KBD_CLASS } from "./palette-model";
 
 interface PaletteRowProps {
   row: Row;
@@ -80,7 +81,7 @@ export default function PaletteRow({ row, index, selected, scope, inMenu = false
     // Translucent fills, so the palette's glass shows through its rows.
     // The theme's accent, as the sidebar's current row and the file tree's.
     ? "border-transparent bg-accent/15 text-fg hover:bg-accent/15"
-    : "border-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06]";
+    : "border-transparent hover:bg-fill";
 
   return <Button variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-label={accessibleLabel} aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason} aria-busy={runningId === row.id}
     isDisabled={runningId !== null || (row.kind === "command" && !!row.command.disabledReason)} onClick={() => onExecute(row)} onMouseEnter={() => onHover(index)} onContextMenu={(event: React.MouseEvent) => { if (row.kind === "file" || row.kind === "command") { event.preventDefault(); onContextMenu(row); } }}
@@ -93,7 +94,11 @@ export default function PaletteRow({ row, index, selected, scope, inMenu = false
       </span>
     </> : <>
       {React.createElement(rowIcon(row), { "aria-hidden": true, size: 16, className: `shrink-0 ${selected ? "text-fg" : "text-fg-muted"}` })}
-      <span className="-ml-0.5 min-w-0 flex-1 truncate"><HighlightedText text={row.label} indices={row.titleIndices} />{isPrivate && <PrivateBadge className="ml-1.5 align-[-2px]" />}{context && <span className="ml-2 text-ui-footnote text-fg-muted"><HighlightedText text={context} indices={row.detailIndices} /></span>}</span>
+      <span className="-ml-0.5 min-w-0 flex-1 truncate"><HighlightedText text={row.label} indices={row.titleIndices} />{isPrivate && <PrivateBadge className="ml-1.5 align-[-2px]" />}{context && <span className="ml-2 text-ui-footnote text-fg-muted">
+        {row.kind === "file" && scope === "tag"
+          ? splitTagDetail(row.detail, row.detailIndices).map((part) => <TagPill key={part.tag} tag={part.tag} className="ml-1 first:ml-0" label={<HighlightedText text={`#${part.tag}`} indices={part.indices} />} />)
+          : <HighlightedText text={context} indices={row.detailIndices} />}
+      </span>}</span>
       {folder && <span title={folder} className="max-w-[45%] shrink-0 truncate text-right text-ui-footnote text-fg-muted"><HighlightedText text={folder} indices={scope === "tag" ? [] : row.detailIndices} /></span>}
       {runningId === row.id
         ? <HiOutlineRefresh aria-label="Running" size={14} className="shrink-0 animate-spin text-fg-muted motion-reduce:animate-none" />

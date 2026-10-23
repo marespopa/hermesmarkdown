@@ -1,6 +1,6 @@
 # Toggle
 
-Description: Accessible on/off switch for boolean settings.
+Description: Accessible on/off switch for boolean settings, in the iOS look: the accent when on, the strongest gray control fill (`--fill-press`) when off, a white knob with a soft shadow. `variant` is kept for existing callers; both values look the same.
 
 ## Local State & Storage
 - State: None (controlled).

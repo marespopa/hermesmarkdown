@@ -25,7 +25,11 @@ const findReplaceTheme = EditorView.theme({
     color: "var(--fg)",
     zIndex: "30",
   },
+  // Sticks below the pane's top room (the title, Copy Markdown and the
+  // SearchPill, PaneLeaf) rather than under it, so Close stays reachable
+  // once the note is scrolled; 0 on mobile, where the room is unset.
   ".cm-panels.cm-panels-top": {
+    top: "var(--pane-top-room, 0px)",
     borderBottom: "none",
     paddingBottom: "0.5rem",
   },

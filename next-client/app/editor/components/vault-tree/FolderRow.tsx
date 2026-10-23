@@ -155,7 +155,7 @@ export function FolderRow({
             e.stopPropagation();
             onToggle(node.path);
           }}
-          className={`w-3 shrink-0 text-fg-faint transition-transform duration-150 ${isCollapsed ? "" : "rotate-90"}`}
+          className={`w-3 shrink-0 text-fg-faint transition-transform duration-layout ease-layout motion-reduce:transition-none ${isCollapsed ? "" : "rotate-90"}`}
         />
         <HiFolder size={16} className="shrink-0 text-sage" />
         {editing ? (

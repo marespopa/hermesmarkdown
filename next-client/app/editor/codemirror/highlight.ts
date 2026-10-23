@@ -5,7 +5,9 @@ import { FADED, type MarkRange, mark, processInline } from "./highlight-inline";
 import {
   type BlockStyler,
   type CalloutBody,
+  CALLOUT_QUOTE,
   calloutBodyPrefixLength,
+  calloutQuoteDepth,
   headingLineClass,
   newCalloutBody,
   REGEX_HEADING,
@@ -36,6 +38,27 @@ const REGEX_OBSIDIAN_CALLOUT = /^(>\s*)+\[!(\w+)\]([+-]?)\s*(.*)$/i;
 const REGEX_OBSIDIAN_QUOTE_DEPTH = /^(>\s*)+/;
 const REGEX_THEMATIC_BREAK = /^( {0,3}([-*_])(?:\s*\2){2,}\s*)$/;
 
+const quoteDepth = (text: string) => (text.match(REGEX_OBSIDIAN_QUOTE_DEPTH)?.[0].match(/>/g) || []).length;
+const calloutStyle = (type: string) => CALLOUT_META[CALLOUT_ALIASES[type] ?? type] ?? CALLOUT_META.note;
+
+// `> [!type] Title`: the syntax faded, the title bold in the type's colour.
+// The fold sign (`+`/`-`) is syntax like the rest of `> [!type]`: same
+// faded look. The fold chevron writes it (callout-fold.ts).
+function styleCalloutTitle(out: BlockStyler, text: string, base: number, title: RegExpMatchArray, textClass: string) {
+  const prefix = REGEX_OBSIDIAN_QUOTE_DEPTH.exec(text)![0];
+  const prefixEnd = prefix.length + text.slice(prefix.length).indexOf("]") + 1 + (title[3] ? 1 : 0);
+  out.mark(base, base + prefixEnd, FADED);
+  if (text.slice(prefixEnd).trim()) out.mark(base + prefixEnd, base + text.length, `${textClass} font-bold`);
+}
+
+/** A callout inside another (`> > [!tip]`): its type and its `>`s. */
+interface NestedCallout {
+  type: string;
+  depth: number;
+}
+
+type LineDeco = { line: number; class: string; style?: string };
+
 // A thematic-break line that renders as a horizontal rule: not a
 // frontmatter fence, and not a `---` directly under a paragraph line (that
 // makes the line above a setext heading instead). `***` / `___` always are.
@@ -54,6 +77,7 @@ export interface ScanCheckpoint {
   calloutType: string | null;
   calloutDepth: number;
   calloutBody: CalloutBody;
+  calloutNest: NestedCallout[];
   tableRowCounter: number;
   isInsideFrontmatter: boolean;
 }
@@ -69,7 +93,7 @@ export function computeMarkdownDecorations(
   checkpoints?: ScanCheckpoint[],
 ): DecorationSet {
   const ranges: MarkRange[] = [];
-  const lineDecos: { line: number; class: string }[] = [];
+  const lineDecos: LineDeco[] = [];
 
   let isInsideCodeBlock = false;
   let calloutType: string | null = null;
@@ -77,8 +101,17 @@ export function computeMarkdownDecorations(
   // What the callout's body has seen: an open code fence, a table's rows.
   let calloutBody = newCalloutBody();
   // The callout's last line so far (its lineDecos entry), capped when it ends.
-  let calloutLastDeco: { line: number; class: string } | null = null;
+  let calloutLastDeco: LineDeco | null = null;
+  // Callouts nested in the open one, innermost last; the card drawn is the
+  // innermost's, capped on its last line (nestedLastDeco) when it ends.
+  let calloutNest: NestedCallout[] = [];
+  let nestedLastDeco: LineDeco | null = null;
+  const endNested = () => {
+    if (nestedLastDeco) nestedLastDeco.class += " cm-callout-nested-end";
+    nestedLastDeco = null;
+  };
   const endCallout = () => {
+    endNested();
     if (calloutLastDeco) calloutLastDeco.class += " cm-callout-end";
     calloutLastDeco = null;
   };
@@ -99,12 +132,13 @@ export function computeMarkdownDecorations(
   if (saved) {
     ({ isInsideCodeBlock, calloutType, calloutDepth, tableRowCounter, isInsideFrontmatter } = saved);
     calloutBody = { ...saved.calloutBody };
+    calloutNest = [...saved.calloutNest];
     startLine = saved.line;
   }
   let emit = true;
   const markIf: typeof mark = (...args) => { if (emit) mark(...args); };
   const inlineIf: typeof processInline = (...args) => { if (emit) processInline(...args); };
-  const pushLine = (deco: { line: number; class: string }) => { if (emit) lineDecos.push(deco); };
+  const pushLine = (deco: LineDeco) => { if (emit) lineDecos.push(deco); };
   const styler: BlockStyler = {
     mark: (from, to, className) => markIf(ranges, from, to, className),
     inline: (label, base) => inlineIf(ranges, label, base),
@@ -112,7 +146,8 @@ export function computeMarkdownDecorations(
   for (let i = startLine; i <= lastLine; i++) {
     if (checkpoints && i % CHECKPOINT_EVERY === 0 && !checkpoints.some((checkpoint) => checkpoint.line === i)) {
       checkpoints.push({
-        line: i, isInsideCodeBlock, calloutType, calloutDepth, calloutBody: { ...calloutBody }, tableRowCounter, isInsideFrontmatter,
+        line: i, isInsideCodeBlock, calloutType, calloutDepth, calloutBody: { ...calloutBody },
+        calloutNest: [...calloutNest], tableRowCounter, isInsideFrontmatter,
       });
       checkpoints.sort((a, b) => a.line - b.line);
     }
@@ -152,52 +187,64 @@ export function computeMarkdownDecorations(
 
     if (calloutType === null && REGEX_OBSIDIAN_CALLOUT.test(text)) {
       const m = text.match(REGEX_OBSIDIAN_CALLOUT)!;
-      const depthMatch = text.match(REGEX_OBSIDIAN_QUOTE_DEPTH)!;
-      const prefixText = depthMatch[0];
-      const depth = (prefixText.match(/>/g) || []).length;
-      const requestedType = m[2].toLowerCase();
-      const fold = m[3];
-      const resolvedType = CALLOUT_ALIASES[requestedType] ?? requestedType;
-      const style = CALLOUT_META[resolvedType] ?? CALLOUT_META.note;
-
-      calloutType = requestedType;
-      calloutDepth = depth;
+      calloutType = m[2].toLowerCase();
+      calloutDepth = quoteDepth(text);
       calloutBody = newCalloutBody();
-
-      const remainder = text.slice(prefixText.length);
-      const bracketEnd = remainder.indexOf("]");
-      const bracketEndAbs = prefixText.length + bracketEnd + 1;
-      // The fold sign (`+`/`-`) is syntax like the rest of `> [!type]`: same
-      // faded look. The fold chevron writes it (callout-fold.ts).
-      const prefixEnd = bracketEndAbs + (fold ? 1 : 0);
-      markIf(ranges, base, base + prefixEnd, FADED);
-      const cursor = prefixEnd;
-      const rest = text.slice(cursor);
-      if (rest.trim()) {
-        markIf(ranges, base + cursor, line.to, `${style.text} font-bold`);
-      }
+      calloutNest = [];
+      const style = calloutStyle(calloutType);
+      styleCalloutTitle(styler, text, base, m, style.text);
       calloutLastDeco = { line: i, class: `cm-callout cm-callout-start ${style.bg}` };
       pushLine(calloutLastDeco);
-    } else if (
-      calloutType !== null &&
-      (text.match(REGEX_OBSIDIAN_QUOTE_DEPTH)?.[0].match(/>/g) || []).length >= calloutDepth
-    ) {
-      const resolvedType = CALLOUT_ALIASES[calloutType] ?? calloutType;
-      const style = CALLOUT_META[resolvedType] ?? CALLOUT_META.note;
-      // The body after the callout's own `>`s is styled as any other line:
-      // headings, lists, tables, code, quotes (highlight-blocks.ts).
-      const prefixLength = calloutBodyPrefixLength(text, calloutDepth);
-      markIf(ranges, base, base + prefixLength, FADED);
-      const next = i < doc.lines ? doc.line(i + 1).text : "";
-      const nextIn = (next.match(REGEX_OBSIDIAN_QUOTE_DEPTH)?.[0].match(/>/g) || []).length >= calloutDepth;
-      const nextBody = nextIn ? next.slice(calloutBodyPrefixLength(next, calloutDepth)) : null;
-      const extra = styleCalloutBody(styler, calloutBody, text.slice(prefixLength), base + prefixLength, nextBody);
-      calloutLastDeco = { line: i, class: `cm-callout ${style.bg}${extra ? ` ${extra}` : ""}` };
+    } else if (calloutType !== null && quoteDepth(text) >= calloutDepth) {
+      const depth = quoteDepth(text);
+      // A callout nested in this one ends where its `>`s do.
+      if (calloutNest.length && depth < calloutNest.at(-1)!.depth) {
+        endNested();
+        while (calloutNest.length && depth < calloutNest.at(-1)!.depth) calloutNest.pop();
+        calloutBody = newCalloutBody();
+      }
+      const ownDepth = calloutNest.at(-1)?.depth ?? calloutDepth;
+      const title = depth > ownDepth && !calloutBody.inCode ? text.match(REGEX_OBSIDIAN_CALLOUT) : null;
+      if (title) {
+        calloutNest.push({ type: title[2].toLowerCase(), depth });
+        calloutBody = newCalloutBody();
+      }
+      const inner = calloutNest.at(-1);
+      const innerDepth = inner?.depth ?? calloutDepth;
+      let extra = "";
+      let quoteBars = 0;
+      if (title) {
+        styleCalloutTitle(styler, text, base, title, calloutStyle(inner!.type).text);
+      } else {
+        // The body after the callout's own `>`s is styled as any other line:
+        // headings, lists, tables, code, quotes (highlight-blocks.ts).
+        const prefixLength = calloutBodyPrefixLength(text, innerDepth);
+        markIf(ranges, base, base + prefixLength, FADED);
+        const next = i < doc.lines ? doc.line(i + 1).text : "";
+        const nextBody = quoteDepth(next) >= innerDepth ? next.slice(calloutBodyPrefixLength(next, innerDepth)) : null;
+        const body = text.slice(prefixLength);
+        extra = styleCalloutBody(styler, calloutBody, body, base + prefixLength, nextBody);
+        if (extra.split(" ").includes(CALLOUT_QUOTE)) quoteBars = calloutQuoteDepth(body);
+      }
+      // A nested callout is an inset card of its own tint on the outer one
+      // (live-markers-theme.ts), `--callout-nest` levels in.
+      const nested = inner
+        ? ` cm-callout-nested ${calloutStyle(inner.type).nested}${title ? " cm-callout-nested-start" : ""}`
+        : "";
+      const style = [inner && `--callout-nest: ${calloutNest.length}`, quoteBars && `--quote-depth: ${quoteBars}`]
+        .filter(Boolean).join("; ");
+      calloutLastDeco = {
+        line: i,
+        class: `cm-callout ${calloutStyle(calloutType).bg}${nested}${extra ? ` ${extra}` : ""}`,
+        ...(style ? { style } : {}),
+      };
+      nestedLastDeco = inner ? calloutLastDeco : null;
       pushLine(calloutLastDeco);
     } else if (calloutType !== null) {
       endCallout();
       calloutType = null;
       calloutDepth = 0;
+      calloutNest = [];
       inlineIf(ranges, text, base);
     } else if (text.startsWith("```") || text.startsWith("~~~")) {
       // Fences and body share one tinted, monospaced block (editor-typography.scss);
@@ -254,7 +301,8 @@ export function computeMarkdownDecorations(
 
   for (const ld of lineDecos) {
     const line = doc.line(ld.line);
-    decoRanges.push(Decoration.line({ attributes: { class: ld.class } }).range(line.from));
+    const attributes: Record<string, string> = ld.style ? { class: ld.class, style: ld.style } : { class: ld.class };
+    decoRanges.push(Decoration.line({ attributes }).range(line.from));
   }
 
   return Decoration.set(decoRanges, true);

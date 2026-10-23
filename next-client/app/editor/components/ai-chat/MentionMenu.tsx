@@ -22,7 +22,7 @@ export default function MentionMenu({ options, activeIndex, query, onSelect }: M
         const rowClass = `w-full flex items-center gap-2.5 px-3 py-2 text-left transition-colors ${
           i === activeIndex
             ? "bg-sage/10 text-sage"
-            : "text-ink-light dark:text-ink-dark hover:bg-black/[0.05] dark:hover:bg-white/[0.08]"
+            : "text-ink-light dark:text-ink-dark hover:bg-fill"
         }`;
         // mousedown (not click) so the textarea keeps focus
         const select = (e: React.MouseEvent) => { e.preventDefault(); onSelect(option); };

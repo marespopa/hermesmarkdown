@@ -9,7 +9,6 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { deleteTrashSlot, listTrash, restoreFromTrash, type TrashedItem } from "@/app/hooks/file-system/trash-ops";
 import { TRASH_RETENTION_DAYS } from "@/app/services/vault-trash";
 import ShellPage from "../components/ShellPage";
-import { SMALL_BUTTON_CLASS } from "../templates/components/PackSection";
 
 const deletedLabel = (date: Date | null) =>
   date ? `Deleted ${date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : "Deleted";
@@ -72,9 +71,8 @@ export default function TrashPage() {
             </div>
             {!!items?.length && (
               <Button
-                variant="unstyled"
+                variant="small"
                 onClick={() => void remove(items, `Delete all ${items.length} items in the Trash? This cannot be undone.`)}
-                className={SMALL_BUTTON_CLASS}
               >
                 <HiOutlineTrash size={14} aria-hidden /> Empty Trash
               </Button>
@@ -102,14 +100,13 @@ export default function TrashPage() {
                         {deletedLabel(item.deletedAt)}{from ? ` from ${from}` : ""}
                       </p>
                     </div>
-                    <Button variant="unstyled" onClick={() => void putBack(item)} aria-label={`Put back ${item.name}`} className={SMALL_BUTTON_CLASS}>
+                    <Button variant="small" onClick={() => void putBack(item)} aria-label={`Put back ${item.name}`}>
                       <HiOutlineReply size={14} aria-hidden /> Put Back
                     </Button>
                     <Button
-                      variant="unstyled"
+                      variant="small"
                       onClick={() => void remove([item], `Delete “${item.name}” permanently? This cannot be undone.`)}
                       aria-label={`Delete ${item.name} permanently`}
-                      className={SMALL_BUTTON_CLASS}
                     >
                       Delete
                     </Button>

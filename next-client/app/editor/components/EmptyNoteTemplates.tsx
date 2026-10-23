@@ -24,7 +24,8 @@ interface EmptyNoteTemplatesProps {
 
 const MAX_PILLS = 4;
 const FADE_MS = 150;
-const PILL_CLASS = "pointer-events-auto inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-edge-subtle bg-[color:color-mix(in_srgb,var(--chrome)_70%,transparent)] px-3 font-sans text-ui-footnote text-fg-muted backdrop-blur-sm transition-[background-color,color] duration-150 hover:bg-chrome hover:text-fg sm:min-h-9";
+// A small button on the gray fill: 36px, 44px tall on a phone.
+const PILL_CLASS = "pointer-events-auto min-h-11 sm:min-h-9 bg-fill hover:bg-fill-hover";
 
 // Soft pills resting under the first line of an empty note: one click fills
 // the note from one of the vault's templates. With none yet (or no vault at
@@ -60,19 +61,19 @@ export default function EmptyNoteTemplates({ isEmpty, onPick, onMore, onBoard }:
       role="group"
     >
       {shown.slice(0, MAX_PILLS).map((template) => (
-        <Button key={template.path} variant="unstyled" onClick={() => onPick(template)} className={PILL_CLASS}>
+        <Button key={template.path} variant="small" onClick={() => onPick(template)} className={PILL_CLASS}>
           <TemplateIcon name={template.name} size={14} />
           {template.name}
         </Button>
       ))}
       {templates.length === 0 && hasVault && (
-        <Button variant="unstyled" onClick={() => router.push("/editor/templates")} className={PILL_CLASS}>
+        <Button variant="small" onClick={() => router.push("/editor/templates")} className={PILL_CLASS}>
           <HiOutlineTemplate size={14} aria-hidden />
           Browse template packs
         </Button>
       )}
       {onBoard && hasVault && (
-        <Button variant="unstyled" onClick={onBoard} className={PILL_CLASS}>
+        <Button variant="small" onClick={onBoard} className={PILL_CLASS}>
           <HiOutlineViewBoards size={14} aria-hidden />
           Board
         </Button>

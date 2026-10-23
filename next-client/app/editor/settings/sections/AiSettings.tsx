@@ -186,12 +186,11 @@ export default function AiSettings() {
                     ))}
                   </SelectControl>
                   <Button
-                    variant="unstyled"
+                    variant="icon-small"
                     onClick={() => {
                       setAvailableModels([]);
                       setFetchError(null);
                     }}
-                    className="p-1.5 text-stone hover:text-fg transition-colors"
                     title="Refresh models"
                     aria-label="Refresh models"
                   >

@@ -6,9 +6,6 @@ import Button from "@/app/components/Button";
 import TemplateIcon from "@/app/components/TemplateDialog/TemplateIcon";
 import type { TemplateEntry, TemplatePack } from "@/app/utils/templates/template-registry";
 
-export const SMALL_BUTTON_CLASS =
-  "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-ui-footnote font-medium text-fg-muted transition-colors hover:bg-surface-raised hover:text-fg disabled:pointer-events-none disabled:opacity-40";
-
 interface PackSectionProps {
   pack: TemplatePack;
   onEdit: (template: TemplateEntry) => void;
@@ -36,14 +33,14 @@ export default function PackSection({ pack, onEdit, onNewTemplate, onDuplicate, 
           <span className="ml-2 font-normal text-fg-faint">{count === 1 ? "1 template" : `${count} templates`}</span>
         </h3>
         <div className="-mr-1.5 flex items-center">
-          <Button variant="unstyled" onClick={() => onNewTemplate(pack)} className={SMALL_BUTTON_CLASS} aria-label={`New template in ${title}`}>
+          <Button variant="small" onClick={() => onNewTemplate(pack)} aria-label={`New template in ${title}`}>
             <HiOutlinePlus size={14} aria-hidden /> New
           </Button>
-          <Button variant="unstyled" onClick={() => onDuplicate(pack)} isDisabled={count === 0} className={SMALL_BUTTON_CLASS} aria-label={`Duplicate ${title}`}>
+          <Button variant="small" onClick={() => onDuplicate(pack)} isDisabled={count === 0} aria-label={`Duplicate ${title}`}>
             <HiOutlineDuplicate size={14} aria-hidden /> Duplicate
           </Button>
           {pack.name && (
-            <Button variant="unstyled" onClick={() => onDelete(pack)} className={SMALL_BUTTON_CLASS} aria-label={`Delete ${title}`}>
+            <Button variant="small" onClick={() => onDelete(pack)} aria-label={`Delete ${title}`}>
               <HiOutlineTrash size={14} aria-hidden /> Delete
             </Button>
           )}
@@ -60,10 +57,10 @@ export default function PackSection({ pack, onEdit, onNewTemplate, onDuplicate, 
                 <span className="block truncate text-ui-subhead text-fg">{template.name}</span>
                 <span className="block truncate text-ui-caption text-fg-faint">{template.path}</span>
               </span>
-              <Button variant="unstyled" onClick={() => onEdit(template)} className={SMALL_BUTTON_CLASS} aria-label={`Edit ${template.name}`}>
+              <Button variant="small" onClick={() => onEdit(template)} aria-label={`Edit ${template.name}`}>
                 <HiOutlinePencil size={14} aria-hidden /> Edit
               </Button>
-              <Button variant="unstyled" onClick={() => onDeleteTemplate(template)} className={SMALL_BUTTON_CLASS} aria-label={`Delete template ${template.name}`}>
+              <Button variant="small" onClick={() => onDeleteTemplate(template)} aria-label={`Delete template ${template.name}`}>
                 <HiOutlineTrash size={14} aria-hidden /> Delete
               </Button>
             </li>

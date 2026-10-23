@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { buildContentRows, type FileResult, scopeFromPrefix, scopePrefix } from "./palette-model";
+import { buildContentRows, buildTagRows, splitTagDetail, type FileResult, scopeFromPrefix, scopePrefix } from "./palette-model";
 
 const file = (path: string): FileResult => ({
   path,
@@ -33,5 +33,23 @@ describe("buildContentRows", () => {
       kind: "content", id: "dir/a.md:4", label: "a needle", detail: "a.md:4", file: notes.get("dir/a.md"),
       line: 4, column: 2, titleIndices: [2, 3], detailIndices: [], score: 130,
     }]);
+  });
+});
+
+describe("splitTagDetail", () => {
+  it("splits the joined detail with indices relative to each tag", () => {
+    expect(splitTagDetail("#a #bc", [1, 4, 5])).toEqual([
+      { tag: "a", indices: [1] },
+      { tag: "bc", indices: [1, 2] },
+    ]);
+  });
+
+  it("lands on matched characters of its own tag for a two-tag query", () => {
+    const file = { path: "n.md", name: "n.md" } as FileResult;
+    const [row] = buildTagRows("#al #be", new Map([["alpha", [file]], ["beta", [file]]]));
+    const parts = splitTagDetail(row.detail, row.detailIndices);
+    expect(parts.map((part) => part.tag)).toEqual(["alpha", "beta"]);
+    expect(parts[0].indices.map((i) => "#alpha"[i]).join("")).toBe("al");
+    expect(parts[1].indices.map((i) => "#beta"[i]).join("")).toBe("be");
   });
 });

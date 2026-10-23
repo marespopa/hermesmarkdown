@@ -19,7 +19,7 @@ export function showUndoToast(message: string, onUndo: () => void, options: { id
             toast.dismiss(t.id);
             onUndo();
           }}
-          className="shrink-0 rounded-md px-2 py-0.5 text-ui-footnote font-semibold text-accent hover:bg-black/5 dark:hover:bg-white/10"
+          className="shrink-0 rounded-md px-2 py-0.5 text-ui-footnote font-semibold text-accent hover:bg-fill"
         >
           Undo
         </Button>

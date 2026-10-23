@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAtomValue } from "jotai";
 import { atom_content, atom_fileName } from "@/app/atoms/file-atoms";
+import { formatCount } from "@/app/components/CountBadge";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
 import TokenCostTable from "@/app/tools/token-cost/TokenCostTable";
 import { useTokenizer } from "@/app/tools/tokenizer/use-tokenizer";
@@ -25,7 +26,7 @@ function TokenCostBody() {
         <p className="text-ui-subhead text-fg-muted truncate">
           {fileName || "Untitled"} ·{" "}
           <span className="tabular-nums" aria-live="polite">
-            {inputTokens === null ? "counting…" : `${inputTokens.toLocaleString("en-US")} tokens`}
+            {inputTokens === null ? "counting…" : formatCount(inputTokens, ["token", "tokens"])}
           </span>
         </p>
       </div>

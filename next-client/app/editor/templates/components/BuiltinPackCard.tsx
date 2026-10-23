@@ -5,7 +5,6 @@ import { HiOutlineCheck, HiOutlineDownload, HiOutlineRefresh } from "react-icons
 import Button from "@/app/components/Button";
 import TemplateIcon from "@/app/components/TemplateDialog/TemplateIcon";
 import type { BuiltinPack } from "@/app/utils/templates/template-packs";
-import { SMALL_BUTTON_CLASS } from "./PackSection";
 
 interface BuiltinPackCardProps {
   pack: BuiltinPack;
@@ -48,10 +47,10 @@ export default function BuiltinPackCard({ pack, inVault, onAdd, disabled = false
           <p className="mt-0.5 text-ui-footnote text-fg-muted">{pack.description}</p>
         </div>
         <Button
-          variant="unstyled"
+          variant="small"
           onClick={() => void add()}
           isDisabled={added || disabled || adding}
-          className={`${SMALL_BUTTON_CLASS} ${added ? "" : "bg-surface-raised text-fg"}`}
+          className={added ? "" : "bg-fill text-fg hover:bg-fill-hover"}
           aria-label={`${label}: ${pack.name}`}
           aria-busy={adding || undefined}
         >

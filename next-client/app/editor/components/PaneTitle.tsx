@@ -207,11 +207,11 @@ function SaveDot({ state, errorMessage, onSave }: { state: SaveState; errorMessa
   const Glyph = error ? HiOutlineRefresh : HiOutlineSave;
   return (
     <Button
-      variant="unstyled"
+      variant="icon-small"
       onClick={(e) => { e.stopPropagation(); onSave(); }}
       title={`${error ? `${label} — click to try again` : "Save"} (${formatShortcut("S")})`}
       aria-label={`${label}. ${error ? "Try saving again" : "Save"}`}
-      className={`group flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--fg)_6%,var(--surface))] ${error ? "text-danger" : "text-fg-muted hover:text-fg focus-visible:text-fg"}`}
+      className={`group ${error ? "text-danger hover:text-danger" : "focus-visible:text-fg"}`}
     >
       {dot}
       <Glyph size={14} aria-hidden="true" className="hidden group-hover:block group-focus-visible:block" />

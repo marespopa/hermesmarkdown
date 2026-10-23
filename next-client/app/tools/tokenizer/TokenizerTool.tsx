@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAtom } from "jotai";
 import { atom_tokenizerEncoding, atom_tokenizerText, type TokenizerEncoding } from "@/app/atoms/tool-atoms";
-import Button from "@/app/components/Button";
+import Button, { SEGMENT_TRACK_CLASS } from "@/app/components/Button";
 import { Textarea } from "@/app/components/Input";
 import { MAX_HANDOFF_CHARS } from "@/app/utils/tool-handoff";
 import { MAX_VISIBLE_TOKENS, textStats } from "./segment-tokens";
@@ -18,7 +18,6 @@ const ENCODINGS: { value: TokenizerEncoding; label: string; models: string }[] =
 ];
 
 const PANEL = "rounded-xl border border-edge-subtle bg-surface-raised";
-const CHIP = "h-8 px-3 rounded-full";
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -48,22 +47,19 @@ export default function TokenizerTool() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2" role="group" aria-label="Examples">
           {TOKENIZER_EXAMPLES.map((example) => (
-            <Button key={example.id} variant="outlined" className={CHIP} onClick={() => setText(example.text)}>
+            <Button key={example.id} variant="outlined" onClick={() => setText(example.text)}>
               {example.label}
             </Button>
           ))}
         </div>
-        <div className="flex gap-1 p-1 rounded-full bg-black/[0.05] dark:bg-white/[0.07]" role="group" aria-label="Tokenizer">
+        <div className={`flex gap-0.5 ${SEGMENT_TRACK_CLASS}`} role="group" aria-label="Tokenizer">
           {ENCODINGS.map((option) => (
             <Button
               key={option.value}
-              variant="unstyled"
+              variant="segment"
               aria-pressed={encoding === option.value}
               title={option.models}
               onClick={() => setEncoding(option.value)}
-              className={`h-8 px-4 rounded-full text-ui-footnote font-semibold transition-colors ${
-                encoding === option.value ? "bg-surface text-fg shadow-sm" : "text-fg-muted hover:text-fg"
-              }`}
             >
               {option.label}
             </Button>
@@ -92,7 +88,7 @@ export default function TokenizerTool() {
       <div className={`${PANEL} p-4 space-y-3`}>
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-ui-subhead font-semibold">Tokens</h2>
-          <Button variant="outlined" className={CHIP} aria-pressed={showIds} onClick={() => setShowIds(!showIds)}>
+          <Button variant="outlined" aria-pressed={showIds} onClick={() => setShowIds(!showIds)}>
             {showIds ? "Show text" : "Show token IDs"}
           </Button>
         </div>

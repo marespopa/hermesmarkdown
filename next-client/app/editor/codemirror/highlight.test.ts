@@ -79,6 +79,17 @@ describe("computeMarkdownDecorations", () => {
     expect(decos.some((d) => d.from === markerFrom && d.class.includes("opacity-40"))).toBe(true);
   });
 
+  it("keeps a link label at the folded link's weight, never bold", () => {
+    const doc = "- [[work/Custom tags]] and [docs](https://example.com)";
+    const decos = decorationsFor(doc);
+    for (const label of ["work/Custom tags", "docs"]) {
+      const from = doc.indexOf(label);
+      const marks = decos.filter((d) => d.from === from && d.to === from + label.length).map((d) => d.class);
+      expect(marks).toContainEqual(expect.stringContaining("font-medium"));
+      expect(marks).not.toContainEqual(expect.stringContaining("font-bold"));
+    }
+  });
+
   it("styles a task's label by its state", () => {
     const doc = "- [x] done thing\n- [-] dropped\n- [/] going\n- [ ] open";
     const decos = decorationsFor(doc);
@@ -203,6 +214,51 @@ describe("computeMarkdownDecorations", () => {
       expect(marksAt("Inner heading")).toContainEqual(expect.stringContaining("font-semibold"));
       expect(lineClass("> > #### Inner heading")).toContain("cm-callout-end");
       expect(lineClass("After")).not.toContain("cm-callout");
+    });
+  });
+
+  describe("nested in a callout", () => {
+    const doc = [
+      "> [!note] Outer",
+      "> outer text",
+      "> > quoted",
+      "> > > deeper",
+      "> > [!tip]- Inner",
+      "> > inner text",
+      "> back out",
+      "After",
+    ].join("\n");
+    const state = EditorState.create({ doc });
+    const lines: { class: string; style?: string }[] = [];
+    computeMarkdownDecorations(state).between(0, doc.length, (from, to, value: any) => {
+      if (from === to && value.spec.attributes) lines.push(value.spec.attributes);
+    });
+    const lineOf = (text: string) => lines[state.doc.lineAt(doc.indexOf(text)).number - 1];
+
+    it("draws a quote inside it with a bar per level", () => {
+      expect(lineOf("> > quoted").class).toContain("cm-callout-quote");
+      expect(lineOf("> > quoted").style).toBe("--quote-depth: 1");
+      expect(lineOf("> > > deeper").style).toBe("--quote-depth: 2");
+      expect(lineOf("> outer text").class).not.toContain("cm-callout-quote");
+    });
+
+    it("draws a nested callout as its own inset card on the outer one", () => {
+      const title = lineOf("> > [!tip]");
+      expect(title.class).toContain("cm-callout bg-indigo-500/10");
+      expect(title.class).toContain("cm-callout-nested after:bg-emerald-400/10 cm-callout-nested-start");
+      expect(title.style).toBe("--callout-nest: 1");
+      expect(lineOf("> > inner text").class).toContain("cm-callout-nested ");
+      expect(lineOf("> > inner text").class).toContain("cm-callout-nested-end");
+      expect(lineOf("> back out").class).not.toContain("cm-callout-nested");
+      expect(lineOf("> back out").class).toContain("cm-callout-end");
+    });
+
+    it("colours the nested callout's title and fades its syntax", () => {
+      const marks: FlatDeco[] = decorationsFor(doc);
+      const titleFrom = doc.indexOf("> > [!tip]");
+      const sign = doc.indexOf("-", titleFrom);
+      expect(marks.some((d) => d.from === titleFrom && d.to === sign + 1 && d.class.includes("opacity-40"))).toBe(true);
+      expect(marks.some((d) => d.from === sign + 1 && d.class.includes("text-emerald-600 dark:text-emerald-400 font-bold"))).toBe(true);
     });
   });
 

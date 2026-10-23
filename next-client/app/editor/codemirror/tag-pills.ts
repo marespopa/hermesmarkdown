@@ -1,7 +1,7 @@
 import { EditorSelection, Range, type Text } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
-import { WORKFLOW_TAGS } from "../components/constants";
 import { REGEX_HASHTAG } from "../components/regex";
+import { tagKind, tagPillClass } from "@/app/components/TagPill";
 import { collectInVisibleLines } from "./visible-lines";
 
 export interface TagMatch {
@@ -25,13 +25,13 @@ function parseTagName(value: string): string | null {
 }
 
 export function tagPillClassName(kind: TagMatch["kind"]): string {
-  return `cm-tag-pill cm-tag-pill-${kind}`;
+  return `${tagPillClass(kind)} cm-tag-pill cm-tag-pill-${kind}`;
 }
 
 export function buildTagMatch(rawText: string, from: number, to: number): TagMatch | null {
   const tagName = parseTagName(rawText);
   if (!tagName) return null;
-  const kind: TagMatch["kind"] = WORKFLOW_TAGS.includes(tagName) ? "workflow" : "custom";
+  const kind: TagMatch["kind"] = tagKind(tagName);
 
   return {
     from,
@@ -146,7 +146,7 @@ export function collectTagMatches(doc: string, detectFrontmatter = true): TagMat
         to: tagEnd,
         text: fullTag,
         tagName,
-        kind: WORKFLOW_TAGS.includes(tagName) ? "workflow" : "custom",
+        kind: tagKind(tagName),
       });
     }
   }

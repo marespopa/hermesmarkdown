@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { HiOutlineCheck, HiOutlineClipboardCheck, HiOutlineDocumentDuplicate, HiOutlinePencil, HiOutlineSearch, HiOutlineSparkles } from "react-icons/hi";
 import Button from "@/app/components/Button";
+import { FIELD_SURFACE } from "@/app/components/Input";
 import type { ChatMessage } from "./chat-helpers";
 import type { TemplateBlock } from "./chat-skills";
 import TemplateSaveCard from "./TemplateSaveCard";
@@ -100,7 +101,7 @@ export default function ChatMessageItem({
           <textarea
             value={editDraft}
             onChange={(e) => onEditDraftChange(e.target.value)}
-            className="w-full rounded-xl border border-sage/30 bg-neutral-50 dark:bg-neutral-800/60 text-ink-light dark:text-ink-dark px-3 py-2.5 text-ui-footnote font-mono leading-relaxed resize-none outline-none focus:ring-2 focus:ring-sage/25 custom-scrollbar"
+            className={`${FIELD_SURFACE} w-full rounded-[10px] px-3 py-2.5 text-ui-footnote font-mono leading-relaxed resize-none custom-scrollbar`}
             rows={Math.min(18, Math.max(4, editDraft.split("\n").length + 1))}
             autoFocus
           />
@@ -112,29 +113,29 @@ export default function ChatMessageItem({
         {!isUser && (
           <div className="flex items-center gap-1">
             {isEditing ? (
-              <Button variant="unstyled" onClick={onCommitEdit} className={`${actionClass} font-medium text-sage hover:bg-black/[0.05] dark:hover:bg-white/[0.08]`}>
+              <Button variant="unstyled" onClick={onCommitEdit} className={`${actionClass} font-medium text-sage hover:bg-fill`}>
                 <HiOutlineCheck size={13} /> Done
               </Button>
             ) : (
               <Button variant="unstyled" onClick={onStartEdit} title="Edit response"
-                className={`${actionClass} text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800`}>
+                className={`${actionClass} text-fg-faint hover:text-fg hover:bg-fill`}>
                 <HiOutlinePencil size={13} /> Edit
               </Button>
             )}
             <Button variant="unstyled" onClick={copyMarkdown} title="Copy response as Markdown"
-              className={`${actionClass} text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800`}>
+              className={`${actionClass} text-fg-faint hover:text-fg hover:bg-fill`}>
               {copied ? <HiOutlineCheck size={13} /> : <HiOutlineDocumentDuplicate size={13} />}
               {copied ? "Copied" : "Copy"}
             </Button>
-            <span className="text-neutral-200 dark:text-neutral-700 select-none">·</span>
+            <span className="text-fg-faint select-none">·</span>
             <Button variant="unstyled" onClick={() => onApply("insert")}
               title={hasSelection ? "Replace the selected text" : "Insert at cursor position"}
-              className={`${actionClass} font-medium text-sage hover:bg-black/[0.05] dark:hover:bg-white/[0.08]`}>
+              className={`${actionClass} font-medium text-sage hover:bg-fill`}>
               <HiOutlineClipboardCheck size={13} />
               {hasSelection ? "Replace selection" : "Insert at cursor"}
             </Button>
             <Button variant="unstyled" onClick={() => onApply("replace-all")} title="Replace entire document"
-              className={`${actionClass} font-medium text-neutral-500 dark:text-neutral-400 hover:text-fg hover:bg-black/[0.05] dark:hover:bg-white/[0.08]`}>
+              className={`${actionClass} font-medium text-fg-muted hover:text-fg hover:bg-fill`}>
               Replace all
             </Button>
           </div>

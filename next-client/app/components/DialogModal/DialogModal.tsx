@@ -41,7 +41,7 @@ const DialogModal = ({
       onConfirm={onConfirm}
       variant="modal"
       backdrop="dim"
-      backdropClassName="animate-in fade-in duration-300"
+      backdropClassName="animate-in fade-in duration-overlay-backdrop motion-reduce:animate-none"
       ariaLabelledBy={ariaLabelledBy}
       ariaDescribedBy={ariaDescribedBy}
       panelStyle={keyboardInset > 0 ? { maxHeight: `calc(100dvh - ${keyboardInset}px - 2rem)` } : undefined}
@@ -51,7 +51,7 @@ const DialogModal = ({
         max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3rem)]
         glass-panel
         overflow-hidden flex flex-col
-        animate-in fade-in zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-500 ease-out
+        animate-in fade-in zoom-in-95 slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-overlay-panel ease-layout motion-reduce:animate-none
         ${mobileSheet
           ? "max-w-none sm:max-w-2xl my-0 rounded-t-[28px] rounded-b-none sm:rounded-xl sm:my-auto"
           : "max-w-[calc(100vw-2rem)] sm:max-w-2xl my-auto rounded-xl"

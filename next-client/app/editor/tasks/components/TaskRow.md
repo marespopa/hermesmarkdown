@@ -7,7 +7,7 @@ Description: One task on the Tasks page: a status ring ([`TaskStatusButton`](Tas
 - Persistence: None. The parent writes status changes back through `useTaskWriteback`.
 
 ## Logic
-- `task` is a `DisplayTask` from `atom_visibleTasks`. When `isMasked` (the task is in a private note), the text is `MASKED_TEXT` (`aria-hidden`, with sr-only "Private task"), a `PrivateBadge` follows it, and no tag pills are shown. The status ring, navigation, due date and subtitle work as usual.
+- `task` is a `DisplayTask` from `atom_visibleTasks`. When `isMasked` (the task is in a private note), the text is `MASKED_TEXT` (`aria-hidden`, with sr-only "Private task"), a `PrivateBadge` follows it, and no tag pills are shown. Tags render as `TagPill`s. The status ring, navigation, due date and subtitle work as usual.
 
 ## Dependencies
 - Core: `Button`, `PrivateBadge`, `TaskStatusButton`, `useTaskSwipe`, `task-views` (`workDateLabel`, `localISODate`), `app/utils/task-status`.

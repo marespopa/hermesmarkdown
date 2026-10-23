@@ -73,7 +73,7 @@ export default function BlockTypeMenu({ view, keepFocus, opensUp = false }: Bloc
         aria-haspopup="menu"
         aria-expanded={open}
         title="Turn into"
-        className="flex h-7 items-center gap-1 rounded-lg pl-2.5 pr-2 text-ui-footnote font-medium text-fg hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-colors"
+        className="flex h-7 items-center gap-1 rounded-lg pl-2.5 pr-2 text-ui-footnote font-medium text-fg hover:bg-fill transition-colors"
       >
         {TRIGGER_LABEL[current]}
         <HiChevronDown size={12} className="text-fg-muted" />

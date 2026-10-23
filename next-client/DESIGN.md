@@ -25,7 +25,9 @@ These change between light and dark mode. Always prefer these over static colors
 | `bg-surface-raised` | `--surface-raised` | `#F2F1EE` | `#2A2622` | Elevated cards, panels |
 | `bg-chrome` | `--chrome` | `#F0EFEC` | `#181614` | Tab bar, file indicator, palette footer |
 | `bg-overlay` | `--overlay` | `#FCFAF6` | `#2A2622` | Modals, popovers, command palette — never the page color: lighter in light themes, the raised gray in dark ones |
-| `bg-input-bg` | `--input-bg` | `#FFFFFF` | `#1C1A17` | Form inputs (`Input`, `Textarea`, select) — white in light themes |
+| `bg-input-bg` | `--input-bg` | `#FFFFFF` | `#1C1A17` | A select's option list. Fields themselves take `bg-fill` (see Controls) |
+| `bg-fill` | `--fill` | `--fg` at 7% | `--fg` at 11% | The gray control fill: gray buttons, fields, segmented tracks, tags, the round close button, hover on plain controls |
+| `bg-fill-hover` / `bg-fill-press` | `--fill-hover` / `--fill-press` | +4% / +8% | +4% / +8% | The next steps of the fill: hover and press on filled controls, a switch's off track |
 | `border-edge` | `--border` | `#DEDCD7` | `#3D3833` | Visible borders |
 | `border-edge-subtle` | `--border-subtle` | `rgba(60,56,50,0.10)` | `rgba(214,207,198,0.10)` | Hairline / ghost borders |
 | `text-fg` | `--fg` | `#2A2825` | `#ECE7E0` | Primary text |
@@ -155,6 +157,31 @@ Add it directly to `tailwind.config.js` under the relevant group. Document wheth
 
 ---
 
+## Controls
+
+Buttons, fields, segmented controls, switches and tags follow iOS: filled, borderless and flat. Use the shared components and classes; don't hand-style a control that one of them covers.
+
+| Control | Use | Look |
+|---|---|---|
+| Button `primary` / `hero` | The main action | Ink fill, page-colour label; 44px (hero 48px), 12px radius |
+| Button `secondary` | Other actions beside it | Gray fill (`bg-fill`), ink label; 44px, 12px radius |
+| Button `warning` | Destructive actions | `--danger` fill; 44px, 12px radius |
+| Button `tertiary` | Plain text actions | No fill until hover; 44px |
+| Button `outlined` | The quieter of two actions (Cancel), example chips | Gray fill, muted label; 44px, 12px radius |
+| Button `small` / `icon-small` | Row, header and popover actions | No fill until hover; 32px text / 28px square, 8px radius |
+| Button `icon` / `close` | Round icon buttons / the sheet's × | Round; `close` sits on the gray fill |
+| Button `segment` on `SEGMENT_TRACK_CLASS` | One-of-several choices | Gray track (9px radius); the selected segment raised on `bg-overlay` with a shadow |
+| `FIELD_CLASS` / `FIELD_COMPACT_CLASS` / `FIELD_SURFACE` (`Input`) | Every text field and select | Gray fill, no border, 10px radius (8px compact), a soft accent ring on focus; 44px / 32px / own size |
+| `Toggle` | On/off settings | iOS switch: accent on, `bg-fill-press` off, white knob |
+| `TagPill` | Every tag | Capsule, tinted fill, no border |
+
+- Hover and press deepen a fill one step (`fill` → `fill-hover` → `fill-press`; ink and danger mix toward the page). Nothing lifts or scales.
+- Touch screens get 44px hit areas; small controls grow their hit area without changing their footprint.
+- Radii: 12px buttons, 10px fields, 8px small controls, compact fields and menu rows, round for icon buttons, the close button, switches and tags.
+- `Button` doesn't merge classes, so a `className` that sets the same property as the variant (height, text colour) may not win. A control that really needs another size or colour stays `unstyled`, built from the same tokens.
+
+---
+
 ## Typography Scale
 
 Defined in `tailwind.config.js` as custom `fontSize` entries. Sizes and line heights follow Apple's HIG text styles (iOS Dynamic Type "Large" defaults); tracking tightens as the size grows (first tuned for Inter, kept for Plus Jakarta Sans).
@@ -189,11 +216,11 @@ The editor font is user-selectable (Settings → Typography) from `app/editor/se
 
 ## Motion
 
-Layout motion uses one timing: `--layout-duration` (150ms) on `--ease-layout` (`cubic-bezier(0.4, 0, 0.2, 1)`, ease-in-out), as Tailwind `duration-layout ease-layout`. That covers the sidebar sliding (`WorkspaceSidebar`), the content it pushes (the editor page and `ShellPage`), the editor sheet's width and margins (`MarkdownEditor`, `.editor-canvas`) and the pane. Overlay sheets and drawers slide in `duration-overlay-panel` (150ms) over a `duration-overlay-backdrop` fade (150ms). Colour changes on hover stay at 150ms. Anything that moves layout also takes `motion-reduce:transition-none`.
+Layout motion uses one timing: `--layout-duration` (150ms) on `--ease-layout` (`cubic-bezier(0.4, 0, 0.2, 1)`, ease-in-out), as Tailwind `duration-layout ease-layout`. That covers the library sliding (`WorkspaceSidebar`), the content it pushes (the editor page and `ShellPage`), the editor sheet's width and margins (`MarkdownEditor`, `.editor-canvas`) and the pane. Overlay sheets, drawers and dialogs slide in `duration-overlay-panel` over a `duration-overlay-backdrop` fade; both resolve to `--layout-duration`, on `ease-layout`. Colour changes on hover stay at 150ms. Anything that moves layout also takes `motion-reduce:transition-none`.
 
 ## Counts
 
-Every count (tags, task groups, the Tasks header and tabs, the word count) is a `CountBadge` (`app/components/CountBadge`): `text-ui-caption`, tabular figures, `text-fg-faint`, thousands separators (`1,204`). A count floating over content uses its `floating` variant, a flat raised chip (no glass). Inline tags keep the editor's `.cm-tag-pill` look, which the frontmatter row's chips reuse.
+Every count (tags, task groups, the Tasks header and tabs, the word count) is a `CountBadge` (`app/components/CountBadge`): `text-ui-caption`, tabular figures, `text-fg-faint`, thousands separators (`1,204`). A count floating over content uses its `floating` variant, a flat raised chip (no glass). Counts inside a sentence use `formatCount`. Every tag chip (editor, frontmatter, Tasks rows, search chips, palette `#` results) is a `TagPill` (`app/components/TagPill`), the editor's pill look.
 
 ## Dark Mode
 

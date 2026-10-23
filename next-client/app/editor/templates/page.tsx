@@ -13,7 +13,7 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { BUILTIN_PACKS, packTemplatesInVault, type BuiltinPack } from "@/app/utils/templates/template-packs";
 import { groupTemplatePacks, type TemplateEntry, type TemplatePack } from "@/app/utils/templates/template-registry";
 import BuiltinPackCard from "./components/BuiltinPackCard";
-import PackSection, { SMALL_BUTTON_CLASS } from "./components/PackSection";
+import PackSection from "./components/PackSection";
 import ShellPage from "../components/ShellPage";
 import { editorFileHref } from "../utils/editor-url";
 
@@ -67,10 +67,10 @@ export default function TemplatesPage() {
             </div>
             {vaultHandle && (
               <div className="flex items-center">
-                <Button variant="unstyled" onClick={() => void newTemplate()} className={SMALL_BUTTON_CLASS}>
+                <Button variant="small" onClick={() => void newTemplate()}>
                   <HiOutlinePlus size={14} aria-hidden /> New template
                 </Button>
-                <Button variant="unstyled" onClick={() => void createPack()} className={SMALL_BUTTON_CLASS}>
+                <Button variant="small" onClick={() => void createPack()}>
                   <HiOutlineFolderAdd size={14} aria-hidden /> New pack
                 </Button>
               </div>

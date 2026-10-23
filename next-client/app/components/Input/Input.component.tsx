@@ -4,6 +4,7 @@ import React, { forwardRef, useRef, useState } from "react";
 import { FaTimes } from "react-icons/fa";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import Button from "@/app/components/Button/Button.component";
+import { FIELD_CLASS } from "./field-styles";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
@@ -79,20 +80,13 @@ const Input = forwardRef<HTMLInputElement, Props>(
       }, debounceMs);
     };
 
-    const baseStyles =
-      "w-full px-4 py-2.5 text-ui-subhead font-sans transition-all duration-150 ease-in-out border rounded-xl outline-none focus-visible:outline-none [color-scheme:light] dark:[color-scheme:dark]";
-
-    const variantStyles =
-      "bg-input-bg border-beige text-ink-light placeholder:text-stone " +
-      "dark:bg-paper-dark-surface/50 dark:border-clay dark:text-ink-dark dark:placeholder:text-stone " +
-      "focus:ring-2 focus:ring-sage/15 dark:focus:ring-sage/20";
 
     return (
       <div className={`flex flex-col gap-1.5 my-2 w-full ${className}`}>
         {label && (
           <label
             htmlFor={name}
-            className="text-ui-footnote font-medium text-ink-muted dark:text-stone px-0.5"
+            className="text-ui-footnote font-medium text-fg-muted px-0.5"
           >
             {label}
           </label>
@@ -117,7 +111,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             max={validation?.max}
             ref={ref}
             autoComplete={autoComplete}
-            className={`${baseStyles} ${variantStyles} ${inputClassName} select-text`}
+            className={`${FIELD_CLASS} w-full ${isPassword || onClear ? "pr-10" : ""} ${inputClassName} select-text`}
             aria-label={label || name}
             autoFocus={autoFocus}
             {...rest}
@@ -129,7 +123,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
                 <Button
                   variant="unstyled"
                   onClick={() => setIsPasswordVisible((v) => !v)}
-                  className="text-stone hover:text-ink-light dark:hover:text-ink-dark p-1.5 transition-colors rounded-full hover:bg-beige/50 dark:hover:bg-clay/50"
+                  className="text-fg-faint hover:text-fg p-1.5 transition-colors rounded-full hover:bg-fill-hover"
                   tabIndex={-1}
                   aria-label={isPasswordVisible ? "Hide value" : "Show value"}
                 >
@@ -140,7 +134,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
                 <Button
                   variant="unstyled"
                   onClick={onClear}
-                  className="text-stone hover:text-ink-light dark:hover:text-ink-dark p-1.5 transition-colors rounded-full hover:bg-beige/50 dark:hover:bg-clay/50"
+                  className="text-fg-faint hover:text-fg p-1.5 transition-colors rounded-full hover:bg-fill-hover"
                   tabIndex={-1}
                   aria-label="Clear"
                 >
@@ -152,7 +146,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
         </div>
 
         {helperText && (
-          <p className="text-ui-caption text-stone px-0.5">
+          <p className="text-ui-caption text-fg-faint px-0.5">
             {helperText}
           </p>
         )}

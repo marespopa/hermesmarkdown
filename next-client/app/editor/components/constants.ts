@@ -3,13 +3,6 @@ export const SUBTLE =
 // Document lifecycle states — mirrors the `status:` frontmatter field so inline tags
 // carry the same semantic weight as structured metadata.
 export const WORKFLOW_TAGS = ["draft", "review", "active", "archived"];
-// The palette's own status colours, so they follow the theme.
-export const TAG_COLORS: Record<string, string> = {
-  draft:    "text-task-hold",
-  review:   "text-sage",
-  active:   "text-task-done",
-  archived: "text-fg-faint",
-};
 
 // Emoji shortcodes by name: `{fire}` expands to 🔥 (SHORTCODES), and typing
 // `{` offers them as a menu (codemirror/emoji-completion.ts).
