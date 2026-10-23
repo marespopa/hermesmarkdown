@@ -7,6 +7,7 @@ import { HiChevronRight, HiOutlineArrowLeft, HiOutlineDatabase, HiOutlineDocumen
 import { TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import Button from "@/app/components/Button";
 import BareInput from "@/app/components/Input/BareInput";
+import Tooltip from "@/app/components/Tooltip";
 import { FIELD_COMPACT_CLASS } from "@/app/components/Input/field-styles";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import { useVaultMenuItems } from "../hooks/use-vault-menu-items";
@@ -272,16 +273,17 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
         </Button>
         <span className="min-w-0 flex-1 truncate text-ui-footnote font-medium text-fg-muted" title={dir || rootName}>{name}</span>
         {createButtons.map((action) => (
-          <Button
-            key={action.id}
-            variant="icon-small"
-            onClick={action.onSelect}
-            aria-label={action.label}
-            aria-pressed={creating === action.id}
-            title={`${action.label} in ${name}`}
-          >
-            {action.icon}
-          </Button>
+          // Portaled: the panel is a fixed layer of its own.
+          <Tooltip key={action.id} label={`${action.label} in ${name}`} position="bottom-end" portal>
+            <Button
+              variant="icon-small"
+              onClick={action.onSelect}
+              aria-label={action.label}
+              aria-pressed={creating === action.id}
+            >
+              {action.icon}
+            </Button>
+          </Tooltip>
         ))}
       </div>
       <BareInput
