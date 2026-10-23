@@ -2,7 +2,7 @@ import { syntaxTree } from "@codemirror/language";
 import { EditorState, type Range } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate, WidgetType } from "@codemirror/view";
 import type { SyntaxNode } from "@lezer/common";
-import { frontmatterFoldRangeOf } from "./frontmatter-fold";
+import { frontmatterRangeOf } from "./frontmatter-block";
 import { liveMarkersTheme } from "./live-markers-theme";
 import { taskStatusFromChar, type TaskStatus } from "@/app/utils/task-status";
 import { cycleTaskBox } from "./live-markers-widgets";
@@ -147,7 +147,7 @@ export function buildLiveMarkerDecorations(
   const ranges: Range<Decoration>[] = [];
   const { doc } = state;
   // Frontmatter's closing `---` parses as a setext underline; leave it alone.
-  const frontmatterEnd = frontmatterFoldRangeOf(doc)?.closeTo ?? -1;
+  const frontmatterEnd = frontmatterRangeOf(doc)?.closeTo ?? -1;
   // Each quoted line's margin run: its `>`s, then a heading's `#`s if any.
   const quoteMargins = new Map<number, { from: number; to: number }>();
   const calloutLines = new Set<number>();

@@ -32,8 +32,8 @@ import { useCodeMirrorCodeLanguagePicker } from "../hooks/use-codemirror-code-la
 import { useCodeMirrorCalloutType } from "../hooks/use-codemirror-callout-type";
 import { useCodeMirrorImage } from "../hooks/use-codemirror-image";
 import { useCodeMirrorCalloutFold } from "../hooks/use-codemirror-callout-fold";
-import { useCodeMirrorFrontmatterFold } from "../hooks/use-codemirror-frontmatter-fold";
-import { insertOrRevealFrontmatter } from "../codemirror/frontmatter-fold";
+import { useCodeMirrorHeadingFold } from "../hooks/use-codemirror-heading-fold";
+import { insertOrRevealFrontmatter } from "../codemirror/frontmatter-block";
 import { useEditorPasteHandlers } from "../hooks/use-editor-paste-handlers";
 import { useScrollToPendingTarget } from "../hooks/use-scroll-to-pending-target";
 import { openImageDialog } from "../utils/open-helper-dialogs";
@@ -191,7 +191,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const { chevrons, toggle: toggleCalloutFold, onCursorActivity: onFoldCursorActivity, onViewCreated } =
     useCodeMirrorCalloutFold({ containerRef });
-  const { onViewCreated: onFrontmatterFoldViewCreated } = useCodeMirrorFrontmatterFold();
+  const { onViewCreated: onHeadingFoldViewCreated, onCursorActivity: onHeadingFoldCursorActivity } =
+    useCodeMirrorHeadingFold(filePath);
 
   const registerActiveView = useActiveEditorView(viewRef, {
     isActivePane: props.isActivePane !== false,
@@ -199,10 +200,10 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const handleViewCreated = useCallback((view: EditorView) => {
     onViewCreated(view);
-    onFrontmatterFoldViewCreated(view);
+    onHeadingFoldViewCreated(view);
     setEditorView(view);
     registerActiveView(view);
-  }, [onFrontmatterFoldViewCreated, onViewCreated, registerActiveView]);
+  }, [onHeadingFoldViewCreated, onViewCreated, registerActiveView]);
 
   const onCombinedCursorActivity = useCallback((view: EditorView) => {
     onCursorActivity(view);
@@ -210,7 +211,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onCodeLanguagePickerCursorActivity(view);
     onImageCursorActivity(view);
     onFoldCursorActivity(view);
-  }, [onCursorActivity, onTableCursorActivity,onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity]);
+    onHeadingFoldCursorActivity(view);
+  }, [onCursorActivity, onTableCursorActivity,onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity, onHeadingFoldCursorActivity]);
 
   // Fold chevrons follow scrolling: callouts get one as they're rendered.
   const onViewportChange = useCallback((view: EditorView) => {
@@ -263,8 +265,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         // A page's margins: room above the first line as on a sheet of
         // paper, and room below the last so it can be written in the middle
         // of the window rather than at its bottom edge. The top is never less
-        // than the pane title's room (--pane-top-room), so the first line, a
-        // Properties row included, starts below the title.
+        // than the pane title's room (--pane-top-room), so the first line, the
+        // frontmatter's included, starts below the title.
         className={`editor-sheet editor-container relative min-h-full antialiased normal-nums [font-variant-ligatures:none] [font-feature-settings:'liga'_0,'calt'_0]
           transition-[padding,max-width] duration-layout ease-layout motion-reduce:transition-none
           [--sheet-pad-top:2rem] pb-[40vh] sm:[--sheet-pad-top:3rem]

@@ -59,6 +59,8 @@ function getShortcutGroups(): ShortcutGroup[] {
         { label: "Insert a table", keys: formatShortcut("I", { shift: true }) },
         { label: "Emoji menu", keys: "{ or :name" },
         { label: "Find and replace in note", keys: formatShortcut("F") },
+        { label: "Fold / unfold current section", keys: formatShortcut(".", { shift: true }) },
+        { label: "Unfold all sections", keys: formatShortcut(",", { shift: true }) },
         { label: "Add next match to the selection", keys: formatShortcut("D") },
         { label: "Select all matches", keys: formatShortcut("L", { shift: true }) },
         { label: "Add a cursor", keys: `${mod}Click` },

@@ -172,7 +172,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         // Once scrolled, text goes under a solid band the height of the top
         // room, then fades out over a short gradient, so it never runs into
         // the title. At the top there's none, so nothing at the start of the
-        // note (the Properties panel) is covered.
+        // note (the frontmatter panel) is covered.
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col">
           <div style={{ height: PANE_TOP_ROOM }} className="bg-surface" />
           <div className="h-4 bg-gradient-to-b from-surface to-transparent" />

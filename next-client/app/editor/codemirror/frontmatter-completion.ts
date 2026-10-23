@@ -2,7 +2,7 @@ import { startCompletion, type Completion, type CompletionContext, type Completi
 import { EditorSelection, type EditorState } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import type { FrontmatterVocabulary } from "@/app/editor/utils/frontmatter-vocabulary";
-import { frontmatterFoldRangeOf } from "./frontmatter-fold";
+import { frontmatterRangeOf } from "./frontmatter-block";
 
 // The frontmatter's completion menu, as you type inside the `---` block:
 // - a key at the start of a line (`ti` → `title: `), the common keys and the
@@ -21,7 +21,7 @@ const LIST_KEYS = new Set(["tags", "aliases"]);
 
 // Whether `pos` is on a line between the frontmatter's opening and closing `---`.
 function inFrontmatterBody(state: EditorState, pos: number): boolean {
-  const range = frontmatterFoldRangeOf(state.doc);
+  const range = frontmatterRangeOf(state.doc);
   if (!range) return false;
   const line = state.doc.lineAt(pos).number;
   return line > 1 && line < state.doc.lineAt(range.closeTo).number;
@@ -41,7 +41,7 @@ function parentKey(state: EditorState, lineNumber: number): string | null {
 // The keys already in the block, other than on the caret's line.
 function presentKeys(state: EditorState, caretLine: number): Set<string> {
   const keys = new Set<string>();
-  const range = frontmatterFoldRangeOf(state.doc);
+  const range = frontmatterRangeOf(state.doc);
   if (!range) return keys;
   const last = state.doc.lineAt(range.closeTo).number;
   for (let n = 2; n < last; n++) {

@@ -32,7 +32,7 @@ export const baseTheme = EditorView.theme({
   ".cm-line": {
     padding: 0,
   },
-  // Properties keep a visible tint at rest, so the block always reads as a
+  // Frontmatter keeps a visible tint at rest, so the block always reads as a
   // panel; hover/focus deepens it and lifts the text colour.
   ".cm-frontmatter-line": {
     backgroundColor: "var(--frontmatter-bg-hover)",
@@ -165,76 +165,77 @@ export const baseTheme = EditorView.theme({
     border: "none",
     color: "transparent",
   },
-  // The frontmatter's header row: always tinted, deeper and with stronger
-  // text on hover. Collapsed it is the whole block ("▸ Properties · title, tags")
-  // above the first content line: a small label, not a block, so it sits
-  // close to the text below.
-  // Expanded ("▾ Properties") it is the top row of the YAML's panel: same
-  // tint and inset, the panel's top corners, and the first YAML line's
-  // corners squared off to join it.
-  // Both take the same top and side padding, so the Properties button
-  // stays in place when the block expands or collapses.
-  ".cm-frontmatterCollapsed": {
-    padding: "0.3rem 0.55rem 0.5em",
-  },
-  ".cm-frontmatterHeader": {
-    backgroundColor: "var(--frontmatter-bg-hover)",
-    borderRadius: "0.55rem 0.55rem 0 0",
-    padding: "0.3rem 0.55rem 0",
-  },
-  ".cm-frontmatterHeader + .cm-frontmatter-line.cm-frontmatter-start": {
-    borderRadius: "0",
-  },
-  ".cm-frontmatterHeader .cm-frontmatter-summary-chevron": {
-    transform: "rotate(90deg)",
-  },
-  ".cm-frontmatter-summary": {
+  // A heading's fold chevron (heading-fold.ts) hangs in the leading margin
+  // where its `#`s do, out of the text flow, one line of the heading tall.
+  // It shows while the pointer is over the heading and stays while folded;
+  // on the caret's lines the `#`s take that spot, so it steps aside.
+  ".cm-headingFold": {
+    position: "absolute",
     display: "inline-flex",
     alignItems: "center",
-    gap: "0.35em",
-    maxWidth: "100%",
-    height: "28px",
-    padding: "0 0.5em 0 0.25em",
-    marginLeft: "-0.25em",
+    justifyContent: "center",
+    height: "1lh",
+    padding: "0",
     border: "none",
-    borderRadius: "6px",
-    backgroundColor: "var(--frontmatter-bg-hover)",
-    color: "var(--fg-muted)",
-    font: "inherit",
-    lineHeight: "1",
-    whiteSpace: "nowrap",
+    background: "none",
+    color: "var(--fg-faint)",
     cursor: "pointer",
-    transition: "color 150ms, background-color 150ms",
+    opacity: "0",
+    transform: "translateX(calc(-100% - 0.35rem))",
+    transition: "opacity 150ms ease, color 150ms ease",
   },
-  ".cm-frontmatter-summary:hover, .cm-frontmatter-summary:focus-visible": {
-    color: "var(--fg)",
-    backgroundColor: "var(--frontmatter-bg-active)",
-  },
-  ".cm-frontmatter-summary:focus-visible": {
-    outline: "1px solid var(--moss)",
-  },
-  ".cm-frontmatter-summary-chevron": {
+  ".cm-headingFold svg": {
     width: "14px",
     height: "14px",
-    flexShrink: "0",
+    transform: "rotate(90deg)",
+    transition: "transform 150ms ease",
   },
-  ".cm-frontmatter-summary-keys": {
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    opacity: "0.8",
-  },
-  // The note's title in the collapsed row, by value: ink, not the row's grey.
-  ".cm-frontmatter-summary-keys .cm-frontmatter-title": {
-    color: "var(--fg)",
-    fontWeight: "500",
-  },
-  // Status and tag values in the collapsed row (frontmatter-fold.ts): tag
-  // pills sized to the row; a click goes to the row, which expands.
-  ".cm-frontmatter-summary-keys .cm-frontmatter-chip": {
-    padding: "0.05em 0.45em",
-    margin: "0 0 0 0.35em",
-    cursor: "inherit",
+  ".cm-headingFold[aria-expanded=false] svg": {
     transform: "none",
+  },
+  ".cm-line:hover .cm-headingFold, .cm-headingFold:focus-visible, .cm-headingFold[aria-expanded=false]": {
+    opacity: "1",
+  },
+  ".cm-headingFold:hover": {
+    color: "var(--fg)",
+  },
+  ".cm-line:not(.cm-marginMarksHidden) .cm-headingFold:not(.cm-frontmatterFold)": {
+    visibility: "hidden",
+  },
+  // The frontmatter's, by its opening `---`, just outside the panel (past
+  // the line's 0.55rem inset border).
+  ".cm-frontmatterFold": {
+    transform: "translateX(calc(-100% - 0.9rem))",
+  },
+  // No hover on touch screens: the chevrons stay faintly in view.
+  "@media (hover: none)": {
+    ".cm-headingFold": { opacity: "0.6" },
+  },
+  // After a folded heading: a quiet `…` that unfolds it.
+  ".cm-headingFoldPlaceholder": {
+    marginLeft: "0.4em",
+    padding: "0 0.35em",
+    borderRadius: "4px",
+    fontWeight: "400",
+    color: "var(--fg-faint)",
+    backgroundColor: "var(--frontmatter-bg-hover)",
+    cursor: "pointer",
+  },
+  // Folded frontmatter: one line on its panel naming it, then its title and
+  // tags a step stronger.
+  ".cm-frontmatterFoldPlaceholder": {
+    color: "var(--fg-faint)",
+    cursor: "pointer",
+  },
+  ".cm-frontmatterFoldValue": {
+    color: "var(--fg-muted)",
+  },
+  ".cm-frontmatterFoldPlaceholder:hover, .cm-frontmatterFoldPlaceholder:hover .cm-frontmatterFoldValue": {
+    color: "var(--fg)",
+  },
+  ".cm-headingFoldPlaceholder:hover": {
+    color: "var(--fg)",
+    backgroundColor: "var(--frontmatter-bg-active)",
   },
   // The pill look (fill, colour, size) lives in components/TagPill.
   // Laid out as text, like the chip being edited (live-markers-theme.ts): an

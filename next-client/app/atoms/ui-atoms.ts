@@ -223,14 +223,10 @@ export const atom_userName = atomWithStorage<string>("userName", "");
 // "Not Now" on the FolderPrompt: it shrinks to a "Not saved to a folder"
 // mark for the rest of the visit. In memory, so the next visit asks again.
 export const atom_folderPromptDismissed = atom<boolean>(false);
-
-// How notes open: the last collapse or expand clicked on any note's
-// Properties row (no setting of its own). Same storage key as the old
-// "Collapse Frontmatter" setting, so that choice carries over.
-export const atom_frontmatterCollapsedByDefault = atomWithStorage<boolean>(
-  "frontmatterCollapsedByDefault",
-  false,
-);
+// Folded heading sections per note path, by heading line (heading-fold.ts),
+// so a note reopened later in the visit folds the same headings. In memory:
+// a new visit opens every note unfolded.
+export const atom_headingFolds = atom<Record<string, string[]>>({});
 
 export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   "frontmatterHasPrompted",

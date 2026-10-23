@@ -4,7 +4,7 @@ import { history } from "@codemirror/commands";
 import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterAll, test } from "vitest";
-import { frontmatterCollapse } from "./frontmatter-fold";
+import { frontmatterSpacer } from "./frontmatter-block";
 import { computeMarkdownDecorations, markdownHighlightPlugin, type ScanCheckpoint } from "./highlight";
 import { linkDisplayPlugin } from "./link-display";
 import { buildLiveMarkerDecorations, liveMarkers } from "./live-markers";
@@ -66,7 +66,7 @@ function makeNote(lines: number): string {
 const extensions = [
   history(),
   markdown({ base: markdownLanguage }),
-  frontmatterCollapse,
+  frontmatterSpacer,
   markdownHighlightPlugin,
   tagPillPlugin,
   linkDisplayPlugin,

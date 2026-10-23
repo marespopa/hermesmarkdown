@@ -100,26 +100,25 @@ export const editorWorkspaceItems: Subsection[] = [
     id: "frontmatter",
     title: "Frontmatter",
     lead: "The YAML block at the top of a file — edited as plain text, with a shortcut to add one.",
-    keywords: "yaml frontmatter metadata title tags collapse fold",
+    keywords: "yaml frontmatter metadata title tags properties collapse fold",
     body: (
       <>
         <p>
           Type <code>/frontmatter</code> to insert a starter block with <code>title</code> and{" "}
           <code>tags</code> and put the cursor on the title. If the file already has frontmatter,
-          the same command unfolds it and jumps to it instead.
+          the same command jumps to its title instead.
         </p>
         <Code>{`---
 title:
 tags: []
 ---`}</Code>
         <p>
-          The editor gives frontmatter a subtle background. Collapsed, it shrinks to one quiet{" "}
-          <strong>Properties</strong> row at the top of the note. It shows only the <code>title</code> and the first
-          few <code>tags</code> as chips (for example <em>Properties · Release plan · #work #ideas</em>); other keys
-          stay hidden until you expand it. Click the row, or press the up arrow from the
-          first line, to expand it; the same row, now the top of the frontmatter panel, collapses it again.
-          Clicking the row changes the note in front of you and is
-          remembered: notes you open next start the same way.
+          The editor shows frontmatter exactly as typed, on a subtle tinted panel. Hover it for a
+          chevron in the margin by the opening <code>---</code>: it folds the whole block into one
+          line showing its <code>title</code> and first few <code>tags</code> (for example{" "}
+          <em>Frontmatter · Release plan · #work #ideas</em>); click that line to unfold it. With the caret inside,
+          Ctrl/Cmd+Shift+. folds or unfolds it too. The note keeps it folded while you switch away
+          and back during the visit.
         </p>
         <p>
           Typing inside the frontmatter offers what your vault already uses: keys at the start of a

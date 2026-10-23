@@ -171,6 +171,7 @@ export const editorWritingItems: Subsection[] = [
             { label: "> [!note] Title", value: "Shown as a rounded, tinted card; the > and [!note] show on the caret's line, so edit the type in place" },
             { label: "> ## Heading, > - item, > | table |", value: "Inside a callout, headings, lists, tasks, tables, code and quotes look as they do outside it" },
             { label: "> [!note]- Title", value: "Starts collapsed when the note opens (+ starts expanded); folding with the chevron writes the sign for you" },
+            { label: "# Heading (fold)", value: "Hover a heading for a chevron in the margin: it folds everything under it up to the next heading of the same or a higher level, and a … marks the fold. Ctrl/Cmd+Shift+. folds or unfolds the caret's section, Ctrl/Cmd+Shift+, unfolds every section. Folds aren't saved in the note; a note keeps them while you switch away and back during the visit" },
             { label: "<details><summary>Title</summary> … </details>", value: "Folds like a callout: the summary stays, the body folds. Starts collapsed unless the tag says open; the chevron writes open for you" },
             { label: "```js … ```", value: "Fences stay as typed, language included" },
             { label: "#tag, 2026-10-08", value: "Stay chips while you edit them" },

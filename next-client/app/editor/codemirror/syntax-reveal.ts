@@ -2,7 +2,7 @@ import { syntaxTree } from "@codemirror/language";
 import { type EditorState, type Range } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
 import { quotedRowPrefix } from "../utils/quoted-table";
-import { frontmatterFoldRangeOf } from "./frontmatter-fold";
+import { frontmatterRangeOf } from "./frontmatter-block";
 import { headingHangsWithQuote, insideQuote } from "./live-markers";
 
 // Syntax shows where you're writing. An inline mark (emphasis, strikethrough,
@@ -73,7 +73,7 @@ export function buildSyntaxRevealDecorations(
   // Lines whose margin marks are hidden: a heading's, a quote's or callout's.
   const marginLines = new Set<number>();
   // Frontmatter's `# comments` and closing `---` aren't Markdown.
-  const frontmatterEnd = frontmatterFoldRangeOf(doc)?.closeTo ?? -1;
+  const frontmatterEnd = frontmatterRangeOf(doc)?.closeTo ?? -1;
 
   for (const visible of visibleRanges) {
     syntaxTree(state).iterate({

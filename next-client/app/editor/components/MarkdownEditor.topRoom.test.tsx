@@ -7,7 +7,7 @@ import "@testing-library/jest-dom";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 // The pane's floating title sits in the top room (`--pane-top-room`, PaneLeaf):
-// the first line, a frontmatter Properties row included, must start below it
+// the first line, the frontmatter included, must start below it
 // jsdom has no layout, so the sheet's top padding
 // is checked as the rule it is: never less than the room.
 describe("MarkdownEditor top room", () => {
