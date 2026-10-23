@@ -342,11 +342,21 @@ describe("WorkspaceSidebar", () => {
     expect(screen.queryByRole("region", { name: "Linked from" })).not.toBeInTheDocument();
   });
 
-  it("titles its header with the app's name, not a vault switcher, beside a button that hides it", () => {
+  it("titles its header with the app's name, not a vault switcher", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar();
     expect(screen.getByText("HermesMarkdown")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Switch vault/ })).not.toBeInTheDocument();
+  });
+
+  it("hides from a click on its wordmark", () => {
+    renderSidebar();
+    fireEvent.click(screen.getByRole("button", { name: "HermesMarkdown. Hide sidebar" }));
+    expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
+  });
+
+  it("hides from its Hide sidebar button", () => {
+    renderSidebar();
 
     fireEvent.click(screen.getByRole("button", { name: "Hide sidebar" }));
     expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
