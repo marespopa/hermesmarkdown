@@ -247,7 +247,8 @@ describe("computeMarkdownDecorations", () => {
       expect(title.class).toContain("cm-callout bg-indigo-500/10");
       expect(title.class).toContain("cm-callout-nested after:bg-emerald-400/10 cm-callout-nested-start");
       expect(title.style).toBe("--callout-nest: 1");
-      expect(lineOf("> > inner text").class).toContain("cm-callout-nested cm-callout-nested-end");
+      expect(lineOf("> > inner text").class).toContain("cm-callout-nested ");
+      expect(lineOf("> > inner text").class).toContain("cm-callout-nested-end");
       expect(lineOf("> back out").class).not.toContain("cm-callout-nested");
       expect(lineOf("> back out").class).toContain("cm-callout-end");
     });
