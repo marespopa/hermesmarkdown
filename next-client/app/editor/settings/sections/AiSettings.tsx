@@ -150,17 +150,17 @@ export default function AiSettings() {
                   handleChange={(e) => setKey(e.target.value.trim())}
                 />
                 {key && (
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <Button
-                      variant="tertiary"
+                      variant="secondary"
                       disabled={isTestingConnection}
                       onClick={handleTestConnection}
-                      className="h-8 px-2 text-ui-footnote sm:text-ui-footnote"
+                      className="h-8 px-4 text-ui-footnote font-medium"
                     >
                       {isTestingConnection && <HiOutlineRefresh className="animate-spin" />}
                       {isTestingConnection ? "Checking…" : "Test connection"}
                     </Button>
-                    <Button variant="tertiary" onClick={removeKey} className="h-8 px-2 text-ui-footnote sm:text-ui-footnote">
+                    <Button variant="secondary" onClick={removeKey} className="h-8 px-4 text-ui-footnote font-medium">
                       Remove key
                     </Button>
                   </div>

@@ -3,7 +3,7 @@ import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetTy
 import { frontmatterRowLabel, type FrontmatterRowSummary, frontmatterRowSummary } from "./frontmatter-summary";
 import { buildTagMatch, tagPillClassName } from "./tag-pills";
 
-export { frontmatterKeys, frontmatterRowLabel, frontmatterRowSummary, frontmatterSummary, type FrontmatterRowSummary } from "./frontmatter-summary";
+export { frontmatterRowLabel, frontmatterRowSummary, type FrontmatterRowSummary } from "./frontmatter-summary";
 
 export interface FrontmatterFoldRange {
   titleOffset: number;
@@ -96,7 +96,7 @@ function summaryChip(text: string, kindOf: string) {
 // widget, not a fold: a fold's placeholder lives inside a text line, which
 // either costs a row or merges the next content line into the frontmatter's
 // first line (and its styling). It's this one quiet row ("▸ Properties ·
-// Release plan · draft · created"); clicking it expands the block, as does moving the caret
+// Release plan · #work #ideas"); clicking it expands the block, as does moving the caret
 // into it (arrowing up from the first line). Expanded, the row ("▾
 // Properties") sits above the YAML and collapses it.
 // Fired on the editor's DOM when the Properties row is clicked (not when
@@ -132,9 +132,8 @@ class FrontmatterHeaderWidget extends WidgetType {
     label.textContent = "Properties";
     button.append(label);
     if (this.collapsed && rowLabel) {
-      // The title, chips, then the remaining key names:
-      // "· Release plan · draft #work #ideas +1 · created".
-      const { title, status, tags, moreTags, keys } = this.summary;
+      // The title, then the tags as chips: "· Release plan · #work #ideas +1".
+      const { title, tags, moreTags } = this.summary;
       const content = document.createElement("span");
       content.className = "cm-frontmatter-summary-keys";
       content.setAttribute("aria-hidden", "true");
@@ -145,12 +144,9 @@ class FrontmatterHeaderWidget extends WidgetType {
         titleText.textContent = title;
         content.append(" ", titleText);
       }
-      const hasChips = !!status || tags.length > 0;
-      if (title && hasChips) content.append(" ·");
-      if (status) content.append(summaryChip(status, status));
+      if (title && tags.length > 0) content.append(" ·");
       for (const tag of tags) content.append(summaryChip(`#${tag}`, tag));
       if (moreTags > 0) content.append(` +${moreTags}`);
-      if (keys) content.append(title || hasChips ? ` · ${keys}` : ` ${keys}`);
       button.append(content);
     }
     // mousedown, not click: CodeMirror would otherwise move the caret first.

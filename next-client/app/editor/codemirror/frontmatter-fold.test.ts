@@ -5,10 +5,8 @@ import {
   findFrontmatterFoldRange,
   frontmatterFoldRangeOf,
   frontmatterCollapse,
-  frontmatterKeys,
   frontmatterRowLabel,
   frontmatterRowSummary,
-  frontmatterSummary,
   isFrontmatterFolded,
   toggleFrontmatterFold,
 } from "./frontmatter-fold";
@@ -145,31 +143,20 @@ describe("frontmatter collapsing", () => {
 });
 
 describe("frontmatter summary", () => {
-  it("lists top-level keys, including hyphenated ones, skipping nested entries and comments", () => {
-    const doc = "---\ntitle: A\ntags:\n  - x\n# note\ndue-date: 2026-10-03\n---\nBody";
-    expect(frontmatterKeys(doc)).toEqual(["title", "tags", "due-date"]);
-  });
-
-  it("shows the first three keys, then a count of the rest", () => {
-    expect(frontmatterSummary(["title", "tags", "created", "status", "type"])).toBe("title, tags, created, +2");
-    expect(frontmatterSummary(["title"])).toBe("title");
-    expect(frontmatterSummary([])).toBe("");
-  });
-
-  it("shows the title, status and tags as values, naming only the other keys", () => {
+  it("shows only the title and tags", () => {
     const doc = "---\ntitle: \"Release plan\"\nstatus: draft\ntags: [work, \"ideas\", #x, y]\ncreated: 2026-10-09\n---\nBody";
     const summary = frontmatterRowSummary(doc);
-    expect(summary).toEqual({ title: "Release plan", status: "draft", tags: ["work", "ideas", "x"], moreTags: 1, keys: "created" });
-    expect(frontmatterRowLabel(summary)).toBe("Release plan, draft, #work, #ideas, #x, +1, created");
+    expect(summary).toEqual({ title: "Release plan", tags: ["work", "ideas", "x"], moreTags: 1 });
+    expect(frontmatterRowLabel(summary)).toBe("Release plan, #work, #ideas, #x, +1");
   });
 
-  it("reads block-list tags and keeps an empty status or tags as a key", () => {
+  it("reads block-list tags and shows nothing for an empty title or tags", () => {
     expect(frontmatterRowSummary("---\ntags:\n  - a\n  - b\n---\n")).toEqual({
-      title: null, status: null, tags: ["a", "b"], moreTags: 0, keys: "",
+      title: null, tags: ["a", "b"], moreTags: 0,
     });
-    expect(frontmatterRowSummary("---\ntitle: \ntags: []\nstatus:\n---\n")).toEqual({
-      title: null, status: null, tags: [], moreTags: 0, keys: "title, tags, status",
-    });
+    const empty = frontmatterRowSummary("---\ntitle: \ntags: []\nstatus: draft\n---\n");
+    expect(empty).toEqual({ title: null, tags: [], moreTags: 0 });
+    expect(frontmatterRowLabel(empty)).toBe("");
   });
 });
 

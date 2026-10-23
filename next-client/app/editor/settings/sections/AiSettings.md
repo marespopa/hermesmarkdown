@@ -1,6 +1,6 @@
 # AiSettings
 
-Description: The Settings → AI Features section. One group holds the **AI features** switch, off by default and worded as optional. Turned on, a **Setup** group follows: Provider (Claude or Gemini, a segmented control), the API key (with where to get one and that it stays in this browser), then, once a key is in, quiet **Test connection** / **Remove key** buttons and the Model picker (loaded from the key's account, with a refresh button and fallback list), and a note on what is sent and when. Provider-specific copy and defaults live in one `PROVIDERS` table.
+Description: The Settings → AI Features section. One group holds the **AI features** switch, off by default and worded as optional. Turned on, a **Setup** group follows: Provider (Claude or Gemini, a segmented control), the API key (with where to get one and that it stays in this browser), then, once a key is in, compact gray **Test connection** / **Remove key** buttons (filled, like the other settings actions, so they never read as plain text) and the Model picker (loaded from the key's account, with a refresh button and fallback list), and a note on what is sent and when. Provider-specific copy and defaults live in one `PROVIDERS` table.
 
 ## Logic
 - `atom_aiEnabled` (`localStorage["hermes_ai_enabled"]`): never stored reads as on when a Claude or Gemini key was saved before the switch existed, so those setups keep working; otherwise off.

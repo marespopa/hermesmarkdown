@@ -114,9 +114,9 @@ tags: []
 ---`}</Code>
         <p>
           The editor gives frontmatter a subtle background. Collapsed, it shrinks to one quiet{" "}
-          <strong>Properties</strong> row at the top of the note. The <code>title</code> shows as itself, a{" "}
-          <code>status</code> and the first few <code>tags</code> as chips, followed by the names of the other
-          keys (for example <em>Properties · Release plan · draft #work #ideas · created</em>). Click the row, or press the up arrow from the
+          <strong>Properties</strong> row at the top of the note. It shows only the <code>title</code> and the first
+          few <code>tags</code> as chips (for example <em>Properties · Release plan · #work #ideas</em>); other keys
+          stay hidden until you expand it. Click the row, or press the up arrow from the
           first line, to expand it; the same row, now the top of the frontmatter panel, collapses it again.
           Clicking the row changes the note in front of you and is
           remembered: notes you open next start the same way.

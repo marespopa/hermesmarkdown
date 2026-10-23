@@ -172,8 +172,10 @@ export const baseTheme = EditorView.theme({
   // Expanded ("▾ Properties") it is the top row of the YAML's panel: same
   // tint and inset, the panel's top corners, and the first YAML line's
   // corners squared off to join it.
+  // Both take the same top and side padding, so the Properties button
+  // stays in place when the block expands or collapses.
   ".cm-frontmatterCollapsed": {
-    paddingBottom: "0.5em",
+    padding: "0.3rem 0.55rem 0.5em",
   },
   ".cm-frontmatterHeader": {
     backgroundColor: "var(--frontmatter-bg-hover)",
