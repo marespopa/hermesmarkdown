@@ -243,6 +243,21 @@ export async function resolveParentDirectory(
   return target;
 }
 
+// Walks from the vault root to the folder at `folder` ("" = the root); null
+// when it's gone.
+export async function resolveDirectory(
+  vaultHandle: FileSystemDirectoryHandle,
+  folder: string,
+): Promise<FileSystemDirectoryHandle | null> {
+  let target = vaultHandle;
+  try {
+    for (const part of folder.split("/").filter(Boolean)) target = await target.getDirectoryHandle(part);
+  } catch {
+    return null;
+  }
+  return target;
+}
+
 export async function isSameDirectory(a: FileSystemDirectoryHandle, b: FileSystemDirectoryHandle): Promise<boolean> {
   try {
     return await (a as any).isSameEntry(b);

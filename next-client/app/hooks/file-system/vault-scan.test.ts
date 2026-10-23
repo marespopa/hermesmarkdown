@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryDirectoryHandle } from "@/app/services/memory-file-system.test-utils";
-import { collectVaultFiles, isSecretFile, listDirectoryEntries } from "./vault-scan";
+import { collectVaultFiles, isSecretFile, listDirectoryEntries, resolveDirectory } from "./vault-scan";
 
 async function makeVault() {
   const vault = new MemoryDirectoryHandle("vault");
@@ -186,5 +186,14 @@ describe("listDirectoryEntries", () => {
     await notes.getDirectoryHandle("document", { create: true });
     (other as any).resolve = async (handle: unknown) => (handle === notes ? ["notes"] : null);
     expect(names(await listDirectoryEntries(other.asHandle(), notes.asHandle(), false))).toEqual(["document"]);
+  });
+});
+
+describe("resolveDirectory", () => {
+  it("walks to a folder, the root for \"\", and null for one that's gone", async () => {
+    const vault = (await makeVault()).asHandle();
+    expect((await resolveDirectory(vault, "notes/deep"))?.name).toBe("deep");
+    expect(await resolveDirectory(vault, "")).toBe(vault);
+    expect(await resolveDirectory(vault, "notes/missing")).toBeNull();
   });
 });

@@ -7,9 +7,11 @@ import FolderPopover from "./FolderPopover";
 const handle = {} as FileSystemFileHandle;
 const file = (path: string) => ({ name: path.split("/").pop()!, path, handle, kind: "file" as const });
 
+const vault = vi.hoisted(() => ({ files: null as null | { name: string; path: string }[] }));
+const defaultFiles = [file("Inbox.md"), file("Projects/Roadmap.md"), file("Projects/Launch/Checklist.md"), file("Projects/Launch/Pricing.md")];
 vi.mock("../hooks/useVaultFileSearch", () => ({
   useVaultFileSearch: () => ({
-    allFiles: [file("Inbox.md"), file("Projects/Roadmap.md"), file("Projects/Launch/Checklist.md"), file("Projects/Launch/Pricing.md")],
+    allFiles: vault.files ?? defaultFiles,
     folderPaths: ["Projects", "Projects/Launch", "Projects/Drafts"],
   }),
 }));
@@ -75,6 +77,60 @@ describe("FolderPopover", () => {
     expect(rowNames()).toEqual(["Pricing"]);
     fireEvent.keyDown(filter, { key: "Enter" });
     expect(onOpenNote).toHaveBeenCalledWith(handle, "Projects/Launch/Pricing.md");
+  });
+
+  it("searches every folder below it, showing where each match is", () => {
+    const { onOpenNote } = renderPopover({ folder: "" });
+    fireEvent.change(screen.getByRole("textbox", { name: "Filter this folder" }), { target: { value: "pri" } });
+    expect(rowNames()).toEqual(["PricingProjects/Launch"]);
+    fireEvent.keyDown(screen.getByRole("textbox", { name: "Filter this folder" }), { key: "Enter" });
+    expect(onOpenNote).toHaveBeenCalledWith(handle, "Projects/Launch/Pricing.md");
+  });
+
+  it("names a new note in place and creates it in the folder it's on", () => {
+    const onNewNote = vi.fn();
+    const { onClose } = renderPopover({ onNewNote });
+    fireEvent.click(screen.getByRole("button", { name: "New Note" }));
+    const field = screen.getByRole("textbox", { name: "New note name" });
+    expect(field).toHaveFocus();
+    fireEvent.change(field, { target: { value: "Launch plan" } });
+    fireEvent.keyDown(field, { key: "Enter" });
+    expect(onNewNote).toHaveBeenCalledWith("Projects", "Launch plan");
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("creates a new folder in place and steps into it", async () => {
+    const onNewFolder = vi.fn().mockResolvedValue("Projects/Drafts");
+    const { onClose } = renderPopover({ onNewFolder });
+    fireEvent.click(screen.getByRole("button", { name: "New Folder" }));
+    const field = screen.getByRole("textbox", { name: "New folder name" });
+    fireEvent.change(field, { target: { value: "Drafts" } });
+    fireEvent.keyDown(field, { key: "Enter" });
+    expect(onNewFolder).toHaveBeenCalledWith("Projects", "Drafts");
+    expect(await screen.findByText("Empty folder")).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "Filter this folder" })).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("backs out of naming with Escape, keeping the popover open", () => {
+    const { onClose } = renderPopover({ onNewNote: vi.fn() });
+    fireEvent.click(screen.getByRole("button", { name: "New Note" }));
+    fireEvent.keyDown(screen.getByRole("textbox", { name: "New note name" }), { key: "Escape" });
+    expect(screen.getByRole("textbox", { name: "Filter this folder" })).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("has no New Note or New Folder without their handlers", () => {
+    renderPopover();
+    expect(screen.queryByRole("button", { name: "New Note" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "New Folder" })).not.toBeInTheDocument();
+  });
+
+  it("draws only some rows of a long folder", () => {
+    vault.files = Array.from({ length: 500 }, (_, i) => file(`Note ${String(i).padStart(3, "0")}.md`));
+    renderPopover({ folder: "" });
+    expect(screen.queryAllByRole("option").length).toBeLessThan(500);
+    vault.files = null;
   });
 
   it("moves with the arrow keys, and goes up with Backspace when nothing is typed", () => {
