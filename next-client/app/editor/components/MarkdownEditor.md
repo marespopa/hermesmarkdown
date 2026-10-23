@@ -29,6 +29,7 @@ import MarkdownEditor from "./MarkdownEditor";
 | filePath? | `string` | `"draft"` | Vault path (for image paste, scroll targets and formula refs) |
 | placeholder? | `string` | `"Type / for templates"` | Empty-state text |
 | onWikiLinkClick? | `(name: string) => void` |  | `[[link]]` navigation (`PaneLeaf` passes `openOrCreateLink`, which also creates missing notes) |
+| onFileLinkClick? | `(href: string) => void` |  | Markdown links to a vault path, `[Editor](./app/editor/README.md)` (`PaneLeaf` passes `openFileLink` with the note's path; a missing file is reported, never created). Ctrl/Cmd+click, the link pill and table cells' rendered links all reach it |
 | isActivePane? | `boolean` |  | Pane context |
 
 ## The active-view hook

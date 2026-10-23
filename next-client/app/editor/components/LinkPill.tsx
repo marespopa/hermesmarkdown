@@ -6,12 +6,13 @@ import Button from "../../components/Button";
 import Input from "../../components/Input";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import { PILL_CONTAINER_CLASSES } from "./constants";
+import type { LinkType } from "../utils/link-detection";
 
 interface LinkPillProps {
   url: string;
   label: string;
   pos: { top: number; left: number };
-  type?: "url" | "wiki";
+  type?: LinkType;
   onOpen: () => void;
   onSave: (newLabel: string, newUrl: string) => void;
   onDismiss: () => void;
@@ -54,8 +55,8 @@ export function LinkPill({
           className={PILL_CONTAINER_CLASSES}
           onMouseDown={(e) => e.preventDefault()}
         >
-          {/* A wikilink's text is just `[[Note name]]`, edited in place; only URL links get a dialog. */}
-          {type === "url" && (
+          {/* A wikilink's text is just `[[Note name]]`, edited in place; only Markdown links get a dialog. */}
+          {type !== "wiki" && (
             <Button variant="pill-icon" onClick={() => setIsEditing(true)} title="Edit link">
               <HiOutlinePencil size={16} />
             </Button>
@@ -63,7 +64,7 @@ export function LinkPill({
           <Button
             variant="pill-icon"
             onClick={onOpen}
-            title={type === "wiki" ? "Open note (Ctrl/Cmd+Shift+Enter)" : "Open link (Ctrl/Cmd+Shift+Enter)"}
+            title={type === "url" ? "Open link (Ctrl/Cmd+Shift+Enter)" : "Open note (Ctrl/Cmd+Shift+Enter)"}
           >
             <HiOutlineExternalLink size={16} />
           </Button>

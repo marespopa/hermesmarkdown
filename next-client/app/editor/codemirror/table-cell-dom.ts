@@ -1,6 +1,7 @@
 import { isMacPlatform } from "@/app/utils/platform";
 import { isFormulaCell } from "../utils/formula-engine";
 import { renderInlineMarkdown } from "../utils/inline-markdown";
+import { FILE_LINK_EVENT, isWebHref } from "../utils/open-link";
 import type { CellOffset } from "../utils/table-cell-offsets";
 import type { TableDisplayMatch } from "./table-display";
 import { CELL_ATTR, cellKey, placeCaret, type TableWidgetHandle } from "./table-focus";
@@ -30,6 +31,14 @@ export function renderCell(el: HTMLElement, raw: string, computed?: ComputedCell
     el.removeAttribute("title");
     el.innerHTML = renderInlineMarkdown(raw);
   }
+}
+
+// A rendered cell link (Ctrl/Cmd+click): a web link opens in a new tab, a
+// vault path goes up to the editor as FILE_LINK_EVENT to open there.
+export function openCellLink(link: Element) {
+  const href = link.getAttribute("href") ?? "";
+  if (isWebHref(href)) window.open(href, "_blank", "noopener,noreferrer");
+  else if (href) link.dispatchEvent(new CustomEvent(FILE_LINK_EVENT, { bubbles: true, detail: href }));
 }
 
 // The latest match each rendered grid reflects (for computed results).

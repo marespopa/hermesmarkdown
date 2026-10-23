@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { EditorView } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
-import { findLinkAtPos } from "../utils/link-detection";
+import { findLinkAtPos, type LinkType } from "../utils/link-detection";
+import { FILE_LINK_EVENT } from "../utils/open-link";
 import { findDateAtPos } from "../utils/date-detection";
 import { DateMatch } from "../types";
 
@@ -15,7 +16,7 @@ interface Pos {
 interface LinkPillState {
   url: string;
   label: string;
-  type: "url" | "wiki";
+  type: LinkType;
   pos: Pos;
   range: { start: number; end: number };
 }
@@ -27,6 +28,8 @@ interface UseCodeMirrorFeaturesOptions {
   editorView: EditorView | null;
   containerRef: React.RefObject<HTMLDivElement | null>;
   onWikiLinkClick?: (name: string) => void;
+  // A Markdown link to a vault path (`[Editor](./app/editor/README.md)`).
+  onFileLinkClick?: (href: string) => void;
 }
 
 // Links and dates sit on one line: only the line at `pos` is searched, not the
@@ -45,7 +48,7 @@ function findOnLine<T extends { start: number; end: number }>(
 // cursor-driven, not hover-driven; positions come from `view.coordsAtPos`,
 // converted to containerRef-relative coordinates for the existing
 // LinkPill/DatePickerCallout components.
-export function useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWikiLinkClick }: UseCodeMirrorFeaturesOptions) {
+export function useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWikiLinkClick, onFileLinkClick }: UseCodeMirrorFeaturesOptions) {
   const [linkPill, setLinkPill] = useState<LinkPillState | null>(null);
   const pillRangeRef = useRef<{ start: number; end: number } | null>(null);
   pillRangeRef.current = linkPill?.range ?? null;
@@ -71,7 +74,7 @@ export function useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWik
     return {
       url: link.value,
       label: link.label ?? "",
-      type: link.type as "url" | "wiki",
+      type: link.type,
       range: { start: link.start, end: link.end },
       pos: {
         top: p.top - 14 - 2,
@@ -111,7 +114,23 @@ export function useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWik
     if (debounceRef.current) clearTimeout(debounceRef.current);
   }, []);
 
-  // Ctrl/Cmd+click opens a URL link or navigates a wikilink.
+  // A web link opens in a new tab; a file link or wikilink opens its note here.
+  const openLink = useCallback((type: LinkType, value: string) => {
+    if (type === "url") window.open(value, "_blank", "noopener,noreferrer");
+    else if (type === "file") onFileLinkClick?.(value);
+    else onWikiLinkClick?.(value);
+  }, [onWikiLinkClick, onFileLinkClick]);
+
+  // The link pill's Open (and Ctrl/Cmd+Shift+Enter); false when no pill shows.
+  const openPillLink = useCallback(() => {
+    if (!linkPill) return false;
+    openLink(linkPill.type, linkPill.url);
+    setLinkPill(null);
+    return true;
+  }, [linkPill, openLink]);
+
+  // Ctrl/Cmd+click opens a link; a table cell's rendered file links arrive as
+  // FILE_LINK_EVENT (see openCellLink).
   useEffect(() => {
     const view = editorView;
     if (!view) return;
@@ -123,15 +142,16 @@ export function useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWik
       const link = findOnLine(view, pos, findLinkAtPos);
       if (!link) return;
       e.preventDefault();
-      if (link.type === "url") {
-        window.open(link.value, "_blank", "noopener,noreferrer");
-      } else if (onWikiLinkClick) {
-        onWikiLinkClick(link.value);
-      }
+      openLink(link.type, link.value);
     };
+    const handleFileLink = (e: Event) => openLink("file", (e as CustomEvent<string>).detail);
     dom.addEventListener("mousedown", handleMouseDown, true);
-    return () => dom.removeEventListener("mousedown", handleMouseDown, true);
-  }, [editorView, onWikiLinkClick]);
+    dom.addEventListener(FILE_LINK_EVENT, handleFileLink);
+    return () => {
+      dom.removeEventListener("mousedown", handleMouseDown, true);
+      dom.removeEventListener(FILE_LINK_EVENT, handleFileLink);
+    };
+  }, [editorView, openLink]);
 
   // Escape dismisses the open link/date popup.
   useEffect(() => {
@@ -189,6 +209,7 @@ export function useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWik
     pillPos: linkPill?.pos ?? { top: 0, left: 0 },
     pillType: linkPill?.type ?? null,
     dismissPill,
+    openPillLink,
     handleSaveLink,
     dateMatch, setDateMatch, isDateExpanded, setIsDateExpanded, dateMenuPos, handleDateSelect,
     onCursorActivity,

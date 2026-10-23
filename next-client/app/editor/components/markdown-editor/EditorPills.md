@@ -8,12 +8,12 @@ Description: Renders the floating helpers drawn over the editor near the caret â
 
 ## Dependencies
 - Core: `Button`, `Typeahead`, `DatePickerCallout`, `LinkPill`, `@codemirror/language-data`, `utils/open-helper-dialogs.ts`.
-- Zero-Cloud: Opening a link pill calls `window.open` after a user click; no other side effects.
+- Zero-Cloud: Opening a link pill (`features.openPillLink`) calls `window.open` for a URL after a user click, or the editor's file link / wikilink callbacks; no other side effects.
 
 ## Quick Usage
 ```tsx
 <EditorPills features={features} languagePicker={languagePicker} mermaid={mermaid} image={image}
-  containerRef={containerRef} onWikiLinkClick={openWikiLink} />
+  containerRef={containerRef} />
 ```
 
 ## Props Overview
@@ -23,4 +23,3 @@ Description: Renders the floating helpers drawn over the editor near the caret â
 | languagePicker | `ReturnType<typeof useCodeMirrorCodeLanguagePicker>` | | Language picker state |
 | mermaid / image | hook results | | Viewer button state |
 | containerRef | `RefObject<HTMLDivElement>` | | Editor container (for clamping) |
-| onWikiLinkClick? | `(name: string) => void` | | Opens a `[[wikilink]]` |

@@ -43,7 +43,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const saveStatus = useAtomValue(atom_saveStatus);
   const isMobileChrome = useIsMobileChrome();
 
-  const { openOrCreateLink, renameFile, openFile, closeVault, vaultHandle, createNewFile, createFolder } = useFileSystem();
+  const { openOrCreateLink, openFileLink, renameFile, openFile, closeVault, vaultHandle, createNewFile, createFolder } = useFileSystem();
   const dialog = useDialog();
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const vaultName = useAtomValue(atom_vaultName) ?? "Vault";
@@ -240,6 +240,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 onChange={setContent}
                 filePath={leaf.activeFilePath || "draft"}
                 onWikiLinkClick={openOrCreateLink}
+                onFileLinkClick={(href) => void openFileLink(href, leaf.activeFilePath)}
                 placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
               />
             )}

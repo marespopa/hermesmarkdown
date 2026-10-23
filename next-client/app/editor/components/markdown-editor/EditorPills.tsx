@@ -18,16 +18,15 @@ interface EditorPillsProps {
   languagePicker: ReturnType<typeof useCodeMirrorCodeLanguagePicker>;
   image: ReturnType<typeof useCodeMirrorImage>;
   containerRef: React.RefObject<HTMLDivElement | null>;
-  onWikiLinkClick?: (name: string) => void;
 }
 
 // The floating helpers drawn over the editor next to the caret: date picker,
 // link pill, the image viewer button, and the
 // code-block language picker. Positions come from the CodeMirror feature
 // hooks; this component only renders them.
-export default function EditorPills({ features, languagePicker, image, containerRef, onWikiLinkClick }: EditorPillsProps) {
+export default function EditorPills({ features, languagePicker, image, containerRef }: EditorPillsProps) {
   const {
-    pillUrl, pillLabel, pillPos, pillType, dismissPill, handleSaveLink,
+    pillUrl, pillLabel, pillPos, pillType, dismissPill, openPillLink, handleSaveLink,
     dateMatch, isDateExpanded, setIsDateExpanded, dateMenuPos, handleDateSelect,
   } = features;
   const { languagePickerInfo, pickerPos, query, pickerRef, changeQuery, selectLanguage, deactivate } = languagePicker;
@@ -69,14 +68,7 @@ export default function EditorPills({ features, languagePicker, image, container
           label={pillLabel}
           pos={pillPos}
           type={pillType || "url"}
-          onOpen={() => {
-            if (pillType === "wiki") {
-              onWikiLinkClick?.(pillUrl);
-            } else {
-              window.open(pillUrl, "_blank", "noopener,noreferrer");
-            }
-            dismissPill();
-          }}
+          onOpen={openPillLink}
           onSave={handleSaveLink}
           onDismiss={dismissPill}
         />

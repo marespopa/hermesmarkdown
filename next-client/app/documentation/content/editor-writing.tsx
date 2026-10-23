@@ -401,7 +401,7 @@ graph TD
     id: "links",
     title: "Links",
     lead: "Insert a link from the slash menu; a pasted URL stays as you pasted it.",
-    keywords: "link url hyperlink paste title pill edit",
+    keywords: "link url hyperlink paste title pill edit relative path file readme",
     body: (
       <>
         <p>
@@ -417,6 +417,13 @@ graph TD
           While you edit a link&apos;s text, its URL stays folded into a small <code>↗</code>, so
           the paragraph doesn&apos;t rewrap around it. Click the <code>↗</code>, or move the caret
           inside the parentheses, to edit the URL itself.
+        </p>
+        <p>
+          A link can also point to another note by its path, such as{" "}
+          <code>[Editor](./app/editor/README.md)</code>. The path starts from the note&apos;s own
+          folder (<code>../</code> goes up one, a leading <code>/</code> starts at the vault&apos;s
+          root), and opening it opens that note here. A path that isn&apos;t in the vault says so
+          and creates nothing.
         </p>
       </>
     ),

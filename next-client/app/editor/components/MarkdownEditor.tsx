@@ -53,6 +53,7 @@ interface MarkdownEditorProps {
   filePath?: string;
   placeholder?: string;
   onWikiLinkClick?: (name: string) => void;
+  onFileLinkClick?: (href: string) => void;
   isActivePane?: boolean;
 }
 
@@ -106,8 +107,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const { csvConfirmRef, pasteImageRef } = useEditorPasteHandlers();
 
   const onWikiLinkClick = useCallback((name: string) => props.onWikiLinkClick?.(name), [props.onWikiLinkClick]);
-  const features = useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWikiLinkClick });
-  const { pillUrl, pillType, dismissPill, dateMatch, setIsDateExpanded, onCursorActivity } = features;
+  const onFileLinkClick = useCallback((href: string) => props.onFileLinkClick?.(href), [props.onFileLinkClick]);
+  const features = useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWikiLinkClick, onFileLinkClick });
+  const { openPillLink, dateMatch, setIsDateExpanded, onCursorActivity } = features;
 
   const languagePicker = useCodeMirrorCodeLanguagePicker({ viewRef, containerRef });
   const { activate: activateCodeLanguagePicker, onCursorActivity: onCodeLanguagePickerCursorActivity } = languagePicker;
@@ -168,15 +170,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const openActiveHelperRef = useRef<() => boolean>(() => false);
   openActiveHelperRef.current = () => {
-    if (pillUrl) {
-      if (pillType === "wiki") {
-        onWikiLinkClick(pillUrl);
-      } else {
-        window.open(pillUrl, "_blank", "noopener,noreferrer");
-      }
-      dismissPill();
-      return true;
-    }
+    if (openPillLink()) return true;
     if (dateMatch) {
       setIsDateExpanded(true);
       return true;
@@ -318,7 +312,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
             languagePicker={languagePicker}
             image={image}
             containerRef={containerRef}
-            onWikiLinkClick={onWikiLinkClick}
           />
 
           <WikiLinkDialog
