@@ -178,6 +178,8 @@ describe("buildEditorCommands", () => {
       "format-link",
       "format-code-block",
       "find-in-note",
+      "fold-current-section",
+      "unfold-all-sections",
       "indent-subtree",
       "outdent-subtree",
       "toggle-checkbox",
