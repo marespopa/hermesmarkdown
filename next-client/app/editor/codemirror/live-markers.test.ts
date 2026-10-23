@@ -58,6 +58,16 @@ describe("buildLiveMarkerDecorations", () => {
     expect(markers("> > deep\n\nEnd")).toEqual(["line", "margin:> > "]);
   });
 
+  it("gives each quote line a bar per level of nesting", () => {
+    const doc = "> outer\n> > inner\n> > > deepest\n\nEnd";
+    const state = stateFor(doc);
+    const depths: string[] = [];
+    buildLiveMarkerDecorations(state, [{ from: 0, to: doc.length }]).between(0, doc.length, (from, to, deco) => {
+      if (deco.spec.class === "cm-liveQuote") depths.push(deco.spec.attributes.style);
+    });
+    expect(depths).toEqual(["--quote-depth: 1", "--quote-depth: 2", "--quote-depth: 3"]);
+  });
+
   it("shows a callout's syntax as typed, its `>`s in the margin", () => {
     const doc = "> [!note] Title\n> body\n\nEnd";
     expect(markers(doc, doc.length)).toEqual(["margin:> ", "margin:> "]);

@@ -146,6 +146,15 @@ tags: []
         </p>
         <Code>{`> [!warning]- Collapsed by default
 > Click the title to expand.`}</Code>
+        <p>
+          Add one more <code>&gt;</code> to nest: a quote inside a callout gets its own bar, and a
+          callout inside a callout draws as an inset card in its own color. Plain quotes nest the
+          same way, one bar per level.
+        </p>
+        <Code>{`> [!note] Outer
+> > [!tip] Inner
+> > Inside the tip.
+> Back in the note.`}</Code>
         <p>The type is case-insensitive and any word works, but these have dedicated colors and icons:</p>
         <KV
           rows={[

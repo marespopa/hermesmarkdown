@@ -9,12 +9,25 @@ export const CODE_FONT = `var(--font-code, ${MONO_FONT_STACK})`;
 // in it has its own, larger size, and would start further in than the text.
 const BODY_EM = "var(--editor-font-size, 17px)";
 const QUOTE_INSET = `calc(${BODY_EM} * 0.9)`;
+// A quote's bar, and the step each nested quote's text moves in: a bar and
+// the inset after it.
+const QUOTE_BAR = "3px";
+const QUOTE_STEP = `calc(${QUOTE_BAR} + ${QUOTE_INSET})`;
+
+// One bar per level of a quote (`--quote-depth`), drawn from `from` as a
+// background, so a nested quote reads as nested without boxes around boxes.
+const quoteBars = (from: string) => ({
+  backgroundImage: `repeating-linear-gradient(to right, var(--border) 0 ${QUOTE_BAR}, transparent ${QUOTE_BAR} ${QUOTE_STEP})`,
+  backgroundPosition: `${from} 0`,
+  backgroundSize: `calc(var(--quote-depth, 1) * ${QUOTE_STEP}) 100%`,
+  backgroundRepeat: "no-repeat",
+  paddingLeft: `calc(${from} + var(--quote-depth, 1) * ${QUOTE_STEP}) !important`,
+});
 
 // Styles for live-markers.ts and the chips that stay in place while edited.
 export const liveMarkersTheme = EditorView.theme({
   ".cm-liveQuote": {
-    borderLeft: "3px solid var(--border)",
-    paddingLeft: `${QUOTE_INSET} !important`,
+    ...quoteBars("0px"),
     fontStyle: "italic",
   },
   // A nested list item's leading spaces in the monospace face: each as wide as
@@ -73,10 +86,44 @@ export const liveMarkersTheme = EditorView.theme({
   },
 
   // A callout reads as one rounded, tinted card (lines tagged in highlight.ts),
-  // its text, headings included, inset the same from the card's edge.
+  // its text, headings included, inset the same from the card's edge: one
+  // more inset for each callout it's nested in (`--callout-nest`).
   ".cm-line.cm-callout": {
-    paddingLeft: `${QUOTE_INSET} !important`,
+    "--callout-edge": `calc(${QUOTE_INSET} * (var(--callout-nest, 0) + 1))`,
+    paddingLeft: "var(--callout-edge) !important",
     paddingRight: `calc(${BODY_EM} * 0.75) !important`,
+  },
+  // A quote inside a callout: its bars on the card, at the card's text edge.
+  ".cm-line.cm-callout.cm-callout-quote": quoteBars("var(--callout-edge)"),
+  // A callout nested in another: an inset card of its own tint (the
+  // `after:bg-*` class, callouts.ts) behind the text, on the outer card.
+  ".cm-line.cm-callout-nested": {
+    position: "relative",
+    isolation: "isolate",
+  },
+  ".cm-line.cm-callout-nested::after": {
+    content: '""',
+    position: "absolute",
+    zIndex: "-1",
+    top: "0",
+    bottom: "0",
+    left: `calc(${QUOTE_INSET} * var(--callout-nest))`,
+    right: `calc(${BODY_EM} * 0.4)`,
+    pointerEvents: "none",
+  },
+  ".cm-line.cm-callout-nested-start": {
+    paddingTop: "0.3em",
+  },
+  ".cm-line.cm-callout-nested-start::after": {
+    borderTopLeftRadius: "8px",
+    borderTopRightRadius: "8px",
+  },
+  ".cm-line.cm-callout-nested-end": {
+    paddingBottom: "0.3em",
+  },
+  ".cm-line.cm-callout-nested-end::after": {
+    borderBottomLeftRadius: "8px",
+    borderBottomRightRadius: "8px",
   },
   ".cm-line.cm-callout-start": {
     borderTopLeftRadius: "12px",
@@ -95,7 +142,7 @@ export const liveMarkersTheme = EditorView.theme({
   ".cm-line.cm-callout-codeblock": {
     position: "relative",
     isolation: "isolate",
-    paddingLeft: `calc(${QUOTE_INSET} + ${BODY_EM} * 0.75) !important`,
+    paddingLeft: `calc(var(--callout-edge) + ${BODY_EM} * 0.75) !important`,
     paddingRight: `calc(${BODY_EM} * 1.5) !important`,
     fontFamily: CODE_FONT,
     fontFeatureSettings: '"calt" 1, "zero" 1',
@@ -109,7 +156,7 @@ export const liveMarkersTheme = EditorView.theme({
     zIndex: "-1",
     top: "0",
     bottom: "0",
-    left: QUOTE_INSET,
+    left: "var(--callout-edge)",
     right: `calc(${BODY_EM} * 0.75)`,
     backgroundColor: "color-mix(in srgb, var(--fg) 5%, transparent)",
     borderInline: "1px solid color-mix(in srgb, var(--fg) 9%, transparent)",
