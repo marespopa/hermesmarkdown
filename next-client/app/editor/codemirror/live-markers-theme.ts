@@ -146,9 +146,7 @@ export const liveMarkersTheme = EditorView.theme({
     paddingRight: `calc(${BODY_EM} * 1.5) !important`,
     fontFamily: CODE_FONT,
     fontFeatureSettings: '"calt" 1, "zero" 1',
-    fontSize: "0.875em",
     letterSpacing: "0",
-    lineHeight: "1.6",
   },
   ".cm-line.cm-callout-codeblock::before": {
     content: '""',
@@ -212,7 +210,6 @@ export const liveMarkersTheme = EditorView.theme({
   // A link's folded URL while its label is being edited.
   ".cm-link-url-chip": {
     color: "var(--fg-muted)",
-    fontSize: "0.85em",
     fontWeight: "600",
     marginLeft: "0.2em",
     cursor: "pointer",

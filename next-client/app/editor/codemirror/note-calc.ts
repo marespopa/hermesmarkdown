@@ -66,7 +66,6 @@ export const noteCalcPlugin = ViewPlugin.fromClass(
 const noteCalcTheme = EditorView.baseTheme({
   ".cm-note-calc-result": {
     color: "var(--fg-faint)",
-    fontSize: "0.9em",
     marginLeft: "0.75em",
     fontVariantNumeric: "tabular-nums",
     whiteSpace: "nowrap",

@@ -37,7 +37,6 @@ export const baseTheme = EditorView.theme({
   ".cm-frontmatter-line": {
     backgroundColor: "var(--frontmatter-bg-hover)",
     color: "var(--fg-faint)",
-    fontSize: "0.94em",
     fontWeight: "400",
     letterSpacing: "0.005em",
     // Inset via a transparent border, not padding: drawSelection() reads the
@@ -200,7 +199,6 @@ export const baseTheme = EditorView.theme({
     backgroundColor: "var(--frontmatter-bg-hover)",
     color: "var(--fg-muted)",
     font: "inherit",
-    fontSize: "0.85em",
     lineHeight: "1",
     whiteSpace: "nowrap",
     cursor: "pointer",
@@ -231,7 +229,6 @@ export const baseTheme = EditorView.theme({
   // Status and tag values in the collapsed row (frontmatter-fold.ts): tag
   // pills sized to the row; a click goes to the row, which expands.
   ".cm-frontmatter-summary-keys .cm-frontmatter-chip": {
-    fontSize: "0.95em",
     padding: "0.05em 0.45em",
     margin: "0 0 0 0.35em",
     cursor: "inherit",
@@ -240,8 +237,9 @@ export const baseTheme = EditorView.theme({
   // The pill look (fill, colour, size) lives in components/TagPill.
   // Laid out as text, like the chip being edited (live-markers-theme.ts): an
   // inline-flex box sits taller in the line, so selecting the tag would make
-  // the text jump.
+  // the text jump. At the body size: in a note only headings change size.
   ".cm-tag-pill": {
+    fontSize: "1em",
     display: "inline",
     verticalAlign: "baseline",
     boxDecorationBreak: "clone",
@@ -296,7 +294,6 @@ export const baseTheme = EditorView.theme({
   },
   ".cm-frontmatter-tag-list-empty": {
     color: "var(--fg-muted)",
-    fontSize: "0.85em",
     fontStyle: "italic",
   },
   ".cm-link-display": {
@@ -316,7 +313,6 @@ export const baseTheme = EditorView.theme({
   },
   ".cm-link-display::after": {
     color: "currentColor",
-    fontSize: "0.85em",
     fontWeight: "600",
     opacity: "0.7",
     textDecoration: "none",
@@ -330,7 +326,6 @@ export const baseTheme = EditorView.theme({
   },
   ".cm-link-display-wiki::after": {
     content: '"›"',
-    fontSize: "0.9em",
   },
   ".cm-link-display:hover": {
     color: "var(--link-hover)",
@@ -342,9 +337,9 @@ export const baseTheme = EditorView.theme({
     border: "1px solid var(--border-subtle)",
     borderRadius: "0.4em",
     backgroundColor: "color-mix(in srgb, var(--chrome) 52%, transparent)",
-    fontSize: "0.9em",
     fontWeight: "500",
-    lineHeight: "1.35",
+    // Tight enough that the pill, padding and border included, fits the line.
+    lineHeight: "1.25",
     padding: "0.08em 0.42em",
     marginInline: "0.06em",
     whiteSpace: "nowrap",
@@ -358,7 +353,6 @@ export const baseTheme = EditorView.theme({
   ".cm-date-display::before": {
     content: '"◷"',
     color: "var(--fg-faint)",
-    fontSize: "0.88em",
     marginRight: "0.3em",
   },
   ".cm-date-display-due": {
