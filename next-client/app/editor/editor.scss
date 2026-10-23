@@ -248,7 +248,6 @@ html.dark .app-sheet .editor-sheet {
   border-radius: 0.3em;
   background-color: color-mix(in srgb, var(--fg) 6%, transparent);
   font-family: var(--font-code);
-  font-size: 0.9em;
   padding: 0.08em 0.28em;
 }
 
@@ -303,12 +302,10 @@ html.dark .app-sheet .editor-sheet {
 
 .cm-rendered-block-pending {
   color: var(--fg-faint);
-  font-size: 0.85em;
 }
 
 .cm-rendered-block-error {
   color: #dc2626;
-  font-size: 0.85em;
   text-align: left;
 }
 
@@ -316,7 +313,6 @@ html.dark .app-sheet .editor-sheet {
   margin: 0.4em 0 0;
   color: var(--fg-muted);
   font-family: var(--font-code);
-  font-size: 0.85em;
   text-align: left;
   white-space: pre-wrap;
 }
@@ -370,7 +366,6 @@ html.dark .app-sheet .editor-sheet {
   display: block;
   margin-bottom: 0.35em;
   color: var(--fg-muted);
-  font-size: 0.8em;
   font-weight: 500;
   text-align: left;
 }
@@ -397,15 +392,13 @@ html.dark .app-sheet .editor-sheet {
   border-radius: 0.4em;
   background-color: color-mix(in srgb, var(--fg) 5%, transparent);
   font-family: var(--font-code);
-  font-size: 0.85em;
-  line-height: 1.5;
+  line-height: var(--editor-line-height, 1.65);
   white-space: pre;
   tab-size: 2;
 }
 
 .cm-note-embed-message {
   color: var(--fg-faint);
-  font-size: 0.85em;
 }
 
 .cm-note-embed-body {
@@ -415,17 +408,20 @@ html.dark .app-sheet .editor-sheet {
 
   > :first-child { margin-top: 0; }
   > :last-child { margin-bottom: 0; }
+  /* The editor's own heading scale (editor-typography.scss). */
   h1, h2, h3, h4, h5, h6 { margin: 0.8em 0 0.3em; font-weight: 600; line-height: 1.3; }
-  h1 { font-size: 1.35em; }
-  h2 { font-size: 1.2em; }
-  h3 { font-size: 1.08em; }
-  h4, h5, h6 { font-size: 1em; }
+  h1 { font-size: 1.953em; line-height: 1.2; }
+  h2 { font-size: 1.563em; }
+  h3 { font-size: 1.25em; line-height: 1.4; }
+  h4 { font-size: 1.125em; line-height: 1.4; }
+  h5 { font-size: 1em; }
+  h6 { font-size: 0.875em; }
   p, ul, ol, blockquote, pre, table { margin: 0.4em 0; }
   ul, ol { padding-left: 1.4em; }
   ul { list-style: disc; }
   ol { list-style: decimal; }
   blockquote { padding-left: 0.8em; border-left: 2px solid var(--border-subtle); color: var(--fg-muted); }
-  code, pre { font-family: var(--font-code); font-size: 0.88em; }
+  code, pre { font-family: var(--font-code); }
   pre { padding: 0.6em 0.8em; border-radius: 0.4em; background-color: color-mix(in srgb, var(--fg) 5%, transparent); overflow-x: auto; }
   table { border-collapse: collapse; }
   th, td { padding: 0.25em 0.6em; border: 1px solid var(--border-subtle); }

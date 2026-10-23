@@ -70,7 +70,7 @@
    (1.2 / 1.3 / 1.4) and tracking that tightens as they grow. Semibold, as
    in Apple's headline styles. No room above or below: only real blank lines space a heading from its
    neighbours, so a missing blank line shows here rather than only after
-   the Markdown is pasted elsewhere. That includes H1 under the Properties
+   the Markdown is pasted elsewhere. That includes H1 under the frontmatter
    block: the blank line or spacer after it already matches the sheet's
    padding above it. */
 .editor-sheet.editor-container .cm-line.cm-heading {
@@ -157,11 +157,11 @@
 
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-codeblock,
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-codeblock-start {
-  line-height: calc(var(--B) * 1.4);    /* 1.6 × 0.875 */
+  line-height: calc(var(--B) * var(--editor-line-height, 1.65));
 }
 
 .editor-sheet.editor-container .cm-lineNumbers .cm-gutter-codeblock-start {
-  padding-top: calc(var(--B) * 0.65625); /* 0.75em × 0.875 */
+  padding-top: calc(var(--B) * 0.75);
 }
 
 /* A callout's first line: the card's padding above it (live-markers-theme.ts). */
@@ -174,7 +174,7 @@
   padding-top: 0;
 }
 
-/* Inline code: the code font a step smaller, on a faint tint with slightly
+/* Inline code: the code font at the body size, on a faint tint with slightly
    muted ink. Horizontal padding only, so the line box keeps the rhythm. */
 .editor-sheet.editor-container .cm-inline-code {
   border-radius: 0.3em;
@@ -182,7 +182,6 @@
   color: color-mix(in srgb, var(--fg) 82%, var(--surface));
   font-family: var(--font-code);
   font-feature-settings: "calt" 1, "zero" 1;
-  font-size: 0.875em;
   letter-spacing: 0;
   padding: 0.1em 0.3em;
 }
@@ -203,9 +202,7 @@
   font-family: var(--font-code);
   /* Contextual alternates, and a slashed zero so 0 and O never mix. */
   font-feature-settings: "calt" 1, "zero" 1;
-  font-size: 0.875em;
   letter-spacing: 0;
-  line-height: 1.6;
   text-wrap: wrap;
 }
 

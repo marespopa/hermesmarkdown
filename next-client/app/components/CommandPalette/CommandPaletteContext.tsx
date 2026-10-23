@@ -52,12 +52,18 @@ const CommandPaletteContext = createContext<CommandPaletteContextValue | null>(n
 export const PALETTE_SEARCH_TRANSITION = "palette-search";
 
 type ViewTransitionDocument = Document & {
-  startViewTransition?: (callback: () => Promise<void> | void) => { finished: Promise<void> };
+  startViewTransition?: (callback: () => Promise<void> | void) => {
+    ready: Promise<void>;
+    finished: Promise<void>;
+    updateCallbackDone: Promise<void>;
+  };
 };
 
 function canMorph(doc: ViewTransitionDocument) {
   return (
     typeof doc.startViewTransition === "function" &&
+    // A hidden page can't run a view transition (InvalidStateError).
+    !document.hidden &&
     !!document.querySelector("[data-palette-anchor]") &&
     !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
   );
@@ -119,13 +125,20 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
       update();
       return;
     }
-    doc.startViewTransition!(async () => {
+    const transition = doc.startViewTransition!(async () => {
       flushSync(() => {
         setIsMorphing(true);
         update();
       });
       await waitForPaletteField(opening);
     });
+    // The browser aborts the transition when the page is hidden mid-morph
+    // (another tab or window): its promises reject, but the update still
+    // runs, so there is nothing to recover; only the rejection is silenced.
+    const ignore = () => {};
+    transition.ready.catch(ignore);
+    transition.finished.catch(ignore);
+    transition.updateCallbackDone.catch(ignore);
   }, []);
 
   const open = useCallback((query: string = "") => {

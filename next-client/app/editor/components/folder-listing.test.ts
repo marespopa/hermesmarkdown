@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { filterListing, folderName, listFolder, parentOf } from "./folder-listing";
+import { folderName, listFolder, listingRows, parentOf, searchBelow } from "./folder-listing";
 
 const handle = {} as FileSystemFileHandle;
 const file = (path: string) => ({ name: path.split("/").pop()!, path, handle });
@@ -39,11 +39,40 @@ describe("listFolder", () => {
   });
 });
 
-describe("filterListing", () => {
-  it("keeps the rows naming every typed word, ignoring case", () => {
-    const listing = listFolder("Projects/Launch", files, folderPaths);
-    expect(filterListing(listing, "PRI").notes.map((n) => n.name)).toEqual(["Pricing"]);
-    expect(filterListing(listing, "  ")).toBe(listing);
+describe("searchBelow", () => {
+  const names = (folder: string, query: string) => searchBelow(folder, files, folderPaths, query).map((row) => row.name);
+
+  it("finds notes and folders anywhere below the folder, naming every typed word, ignoring case", () => {
+    expect(names("", "PRI")).toEqual(["Pricing"]);
+    expect(names("", "la ch")).toEqual(["Launch"]);
+    expect(names("Archive", "o")).toEqual(["Retro"]);
+    expect(names("", "  ")).toEqual([]);
+  });
+
+  it("puts names that start with the query first, then folders before notes", () => {
+    const rows = searchBelow("", [...files, file("Projects/Plan.md")], folderPaths, "p");
+    expect(rows.map((row) => row.name)).toEqual(["Projects", "Plan", "Pricing", "Roadmap"]);
+  });
+
+  it("says where each match is, below the searched folder", () => {
+    const rows = searchBelow("Projects", files, folderPaths, "i");
+    expect(rows.map((row) => [row.name, row.where])).toEqual([
+      ["Checklist", "Launch"],
+      ["Pricing", "Launch"],
+    ]);
+  });
+
+  it("finds folders only the notes' paths name, and nothing outside the folder", () => {
+    expect(searchBelow("", files, [], "2025")).toEqual([{ kind: "folder", name: "2025", path: "Archive/2025", where: "Archive" }]);
+    expect(names("Projects", "retro")).toEqual([]);
+  });
+});
+
+describe("listingRows", () => {
+  it("lists subfolders, then notes", () => {
+    expect(listingRows(listFolder("Projects", files, folderPaths)).map((row) => `${row.kind}:${row.name}`)).toEqual([
+      "folder:Drafts", "folder:Launch", "note:Roadmap",
+    ]);
   });
 });
 

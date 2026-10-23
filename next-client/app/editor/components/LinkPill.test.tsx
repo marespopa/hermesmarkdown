@@ -4,12 +4,12 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { LinkPill } from "./LinkPill";
 
-function renderPill(type: "url" | "wiki") {
+function renderPill(type: "url" | "file" | "wiki") {
   const handlers = { onOpen: vi.fn(), onSave: vi.fn(), onDismiss: vi.fn() };
   render(
     <LinkPill
-      url={type === "url" ? "https://example.com" : "Project Notes"}
-      label={type === "url" ? "the guide" : ""}
+      url={type === "url" ? "https://example.com" : type === "file" ? "./plans/roadmap.md" : "Project Notes"}
+      label={type === "wiki" ? "" : "the guide"}
       pos={{ top: 0, left: 0 }}
       type={type}
       {...handlers}
@@ -25,6 +25,13 @@ describe("LinkPill", () => {
     fireEvent.change(screen.getByLabelText("Text"), { target: { value: "The Guide" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(onSave).toHaveBeenCalledWith("The Guide", "https://example.com");
+  });
+
+  it("edits a file link like a URL link and opens it as a note", () => {
+    const { onOpen } = renderPill("file");
+    expect(screen.getByTitle("Edit link")).toBeInTheDocument();
+    fireEvent.click(screen.getByTitle(/Open note/));
+    expect(onOpen).toHaveBeenCalled();
   });
 
   it("offers only Open on a wikilink, whose text is edited in place", () => {

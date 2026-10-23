@@ -21,4 +21,4 @@ Size is em-relative: callers set the font size on the parent.
 
 ## Used by
 
-The editor (`codemirror/tag-pills.ts`, `frontmatter-fold.ts`), `TaskRow`, `UnifiedSearchInput`, `PaletteRow` (`#` scope).
+The editor (`codemirror/tag-pills.ts`), `TaskRow`, `UnifiedSearchInput`, `PaletteRow` (`#` scope).

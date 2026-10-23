@@ -1,13 +1,26 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useStore } from "jotai";
 import { EditorSelection } from "@codemirror/state";
 import type { EditorView } from "@codemirror/view";
 import { callAI } from "@/app/services/ai";
 import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
+import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { showSuccessToast, showErrorToast } from "@/app/components/Toastr";
 import { keepTablesUnderHeadings } from "../utils/ai-table-headings";
+import {
+  SUGGEST_PROPERTIES_ID,
+  SUGGEST_PROPERTIES_LABEL,
+  SUGGEST_PROPERTIES_SYSTEM,
+  buildSuggestPropertiesPrompt,
+  missingProperties,
+  noteBody,
+  parseSuggestedProperties,
+  propertiesEdit,
+  topVaultTags,
+} from "../utils/suggest-properties";
 import { AI_ACTIONS } from "./ai-action-prompts";
 
 // Applies an AI result in one transaction (one undo step) rather than
@@ -29,6 +42,9 @@ export interface AIReviewState {
   suggestion: string;
   start: number;
   end: number;
+  // Set for a suggestion that only makes sense in place (Suggest properties):
+  // the review then offers just this button, without Insert Below.
+  applyLabel?: string;
 }
 
 // Global (not per-pane): targets whichever CM6 view is currently registered
@@ -43,6 +59,7 @@ export function useAIEditorActions() {
     selected: "",
   });
   const activeTarget = useAtomValue(atom_activeEditorView);
+  const store = useStore();
 
   const getContext = useCallback(() => {
     if (!activeTarget) return { selectedText: "", surroundingText: "", start: 0, end: 0 };
@@ -120,6 +137,50 @@ export function useAIEditorActions() {
     [activeTarget],
   );
 
+  // Fills the note's missing title, description and tags (see
+  // suggest-properties.ts), reviewed as a diff of the frontmatter block.
+  const runSuggestProperties = useCallback(async () => {
+    if (!activeTarget) return;
+    const doc = activeTarget.state.doc.toString();
+    const missing = missingProperties(doc);
+    if (missing.length === 0) {
+      showErrorToast("This note already has a title, description and tags.");
+      return;
+    }
+    if (!noteBody(doc).trim()) {
+      showErrorToast("Write something first, then suggest properties.");
+      return;
+    }
+    const vaultTags = topVaultTags(
+      Object.values(store.get(atom_fileMetadata))
+        .filter((file) => !isPrivateFrontmatter(file.frontmatter))
+        .map((file) => file.tags ?? []),
+    );
+
+    setIsAiLoading(true);
+    try {
+      const reply = await callAI(SUGGEST_PROPERTIES_SYSTEM, buildSuggestPropertiesPrompt(doc, missing, vaultTags));
+      const suggested = parseSuggestedProperties(reply);
+      const edit = suggested && propertiesEdit(doc, missing, suggested);
+      if (!edit) {
+        showErrorToast("The AI didn't suggest any properties. Try again.");
+        return;
+      }
+      setAiReview({
+        label: SUGGEST_PROPERTIES_LABEL,
+        original: edit.original,
+        suggestion: edit.replacement,
+        start: edit.from,
+        end: edit.to,
+        applyLabel: "Apply Properties",
+      });
+    } catch (error: any) {
+      showErrorToast(error.message || `Failed to run "${SUGGEST_PROPERTIES_LABEL}".`);
+    } finally {
+      setIsAiLoading(false);
+    }
+  }, [activeTarget, store]);
+
   const openChat = useCallback(() => {
     const { selectedText, start, end } = getContext();
     setChatContext({ start, end, selected: selectedText });
@@ -149,7 +210,8 @@ export function useAIEditorActions() {
     const suggestion = customSuggestion ?? aiReview.suggestion;
     const { start, end } = aiReview;
     if (activeTarget) {
-      replaceRangeCM6(activeTarget, start, end, keepTablesUnderHeadings(suggestion));
+      // Properties are YAML, not prose: applied exactly as reviewed.
+      replaceRangeCM6(activeTarget, start, end, aiReview.applyLabel ? suggestion : keepTablesUnderHeadings(suggestion));
     }
     showSuccessToast("AI suggestion applied.");
     setAiReview(null);
@@ -172,13 +234,14 @@ export function useAIEditorActions() {
 
   const runAIActionById = useCallback(
     (id: string) => {
+      if (id === SUGGEST_PROPERTIES_ID) return runSuggestProperties();
       const action = AI_ACTIONS[id];
       if (!action) return;
       return action.kind === "selection"
         ? runSelectionAction(action.label, action.system, action.build, action.emptyMessage)
         : runContextAction(action.label, action.system, action.build);
     },
-    [runSelectionAction, runContextAction],
+    [runSelectionAction, runContextAction, runSuggestProperties],
   );
 
   return {

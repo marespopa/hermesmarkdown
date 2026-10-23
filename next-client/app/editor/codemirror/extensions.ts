@@ -5,7 +5,6 @@ import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { ViewUpdate } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
-import { codeFolding } from "@codemirror/language";
 import { searchKeymap } from "@codemirror/search";
 import { loadedVim } from "./vim-loader";
 import { editorTheme } from "./theme";
@@ -24,12 +23,14 @@ import { shortcodeExpandPlugin } from "./shortcode-expand";
 import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
 import { createEmojiSource } from "./emoji-completion";
+import { createFrontmatterSource } from "./frontmatter-completion";
 import { createTemplateFieldSource } from "./template-field-completion";
 import { templateFieldPills } from "./template-field-pills";
 import { templateBlanks } from "./template-blanks";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
 import { tableKeyBindings } from "./table-keymap";
-import { frontmatterCollapse } from "./frontmatter-fold";
+import { frontmatterSpacer } from "./frontmatter-block";
+import { headingFoldKeymap, headingFolding } from "./heading-fold";
 import { markdownProblems } from "./markdown-problems";
 import { flowMode, type FlowLevel } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
@@ -89,8 +90,9 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // Backspace deletes one character: typing is never rewritten
     // (formatKeymap binds Enter to a plain line break).
     markdown({ base: markdownLanguage, codeLanguages: languages, addKeymap: false }),
-    codeFolding(),
-    frontmatterCollapse,
+    // Folding (callouts, `<details>`, heading sections) with heading chevrons.
+    headingFolding,
+    frontmatterSpacer,
     // Invalid frontmatter, unclosed code / math blocks: a notice above them.
     markdownProblems,
     markdownHighlightPlugin,
@@ -114,7 +116,13 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? loadedVim()?.vim() ?? [] : []),
     autocompletion({
-      override: [createSlashMenuSource(opts.slashMenuCallbacksRef), createTemplateFieldSource(opts.slashMenuCallbacksRef), createEmojiSource()],
+      override: [
+        createSlashMenuSource(opts.slashMenuCallbacksRef),
+        createTemplateFieldSource(opts.slashMenuCallbacksRef),
+        createEmojiSource(),
+        // Keys, tags and values while typing inside the frontmatter.
+        createFrontmatterSource(opts.slashMenuCallbacksRef),
+      ],
       activateOnTyping: true,
       icons: false,
       // The menu draws only this many options around the selected one, so the
@@ -132,7 +140,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     findReplace(),
     // Without defaultKeymap's Ctrl/Cmd+[ / ] (indent less / more, which Tab
     // and Shift+Tab do): Ctrl+[ shows / hides the sidebar (EditorShell).
-    keymap.of([...formatKeymap, ...searchKeymap, ...historyKeymap, ...defaultKeymap.filter((binding) => binding.key !== "Mod-[" && binding.key !== "Mod-]")]),
+    keymap.of([...formatKeymap, ...headingFoldKeymap, ...searchKeymap, ...historyKeymap, ...defaultKeymap.filter((binding) => binding.key !== "Mod-[" && binding.key !== "Mod-]")]),
     EditorView.domEventHandlers({
       keydown: (event, view) => {
         if (event.key === "Enter" && event.shiftKey && (event.ctrlKey || event.metaKey)) {

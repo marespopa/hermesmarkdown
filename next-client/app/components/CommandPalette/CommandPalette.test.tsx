@@ -876,13 +876,25 @@ describe("CommandPalette", () => {
   });
 
   describe("search anchor morph", () => {
+    // A transition whose update runs right away and that settles normally.
+    const transitionRunning = (callback: () => unknown) => {
+      void callback();
+      return { ready: Promise.resolve(), finished: Promise.resolve(), updateCallbackDone: Promise.resolve() };
+    };
+    const addAnchor = () => {
+      const anchor = document.createElement("button");
+      anchor.setAttribute("data-palette-anchor", "");
+      document.body.appendChild(anchor);
+    };
+
     afterEach(() => {
       delete (document as any).startViewTransition;
+      delete (document as any).hidden;
       document.querySelectorAll("[data-palette-anchor]").forEach((element) => element.remove());
     });
 
     it("opens through a view transition when a search anchor is on screen", async () => {
-      const startViewTransition = vi.fn((callback: () => unknown) => { void callback(); return { finished: Promise.resolve() }; });
+      const startViewTransition = vi.fn(transitionRunning);
       (document as any).startViewTransition = startViewTransition;
       const anchor = document.createElement("button");
       anchor.setAttribute("data-palette-anchor", "");
@@ -901,7 +913,7 @@ describe("CommandPalette", () => {
     });
 
     it("opens directly without an anchor", async () => {
-      const startViewTransition = vi.fn((callback: () => unknown) => { void callback(); return { finished: Promise.resolve() }; });
+      const startViewTransition = vi.fn(transitionRunning);
       (document as any).startViewTransition = startViewTransition;
 
       renderPalette();
@@ -911,6 +923,38 @@ describe("CommandPalette", () => {
       expect(startViewTransition).not.toHaveBeenCalled();
       // A normal open keeps the panel's own enter animation.
       expect(document.querySelector('[class~="zoom-in-[0.98]"]')).not.toBeNull();
+    });
+
+    it("opens directly while the page is hidden", async () => {
+      const startViewTransition = vi.fn(transitionRunning);
+      (document as any).startViewTransition = startViewTransition;
+      Object.defineProperty(document, "hidden", { configurable: true, value: true });
+      addAnchor();
+
+      renderPalette();
+      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+      expect(await screen.findByRole("combobox")).toBeInTheDocument();
+      expect(startViewTransition).not.toHaveBeenCalled();
+    });
+
+    it("still opens when the browser aborts the transition", async () => {
+      const aborted = () => Promise.reject(new DOMException("Transition was aborted because of invalid state", "InvalidStateError"));
+      (document as any).startViewTransition = vi.fn((callback: () => unknown) => {
+        void callback();
+        return { ready: aborted(), finished: aborted(), updateCallbackDone: Promise.resolve() };
+      });
+      addAnchor();
+      const unhandled = vi.fn();
+      process.on("unhandledRejection", unhandled);
+
+      renderPalette();
+      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+
+      expect(await screen.findByRole("combobox")).toBeInTheDocument();
+      await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)); });
+      process.off("unhandledRejection", unhandled);
+      expect(unhandled).not.toHaveBeenCalled();
     });
   });
 

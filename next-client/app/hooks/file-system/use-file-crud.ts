@@ -10,6 +10,7 @@ import { useTemplateNotes } from "./use-template-notes";
 import { useTemplateCreate } from "./use-template-create";
 import { useTemplateSave } from "./use-template-save";
 import { useOpenOrCreateLink } from "./use-open-or-create-link";
+import { useOpenFileLink } from "./use-open-file-link";
 import { useFileUndo } from "./use-file-undo";
 
 interface UseFileCrudProps {
@@ -78,6 +79,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     openFile,
   });
   const { openOrCreateLink } = useOpenOrCreateLink({ openFile, createNoteFromMissingLink });
+  const { openFileLink } = useOpenFileLink({ openFile });
   const saveAsTemplate = useTemplateSave({ scanVault });
 
   return {
@@ -104,5 +106,6 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     writeNewNote,
     saveAsTemplate,
     openOrCreateLink,
+    openFileLink,
   };
 }

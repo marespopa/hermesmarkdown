@@ -54,7 +54,7 @@ export const aiFeaturesGroup: Group = {
             <strong>💬 Ask AI</strong> button in the toolbar that appears on a text selection.
             The chat sees the current note and your selection. Type <code>@</code> to reference
             another note by name, or use <code>@folder:path</code> / <code>@vault</code> to share an
-            index (paths, titles, tags) of a folder or the whole vault. Attach images or files, ask
+            index (paths, titles, tags, aliases and descriptions) of a folder or the whole vault. Attach images or files, ask
             follow-ups, and switch models per chat.
           </p>
           <p>
@@ -71,10 +71,17 @@ export const aiFeaturesGroup: Group = {
             on the selection, or on the note where that makes sense. Each result opens in a diff review — red for removed, green for added —
             with Replace, Insert Below, or Cancel.
           </p>
+          <p>
+            <strong>Suggest properties</strong> reads the note and fills in the frontmatter keys it
+            doesn&rsquo;t have yet: a <code>title</code>, a one-sentence <code>description</code> and{" "}
+            <code>tags</code>, reusing tags your vault already has. Keys you&rsquo;ve set are never
+            changed, and the rest of the YAML stays exactly as you wrote it. You review the
+            frontmatter as a diff and choose Apply Properties or Cancel.
+          </p>
           <KV
             rows={[
               { label: "Improve Writing", value: "Improve writing · Fix spelling and grammar · Shorten · Expand · Continue writing · Change tone (formal, casual, direct, polished)" },
-              { label: "Summarize / Structure", value: "Summarize · Extract tasks · Create outline · Generate title · Explain selection" },
+              { label: "Summarize / Structure", value: "Summarize · Extract tasks · Create outline · Generate title · Suggest properties · Explain selection" },
               { label: "Insert Element", value: "Generate table · Generate Mermaid diagram · Generate formula" },
             ]}
           />

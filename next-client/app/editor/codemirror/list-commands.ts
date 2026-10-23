@@ -79,6 +79,41 @@ function findPrevious(state: EditorState, item: ListItem, accept: (indent: numbe
   return null;
 }
 
+// A list line: an item, or a blank or indented line between items.
+function inList(line: Line): boolean {
+  return line.text.trim() === "" || lineIndent(line.text) > 0 || parseItem(line) !== null;
+}
+
+// Number every run of ordered siblings in the list around line `around`
+// straight on from the run's first item, so moving an item in or out never
+// leaves a gap or a repeat ("1. 3." after nesting the 2.).
+function renumberList(state: EditorState, around: number): ChangeSpec[] {
+  let first = around;
+  while (first > 1 && inList(state.doc.line(first - 1))) first--;
+  let last = around;
+  while (last < state.doc.lines && inList(state.doc.line(last + 1))) last++;
+  const changes: ChangeSpec[] = [];
+  // The last item seen at each open level, outermost first.
+  const levels: ListItem[] = [];
+  for (let n = first; n <= last; n++) {
+    const line = state.doc.line(n);
+    if (line.text.trim() === "") continue;
+    const indent = lineIndent(line.text);
+    const item = parseItem(line);
+    while (levels.length && levels[levels.length - 1].indent > indent) levels.pop();
+    if (!item) continue;
+    const previous = levels[levels.length - 1];
+    if (previous?.indent === indent) levels.pop();
+    let number = item.number;
+    if (number !== undefined && previous?.indent === indent && previous.number !== undefined && previous.delimiter === item.delimiter) {
+      number = previous.number + 1;
+      if (number !== item.number) changes.push({ from: item.markerFrom, to: item.markerTo, insert: `${number}${item.delimiter}` });
+    }
+    levels.push({ ...item, number });
+  }
+  return changes;
+}
+
 // Shift every non-blank line of the subtree by `delta` columns and give the
 // item a new number when it's ordered.
 function reindent(view: EditorView, item: ListItem, delta: number, number: number | undefined, userEvent: string) {
@@ -102,7 +137,9 @@ function reindent(view: EditorView, item: ListItem, delta: number, number: numbe
   if (number !== undefined && item.delimiter && number !== item.number) {
     changes.push({ from: item.markerFrom, to: item.markerTo, insert: `${number}${item.delimiter}` });
   }
-  const changeSet = state.changes(changes);
+  const moved = state.changes(changes);
+  const after = state.update({ changes: moved }).state;
+  const changeSet = moved.compose(after.changes(renumberList(after, after.doc.lineAt(moved.mapPos(item.line.from)).number)));
   view.dispatch({
     changes: changeSet,
     selection: state.selection.map(changeSet, 1),
@@ -125,15 +162,13 @@ function childColumn(state: EditorState, sibling: ListItem, item: ListItem): num
 
 // Tab on a list item nests it, with its children, under the item above, one
 // level (four spaces) in, and an ordered item continues the numbering at its
-// new level. The first item of a list has nothing to nest under, so it just
-// moves one level.
+// new level. The first item of a list, or of a nested level, has nothing to
+// nest under and stays put: one more level would skip one, and Markdown reads
+// an item that deep as a code block.
 function indentListItem(view: EditorView, item: ListItem): boolean {
   const { state } = view;
   const sibling = findPrevious(state, item, (indent) => indent <= item.indent, item.indent);
-  if (!sibling || sibling.indent !== item.indent) {
-    reindent(view, item, INDENT.length, undefined, "input.indent.list");
-    return true;
-  }
+  if (!sibling || sibling.indent !== item.indent) return true;
   const target = childColumn(state, sibling, item);
   let number: number | undefined;
   if (item.number !== undefined) {

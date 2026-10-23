@@ -26,6 +26,8 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "Code block", shortcut: "CTRL/CMD+ALT+C" },
             { label: "Insert a table", shortcut: "CTRL/CMD+SHIFT+I" },
             { label: "Find and replace in note", shortcut: "CTRL/CMD+F" },
+            { label: "Fold / unfold current section", shortcut: "CTRL/CMD+SHIFT+." },
+            { label: "Unfold all sections", shortcut: "CTRL/CMD+SHIFT+," },
             { label: "Add next match to the selection", shortcut: "CTRL/CMD+D" },
             { label: "Select all matches", shortcut: "CTRL/CMD+SHIFT+L" },
             { label: "Add a cursor (not on a link or task)", shortcut: "CTRL/CMD+CLICK" },

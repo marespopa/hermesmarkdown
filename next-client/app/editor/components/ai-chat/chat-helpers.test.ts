@@ -3,7 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("@/app/components/Toastr", () => ({ showErrorToast: vi.fn() }));
 
 import { NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "../../utils/formula-ai-guide";
-import { ACTIVE_FILE_CHAR_LIMIT, buildChatSystemPrompt, SYSTEM_PROMPT } from "./chat-helpers";
+import type { FileMetadata } from "@/app/atoms/metadata";
+import { ACTIVE_FILE_CHAR_LIMIT, buildChatSystemPrompt, describeFile, SYSTEM_PROMPT } from "./chat-helpers";
 
 describe("SYSTEM_PROMPT", () => {
   it("teaches table formulas and the inline calculator", () => {
@@ -46,5 +47,24 @@ describe("buildChatSystemPrompt", () => {
     expect(buildChatSystemPrompt("", "", "a.md", [])).toBe(SYSTEM_PROMPT);
     const prompt = buildChatSystemPrompt("", "", "a.md", ["Write templates."]);
     expect(prompt).toBe(`${SYSTEM_PROMPT}\n\n--- SKILL ---\nWrite templates.\n--- END SKILL ---`);
+  });
+});
+
+describe("describeFile", () => {
+  const note = (frontmatter: Record<string, unknown>, tags: string[] = []) =>
+    ({ path: "Plans/Roadmap.md", name: "Roadmap.md", tags, frontmatter }) as unknown as FileMetadata;
+
+  it("lists aliases and the description after the title and tags", () => {
+    expect(describeFile(note({ title: "Roadmap", aliases: "Plan, Q4", description: "What ships this quarter." }, ["work"]))).toBe(
+      "- Plans/Roadmap.md: Roadmap [work] (aka Plan, Q4) — What ships this quarter.",
+    );
+  });
+
+  it("keeps a note without them to path, title and tags", () => {
+    expect(describeFile(note({}))).toBe("- Plans/Roadmap.md: Roadmap");
+  });
+
+  it("leaves out a private note's aliases and description", () => {
+    expect(describeFile(note({ private: "true", aliases: "Secret", description: "Hidden." }))).toBe("- Plans/Roadmap.md: Roadmap");
   });
 });

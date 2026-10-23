@@ -4,7 +4,7 @@ The parts of `WorkspaceSidebar` (one level up), top to bottom, and what they sha
 
 | Item | Purpose |
 |---|---|
-| [SidebarHeader](SidebarHeader.md) | Vault switcher, New note, Hide sidebar. |
+| [SidebarHeader](SidebarHeader.md) | App wordmark, New note, Hide sidebar. |
 | [SidebarOpenNotes](SidebarOpenNotes.md) | The pane's open notes: one click to switch, × to close, a dot while unsaved. |
 | [SidebarOutline](SidebarOutline.md) | The note in front's H1–H3 headings as a tree like Files: carets, each heading's level, the caret's section highlighted; a click jumps there. |
 | [LinkedFromSection](LinkedFromSection.md) | Shown only when something links here: notes linking to the note in front (wikilinks, embeds); a click opens the source at the link. |

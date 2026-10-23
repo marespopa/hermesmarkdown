@@ -29,6 +29,23 @@ describe("crumbTargets", () => {
       { label: "Clients", path: "Work/Projects/2026/Clients" },
     ]);
   });
+
+  it("leads with the vault's root, alone at the root", () => {
+    expect(crumbTargets([], "Notes")).toEqual([{ label: "Notes", path: "" }]);
+    expect(crumbTargets(["Work", "Projects"], "Notes")).toEqual([
+      { label: "Notes", path: "" },
+      { label: "Work", path: "Work" },
+      { label: "Projects", path: "Work/Projects" },
+    ]);
+  });
+
+  it("folds every folder but the last after the vault's root", () => {
+    expect(crumbTargets(["Work", "Projects", "Clients"], "Notes")).toEqual([
+      { label: "Notes", path: "" },
+      { label: "…", path: "Work/Projects", title: "Work / Projects" },
+      { label: "Clients", path: "Work/Projects/Clients" },
+    ]);
+  });
 });
 
 describe("PaneTitle", () => {
@@ -49,6 +66,33 @@ describe("PaneTitle", () => {
     expect(onOpenFolder).toHaveBeenLastCalledWith("Work/Projects/2026", expect.anything());
     fireEvent.click(screen.getByRole("button", { name: "Folder Clients" }));
     expect(onOpenFolder).toHaveBeenLastCalledWith("Work/Projects/2026/Clients", expect.anything());
+  });
+
+  it("opens the vault's root from its first crumb, a root note included", () => {
+    const onOpenFolder = vi.fn();
+    render(<PaneTitle {...base} onOpenFolder={onOpenFolder} rootName="Notes" />);
+    fireEvent.click(screen.getByRole("button", { name: "Folder Notes" }));
+    expect(onOpenFolder).toHaveBeenLastCalledWith("", expect.anything());
+    expect(screen.getByText("Roadmap")).toBeInTheDocument();
+  });
+
+  it("shows the vault's root alone when no note is open", () => {
+    render(<PaneTitle {...base} title={null} onOpenFolder={vi.fn()} rootName="Notes" />);
+    expect(screen.getByRole("button", { name: "Folder Notes" })).toBeInTheDocument();
+    expect(screen.queryByText("No note open")).not.toBeInTheDocument();
+    expect(screen.queryByText("/")).not.toBeInTheDocument();
+  });
+
+  it("leads with a \"No vault\" crumb that opens the vault menu, alone when no note is open", () => {
+    const onVaultMenu = vi.fn();
+    const { rerender } = render(<PaneTitle {...base} onVaultMenu={onVaultMenu} />);
+    fireEvent.click(screen.getByRole("button", { name: "No vault. Open a vault" }));
+    expect(onVaultMenu).toHaveBeenCalledOnce();
+    expect(screen.getByText("Roadmap")).toBeInTheDocument();
+    rerender(<PaneTitle {...base} title={null} onVaultMenu={onVaultMenu} vaultMenuOpen />);
+    expect(screen.getByRole("button", { name: "No vault. Open a vault" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.queryByText("No note open")).not.toBeInTheDocument();
+    expect(screen.queryByText("/")).not.toBeInTheDocument();
   });
 
   it("marks the crumb whose folder is open, as the name marks its open menu", () => {

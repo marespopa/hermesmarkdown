@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { useStore } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import { frontmatterVocabularyOf } from "../utils/frontmatter-vocabulary";
 import type { EditorView } from "@codemirror/view";
 import { EditorSelection } from "@codemirror/state";
 import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
@@ -140,6 +141,9 @@ export function useCodeMirrorTemplates({
   slashMenuCallbacksRef.current.onInsertBoard = onInsertBoard;
   // `/name` at the start of a line offers vault notes to embed.
   slashMenuCallbacksRef.current.embedFiles = () => (store.get(atom_vaultHandle) ? Object.keys(store.get(atom_fileMetadata)) : []);
+  // The frontmatter menu (codemirror/frontmatter-completion.ts): the vault's
+  // keys, tags and values.
+  slashMenuCallbacksRef.current.frontmatterVocabulary = () => frontmatterVocabularyOf(store.get(atom_fileMetadata));
 
   const wikiLinkTriggerRef = useRef<WikiLinkTriggerCallback | null>((_view, from, to) => {
     wikiLinkRangeRef.current = { from, to };

@@ -3,7 +3,7 @@ import { redo, undo } from "@codemirror/commands";
 import { EditorSelection } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { detectDelimitedTable, parseDelimitedText } from "../utils/table-manipulation";
-import { altHint, caretOffsetIn, expandCalcInCell, matchByWrapper, refreshHandles, renderCell, rulersByWrapper, selectionOffsetsIn, setCaretOffset, toDisplay, toRaw } from "./table-cell-dom";
+import { altHint, caretOffsetIn, expandCalcInCell, matchByWrapper, openCellLink, refreshHandles, renderCell, rulersByWrapper, selectionOffsetsIn, setCaretOffset, toDisplay, toRaw } from "./table-cell-dom";
 import { addColumnAction, addRowAction, appendRowAction, copyCSVAction, copyJSONAction, findTableInState, insertColumnLeftAction, insertRowAboveAction, moveColumnAction, moveRowAction, normalizeTableSource, pasteGridAction, removeColumnAction, removeRowAction, removeTableAction, setAlignmentAction, sortColumnAction, sumColumnAction, TABLE_INSERT_KEYS } from "./table-commands";
 import type { TableDisplayMatch } from "./table-display";
 import { CELL_ATTR, cellKey, exitTable, focusCellElement, focusTableCellAt, getTableHandle, placeCaret, TABLE_WIDGET_CLASS } from "./table-focus";
@@ -225,7 +225,7 @@ export function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
     const link = (event.target as Element | null)?.closest?.("a[href]");
     if (!link) return;
     event.preventDefault();
-    window.open(link.getAttribute("href")!, "_blank", "noopener,noreferrer");
+    openCellLink(link);
   });
 
   wrapper.addEventListener("paste", (event) => {

@@ -19,9 +19,13 @@ import FolderPopover from "./FolderPopover";
 import { PANE_TOP_ROOM } from "./pane-header-classes";
 import type { SaveState } from "./save-state";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { useDialog } from "@/app/hooks/use-dialog";
+import { resolveDirectory } from "@/app/hooks/file-system/vault-scan";
+import toast from "react-hot-toast";
 import { useAtomValue, useSetAtom } from "jotai";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useNoteMenuItems } from "../hooks/use-note-menu-items";
+import { useVaultMenuItems } from "../hooks/use-vault-menu-items";
 import PaneEmptyState from "./PaneEmptyState";
 import { EDITOR_CORNER_WIDTH } from "./CopyMarkdownButton";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
@@ -39,7 +43,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const saveStatus = useAtomValue(atom_saveStatus);
   const isMobileChrome = useIsMobileChrome();
 
-  const { openOrCreateLink, renameFile, openFile } = useFileSystem();
+  const { openOrCreateLink, openFileLink, renameFile, openFile, closeVault, vaultHandle, createNewFile, createFolder } = useFileSystem();
+  const dialog = useDialog();
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const vaultName = useAtomValue(atom_vaultName) ?? "Vault";
   const showFolderInFiles = useSetAtom(atom_showFolderInFiles);
@@ -65,6 +70,24 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   }
 
   const noteMenuItems = useNoteMenuItems(leaf);
+
+  // The folder popover's New Note / New Folder: named there, created in its
+  // folder with no picker or prompt. A new note opens; a new folder's path
+  // goes back so the popover steps into it.
+  const folderAt = async (folder: string) => {
+    const dir = vaultHandle ? await resolveDirectory(vaultHandle, folder) : null;
+    if (!dir) toast.error("That folder is no longer in the vault.");
+    return dir;
+  };
+  const newNoteIn = async (folder: string, name: string) => {
+    const dir = await folderAt(folder);
+    if (dir) await createNewFile(dir, name);
+  };
+  const newFolderIn = async (folder: string, name: string) => {
+    const dir = await folderAt(folder);
+    const created = dir ? await createFolder(dir, name) : null;
+    return created ? (folder ? `${folder}/${created.name}` : created.name) : null;
+  };
 
   // Drives the title's save dot.
   const activeFileState = leaf.activeFilePath ? openFiles[leaf.activeFilePath] : undefined;
@@ -95,6 +118,10 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
   const [tabMenu, setTabMenu] = React.useState<{ x: number; y: number; path: string; fromButton?: boolean } | null>(null);
   const menuButtonRef = React.useRef<HTMLButtonElement>(null);
+  // No vault open: the title's "No vault" crumb opens the vault menu.
+  const vaultMenuItems = useVaultMenuItems();
+  const [vaultMenu, setVaultMenu] = React.useState<{ x: number; y: number } | null>(null);
+  const vaultButtonRef = React.useRef<HTMLButtonElement>(null);
   // The note in front, as the title shows it, and its folder.
   const activeTitle = (activeFileState?.fileName || leaf.activeFilePath?.split("/").pop() || "Untitled").replace(/\.md$/i, "");
   const activeFolder = leaf.activeFilePath && leaf.activeFilePath !== "draft" ? leaf.activeFilePath.split("/").slice(0, -1).join("/") : "";
@@ -145,7 +172,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         // Once scrolled, text goes under a solid band the height of the top
         // room, then fades out over a short gradient, so it never runs into
         // the title. At the top there's none, so nothing at the start of the
-        // note (the Properties panel) is covered.
+        // note (the frontmatter panel) is covered.
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col">
           <div style={{ height: PANE_TOP_ROOM }} className="bg-surface" />
           <div className="h-4 bg-gradient-to-b from-surface to-transparent" />
@@ -163,6 +190,13 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               folder={hasFiles ? activeFolder : ""}
               onOpenFolder={hasVault ? (folder, anchor) => setFolderMenu((open) => (open?.folder === folder ? null : { folder, anchor })) : undefined}
               openFolder={folderMenu?.folder ?? null}
+              rootName={hasVault ? vaultName : undefined}
+              // A second press closes it, as the name's menu does.
+              onVaultMenu={!hasVault && vaultMenuItems.length > 0 ? (anchor) => {
+                setVaultMenu((open) => (open ? null : { x: anchor.left, y: anchor.bottom + 4 }));
+              } : undefined}
+              vaultMenuOpen={!!vaultMenu}
+              vaultButtonRef={vaultButtonRef}
               saveState={activeSaveState}
               saveErrorMessage={saveStatus.message}
               onRename={hasFiles && canRename ? renameActive : undefined}
@@ -206,6 +240,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 onChange={setContent}
                 filePath={leaf.activeFilePath || "draft"}
                 onWikiLinkClick={openOrCreateLink}
+                onFileLinkClick={(href) => void openFileLink(href, leaf.activeFilePath)}
                 placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
               />
             )}
@@ -220,8 +255,31 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
           currentPath={leaf.activeFilePath ?? null}
           rootName={vaultName}
           onOpenNote={(handle, path) => { void openFile(handle, path); }}
+          onNewNote={(folder, name) => void newNoteIn(folder, name)}
+          onNewFolder={newFolderIn}
           onShowInFiles={(folder) => showFolderInFiles(folder)}
+          // Confirmed, as the palette's Close Vault is.
+          onCloseVault={async () => {
+            const confirmed = await dialog.confirm(
+              "You can reopen it later — this just disconnects the current vault.",
+              "Close this vault?",
+              "Close Vault",
+              "Cancel",
+            );
+            if (confirmed) closeVault();
+          }}
           onClose={() => setFolderMenu(null)}
+        />
+      )}
+
+      {vaultMenu && (
+        <TabContextMenu
+          x={vaultMenu.x}
+          y={vaultMenu.y}
+          items={vaultMenuItems}
+          label="Open a vault"
+          anchorRef={vaultButtonRef}
+          onClose={() => setVaultMenu(null)}
         />
       )}
 

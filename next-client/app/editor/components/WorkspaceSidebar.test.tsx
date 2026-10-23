@@ -25,10 +25,6 @@ vi.mock("next/navigation", () => ({
   usePathname: () => navigation.pathname,
 }));
 
-vi.mock("../hooks/use-recent-vaults", () => ({
-  useRecentVaults: () => ({ recentVaults: [], openRecentVault: vi.fn() }),
-}));
-
 vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: () => ({
     vaultHandle: fileSystem.vaultHandle,
@@ -346,19 +342,24 @@ describe("WorkspaceSidebar", () => {
     expect(screen.queryByRole("region", { name: "Linked from" })).not.toBeInTheDocument();
   });
 
-  it("titles its header with the vault's name, beside a button that hides it", () => {
+  it("titles its header with the app's name, not a vault switcher", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar();
-    expect(screen.getByRole("button", { name: "Vault: Notes. Switch vault" })).toBeInTheDocument();
+    expect(screen.getByText("HermesMarkdown")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Switch vault/ })).not.toBeInTheDocument();
+  });
 
-    fireEvent.click(screen.getByRole("button", { name: "Hide sidebar" }));
+  it("hides from a click on its wordmark", () => {
+    renderSidebar();
+    fireEvent.click(screen.getByRole("button", { name: "HermesMarkdown. Hide sidebar" }));
     expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
   });
 
-  it("titles a browser vault by its name, not its storage folder", () => {
-    fileSystem.vaultHandle = { name: "browser-3f2a" };
-    renderSidebar(true, { version: 1, kind: "browser", id: "3f2a", displayName: "Journal", createdAt: 1 });
-    expect(screen.getByRole("button", { name: "Vault: Journal. Switch vault" })).toBeInTheDocument();
+  it("hides from its Hide sidebar button", () => {
+    renderSidebar();
+
+    fireEvent.click(screen.getByRole("button", { name: "Hide sidebar" }));
+    expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
   });
 
   it("lists pinned notes first in Files, opens one, and unpins it from its menu", async () => {

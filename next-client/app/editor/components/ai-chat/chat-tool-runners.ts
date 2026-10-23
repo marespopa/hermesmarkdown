@@ -3,6 +3,7 @@ import type { ContentHit } from "@/app/workers/content-search-protocol";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import type { TaskItem } from "@/app/utils/taskExtractor";
 import { boardTextForReading } from "@/app/utils/board/board-format";
+import { frontmatterList } from "@/app/utils/frontmatter-utils";
 
 // The pure half of AI Chat's tools (declared in app/api/ai/chat-tools.ts):
 // what each one answers, from the vault's index and the text the client read.
@@ -24,8 +25,19 @@ export function searchablePaths(meta: Record<string, FileMetadata>, skip: (path:
   return Object.values(meta).filter((file) => !skip(file.path) && !isPrivate(file)).map((file) => file.path);
 }
 
-// Notes whose name, title or tags hold the query, then content hits (from the
-// content index, when there is one), one line per note, at most `limit`.
+const DESCRIPTION_CHAR_LIMIT = 160;
+
+// A note's frontmatter `description`, on one line and capped.
+export function noteDescription(file: FileMetadata | undefined): string {
+  const value = file?.frontmatter?.description;
+  if (typeof value !== "string") return "";
+  const text = value.replace(/\s+/g, " ").trim();
+  return text.length > DESCRIPTION_CHAR_LIMIT ? `${text.slice(0, DESCRIPTION_CHAR_LIMIT - 1)}…` : text;
+}
+
+// Notes whose name, title, aliases, tags or description hold the query, then
+// content hits (from the content index, when there is one), one line per
+// note, at most `limit`. A note's description follows its line.
 export function searchNotesOutput(
   query: string,
   meta: Record<string, FileMetadata>,
@@ -40,13 +52,20 @@ export function searchNotesOutput(
     const file = meta[path];
     const title = typeof file?.frontmatter?.title === "string" ? file.frontmatter.title : "";
     const tags = file?.tags ?? [];
-    if ([noteName(path), title, ...tags].some((value) => value.toLowerCase().includes(needle))) {
-      lines.set(path, `- [[${noteName(path)}]]${title ? ` (${title})` : ""}: name or tag match`);
+    const aliases = frontmatterList(file?.frontmatter?.aliases);
+    const description = noteDescription(file);
+    const about = description ? ` — ${description}` : "";
+    const matches = (value: string) => value.toLowerCase().includes(needle);
+    if ([noteName(path), title, ...aliases, ...tags].some(matches)) {
+      lines.set(path, `- [[${noteName(path)}]]${title ? ` (${title})` : ""}: name, alias or tag match${about}`);
+    } else if (description && matches(description)) {
+      lines.set(path, `- [[${noteName(path)}]]${title ? ` (${title})` : ""}: description match${about}`);
     }
   }
   for (const hit of hits ?? []) {
     if (!allowed.has(hit.path) || lines.has(hit.path)) continue;
-    lines.set(hit.path, `- [[${noteName(hit.path)}]], line ${hit.line}: ${hit.snippet}`);
+    const description = noteDescription(meta[hit.path]);
+    lines.set(hit.path, `- [[${noteName(hit.path)}]], line ${hit.line}: ${hit.snippet}${description ? ` — ${description}` : ""}`);
   }
   const shown = [...lines.values()].slice(0, limit);
   if (!shown.length) return `No notes match "${query}".${hits === null ? " (Only note names and tags were searched.)" : ""}`;

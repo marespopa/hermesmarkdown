@@ -11,6 +11,7 @@ import {
   toggleStrikethrough,
 } from "../../codemirror/commands";
 import { setHeading, toggleCodeBlock, wrapAsLink } from "../../codemirror/format-shortcuts";
+import { foldCurrentSection, unfoldAllSections } from "../../codemirror/heading-fold";
 import { openSearchPanel } from "@codemirror/search";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
@@ -62,6 +63,8 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     { id: "format-link", label: "Format: Link", category: "Editor" as const, shortcut: formatShortcut("K", { alt: true }), keywords: "url href markdown", action: () => runEditorCommand(wrapAsLink) },
     { id: "format-code-block", label: "Format: Code block", category: "Editor" as const, shortcut: formatShortcut("C", { alt: true }), keywords: "fence snippet markdown", action: () => runEditorCommand(toggleCodeBlock) },
     { id: "find-in-note", label: "Find and replace in note", category: "Editor" as const, shortcut: formatShortcut("F"), keywords: "search replace regex", action: () => runEditorCommand(openSearchPanel) },
+    { id: "fold-current-section", label: "Fold current section", category: "Editor" as const, shortcut: formatShortcut(".", { shift: true }), keywords: "collapse heading outline hide", action: () => runEditorCommand(foldCurrentSection) },
+    { id: "unfold-all-sections", label: "Unfold all sections", category: "Editor" as const, shortcut: formatShortcut(",", { shift: true }), keywords: "expand headings sections show", action: () => runEditorCommand(unfoldAllSections) },
     { id: "indent-subtree", label: "Indent current item", category: "Editor" as const, keywords: "nest list task", action: () => runEditorCommand(indentCurrentSubtree) },
     { id: "outdent-subtree", label: "Outdent current item", category: "Editor" as const, keywords: "unnest list task", action: () => runEditorCommand(outdentCurrentSubtree) },
     { id: "toggle-checkbox", label: "Toggle checkbox", category: "Tasks" as const, keywords: "task done todo", action: () => runEditorCommand(toggleCheckboxOnLine) },
@@ -145,11 +148,12 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
         aiAction("tone-direct", "Change tone to direct", "tone voice"),
         aiAction("tone-polished", "Change tone to polished", "tone voice"),
       ]),
-      aiMode("structure", "Summarize / Structure", "Extract tasks, key points, outline", "summary summarize tasks todos outline key points title explain", [
+      aiMode("structure", "Summarize / Structure", "Extract tasks, key points, outline", "summary summarize tasks todos outline key points title explain properties frontmatter metadata", [
         aiAction("summarize", "Summarize selection", "summary key points tldr"),
         aiAction("extract-tasks", "Extract tasks", "todos checklist action items"),
         aiAction("outline", "Create outline", "headings structure bullets"),
         aiAction("title", "Generate title", "name heading"),
+        aiAction("properties", "Suggest properties", "frontmatter metadata yaml title description tags auto fill"),
         aiAction("explain", "Explain selection", "simplify meaning"),
       ]),
       aiMode("insert", "Insert Element", "Generate a table, Mermaid diagram or formula", "generate table diagram mermaid chart flowchart formula math calculation", [
