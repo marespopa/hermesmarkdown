@@ -149,7 +149,7 @@ export default function Typeahead({
                 className={`px-4 py-2.5 cursor-pointer transition-colors ${
                   index === activeIndex
                     ? "bg-sage/10 dark:bg-sage/10 text-sage dark:text-sage font-medium"
-                    : "hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-neutral-700 dark:text-neutral-200"
+                    : "hover:bg-fill text-neutral-700 dark:text-neutral-200"
                 }`}
               >
                 {opt}

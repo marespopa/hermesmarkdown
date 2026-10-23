@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { HiOutlineDocument, HiOutlinePencil, HiOutlineViewBoards } from "react-icons/hi";
 import DialogModal from "@/app/components/DialogModal";
 import Button from "@/app/components/Button";
-import { BareInput } from "@/app/components/Input";
+import { BareInput, FIELD_CLASS } from "@/app/components/Input";
 import { isMacPlatform } from "@/app/utils/platform";
 import { templateSummary } from "@/app/utils/templates/template-preview";
 import TemplateIcon from "./TemplateIcon";
@@ -168,7 +168,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
               aria-label="Search templates"
               aria-controls="template-picker-list"
               aria-activedescendant={highlighted ? `template-row-${highlight}` : undefined}
-              className="h-11 w-full rounded-xl border border-edge bg-input-bg px-3 text-ui-subhead text-fg outline-none placeholder:text-fg-faint focus:ring-4 focus:ring-sage/10"
+              className={`${FIELD_CLASS} w-full`}
             />
             <div className={showPreview ? "grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]" : ""}>
               <div id="template-picker-list" role="listbox" aria-label="Templates" className="flex max-h-80 flex-col gap-1 overflow-y-auto">
@@ -217,12 +217,12 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                   </Button>
                   {onEdit && row.kind === "template" && (
                     <Button
-                      variant="unstyled"
+                      variant="icon-small"
                       onClick={() => onEdit(row.entry)}
                       aria-label={`Edit template ${row.entry.name}`}
                       title={`Edit template (${mod}E)`}
                       tabIndex={-1}
-                      className="absolute right-1 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg text-fg-faint transition-opacity duration-150 hover:bg-paper-softgray hover:text-fg [@media(hover:hover)]:sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-paper-dark-surface"
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 text-fg-faint [@media(hover:hover)]:sm:opacity-0 sm:group-hover:opacity-100"
                     >
                       <HiOutlinePencil size={15} aria-hidden />
                     </Button>

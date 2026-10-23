@@ -10,15 +10,12 @@ interface ToggleProps {
   variant?: "default" | "soft";
 }
 
+// An iOS switch: the accent when on, the strongest gray control fill when
+// off, a white knob with a soft shadow. Both variants share the look now;
+// `soft` stays accepted for existing callers.
 const trackStyles: Record<"default" | "soft", { on: string; off: string }> = {
-  default: {
-    on:  "bg-sage",
-    off: "bg-paper-softgray dark:bg-clay",
-  },
-  soft: {
-    on:  "bg-sage",
-    off: "bg-neutral-300 dark:bg-neutral-600",
-  },
+  default: { on: "bg-sage", off: "bg-fill-press" },
+  soft: { on: "bg-sage", off: "bg-fill-press" },
 };
 
 const Toggle = ({ active, onChange, label, variant = "default" }: ToggleProps) => {
@@ -38,7 +35,7 @@ const Toggle = ({ active, onChange, label, variant = "default" }: ToggleProps) =
     >
       <span
         className={`
-          pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white ring-0
+          pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.25)] ring-0
           transition duration-200 ease-in-out
           ${active ? 'translate-x-5' : 'translate-x-0'}
         `}

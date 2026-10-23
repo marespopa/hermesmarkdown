@@ -110,7 +110,7 @@ export default function TagsPage() {
                             <Button
                               variant="unstyled"
                               onClick={() => void open(meta.path)}
-                              className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.04]"
+                              className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-fill"
                             >
                               <HiOutlineDocumentText size={16} aria-hidden className="shrink-0 text-fg-faint" />
                               <span className="min-w-0 flex-1">

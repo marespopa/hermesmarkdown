@@ -2,7 +2,7 @@
 
 import React from "react";
 import { HiOutlineSearch } from "react-icons/hi";
-import { BareInput } from "@/app/components/Input";
+import { BareInput, FIELD_SURFACE } from "@/app/components/Input";
 
 interface DocsHeroProps {
   query: string;
@@ -37,7 +37,7 @@ export default function DocsHero({ query, onQueryChange, resultCount }: DocsHero
           onChange={(e) => onQueryChange(e.target.value)}
           placeholder="Search documentation"
           aria-label="Search documentation"
-          className="w-full h-14 pl-14 pr-5 text-[17px] text-fg placeholder:text-fg-faint bg-surface-raised border border-edge rounded-full shadow-sm outline-none focus:border-accent transition-colors"
+          className={`${FIELD_SURFACE} w-full h-14 pl-14 pr-5 rounded-2xl text-ui-body`}
         />
       </div>
       {searching && (

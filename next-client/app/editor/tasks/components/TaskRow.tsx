@@ -122,7 +122,7 @@ export default function TaskRow({
         </Button>
         <Button
           ref={menuButtonRef}
-          variant="unstyled"
+          variant="icon-small"
           aria-label="Change status"
           aria-haspopup="menu"
           title="Change status"
@@ -130,7 +130,7 @@ export default function TaskRow({
             const rect = e.currentTarget.getBoundingClientRect();
             setMenuAt(menuAt ? null : { x: rect.left, y: rect.bottom + 4 });
           }}
-          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-fg-faint opacity-0 transition-opacity hover:bg-paper-softgray hover:text-ink-light focus-visible:opacity-100 group-hover:opacity-100 dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark [@media(pointer:coarse)]:opacity-100"
+          className="text-fg-faint opacity-0 focus-visible:opacity-100 group-hover:opacity-100 [@media(pointer:coarse)]:opacity-100"
         >
           <HiDotsHorizontal size={14} />
         </Button>

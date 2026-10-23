@@ -150,11 +150,10 @@ export default function UnifiedSearchInput({
         onClick={() => inputRef.current?.focus()}
         className={[
           "flex items-center h-11 sm:h-9 px-3 gap-2 cursor-text",
-          "rounded-xl",
-          "bg-input-bg dark:bg-paper-dark",
-          "border border-edge",
-          "focus-within:ring-2 focus-within:ring-inset focus-within:ring-sage/20",
-          "transition-all duration-150",
+          // The field look (field-styles.ts), on the wrapper around the input.
+          "rounded-[10px] bg-fill",
+          "focus-within:ring-2 focus-within:ring-accent/25",
+          "transition-[background-color,box-shadow] duration-150",
         ].join(" ")}
       >
         <HiOutlineSearch
@@ -178,7 +177,7 @@ export default function UnifiedSearchInput({
           className={[
             "flex-1 min-w-0 bg-transparent outline-none focus-visible:outline-none border-none",
             "text-[13px] sm:text-xs leading-none",
-            "text-ink-light dark:text-ink-dark",
+            "text-fg",
             "placeholder:text-fg-faint",
             "caret-sage",
           ].join(" ")}
@@ -192,8 +191,8 @@ export default function UnifiedSearchInput({
           className={[
             "shrink-0 w-4 h-4 flex items-center justify-center",
             "rounded-full",
-            "text-stone hover:text-ink-muted dark:hover:text-ink-dark",
-            "bg-beige/60 hover:bg-beige dark:bg-clay/60 dark:hover:bg-clay",
+            "text-fg-faint hover:text-fg",
+            "bg-fill-hover hover:bg-fill-press",
             "transition-all duration-150",
             hasContent ? "opacity-100" : "opacity-0 pointer-events-none",
           ].join(" ")}

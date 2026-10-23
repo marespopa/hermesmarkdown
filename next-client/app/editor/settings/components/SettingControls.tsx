@@ -2,7 +2,8 @@
 
 import React from "react";
 import { HiChevronDown } from "react-icons/hi";
-import Button from "@/app/components/Button";
+import Button, { SEGMENT_TRACK_CLASS } from "@/app/components/Button";
+import { FIELD_SURFACE } from "@/app/components/Input";
 
 export function SegmentedControl<T extends string>({
   options,
@@ -14,7 +15,7 @@ export function SegmentedControl<T extends string>({
   onChange: (v: T) => void;
 }) {
   return (
-    <div className="inline-flex flex-wrap gap-0.5 rounded-lg bg-paper-softgray/75 p-0.5 dark:bg-paper-dark-surface/80">
+    <div className={`inline-flex flex-wrap gap-0.5 ${SEGMENT_TRACK_CLASS}`}>
       {options.map((opt) => (
         <Button variant="segment"
           key={opt.value}
@@ -53,17 +54,15 @@ export const SelectControl = ({
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled}
       aria-label={ariaLabel}
-      className={`appearance-none bg-paper-softgray dark:bg-paper-dark-surface text-ink-light dark:text-ink-dark font-semibold outline-none border border-transparent focus:border-sage/40 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-        fullWidth ? "w-full" : ""
-      } ${
-        size === "sm" ? "text-ui-footnote rounded-md px-2 pr-6 py-1" : "text-ui-footnote rounded-xl px-3 pr-7 py-1.5"
+      className={`${FIELD_SURFACE} appearance-none font-medium cursor-pointer ${fullWidth ? "w-full" : ""} ${
+        size === "sm" ? "h-7 text-ui-footnote rounded-md px-2 pr-6" : "h-8 text-ui-footnote rounded-lg px-2.5 pr-7"
       }`}
     >
       {children}
     </select>
     <HiChevronDown
       size={size === "sm" ? 11 : 13}
-      className="absolute right-2 top-1/2 -translate-y-1/2 text-stone pointer-events-none"
+      className="absolute right-2 top-1/2 -translate-y-1/2 text-fg-faint pointer-events-none"
     />
   </div>
 );

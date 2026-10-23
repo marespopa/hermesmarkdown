@@ -3,8 +3,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { HiChevronDown } from "react-icons/hi";
 import DialogModal from "../../components/DialogModal/DialogModal";
-import Button from "../../components/Button";
-import Input from "../../components/Input";
+import Button, { SEGMENT_TRACK_CLASS } from "../../components/Button";
+import Input, { FIELD_CLASS } from "../../components/Input";
 import { buildTaskText, type TaskPriority, type TaskStatus } from "../utils/task-template";
 
 interface TaskDialogProps {
@@ -51,7 +51,7 @@ function SelectField<T extends string>({
 }) {
   return (
     <div className="flex flex-col gap-1.5 my-2 w-full">
-      <label htmlFor={id} className="text-ui-footnote font-medium text-ink-muted dark:text-stone px-0.5">
+      <label htmlFor={id} className="text-ui-footnote font-medium text-fg-muted px-0.5">
         {label}
       </label>
       <div className="relative">
@@ -59,13 +59,13 @@ function SelectField<T extends string>({
           id={id}
           value={value}
           onChange={(e) => onChange(e.target.value as T)}
-          className="w-full appearance-none px-4 py-2.5 text-ui-subhead font-sans transition-all duration-150 border rounded-xl outline-none focus-visible:outline-none bg-paper-softgray border-beige text-ink-light dark:bg-paper-dark-surface/50 dark:border-clay dark:text-ink-dark focus:ring-2 focus:ring-sage/15 dark:focus:ring-sage/20 cursor-pointer pr-9"
+          className={`${FIELD_CLASS} w-full appearance-none cursor-pointer pr-9`}
         >
           {options.map((opt) => (
             <option
               key={opt.value || "none"}
               value={opt.value}
-              className="bg-paper-light dark:bg-paper-dark-surface text-ink-light dark:text-ink-dark"
+              className="bg-input-bg text-fg"
             >
               {opt.label}
             </option>
@@ -155,28 +155,23 @@ export default function TaskDialog({ isOpen, onClose, onConfirm }: TaskDialogPro
             className="my-0"
           />
           <div className="flex flex-wrap items-center gap-1.5 mt-2">
-            {[
-              { label: "Today", value: addDays(0) },
-              { label: "Tomorrow", value: addDays(1) },
-              { label: "+1 Week", value: addDays(7) },
-            ].map((preset) => (
-              <Button variant="unstyled"
-                key={preset.label}
-                onClick={() => setDueDate(preset.value)}
-                className={`text-ui-footnote px-2.5 py-1 rounded-lg border transition-all font-medium ${
-                  dueDate === preset.value
-                    ? "bg-sage/15 border-sage text-sage dark:bg-sage/20 dark:border-sage dark:text-sage"
-                    : "bg-paper-softgray dark:bg-paper-dark-surface/50 border-beige dark:border-clay text-ink-muted dark:text-stone hover:border-fg-faint hover:text-fg dark:hover:border-fg-faint dark:hover:text-fg"
-                }`}
-              >
-                {preset.label}
-              </Button>
-            ))}
+            <div className={`flex gap-0.5 ${SEGMENT_TRACK_CLASS}`} role="group" aria-label="Due date presets">
+              {[
+                { label: "Today", value: addDays(0) },
+                { label: "Tomorrow", value: addDays(1) },
+                { label: "+1 Week", value: addDays(7) },
+              ].map((preset) => (
+                <Button variant="segment"
+                  key={preset.label}
+                  aria-pressed={dueDate === preset.value}
+                  onClick={() => setDueDate(preset.value)}
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
             {dueDate && (
-              <Button variant="unstyled"
-                onClick={() => setDueDate("")}
-                className="text-ui-footnote px-2 py-1 text-stone hover:text-ink-light dark:hover:text-ink-dark transition-colors"
-              >
+              <Button variant="small" onClick={() => setDueDate("")}>
                 Clear
               </Button>
             )}
@@ -192,7 +187,7 @@ export default function TaskDialog({ isOpen, onClose, onConfirm }: TaskDialogPro
           className="my-0"
         />
 
-        <div className="rounded-xl border border-beige dark:border-clay bg-paper-softgray/60 dark:bg-paper-dark-surface/40 p-3 mt-1">
+        <div className="rounded-xl bg-fill p-3 mt-1">
           <div className="mb-1 text-ui-footnote font-medium text-ink-muted dark:text-stone">Preview</div>
           <div className="font-mono text-ui-footnote break-words text-ink-light dark:text-ink-dark selection:bg-sage/20">
             {preview || "- [ ] "}

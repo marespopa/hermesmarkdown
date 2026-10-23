@@ -25,7 +25,9 @@ These change between light and dark mode. Always prefer these over static colors
 | `bg-surface-raised` | `--surface-raised` | `#F2F1EE` | `#2A2622` | Elevated cards, panels |
 | `bg-chrome` | `--chrome` | `#F0EFEC` | `#181614` | Tab bar, file indicator, palette footer |
 | `bg-overlay` | `--overlay` | `#FCFAF6` | `#2A2622` | Modals, popovers, command palette — never the page color: lighter in light themes, the raised gray in dark ones |
-| `bg-input-bg` | `--input-bg` | `#FFFFFF` | `#1C1A17` | Form inputs (`Input`, `Textarea`, select) — white in light themes |
+| `bg-input-bg` | `--input-bg` | `#FFFFFF` | `#1C1A17` | A select's option list. Fields themselves take `bg-fill` (see Controls) |
+| `bg-fill` | `--fill` | `--fg` at 7% | `--fg` at 11% | The gray control fill: gray buttons, fields, segmented tracks, tags, the round close button, hover on plain controls |
+| `bg-fill-hover` / `bg-fill-press` | `--fill-hover` / `--fill-press` | +4% / +8% | +4% / +8% | The next steps of the fill: hover and press on filled controls, a switch's off track |
 | `border-edge` | `--border` | `#DEDCD7` | `#3D3833` | Visible borders |
 | `border-edge-subtle` | `--border-subtle` | `rgba(60,56,50,0.10)` | `rgba(214,207,198,0.10)` | Hairline / ghost borders |
 | `text-fg` | `--fg` | `#2A2825` | `#ECE7E0` | Primary text |
@@ -152,6 +154,31 @@ Edit `tailwind.config.js` under `theme.extend.colors`. After editing, restart th
 ### Adding a new static color
 
 Add it directly to `tailwind.config.js` under the relevant group. Document whether it is text-safe or decorative-only with a comment.
+
+---
+
+## Controls
+
+Buttons, fields, segmented controls, switches and tags follow iOS: filled, borderless and flat. Use the shared components and classes; don't hand-style a control that one of them covers.
+
+| Control | Use | Look |
+|---|---|---|
+| Button `primary` / `hero` | The main action | Ink fill, page-colour label; 44px (hero 48px), 12px radius |
+| Button `secondary` | Other actions beside it | Gray fill (`bg-fill`), ink label; 44px, 12px radius |
+| Button `warning` | Destructive actions | `--danger` fill; 44px, 12px radius |
+| Button `tertiary` | Plain text actions | No fill until hover; 44px |
+| Button `outlined` | The quieter of two actions (Cancel), example chips | Gray fill, muted label; 44px, 12px radius |
+| Button `small` / `icon-small` | Row, header and popover actions | No fill until hover; 32px text / 28px square, 8px radius |
+| Button `icon` / `close` | Round icon buttons / the sheet's × | Round; `close` sits on the gray fill |
+| Button `segment` on `SEGMENT_TRACK_CLASS` | One-of-several choices | Gray track (9px radius); the selected segment raised on `bg-overlay` with a shadow |
+| `FIELD_CLASS` / `FIELD_COMPACT_CLASS` / `FIELD_SURFACE` (`Input`) | Every text field and select | Gray fill, no border, 10px radius (8px compact), a soft accent ring on focus; 44px / 32px / own size |
+| `Toggle` | On/off settings | iOS switch: accent on, `bg-fill-press` off, white knob |
+| `TagPill` | Every tag | Capsule, tinted fill, no border |
+
+- Hover and press deepen a fill one step (`fill` → `fill-hover` → `fill-press`; ink and danger mix toward the page). Nothing lifts or scales.
+- Touch screens get 44px hit areas; small controls grow their hit area without changing their footprint.
+- Radii: 12px buttons, 10px fields, 8px small controls, compact fields and menu rows, round for icon buttons, the close button, switches and tags.
+- `Button` doesn't merge classes, so a `className` that sets the same property as the variant (height, text colour) may not win. A control that really needs another size or colour stays `unstyled`, built from the same tokens.
 
 ---
 

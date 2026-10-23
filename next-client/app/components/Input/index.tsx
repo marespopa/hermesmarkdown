@@ -1,6 +1,7 @@
 import Input from "./Input.component";
 import Textarea from "./Textarea.component";
 import React from "react";
+import { FIELD_CLASS, FIELD_COMPACT_CLASS } from "./field-styles";
 
 interface SelectOption {
   value: string;
@@ -20,6 +21,7 @@ interface SelectProps {
 
 export { Textarea };
 export { default as BareInput } from "./BareInput";
+export { FIELD_CLASS, FIELD_COMPACT_CLASS, FIELD_SURFACE } from "./field-styles";
 export const Select = ({
   name,
   label,
@@ -32,15 +34,9 @@ export const Select = ({
 }: SelectProps) => (
   <div className={compact ? "my-0" : "my-4"}>
     <label className="flex flex-col gap-1.5">
-      <span className={compact ? "text-ui-footnote font-medium text-zinc-500" : "text-ui-footnote font-medium text-zinc-500 dark:text-zinc-400"}>{label}</span>
+      <span className="text-ui-footnote font-medium text-fg-muted">{label}</span>
       <select
-        className={
-          compact
-            ? fullWidth
-              ? "bg-input-bg dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark border border-edge rounded-xl font-sans px-3 py-2.5 text-ui-subhead h-11 w-full focus:ring-4 focus:ring-sage/10 outline-none transition-all"
-              : "bg-input-bg dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark border border-edge rounded-lg font-sans px-2 py-1 text-ui-footnote h-8 focus:ring-4 focus:ring-sage/10 outline-none transition-all"
-            : "bg-input-bg dark:bg-paper-dark-surface/50 text-ink-light dark:text-ink-dark border border-edge rounded-xl font-sans px-4 py-2.5 text-ui-subhead h-11 focus:ring-4 focus:ring-sage/10 outline-none transition-all"
-        }
+        className={compact && !fullWidth ? FIELD_COMPACT_CLASS : `${FIELD_CLASS}${fullWidth ? " w-full" : ""}`}
         id={name}
         name={name}
         value={value}
@@ -49,13 +45,13 @@ export const Select = ({
         style={compact && !fullWidth ? { minWidth: 120 } : {}}
       >
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value} className="bg-white dark:bg-zinc-900">
+          <option key={opt.value} value={opt.value} className="bg-input-bg">
             {opt.label}
           </option>
         ))}
       </select>
     </label>
-    {helperText && <p className="text-ui-caption text-zinc-400 dark:text-zinc-500 mt-1">{helperText}</p>}
+    {helperText && <p className="text-ui-caption text-fg-faint mt-1">{helperText}</p>}
   </div>
 );
 

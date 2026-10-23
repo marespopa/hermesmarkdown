@@ -30,7 +30,7 @@ export default function PaletteFooter({ scope, onScope }: PaletteFooterProps) {
               aria-pressed={active}
               title={`${label} (type ${prefix})`}
               onClick={() => onScope(id)}
-              className={`flex h-7 items-center gap-1.5 rounded-lg px-1.5 transition-colors ${active ? "bg-accent/15 text-fg" : "hover:bg-black/[0.04] hover:text-fg dark:hover:bg-white/[0.06]"}`}
+              className={`flex h-7 items-center gap-1.5 rounded-lg px-1.5 transition-colors ${active ? "bg-accent/15 text-fg" : "hover:bg-fill hover:text-fg"}`}
             >
               <kbd className={`flex h-[18px] min-w-[18px] items-center justify-center rounded border font-mono text-[11px] ${active ? "border-transparent bg-accent text-white dark:text-surface" : "border-edge-subtle"}`}>{prefix}</kbd>
               {label}

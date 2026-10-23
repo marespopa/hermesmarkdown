@@ -4,7 +4,7 @@ import React from "react";
 import { useAtom } from "jotai";
 import { atom_autosaveMode, atom_showHiddenFiles } from "@/app/atoms/atoms";
 import { atom_newNoteFolder } from "@/app/atoms/ui-atoms";
-import { BareInput } from "@/app/components/Input";
+import { BareInput, FIELD_COMPACT_CLASS } from "@/app/components/Input";
 import Toggle from "@/app/components/Toggle";
 import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -41,7 +41,7 @@ export default function FilesSettings() {
               onBlur={() => setNewNoteFolder(normalizeFolderPath(newNoteFolder))}
               placeholder="Vault root"
               aria-label="New notes folder"
-              className="h-8 w-44 rounded-lg border border-edge bg-input-bg px-2 text-ui-footnote text-fg outline-none placeholder:text-fg-faint focus:ring-4 focus:ring-sage/10"
+              className={`${FIELD_COMPACT_CLASS} w-44`}
             />
           }
         />

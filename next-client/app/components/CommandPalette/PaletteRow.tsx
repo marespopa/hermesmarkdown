@@ -81,7 +81,7 @@ export default function PaletteRow({ row, index, selected, scope, inMenu = false
     // Translucent fills, so the palette's glass shows through its rows.
     // The theme's accent, as the sidebar's current row and the file tree's.
     ? "border-transparent bg-accent/15 text-fg hover:bg-accent/15"
-    : "border-transparent hover:bg-black/[0.04] dark:hover:bg-white/[0.06]";
+    : "border-transparent hover:bg-fill";
 
   return <Button variant="menu-item" id={`command-palette-option-${index}`} role="option" aria-label={accessibleLabel} aria-selected={selected} aria-disabled={row.kind === "command" && !!row.command.disabledReason} aria-busy={runningId === row.id}
     isDisabled={runningId !== null || (row.kind === "command" && !!row.command.disabledReason)} onClick={() => onExecute(row)} onMouseEnter={() => onHover(index)} onContextMenu={(event: React.MouseEvent) => { if (row.kind === "file" || row.kind === "command") { event.preventDefault(); onContextMenu(row); } }}

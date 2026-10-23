@@ -10,7 +10,7 @@ import {
   atom_userName,
 } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
-import { BareInput } from "@/app/components/Input";
+import { BareInput, FIELD_COMPACT_CLASS } from "@/app/components/Input";
 import { showSuccessToast } from "@/app/components/Toastr";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { SettingGroup, SettingItem, SettingNote } from "../components/SettingControls";
@@ -54,7 +54,7 @@ export default function ProfileSettings() {
               placeholder="Your name"
               aria-label="Your name"
               maxLength={60}
-              className="h-8 w-44 rounded-lg border border-edge bg-input-bg px-2 text-ui-footnote text-fg outline-none placeholder:text-fg-faint focus:ring-4 focus:ring-sage/10"
+              className={`${FIELD_COMPACT_CLASS} w-44`}
             />
           }
         />

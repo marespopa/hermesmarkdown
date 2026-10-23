@@ -1,6 +1,6 @@
 # Input
 
-Description: Labelled text/number/password/date input with clear button, debounce, and password reveal. The barrel also exports `Textarea` and `Select`.
+Description: Labelled text/number/password/date input with clear button, debounce, and password reveal. The barrel also exports `Textarea`, `Select`, `BareInput` and the shared field classes from `field-styles.ts`: the one iOS-style field look (the gray control fill `--fill`, no border, a 10px radius, a soft accent ring on focus). `FIELD_CLASS` is the 44px form field (`Input`, `Select`, dialogs), `FIELD_COMPACT_CLASS` the 32px one (settings rows, popover filters), `FIELD_SURFACE` the look without a size (`Textarea`, search fields with their own height). A `BareInput` that is a field of its own takes one of these; in-place rename fields and the command palette's bar keep their own look.
 
 ## Local State & Storage
 - State: Password-visibility and debounce timer (useState/useRef).

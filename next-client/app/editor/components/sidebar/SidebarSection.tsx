@@ -33,7 +33,7 @@ function SectionMenu({ label, items }: { label: string; items: SectionMenuItem[]
         }}
         // Shown with the header's hover or keyboard focus, or while open.
         className={`shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-md transition-[color,background-color,opacity] focus-visible:opacity-100 ${
-          position ? "opacity-100 text-fg bg-black/5 dark:bg-white/10" : "opacity-0 group-hover/section:opacity-100 text-fg-faint hover:text-fg hover:bg-black/5 dark:hover:bg-white/10"
+          position ? "opacity-100 text-fg bg-black/5 dark:bg-white/10" : "opacity-0 group-hover/section:opacity-100 text-fg-faint hover:text-fg hover:bg-fill"
         }`}
       >
         <HiOutlineDotsHorizontal size={14} aria-hidden="true" />
@@ -80,7 +80,7 @@ export default function SidebarSection({
           variant="unstyled"
           onClick={() => setExpanded(!expanded)}
           aria-expanded={expanded}
-          className="flex flex-1 min-w-0 items-center gap-1.5 h-7 px-1.5 rounded-md text-ui-caption font-semibold text-fg-muted select-none transition-colors hover:text-fg hover:bg-black/[0.04] dark:hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage"
+          className="flex flex-1 min-w-0 items-center gap-1.5 h-7 px-1.5 rounded-md text-ui-caption font-semibold text-fg-muted select-none transition-colors hover:text-fg hover:bg-fill focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage"
         >
           <HiChevronRight
             size={12}

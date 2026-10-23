@@ -237,7 +237,7 @@ export const baseTheme = EditorView.theme({
     cursor: "inherit",
     transform: "none",
   },
-  // The pill look (border, background, colour, size) lives in components/TagPill.
+  // The pill look (fill, colour, size) lives in components/TagPill.
   // Laid out as text, like the chip being edited (live-markers-theme.ts): an
   // inline-flex box sits taller in the line, so selecting the tag would make
   // the text jump.

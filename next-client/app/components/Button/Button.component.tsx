@@ -18,6 +18,10 @@ type ButtonVariant =
   | "segment"
   // The round × that closes a dialog, menu or toast.
   | "close"
+  // A small plain text button (32px): toolbar and row actions, toasts.
+  | "small"
+  // A small square icon button (28px): headers, rows, popovers.
+  | "icon-small"
   // No visual styling beyond the shared focus ring: for bespoke controls that
   // style themselves entirely through `className`.
   | "unstyled";
@@ -54,72 +58,79 @@ const Button = React.forwardRef<HTMLButtonElement, Props>(function Button(
 
 export default Button;
 
-// Flat, as the rest of the app: hover changes a fill or the text colour,
-// never lifts or scales. Only colour properties transition. One radius
-// scale everywhere: rounded-lg for controls, rounded-xl for cards and
-// panels, rounded-full only for round icon buttons and dots.
+// iOS-style controls: filled, borderless, flat. Hover and press deepen the
+// fill; nothing lifts or scales, and only colour properties transition. One
+// radius scale: rounded-xl (12px) for full-size buttons, rounded-[10px] for
+// compact ones and fields, rounded-lg for menu rows, rounded-full for round
+// icon buttons, the close button and tags.
 const TRANSITION = "transition-[color,background-color,border-color,opacity,box-shadow] duration-150 ease-out";
 const FOCUS_RING =
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-surface";
 const DISABLED = "disabled:opacity-30 disabled:pointer-events-none";
 
 const baseStyles =
-  `rounded-lg flex items-center justify-center gap-2 ${TRANSITION} ${FOCUS_RING} ${DISABLED} select-none border font-sans font-semibold text-ui-footnote sm:text-ui-subhead`;
+  `flex items-center justify-center gap-2 ${TRANSITION} ${FOCUS_RING} ${DISABLED} select-none font-sans font-semibold`;
+// A full-size button: 44px, the iOS minimum target.
+const LARGE = "h-11 px-5 rounded-xl text-ui-subhead";
 
 // On touch screens, small controls take a 44px hit area without changing
 // their footprint: padding grows and a negative margin gives it back.
 const COARSE_ICON = "[@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:-m-0.5";
 const COARSE_PILL_ICON = "[@media(pointer:coarse)]:p-3.5 [@media(pointer:coarse)]:-m-2.5";
-const COARSE_CLOSE = "[@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:-m-1.5";
+const COARSE_ICON_SMALL = "[@media(pointer:coarse)]:w-10 [@media(pointer:coarse)]:h-10 [@media(pointer:coarse)]:-m-1.5";
+const COARSE_CLOSE = "[@media(pointer:coarse)]:w-11 [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:-m-2";
 
-// Hover and press fills, flat but plain to see. Ink and danger fills mix
-// toward the page colour (lighter in light mode, dimmer in dark); surface
-// fills mix toward the ink. color-mix keeps them right in every palette.
-// Literal class names throughout, so Tailwind keeps them.
+// Hover and press fills. Ink and danger fills mix toward the page colour
+// (lighter in light mode, dimmer in dark); gray controls take the next
+// fill step (--fill-hover, --fill-press). Literal class names throughout, so
+// Tailwind keeps them.
 const INK_HOVER =
-  "hover:bg-[color-mix(in_srgb,var(--fg)_80%,var(--surface))] hover:border-[color-mix(in_srgb,var(--fg)_80%,var(--surface))] active:bg-[color-mix(in_srgb,var(--fg)_68%,var(--surface))] active:border-[color-mix(in_srgb,var(--fg)_68%,var(--surface))]";
+  "hover:bg-[color-mix(in_srgb,var(--fg)_80%,var(--surface))] active:bg-[color-mix(in_srgb,var(--fg)_68%,var(--surface))]";
 const DANGER_HOVER =
-  "hover:bg-[color-mix(in_srgb,var(--danger)_82%,var(--surface))] hover:border-[color-mix(in_srgb,var(--danger)_82%,var(--surface))] active:bg-[color-mix(in_srgb,var(--danger)_70%,var(--surface))] active:border-[color-mix(in_srgb,var(--danger)_70%,var(--surface))]";
-const SURFACE_HOVER =
-  "hover:bg-[color-mix(in_srgb,var(--fg)_9%,var(--surface-raised))] hover:border-[color-mix(in_srgb,var(--fg)_28%,var(--surface))] active:bg-[color-mix(in_srgb,var(--fg)_14%,var(--surface-raised))]";
-// Quiet fills (static black / white, which take opacity; the var-backed
-// surface tokens don't) for rows and round controls.
-const QUIET_HOVER =
-  "hover:bg-black/[0.06] dark:hover:bg-white/[0.09] active:bg-black/[0.1] dark:active:bg-white/[0.14]";
+  "hover:bg-[color-mix(in_srgb,var(--danger)_82%,var(--surface))] active:bg-[color-mix(in_srgb,var(--danger)_70%,var(--surface))]";
+const FILL_HOVER = "hover:bg-fill-hover active:bg-fill-press";
+// Plain controls (no fill at rest) take the gray fill on hover.
+const QUIET_HOVER = "hover:bg-fill active:bg-fill-hover";
+
+// The track a row of `segment` buttons sits in: the gray fill, the selected
+// segment raised on it.
+export const SEGMENT_TRACK_CLASS = "rounded-[9px] bg-fill p-0.5";
 
 // Only an unselected segment takes the hover fill; the selected one keeps
 // its raised look.
-const SEGMENT_HOVER =
-  "aria-[pressed=false]:hover:bg-black/[0.06] aria-[selected=false]:hover:bg-black/[0.06] dark:aria-[pressed=false]:hover:bg-white/[0.09] dark:aria-[selected=false]:hover:bg-white/[0.09]";
+const SEGMENT_HOVER = "aria-[pressed=false]:hover:bg-fill aria-[selected=false]:hover:bg-fill";
 
 const variantStyles = (variant: ButtonVariant): string => {
   switch (variant) {
     case "hero":
       // As primary, larger: ink on paper. The accent is kept for the caret,
       // focus and selections.
-      return `${baseStyles} h-12 px-8 bg-fg border-fg text-surface ${INK_HOVER}`;
+      return `${baseStyles} h-12 px-7 rounded-xl text-ui-body bg-fg text-surface ${INK_HOVER}`;
 
     case "primary":
-      // Ink on paper: the text colour as the fill, the page colour as the
-      // label, in every theme and mode.
-      return `${baseStyles} h-11 px-6 bg-fg border-fg text-surface ${INK_HOVER}`;
+      // Filled: the text colour as the fill, the page colour as the label,
+      // in every theme and mode.
+      return `${baseStyles} ${LARGE} bg-fg text-surface ${INK_HOVER}`;
 
     case "warning":
       // Destructive: each palette's own warm red (--danger), the page colour
       // as the label.
-      return `${baseStyles} h-11 px-6 bg-danger border-danger text-surface ${DANGER_HOVER}`;
+      return `${baseStyles} ${LARGE} bg-danger text-surface ${DANGER_HOVER}`;
 
     case "secondary":
-      return `${baseStyles} h-11 px-6 bg-surface-raised text-fg border-edge ${SURFACE_HOVER}`;
+      // Gray: the control fill, ink label.
+      return `${baseStyles} ${LARGE} bg-fill text-fg ${FILL_HOVER}`;
 
     case "outlined":
-      return `${baseStyles} h-11 px-4 bg-transparent border-edge text-fg-muted hover:text-fg ${SURFACE_HOVER}`;
+      // Gray with a muted label: the quieter of two actions (Cancel).
+      return `${baseStyles} ${LARGE} px-4 font-medium bg-fill text-fg-muted hover:text-fg ${FILL_HOVER}`;
 
     case "icon":
-      return `${baseStyles} w-10 h-10 p-0 bg-transparent border-none text-fg-muted hover:text-fg ${QUIET_HOVER} rounded-full ${COARSE_ICON}`;
+      return `${baseStyles} w-10 h-10 p-0 bg-transparent text-fg-muted hover:text-fg ${QUIET_HOVER} rounded-full ${COARSE_ICON}`;
 
     case "tertiary":
-      return `${baseStyles} h-11 px-3 bg-transparent border-none text-fg-muted hover:text-fg ${QUIET_HOVER}`;
+      // Plain: text only, the fill on hover.
+      return `${baseStyles} ${LARGE} px-3 bg-transparent text-fg-muted hover:text-fg ${QUIET_HOVER}`;
 
     case "bare":
       // Underlined on hover and keyboard focus (not on a mouse click's focus).
@@ -131,13 +142,21 @@ const variantStyles = (variant: ButtonVariant): string => {
     case "menu-row":
       // The shared focus ring is swapped for the highlight fill, so the
       // keyboard and the pointer show the same thing.
-      return `w-full flex items-center gap-2.5 h-8 px-2.5 rounded-lg [@media(pointer:coarse)]:h-10 text-left font-sans text-ui-footnote text-ink-light dark:text-ink-dark outline-none ${TRANSITION} ${QUIET_HOVER} focus-visible:bg-black/[0.05] dark:focus-visible:bg-white/[0.08] disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed`;
+      return `w-full flex items-center gap-2.5 h-8 px-2.5 rounded-lg [@media(pointer:coarse)]:h-10 text-left font-sans text-ui-footnote text-fg outline-none ${TRANSITION} ${QUIET_HOVER} focus-visible:bg-fill disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed`;
 
     case "segment":
-      return `flex min-w-0 items-center justify-center gap-1 h-7 px-3 rounded-md [@media(pointer:coarse)]:h-9 font-sans text-ui-footnote font-medium select-none text-fg-muted hover:text-fg ${SEGMENT_HOVER} aria-pressed:bg-paper-light aria-pressed:text-ink-light aria-pressed:shadow-sm aria-selected:bg-paper-light aria-selected:text-ink-light aria-selected:shadow-sm dark:aria-pressed:bg-white/10 dark:aria-pressed:text-ink-dark dark:aria-selected:bg-white/10 dark:aria-selected:text-ink-dark ${TRANSITION} ${FOCUS_RING}`;
+      // Selected: raised on the track (SEGMENT_TRACK_CLASS), as on iOS.
+      return `flex min-w-0 items-center justify-center gap-1 h-7 px-3 rounded-[7px] [@media(pointer:coarse)]:h-9 font-sans text-ui-footnote font-medium select-none text-fg-muted hover:text-fg ${SEGMENT_HOVER} aria-pressed:bg-overlay aria-pressed:text-fg aria-pressed:shadow-sm aria-selected:bg-overlay aria-selected:text-fg aria-selected:shadow-sm ${TRANSITION} ${FOCUS_RING}`;
 
     case "close":
-      return `flex shrink-0 items-center justify-center w-8 h-8 rounded-full text-fg-muted hover:text-fg ${QUIET_HOVER} ${TRANSITION} ${FOCUS_RING} ${COARSE_CLOSE}`;
+      // The round gray × of an iOS sheet.
+      return `flex shrink-0 items-center justify-center w-7 h-7 rounded-full bg-fill text-fg-muted hover:text-fg ${FILL_HOVER} ${TRANSITION} ${FOCUS_RING} ${COARSE_CLOSE}`;
+
+    case "small":
+      return `inline-flex shrink-0 items-center justify-center gap-1.5 h-8 px-2.5 rounded-lg font-sans text-ui-footnote font-medium text-fg-muted hover:text-fg ${QUIET_HOVER} ${TRANSITION} ${FOCUS_RING} ${DISABLED} select-none`;
+
+    case "icon-small":
+      return `flex shrink-0 items-center justify-center w-7 h-7 rounded-lg text-fg-muted hover:text-fg ${QUIET_HOVER} ${TRANSITION} ${FOCUS_RING} ${DISABLED} select-none ${COARSE_ICON_SMALL}`;
 
     case "pill-icon":
       return `flex items-center justify-center p-1 text-fg-muted hover:text-fg ${QUIET_HOVER} ${TRANSITION} rounded-md ${FOCUS_RING} ${DISABLED} select-none ${COARSE_PILL_ICON}`;

@@ -5,6 +5,7 @@ import { atom_revealAllPrivate, atom_revealedPrivatePaths } from "@/app/atoms/pr
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import Button from "@/app/components/Button";
+import { FIELD_COMPACT_CLASS } from "@/app/components/Input";
 import { showErrorToast } from "@/app/components/Toastr";
 import { type ApiMessage, callAIChat } from "@/app/services/ai";
 import { useAtomValue } from "jotai";
@@ -224,7 +225,7 @@ export default function AIChatDialog({
             disabled={isFetchingModels}
             title="Model"
             aria-label="Model"
-            className="ml-auto text-ui-caption bg-transparent border border-neutral-200 dark:border-neutral-700 rounded-lg px-2 py-1 text-neutral-500 dark:text-neutral-400 outline-none disabled:opacity-50 max-w-[140px] truncate"
+            className={`${FIELD_COMPACT_CLASS} ml-auto h-7 max-w-[140px] truncate text-ui-caption text-fg-muted`}
           >
             {modelOptions.map((m) => (
               <option key={m.id} value={m.id}>{m.name}</option>
@@ -296,10 +297,9 @@ export default function AIChatDialog({
             <MentionMenu options={mentionOptions} activeIndex={mentionIndex} query={mention.query} onSelect={selectMention} />
           )}
 
-          <div className={`rounded-xl border transition-colors ${
-            isLoading
-              ? "border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/50"
-              : "border-neutral-300 dark:border-neutral-600 bg-paper-light dark:bg-neutral-900 focus-within:border-sage/50 focus-within:ring-2 focus-within:ring-sage/15"
+          {/* The composer is one field (field-styles.ts): the gray fill, the ring on focus. */}
+          <div className={`rounded-[14px] bg-fill transition-[background-color,box-shadow,opacity] duration-150 ${
+            isLoading ? "opacity-60" : "focus-within:ring-2 focus-within:ring-accent/25"
           }`}>
             <ChatContextChips
               attachments={attachments}
@@ -317,20 +317,18 @@ export default function AIChatDialog({
               placeholder="Ask anything… (Enter to send, @ to reference a file)"
               disabled={isLoading}
               style={{ height: "44px", minHeight: "44px", maxHeight: "160px" }}
-              className="w-full resize-none bg-transparent px-4 pt-3 pb-1 text-ui-footnote text-ink-light dark:text-ink-dark placeholder:text-neutral-400 dark:placeholder:text-neutral-500 outline-none disabled:opacity-40 custom-scrollbar"
+              className="w-full resize-none bg-transparent px-4 pt-3 pb-1 text-ui-footnote text-fg placeholder:text-fg-faint outline-none custom-scrollbar"
             />
 
             {/* Bottom toolbar */}
             <div className="flex items-center justify-between px-2 pb-2 pt-1">
               <div className="flex items-center gap-0.5">
-                <Button variant="unstyled" onClick={() => imageInputRef.current?.click()}
-                  title="Attach image" aria-label="Attach image"
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+                <Button variant="icon-small" onClick={() => imageInputRef.current?.click()}
+                  title="Attach image" aria-label="Attach image">
                   <HiOutlineCamera size={17} />
                 </Button>
-                <Button variant="unstyled" onClick={() => fileInputRef.current?.click()}
-                  title="Attach file" aria-label="Attach file"
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors">
+                <Button variant="icon-small" onClick={() => fileInputRef.current?.click()}
+                  title="Attach file" aria-label="Attach file">
                   <HiOutlinePaperClip size={17} />
                 </Button>
               </div>
@@ -343,10 +341,10 @@ export default function AIChatDialog({
                 onClick={(e) => { (e.target as HTMLInputElement).value = ""; }} />
 
               <Button variant="unstyled" onClick={send} disabled={!canSend} aria-label="Send"
-                className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
+                className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${
                   canSend
                     ? "bg-fg text-surface hover:bg-[color-mix(in_srgb,var(--fg)_80%,var(--surface))]"
-                    : "bg-neutral-100 dark:bg-neutral-800 text-neutral-300 dark:text-neutral-600 cursor-not-allowed"
+                    : "bg-fill text-fg-faint cursor-not-allowed"
                 }`}>
                 <HiOutlinePaperAirplane size={16} className="rotate-90" />
               </Button>

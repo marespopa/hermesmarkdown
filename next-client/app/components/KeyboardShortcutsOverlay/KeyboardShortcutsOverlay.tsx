@@ -124,12 +124,9 @@ export default function KeyboardShortcutsOverlay() {
         <h2 id="keyboard-shortcuts-title" className="text-ui-title-3 text-fg">
           Keyboard shortcuts
         </h2>
-        <Button variant="unstyled"
+        <Button variant="close"
           onClick={close}
           aria-label="Close"
-          className={`shrink-0 flex items-center justify-center rounded-lg text-fg-faint hover:text-fg-muted ${
-            isMobileChrome ? "w-11 h-11" : "w-8 h-8"
-          }`}
         >
           <HiOutlineX size={isMobileChrome ? 20 : 18} />
         </Button>

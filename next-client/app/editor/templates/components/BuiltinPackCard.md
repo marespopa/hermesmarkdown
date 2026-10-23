@@ -7,7 +7,7 @@ Description: A template pack the app ships, on the Templates page: its name, wha
 - Persistence: None.
 
 ## Dependencies
-- Core: `Button`, `TemplateIcon`, `BuiltinPack` from `app/utils/templates/template-packs.ts`, `SMALL_BUTTON_CLASS` from `PackSection`.
+- Core: `Button`, `TemplateIcon`, `BuiltinPack` from `app/utils/templates/template-packs.ts`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

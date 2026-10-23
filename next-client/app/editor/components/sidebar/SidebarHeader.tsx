@@ -55,7 +55,7 @@ export default function SidebarHeader({ onNewNote, onHide }: { onNewNote: () => 
           const rect = event.currentTarget.getBoundingClientRect();
           setMenuAt(menuAt ? null : { x: rect.left, y: rect.bottom + 4 });
         }}
-        className="flex flex-1 min-w-0 items-center gap-1 h-7 px-2 rounded-md text-ui-footnote font-semibold text-fg hover:bg-black/[0.05] dark:hover:bg-white/[0.08] select-none disabled:hover:bg-transparent"
+        className="flex flex-1 min-w-0 items-center gap-1 h-7 px-2 rounded-md text-ui-footnote font-semibold text-fg hover:bg-fill select-none disabled:hover:bg-transparent"
       >
         <span className="min-w-0 truncate">{vaultName ?? "Workspace"}</span>
         {items.length > 0 && <HiChevronDown size={11} aria-hidden="true" className="shrink-0 text-fg-faint" />}

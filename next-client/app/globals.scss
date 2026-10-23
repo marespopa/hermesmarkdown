@@ -39,6 +39,15 @@ body {
   --fg-muted:       #4A5675;  /* secondary text */
   --fg-faint:       #5A6380;  /* placeholder / tertiary — ≥4.5:1 on surface, raised and chrome */
 
+  /* Control fills, the iOS gray fills: the ink, translucent, so they suit
+     every palette and the surface they sit on. Gray buttons, text fields,
+     segmented tracks, tag pills and the round close button; hover and press
+     a step darker. Stronger in dark mode (html.dark). */
+  --fill-strength:  7%;
+  --fill:           color-mix(in srgb, var(--fg) var(--fill-strength), transparent);
+  --fill-hover:     color-mix(in srgb, var(--fg) calc(var(--fill-strength) + 4%), transparent);
+  --fill-press:     color-mix(in srgb, var(--fg) calc(var(--fill-strength) + 8%), transparent);
+
   /* Paper's one identity hue, a muted ink blue, for both accent roles
      (clay and moss), as every palette in theme-palettes.scss: the caret,
      selection, focus rings, toggles and the current row. ≥4.5:1 on
@@ -119,6 +128,7 @@ html.dark {
   --fg:             #E6E0D6;  /* warm off-white, a little softer than white ink */
   --fg-muted:       #A8A199;
   --fg-faint:       #948F87;
+  --fill-strength:  11%;
 
   /* Ink: Paper's dark pair. Its identity hue is Paper's ink blue,
      lightened for contrast on the dark surfaces. */

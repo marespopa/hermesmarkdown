@@ -66,6 +66,12 @@ module.exports = {
           muted:   'var(--fg-muted)',
           faint:   'var(--fg-faint)',
         },
+        // Control fills (gray buttons, fields, tags; globals.scss): no `/N`.
+        fill: {
+          DEFAULT: 'var(--fill)',
+          hover:   'var(--fill-hover)',
+          press:   'var(--fill-press)',
+        },
         // Destructive actions (Button `warning`, menu rows): each palette's warm red.
         danger: 'var(--danger)',
         edge: {

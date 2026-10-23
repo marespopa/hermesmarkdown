@@ -3,13 +3,18 @@ import { WORKFLOW_TAGS } from "@/app/editor/components/constants";
 
 export type TagKind = "workflow" | "custom";
 
-// The one tag look: sized in em so it fits editor text, footnote rows and caption chips.
+// The one tag look, an iOS capsule: a tinted fill, no border, sized in em so
+// it fits editor text, footnote rows and caption chips.
 export const TAG_PILL_CLASS =
-  "inline-flex items-center whitespace-nowrap rounded-full border border-edge " +
-  "bg-[color:color-mix(in_srgb,var(--chrome)_72%,transparent)] px-[0.45em] py-[0.1em] " +
-  "text-[0.9em] font-normal leading-[1.2]";
+  "inline-flex items-center whitespace-nowrap rounded-full px-[0.5em] py-[0.1em] " +
+  "text-[0.9em] font-medium leading-[1.2]";
 
-const KIND_CLASS: Record<TagKind, string> = { workflow: "text-sage", custom: "text-fg-muted" };
+// A workflow tag takes the secondary accent, its fill a tint of it; any
+// other tag the gray control fill.
+const KIND_CLASS: Record<TagKind, string> = {
+  workflow: "text-sage bg-[color-mix(in_srgb,var(--moss)_13%,transparent)]",
+  custom: "text-fg-muted bg-fill",
+};
 
 export function tagKind(tag: string): TagKind {
   return WORKFLOW_TAGS.includes(tag.replace(/^#/, "").toLowerCase()) ? "workflow" : "custom";

@@ -165,7 +165,7 @@ export default function SidebarOutline({ path, onJump }: { path: string; onJump:
               onKeyDown={(event) => onKeyDown(event, index)}
               style={{ paddingLeft: ROW_INSET_PX + depth * LEVEL_INDENT_PX }}
               className={`flex h-7 items-center gap-1.5 rounded-md pr-2 text-ui-subhead text-fg cursor-default select-none outline-none transition-colors focus-visible:outline focus-visible:outline-1 focus-visible:-outline-offset-1 focus-visible:outline-accent/50 ${
-                isCurrent ? SIDEBAR_ACCENT_FILL : "hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+                isCurrent ? SIDEBAR_ACCENT_FILL : "hover:bg-fill"
               } ${inChain ? "font-medium" : ""}`}
             >
               {/* The Files tree's caret: its own click folds without

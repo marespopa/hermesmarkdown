@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAtom } from "jotai";
 import { atom_tableToolMarkdown } from "@/app/atoms/tool-atoms";
-import Button from "@/app/components/Button";
+import Button, { SEGMENT_TRACK_CLASS } from "@/app/components/Button";
 import Input from "@/app/components/Input";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import { createEmptyTable } from "@/app/editor/utils/table-manipulation";
@@ -87,16 +87,13 @@ export default function TableTool() {
           <h2 className="text-ui-subhead font-semibold">Markdown</h2>
           <div className="flex flex-wrap items-center gap-2">
             {withFormulas && (
-              <div className="flex gap-1 p-1 rounded-full bg-black/[0.05] dark:bg-white/[0.07]" role="group" aria-label="Formula cells">
+              <div className={`flex gap-0.5 ${SEGMENT_TRACK_CLASS}`} role="group" aria-label="Formula cells">
                 {(["results", "formulas"] as const).map((mode) => (
                   <Button
                     key={mode}
-                    variant="unstyled"
+                    variant="segment"
                     aria-pressed={formulaOutput === mode}
                     onClick={() => setFormulaOutput(mode)}
-                    className={`h-7 px-3 rounded-full text-ui-footnote font-semibold transition-colors ${
-                      formulaOutput === mode ? "bg-surface text-fg shadow-sm" : "text-fg-muted hover:text-fg"
-                    }`}
                   >
                     {mode === "results" ? "Results" : "Formulas"}
                   </Button>

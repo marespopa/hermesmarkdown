@@ -3,7 +3,7 @@
 import React from "react";
 import { HiDotsHorizontal } from "react-icons/hi";
 import type { TaskView } from "@/app/atoms/ui-atoms";
-import Button from "@/app/components/Button";
+import Button, { SEGMENT_TRACK_CLASS } from "@/app/components/Button";
 import CountBadge from "@/app/components/CountBadge";
 import TabContextMenu, { type TabContextMenuItem } from "@/app/editor/components/TabContextMenu";
 import UnifiedSearchInput from "@/app/editor/components/UnifiedSearchInput";
@@ -89,7 +89,7 @@ export default function TasksToolbar({
         {view === "all" && (
           <Button
             ref={menuButtonRef}
-            variant="unstyled"
+            variant="icon-small"
             aria-label="Group and sort"
             aria-haspopup="menu"
             title="Group and sort"
@@ -97,7 +97,6 @@ export default function TasksToolbar({
               const rect = e.currentTarget.getBoundingClientRect();
               setMenuAt(menuAt ? null : { x: Math.max(8, rect.right - 200), y: rect.bottom + 4 });
             }}
-            className="flex h-7 w-7 items-center justify-center rounded-full text-ink-muted transition-colors hover:bg-paper-softgray hover:text-ink-light dark:text-stone dark:hover:bg-paper-dark-surface dark:hover:text-ink-dark"
           >
             <HiDotsHorizontal size={16} />
           </Button>
@@ -107,7 +106,7 @@ export default function TasksToolbar({
       <div
         role="tablist"
         aria-label="Task lists"
-        className="grid grid-cols-5 rounded-lg bg-paper-softgray/70 p-0.5 dark:bg-paper-dark-surface/60"
+        className={`grid grid-cols-5 ${SEGMENT_TRACK_CLASS}`}
       >
         {TASK_VIEWS.map(({ id, label }) => {
           const selected = view === id;

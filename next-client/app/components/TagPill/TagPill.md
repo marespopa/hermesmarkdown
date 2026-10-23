@@ -1,6 +1,6 @@
 # TagPill
 
-The single tag look: rounded, hairline `edge` border, chrome background at 72%, text at 0.9em of its surroundings. Workflow tags (`draft`, `review`, `active`, `archived`) are `sage`; others `fg-muted`. Only CSS-var tokens, so dark mode and palettes follow.
+The single tag look, an iOS capsule: a tinted fill and no border, medium weight, text at 0.9em of its surroundings. Workflow tags (`draft`, `review`, `active`, `archived`) are `sage` on a 13% tint of it; others `fg-muted` on the gray control fill (`--fill`). Only CSS-var tokens, so dark mode and palettes follow.
 
 ## Props
 

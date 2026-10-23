@@ -4,7 +4,7 @@ import React from "react";
 import Button from "@/app/components/Button";
 import { HiOutlineFolder } from "react-icons/hi";
 import type { useCreateVault } from "@/app/hooks/file-system/use-create-vault";
-import { BareInput } from "@/app/components/Input";
+import { BareInput, FIELD_CLASS } from "@/app/components/Input";
 
 type CreateVaultProps = ReturnType<typeof useCreateVault>;
 
@@ -53,7 +53,7 @@ export default function CreateVaultSubSteps(props: CreateVaultProps) {
             }}
             placeholder="e.g. my-notes"
             autoFocus
-            className="w-full h-12 rounded-xl border border-edge bg-paper-light dark:bg-paper-dark px-4 text-ui-footnote font-medium focus:outline-none focus:border-sage transition-colors"
+            className={`${FIELD_CLASS} w-full`}
           />
           {nameError && (
             <p className="text-red-500 text-ui-caption mt-1.5 px-1">{nameError}</p>
@@ -62,7 +62,7 @@ export default function CreateVaultSubSteps(props: CreateVaultProps) {
 
         <Button variant="unstyled"
           onClick={pickParentFolder}
-          className="w-full flex items-center gap-3 px-4 h-12 rounded-xl border border-edge bg-paper-light dark:bg-paper-dark hover:bg-paper-softgray dark:hover:bg-paper-dark/60 transition-colors text-left"
+          className="w-full flex items-center gap-3 px-4 h-12 rounded-xl bg-fill hover:bg-fill-hover active:bg-fill-press transition-colors text-left"
         >
           <HiOutlineFolder className="text-amber-500 flex-shrink-0" size={20} />
           <span className={`text-ui-footnote truncate ${parentFolderName ? "font-medium" : "opacity-50"}`}>

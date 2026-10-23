@@ -1,6 +1,6 @@
 # TaskDialog
 
-Description: Form for building a task line (title, status, priority, due date, tags). It returns the Markdown task text through `buildTaskText`.
+Description: Form for building a task line (title, status, priority, due date, tags). It returns the Markdown task text through `buildTaskText`. Below the date field, Today / Tomorrow / +1 Week are a segmented control (`aria-pressed` on the one matching the date), with a small Clear button once a date is set.
 
 ## Local State & Storage
 - State: Form fields (useState).
