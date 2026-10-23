@@ -146,7 +146,7 @@ export function collectTagMatches(doc: string, detectFrontmatter = true): TagMat
         to: tagEnd,
         text: fullTag,
         tagName,
-        kind: WORKFLOW_TAGS.includes(tagName) ? "workflow" : "custom",
+        kind: tagKind(tagName),
       });
     }
   }
