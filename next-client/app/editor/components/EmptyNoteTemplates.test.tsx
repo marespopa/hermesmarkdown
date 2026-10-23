@@ -9,6 +9,8 @@ import EmptyNoteTemplates from "./EmptyNoteTemplates";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+const fileSystem = vi.hoisted(() => ({ openVault: vi.fn(), isVaultSupported: true, isBrowserVaultSupported: true }));
+vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => fileSystem }));
 
 const meta = (path: string) => ({ path, name: path.split("/").pop()! }) as FileMetadata;
 
@@ -56,9 +58,30 @@ describe("EmptyNoteTemplates", () => {
     expect(onBoard).toHaveBeenCalled();
   });
 
-  it("offers only the built-in starters without a vault", () => {
+  it("leads with Open Vault, then only the built-in starters, without a vault", () => {
+    fileSystem.openVault.mockClear();
     renderPills({ onBoard: vi.fn() }, [], false);
-    expect(pillNames()).toEqual(["Meeting notes", "Outline", "Project brief", "Book note"]);
+    expect(pillNames()).toEqual(["Open Vault", "Meeting notes", "Outline", "Project brief", "Book note"]);
+    fireEvent.click(screen.getByText("Open Vault"));
+    expect(fileSystem.openVault).toHaveBeenCalledOnce();
+  });
+
+  it("opens a browser vault from Open Vault without disk folder access", () => {
+    fileSystem.isVaultSupported = false;
+    fileSystem.openVault.mockClear();
+    renderPills({}, [], false);
+    fireEvent.click(screen.getByText("Open Vault"));
+    expect(fileSystem.openVault).not.toHaveBeenCalled();
+    fileSystem.isVaultSupported = true;
+  });
+
+  it("offers no Open Vault where the browser can't hold a vault", () => {
+    fileSystem.isVaultSupported = false;
+    fileSystem.isBrowserVaultSupported = false;
+    renderPills({}, [], false);
+    expect(screen.queryByText("Open Vault")).not.toBeInTheDocument();
+    fileSystem.isVaultSupported = true;
+    fileSystem.isBrowserVaultSupported = true;
   });
 
   it("offers vault templates, at most four, with More… for the rest", () => {
