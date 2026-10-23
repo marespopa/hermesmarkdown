@@ -575,12 +575,12 @@ describe("CommandPalette", () => {
     const input = await screen.findByRole("combobox");
 
     fireEvent.change(input, { target: { value: "#plan #work" } });
-    expect(screen.getByRole("listbox")).toHaveTextContent("#planning #work");
+    expect(screen.getByRole("listbox")).toHaveTextContent("#planning#work");
     expect(screen.getByRole("listbox")).not.toHaveTextContent("Planning.md");
     expect(screen.getByRole("listbox")).not.toHaveTextContent("Work.md");
 
     fireEvent.change(input, { target: { value: "#plan, #work" } });
-    expect(screen.getByRole("listbox")).toHaveTextContent("#planning #work");
+    expect(screen.getByRole("listbox")).toHaveTextContent("#planning#work");
   });
 
   it("searches tasks with !", async () => {
