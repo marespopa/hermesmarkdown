@@ -5,6 +5,7 @@ import { HiDotsHorizontal, HiOutlineDocumentText } from "react-icons/hi";
 import type { DisplayTask } from "@/app/atoms/task-atoms";
 import Button from "@/app/components/Button";
 import PrivateBadge from "@/app/components/PrivateBadge";
+import TagPill from "@/app/components/TagPill";
 import { isOpenStatus, type TaskStatus } from "@/app/utils/task-status";
 import TaskStatusButton from "./TaskStatusButton";
 import { useTaskSwipe } from "./use-task-swipe";
@@ -109,14 +110,12 @@ export default function TaskRow({
             )}
           </div>
           {(subtitle || due || workDate || tags.length > 0) && (
-            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-0.5">
+            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-0.5 text-ui-footnote">
               {subtitle && <span className="text-ui-footnote text-ink-muted dark:text-stone truncate">{subtitle}</span>}
               {due && <span className={`text-ui-footnote shrink-0 ${due.className}`}>{due.label}</span>}
               {workDate && <span className="text-ui-footnote shrink-0 text-ink-muted dark:text-stone">{workDate}</span>}
               {tags.map((tag) => (
-                <span key={tag} className="text-ui-footnote text-sage shrink-0">
-                  #{tag}
-                </span>
+                <TagPill key={tag} tag={tag} className="shrink-0" />
               ))}
             </div>
           )}

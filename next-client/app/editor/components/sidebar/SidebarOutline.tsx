@@ -179,7 +179,7 @@ export default function SidebarOutline({ path, onJump }: { path: string; onJump:
                     event.stopPropagation();
                     setFolded(heading.line, !isFolded);
                   }}
-                  className={`w-3 shrink-0 text-fg-faint transition-transform duration-150 motion-reduce:transition-none ${isFolded ? "" : "rotate-90"}`}
+                  className={`w-3 shrink-0 text-fg-faint transition-transform duration-layout ease-layout motion-reduce:transition-none ${isFolded ? "" : "rotate-90"}`}
                 />
               ) : (
                 <span aria-hidden="true" className="w-3 shrink-0" />

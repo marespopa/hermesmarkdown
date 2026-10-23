@@ -1,6 +1,6 @@
 # CountBadge
 
-The one look for a count: small (`text-ui-caption`), tabular, faint, with thousands separators (`1,204`). Every count in a listing or bar uses it, so the sidebar, Tasks, the Tags page and the editor's word count read alike.
+The one look for a count: small (`text-ui-caption`), tabular, faint, with thousands separators (`1,204`). Every count in a listing or bar uses it, so Tasks, the Tags page and the editor's word count read alike.
 
 ## Props
 
@@ -13,6 +13,6 @@ The one look for a count: small (`text-ui-caption`), tabular, faint, with thousa
 
 ## Used by
 
-`WordCountPill` (floating), `TasksToolbar` (header total and tab counts), `TaskSection` (group counts), the Tags page's tag list.
+`WordCountPill` (floating), `TasksToolbar` (header total and tab counts), `TaskSection` (group counts), the Tags page's tag list. `formatCount` also builds the Files page summary and the `TokenCostDialog` token count.
 
 `formatCount(count, unit?)` is exported for text that isn't a badge.

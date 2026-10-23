@@ -237,28 +237,13 @@ export const baseTheme = EditorView.theme({
     cursor: "inherit",
     transform: "none",
   },
+  // The pill look (border, background, colour, size) lives in components/TagPill.
   ".cm-tag-pill": {
-    display: "inline-flex",
-    alignItems: "center",
     verticalAlign: "middle",
-    borderRadius: "9999px",
-    border: "1px solid var(--border)",
-    backgroundColor: "color-mix(in srgb, var(--chrome) 72%, transparent)",
-    color: "var(--fg)",
-    fontSize: "0.9em",
-    lineHeight: "1.2",
-    padding: "0.1em 0.45em",
     margin: "0 0.1em",
-    whiteSpace: "nowrap",
     cursor: "pointer",
     userSelect: "none",
     transform: "translateY(-0.05em)",
-  },
-  ".cm-tag-pill.cm-tag-pill-workflow": {
-    color: "var(--moss)",
-  },
-  ".cm-tag-pill.cm-tag-pill-custom": {
-    color: "var(--fg-muted)",
   },
   // Template fields in a template note (template-field-pills.ts): a dashed
   // pill reads "filled in later", unlike tags.

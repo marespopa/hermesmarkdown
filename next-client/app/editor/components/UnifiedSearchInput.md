@@ -7,7 +7,7 @@ Description: Search field that turns `#tag` entries into removable tag chips alo
 - Persistence: None - transient UI state.
 
 ## Dependencies
-- Core: `constants` (`TAG_COLORS`, `WORKFLOW_TAGS`), `react-icons`.
+- Core: `constants` (`WORKFLOW_TAGS`), `TagPill`, `Button`, `react-icons`. Selected tags show as `TagPill`s with an inner × (`Remove <tag>`); suggestions use the same pill.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

@@ -14,6 +14,7 @@ import VaultFileTree from "../components/VaultFileTree";
 import UnifiedSearchInput from "../components/UnifiedSearchInput";
 import { fileCreateActions } from "../components/vault-tree/file-create-actions";
 import type { VaultFileTreeController } from "../components/vault-tree/tree-model";
+import { formatCount } from "@/app/components/CountBadge";
 import ShellPage from "../components/ShellPage";
 import { editorFileHref } from "../utils/editor-url";
 
@@ -134,8 +135,8 @@ export default function FilesPage() {
             <div className="mb-3 flex items-center justify-between gap-3 text-ui-footnote text-fg-muted">
               <p>
                 {isFiltered
-                  ? `${totalResultsCount} matching ${totalResultsCount === 1 ? "note" : "notes"}`
-                  : `${allFiles.length} ${allFiles.length === 1 ? "note" : "notes"}, ${folderPaths.length} ${folderPaths.length === 1 ? "folder" : "folders"}`}
+                  ? formatCount(totalResultsCount, ["matching note", "matching notes"])
+                  : `${formatCount(allFiles.length, ["note", "notes"])}, ${formatCount(folderPaths.length, ["folder", "folders"])}`}
               </p>
             </div>
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-edge-subtle bg-surface">

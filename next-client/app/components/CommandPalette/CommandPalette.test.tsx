@@ -326,6 +326,23 @@ describe("CommandPalette", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
+  it("shows a matched tag in a # search as a #tag pill", async () => {
+    renderPalette([
+      [atom_fileMetadata, {
+        "Roadmap.md": {
+          path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
+          tags: ["planning", "idea"], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
+        },
+      }],
+    ]);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    const input = await screen.findByRole("combobox");
+    fireEvent.change(input, { target: { value: "#plan" } });
+    const option = screen.getByRole("option", { name: /Roadmap.md/ });
+    expect(option.getAttribute("aria-label")).toContain("#planning");
+    expect(option.textContent).toContain("#planning");
+  });
+
   it("lists pinned and recent notes, then the menu, without section labels", async () => {
     renderPalette([
       [atom_fileMetadata, {

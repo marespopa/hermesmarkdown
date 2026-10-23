@@ -24,10 +24,13 @@ const fileSystem = vi.hoisted(() => ({
   renameFile: vi.fn(),
 }));
 vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => fileSystem }));
+const search = vi.hoisted(() => ({
+  allFiles: [] as unknown[], folderPaths: [] as string[], processedFiles: [] as unknown[], totalResultsCount: 0, searchQuery: "",
+}));
 vi.mock("../hooks/useVaultFileSearch", () => ({
   useVaultFileSearch: () => ({
-    allFiles: [], folderPaths: [], processedFiles: [], totalResultsCount: 0, hasMoreResults: false,
-    searchQuery: "", setSearchQuery: vi.fn(), setShowAllResults: vi.fn(), tags: [],
+    ...search, hasMoreResults: false,
+    setSearchQuery: vi.fn(), setShowAllResults: vi.fn(), tags: [],
   }),
 }));
 const treeProps = vi.hoisted(() => ({ current: null as null | Record<string, unknown> }));
@@ -40,7 +43,25 @@ vi.mock("../components/VaultFileTree", () => ({
 vi.mock("../components/UnifiedSearchInput", () => ({ default: () => <input aria-label="Search" /> }));
 
 describe("FilesPage", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    Object.assign(search, { allFiles: [], folderPaths: [], processedFiles: [], totalResultsCount: 0, searchQuery: "" });
+  });
+
+  it("formats the summary with separators and singular units", () => {
+    search.allFiles = Array.from({ length: 1204 }, (_, i) => ({ path: `n${i}.md`, name: `n${i}.md` }));
+    search.folderPaths = ["Projects"];
+    render(<Provider><FilesPage /></Provider>);
+    expect(screen.getByText("1,204 notes, 1 folder")).toBeInTheDocument();
+  });
+
+  it("reads 1 matching note when filtered to one", () => {
+    search.searchQuery = "road";
+    search.totalResultsCount = 1;
+    search.processedFiles = [{ path: "a.md", name: "a.md" }];
+    render(<Provider><FilesPage /></Provider>);
+    expect(screen.getByText("1 matching note")).toBeInTheDocument();
+  });
 
   it("has the shared create actions and no Refresh button", () => {
     render(<Provider><FilesPage /></Provider>);

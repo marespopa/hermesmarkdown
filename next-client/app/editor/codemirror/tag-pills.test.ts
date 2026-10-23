@@ -6,6 +6,7 @@ import {
   collectFrontmatterTagLists,
   collectTagMatches,
   selectionTouchesTag,
+  tagPillClassName,
   tagPillPlugin,
 } from "./tag-pills";
 
@@ -83,7 +84,7 @@ describe("tagPillPlugin", () => {
       expect(deco.spec.widget).toBeUndefined();
       editing.push(`${doc.slice(from, to)} ${deco.spec.class}`);
     });
-    expect(editing).toEqual(["#project/subtag cm-tag-pill cm-tag-pill-custom cm-chip-editing"]);
+    expect(editing).toEqual([`#project/subtag ${tagPillClassName("custom")} cm-chip-editing`]);
 
     view.dispatch({
       selection: EditorSelection.cursor(doc.indexOf("after")),

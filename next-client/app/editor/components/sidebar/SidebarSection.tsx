@@ -85,7 +85,7 @@ export default function SidebarSection({
           <HiChevronRight
             size={12}
             aria-hidden="true"
-            className={`shrink-0 text-fg-faint transition-transform duration-150 motion-reduce:transition-none ${expanded ? "rotate-90" : ""}`}
+            className={`shrink-0 text-fg-faint transition-transform duration-layout ease-layout motion-reduce:transition-none ${expanded ? "rotate-90" : ""}`}
           />
           <span className="flex-1 min-w-0 truncate text-left">{title}</span>
         </Button>

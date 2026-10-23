@@ -1,0 +1,1 @@
+- engineer: 021 done, state review. Likely CI failures: the new #-scope case in CommandPalette.test, and the hoisted search mock in files/page.test.

@@ -121,7 +121,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   return (
     <div
       data-pane-id={leaf.id}
-      className="relative h-full flex flex-col transition-all duration-layout ease-layout overflow-hidden"
+      className="relative h-full flex flex-col overflow-hidden"
       // Room at the top for the SearchPill: CodeMirror keeps the caret
       // below it, and a board's own toolbar starts under it.
       style={isMobileChrome ? undefined : ({ "--pane-top-room": PANE_TOP_ROOM } as React.CSSProperties)}
@@ -155,7 +155,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         <div
           // Clear of Copy Markdown and the SearchPill in the top-right corner (EditorShell).
           style={{ paddingRight: `calc(${EDITOR_CORNER_WIDTH} + 3rem)` }}
-          className={`pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-start ${sidebarOpen ? "pl-3" : "pl-12"}`}
+          className={`pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-start transition-[padding] duration-layout ease-layout motion-reduce:transition-none ${sidebarOpen ? "pl-3" : "pl-12"}`}
         >
           <div className="pointer-events-auto min-w-0">
             <PaneTitle

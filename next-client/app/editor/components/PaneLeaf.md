@@ -4,6 +4,8 @@ Description: The workspace's one pane. On desktop it has no toolbar: a quiet hea
 
 **Boards:** when `isBoard(filePath, content)` (see `app/utils/board/`) and the path isn't in `atom_boardMarkdownPaths`, the gate's child is `BoardViewLoader` (lazy Excalidraw canvas) instead of `MarkdownEditor`; the private veil and saving are unchanged. The title's menu adds **Edit as Markdown** for a board (**Open as Board** while it is shown as text) via `atom_toggleBoardMarkdown`, which lasts for the session and is not persisted.
 
+The title's left inset animates with the library on the layout timing (`duration-layout ease-layout`, off under reduced motion).
+
 ## Local State & Storage
 - State: `atom_workspaceLayout`, `atom_openFiles`, `atom_activeFilePath`, `atom_fileContent`, `atom_saveStatus`, `atom_materializedDraftPath` and `atom_saveStatus` drives the title's save state; `atom_saveRequested` (set). Menu state is local.
 - Persistence: `localStorage["workspaceLayout"]`, `localStorage["openFiles"]`. File saves go to the local vault through `usePaneFileActions`/`useFileSystem`.

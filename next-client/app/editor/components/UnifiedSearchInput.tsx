@@ -2,8 +2,9 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { HiOutlineSearch, HiX } from "react-icons/hi";
-import { TAG_COLORS, WORKFLOW_TAGS } from "./constants";
+import { WORKFLOW_TAGS } from "./constants";
 import Button from "@/app/components/Button";
+import TagPill from "@/app/components/TagPill";
 import { BareInput } from "@/app/components/Input";
 
 interface UnifiedSearchInputProps {
@@ -16,15 +17,6 @@ interface UnifiedSearchInputProps {
   autoFocus?: boolean;
   placeholder?: string;
   ariaLabel?: string;
-}
-
-function TagDot({ tag }: { tag: string }) {
-  return (
-    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-      tag === "urgn" ? "bg-red-500"    :
-      TAG_COLORS[tag] ? "bg-sage" : "bg-sage"
-    }`} />
-  );
 }
 
 export default function UnifiedSearchInput({
@@ -214,29 +206,23 @@ export default function UnifiedSearchInput({
           Only rendered when tags are selected so text input always has
           full width. Both zones are simultaneously readable.           */}
       {tokens.length > 0 && (
-        <div className="flex items-center gap-1.5 flex-wrap px-0.5">
+        <div className="flex items-center gap-1.5 flex-wrap px-0.5 text-ui-caption">
           {tokens.map((token) => (
-            <span
+            <TagPill
               key={token}
-              className={[
-                "inline-flex items-center gap-1 shrink-0",
-                "pl-2 pr-1 py-1 sm:py-0.5 rounded-full",
-                "text-ui-caption font-medium leading-none",
-                "bg-beige dark:bg-clay/80",
-                "text-ink-muted dark:text-ink-dark",
-              ].join(" ")}
-            >
-              <TagDot tag={token} />
-              <span>{token}</span>
-              <Button variant="unstyled"
-                tabIndex={-1}
-                onMouseDown={(e) => { e.preventDefault(); onTokenRemove(token); }}
-                className="ml-0.5 w-3.5 h-3.5 flex items-center justify-center rounded-full opacity-50 hover:opacity-100 hover:bg-beige-light dark:hover:bg-clay transition-all"
-                aria-label={`Remove ${token}`}
-              >
-                <HiX size={8} />
-              </Button>
-            </span>
+              tag={token}
+              className="shrink-0 gap-1 pr-[0.25em]"
+              trailing={
+                <Button variant="unstyled"
+                  tabIndex={-1}
+                  onMouseDown={(e) => { e.preventDefault(); onTokenRemove(token); }}
+                  className="w-3.5 h-3.5 flex items-center justify-center rounded-full text-fg-faint hover:text-fg transition-colors"
+                  aria-label={`Remove ${token}`}
+                >
+                  <HiX size={8} />
+                </Button>
+              }
+            />
           ))}
 
           <Button variant="unstyled"
@@ -264,8 +250,7 @@ export default function UnifiedSearchInput({
                   : "text-ink-muted dark:text-stone hover:bg-paper-softgray dark:hover:bg-paper-dark-surface/60",
               ].join(" ")}
             >
-              <TagDot tag={tag} />
-              <span>#{tag}</span>
+              <TagPill tag={tag} />
               {WORKFLOW_TAGS.includes(tag) && (
                 <span className="ml-auto text-ui-caption opacity-50">workflow</span>
               )}

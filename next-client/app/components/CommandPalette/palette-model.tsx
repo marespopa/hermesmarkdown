@@ -216,3 +216,17 @@ export function pinnedKey(item: PalettePinnedItem) {
 export function parentFolder(path: string) {
   return path.split("/").slice(0, -1).join("/");
 }
+
+// Splits a `#` scope row's detail ("#a #bc") into its tags, with each match
+// index made relative to that tag's "#tag" text.
+export function splitTagDetail(detail: string, indices: number[]): { tag: string; indices: number[] }[] {
+  const parts: { tag: string; indices: number[] }[] = [];
+  let offset = 0;
+  for (const text of detail.split(" ")) {
+    if (text) {
+      parts.push({ tag: text.replace(/^#/, ""), indices: indices.filter((i) => i >= offset && i < offset + text.length).map((i) => i - offset) });
+    }
+    offset += text.length + 1;
+  }
+  return parts;
+}
