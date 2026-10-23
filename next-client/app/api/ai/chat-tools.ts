@@ -9,7 +9,7 @@ import { z } from 'zod';
 export const CHAT_TOOLS: Record<string, Tool> = {
   search_notes: {
     description:
-      "Search the user's notes by words in their text, name or tags. Returns matching notes with the matching line. Use it to find notes before reading them.",
+      "Search the user's notes by words in their text, name, title, aliases, tags or description. Returns matching notes with the matching line and each note's description. Use it to find notes before reading them.",
     inputSchema: z.object({
       query: z.string().min(1).describe('Words to look for'),
       limit: z.number().int().min(1).max(20).optional().describe('Most results to return (default 8)'),

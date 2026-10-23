@@ -145,11 +145,12 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
         aiAction("tone-direct", "Change tone to direct", "tone voice"),
         aiAction("tone-polished", "Change tone to polished", "tone voice"),
       ]),
-      aiMode("structure", "Summarize / Structure", "Extract tasks, key points, outline", "summary summarize tasks todos outline key points title explain", [
+      aiMode("structure", "Summarize / Structure", "Extract tasks, key points, outline", "summary summarize tasks todos outline key points title explain properties frontmatter metadata", [
         aiAction("summarize", "Summarize selection", "summary key points tldr"),
         aiAction("extract-tasks", "Extract tasks", "todos checklist action items"),
         aiAction("outline", "Create outline", "headings structure bullets"),
         aiAction("title", "Generate title", "name heading"),
+        aiAction("properties", "Suggest properties", "frontmatter metadata yaml title description tags auto fill"),
         aiAction("explain", "Explain selection", "simplify meaning"),
       ]),
       aiMode("insert", "Insert Element", "Generate a table, Mermaid diagram or formula", "generate table diagram mermaid chart flowchart formula math calculation", [

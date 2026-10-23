@@ -1,6 +1,9 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { showErrorToast } from "@/app/components/Toastr";
 import type { ApiPart } from "@/app/services/ai";
+import { frontmatterList } from "@/app/utils/frontmatter-utils";
+import { isPrivateFrontmatter } from "@/app/utils/note-privacy";
+import { noteDescription } from "./chat-tool-runners";
 import { FORMULA_PRESERVATION_RULE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "../../utils/formula-ai-guide";
 import { HERMES_SYNTAX_GUIDE, SYNTAX_PRESERVATION_RULE } from "../../utils/hermes-syntax-guide";
 
@@ -53,10 +56,16 @@ export type MentionOption =
   | { kind: "vault" }
   | { kind: "folder"; path: string };
 
-function describeFile(m: FileMetadata): string {
+// "- Plans/Roadmap.md: Roadmap [work] (aka Plan, Q4) — What ships this quarter."
+// Aliases and the description come from the frontmatter so an agent can tell
+// notes apart without reading them; a private note's are left out.
+export function describeFile(m: FileMetadata): string {
   const title = m.frontmatter?.title || m.name.replace(/\.md$/, "");
   const tags = m.tags?.length ? ` [${m.tags.join(", ")}]` : "";
-  return `- ${m.path}: ${title}${tags}`;
+  if (isPrivateFrontmatter(m.frontmatter)) return `- ${m.path}: ${title}${tags}`;
+  const aliases = frontmatterList(m.frontmatter?.aliases);
+  const description = noteDescription(m);
+  return `- ${m.path}: ${title}${tags}${aliases.length ? ` (aka ${aliases.join(", ")})` : ""}${description ? ` — ${description}` : ""}`;
 }
 
 export function buildIndex(fileMetadata: Record<string, FileMetadata>, pathPrefix?: string): string {

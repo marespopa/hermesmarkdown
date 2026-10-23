@@ -121,6 +121,12 @@ tags: []
           Clicking the row changes the note in front of you and is
           remembered: notes you open next start the same way.
         </p>
+        <p>
+          Typing inside the frontmatter offers what your vault already uses: keys at the start of a
+          line (<code>ti</code> → <code>title</code>), your tags inside <code>tags: [ ]</code> or a{" "}
+          <code>- </code> list, and values other notes repeat, like <code>status: draft</code>. Nothing
+          is inserted until you pick an option.
+        </p>
       </>
     ),
   },

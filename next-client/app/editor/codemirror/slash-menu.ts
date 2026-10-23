@@ -23,6 +23,7 @@ import {
   MARK_PUBLIC_SENTINEL,
 } from "../components/constants";
 import { FM_REGEX, updateFmFields } from "@/app/utils/frontmatter-utils";
+import type { FrontmatterCompletionCallbacks } from "./frontmatter-completion";
 import { requestCalloutTypeMenu } from "./callout-type";
 import { clearPrivateMarkers, isPrivateContent } from "@/app/utils/note-privacy";
 import { applyBlockCommand, BLOCK_COMMANDS, rankSlashCommands, slashSection } from "./slash-commands";
@@ -38,7 +39,7 @@ const SAVE_TEMPLATE_ENTRIES = TEMPLATES.filter((t) => t.saveTemplateOnly);
 const BOARD_ENTRIES = TEMPLATES.filter((t) => t.boardOnly);
 const EMBED_ENTRIES = TEMPLATES.filter((t) => t.embedOnly);
 
-export interface SlashMenuCallbacks {
+export interface SlashMenuCallbacks extends FrontmatterCompletionCallbacks {
   onOpenLinkDialog: (range: { from: number; to: number }) => void;
   onOpenWikiLinkDialog: (range: { from: number; to: number }) => void;
   onOpenDatePicker: (range: { from: number; to: number }) => void;

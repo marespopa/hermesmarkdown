@@ -24,6 +24,7 @@ import { shortcodeExpandPlugin } from "./shortcode-expand";
 import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
 import { createEmojiSource } from "./emoji-completion";
+import { createFrontmatterSource } from "./frontmatter-completion";
 import { createTemplateFieldSource } from "./template-field-completion";
 import { templateFieldPills } from "./template-field-pills";
 import { templateBlanks } from "./template-blanks";
@@ -114,7 +115,13 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? loadedVim()?.vim() ?? [] : []),
     autocompletion({
-      override: [createSlashMenuSource(opts.slashMenuCallbacksRef), createTemplateFieldSource(opts.slashMenuCallbacksRef), createEmojiSource()],
+      override: [
+        createSlashMenuSource(opts.slashMenuCallbacksRef),
+        createTemplateFieldSource(opts.slashMenuCallbacksRef),
+        createEmojiSource(),
+        // Keys, tags and values while typing inside the frontmatter.
+        createFrontmatterSource(opts.slashMenuCallbacksRef),
+      ],
       activateOnTyping: true,
       icons: false,
       // The menu draws only this many options around the selected one, so the

@@ -1,6 +1,6 @@
 # AIReviewDialog
 
-Description: Word-level diff review of an AI suggestion against the original text, with an editable suggestion and replace or insert-below actions.
+Description: Word-level diff review of an AI suggestion against the original text, with an editable suggestion and replace or insert-below actions. A review with `applyLabel` (Suggest properties) offers only Cancel and that button, which replaces the reviewed range.
 
 ## Local State & Storage
 - State: Editable suggestion draft (useState).
@@ -20,6 +20,6 @@ import { AIReviewDialog } from "./AIReviewDialog";
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| review | `AIReviewState \| null` |  | `{ label, original, suggestion, start, end }`. Open when non-null |
+| review | `AIReviewState \| null` |  | `{ label, original, suggestion, start, end, applyLabel? }`. Open when non-null |
 | onClose | `() => void` |  | Dismiss handler |
 | onReplace / onInsertBelow | `(customSuggestion?: string) => void` |  | Apply actions |

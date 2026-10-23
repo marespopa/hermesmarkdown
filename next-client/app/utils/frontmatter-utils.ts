@@ -113,3 +113,12 @@ export function updateFmFields(
 
   return `---\n${updatedLines.join("\n")}\n---\n` + content.slice(m[0].length);
 }
+
+/** A frontmatter list (`aliases`, `tags`) as its items, whether it came
+ *  through parseFmFields (`"a, b"`) or as a real array. */
+export function frontmatterList(value: unknown): string[] {
+  const items = Array.isArray(value) ? value : typeof value === "string" ? value.split(",") : [];
+  return items
+    .map((item) => String(item).trim().replace(/^['"]|['"]$/g, "").trim())
+    .filter(Boolean);
+}

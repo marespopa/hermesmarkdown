@@ -95,11 +95,13 @@ export const AIReviewDialog: React.FC<AIReviewDialogProps> = ({
         <Button variant="outlined" onClick={onClose} className="sm:flex-1 lg:flex-none lg:w-32">
           Cancel
         </Button>
-        <Button variant="secondary" onClick={() => onInsertBelow(isEditing ? editedSuggestion : undefined)} className="sm:flex-1 lg:flex-none lg:w-40">
-          Insert Below
-        </Button>
+        {!review?.applyLabel && (
+          <Button variant="secondary" onClick={() => onInsertBelow(isEditing ? editedSuggestion : undefined)} className="sm:flex-1 lg:flex-none lg:w-40">
+            Insert Below
+          </Button>
+        )}
         <Button variant="primary" onClick={() => onReplace(isEditing ? editedSuggestion : undefined)} className="sm:flex-1 lg:flex-none lg:w-44">
-          Replace Selection
+          {review?.applyLabel ?? "Replace Selection"}
         </Button>
       </div>
     </DialogModal>
