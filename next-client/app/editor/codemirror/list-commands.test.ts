@@ -63,10 +63,28 @@ describe("indentListOrLines / outdentListOrLines", () => {
     expect(view.state.doc.toString()).toBe("1. a\n2. b\n3. c");
   });
 
+  it("renumbers the items after one that moves in or out", () => {
+    const view = makeView("1. a\n2. b\n3. c\n4. d", 9);
+    indentListOrLines(view);
+    expect(view.state.doc.toString()).toBe("1. a\n    1. b\n2. c\n3. d");
+    outdentListOrLines(view);
+    expect(view.state.doc.toString()).toBe("1. a\n2. b\n3. c\n4. d");
+  });
+
   it("aligns a bullet nested under a numbered item", () => {
     const view = makeView("10. a\n- b");
     indentListOrLines(view);
     expect(view.state.doc.toString()).toBe("10. a\n    - b");
+  });
+
+  it("doesn't nest an item past a level when nothing above it is a sibling", () => {
+    const view = makeView("- a\n- b");
+    indentListOrLines(view);
+    expect(indentListOrLines(view)).toBe(true);
+    expect(view.state.doc.toString()).toBe("- a\n    - b");
+    const first = makeView("- a\n- b", 3);
+    expect(indentListOrLines(first)).toBe(true);
+    expect(first.state.doc.toString()).toBe("- a\n- b");
   });
 
   it("indents a plain line", () => {
