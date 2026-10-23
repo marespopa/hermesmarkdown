@@ -301,7 +301,7 @@ export function computeMarkdownDecorations(
 
   for (const ld of lineDecos) {
     const line = doc.line(ld.line);
-    const attributes = ld.style ? { class: ld.class, style: ld.style } : { class: ld.class };
+    const attributes: Record<string, string> = ld.style ? { class: ld.class, style: ld.style } : { class: ld.class };
     decoRanges.push(Decoration.line({ attributes }).range(line.from));
   }
 
