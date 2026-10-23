@@ -3,7 +3,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { HiOutlineArrowLeft, HiOutlineDocumentText, HiOutlineFolder, HiOutlineLogout } from "react-icons/hi";
+import { HiChevronRight, HiOutlineArrowLeft, HiOutlineDatabase, HiOutlineDocumentText, HiOutlineFolder, HiOutlineLogout } from "react-icons/hi";
 import { TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import Button from "@/app/components/Button";
 import BareInput from "@/app/components/Input/BareInput";
@@ -12,6 +12,7 @@ import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import { useVaultMenuItems } from "../hooks/use-vault-menu-items";
 import { folderName, listFolder, listingRows, parentOf, searchBelow, type FolderRow } from "./folder-listing";
 import { MENU_ICON_CLASS, MENU_PANEL_CLASS, MENU_SEPARATOR_CLASS } from "./menu-classes";
+import TabContextMenu, { type TabContextMenuItem } from "./TabContextMenu";
 import { fileCreateActions } from "./vault-tree/file-create-actions";
 import { VIRTUALIZE_THRESHOLD } from "./vault-tree/tree-model";
 
@@ -32,7 +33,7 @@ interface FolderPopoverProps {
   onNewFolder?: (folder: string, name: string) => Promise<string | null>;
   /** Shows the folder in the sidebar's Files; absent where there's no sidebar. */
   onShowInFiles?: (folder: string) => void;
-  /** Close Vault, listed after the vault switcher while it's on the vault's root. */
+  /** Close Vault, last in the root's Vault submenu. */
   onCloseVault?: () => void;
   onClose: () => void;
 }
@@ -52,20 +53,25 @@ type Creating = "note" | "folder" | null;
 // from its root), each match with its folder beside it; ↑/↓ move, Enter
 // opens, → enters a folder, ← or Backspace (with nothing typed) goes up,
 // Escape or a click outside closes it. Past VIRTUALIZE_THRESHOLD rows the
-// list is virtualized. New Note and New Folder turn the field into a name
-// field for that folder: Enter creates (a note opens, a new folder is
-// stepped into), Escape backs out. "Show in Files" shows the folder in the
-// sidebar's tree; at the vault's root, the vault switcher (useVaultMenuItems:
-// recent vaults, Open / Create / Browser Vault) and Close Vault follow it.
+// list is virtualized. The header's New Note and New Folder buttons turn the
+// field into a name field for that folder: Enter creates (a note opens, a
+// new folder is stepped into), Escape backs out. The footer stays short (one
+// row per group, as menus should): "Show in Files" shows the folder in the
+// sidebar's tree, and at the vault's root "Vault ▸" opens a submenu with the
+// vault switcher (useVaultMenuItems: recent vaults, Open / Create / Browser
+// Vault) and Close Vault.
 // Rendered into `document.body` in the shared menu look (menu-classes.ts).
 export default function FolderPopover({ folder, anchor, currentPath, rootName, onOpenNote, onNewNote, onNewFolder, onShowInFiles, onCloseVault, onClose }: FolderPopoverProps) {
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
-  const vaultItems = useVaultMenuItems();
+  const vaultSwitcher = useVaultMenuItems();
   const [dir, setDir] = useState(folder);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const [creating, setCreating] = useState<Creating>(null);
   const [newName, setNewName] = useState("");
+  // The root's Vault submenu, beside its row.
+  const [vaultMenu, setVaultMenu] = useState<{ x: number; y: number } | null>(null);
+  const vaultRowRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -125,7 +131,10 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
 
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
-      if (!panelRef.current?.contains(event.target as Node)) onClose();
+      const target = event.target as Element;
+      // The Vault submenu is portaled outside the panel but belongs to it.
+      if (panelRef.current?.contains(target) || target.closest?.('[role="menu"][aria-label="Vault"]')) return;
+      onClose();
     };
     document.addEventListener("mousedown", onPointerDown);
     return () => document.removeEventListener("mousedown", onPointerDown);
@@ -200,20 +209,16 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
   };
 
   const name = folderName(dir, rootName);
-  // The footer's rows: New Note / New Folder name in place, the others close
-  // the popover before they act.
-  const createRows = fileCreateActions({
+  const createButtons = fileCreateActions({
     newNote: onNewNote ? () => startCreate("note") : undefined,
     newFolder: onNewFolder ? () => startCreate("folder") : undefined,
-  }).map((action) => ({ label: action.label, icon: action.icon, run: action.onSelect, keepOpen: true }));
-  const actions: { label: string; icon?: React.ReactNode; run: () => void; keepOpen?: boolean }[] = [
-    ...createRows,
-    ...(onShowInFiles ? [{ label: "Show in Files", icon: <TbLayoutSidebarLeftExpand size={15} aria-hidden="true" />, run: () => onShowInFiles(dir) }] : []),
+  });
+  // Each closes the popover before it acts.
+  const vaultItems: TabContextMenuItem[] = dir ? [] : [
+    ...vaultSwitcher.map((item) => ({ ...item, onClick: () => { onClose(); item.onClick(); } })),
+    ...(onCloseVault ? [{ label: "Close Vault", icon: <HiOutlineLogout size={15} aria-hidden="true" />, divider: true, onClick: () => { onClose(); onCloseVault(); } }] : []),
   ];
-  const vaultActions: { label: string; icon?: React.ReactNode; run: () => void }[] = dir ? [] : [
-    ...vaultItems.map((item) => ({ label: item.label, icon: item.icon, run: item.onClick })),
-    ...(onCloseVault ? [{ label: "Close Vault", icon: <HiOutlineLogout size={15} aria-hidden="true" />, run: onCloseVault }] : []),
-  ];
+  const hasFooter = !!onShowInFiles || vaultItems.length > 0;
   const fieldLabel = creating === "note" ? "New note name" : creating === "folder" ? "New folder name" : null;
 
   const renderRow = (row: FolderRow, index: number) => (
@@ -237,19 +242,6 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
       {row.where ? <span className="max-w-[45%] shrink-0 truncate text-ui-caption text-fg-faint">{row.where}</span> : null}
     </Button>
   );
-  const footerRow = (action: { label: string; icon?: React.ReactNode; run: () => void; keepOpen?: boolean }, i: number) => (
-    <Button
-      key={`${i}:${action.label}`}
-      variant="menu-row"
-      onClick={() => {
-        if (!action.keepOpen) onClose();
-        action.run();
-      }}
-    >
-      <span className={MENU_ICON_CLASS}>{action.icon}</span>
-      <span className="flex-1 truncate">{action.label}</span>
-    </Button>
-  );
 
   return createPortal(
     <div
@@ -270,6 +262,18 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
           <HiOutlineArrowLeft size={14} aria-hidden="true" />
         </Button>
         <span className="min-w-0 flex-1 truncate text-ui-footnote font-medium text-fg-muted" title={dir || rootName}>{name}</span>
+        {createButtons.map((action) => (
+          <Button
+            key={action.id}
+            variant="icon-small"
+            onClick={action.onSelect}
+            aria-label={action.label}
+            aria-pressed={creating === action.id}
+            title={`${action.label} in ${name}`}
+          >
+            {action.icon}
+          </Button>
+        ))}
       </div>
       <BareInput
         ref={inputRef}
@@ -315,10 +319,40 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
           <p className="px-2.5 py-2 text-ui-footnote text-fg-faint">{query.trim() ? "No matches" : "Empty folder"}</p>
         )}
       </div>
-      {actions.length > 0 && <div role="separator" className={MENU_SEPARATOR_CLASS} />}
-      {actions.map(footerRow)}
-      {vaultActions.length > 0 && <div role="separator" className={MENU_SEPARATOR_CLASS} />}
-      {vaultActions.map(footerRow)}
+      {hasFooter && <div role="separator" className={MENU_SEPARATOR_CLASS} />}
+      {onShowInFiles && (
+        <Button variant="menu-row" onClick={() => { onClose(); onShowInFiles(dir); }}>
+          <span className={MENU_ICON_CLASS}><TbLayoutSidebarLeftExpand size={15} aria-hidden="true" /></span>
+          <span className="flex-1 truncate">Show in Files</span>
+        </Button>
+      )}
+      {vaultItems.length > 0 && (
+        <Button
+          ref={vaultRowRef}
+          variant="menu-row"
+          aria-haspopup="menu"
+          aria-expanded={!!vaultMenu}
+          onClick={(event) => {
+            const rect = event.currentTarget.getBoundingClientRect();
+            setVaultMenu((open) => (open ? null : { x: rect.right + 4, y: rect.top - 4 }));
+          }}
+          className={vaultMenu ? ACTIVE_ROW : ""}
+        >
+          <span className={MENU_ICON_CLASS}><HiOutlineDatabase size={15} aria-hidden="true" /></span>
+          <span className="flex-1 truncate">Vault</span>
+          <HiChevronRight size={13} aria-hidden="true" className="shrink-0 text-fg-faint" />
+        </Button>
+      )}
+      {vaultMenu && (
+        <TabContextMenu
+          x={vaultMenu.x}
+          y={vaultMenu.y}
+          items={vaultItems}
+          label="Vault"
+          anchorRef={vaultRowRef}
+          onClose={() => setVaultMenu(null)}
+        />
+      )}
     </div>,
     document.body,
   );

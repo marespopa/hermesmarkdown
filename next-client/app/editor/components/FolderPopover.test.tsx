@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom";
 import FolderPopover from "./FolderPopover";
@@ -50,15 +50,26 @@ describe("FolderPopover", () => {
     expect(rowNames()).toEqual(["Projects", "Inbox"]);
   });
 
-  it("offers the vault switcher and Close Vault at the vault's root only", () => {
+  it("offers the vault switcher and Close Vault in a Vault submenu, at the vault's root only", () => {
     const onCloseVault = vi.fn();
     const { onClose } = renderPopover({ onCloseVault });
-    expect(screen.queryByRole("button", { name: "Open Vault…" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Vault" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Up to Vault" }));
-    fireEvent.click(screen.getByRole("button", { name: "Open Vault…" }));
+    fireEvent.click(screen.getByRole("button", { name: "Vault" }));
+    const submenu = screen.getByRole("menu", { name: "Vault" });
+    // A press inside the submenu doesn't count as outside the popover.
+    fireEvent.mouseDown(within(submenu).getByRole("menuitem", { name: "Open Vault…" }));
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(within(submenu).getByRole("menuitem", { name: "Open Vault…" }));
     expect(openVault).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Close Vault" }));
+  });
+
+  it("closes the vault from the Vault submenu", () => {
+    const onCloseVault = vi.fn();
+    renderPopover({ folder: "", onCloseVault });
+    fireEvent.click(screen.getByRole("button", { name: "Vault" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Close Vault" }));
     expect(onCloseVault).toHaveBeenCalledOnce();
   });
 
