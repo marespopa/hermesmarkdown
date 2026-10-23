@@ -2,12 +2,13 @@
 
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { HiOutlineArrowLeft, HiOutlineDocumentText, HiOutlineFolder } from "react-icons/hi";
+import { HiOutlineArrowLeft, HiOutlineDocumentText, HiOutlineFolder, HiOutlineLogout } from "react-icons/hi";
 import { TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import Button from "@/app/components/Button";
 import BareInput from "@/app/components/Input/BareInput";
 import { FIELD_COMPACT_CLASS } from "@/app/components/Input/field-styles";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
+import { useVaultMenuItems } from "../hooks/use-vault-menu-items";
 import { filterListing, folderName, listFolder, parentOf } from "./folder-listing";
 import { MENU_ICON_CLASS, MENU_PANEL_CLASS, MENU_SEPARATOR_CLASS } from "./menu-classes";
 
@@ -23,6 +24,8 @@ interface FolderPopoverProps {
   onOpenNote: (handle: FileSystemFileHandle, path: string) => void;
   /** Shows the folder in the sidebar's Files; absent where there's no sidebar. */
   onShowInFiles?: (folder: string) => void;
+  /** Close Vault, listed after the vault switcher while it's on the vault's root. */
+  onCloseVault?: () => void;
   onClose: () => void;
 }
 
@@ -35,10 +38,13 @@ const ACTIVE_ROW = "bg-black/[0.05] dark:bg-white/[0.08]";
 // subfolder steps into it and the ← row steps up, a click on a note opens it
 // in the pane. Typing filters the list; ↑/↓ move, Enter opens, → enters a
 // folder, ← or Backspace (with nothing typed) goes up, Escape or a click
-// outside closes it. "Show in Files" shows the folder in the sidebar's tree.
+// outside closes it. "Show in Files" shows the folder in the sidebar's tree;
+// at the vault's root, the vault switcher (useVaultMenuItems: recent vaults,
+// Open / Create / Browser Vault) and Close Vault follow it.
 // Rendered into `document.body` in the shared menu look (menu-classes.ts).
-export default function FolderPopover({ folder, anchor, currentPath, rootName, onOpenNote, onShowInFiles, onClose }: FolderPopoverProps) {
+export default function FolderPopover({ folder, anchor, currentPath, rootName, onOpenNote, onShowInFiles, onCloseVault, onClose }: FolderPopoverProps) {
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
+  const vaultItems = useVaultMenuItems();
   const [dir, setDir] = useState(folder);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
@@ -132,6 +138,12 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
   };
 
   const name = folderName(dir, rootName);
+  // The footer's rows, each closing the popover before it acts.
+  const actions: { label: string; icon?: React.ReactNode; run: () => void }[] = [
+    ...(onShowInFiles ? [{ label: "Show in Files", icon: <TbLayoutSidebarLeftExpand size={15} aria-hidden="true" />, run: () => onShowInFiles(dir) }] : []),
+    ...(!dir ? vaultItems.map((item) => ({ label: item.label, icon: item.icon, run: item.onClick })) : []),
+    ...(!dir && onCloseVault ? [{ label: "Close Vault", icon: <HiOutlineLogout size={15} aria-hidden="true" />, run: onCloseVault }] : []),
+  ];
   return createPortal(
     <div
       ref={panelRef}
@@ -188,18 +200,17 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
           <p className="px-2.5 py-2 text-ui-footnote text-fg-faint">{query ? "No matches" : "Empty folder"}</p>
         )}
       </div>
-      {onShowInFiles && (
-        <>
-          <div role="separator" className={MENU_SEPARATOR_CLASS} />
-          <Button
-            variant="menu-row"
-            onClick={() => { onShowInFiles(dir); onClose(); }}
-          >
-            <span className={MENU_ICON_CLASS}><TbLayoutSidebarLeftExpand size={15} aria-hidden="true" /></span>
-            <span className="flex-1 truncate">Show in Files</span>
-          </Button>
-        </>
-      )}
+      {actions.length > 0 && <div role="separator" className={MENU_SEPARATOR_CLASS} />}
+      {actions.map((action, i) => (
+        <Button
+          key={`${i}:${action.label}`}
+          variant="menu-row"
+          onClick={() => { onClose(); action.run(); }}
+        >
+          <span className={MENU_ICON_CLASS}>{action.icon}</span>
+          <span className="flex-1 truncate">{action.label}</span>
+        </Button>
+      ))}
     </div>,
     document.body,
   );

@@ -14,6 +14,11 @@ vi.mock("../hooks/useVaultFileSearch", () => ({
   }),
 }));
 
+const openVault = vi.fn();
+vi.mock("../hooks/use-vault-menu-items", () => ({
+  useVaultMenuItems: () => [{ label: "Open Vault…", onClick: openVault }],
+}));
+
 const anchor = { left: 40, bottom: 30 } as DOMRect;
 
 function renderPopover(props: Partial<ComponentProps<typeof FolderPopover>> = {}) {
@@ -41,6 +46,18 @@ describe("FolderPopover", () => {
     expect(rowNames()).toEqual(["Drafts", "Launch", "Roadmap"]);
     fireEvent.click(screen.getByRole("button", { name: "Up to Vault" }));
     expect(rowNames()).toEqual(["Projects", "Inbox"]);
+  });
+
+  it("offers the vault switcher and Close Vault at the vault's root only", () => {
+    const onCloseVault = vi.fn();
+    const { onClose } = renderPopover({ onCloseVault });
+    expect(screen.queryByRole("button", { name: "Open Vault…" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Up to Vault" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Vault…" }));
+    expect(openVault).toHaveBeenCalledOnce();
+    expect(onClose).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Close Vault" }));
+    expect(onCloseVault).toHaveBeenCalledOnce();
   });
 
   it("opens a note in the pane and closes", () => {

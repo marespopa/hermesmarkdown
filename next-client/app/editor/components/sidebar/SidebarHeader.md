@@ -1,13 +1,13 @@
 # SidebarHeader
 
-Description: The sidebar's top bar, at the top: the open vault's name (`atom_vaultName`, "Workspace" without one) as a switcher button whose menu (`TabContextMenu`) lists the recent vaults (`useRecentVaults`) and then **Open Vault…**, **Create Vault…** and **Browser Vault…** where the browser supports them (disabled when there's nothing to offer); then **New note** and **Hide sidebar** icon buttons (`PaneToolbarButton`).
+Description: The sidebar's top bar, at the top: the app's name, **HermesMarkdown**, as a quiet wordmark (plain text, `text-ui-footnote` semibold, not a button), then **New note** and **Hide sidebar** icon buttons (`PaneToolbarButton`). It no longer switches vaults: that's the pane title's first crumb (`PaneTitle`: the vault root's `FolderPopover`, or the "No vault" crumb's menu) and the command palette.
 
 ## Local State & Storage
-- State: The open menu (local).
+- State: None.
 - Persistence: None.
 
 ## Dependencies
-- Core: `TabContextMenu`, `PaneToolbarButton`, `useRecentVaults`, `useFileSystem`, `atom_newVaultFlowOpen`, `atom_browserVaultDialogOpen`.
+- Core: `PaneToolbarButton`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

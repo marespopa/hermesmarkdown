@@ -17,6 +17,16 @@ interface PaneTitleProps {
   onOpenFolder?: (folder: string, anchor: DOMRect) => void;
   /** The folder whose popover is open: its crumb keeps the pressed look. */
   openFolder?: string | null;
+  /** The vault's name: with `onOpenFolder`, the first crumb, opening the
+   *  vault's root (shown alone when no note is open). */
+  rootName?: string;
+  /** No vault open: a "No vault" crumb leads instead, opening (or closing)
+   *  the vault menu below `anchor`; absent shows no crumb. */
+  onVaultMenu?: (anchor: DOMRect) => void;
+  /** The vault menu is open from its crumb: keeps its pressed look. */
+  vaultMenuOpen?: boolean;
+  /** The "No vault" crumb, so the menu can treat presses on it as a toggle. */
+  vaultButtonRef?: React.Ref<HTMLButtonElement>;
   saveState: SaveState;
   saveErrorMessage?: string;
   /** Renames the note in place; absent when it can't be (the draft, no vault). */
@@ -50,14 +60,21 @@ export function collapseCrumbs(crumbs: string[]): string[] {
 }
 
 // The folder each shown crumb opens: its own path; the folded "…" opens the
-// last folder it hides, and the popover's ← steps up through the rest.
-export function crumbTargets(crumbs: string[]): { label: string; path: string; title?: string }[] {
+// last folder it hides, and the popover's ← steps up through the rest. With
+// `rootName` the vault's root ("") leads and takes the first folder's place:
+// `Vault / Work / Projects`, deeper `Vault / … / Clients`.
+export function crumbTargets(crumbs: string[], rootName?: string): { label: string; path: string; title?: string }[] {
   const pathAt = (i: number) => crumbs.slice(0, i + 1).join("/");
-  if (crumbs.length <= 2) return crumbs.map((label, i) => ({ label, path: pathAt(i) }));
+  const root = rootName === undefined ? null : { label: rootName, path: "" };
+  if (crumbs.length <= 2) {
+    const folders = crumbs.map((label, i) => ({ label, path: pathAt(i) }));
+    return root ? [root, ...folders] : folders;
+  }
   const last = crumbs.length - 1;
+  const folded = root ? 0 : 1;
   return [
-    { label: crumbs[0], path: pathAt(0) },
-    { label: "…", path: pathAt(last - 1), title: crumbs.slice(1, last).join(" / ") },
+    root ?? { label: crumbs[0], path: pathAt(0) },
+    { label: "…", path: pathAt(last - 1), title: crumbs.slice(folded, last).join(" / ") },
     { label: crumbs[last], path: pathAt(last) },
   ];
 }
@@ -68,7 +85,9 @@ const SEPARATOR_CLASS = "shrink-0 px-0.5 opacity-60";
 
 // The pane's header, at its top left: the note's folder as a faint
 // breadcrumb (the middle of a deep one folded; with `onOpenFolder` each
-// folder is a button that opens its contents), then its name, then a dot
+// folder is a button that opens its contents, led by the vault's root, which
+// stands alone when no note is open; with no vault a "No vault" crumb leads,
+// opening the vault menu), then its name, then a dot
 // while the note is unsaved, saving or failed to save (SaveDot: hover shows
 // the save glyph, a click saves; PaneLeaf keeps it quiet through autosave's
 // wait). The name is the file name; a click on it (or a right-click on the
@@ -77,7 +96,7 @@ const SEPARATOR_CLASS = "shrink-0 px-0.5 opacity-60";
 // Enter or clicking away renames the file, Escape backs out (no prompt, no
 // palette). The palette's SearchPill sits in the window's top-right corner
 // (EditorShell). Quiet, and always shown: it stays while you type.
-export default function PaneTitle({ title, folder = "", onOpenFolder, openFolder = null, saveState, saveErrorMessage, onRename, renameRequest = 0, onSave, onContextMenu, onMenu, menuOpen = false, menuButtonRef }: PaneTitleProps) {
+export default function PaneTitle({ title, folder = "", onOpenFolder, openFolder = null, rootName, onVaultMenu, vaultMenuOpen = false, vaultButtonRef, saveState, saveErrorMessage, onRename, renameRequest = 0, onSave, onContextMenu, onMenu, menuOpen = false, menuButtonRef }: PaneTitleProps) {
   const [editing, setEditing] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const finished = React.useRef(false);
@@ -85,6 +104,10 @@ export default function PaneTitle({ title, folder = "", onOpenFolder, openFolder
   const label = title ?? "No note open";
   const crumbs = folder.split("/").filter(Boolean);
   const shownCrumbs = collapseCrumbs(crumbs);
+  const targets = onOpenFolder ? crumbTargets(crumbs, rootName) : [];
+  const showCrumbs = onOpenFolder ? targets.length > 0 : crumbs.length > 0;
+  // No note open in a vault: the root crumb alone, no name after it.
+  const rootOnly = title === null && (targets.length > 0 || !!onVaultMenu);
 
   React.useEffect(() => {
     if (!editing) return;
@@ -115,12 +138,30 @@ export default function PaneTitle({ title, folder = "", onOpenFolder, openFolder
       onContextMenu={onContextMenu}
       className="flex min-w-0 items-center gap-0.5 text-ui-footnote text-fg-faint"
     >
-      {crumbs.length > 0 && (
+      {onVaultMenu && !onOpenFolder && (
+        <span className={`${rootOnly ? "flex" : "hidden sm:flex"} min-w-0 shrink-[2] items-center`}>
+          <Button
+            ref={vaultButtonRef}
+            variant="unstyled"
+            onClick={(e) => { e.stopPropagation(); onVaultMenu(e.currentTarget.getBoundingClientRect()); }}
+            title="Open a vault"
+            aria-label="No vault. Open a vault"
+            aria-haspopup="menu"
+            aria-expanded={vaultMenuOpen}
+            className={`${CRUMB_CLASS} ${vaultMenuOpen ? PRESSED_CLASS : ""}`}
+          >
+            No vault
+          </Button>
+          {!rootOnly && <span aria-hidden="true" className={SEPARATOR_CLASS}>/</span>}
+        </span>
+      )}
+      {showCrumbs && (
         // Shrinks before the name does; the slash before the name never goes.
-        <span className="hidden min-w-0 shrink-[2] items-center sm:flex" title={onOpenFolder ? undefined : crumbs.join(" / ")}>
+        // Alone (no note open) it has the room, so it shows at every width.
+        <span className={`${rootOnly ? "flex" : "hidden sm:flex"} min-w-0 shrink-[2] items-center`} title={onOpenFolder ? undefined : crumbs.join(" / ")}>
           {onOpenFolder ? (
             <nav aria-label="Folder" className="flex min-w-0 items-center overflow-hidden">
-              {crumbTargets(crumbs).map((crumb, i) => (
+              {targets.map((crumb, i) => (
                 <React.Fragment key={crumb.path}>
                   {i > 0 && <span aria-hidden="true" className={SEPARATOR_CLASS}>/</span>}
                   <Button
@@ -129,7 +170,7 @@ export default function PaneTitle({ title, folder = "", onOpenFolder, openFolder
                     // the press mustn't reach its click-outside handler first.
                     onMouseDown={(e) => { if (openFolder === crumb.path) e.stopPropagation(); }}
                     onClick={(e) => { e.stopPropagation(); onOpenFolder(crumb.path, e.currentTarget.getBoundingClientRect()); }}
-                    title={crumb.title ?? crumb.path.split("/").join(" / ")}
+                    title={crumb.title ?? (crumb.path ? crumb.path.split("/").join(" / ") : crumb.label)}
                     aria-label={crumb.title ? `Folders ${crumb.title}` : `Folder ${crumb.label}`}
                     aria-haspopup="dialog"
                     aria-expanded={openFolder === crumb.path}
@@ -143,10 +184,10 @@ export default function PaneTitle({ title, folder = "", onOpenFolder, openFolder
           ) : (
             <span className={`${TITLE_CLASS} flex items-center truncate`}>{shownCrumbs.join(" / ")}</span>
           )}
-          <span aria-hidden="true" className={SEPARATOR_CLASS}>/</span>
+          {!rootOnly && <span aria-hidden="true" className={SEPARATOR_CLASS}>/</span>}
         </span>
       )}
-      {editing ? (
+      {rootOnly ? null : editing ? (
         <BareInput
           ref={inputRef}
           aria-label="Note name"

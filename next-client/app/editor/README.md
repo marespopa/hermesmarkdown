@@ -33,7 +33,7 @@ The Templates page (`app/editor/templates`, sidebar **Templates**, palette **Ope
 
 ## Navigation and URLs
 
-Every /editor route shares one frame, `components/EditorShell`: a plain page with the sidebar beside it; (in `layout.tsx`, inside `VaultAccessGate`): the desktop `WorkspaceSidebar` (only the library: vault switcher, New note, Outline, Files; the pages, Settings and search are the command palette's, `AppCommands`), the sidebar shortcuts (`Ctrl/Cmd+\`, `Ctrl/Cmd+Alt+S`) and the vault dialogs. Pages render in `components/ShellPage` (a title bar with the `SearchPill`, beside the open sidebar; ← Editor on mobile, which has no sidebar). Searching is always the command palette's (Ctrl/Cmd+K, or the `SearchPill` in the editor's corner and the page title bars). Every place has a URL (`utils/editor-url.ts`), so a refresh or a link lands back on it:
+Every /editor route shares one frame, `components/EditorShell`: a plain page with the sidebar beside it; (in `layout.tsx`, inside `VaultAccessGate`): the desktop `WorkspaceSidebar` (only the library: the app's wordmark, New note, Outline, Files; vaults are switched from the pane title's first crumb; the pages, Settings and search are the command palette's, `AppCommands`), the sidebar shortcuts (`Ctrl/Cmd+\`, `Ctrl/Cmd+Alt+S`) and the vault dialogs. Pages render in `components/ShellPage` (a title bar with the `SearchPill`, beside the open sidebar; ← Editor on mobile, which has no sidebar). Searching is always the command palette's (Ctrl/Cmd+K, or the `SearchPill` in the editor's corner and the page title bars). Every place has a URL (`utils/editor-url.ts`), so a refresh or a link lands back on it:
 
 | URL | Shows |
 |---|---|
