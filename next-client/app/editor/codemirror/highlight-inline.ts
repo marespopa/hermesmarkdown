@@ -32,11 +32,13 @@ export function mark(ranges: MarkRange[], from: number, to: number, className: s
 export function processInline(ranges: MarkRange[], label: string, base: number) {
   const push = (from: number, to: number, cls: string) => mark(ranges, base + from, base + to, cls);
 
+  // Link labels share the folded link's weight (.cm-link-display, 500), so a
+  // link doesn't turn bolder and reflow when the caret unfolds it.
   if (label.includes("[[")) {
     for (const m of label.matchAll(REGEX_WIKILINK)) {
       if (/^\[\[\d{4}-\d{2}-\d{2}\]\]$/.test(m[0])) continue;
       push(m.index!, m.index! + 2, FADED);
-      push(m.index! + 2, m.index! + m[0].length - 2, "!text-sage dark:!text-sage font-bold underline cursor-pointer");
+      push(m.index! + 2, m.index! + m[0].length - 2, "!text-sage dark:!text-sage font-medium underline cursor-pointer");
       push(m.index! + m[0].length - 2, m.index! + m[0].length, FADED);
     }
   }
@@ -56,7 +58,7 @@ export function processInline(ranges: MarkRange[], label: string, base: number) 
       const [, p1, p2, p3, p4, p5] = m;
       let i = m.index!;
       push(i, i + p1.length, FADED); i += p1.length;
-      push(i, i + p2.length, "!text-sage dark:!text-sage underline"); i += p2.length;
+      push(i, i + p2.length, "!text-sage dark:!text-sage font-medium underline"); i += p2.length;
       push(i, i + p3.length + p4.length + p5.length, FADED);
     }
   }

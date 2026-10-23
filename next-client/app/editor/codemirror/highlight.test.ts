@@ -79,6 +79,17 @@ describe("computeMarkdownDecorations", () => {
     expect(decos.some((d) => d.from === markerFrom && d.class.includes("opacity-40"))).toBe(true);
   });
 
+  it("keeps a link label at the folded link's weight, never bold", () => {
+    const doc = "- [[work/Custom tags]] and [docs](https://example.com)";
+    const decos = decorationsFor(doc);
+    for (const label of ["work/Custom tags", "docs"]) {
+      const from = doc.indexOf(label);
+      const marks = decos.filter((d) => d.from === from && d.to === from + label.length).map((d) => d.class);
+      expect(marks).toContainEqual(expect.stringContaining("font-medium"));
+      expect(marks).not.toContainEqual(expect.stringContaining("font-bold"));
+    }
+  });
+
   it("styles a task's label by its state", () => {
     const doc = "- [x] done thing\n- [-] dropped\n- [/] going\n- [ ] open";
     const decos = decorationsFor(doc);
