@@ -3,7 +3,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { HiChevronRight, HiOutlineArrowLeft, HiOutlineDatabase, HiOutlineDocumentText, HiOutlineFolder, HiOutlineLogout } from "react-icons/hi";
+import { HiChevronRight, HiOutlineArrowLeft, HiOutlineDatabase, HiOutlineDocumentAdd, HiOutlineDocumentText, HiOutlineFolder, HiOutlineLogout } from "react-icons/hi";
 import { TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import Button from "@/app/components/Button";
 import BareInput from "@/app/components/Input/BareInput";
@@ -51,7 +51,8 @@ type Creating = "note" | "folder" | null;
 // subfolder steps into it and the ← row steps up, a click on a note opens it
 // in the pane. Typing searches everything below the folder (the whole vault
 // from its root), each match with its folder beside it; ↑/↓ move, Enter
-// opens, → enters a folder, ← or Backspace (with nothing typed) goes up,
+// opens (with no matches, a "Create “…”" row makes a note by that name in
+// the folder), → enters a folder, ← or Backspace (with nothing typed) goes up,
 // Escape or a click outside closes it. Past VIRTUALIZE_THRESHOLD rows the
 // list is virtualized. The header's New Note and New Folder buttons turn the
 // field into a name field for that folder: Enter creates (a note opens, a
@@ -82,6 +83,13 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
     [dir, allFiles, folderPaths, query],
   );
   const activeIndex = Math.min(active, rows.length - 1);
+  // A search with no matches offers to create a note by that name, here.
+  const typed = query.trim();
+  const offerCreate = !rows.length && !!typed && !!onNewNote;
+  const createFromQuery = () => {
+    onClose();
+    onNewNote?.(dir, typed);
+  };
   const virtualize = rows.length > VIRTUALIZE_THRESHOLD;
   const virtualizer = useVirtualizer({
     count: virtualize ? rows.length : 0,
@@ -194,7 +202,8 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
       setActive((activeIndex + step + rows.length) % rows.length);
     } else if (event.key === "Enter") {
       event.preventDefault();
-      choose(activeIndex);
+      if (offerCreate) createFromQuery();
+      else choose(activeIndex);
     } else if (event.key === "ArrowRight" && row?.kind === "folder" && event.currentTarget.selectionStart === query.length) {
       event.preventDefault();
       enter(row.path);
@@ -292,7 +301,7 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
         placeholder={fieldLabel ? `${fieldLabel} in ${name}` : "Filter"}
         aria-label={fieldLabel ?? "Filter this folder"}
         aria-controls={creating ? undefined : "folder-popover-list"}
-        aria-activedescendant={!creating && rows.length ? `folder-popover-row-${activeIndex}` : undefined}
+        aria-activedescendant={creating ? undefined : rows.length ? `folder-popover-row-${activeIndex}` : offerCreate ? "folder-popover-create" : undefined}
         spellCheck={false}
         className={`${FIELD_COMPACT_CLASS} mx-1 my-1`}
       />
@@ -315,8 +324,23 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
         ) : (
           rows.map(renderRow)
         )}
-        {!rows.length && (
-          <p className="px-2.5 py-2 text-ui-footnote text-fg-faint">{query.trim() ? "No matches" : "Empty folder"}</p>
+        {offerCreate ? (
+          <Button
+            id="folder-popover-create"
+            variant="menu-row"
+            role="option"
+            aria-selected
+            tabIndex={-1}
+            onClick={createFromQuery}
+            title={`New Note “${typed}” in ${name}`}
+            className={ACTIVE_ROW}
+          >
+            <span className={MENU_ICON_CLASS}><HiOutlineDocumentAdd size={15} aria-hidden="true" /></span>
+            <span className="flex-1 truncate">Create “{typed}”</span>
+            <span className="max-w-[45%] shrink-0 truncate text-ui-caption text-fg-faint">{name}</span>
+          </Button>
+        ) : !rows.length && (
+          <p className="px-2.5 py-2 text-ui-footnote text-fg-faint">{typed ? "No matches" : "Empty folder"}</p>
         )}
       </div>
       {hasFooter && <div role="separator" className={MENU_SEPARATOR_CLASS} />}

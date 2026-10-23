@@ -131,6 +131,24 @@ describe("FolderPopover", () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it("offers to create a note named as typed when nothing matches", () => {
+    const onNewNote = vi.fn();
+    const { onClose } = renderPopover({ onNewNote });
+    const filter = screen.getByRole("textbox", { name: "Filter this folder" });
+    fireEvent.change(filter, { target: { value: " Launch plan " } });
+    expect(screen.getByRole("option", { name: /Create “Launch plan”/ })).toHaveAttribute("aria-selected", "true");
+    fireEvent.keyDown(filter, { key: "Enter" });
+    expect(onNewNote).toHaveBeenCalledWith("Projects", "Launch plan");
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("only says there are no matches without New Note", () => {
+    renderPopover();
+    fireEvent.change(screen.getByRole("textbox", { name: "Filter this folder" }), { target: { value: "zzz" } });
+    expect(screen.getByText("No matches")).toBeInTheDocument();
+    expect(screen.queryByRole("option")).not.toBeInTheDocument();
+  });
+
   it("has no New Note or New Folder without their handlers", () => {
     renderPopover();
     expect(screen.queryByRole("button", { name: "New Note" })).not.toBeInTheDocument();
