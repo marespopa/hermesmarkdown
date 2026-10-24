@@ -10,10 +10,13 @@ import { remapPath } from "./utils";
 // (atom_updatePins, the only writer). `vault` is the vault they were read
 // from: writes go there, so this module never imports vault-atoms (which
 // calls atom_remapPins) and there's no import cycle.
+// While "loading", `pins` are the ones this device last read for the vault
+// (pins-cache.ts) when `cached` is set, else none yet.
 export interface PinsState {
   vault: FileSystemDirectoryHandle | null;
   status: "none" | "loading" | "ok" | "invalid";
   pins: readonly Pin[];
+  cached?: boolean;
 }
 export const NO_PINS_STATE: PinsState = { vault: null, status: "none", pins: [] };
 export const atom_pinsState = atom<PinsState>(NO_PINS_STATE);

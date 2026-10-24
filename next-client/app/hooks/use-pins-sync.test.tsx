@@ -156,7 +156,7 @@ describe("usePinsSync", () => {
     disk.files.set(archive, "pins:\n  - {page: trash}\n");
     store.set(atom_vaultHandle, notes);
     mount(store);
-    expect(store.get(atom_pinsState)).toEqual({ vault: notes, status: "loading", pins: [] });
+    expect(store.get(atom_pinsState)).toEqual({ vault: notes, status: "loading", pins: [], cached: false });
 
     act(() => store.set(atom_vaultHandle, archive));
     await waitFor(() => expect(targets(store)).toEqual(["trash"]));
@@ -164,6 +164,26 @@ describe("usePinsSync", () => {
 
     await act(async () => { release(); });
     expect(store.get(atom_pinsState)).toMatchObject({ vault: archive, pins: [{ target: "trash" }] });
+  });
+
+  it("shows the pins this device last read for the vault while it reads the file, then the file's", async () => {
+    disk.files.set(notes, "pins:\n  - {tag: bug}\n  - {page: tasks}\n");
+    store.set(atom_vaultHandle, notes);
+    const first = mount(store);
+    await waitFor(() => expect(targets(store)).toEqual(["bug", "tasks"]));
+    first.unmount();
+
+    // Next time: the cache at once, while the read is held open.
+    let release: () => void = () => {};
+    disk.hold = { vault: notes, promise: new Promise((resolve) => { release = resolve; }) };
+    disk.files.set(notes, "pins:\n  - {page: tasks}\n");
+    const next = createStore();
+    next.set(atom_vaultHandle, notes);
+    mount(next);
+    expect(next.get(atom_pinsState)).toMatchObject({ status: "loading", cached: true });
+    expect(targets(next)).toEqual(["bug", "tasks"]);
+    await act(async () => { release(); });
+    await waitFor(() => expect(targets(next)).toEqual(["tasks"]));
   });
 
   it("does nothing while disabled", async () => {

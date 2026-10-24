@@ -9,6 +9,7 @@ import { atom_fileSystemVersion, atom_vaultHandle, atom_vaultKey } from "@/app/a
 import { loadYaml, readPinsFile } from "@/app/services/vault-pins";
 import { addPins, parsePins, PINS_PATH, samePins } from "@/app/services/vault-pins-format";
 import { createFileObserver, type FileObserver } from "./file-system/file-observer";
+import { cachePins, readCachedPins } from "./pins-cache";
 import { forgetLegacyNotePins, readLegacyNotePins } from "./pins-migration";
 
 // The open-file watcher's debounce (use-file-watcher.ts).
@@ -25,7 +26,10 @@ const atom_pinsTabSaved = selectAtom(atom_openFiles, (files) => files[PINS_PATH]
 // watcher, file operations, a GitHub Pull), when its tab is saved, and when a
 // FileSystemObserver on the file reports a change (Chromium, once the file
 // exists). An invalid file keeps the pins last read for this vault. Switching
-// or closing the vault resets the pins first. Does nothing while disabled
+// or closing the vault resets the pins first, to the ones this device last
+// read for it (pins-cache.ts), so the sidebar shows them at once; every valid
+// read is cached for next time. The YAML parser's chunk starts loading on
+// mount, before the vault is even unlocked. Does nothing while disabled
 // (the vault is locked).
 export function usePinsSync(enabled: boolean): void {
   const store = useStore();
@@ -77,6 +81,18 @@ export function usePinsSync(enabled: boolean): void {
     }
   }, [enabled, vault, vaultKey, store, migrate]);
 
+  // Starts fetching the parser now, so the first read doesn't wait for it.
+  useEffect(() => {
+    void loadYaml();
+  }, []);
+
+  // Remembers what was read, for the next time this vault opens.
+  useEffect(() => store.sub(atom_pinsState, () => {
+    const state = store.get(atom_pinsState);
+    const key = store.get(atom_vaultKey);
+    if (state.status === "ok" && key && state.vault === store.get(atom_vaultHandle)) cachePins(key, state.pins);
+  }), [store]);
+
   const readRef = useRef(read);
   useEffect(() => {
     readRef.current = read;
@@ -90,7 +106,11 @@ export function usePinsSync(enabled: boolean): void {
       if (current !== NO_PINS_STATE) store.set(atom_pinsState, NO_PINS_STATE);
       return;
     }
-    if (current.vault !== vault) store.set(atom_pinsState, { vault, status: "loading", pins: [] });
+    if (current.vault !== vault) {
+      const key = store.get(atom_vaultKey);
+      const cached = key ? readCachedPins(key) : null;
+      store.set(atom_pinsState, { vault, status: "loading", pins: cached ?? [], cached: cached !== null });
+    }
     let timer: ReturnType<typeof setTimeout> | undefined;
     const observer = createFileObserver(() => {
       clearTimeout(timer);

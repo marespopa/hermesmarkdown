@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
+import { HiOutlineSearch } from "react-icons/hi";
 import BareInput from "@/app/components/Input/BareInput";
 import { FIELD_COMPACT_CLASS } from "@/app/components/Input/field-styles";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -23,7 +24,7 @@ interface SidebarFilesProps {
 // rename, right-click for actions, arrow keys to move through it). A note's
 // or folder's right-click menu has Pin / Unpin, which adds it to (or removes
 // it from) the vault's pins (usePins, `.hermes/pins.yaml`), listed in the
-// sidebar's Pinned section. A filter box above the tree narrows it to the
+// sidebar's Pinned section. A Search field above the tree narrows it to the
 // files whose vault path matches a regular expression (files-filter.ts), with
 // every folder around them open; Escape clears it, ↓ or Enter moves into the tree.
 export default function SidebarFiles({ treeController, activeFilePath, openHandle, allFiles, folderPaths }: SidebarFilesProps) {
@@ -72,27 +73,30 @@ export default function SidebarFiles({ treeController, activeFilePath, openHandl
         newFolder: () => createAtRoot("folder"),
       })}
     >
-      <BareInput
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Escape" && query) {
-            // Clears the filter; a second Escape reaches the sidebar and hides it.
-            event.preventDefault();
-            event.stopPropagation();
-            setQuery("");
-          } else if (event.key === "ArrowDown" || event.key === "Enter") {
-            event.preventDefault();
-            treeController.current?.focus();
-          }
-        }}
-        placeholder="Filter"
-        aria-label="Filter files"
-        aria-invalid={filter && !filter.valid ? true : undefined}
-        title={filter && !filter.valid ? "Not a valid pattern: matching the text as typed" : "Filter by path (a regular expression)"}
-        spellCheck={false}
-        className={`${FIELD_COMPACT_CLASS} mb-1`}
-      />
+      <div className="relative mb-1">
+        <HiOutlineSearch size={14} aria-hidden="true" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-faint" />
+        <BareInput
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape" && query) {
+              // Clears the search; a second Escape reaches the sidebar and hides it.
+              event.preventDefault();
+              event.stopPropagation();
+              setQuery("");
+            } else if (event.key === "ArrowDown" || event.key === "Enter") {
+              event.preventDefault();
+              treeController.current?.focus();
+            }
+          }}
+          placeholder="Search"
+          aria-label="Search files"
+          aria-invalid={filter && !filter.valid ? true : undefined}
+          title={filter && !filter.valid ? "Not a valid pattern: matching the text as typed" : "Search file paths (a regular expression works too)"}
+          spellCheck={false}
+          className={`${FIELD_COMPACT_CLASS} w-full border border-edge pl-8`}
+        />
+      </div>
       <VaultFileTree
         processedFiles={shown.files}
         activeFilePath={activeFilePath}

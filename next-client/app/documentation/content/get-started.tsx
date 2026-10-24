@@ -270,7 +270,7 @@ export const getStartedGroup: Group = {
             vault (click it to switch to a recent vault or open another) beside <strong>New note</strong> and the
             button that hides it; below come <strong>Pinned</strong> (up to nine pins, opened with{" "}
             <code>CTRL/CMD+1–9</code>) and <strong>Files</strong>, the vault&apos;s tree, with a{" "}
-            <strong>Filter</strong> box above it: type part of a path, or a regular expression
+            <strong>Search</strong> field above it: type part of a path, or a regular expression
             (<code>projects/.*plan</code>), and the tree shows only the files that match, their folders open;{" "}
             <code>Esc</code> clears it. For an overview of a long note, turn on the{" "}
             <strong>Minimap</strong> (<code>CTRL/CMD+SHIFT+M</code>, or Settings → Editor → View): the note drawn

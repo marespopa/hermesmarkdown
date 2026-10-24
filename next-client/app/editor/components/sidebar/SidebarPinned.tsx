@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { HiOutlineEmojiHappy } from "react-icons/hi";
 import { TbPinned } from "react-icons/tb";
 import Button from "@/app/components/Button";
+import { useAtomValue } from "jotai";
+import { atom_pinsState } from "@/app/atoms/pin-atoms";
 import { usePins } from "@/app/hooks/use-pins";
 import { formatShortcut } from "@/app/utils/platform";
 import { carriesPinTargets, PIN_TOUCH_DRAG_EVENT, readPinDragData, type PinTouchDrag } from "../../utils/pin-drag";
@@ -32,13 +34,19 @@ const SIDEBAR_ROW_CLASS = "flex items-center h-7 rounded-md text-ui-footnote tra
 // they drop, at the same insertion line; one already pinned moves there. Each
 // change is written to the file at once. A pin whose note or folder is gone
 // shows faint. With no pins listed it renders nothing, except a drop zone
-// while a note or folder is being dragged. `activePath` is the note in front
+// while a note or folder is being dragged, and its header alone while a
+// vault's pins are read for the first time on this device (after that they
+// show at once from usePinsSync's cache). `activePath` is the note in front
 // on the editor (null elsewhere).
 // The drag's payload type: this list reorders with it, and nothing else does.
 const DRAG_TYPE = "application/x-hermes-pin";
 
 export default function SidebarPinned({ activePath }: { activePath: string | null }) {
   const rows = usePinnedRows(activePath);
+  // The first read of a vault this device hasn't cached pins for: the header
+  // shows at once, the rows when the file is read.
+  const pinsState = useAtomValue(atom_pinsState);
+  const firstLoad = pinsState.status === "loading" && !pinsState.cached;
   const { unpin, setIcon, move, pinAt } = usePins();
   const [menu, setMenu] = useState<{ x: number; y: number; key: string; align: "start" | "end" } | null>(null);
   const [picker, setPicker] = useState<{ key: string; anchor: DOMRect } | null>(null);
@@ -96,7 +104,10 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
         setPinnableDrag(true);
         return;
       }
-      const over = !!wrapperRef.current?.contains(document.elementFromPoint(x, y));
+      // By the section's box, not elementFromPoint: whatever floats under
+      // the finger (the drag's ghost, a toast) can't hide the section.
+      const rect = wrapperRef.current?.getBoundingClientRect();
+      const over = !!rect && x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
       if (phase === "move") {
         setDropAt(over ? indexAt(y) : null);
         return;
@@ -124,7 +135,7 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [rows]);
 
-  if (!rows.length && !pinnableDrag) return null;
+  if (!rows.length && !pinnableDrag && !firstLoad) return null;
 
   const menuRow = menu ? rows.find((row) => row.key === menu.key) : undefined;
   const pickerRow = picker ? rows.find((row) => row.key === picker.key) : undefined;
@@ -166,6 +177,8 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
       drop(event);
     },
   };
+
+  if (!rows.length && !pinnableDrag) return <SidebarSection title="Pinned">{null}</SidebarSection>;
 
   if (!rows.length) {
     return (

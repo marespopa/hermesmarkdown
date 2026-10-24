@@ -348,10 +348,10 @@ describe("WorkspaceSidebar", () => {
     expect(navigation.push).toHaveBeenCalledWith("/editor");
   });
 
-  it("has no search of its own, only the Files filter: searching is the command palette's", () => {
+  it("has no search of its own, only the Files search: searching notes is the command palette's", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar(true);
-    expect(screen.getAllByRole("textbox").map((box) => box.getAttribute("aria-label"))).toEqual(["Filter files"]);
+    expect(screen.getAllByRole("textbox").map((box) => box.getAttribute("aria-label"))).toEqual(["Search files"]);
   });
 
   it("hides on Escape inside it", () => {

@@ -67,6 +67,9 @@ function setup({ pinned = pins, activePath = null as string | null, metadata = {
 const rows = () => within(screen.getByRole("list", { name: "Pinned" })).getAllByRole("listitem");
 const rowButton = (name: string) => screen.getByRole("button", { name: new RegExp(`^${name}$`) });
 const targets = (store: ReturnType<typeof createStore>) => store.get(atom_pinsState).pins.map((pin) => pin.target);
+// The drop target: the box around the whole section.
+const section = () => screen.getByRole("region", { name: "Pinned" }).parentElement as HTMLElement;
+
 // A row's text without its shortcut badge.
 const rowText = (row: HTMLElement) => row.textContent!.replace(row.querySelector("kbd")?.textContent ?? "", "");
 const listItem = (name: string) => rowButton(name).closest("[role=listitem]") as HTMLElement;
@@ -229,8 +232,7 @@ describe("SidebarPinned", () => {
     const store = setup();
     layOutRows();
     const targetsDragged = [{ kind: "note" as const, target: "notes/launch.md" }];
-    const fromPoint = vi.fn(() => listItem("projects") as Element);
-    document.elementFromPoint = fromPoint;
+    vi.spyOn(section(), "getBoundingClientRect").mockReturnValue({ left: 0, right: 200, top: 0, bottom: 150 } as DOMRect);
     act(() => announcePinTouchDrag({ phase: "start", x: 10, y: 30, targets: targetsDragged }));
     act(() => announcePinTouchDrag({ phase: "move", x: 10, y: 30, targets: targetsDragged }));
     act(() => announcePinTouchDrag({ phase: "end", x: 10, y: 30, targets: targetsDragged, dropped: true }));
@@ -240,10 +242,10 @@ describe("SidebarPinned", () => {
   it("ignores a touch drag lifted elsewhere or cancelled", () => {
     setup({ pinned: [] });
     const targetsDragged = [{ kind: "note" as const, target: "notes/launch.md" }];
-    document.elementFromPoint = vi.fn(() => document.body);
     act(() => announcePinTouchDrag({ phase: "start", x: 10, y: 30, targets: targetsDragged }));
     expect(screen.getByText("Drop to pin")).toBeInTheDocument();
-    act(() => announcePinTouchDrag({ phase: "end", x: 10, y: 30, targets: targetsDragged, dropped: true }));
+    vi.spyOn(section(), "getBoundingClientRect").mockReturnValue({ left: 0, right: 200, top: 0, bottom: 28 } as DOMRect);
+    act(() => announcePinTouchDrag({ phase: "end", x: 10, y: 300, targets: targetsDragged, dropped: true }));
     expect(screen.queryByText("Drop to pin")).not.toBeInTheDocument();
     expect(writes.edits).toHaveLength(0);
   });
@@ -273,6 +275,18 @@ describe("SidebarPinned", () => {
     setup({ pinned: many });
     expect(rows()).toHaveLength(9);
     expect(rowText(rows()[8])).toBe("##tag9");
+  });
+
+  it("shows its header at once on a vault's first read, and its cached rows on later ones", () => {
+    const store = setup({ pinned: [] });
+    act(() => store.set(atom_pinsState, { vault, status: "loading", pins: [], cached: false }));
+    expect(screen.getByRole("region", { name: "Pinned" })).toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: "Pinned" })).not.toBeInTheDocument();
+
+    act(() => store.set(atom_pinsState, { vault, status: "loading", pins: [], cached: true }));
+    expect(screen.queryByRole("region", { name: "Pinned" })).not.toBeInTheDocument();
+    act(() => store.set(atom_pinsState, { vault, status: "loading", pins: [pins[3]], cached: true }));
+    expect(rows().map(rowText)).toEqual(["Tasks"]);
   });
 
   it("moves a row with Alt+Up and Alt+Down, but not past the ends", async () => {

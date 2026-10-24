@@ -31,7 +31,7 @@ function setup() {
       <SidebarFiles treeController={treeController} activeFilePath={null} openHandle={vi.fn()} allFiles={files} folderPaths={folders} />
     </Provider>,
   );
-  return { focus, box: screen.getByRole("textbox", { name: "Filter files" }) };
+  return { focus, box: screen.getByRole("textbox", { name: "Search files" }) };
 }
 
 const shownPaths = () => tree.props!.processedFiles.map((file) => file.path);
