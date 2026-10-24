@@ -26,7 +26,7 @@ import { FolderRow } from "./vault-tree/FolderRow";
 | isCollapsed / onToggle | `boolean` / `(path) => void` | | Expansion |
 | isActiveChain? | `boolean` | `false` | Contains the active file |
 | showColumns? | `boolean` | `false` | "--" / "Folder" columns |
-| draggedEntry / setDraggedEntry / onDragStartFolder / onDropInto | | | Drag-and-drop (a selected folder drags the whole selection); `onDragStartFolder` gets the drag's `DataTransfer` (the tree adds the pinnable payload to it) |
+| draggedEntry / setDraggedEntry / onDragStartFolder / onDropInto | | | Drag-and-drop (a selected folder drags the whole selection) |
 | onTouchDragStart? / isTouchPressing? / isTouchDropTarget? | | | Touch drag |
 | onOpenMenu | `(x, y) => void` | | ⋯ button and right-click |
 | isSelected? / isFocused? / treeFocused? / onSelectClick? | | | Selection (see `FileRow`) |

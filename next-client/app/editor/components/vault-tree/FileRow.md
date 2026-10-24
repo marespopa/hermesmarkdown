@@ -33,7 +33,7 @@ import { FileRow } from "./vault-tree/FileRow";
 | isSelected? / isFocused? / treeFocused? | `boolean` | `false` | Selection, keyboard cursor, whether the tree has focus |
 | onSelectClick? | `(mods) => boolean` | | Selection click; returns whether it was a plain click (only then does it open) |
 | editing? | `RowEditing` | | Shows the inline name field |
-| draggable? / onDragStartEntry? / onDragEndEntry? | | | Drag-to-move; `onDragStartEntry` gets the drag's `DataTransfer` (the tree adds the pinnable payload to it) |
+| draggable? / onDragStartEntry? / onDragEndEntry? | | | Drag-to-move |
 | onTouchDragStart? / isTouchPressing? / dropFolder? | | | Touch drag (`useTouchTreeDrag`); `dropFolder` is the folder a touch drop on this row goes into (its parent) |
 
 A single file row can also be dropped on a pane (edge: open in a new pane; center: open there). See `TreeNodes.md`.

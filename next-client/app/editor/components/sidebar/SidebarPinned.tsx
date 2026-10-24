@@ -8,7 +8,6 @@ import { useAtomValue } from "jotai";
 import { atom_pinsState } from "@/app/atoms/pin-atoms";
 import { usePins } from "@/app/hooks/use-pins";
 import { formatShortcut } from "@/app/utils/platform";
-import { carriesPinTargets, PIN_TOUCH_DRAG_EVENT, readPinDragData, type PinTouchDrag } from "../../utils/pin-drag";
 import PinIconPopover from "../PinIconPopover";
 import TabContextMenu, { type TabContextMenuItem } from "../TabContextMenu";
 import { pinGlyph } from "./pinned-pages";
@@ -30,13 +29,12 @@ const SIDEBAR_ROW_CLASS = "flex items-center h-7 rounded-md text-ui-footnote tra
 // Icon… (the emoji picker, PinIconPopover) and Unpin. Dragging a row (or
 // Alt+↑/↓ on it) reorders the pins. At most nine are listed (PINS_MAX), each
 // opened by Ctrl/Cmd+1–9 from anywhere, its key shown at the row's end.
-// Notes and folders dragged from Files (utils/pin-drag.ts) are pinned where
-// they drop, at the same insertion line; one already pinned moves there. Each
-// change is written to the file at once. A pin whose note or folder is gone
-// shows faint. With no pins listed it renders nothing, except a drop zone
-// while a note or folder is being dragged, and its header alone while a
-// vault's pins are read for the first time on this device (after that they
-// show at once from usePinsSync's cache). `activePath` is the note in front
+// Pinning itself is done elsewhere (the Files and note menus, the palette,
+// the Tags page, Pin Page to Sidebar…). Each change is written to the file
+// at once. A pin whose note or folder is gone shows faint. With no pins
+// listed it renders nothing, except its header alone while a vault's pins
+// are read for the first time on this device (after that they show at once
+// from usePinsSync's cache). `activePath` is the note in front
 // on the editor (null elsewhere).
 // The drag's payload type: this list reorders with it, and nothing else does.
 const DRAG_TYPE = "application/x-hermes-pin";
@@ -47,41 +45,15 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
   // shows at once, the rows when the file is read.
   const pinsState = useAtomValue(atom_pinsState);
   const firstLoad = pinsState.status === "loading" && !pinsState.cached;
-  const { unpin, setIcon, move, pinAt } = usePins();
+  const { unpin, setIcon, move } = usePins();
   const [menu, setMenu] = useState<{ x: number; y: number; key: string; align: "start" | "end" } | null>(null);
   const [picker, setPicker] = useState<{ key: string; anchor: DOMRect } | null>(null);
   const rowRefs = useRef(new Map<string, HTMLDivElement>());
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
-  // The row being dragged and where it (or a note or folder dragged in) would
-  // land: an insertion point, 0 above the first row up to the count below the last.
+  // The row being dragged and where it would land: an insertion point, 0
+  // above the first row up to the count below the last.
   const [dragging, setDragging] = useState<string | null>(null);
   const [dropAt, setDropAt] = useState<number | null>(null);
-  // A note or folder is being dragged somewhere, so an empty section shows its drop zone.
-  const [pinnableDrag, setPinnableDrag] = useState(false);
-
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    // Shown a tick after the drag starts: a browser cancels a drag whose
-    // dragstart moves the page under it, and the zone pushes the rows below down.
-    const start = (event: DragEvent) => {
-      if (carriesPinTargets(event.dataTransfer)) timer = setTimeout(() => setPinnableDrag(true), 0);
-    };
-    const end = () => {
-      clearTimeout(timer);
-      setPinnableDrag(false);
-      setDropAt(null);
-    };
-    document.addEventListener("dragstart", start);
-    document.addEventListener("dragend", end);
-    document.addEventListener("drop", end);
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener("dragstart", start);
-      document.removeEventListener("dragend", end);
-      document.removeEventListener("drop", end);
-    };
-  }, []);
 
   const listed = rows.map((row) => row.key);
 
@@ -94,31 +66,6 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
     });
     return index === -1 ? rows.length : index;
   };
-
-  // A touch drag from the Files tree (its own long press, not the browser's
-  // drag and drop): the same zone, line and drop, told by document events.
-  useEffect(() => {
-    const onTouchDrag = (event: Event) => {
-      const { phase, x, y, targets, dropped } = (event as CustomEvent<PinTouchDrag>).detail;
-      if (phase === "start") {
-        setPinnableDrag(true);
-        return;
-      }
-      // By the section's box, not elementFromPoint: whatever floats under
-      // the finger (the drag's ghost, a toast) can't hide the section.
-      const rect = wrapperRef.current?.getBoundingClientRect();
-      const over = !!rect && x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-      if (phase === "move") {
-        setDropAt(over ? indexAt(y) : null);
-        return;
-      }
-      if (over && dropped && targets.length) void pinAt(targets, indexAt(y), listed);
-      setPinnableDrag(false);
-      setDropAt(null);
-    };
-    document.addEventListener(PIN_TOUCH_DRAG_EVENT, onTouchDrag);
-    return () => document.removeEventListener(PIN_TOUCH_DRAG_EVENT, onTouchDrag);
-  });
 
   // Ctrl/Cmd+1–9 opens the pin in that place (at most nine are listed),
   // from anywhere in the window, the editor included.
@@ -135,66 +82,45 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [rows]);
 
-  if (!rows.length && !pinnableDrag && !firstLoad) return null;
+  if (!rows.length && !firstLoad) return null;
 
   const menuRow = menu ? rows.find((row) => row.key === menu.key) : undefined;
   const pickerRow = picker ? rows.find((row) => row.key === picker.key) : undefined;
 
-  const accepts = (dataTransfer: DataTransfer | null) => dragging !== null || carriesPinTargets(dataTransfer);
 
   const endDrag = () => {
     setDragging(null);
     setDropAt(null);
   };
 
-  // The whole section takes the drop: a pinned row to reorder, or notes and
-  // folders from Files to pin there.
+  // The whole section takes a dragged row's drop, title and gaps included.
   const drop = (event: React.DragEvent) => {
-    const at = indexAt(event.clientY);
     if (dragging) {
+      const at = indexAt(event.clientY);
       const from = listed.indexOf(dragging);
       void move(dragging, at > from ? at - 1 : at, listed);
-    } else {
-      const targets = readPinDragData(event.dataTransfer);
-      if (targets.length) void pinAt(targets, at, listed);
     }
     endDrag();
   };
 
   const dropTarget = {
     onDragOver: (event: React.DragEvent) => {
-      if (!accepts(event.dataTransfer)) return;
+      if (!dragging) return;
       event.preventDefault();
-      event.dataTransfer.dropEffect = dragging ? "move" : "link";
+      event.dataTransfer.dropEffect = "move";
       setDropAt(indexAt(event.clientY));
     },
     onDragLeave: (event: React.DragEvent) => {
       if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDropAt(null);
     },
     onDrop: (event: React.DragEvent) => {
-      if (!accepts(event.dataTransfer)) return;
+      if (!dragging) return;
       event.preventDefault();
       drop(event);
     },
   };
 
-  if (!rows.length && !pinnableDrag) return <SidebarSection title="Pinned">{null}</SidebarSection>;
-
-  if (!rows.length) {
-    return (
-      <div ref={wrapperRef} {...dropTarget}>
-        <SidebarSection title="Pinned">
-          <div
-            className={`flex h-7 items-center justify-center rounded-md border border-dashed text-ui-footnote text-fg-faint transition-colors ${
-              dropAt === 0 ? "border-fg-faint" : "border-edge"
-            }`}
-          >
-            Drop to pin
-          </div>
-        </SidebarSection>
-      </div>
-    );
-  }
+  if (!rows.length) return <SidebarSection title="Pinned">{null}</SidebarSection>;
 
   // A right-click (or the menu key: no pointer, so under the row) opens it too.
   const openMenuAt = (key: string) => (event: React.MouseEvent<HTMLElement>) => {
@@ -226,7 +152,7 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
   ];
 
   return (
-    <div ref={wrapperRef} {...dropTarget}>
+    <div {...dropTarget}>
       <SidebarSection title="Pinned">
         <div role="list" aria-label="Pinned" className="flex flex-col gap-px">
           {rows.map((row, index) => (

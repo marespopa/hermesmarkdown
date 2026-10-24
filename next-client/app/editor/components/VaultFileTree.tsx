@@ -211,7 +211,7 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     showColumns,
     draggedEntry,
     setDraggedEntry,
-    onDragStartFolder: (dataTransfer: DataTransfer) => actions.startDrag({ kind: "folder", path: node.path, name: node.name }, dataTransfer),
+    onDragStartFolder: () => actions.startDrag({ kind: "folder", path: node.path, name: node.name }),
     onDropInto: (targetPath: string) => void actions.dropInto(targetPath),
     onOpenMenu: (x: number, y: number) => actions.openMenu({ type: "row", kind: "folder", path: node.path }, x, y),
     isSelected: selection.selected.has(node.path),

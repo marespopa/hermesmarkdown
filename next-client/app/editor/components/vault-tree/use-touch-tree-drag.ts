@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { announcePinTouchDrag, pinTargetsOf } from "../../utils/pin-drag";
 import { canDropInto, type DraggedEntry } from "./tree-model";
 
 const LONG_PRESS_MS = 350;
@@ -21,9 +20,7 @@ interface UseTouchTreeDragOptions {
 // Touch drag for the file tree: native HTML drag and drop doesn't work
 // reliably on touch screens. Long-press a row to pick it up, drag it over a
 // folder (or a file inside one, or empty space for the vault root) and lift
-// to move it there. A quick swipe still scrolls the list. Notes and folders
-// can also be lifted over the sidebar's Pinned section to pin them
-// (announcePinTouchDrag; the section does the rest).
+// to move it there. A quick swipe still scrolls the list.
 //
 // Drop targets are found by hit-testing `data-drop-folder` (the folder path
 // a row stands for); anywhere else inside the list means the vault root.
@@ -46,14 +43,6 @@ export function useTouchTreeDrag({ scrollRef, setDraggedEntry, onDropInto, expan
     let target: string | null = null;
     let expandTimer: ReturnType<typeof setTimeout> | null = null;
     let scrollFrame = 0;
-    // The notes and folders the Pinned section can take, told while dragging.
-    const pinTargets = pinTargetsOf(entry.group ?? [entry]);
-    let pinAnnounced = false;
-    const announce = (phase: "start" | "move" | "end", dropped = false) => {
-      if (!pinTargets.length || (phase !== "start" && !pinAnnounced)) return;
-      pinAnnounced = phase !== "end";
-      announcePinTouchDrag({ phase, ...point, targets: pinTargets, dropped });
-    };
 
     const setTarget = (next: string | null) => {
       if (next === target) return;
@@ -91,7 +80,6 @@ export function useTouchTreeDrag({ scrollRef, setDraggedEntry, onDropInto, expan
       latest.current.setDraggedEntry(entry);
       setGhost({ name: entry.name, ...point });
       navigator.vibrate?.(10);
-      announce("start");
       scrollFrame = requestAnimationFrame(edgeScroll);
     }, LONG_PRESS_MS);
 
@@ -107,7 +95,6 @@ export function useTouchTreeDrag({ scrollRef, setDraggedEntry, onDropInto, expan
       if (ev.cancelable) ev.preventDefault();
       setGhost({ name: entry.name, ...point });
       setTarget(hitTest());
-      announce("move");
     };
 
     const onEnd = (ev: TouchEvent) => {
@@ -116,7 +103,6 @@ export function useTouchTreeDrag({ scrollRef, setDraggedEntry, onDropInto, expan
         if (ev.cancelable) ev.preventDefault();
         const path = hitTest();
         if (ev.type === "touchend" && path !== null) latest.current.onDropInto(path, entry);
-        announce("end", ev.type === "touchend");
       }
       cleanup();
     };
@@ -132,7 +118,6 @@ export function useTouchTreeDrag({ scrollRef, setDraggedEntry, onDropInto, expan
       document.removeEventListener("touchend", onEnd);
       document.removeEventListener("touchcancel", onEnd);
       document.removeEventListener("contextmenu", onContextMenu);
-      announce("end");
       if (active) {
         latest.current.setDraggedEntry(null);
         setGhost(null);

@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import toast from "react-hot-toast";
 import { atom_pins, atom_updatePins, type PinsEdit, type PinsWriteResult } from "@/app/atoms/pin-atoms";
-import { addPins, insertPins, movePin, pinKey, PINS_MAX, pinsOverLimit, removePin, setPinIcon, type Pin, type PinKind } from "@/app/services/vault-pins-format";
+import { addPins, movePin, pinKey, PINS_MAX, pinsOverLimit, removePin, setPinIcon, type Pin, type PinKind } from "@/app/services/vault-pins-format";
 import { normalizeTag } from "@/app/utils/tag-normalize";
 
 const targetOf = (kind: PinKind, target: string) => (kind === "tag" ? normalizeTag(target) : target);
@@ -23,7 +23,6 @@ export function usePins(): {
   unpin: (key: string) => Promise<PinsWriteResult>;
   setIcon: (key: string, icon: string | null) => Promise<PinsWriteResult>;
   move: (key: string, to: number, listed: readonly string[]) => Promise<PinsWriteResult>;
-  pinAt: (targets: Pick<Pin, "kind" | "target">[], at: number, listed: readonly string[]) => Promise<PinsWriteResult>;
 } {
   const pins = useAtomValue(atom_pins);
   const update = useSetAtom(atom_updatePins);
@@ -64,11 +63,5 @@ export function usePins(): {
     [update],
   );
 
-  // Notes and folders dropped on the Pinned section, at the insertion point.
-  const pinAt = useCallback((targets: Pick<Pin, "kind" | "target">[], at: number, listed: readonly string[]) => {
-    const items = targets.map(({ kind, target }) => ({ kind, target: targetOf(kind, target) }));
-    return adding(items, (doc) => insertPins(doc, items, at, listed));
-  }, [adding]);
-
-  return { pins, isPinned, pin, togglePin, unpin, setIcon, move, pinAt };
+  return { pins, isPinned, pin, togglePin, unpin, setIcon, move };
 }

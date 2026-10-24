@@ -200,19 +200,8 @@ export function movePin(doc: PinsDocument, key: string, to: number, listed: read
   return placePins(doc, [key], to > from ? to + 1 : to, listed);
 }
 
-// Pins dropped on the sidebar at insertion point `at` of `listed` (0 above
-// the first row up to the count below the last): new ones are added, and
-// all of them, already pinned or not, are placed there in the given order.
-export function insertPins(doc: PinsDocument, pins: Pick<Pin, "kind" | "target">[], at: number, listed: readonly string[]): PinsDocument | null {
-  const added = addPins(doc, pins);
-  const keys = pins.flatMap(({ kind, target }) => {
-    const pin = parsePinItem({ [kind]: target });
-    return pin ? [pinKey(pin)] : [];
-  });
-  return placePins(added ?? doc, keys, at, listed) ?? added;
-}
-
-// Places the listed pins `keys` at insertion point `at` of `listed`. The
+// Places the listed pins `keys` at insertion point `at` of `listed` (0 above
+// the first row up to the count below the last). The
 // listed entries are reordered within the places they already hold, so
 // hidden and unrecognised entries keep theirs.
 function placePins(doc: PinsDocument, keys: readonly string[], at: number, listed: readonly string[]): PinsDocument | null {

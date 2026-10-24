@@ -84,7 +84,7 @@ describe("VaultFileTree tree interactions", () => {
     expect(source).not.toBeNull();
     expect(target).not.toBeNull();
 
-    fireEvent.dragStart(source!, { dataTransfer: { setData: vi.fn(), types: [], effectAllowed: "", dropEffect: "" } });
+    fireEvent.dragStart(source!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     fireEvent.dragOver(target!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     expect(screen.queryByText("nested")).not.toBeInTheDocument();
 
@@ -105,7 +105,7 @@ describe("VaultFileTree tree interactions", () => {
 
     const source = screen.getByText("note").closest("[draggable]");
     const target = screen.getByText("Folder").closest("[draggable]");
-    fireEvent.dragStart(source!, { dataTransfer: { setData: vi.fn(), types: [], effectAllowed: "", dropEffect: "" } });
+    fireEvent.dragStart(source!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     fireEvent.dragOver(target!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     fireEvent.dragLeave(target!);
 
@@ -126,7 +126,7 @@ describe("VaultFileTree tree interactions", () => {
 
     const source = screen.getByText("note").closest("[draggable]");
     const target = screen.getByText("Folder").closest("[draggable]");
-    fireEvent.dragStart(source!, { dataTransfer: { setData: vi.fn(), types: [], effectAllowed: "", dropEffect: "" } });
+    fireEvent.dragStart(source!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     fireEvent.dragOver(target!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     fireEvent.drop(target!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
 
@@ -504,7 +504,7 @@ describe("VaultFileTree selection, keyboard and menus", () => {
     fireEvent.click(screen.getByText("b"), { ctrlKey: true });
     const source = screen.getByText("b").closest("[draggable]")!;
     const target = screen.getByText("Folder").closest("[draggable]")!;
-    fireEvent.dragStart(source, { dataTransfer: { setData: vi.fn(), types: [], effectAllowed: "", dropEffect: "" } });
+    fireEvent.dragStart(source, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     fireEvent.dragOver(target, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     fireEvent.drop(target, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
 

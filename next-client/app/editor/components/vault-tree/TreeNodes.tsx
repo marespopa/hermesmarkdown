@@ -59,7 +59,7 @@ export function TreeNodes({
   >;
   pendingCreate: PendingCreate | null;
   setDraggedEntry: (v: DraggedEntry | null) => void;
-  onDragStartFile: (entry: DraggedEntry, dataTransfer?: DataTransfer) => void;
+  onDragStartFile: (entry: DraggedEntry) => void;
   touchDrag: {
     start: (e: React.TouchEvent, entry: DraggedEntry) => void;
     isPressing: () => boolean;
@@ -113,7 +113,7 @@ export function TreeNodes({
               hideFolderPath
               depth={level}
               draggable
-              onDragStartEntry={(dataTransfer) => onDragStartFile(dragged, dataTransfer)}
+              onDragStartEntry={() => onDragStartFile(dragged)}
               onDragEndEntry={() => setDraggedEntry(null)}
               onTouchDragStart={(e) => touchDrag.start(e, dragged)}
               isTouchPressing={touchDrag.isPressing}

@@ -8,7 +8,6 @@ import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
 import { atom_filesRevealPath, atom_indexerState } from "@/app/atoms/ui-atoms";
 import { atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
 import type { Pin, PinsDocument } from "@/app/services/vault-pins-format";
-import { announcePinTouchDrag, PIN_DRAG_TYPE } from "../../utils/pin-drag";
 import SidebarPinned from "./SidebarPinned";
 
 const navigation = vi.hoisted(() => ({ push: vi.fn(), pathname: "/editor", search: "" }));
@@ -67,9 +66,6 @@ function setup({ pinned = pins, activePath = null as string | null, metadata = {
 const rows = () => within(screen.getByRole("list", { name: "Pinned" })).getAllByRole("listitem");
 const rowButton = (name: string) => screen.getByRole("button", { name: new RegExp(`^${name}$`) });
 const targets = (store: ReturnType<typeof createStore>) => store.get(atom_pinsState).pins.map((pin) => pin.target);
-// The drop target: the box around the whole section.
-const section = () => screen.getByRole("region", { name: "Pinned" }).parentElement as HTMLElement;
-
 // A row's text without its shortcut badge.
 const rowText = (row: HTMLElement) => row.textContent!.replace(row.querySelector("kbd")?.textContent ?? "", "");
 const listItem = (name: string) => rowButton(name).closest("[role=listitem]") as HTMLElement;
@@ -87,12 +83,6 @@ function dragAt(type: "dragOver" | "drop", element: HTMLElement, dataTransfer: o
   Object.defineProperty(event, "clientY", { value: clientY });
   fireEvent(element, event);
 }
-
-const pinTransfer = (payload: object[]) => ({
-  types: [PIN_DRAG_TYPE],
-  getData: (type: string) => (type === PIN_DRAG_TYPE ? JSON.stringify(payload) : ""),
-  dropEffect: "",
-});
 
 describe("SidebarPinned", () => {
   beforeEach(() => {
@@ -178,75 +168,23 @@ describe("SidebarPinned", () => {
     await waitFor(() => expect(targets(store)).toEqual(["projects", "release", "tasks", "projects/roadmap.md"]));
   });
 
-  it("pins notes and folders dragged in from Files where they drop", async () => {
+  it("takes a dragged row's drop on the section's title too, moving it to the top", async () => {
     const store = setup();
     layOutRows();
-    const dataTransfer = pinTransfer([{ kind: "note", target: "notes/launch.md" }, { kind: "folder", target: "projects" }]);
-    dragAt("dragOver", listItem("projects"), dataTransfer, 30);
-    expect(dataTransfer.dropEffect).toBe("link");
-    dragAt("drop", listItem("projects"), dataTransfer, 30);
-    await waitFor(() => expect(targets(store)).toEqual(["projects/roadmap.md", "notes/launch.md", "projects", "release", "tasks"]));
-  });
-
-  it("takes a drop on the section's title too, pinning at the top", async () => {
-    const store = setup();
-    layOutRows();
+    const dataTransfer = { setData: vi.fn(), types: [] as string[], effectAllowed: "", dropEffect: "" };
+    fireEvent.dragStart(listItem("Tasks"), { dataTransfer });
     const title = screen.getByText("Pinned");
-    const dataTransfer = pinTransfer([{ kind: "note", target: "notes/launch.md" }]);
     dragAt("dragOver", title, dataTransfer, -10);
     dragAt("drop", title, dataTransfer, -10);
-    await waitFor(() => expect(targets(store)).toEqual(["notes/launch.md", "projects/roadmap.md", "projects", "release", "tasks"]));
+    await waitFor(() => expect(targets(store)).toEqual(["tasks", "projects/roadmap.md", "projects", "release"]));
   });
 
-  it("ignores drags that carry nothing to pin", () => {
+  it("ignores drags from elsewhere", () => {
     setup();
     const dataTransfer = { types: ["Files"], getData: () => "", dropEffect: "none" };
     fireEvent.dragOver(listItem("Tasks"), { dataTransfer });
     fireEvent.drop(listItem("Tasks"), { dataTransfer });
     expect(dataTransfer.dropEffect).toBe("none");
-    expect(writes.edits).toHaveLength(0);
-  });
-
-  it("shows a drop zone just after a note starts dragging with nothing pinned, and pins the drop", async () => {
-    const store = setup({ pinned: [] });
-    const dataTransfer = pinTransfer([{ kind: "note", target: "notes/launch.md" }]);
-    fireEvent.dragStart(document.body, { dataTransfer });
-    // Not during dragstart itself: moving the page then cancels the drag.
-    expect(screen.queryByText("Drop to pin")).not.toBeInTheDocument();
-    const zone = await screen.findByText("Drop to pin");
-    dragAt("dragOver", zone, dataTransfer, 10);
-    dragAt("drop", zone, dataTransfer, 10);
-    await waitFor(() => expect(targets(store)).toEqual(["notes/launch.md"]));
-    expect(screen.queryByText("Drop to pin")).not.toBeInTheDocument();
-  });
-
-  it("hides the drop zone when the drag ends elsewhere", async () => {
-    setup({ pinned: [] });
-    fireEvent.dragStart(document.body, { dataTransfer: { types: [PIN_DRAG_TYPE] } });
-    await screen.findByText("Drop to pin");
-    fireEvent.dragEnd(document.body);
-    expect(screen.queryByText("Drop to pin")).not.toBeInTheDocument();
-  });
-
-  it("pins a note lifted over the section in a touch drag from Files", async () => {
-    const store = setup();
-    layOutRows();
-    const targetsDragged = [{ kind: "note" as const, target: "notes/launch.md" }];
-    vi.spyOn(section(), "getBoundingClientRect").mockReturnValue({ left: 0, right: 200, top: 0, bottom: 150 } as DOMRect);
-    act(() => announcePinTouchDrag({ phase: "start", x: 10, y: 30, targets: targetsDragged }));
-    act(() => announcePinTouchDrag({ phase: "move", x: 10, y: 30, targets: targetsDragged }));
-    act(() => announcePinTouchDrag({ phase: "end", x: 10, y: 30, targets: targetsDragged, dropped: true }));
-    await waitFor(() => expect(targets(store)).toEqual(["projects/roadmap.md", "notes/launch.md", "projects", "release", "tasks"]));
-  });
-
-  it("ignores a touch drag lifted elsewhere or cancelled", () => {
-    setup({ pinned: [] });
-    const targetsDragged = [{ kind: "note" as const, target: "notes/launch.md" }];
-    act(() => announcePinTouchDrag({ phase: "start", x: 10, y: 30, targets: targetsDragged }));
-    expect(screen.getByText("Drop to pin")).toBeInTheDocument();
-    vi.spyOn(section(), "getBoundingClientRect").mockReturnValue({ left: 0, right: 200, top: 0, bottom: 28 } as DOMRect);
-    act(() => announcePinTouchDrag({ phase: "end", x: 10, y: 300, targets: targetsDragged, dropped: true }));
-    expect(screen.queryByText("Drop to pin")).not.toBeInTheDocument();
     expect(writes.edits).toHaveLength(0);
   });
 

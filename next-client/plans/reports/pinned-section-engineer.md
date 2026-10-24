@@ -142,3 +142,8 @@ User ask: remove Open Notes (switch with Ctrl/Cmd+K), a regex filter box in File
 - Minimap: `markdown-editor/EditorMinimap.tsx` (canvas, sticky in the pane, click/drag to scroll), `atom_showMinimap`, the shortcut, **Toggle Minimap**, Settings → Editor → View.
 - Known trade-off: legacy per-device pins migrating into a full list (nine already) are dropped past the ninth.
 - Tests and docs updated. Not run locally, not checked in a browser.
+
+## Run 8
+
+- User decision: drag-to-pin removed (it didn't work for them); pinning is manual. Gone: `utils/pin-drag.ts`, the tree's pin payload and touch announcements (the tree is back to its earlier drag code), the **Drop to pin** zone, `usePins().pinAt`, `insertPins`. Kept: reordering pinned rows by dragging (the whole section takes the drop) and Alt+↑/↓.
+- Also this round: pins show at once (`hooks/pins-cache.ts`, parser preloaded, header on first read), pinned notes are labelled by file name, and the Files filter became a Search field at the new `FIELD_SIDEBAR_CLASS` size.

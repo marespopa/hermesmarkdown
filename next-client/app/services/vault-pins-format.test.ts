@@ -5,7 +5,6 @@ import {
   addPins,
   forgetPinPaths,
   listedPins,
-  insertPins,
   PINS_MAX,
   pinsOverLimit,
   movePin,
@@ -140,7 +139,6 @@ describe("edits", () => {
     expect(addPins(full, [{ kind: "folder", target: "projects" }])).toBeNull();
     // Already pinned isn't "new": no complaint when the list is full.
     expect(pinsOverLimit(full, [{ kind: "tag", target: "release" }])).toBe(false);
-    expect(insertPins(full, [{ kind: "folder", target: "projects" }], 0, listedPins(full).map(pinKey))).toBeNull();
   });
 
   it("removePin removes the entry, and returns null when it isn't there", () => {
@@ -163,22 +161,6 @@ describe("edits", () => {
     expect(setPinIcon(doc, "note:projects/roadmap.md", "🚀")).toBeNull();
     expect(setPinIcon(doc, "tag:release", null)).toBeNull();
     expect(setPinIcon(doc, "tag:bug", "🚀")).toBeNull();
-    expect(frozen(doc)).toBe(before);
-  });
-
-  it("insertPins adds dropped pins at the insertion point, and moves ones already pinned there", () => {
-    const doc = base();
-    const before = frozen(doc);
-    const listed = ["note:projects/roadmap.md", "tag:release", "page:tasks"];
-    const added = insertPins(doc, [{ kind: "folder", target: "projects" }], 1, listed)!;
-    expect(listedPins(added).map(pinKey)).toEqual(["note:projects/roadmap.md", "folder:projects", "tag:release", "page:tasks"]);
-    expect(added.items[1]).toEqual({ widget: "clock" });
-    const mixed = insertPins(doc, [{ kind: "note", target: "notes/launch.md" }, { kind: "page", target: "tasks" }], 0, listed)!;
-    expect(listedPins(mixed).map(pinKey)).toEqual(["note:notes/launch.md", "page:tasks", "note:projects/roadmap.md", "tag:release"]);
-    const atEnd = insertPins(doc, [{ kind: "folder", target: "projects" }], 3, listed)!;
-    expect(listedPins(atEnd).map(pinKey)).toEqual([...listed, "folder:projects"]);
-    expect(insertPins(doc, [{ kind: "tag", target: "release" }], 1, listed)).toBeNull();
-    expect(insertPins(doc, [{ kind: "note", target: "../outside.md" }], 0, listed)).toBeNull();
     expect(frozen(doc)).toBe(before);
   });
 

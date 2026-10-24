@@ -216,8 +216,7 @@ export const getStartedGroup: Group = {
             Everything you pin is listed in the sidebar&apos;s <strong>Pinned</strong> section, at the top,
             in the order you pinned it, up to nine. A click opens it: a folder opens in Files, a tag on the Tags page.
             <code>CTRL/CMD+1–9</code> opens the pin in that place from anywhere; each row shows its key.
-            Drag rows to reorder them, or press Alt+↑ / Alt+↓ on one. To pin a note or folder, you can also drag it
-            there from Files. Click a row&apos;s icon (or right-click
+            Drag rows to reorder them, or press Alt+↑ / Alt+↓ on one. Click a row&apos;s icon (or right-click
             the row) for its menu: it sets an emoji icon, shown only there, or unpins it. A pin whose note or folder was moved or deleted outside the app shows
             faint, and can be unpinned; renaming or moving it in the app keeps it pinned.
           </p>
