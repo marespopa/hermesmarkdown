@@ -32,5 +32,5 @@ export function useSidebarNavigation() {
     toEditor();
   }, [store, toEditor]);
 
-  return { pathname, onEditor, openHandle, newNote };
+  return { pathname, onEditor, openHandle, newNote, toEditor };
 }

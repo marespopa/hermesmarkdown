@@ -23,6 +23,13 @@ vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => ({ openFile
 
 const showErrorToast = vi.hoisted(() => vi.fn());
 vi.mock("@/app/components/Toastr", () => ({ showErrorToast }));
+vi.mock("../FolderPopover", () => ({
+  default: ({ folder, onShowInFiles }: { folder: string; onShowInFiles: (folder: string) => void }) => (
+    <div role="dialog" aria-label={`Folder ${folder}`}>
+      <button type="button" onClick={() => onShowInFiles(folder)}>Show in Files</button>
+    </div>
+  ),
+}));
 
 const handle = { kind: "file", name: "roadmap.md" };
 const meta = (path: string, extra: Partial<FileMetadata> = {}): FileMetadata => ({
@@ -85,13 +92,18 @@ describe("SidebarPinned", () => {
     expect(rowButton("roadmap")).toHaveAttribute("title", "projects/roadmap.md");
   });
 
-  it("opens a note, reveals a folder in Files and opens a page", async () => {
+  it("opens a note, a folder's list (Show in Files from it) and a page", async () => {
     const store = setup();
     fireEvent.click(rowButton("roadmap"));
     await waitFor(() => expect(openFile).toHaveBeenCalledWith(handle, "projects/roadmap.md"));
 
     fireEvent.click(rowButton("projects"));
+    expect(rowButton("projects")).toHaveAttribute("aria-expanded", "true");
+    expect(store.get(atom_filesRevealPath)).not.toBe("projects");
+    fireEvent.click(screen.getByRole("button", { name: "Show in Files" }));
     expect(store.get(atom_filesRevealPath)).toBe("projects");
+    fireEvent.click(rowButton("projects"));
+    expect(screen.queryByRole("dialog", { name: "Folder projects" })).not.toBeInTheDocument();
 
     fireEvent.click(rowButton("Tasks"));
     expect(navigation.push).toHaveBeenCalledWith("/editor/tasks");

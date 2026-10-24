@@ -20,12 +20,11 @@ import { PANE_TOP_ROOM } from "./pane-header-classes";
 import type { SaveState } from "./save-state";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
-import { resolveDirectory } from "@/app/hooks/file-system/vault-scan";
-import toast from "react-hot-toast";
 import { useAtomValue, useSetAtom } from "jotai";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useNoteMenuItems } from "../hooks/use-note-menu-items";
 import { useVaultMenuItems } from "../hooks/use-vault-menu-items";
+import { useFolderCreateActions } from "../hooks/use-folder-create-actions";
 import PaneEmptyState from "./PaneEmptyState";
 import { EDITOR_CORNER_WIDTH } from "./CopyMarkdownButton";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
@@ -43,7 +42,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const saveStatus = useAtomValue(atom_saveStatus);
   const isMobileChrome = useIsMobileChrome();
 
-  const { openOrCreateLink, openFileLink, renameFile, openFile, closeVault, vaultHandle, createNewFile, createFolder } = useFileSystem();
+  const { openOrCreateLink, openFileLink, renameFile, openFile, closeVault } = useFileSystem();
   const dialog = useDialog();
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const vaultName = useAtomValue(atom_vaultName) ?? "Vault";
@@ -71,23 +70,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
   const noteMenuItems = useNoteMenuItems(leaf);
 
-  // The folder popover's New File / New Folder: named there, created in its
-  // folder with no picker or prompt. A new note opens; a new folder's path
-  // goes back so the popover steps into it.
-  const folderAt = async (folder: string) => {
-    const dir = vaultHandle ? await resolveDirectory(vaultHandle, folder) : null;
-    if (!dir) toast.error("That folder is no longer in the vault.");
-    return dir;
-  };
-  const newNoteIn = async (folder: string, name: string) => {
-    const dir = await folderAt(folder);
-    if (dir) await createNewFile(dir, name);
-  };
-  const newFolderIn = async (folder: string, name: string) => {
-    const dir = await folderAt(folder);
-    const created = dir ? await createFolder(dir, name) : null;
-    return created ? (folder ? `${folder}/${created.name}` : created.name) : null;
-  };
+  // The folder popover's New File / New Folder.
+  const { newNoteIn, newFolderIn } = useFolderCreateActions();
 
   // Drives the title's save dot.
   const activeFileState = leaf.activeFilePath ? openFiles[leaf.activeFilePath] : undefined;
