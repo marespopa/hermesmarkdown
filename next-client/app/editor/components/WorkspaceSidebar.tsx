@@ -7,6 +7,7 @@ import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesReve
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import SidebarFiles from "./sidebar/SidebarFiles";
+import SidebarFooter from "./sidebar/SidebarFooter";
 import SidebarHeader from "./sidebar/SidebarHeader";
 import SidebarPinned from "./sidebar/SidebarPinned";
 import { useSidebarNavigation } from "./sidebar/use-sidebar-navigation";
@@ -20,11 +21,12 @@ const NO_TAGS: string[] = [];
 // (EditorShell hosts it), and kept to the library: the vault (a switcher),
 // New note and Hide; the vault's Pinned items (notes, folders, tags and
 // pages, kept on this device, Ctrl/Cmd+1–9), first; and the vault's
-// Files, with a filter.
+// Files, with a filter; at its foot, Settings and Help (Documentation,
+// Keyboard Shortcuts), always at hand.
 // Switching between open notes is the palette's (Ctrl/Cmd+K), and the note's
 // outline is the editor's optional one (Ctrl/Cmd+Shift+M, EditorOutline).
 // Everything else (Home, All Files, Tags, Tasks, Templates, Trash, Export,
-// Settings, Documentation, search) is the command palette's (Ctrl/Cmd+K,
+// search) is the command palette's (Ctrl/Cmd+K,
 // SearchPill) or the toolbar's More menu. A plain panel in the chrome colour with a hairline
 // edge; it takes room, pushing the page over (EditorShell), and slides out
 // when hidden. It stays open until you close it (`atom_sidebarOpen`: its
@@ -132,6 +134,8 @@ export default function WorkspaceSidebar() {
           />
         )}
       </div>
+
+      <SidebarFooter />
 
       {/* Resize handle on the trailing edge: a hairline lights up on hover
           and while dragging; arrow keys resize it too (Shift: larger steps). */}

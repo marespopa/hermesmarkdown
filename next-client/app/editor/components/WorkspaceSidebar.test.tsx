@@ -199,12 +199,14 @@ describe("WorkspaceSidebar", () => {
     expect(screen.queryByTestId("file-tree")).not.toBeInTheDocument();
   });
 
-  it("is the library: the vault and Files, with no Open Notes or Outline; the rest is the palette's", () => {
+  it("is the library: the vault and Files, with no Open Notes or Outline; the rest is the palette's, but Settings and Help", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar(true, null, false, { "a.md": { fileName: "a.md", content: "# Plan", lastSavedContent: "" } });
 
     expect(screen.getByRole("region", { name: "Files" })).toBeInTheDocument();
-    for (const name of ["Home", "All Files", "Tags", "Tasks", "Templates", "Trash", "Export", "Settings", "Documentation"]) {
+    expect(screen.getByRole("button", { name: "Settings" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Help" })).toBeInTheDocument();
+    for (const name of ["Home", "All Files", "Tags", "Tasks", "Templates", "Trash", "Export", "Documentation"]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
     }
     for (const name of ["Pinned", "Recent", "Open Notes", "Outline", "Linked from"]) {
