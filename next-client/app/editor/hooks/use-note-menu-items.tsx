@@ -57,7 +57,7 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
     if (hasVault && path !== "draft") {
       const isPinned = isPinnedAs("note", path);
       items.push({
-        label: isPinned ? "Unpin Note" : "Pin Note",
+        label: isPinned ? "Unpin File" : "Pin File",
         icon: isPinned ? <TbPinnedFilled size={15} /> : <TbPinned size={15} />,
         onClick: () => void togglePin("note", path),
       });

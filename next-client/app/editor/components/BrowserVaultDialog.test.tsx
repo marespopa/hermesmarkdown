@@ -115,7 +115,7 @@ describe("BrowserVaultDialog", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Delete Notes" }));
     expect(deleteBrowserVault).not.toHaveBeenCalled();
-    expect(screen.getByText(/Delete “Notes” and all its notes\?/)).toBeInTheDocument();
+    expect(screen.getByText(/Delete “Notes” and all its files\?/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
 

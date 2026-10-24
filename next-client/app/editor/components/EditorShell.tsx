@@ -11,7 +11,6 @@ import { useVaultPins } from "@/app/hooks/use-vault-pins";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { formatShortcut } from "@/app/utils/platform";
 import BrowserVaultDialog from "./BrowserVaultDialog";
-import GitHubVaultDialog from "./GitHubVaultDialog";
 import NewVaultDialog from "./NewVaultDialog";
 import Button from "@/app/components/Button";
 import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
@@ -114,7 +113,6 @@ export default function EditorShell({ children }: { children: ReactNode }) {
       {!isVaultLocked && <RecoveryBanner />}
       {!isVaultLocked && <PinCommands />}
       <NewVaultDialog />
-      <GitHubVaultDialog />
       <ActiveFileIndexer />
       <BrowserVaultDialog />
     </div>

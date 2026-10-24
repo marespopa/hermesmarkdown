@@ -14,13 +14,16 @@ import { setHeading, toggleCodeBlock, wrapAsLink } from "../../codemirror/format
 import { foldCurrentSection, unfoldAllSections } from "../../codemirror/heading-fold";
 import { openSearchPanel } from "@codemirror/search";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
-import { formatShortcut } from "@/app/utils/platform";
+import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
+import { isPlainTextPath } from "@/app/utils/file-kinds";
+import { runFormatCode } from "../../codemirror/format-code-command";
 import { TEMPLATES } from "../constants";
 import type { EditorCommandContext } from "./use-editor-command-context";
 
 export function buildEditorAiCommandGroups(context: EditorCommandContext) {
   const {
     activeEditorView,
+    activeFilePath,
     isAiEnabled,
     isAiConfigured,
     onRunAIAction,
@@ -33,7 +36,7 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
       id: "focus-editor",
       label: "Focus editor",
       keywords: "writing surface",
-      disabledReason: activeEditorView ? undefined : "Open a note first",
+      disabledReason: activeEditorView ? undefined : "Open a file first",
       action: () => activeEditorView?.focus(),
     },
     ...(activeEditorView
@@ -62,7 +65,8 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     ...[1, 2, 3, 4, 5, 6].map((level) => ({ id: `format-heading-${level}`, label: `Format: Heading ${level}`, category: "Editor" as const, shortcut: formatShortcut(String(level), { alt: true }), keywords: `h${level} title markdown`, action: () => runEditorCommand(setHeading(level)) })),
     { id: "format-link", label: "Format: Link", category: "Editor" as const, shortcut: formatShortcut("K", { alt: true }), keywords: "url href markdown", action: () => runEditorCommand(wrapAsLink) },
     { id: "format-code-block", label: "Format: Code block", category: "Editor" as const, shortcut: formatShortcut("C", { alt: true }), keywords: "fence snippet markdown", action: () => runEditorCommand(toggleCodeBlock) },
-    { id: "find-in-note", label: "Find and replace in note", category: "Editor" as const, shortcut: formatShortcut("F"), keywords: "search replace regex", action: () => runEditorCommand(openSearchPanel) },
+    { id: "format-code", label: "Format Code", category: "Editor" as const, shortcut: isMacPlatform() ? "⇧⌥F" : "Shift+Alt+F", keywords: "prettier beautify pretty print code block fence json typescript javascript css html yaml", action: () => runEditorCommand((view) => runFormatCode(view, !isPlainTextPath(activeFilePath ?? ""))) },
+    { id: "find-in-note", label: "Find and replace in file", category: "Editor" as const, shortcut: formatShortcut("F"), keywords: "search replace regex", action: () => runEditorCommand(openSearchPanel) },
     { id: "fold-current-section", label: "Fold current section", category: "Editor" as const, shortcut: formatShortcut(".", { shift: true }), keywords: "collapse heading outline hide", action: () => runEditorCommand(foldCurrentSection) },
     { id: "unfold-all-sections", label: "Unfold all sections", category: "Editor" as const, shortcut: formatShortcut(",", { shift: true }), keywords: "expand headings sections show", action: () => runEditorCommand(unfoldAllSections) },
     { id: "indent-subtree", label: "Indent current item", category: "Editor" as const, keywords: "nest list task", action: () => runEditorCommand(indentCurrentSubtree) },

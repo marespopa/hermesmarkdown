@@ -80,7 +80,7 @@ const SOFTWARE_APPLICATION_JSON_LD = {
   operatingSystem: "Web browser",
   url: "https://hermesmarkdown.com",
   description:
-    "HermesMarkdown is a local-first Markdown editor that runs entirely in your browser and works offline. It reads/writes files directly on disk, or keeps notes in a browser vault where folder access isn't available (Safari, Firefox, iOS). No accounts, no cloud sync. It is unrelated to Hermes Agent's SOUL.md, memory.md, or plan-mode files.",
+    "HermesMarkdown is a local-first Markdown editor that runs entirely in your browser and works offline. It reads/writes files directly on disk, or keeps them in a browser vault where folder access isn't available (Safari, Firefox, iOS). No accounts, no cloud sync. It is unrelated to Hermes Agent's SOUL.md, memory.md, or plan-mode files.",
   offers: {
     "@type": "Offer",
     price: "0",

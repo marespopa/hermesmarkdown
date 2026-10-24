@@ -3,7 +3,7 @@
 import React from "react";
 import { useAtom } from "jotai";
 import { atom_autosaveMode, atom_showHiddenFiles } from "@/app/atoms/atoms";
-import { atom_newNoteFolder } from "@/app/atoms/ui-atoms";
+import { atom_newNoteFolder, atom_searchCodeFiles } from "@/app/atoms/ui-atoms";
 import { BareInput, FIELD_COMPACT_CLASS } from "@/app/components/Input";
 import Toggle from "@/app/components/Toggle";
 import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
@@ -11,12 +11,13 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { SelectControl, SettingGroup, SettingItem } from "../components/SettingControls";
 import PrivacyModeSetting from "./PrivacyModeSetting";
 
-// Settings → Files: Vault (new notes folder, hidden files) and Autosave
+// Settings → Files: Vault (new notes folder, hidden files, code file search) and Autosave
 // groups, then Privacy (PrivacyModeSetting).
 export default function FilesSettings() {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [newNoteFolder, setNewNoteFolder] = useAtom(atom_newNoteFolder);
+  const [searchCodeFiles, setSearchCodeFiles] = useAtom(atom_searchCodeFiles);
   const { scanVault, indexVaultTags, vaultHandle } = useFileSystem();
 
   const handleShowHiddenFilesChange = (next: boolean) => {
@@ -32,15 +33,15 @@ export default function FilesSettings() {
     <>
       <SettingGroup title="Vault">
         <SettingItem
-          label="New Notes Folder"
-          description="Where new notes go: drafts (named after their first line), and notes made from a template or a link that names no folder. Leave empty for the vault root."
+          label="New Files Folder"
+          description="Where new files go: drafts (named after their first line), and notes made from a template or a link that names no folder. Leave empty for the vault root."
           control={
             <BareInput
               value={newNoteFolder}
               onChange={(e) => setNewNoteFolder(e.target.value)}
               onBlur={() => setNewNoteFolder(normalizeFolderPath(newNoteFolder))}
               placeholder="Vault root"
-              aria-label="New notes folder"
+              aria-label="New files folder"
               className={`${FIELD_COMPACT_CLASS} w-44`}
             />
           }
@@ -49,6 +50,11 @@ export default function FilesSettings() {
           label="Show Hidden Files"
           description="Show files and folders starting with . or _ in Files and search."
           control={<Toggle variant="soft" active={showHiddenFiles} onChange={handleShowHiddenFilesChange} />}
+        />
+        <SettingItem
+          label="Search Code Files"
+          description="Include code and other text files in the command palette's / text search. They're read from disk for each search, so large repositories take a moment."
+          control={<Toggle variant="soft" active={searchCodeFiles} onChange={setSearchCodeFiles} />}
         />
       </SettingGroup>
       <SettingGroup title="Autosave">

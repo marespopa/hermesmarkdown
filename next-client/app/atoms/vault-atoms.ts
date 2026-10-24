@@ -8,7 +8,6 @@ import { atom_revealedPrivatePaths } from "./privacy-atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
 import { remapNoteContent } from "@/app/services/content-search-client";
 import { remapPath, remapPathsInLayout, removePathsFromLayout } from "./utils";
-import type { GitHubVaultDescriptor } from "@/app/services/github-vault-workspace";
 import type { BrowserVaultDescriptor } from "@/app/services/opfs";
 import type { RecentVault } from "@/app/services/recent-vaults";
 
@@ -53,8 +52,7 @@ export const atom_fileSystemVersion = atom<number>(0);
 
 export type VaultDescriptor =
   | { kind: "local" }
-  | BrowserVaultDescriptor
-  | GitHubVaultDescriptor;
+  | BrowserVaultDescriptor;
 
 export const atom_vaultDescriptor = atom<VaultDescriptor | null>(null);
 
@@ -62,7 +60,7 @@ export const atom_vaultDescriptor = atom<VaultDescriptor | null>(null);
 // Loaded from and saved to IndexedDB by useRecentVaultTracker.
 export const atom_recentVaults = atom<RecentVault[]>([]);
 
-// The vault's own name: browser and GitHub vaults carry a display name
+// The vault's own name: a browser vault carries a display name
 // (their handle is an internal workspace folder such as "browser-3f2a…");
 // a local vault is its folder.
 export function vaultDisplayName(descriptor: VaultDescriptor | null, handleName: string): string {
@@ -80,9 +78,6 @@ export const atom_vaultName = atom<string | null>((get) => {
 export const atom_vaultKey = atom<string | null>((get) => {
   const descriptor = get(atom_vaultDescriptor);
   if (descriptor?.kind === "browser") return `browser:${descriptor.id}`;
-  if (descriptor?.kind === "github") {
-    return `github:${descriptor.owner}/${descriptor.repository}@${descriptor.branch}`;
-  }
   const vaultHandle = get(atom_vaultHandle);
   return vaultHandle ? `local:${vaultHandle.name}` : null;
 });

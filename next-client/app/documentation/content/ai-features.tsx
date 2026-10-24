@@ -255,7 +255,6 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
           <KV
             rows={[
               { label: "Local vault files", value: "Never leave your machine" },
-              { label: "GitHub vault files", value: "Sent to GitHub only when you commit or pull" },
               { label: "AI requests", value: "Relayed to Anthropic / Google, not stored" },
               { label: "App settings (theme, font, editor layout)", value: "Browser localStorage / IndexedDB" },
               { label: "AI API key", value: "Browser localStorage" },

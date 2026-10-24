@@ -212,9 +212,9 @@ describe("VaultFileTree tree interactions", () => {
     expect(screen.queryByText("nested.md")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText("Folder options"));
-    fireEvent.click(screen.getByRole("menuitem", { name: "New Note" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New File" }));
     expect(screen.getByText("nested.md")).toBeInTheDocument();
-    fireEvent.keyDown(screen.getByLabelText("New note name"), { key: "Enter" });
+    fireEvent.keyDown(screen.getByLabelText("New file name"), { key: "Enter" });
 
     await waitFor(() => expect(createNewFile).toHaveBeenCalledWith(folderHandle, "Untitled"));
   });
@@ -282,16 +282,28 @@ describe("VaultFileTree tree interactions", () => {
 
     fireEvent.click(screen.getByLabelText("File options"));
     fireEvent.click(screen.getByRole("menuitem", { name: /^Rename/ }));
-    fireEvent.keyDown(screen.getByLabelText("Note name"), { key: "Enter" });
+    fireEvent.keyDown(screen.getByLabelText("File name"), { key: "Enter" });
     expect(props.renameFile).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByLabelText("File options"));
     fireEvent.click(screen.getByRole("menuitem", { name: /^Rename/ }));
-    const field = screen.getByLabelText("Note name");
+    const field = screen.getByLabelText("File name");
     fireEvent.change(field, { target: { value: "plan" } });
     fireEvent.blur(field);
 
     await waitFor(() => expect(props.renameFile).toHaveBeenCalledWith(fileHandle, "plan.md", "note.md"));
+  });
+
+  it("renames a note to a text file name without adding .md", async () => {
+    const { props } = renderFiles({ treeView: true });
+
+    fireEvent.click(screen.getByLabelText("File options"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /^Rename/ }));
+    const field = screen.getByLabelText("File name");
+    fireEvent.change(field, { target: { value: "plan.ts" } });
+    fireEvent.blur(field);
+
+    await waitFor(() => expect(props.renameFile).toHaveBeenCalledWith(fileHandle, "plan.ts", "note.md"));
   });
 
   it("reveals the active file once, not again each time the file list refreshes", () => {
@@ -402,7 +414,7 @@ describe("VaultFileTree selection, keyboard and menus", () => {
     const tree = screen.getByRole("tree");
     fireEvent.keyDown(tree, { key: "ArrowDown" });
     fireEvent.keyDown(tree, { key: "F2" });
-    expect((screen.getByLabelText("Note name") as HTMLInputElement).value).toBe("a");
+    expect((screen.getByLabelText("File name") as HTMLInputElement).value).toBe("a");
   });
 
   it("moves the selection to the Trash with Delete, as one action", async () => {
@@ -449,7 +461,7 @@ describe("VaultFileTree selection, keyboard and menus", () => {
     expect(trashItems.mock.calls[0][0].map((item: any) => item.path)).toEqual(["a.md", "b.md"]);
   });
 
-  it("offers New Note and New Folder, and no note from a template, in a folder's menu", () => {
+  it("offers New File and New Folder, and no note from a template, in a folder's menu", () => {
     renderFiles({
       treeView: true,
       folderPaths: ["Folder"],
@@ -458,11 +470,11 @@ describe("VaultFileTree selection, keyboard and menus", () => {
       createFolder: vi.fn(),
     });
     fireEvent.click(screen.getByLabelText("Folder options"));
-    expect(screen.getAllByRole("menuitem").slice(0, 2).map((item) => item.textContent)).toEqual(["New Note", "New Folder"]);
+    expect(screen.getAllByRole("menuitem").slice(0, 2).map((item) => item.textContent)).toEqual(["New File", "New Folder"]);
     expect(screen.queryByRole("menuitem", { name: "New Note from Template…" })).not.toBeInTheDocument();
   });
 
-  it("offers New Note and New Folder when right-clicking empty space", () => {
+  it("offers New File and New Folder when right-clicking empty space", () => {
     renderFiles({ treeView: true, processedFiles: files, createNewFile: vi.fn(), createFolder: vi.fn() });
     fireEvent.contextMenu(screen.getByRole("tree"));
     fireEvent.click(screen.getByRole("menuitem", { name: "New Folder" }));
@@ -478,7 +490,7 @@ describe("VaultFileTree selection, keyboard and menus", () => {
 
     fireEvent.click(screen.getByText("Folder"));
     act(() => controllerRef.current.startCreate("file"));
-    const field = screen.getByLabelText("New note name");
+    const field = screen.getByLabelText("New file name");
     fireEvent.change(field, { target: { value: "Ideas" } });
     fireEvent.keyDown(field, { key: "Enter" });
 

@@ -40,7 +40,7 @@ export default function EditorSettings() {
         />
         <SettingItem
           label="Close Sidebar While Writing"
-          description="Put the sidebar away as soon as you type in a note, so the page has the window to itself. Off, the sidebar stays open until you close it."
+          description="Put the sidebar away as soon as you type in a file, so the page has the window to itself. Off, the sidebar stays open until you close it."
           control={<Toggle variant="soft" active={closeSidebarWhileWriting} onChange={setCloseSidebarWhileWriting} label="Close sidebar while writing" />}
         />
         <SettingItem

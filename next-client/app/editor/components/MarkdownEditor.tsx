@@ -42,6 +42,7 @@ import FoldChevrons from "./markdown-editor/FoldChevrons";
 import LinkInsertDialog from "./markdown-editor/LinkInsertDialog";
 import VimStatusPill from "./markdown-editor/VimStatusPill";
 import EditorOutline from "./markdown-editor/EditorOutline";
+import { isPlainTextPath } from "@/app/utils/file-kinds";
 import WordCountPill from "./markdown-editor/WordCountPill";
 import { useVimStatus } from "../hooks/use-vim-status";
 import TemplateStrip from "./TemplateStrip";
@@ -357,7 +358,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
         </div>
       </div>
       {/* After the sheet, so its sticky box holds the pane's bottom corner. */}
-      {showOutline && <EditorOutline view={editorView} scrollerRef={paneRef} text={editorValue} />}
+      {showOutline && <EditorOutline view={editorView} scrollerRef={paneRef} text={editorValue} isCode={isPlainTextPath(filePath)} filePath={filePath} />}
       {vimMode && <VimStatusPill status={vimStatus} hostRef={vimStatusHostRef} besideOutline={showOutline} />}
       {showWordCount && props.isActivePane !== false && <WordCountPill view={editorView} text={editorValue} />}
     </div>

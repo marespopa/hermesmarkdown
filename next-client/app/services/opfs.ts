@@ -1,7 +1,6 @@
-// Origin Private File System helpers shared by the vault kinds that live in
-// browser storage (browser vaults and GitHub vault workspaces). Both keep
-// their files under `hermes-vaults/` so the rest of the app can treat them
-// like any other FileSystemDirectoryHandle.
+// Origin Private File System helpers for browser vaults. They keep their
+// files under `hermes-vaults/` so the rest of the app can treat them like
+// any other FileSystemDirectoryHandle.
 
 export const BROWSER_VAULT_DESCRIPTOR_VERSION = 1;
 const VAULTS_DIRECTORY = "hermes-vaults";

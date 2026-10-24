@@ -44,11 +44,6 @@ import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/b
 export type EditorCommandsProps = {
   onNewFile: () => void;
   onExport: () => void;
-  githubVault?: boolean;
-  onGitHubCommit?: () => void;
-  onGitHubPush?: () => void;
-  onGitHubSync?: () => void;
-  onGitHubPull?: () => void;
   onSave: () => void;
   isMobileChrome?: boolean;
   onOpenTasks: () => void;

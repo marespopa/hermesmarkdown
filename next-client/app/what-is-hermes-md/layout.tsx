@@ -32,7 +32,7 @@ const FAQ_JSON_LD = {
       name: "What is HermesMarkdown?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "HermesMarkdown is a Markdown editor that runs entirely in your browser, with no account. Notes live in a vault you choose: a folder of .md files on your disk (Chromium browsers), a browser vault stored in the browser itself (any browser, including Safari, Firefox, and phones), or a GitHub repository for syncing across devices. Only GitHub sync and optional bring-your-own-key AI features talk to a server.",
+        text: "HermesMarkdown is a Markdown editor that runs entirely in your browser, with no account. Notes live in a vault you choose: a folder of .md files on your disk (Chromium browsers), or a browser vault stored in the browser itself (any browser, including Safari, Firefox, and phones). Only optional bring-your-own-key AI features talk to a server.",
       },
     },
     {

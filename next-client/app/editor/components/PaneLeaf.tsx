@@ -71,7 +71,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
   const noteMenuItems = useNoteMenuItems(leaf);
 
-  // The folder popover's New Note / New Folder: named there, created in its
+  // The folder popover's New File / New Folder: named there, created in its
   // folder with no picker or prompt. A new note opens; a new folder's path
   // goes back so the popover steps into it.
   const folderAt = async (folder: string) => {
@@ -295,7 +295,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               onRename: canRename && tabMenu.path === filePath ? () => setRenameRequest((n) => n + 1) : undefined,
             }).map((item, i) => (i === 0 ? { ...item, divider: true } : item)),
           ]}
-          label="Note actions"
+          label="File actions"
           anchorRef={tabMenu.fromButton ? menuButtonRef : undefined}
           onClose={() => setTabMenu(null)}
         />

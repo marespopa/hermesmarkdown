@@ -29,20 +29,20 @@ describe("FolderPrompt", () => {
 
   it("asks nothing while the draft is empty", () => {
     renderPrompt("  \n");
-    expect(screen.queryByText("Choose where your notes live.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Choose where your files live.")).not.toBeInTheDocument();
     expect(screen.queryByText("Not saved to a folder")).not.toBeInTheDocument();
   });
 
   it("offers Choose Folder… once the draft has text", () => {
     const { onChooseFolder } = renderPrompt("Trip ideas");
-    expect(screen.getByText("Choose where your notes live.")).toBeInTheDocument();
+    expect(screen.getByText("Choose where your files live.")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Choose Folder…" }));
     expect(onChooseFolder).toHaveBeenCalledTimes(1);
   });
 
   it("offers a browser vault where folders can't be opened", () => {
     const { onChooseFolder } = renderPrompt("Trip ideas", { isVaultSupported: false, isBrowserVaultSupported: true });
-    fireEvent.click(screen.getByRole("button", { name: "Keep Notes in This Browser" }));
+    fireEvent.click(screen.getByRole("button", { name: "Keep Files in This Browser" }));
     expect(onChooseFolder).toHaveBeenCalledTimes(1);
   });
 
@@ -56,7 +56,7 @@ describe("FolderPrompt", () => {
   it("shrinks to a mark on Not Now, and the mark opens it again", () => {
     renderPrompt("Trip ideas");
     fireEvent.click(screen.getByRole("button", { name: "Not Now" }));
-    expect(screen.queryByText("Choose where your notes live.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Choose where your files live.")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Not saved to a folder" }));
     expect(screen.getByRole("button", { name: "Choose Folder…" })).toBeInTheDocument();

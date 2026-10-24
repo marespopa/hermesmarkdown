@@ -27,7 +27,7 @@ interface UseMaterializeDraftOptions {
 // a write is in flight, and each must not create its own file.
 let inFlight: Promise<string | null> | null = null;
 
-// Saves the draft into the vault's New Notes folder (no dialog), named
+// Saves the draft into the vault's New Files folder (no dialog), named
 // after its first line (see draftTitle). Typed text is never lost or
 // overwritten onto another note: a taken name gets ` (1)`. The draft tab
 // then becomes that file in place. Whitespace-only drafts are never written.

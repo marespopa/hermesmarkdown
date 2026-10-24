@@ -22,9 +22,9 @@ export const getStartedGroup: Group = {
           </p>
           <KV
             rows={[
-              { label: "Chrome / Edge / Brave / Arc / Opera", value: "Disk folders, browser vaults, GitHub" },
-              { label: "Firefox", value: "Browser vaults, GitHub" },
-              { label: "Safari (macOS, iOS, iPadOS)", value: "Browser vaults, GitHub" },
+              { label: "Chrome / Edge / Brave / Arc / Opera", value: "Disk folders, browser vaults" },
+              { label: "Firefox", value: "Browser vaults" },
+              { label: "Safari (macOS, iOS, iPadOS)", value: "Browser vaults" },
             ]}
           />
           <p>
@@ -34,8 +34,8 @@ export const getStartedGroup: Group = {
             loaded online.
           </p>
           <Callout type="note">
-            Offline, everything except AI features and GitHub sync keeps working. Notes are never
-            sent anywhere unless you use those features.
+            Offline, everything except AI features keeps working. Files are never sent anywhere
+            unless you use them.
           </Callout>
         </>
       ),
@@ -56,10 +56,10 @@ export const getStartedGroup: Group = {
           <KV
             rows={[
               { label: "Browser vaults…", value: "Create, reopen, rename (pencil), or delete browser vaults" },
-              { label: "Rename vault…", value: "Rename the open browser vault; its notes stay as they are" },
+              { label: "Rename vault…", value: "Rename the open browser vault; its files stay as they are" },
               { label: "Export vault as zip", value: "Download every file as a backup (any vault)" },
               { label: "Export vault to folder…", value: "Copy the vault into a folder on disk (Chromium)" },
-              { label: "Import files into vault…", value: "Add a zip, notes, or attachments" },
+              { label: "Import files into vault…", value: "Add a zip or files" },
               { label: "Import folder into vault…", value: "Add a whole folder (desktop browsers)" },
             ]}
           />
@@ -75,8 +75,8 @@ export const getStartedGroup: Group = {
             regularly — HermesMarkdown reminds you when a vault hasn't been backed up for two weeks.
           </Callout>
           <p>
-            Need the same notes on several devices? Use a GitHub vault instead: it syncs through a
-            repository you choose.
+            Need the same files on several devices? Use a folder on disk that a sync service or{" "}
+            <TextLink href="#git">git</TextLink> keeps in step.
           </p>
         </>
       ),
@@ -94,7 +94,7 @@ export const getStartedGroup: Group = {
             session. Nothing is uploaded — files stay where they are on disk.
           </p>
           <p>
-            Everything in the folder — your notes, your subfolders — is yours; HermesMarkdown never
+            Everything in the folder — your files, your subfolders — is yours; HermesMarkdown never
             restructures it. The only thing it adds on its own is an <code>assets/</code> folder at
             the vault root, created the first time you paste or drop an image into a note.
           </p>
@@ -138,21 +138,21 @@ export const getStartedGroup: Group = {
     {
       id: "first-note",
       title: "Your first note",
-      lead: "Start typing. On its first save the note goes into your New Notes folder, named after its first line.",
+      lead: "Start typing. On its first save the note goes into your New Files folder, named after its first line.",
       keywords: "new file new note draft save autosave name title folder frontmatter",
       body: (
         <>
           <p>
-            Press <code>CTRL+ALT+N</code>, click <strong>New note</strong> at the top of the sidebar, or
-            choose <strong>New Note</strong> from the command palette. A blank note opens, ready to type,
+            Press <code>CTRL+ALT+N</code>, click <strong>New file</strong> at the top of the sidebar, or
+            choose <strong>New File</strong> from the command palette. A blank note opens, ready to type,
             with no name prompt.
           </p>
           <p>
             The first time you open HermesMarkdown there is nothing to set up: you land in the
             editor on a blank note, ready to type. Once it has text, a bar
-            at the bottom asks where your notes live. <strong>Choose Folder…</strong> picks a folder (you can make a new one in the
+            at the bottom asks where your files live. <strong>Choose Folder…</strong> picks a folder (you can make a new one in the
             picker) and saves the note there; in browsers that can&apos;t open folders it reads{" "}
-            <strong>Keep Notes in This Browser</strong> and creates a{" "}
+            <strong>Keep Files in This Browser</strong> and creates a{" "}
             <TextLink href="#browser-vaults">browser vault</TextLink>.{" "}
             <strong>Not Now</strong> shrinks it to a small &ldquo;Not saved to a folder&rdquo; mark;
             until you choose, the note is kept only in this browser. <code>CTRL/CMD+S</code> asks the
@@ -167,18 +167,18 @@ export const getStartedGroup: Group = {
             so nothing you typed is lost.
           </p>
           <p>
-            The note goes into your New Notes folder (the vault root unless you set one in
+            The note goes into your New Files folder (the vault root unless you set one in
             Settings → Files), with no dialog. Move it anywhere later from the file tree.
           </p>
           <p>
             A note you leave empty is never saved, so no empty files pile up in your vault. Renaming
-            the first line later does not rename the file; use <strong>Rename Note</strong>{" "}
+            the first line later does not rename the file; use <strong>Rename File</strong>{" "}
             for that.
           </p>
           <KV
             rows={[
-              { label: "Default folder for new notes", value: "Vault root · Settings → Files → Vault → New Notes Folder" },
-              { label: "Start in a specific folder", value: "New Note in that folder's menu in Files" },
+              { label: "Default folder for new files", value: "Vault root · Settings → Files → Vault → New Files Folder" },
+              { label: "Start in a specific folder", value: "New File in that folder's menu in Files" },
               { label: "Create from a search", value: 'Type a title in the palette, then Create "…"' },
             ]}
           />
@@ -200,16 +200,16 @@ export const getStartedGroup: Group = {
     {
       id: "pinned-notes",
       title: "Pinned",
-      lead: "Keep what you come back to at hand: notes, folders, tags and pages, first in the sidebar.",
+      lead: "Keep what you come back to at hand: files, folders, tags and pages, first in the sidebar.",
       keywords: "pin pinned unpin favorite favourite top quick access palette files sidebar folder tag page icon emoji reorder drag move sync shortcut 1 9 limit",
       body: (
         <>
           <p>
-            Pin a note or a folder by right-clicking it in the sidebar&apos;s <strong>Files</strong> and
-            choosing <strong>Pin</strong>. A note can also be pinned with <strong>Pin Note</strong> in its
-            right-click menu (on the button at the top of the page), the <strong>Pin Note</strong> command,
+            Pin a file or a folder by right-clicking it in the sidebar&apos;s <strong>Files</strong> and
+            choosing <strong>Pin</strong>. A file can also be pinned with <strong>Pin File</strong> in its
+            right-click menu (on the button at the top of the page), the <strong>Pin File</strong> command,
             or <code>CTRL/CMD+D</code> on it in the command palette. Pin a tag with the{" "}
-            <strong>Pin</strong> button beside its name on the Tags page, and a page (All Notes, Tags,
+            <strong>Pin</strong> button beside its name on the Tags page, and a page (All Files, Tags,
             Tasks, Templates, Trash or Settings) with <strong>Pin Page to Sidebar…</strong> in the palette.
           </p>
           <p>
@@ -217,12 +217,12 @@ export const getStartedGroup: Group = {
             in the order you pinned it, up to nine. A click opens it: a folder opens in Files, a tag on the Tags page.
             <code>CTRL/CMD+1–9</code> opens the pin in that place from anywhere; each row shows its key.
             Drag rows to reorder them, or press Alt+↑ / Alt+↓ on one. Click a row&apos;s icon (or right-click
-            the row) for its menu: it sets an emoji icon, shown only there, or unpins it. A pin whose note or folder was moved or deleted outside the app shows
+            the row) for its menu: it sets an emoji icon, shown only there, or unpins it. A pin whose file or folder was moved or deleted outside the app shows
             faint, and can be unpinned; renaming or moving it in the app keeps it pinned.
           </p>
           <p>
             Pins are kept in this browser, for each vault, and never change the vault: another device
-            or browser has its own. Pinned notes still lead the command palette before you type
+            or browser has its own. Pinned files still lead the command palette before you type
             anything. In the palette you can pin commands too (<code>CTRL/CMD+D</code> on a command, up to
             five); those are the palette&apos;s own.
           </p>
@@ -241,38 +241,38 @@ export const getStartedGroup: Group = {
             keyboard shortcuts, and the slash command menu.
           </p>
           <p>
-            There&apos;s no toolbar. A quiet header sits at the top left of the page: the note&apos;s folder (a deep one
+            There&apos;s no toolbar. A quiet header sits at the top left of the page: the file&apos;s folder (a deep one
             shows its first and last folders, with the rest folded into …), and its name. It stays
-            put while you type. A dot after the name shows the save state: grey while the note has unsaved
+            put while you type. A dot after the name shows the save state: grey while the file has unsaved
             changes, pulsing while it saves, red if it couldn&apos;t save. With autosave on it stays hidden while
             autosave is about to save, and shows only if a save runs late or fails. Hover the dot for the save
-            button and click it to save, or to try again. Click the name to rename the note in
+            button and click it to save, or to try again. Click the name to rename the file in
             place: press <code>Enter</code> or click away to keep the new name, <code>Esc</code> to back out. The
-            search bar in the top-right corner (or <code>CTRL/CMD+K</code>) opens the command palette, where every note
-            and command is: Save, Copy Markdown, Export as PDF or HTML, Pin Note, Settings, Documentation, Ask or Edit with AI and the rest.
-            The editor keeps up to 20 notes
+            search bar in the top-right corner (or <code>CTRL/CMD+K</code>) opens the command palette, where every file
+            and command is: Save, Copy Markdown, Export as PDF or HTML, Pin File, Settings, Documentation, Ask or Edit with AI and the rest.
+            The editor keeps up to 20 files
             open behind the one in front; switch between them from the command palette
             (<code>CTRL/CMD+K</code>). Opening another closes the one you looked at least recently, never one
-            with unsaved changes. Click the note&apos;s name at the top, or right-click it, for its menu: Copy Markdown, Pin Note, Rename…, Move
+            with unsaved changes. Click the file&apos;s name at the top, or right-click it, for its menu: Copy Markdown, Pin File, Rename…, Move
             to Trash, and Close, Close Others or Close All. While the sidebar is hidden, its button sits in the top-left corner.
           </p>
           <p>
             <strong>Search</strong> is the way around: the search bar in the editor&apos;s top-right corner, the same one at
-            the top of every page, or <code>CTRL/CMD+K</code> anywhere, opens the command palette to find a note, run a command or go to
-            a page: Home, All Notes, Tags, Tasks, Templates, Trash or Settings. <code>CTRL/CMD+SHIFT+F</code>{" "}
-            searches the text of your notes. Every page has{" "}
-            <strong>← Editor</strong> at the top left to come back to the note you were on.
+            the top of every page, or <code>CTRL/CMD+K</code> anywhere, opens the command palette to find a file, run a command or go to
+            a page: Home, All Files, Tags, Tasks, Templates, Trash or Settings. <code>CTRL/CMD+SHIFT+F</code>{" "}
+            searches the text of your files. Every page has{" "}
+            <strong>← Editor</strong> at the top left to come back to the file you were on.
           </p>
           <p>
             The <strong>sidebar</strong> is your library, the same on every editor page: its header names the
-            vault (click it to switch to a recent vault or open another) beside <strong>New note</strong> and the
+            vault (click it to switch to a recent vault or open another) beside <strong>New file</strong> and the
             button that hides it; below come <strong>Pinned</strong> (up to nine pins, opened with{" "}
             <code>CTRL/CMD+1–9</code>) and <strong>Files</strong>, the vault&apos;s tree, with a{" "}
             <strong>Search</strong> field above it: type part of a path, or a regular expression
             (<code>projects/.*plan</code>), and the tree shows only the files that match, their folders open;{" "}
             <code>Esc</code> clears it. For an overview of a long note, turn on the{" "}
             <strong>Outline</strong> (<code>CTRL/CMD+SHIFT+M</code>, or Settings → Editor → View): the note&apos;s
-            headings in the editor&apos;s bottom-right corner, the section you&apos;re reading marked; click one to jump there. A line sets each section apart, and each has a chevron to fold or unfold it.
+            headings (in a code file, its functions, classes and other symbols) in the editor&apos;s bottom-right corner, the section you&apos;re reading marked; click one to jump there. A line sets each section apart, and each has a chevron to fold or unfold it.
             It sits beside the page and pushes it over rather than covering it.
           </p>
           <p>
@@ -282,19 +282,19 @@ export const getStartedGroup: Group = {
             reset; with the edge focused, the arrow keys resize it too). Folded sections stay folded.
           </p>
           <p>
-            Every place has its own address, so a refresh or a bookmark brings you back to it: the note in front
-            (<code>/editor?file=notes/plan.md</code>), Tasks, Templates, Trash, All Notes, a tag on the Tags page, and each
+            Every place has its own address, so a refresh or a bookmark brings you back to it: the file in front
+            (<code>/editor?file=notes/plan.md</code>), Tasks, Templates, Trash, All Files, a tag on the Tags page, and each
             Settings section.
           </p>
           <p>
             <strong>Show Files</strong> (<code>CTRL/CMD+SHIFT+E</code>, or <code>CTRL/CMD+B</code>{" "}
-            when the cursor isn&apos;t in a note, where it means Bold) shows the sidebar if it&apos;s hidden and puts the
+            when the cursor isn&apos;t in the editor, where it means Bold) shows the sidebar if it&apos;s hidden and puts the
             keyboard in Files, ready to browse, rename, move or delete. On a phone, where there&apos;s no sidebar, it opens
             Files full screen. Tasks has its own view; file search, tags, and headings are available through the command palette.
           </p>
           <p>
             Files offers the same actions everywhere, in the same order:{" "}
-            <strong>New Note</strong> and <strong>New Folder</strong>, at the top and in every folder&apos;s
+            <strong>New File</strong> and <strong>New Folder</strong>, at the top and in every folder&apos;s
             right-click (or ⋯) menu. To start from a template, type <code>/template</code> in the new note.
             There&apos;s no Refresh button: files
             you add, delete or move outside HermesMarkdown show up on their own (straight away in Chrome and Edge,
@@ -306,10 +306,10 @@ export const getStartedGroup: Group = {
               { label: "Show Files", value: "The sidebar's Files (full screen on a phone) / CTRL/CMD+SHIFT+E" },
               { label: "Quick switcher", value: "CTRL/CMD+K or CTRL/CMD+P" },
               { label: "Command palette", value: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },
-              { label: "Search note text", value: "CTRL/CMD+SHIFT+F" },
-              { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings · / note text" },
+              { label: "Search file text", value: "CTRL/CMD+SHIFT+F" },
+              { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings · / file text" },
               { label: "Commands on or off", value: "The > button in the search field" },
-              { label: "Files controls", value: "New note, new folder, and file actions" },
+              { label: "Files controls", value: "New file, new folder, and file actions" },
               { label: "Ask or Edit with AI…", value: "CTRL/CMD+J" },
               { label: "AI Chat", value: "CTRL+SHIFT+B" },
               { label: "Keyboard shortcuts", value: "Show Keyboard Shortcuts command" },

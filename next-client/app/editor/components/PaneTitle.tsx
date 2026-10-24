@@ -101,12 +101,12 @@ export default function PaneTitle({ title, folder = "", onOpenFolder, openFolder
   const inputRef = React.useRef<HTMLInputElement>(null);
   const finished = React.useRef(false);
   const showDot = title !== null && (saveState === "dirty" || saveState === "saving" || saveState === "error");
-  const label = title ?? "No note open";
+  const label = title ?? "No file open";
   const crumbs = folder.split("/").filter(Boolean);
   const shownCrumbs = collapseCrumbs(crumbs);
   const targets = onOpenFolder ? crumbTargets(crumbs, rootName) : [];
   const showCrumbs = onOpenFolder ? targets.length > 0 : crumbs.length > 0;
-  // No note open in a vault: the root crumb alone, no name after it.
+  // No file open in a vault: the root crumb alone, no name after it.
   const rootOnly = title === null && (targets.length > 0 || !!onVaultMenu);
 
   React.useEffect(() => {
@@ -190,7 +190,7 @@ export default function PaneTitle({ title, folder = "", onOpenFolder, openFolder
       {rootOnly ? null : editing ? (
         <BareInput
           ref={inputRef}
-          aria-label="Note name"
+          aria-label="File name"
           defaultValue={label}
           spellCheck={false}
           onKeyDown={(e) => {
@@ -212,8 +212,8 @@ export default function PaneTitle({ title, folder = "", onOpenFolder, openFolder
           ref={menuButtonRef}
           variant="unstyled"
           onClick={(e) => { e.stopPropagation(); onMenu(e.currentTarget.getBoundingClientRect()); }}
-          title="Note actions"
-          aria-label={`${label}. Note actions`}
+          title="File actions"
+          aria-label={`${label}. File actions`}
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           className={`${PRESSABLE_CLASS} min-w-0 text-fg-muted ${menuOpen ? PRESSED_CLASS : ""}`}

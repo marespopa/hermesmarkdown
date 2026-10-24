@@ -11,7 +11,6 @@ const services = vi.hoisted(() => ({
   verifyPermission: vi.fn(),
   loadBrowserVaultRegistry: vi.fn(),
   listBrowserVaultIds: vi.fn(),
-  getGitHubVaultWorkspace: vi.fn(),
   loadRecentVaults: vi.fn(),
   saveRecentVaults: vi.fn(),
 }));
@@ -23,7 +22,6 @@ vi.mock("@/app/services/idb", () => ({
   loadBrowserVaultRegistry: services.loadBrowserVaultRegistry,
 }));
 vi.mock("@/app/services/opfs", () => ({ listBrowserVaultIds: services.listBrowserVaultIds }));
-vi.mock("@/app/services/github-vault-workspace", () => ({ getGitHubVaultWorkspace: services.getGitHubVaultWorkspace }));
 vi.mock("@/app/services/recent-vaults", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/app/services/recent-vaults")>()),
   loadRecentVaults: services.loadRecentVaults,

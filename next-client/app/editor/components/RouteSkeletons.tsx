@@ -190,11 +190,11 @@ export function TasksSkeleton() {
 export function FilesSkeleton() {
   return (
     <div className="flex h-full w-full flex-col">
-      <TitleHeader title="All Notes" />
+      <TitleHeader title="All Files" />
       <div className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-4 py-5 sm:px-8">
         <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-ui-title-3 font-semibold">All Notes</h1>
+            <h1 className="text-ui-title-3 font-semibold">All Files</h1>
             <Text textClass="text-ui-caption" barClass="h-2 w-24" />
           </div>
           <div className="flex items-center gap-1">

@@ -323,13 +323,20 @@ rent + utilities + 15%    = 1587`}</Code>
     id: "code-diagrams",
     title: "Code, diagrams & math",
     lead: "Fenced code blocks get real syntax highlighting, and Mermaid diagrams and LaTeX math render right in the note.",
-    keywords: "code block syntax highlighting language mermaid diagram latex math katex formula equation",
+    keywords: "code block syntax highlighting language mermaid diagram latex math katex formula equation format prettier",
     body: (
       <>
         <p>
           Any fenced code block (<code>/code</code> in the slash menu, or typing ```` ```lang ````
           yourself) is syntax-highlighted as you type, for any language CodeMirror recognizes from
           the fence's language tag. Inserting one from the slash menu offers a language picker.
+        </p>
+        <p>
+          <strong>Format Code</strong> (<code>SHIFT+ALT+F</code>, or the palette) tidies the code
+          block under the caret with Prettier: JavaScript, TypeScript, JSON, CSS, SCSS, Less, HTML,
+          Vue, YAML and GraphQL. It follows the nearest Prettier config in the vault (see{" "}
+          <TextLink href="#code-files">Code files</TextLink>), runs only when you ask, and is one undo
+          step.
         </p>
         <p>
           Insert a diagram with <code>/mermaid</code> or type a <code>```mermaid</code> fence. Once
@@ -368,7 +375,7 @@ graph TD
         <p>
           Open the command palette and run <strong>New board</strong> (with a vault open). It asks
           for the board&apos;s name, creates <code>Sprint plan.board.md</code> (for a board named
-          Sprint plan) in your New Notes folder and opens it as a canvas.
+          Sprint plan) in your New Files folder and opens it as a canvas.
           If the name is taken you get <code>Sprint plan (1).board.md</code>.
           To link a new board from the note you&apos;re writing, type <code>/board</code>: it asks for
           the name, creates the board without leaving the note and inserts a link to it (a board

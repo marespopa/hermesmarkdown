@@ -1,6 +1,6 @@
 # FolderRow
 
-Description: A single folder row in the vault tree (`role="treeitem"`, `aria-expanded`) — disclosure triangle (always only opens/closes), folder icon, name or `InlineNameField` while renaming, optional columns, medium weight when it contains the active file, selection and keyboard-cursor styling, and a drop target that auto-expands after 400 ms of hovering. A plain click selects and toggles it; ⌘/Ctrl/Shift clicks only change the selection. Its ⋯ button and right-click open the tree's shared menu (New Note, New Folder, Rename, Move to Trash).
+Description: A single folder row in the vault tree (`role="treeitem"`, `aria-expanded`) — disclosure triangle (always only opens/closes), folder icon, name or `InlineNameField` while renaming, optional columns, medium weight when it contains the active file, selection and keyboard-cursor styling, and a drop target that auto-expands after 400 ms of hovering. A plain click selects and toggles it; ⌘/Ctrl/Shift clicks only change the selection. Its ⋯ button and right-click open the tree's shared menu (New File, New Folder, Rename, Move to Trash).
 
 ## Local State & Storage
 - State: Drop-hover and the auto-expand timer are local; collapse, selection, editing and drag state are owned by `VaultFileTree`.

@@ -38,11 +38,11 @@ export const LANDING_PLATFORMS: LandingFeature[] = [
   },
   {
     title: "Safari, Firefox, iPhone, iPad and Android",
-    body: "Keep notes in a browser vault stored on the device.",
+    body: "Keep files in a browser vault stored on the device.",
   },
   {
-    title: "Any modern browser",
-    body: "Optionally keep a vault in a GitHub repository you control, with explicit commits.",
+    title: "Alongside git",
+    body: "A disk vault is a plain folder, so keep it in a git repository and commit with the tools you already use.",
   },
 ];
 
@@ -52,16 +52,16 @@ export const LANDING_FAQ: LandingFaq[] = [
     a: "Yes. HermesMarkdown is free to use in any modern browser, with no account and no subscription.",
   },
   {
-    q: "Where are my notes stored?",
-    a: "In a vault you choose: a folder of Markdown files on your disk, a browser vault kept in your browser's own storage, or a GitHub repository you control. Notes are never uploaded to a HermesMarkdown server.",
+    q: "Where are my files stored?",
+    a: "In a vault you choose: a folder of Markdown files on your disk or a browser vault kept in your browser's own storage. Files are never uploaded to a HermesMarkdown server.",
   },
   {
     q: "Does it work offline?",
-    a: "Yes. Install it as an app from your browser and it keeps working without a connection. Only GitHub sync and the optional AI features need the network.",
+    a: "Yes. Install it as an app from your browser and it keeps working without a connection. Only the optional AI features need the network.",
   },
   {
     q: "Does it work on Safari, Firefox, iPhone and iPad?",
-    a: "Yes. Where the browser can't open a folder on disk, as in Safari, Firefox and mobile browsers, notes are kept in a browser vault on the device.",
+    a: "Yes. Where the browser can't open a folder on disk, as in Safari, Firefox and mobile browsers, files are kept in a browser vault on the device.",
   },
   {
     q: "Can I use it with my Obsidian vault?",

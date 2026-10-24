@@ -41,6 +41,8 @@ import { collapsedCalloutCorners } from "./callout-fold";
 import { syntaxReveal } from "./syntax-reveal";
 import { detailsMarks } from "./details-fold";
 import { buildPlainTextExtensions } from "./plain-text-extensions";
+import { codeGutters } from "./code-editing";
+import { editorFilePath, formatCodeKeymap } from "./format-code-command";
 
 export interface BuildExtensionsOptions {
   wordWrap: boolean;
@@ -68,8 +70,17 @@ export interface BuildExtensionsOptions {
   pasteImageRef?: { current: ((file: File) => Promise<string | null>) | null };
   /** A text file that isn't a note: edited as plain text (plain-text-extensions.ts). */
   plainText?: boolean;
+  /** The open file's vault path (Format Code reads a code file's language from it). */
+  filePath?: string;
   /** Its language (highlighting only), loaded by the caller from the file name. */
   codeLanguage?: Extension | null;
+}
+
+// A file's line-number gutters with the Line Numbers setting `on`: notes
+// follow the setting; code and other text files always number their lines.
+export function lineNumberGutters(plainText: boolean, hasLanguage: boolean, on: boolean): Extension {
+  if (plainText) return codeGutters(hasLanguage);
+  return on ? editorLineNumbers() : [];
 }
 
 export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
@@ -140,6 +151,8 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // onTableKeyDown?.() first. Each table command returns false (falling
     // through to the next binding) when the cursor isn't inside a table.
     keymap.of(tableKeyBindings),
+    keymap.of(formatCodeKeymap(true)),
+    editorFilePath.of(opts.filePath ?? ""),
     // Tab / Shift-Tab between template blanks, after the table bindings so a
     // table cell keeps its own Tab.
     templateBlanks,

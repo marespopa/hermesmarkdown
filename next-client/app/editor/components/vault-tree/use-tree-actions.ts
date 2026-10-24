@@ -13,6 +13,7 @@ import {
   type VisibleRow,
 } from "./tree-model";
 import type { useTreeSelection } from "./use-tree-selection";
+import { isPlainTextPath } from "@/app/utils/file-kinds";
 
 export type MenuTarget =
   | { type: "row"; kind: "file" | "folder"; path: string }
@@ -148,7 +149,9 @@ export function useTreeActions({
         finish();
         const typed = value.trim();
         if (!typed || typed === shown) return;
-        const newName = isFile && name.endsWith(".md") && !typed.endsWith(".md") ? `${typed}.md` : typed;
+        // A note keeps .md unless it's renamed to a text file name (`plan.ts`).
+        const keepsNote = isFile && name.endsWith(".md") && !typed.endsWith(".md") && !isPlainTextPath(typed);
+        const newName = keepsNote ? `${typed}.md` : typed;
         void (async () => {
           const handle = await handleFor(path);
           if (!handle) return;

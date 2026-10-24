@@ -43,7 +43,7 @@ export function treeMenuItems(
     return [
       ...(notes.length > 0
         ? [{
-            label: notes.length > 1 ? `Open ${notes.length} Notes` : "Open",
+            label: notes.length > 1 ? `Open ${notes.length} Files` : "Open",
             icon: <HiOutlineDocumentText {...ICON} />,
             onSelect: () => notes.forEach(actions.openPath),
           }]

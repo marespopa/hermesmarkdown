@@ -82,7 +82,7 @@ describe("buildEditorCommands", () => {
   it("pins the open note to Home, or unpins it when it's pinned", () => {
     const unpinned = createContext();
     const pin = buildEditorCommands(unpinned).find((command) => command.id === "toggle-note-pin")!;
-    expect(pin.label).toBe("Pin Note");
+    expect(pin.label).toBe("Pin File");
     pin.action();
     expect(unpinned.toggleNotePin).toHaveBeenCalledWith("Note.md");
 
@@ -177,6 +177,7 @@ describe("buildEditorCommands", () => {
       "format-heading-6",
       "format-link",
       "format-code-block",
+      "format-code",
       "find-in-note",
       "fold-current-section",
       "unfold-all-sections",
@@ -218,10 +219,10 @@ describe("buildEditorCommands", () => {
     const commands = buildEditorCommands(context);
     const label = (id: string) => commands.find((command) => command.id === id)?.label;
 
-    expect(label("new-file")).toBe("New Note");
-    expect(label("import-file")).toBe("Open Note from Disk…");
-    expect(label("rename-current-file")).toBe("Rename Note");
-    expect(label("delete-current-file")).toBe("Delete Note");
+    expect(label("new-file")).toBe("New File");
+    expect(label("import-file")).toBe("Open File from Disk…");
+    expect(label("rename-current-file")).toBe("Rename File");
+    expect(label("delete-current-file")).toBe("Delete File");
     expect(label("export-file")).toBe("Export as Markdown");
     commands.find((command) => command.id === "export-file")?.action();
     expect(context.onExport).toHaveBeenCalledOnce();

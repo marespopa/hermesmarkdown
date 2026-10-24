@@ -33,7 +33,6 @@ import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useToolHandoff } from "./hooks/use-tool-handoff";
 import { useEditorShortcuts } from "./hooks/use-editor-shortcuts";
-import { useGitHubVaultActions } from "./hooks/use-github-vault-actions";
 import { useNavigateWithGuard } from "./hooks/use-navigate-with-guard";
 import { useSyncCurrentDirectory } from "./hooks/use-sync-current-directory";
 import DraftImportDialog from "./components/DraftImportDialog";
@@ -152,13 +151,6 @@ export default function LiteEditor() {
     }
   }, [activeFileHandle, vaultHandle, saveFile, exportFile, fileName, materializeDraft, isVaultSupported, isBrowserVaultSupported, chooseFolder]);
 
-  const { isGitHubVault, runGitHubCommitCommand, runGitHubPullCommand } = useGitHubVaultActions({
-    vaultHandle,
-    activeFileHandle,
-    saveFile,
-    refreshVault: handleRefreshVault,
-  });
-
   // Shortcut Listener with Ref Pattern for stability
   const handleSaveRef = useRef(handleSave);
   const handleNewFileRef = useRef<() => Promise<void>>(async () => {});
@@ -213,11 +205,6 @@ export default function LiteEditor() {
       <EditorCommands
         onNewFile={handleNewFile}
         onExport={handleExport}
-        githubVault={isGitHubVault}
-        onGitHubCommit={() => void runGitHubCommitCommand()}
-        onGitHubPush={() => void runGitHubCommitCommand()}
-        onGitHubSync={() => void runGitHubCommitCommand()}
-        onGitHubPull={() => void runGitHubPullCommand()}
         onSave={() => handleSaveRef.current()}
         isMobileChrome={isMobileChrome}
         onOpenTasks={() => navigateWithGuard("/editor/tasks", "Tasks")}

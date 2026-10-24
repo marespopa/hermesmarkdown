@@ -165,7 +165,7 @@ export default function BrowserVaultDialog() {
                     </div>
                   ) : confirmDeleteId === vault.id ? (
                     <div className="flex flex-1 items-center justify-between gap-2 px-4 py-2">
-                      <span className="text-ui-footnote">Delete “{vault.displayName}” and all its notes?</span>
+                      <span className="text-ui-footnote">Delete “{vault.displayName}” and all its files?</span>
                       <span className="flex shrink-0 gap-2">
                         <Button variant="tertiary" onClick={() => setConfirmDeleteId(null)} disabled={isBusy}>Cancel</Button>
                         <Button variant="warning" onClick={() => void run(() => deleteBrowserVault(vault), false)} disabled={isBusy}>

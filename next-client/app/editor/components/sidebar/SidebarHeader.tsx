@@ -48,7 +48,7 @@ export default function SidebarHeader({ onNewNote, onHide }: { onNewNote: () => 
       </div>
       <PaneToolbarButton
         icon={<HiOutlinePencilAlt size={PANE_ICON_SIZE} />}
-        label="New note"
+        label="New file"
         shortcut={isMacPlatform() ? "⌃⌥N" : "Ctrl+Alt+N"}
         tooltipPosition="bottom-end"
         onClick={onNewNote}

@@ -23,7 +23,7 @@ const NO_TAGS: string[] = [];
 // Files, with a filter.
 // Switching between open notes is the palette's (Ctrl/Cmd+K), and the note's
 // outline is the editor's optional one (Ctrl/Cmd+Shift+M, EditorOutline).
-// Everything else (Home, All Notes, Tags, Tasks, Templates, Trash, Export,
+// Everything else (Home, All Files, Tags, Tasks, Templates, Trash, Export,
 // Settings, Documentation, search) is the command palette's (Ctrl/Cmd+K,
 // SearchPill) or the toolbar's More menu. A plain panel in the chrome colour with a hairline
 // edge; it takes room, pushing the page over (EditorShell), and slides out
@@ -104,7 +104,7 @@ export default function WorkspaceSidebar() {
 
       {/* The scroll box: the Files tree virtualizes its rows against it (data-scroll-root).
           A right-click on it outside Pinned, a row or the Search field opens
-          the Files root's New Note / New Folder menu, as on the tree's empty space. */}
+          the Files root's New File / New Folder menu, as on the tree's empty space. */}
       <div
         data-scroll-root
         onContextMenu={(event) => {

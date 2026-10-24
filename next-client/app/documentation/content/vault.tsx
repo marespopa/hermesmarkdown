@@ -34,7 +34,6 @@ export const vaultGroup: Group = {
             rows={[
               { label: "Folder on disk", value: "Chrome, Edge, Brave, Arc, Opera" },
               { label: "Browser vault", value: "Every modern browser, including Safari, Firefox, iPhone, iPad" },
-              { label: "GitHub vault", value: "Every modern browser; syncs with a repository" },
             ]}
           />
           <p>
@@ -59,25 +58,25 @@ export const vaultGroup: Group = {
             Click a row to select it, <strong>CMD/CTRL</strong>-click to add or remove rows, and{" "}
             <strong>Shift</strong>-click to select a range. Drag a selected row onto a folder to move
             the whole selection; hovering a closed folder while dragging opens it. Right-click a row
-            (or use its ⋯ button) for its actions, or empty space for <strong>New Note</strong> and{" "}
+            (or use its ⋯ button) for its actions, or empty space for <strong>New File</strong> and{" "}
             <strong>New Folder</strong>. Empty folders always show, so you can set up a structure
             before filling it.
           </p>
           <p>
             Files shows every file by its full name, extension included. Besides your notes it lists
-            the vault&apos;s other text files (code, JSON, YAML, CSV, plain text…); they open as plain
-            text, highlighted for their language, and stay out of All Notes, tags, tasks and search.
+            the vault&apos;s other text files (code, JSON, YAML, CSV, plain text…); see{" "}
+            <TextLink href="#code-files">Code files</TextLink>.
             A note&apos;s <code>type:</code> in its frontmatter (or a <code>#type/…</code> tag) picks its
             icon: project, task, meeting or bookmark.
           </p>
           <p>
-            New notes and folders, and renames, are named right in the list: type, then press{" "}
+            New files and folders, and renames, are named right in the list: type, then press{" "}
             <strong>Return</strong> or click away to keep the name, or <strong>Esc</strong> to back out.
           </p>
           <p>
-            The folder path above a note is clickable: click a folder in it to see that folder&apos;s
-            notes and subfolders right there. Click a subfolder to step in, the ← to step up, or a
-            note to open it; type to filter. <strong>Show in Files</strong> opens the folder in the
+            The folder path above a file is clickable: click a folder in it to see that folder&apos;s
+            files and subfolders right there. Click a subfolder to step in, the ← to step up, or a
+            file to open it; type to filter. <strong>Show in Files</strong> opens the folder in the
             sidebar.
           </p>
           <KV
@@ -92,69 +91,88 @@ export const vaultGroup: Group = {
             ]}
           />
           <Callout type="note">
-            Deleting moves notes and folders to the vault&apos;s Trash (<code>.hermesmarkdown/trash/</code>)
+            Deleting moves files and folders to the vault&apos;s Trash (<code>.hermesmarkdown/trash/</code>)
             instead of erasing them. The toast&apos;s <strong>Undo</strong> or CMD/CTRL+Z in the file
             tree puts them back; anything in the Trash is removed for good after 30 days. The Trash is
-            never indexed, searched, exported or synced to GitHub. If an item can&apos;t be moved to the
+            never indexed, searched or exported. If an item can&apos;t be moved to the
             Trash, you&apos;re asked before it is deleted permanently.
           </Callout>
         </>
       ),
     },
     {
-      id: "github-vaults",
-      title: "GitHub vaults",
-      lead: "Optionally keep a Markdown vault in a GitHub repository you control, with explicit commits instead of background uploads.",
-      keywords: "github repository private branch commit sync push pull source control oauth",
+      id: "code-files",
+      title: "Code files",
+      lead: "Code and other text files in the vault open in the same editor, as plain text with code editing.",
+      keywords: "code files source text json yaml typescript javascript python dockerfile makefile line numbers brackets fold format prettier search grep outline symbols functions classes methods fields constants enums c# csharp rust",
       body: (
         <>
           <p>
-            Choose <strong>Connect GitHub Vault</strong> when opening a vault. You can select a
-            repository you can access or create a new private repository. HermesMarkdown imports
-            Markdown files and files under <code>.hermesmarkdown/</code>; other repository files are left
-            outside the vault workspace.
+            Files with a code or text extension (<code>.ts</code>, <code>.py</code>,{" "}
+            <code>.json</code>, <code>.yaml</code>, <code>.sh</code>, <code>.txt</code>…) and known
+            names (<code>Dockerfile</code>, <code>Makefile</code>, <code>LICENSE</code>, and with hidden
+            files shown, <code>.gitignore</code> or <code>.editorconfig</code>) open as plain text in the
+            code font, with no Markdown rendering. Their lines are always numbered. When the language is
+            recognized, it&apos;s highlighted, brackets are matched, typing an opening bracket or quote
+            adds its pair, and blocks fold from the gutter. With <strong>Outline</strong> on
+            (<code>CTRL/CMD+SHIFT+M</code>), its box lists the file&apos;s namespaces and modules,
+            classes, structs and their methods, fields and properties, functions, types, enums and their
+            members, top-level constants and variables (in Python, only <code>ALL_CAPS</code> ones), CSS
+            selectors, or JSON and YAML keys, each with a small icon for its kind (C# included); click one
+            to jump there. They stay out of All Files, tags and tasks;{" "}
+            <code>.env</code> files are never listed.
+          </p>
+          <p>
+            Quick Open (<code>CTRL/CMD+K</code>) finds them by name. To create one, type its name with
+            the extension (<code>util.ts</code>) in <strong>New File</strong>; renaming a file to a code
+            file name drops <code>.md</code>.
           </p>
           <KV
             rows={[
-              { label: "New repository", value: "Private" },
-              { label: "Imported content", value: "*.md and .hermesmarkdown/**" },
-              { label: "Branch", value: "Repository default branch" },
-              { label: "Credentials", value: "Encrypted HttpOnly session cookie" },
+              { label: "Format Code", value: "SHIFT+ALT+F or the palette: the whole file, or a note's code block" },
+              { label: "Formats", value: "JavaScript, TypeScript, JSON, CSS, SCSS, Less, HTML, Vue, YAML, GraphQL" },
+              { label: "Search inside", value: "Settings → Files → Search Code Files, then / in the palette" },
             ]}
           />
-          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Branches</h4>
           <p>
-            A GitHub vault opens on the repository&apos;s default branch, commonly <code>main</code>.
-            The branch remains fixed for that vault workspace.
-            Branch switching and branch creation are not available in HermesMarkdown yet; create
-            or select the desired default branch in GitHub before connecting it.
-          </p>
-          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Commit and sync</h4>
-          <p>
-            Save your notes, then use the command palette&apos;s{" "}
-            <code>GitHub: Commit</code>, <code>GitHub: Push</code>, or <code>GitHub: Sync</code>{" "}
-            command. All three create a commit directly on the connected branch, so there is no
-            separate local Git staging area or push step.
-          </p>
-          <p>
-            HermesMarkdown compares the branch head recorded when the vault was opened before
-            updating it. If somebody else advances the branch, the app stops rather than silently
-            overwriting their changes. Run <code>GitHub: Pull</code> to bring in their changes, then
-            commit again.
+            Format Code uses Prettier with the vault&apos;s own settings: the nearest{" "}
+            <code>.prettierrc</code>, <code>.prettierrc.json</code>, <code>.prettierrc.yaml</code> or{" "}
+            <code>package.json</code> <code>&quot;prettier&quot;</code> key, from the file&apos;s folder
+            up to the vault root, with matching <code>overrides</code>. A JavaScript config such as{" "}
+            <code>prettier.config.js</code> can&apos;t run in the browser, so Prettier&apos;s defaults are
+            used and the toast says so.
           </p>
           <Callout type="note">
-            <code>GitHub: Pull</code> merges remote changes with your local notes. Independent
-            edits are combined automatically; overlapping edits are left as visible conflict
-            markers, so neither version is silently replaced. Resolve those markers before your
-            next commit and sync.
+            Code files aren&apos;t kept in the text index. With Search Code Files on, the first{" "}
+            <code>/</code> search reads them from disk in the background and keeps them, so later
+            searches are instant until a file changes. Their matches follow the notes&apos; as they
+            come in.
           </Callout>
-          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Privacy and access</h4>
+        </>
+      ),
+    },
+    {
+      id: "git",
+      title: "Using git",
+      lead: "HermesMarkdown doesn't run git. Keep a disk vault in a repository and commit, pull and push with the tools you already use.",
+      keywords: "git github gitlab repository commit sync push pull source control version history",
+      body: (
+        <>
           <p>
-            Connecting GitHub uses OAuth with the <code>repo</code> permission so the signed-in
-            user can read and write repositories they own or can access. The access token stays
-            server-side in an encrypted HttpOnly cookie and is never written to note files,
-            IndexedDB, or client-side application state.
+            A vault on disk is a plain folder of Markdown files, so it can be a git repository (or a
+            folder inside one). Commit, pull and push from a terminal or a git app as usual. The{" "}
+            <code>.git</code> folder, <code>node_modules</code> and other tool folders are never listed
+            or indexed.
           </p>
+          <p>
+            When a pull changes a file you have open, the editor picks up the new text; if you have
+            unsaved edits in that file, the conflict dialog lets you keep, take or merge the versions.
+          </p>
+          <Callout type="note">
+            HermesMarkdown used to sync GitHub vaults itself. A GitHub vault from that time opens as a
+            browser vault with the same name and files. Export it as a zip, or copy the files into a
+            cloned repository, to keep using git with them.
+          </Callout>
         </>
       ),
     },
@@ -217,7 +235,7 @@ tags: [finance, private]
           <p>
             A private note opens behind a veil showing only its title, until you choose{" "}
             <strong>Show note</strong> or <strong>Show all private notes this session</strong>{" "}
-            (both last until you reload). It never shows up in note text search (<code>/</code>) and
+            (both last until you reload). It never shows up in text search (<code>/</code>) and
             is never sent to AI. In lists, <strong>Privacy Mode</strong> decides; set it under{" "}
             <strong>Settings → Files → Privacy</strong> or with the <code>Privacy mode: …</code>{" "}
             commands:

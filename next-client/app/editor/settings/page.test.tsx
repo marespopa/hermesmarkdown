@@ -123,7 +123,7 @@ describe("SettingsPage", () => {
     openFilesSection();
 
     expect(screen.queryByText("On Vault Open")).not.toBeInTheDocument();
-    expect(screen.getByText("New Notes Folder")).toBeInTheDocument();
+    expect(screen.getByText("New Files Folder")).toBeInTheDocument();
     expect(screen.getByText("Show Hidden Files")).toBeInTheDocument();
     expect(screen.getByText("Autosave Mode")).toBeInTheDocument();
     expect(screen.queryByText("Delay")).not.toBeInTheDocument();

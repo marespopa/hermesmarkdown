@@ -47,7 +47,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     },
     {
       id: "new-file",
-      label: "New Note",
+      label: "New File",
       keywords: "create note draft new file",
       action: onNewFile,
     },
@@ -97,7 +97,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     },
     {
       id: "import-file",
-      label: "Open Note from Disk…",
+      label: "Open File from Disk…",
       category: "Vault",
       // Opens a Markdown or text file from the device as a draft; Import
       // Files into Vault… (vault-storage-commands) copies files in instead.
@@ -119,7 +119,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     ...(activeFileHandle
       ? [{
           id: "duplicate-current-file",
-          label: "Duplicate Note",
+          label: "Duplicate File",
           category: "Document" as const,
           keywords: "copy clone note file current",
           action: () => duplicateFile(activeFileHandle),
@@ -128,7 +128,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     ...(activeFileHandle && vaultHandle
       ? [{
           id: "move-current-file",
-          label: "Move Note…",
+          label: "Move File…",
           category: "Document" as const,
           keywords: "relocate folder note file current",
           action: async () => {
@@ -143,7 +143,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
                 { label: `/ ${vaultDisplayName(vaultDescriptor, vaultHandle.name)} (root)`, value: "__root__" },
                 ...directories.map((directory) => ({ label: directory.name, value: directory.name })),
               ],
-              "Move Note",
+              "Move File",
             );
             if (!destination) return;
             const target = destination === "__root__"
@@ -159,7 +159,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     ...(vaultHandle && activeFileHandle && activeFilePath
       ? [{
           id: "toggle-note-pin",
-          label: pinnedNotePaths.includes(activeFilePath) ? "Unpin Note" : "Pin Note",
+          label: pinnedNotePaths.includes(activeFilePath) ? "Unpin File" : "Pin File",
           keywords: "pin unpin pinned favorite top palette files",
           action: () => toggleNotePin(activeFilePath),
         }]
@@ -191,7 +191,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     ...(activeFileHandle
       ? [{
           id: "rename-current-file",
-          label: "Rename Note",
+          label: "Rename File",
           keywords: "rename move note file current title",
           action: () => renameFile(activeFileHandle, undefined, activeFilePath ?? undefined),
         }]
@@ -199,7 +199,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     ...(activeFileHandle
       ? [{
           id: "delete-current-file",
-          label: "Delete Note",
+          label: "Delete File",
           keywords: "delete remove trash note file current",
           action: () => deleteFile(activeFileHandle, activeFilePath),
         }]

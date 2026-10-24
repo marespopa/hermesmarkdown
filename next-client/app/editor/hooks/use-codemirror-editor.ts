@@ -3,13 +3,12 @@
 import { useEffect, useRef } from "react";
 import type { EditorView } from "@codemirror/view";
 import { EditorView as CodeMirrorView } from "@codemirror/view";
-import type { Compartment } from "@codemirror/state";
+import type { Compartment, Extension } from "@codemirror/state";
 import { loadedVim, loadVim } from "../codemirror/vim-loader";
 import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
 import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
 import { flowMode as flowModeExtension, type FlowLevel } from "../codemirror/flow-mode";
 import { invisibles } from "../codemirror/invisibles";
-import { editorLineNumbers } from "../codemirror/line-numbers";
 import { changedRange } from "@/app/utils/text-diff";
 import { isPlainTextPath } from "@/app/utils/file-kinds";
 
@@ -82,6 +81,8 @@ export function useCodeMirrorEditor({
   onViewportChangeRef.current = onViewportChange;
   const wordWrapCompartmentRef = useRef<Compartment | null>(null);
   const lineNumbersCompartmentRef = useRef<Compartment | null>(null);
+  // The file's line-number gutters, set once its extensions load.
+  const lineGuttersRef = useRef<((on: boolean) => Extension) | null>(null);
   const invisiblesCompartmentRef = useRef<Compartment | null>(null);
   const vimModeCompartmentRef = useRef<Compartment | null>(null);
   const flowModeCompartmentRef = useRef<Compartment | null>(null);
@@ -114,6 +115,7 @@ export function useCodeMirrorEditor({
       const flowModeCompartment = new Compartment();
       wordWrapCompartmentRef.current = wordWrapCompartment;
       lineNumbersCompartmentRef.current = lineNumbersCompartment;
+      lineGuttersRef.current = (on) => extensionsModule.lineNumberGutters(plainText, !!codeLanguage, on);
       invisiblesCompartmentRef.current = invisiblesCompartment;
       vimModeCompartmentRef.current = vimModeCompartment;
       flowModeCompartmentRef.current = flowModeCompartment;
@@ -141,6 +143,7 @@ export function useCodeMirrorEditor({
           csvConfirmRef,
           pasteImageRef,
           plainText,
+          filePath,
           codeLanguage,
         }),
       });
@@ -198,9 +201,10 @@ export function useCodeMirrorEditor({
   useEffect(() => {
     const view = viewRef.current;
     const compartment = lineNumbersCompartmentRef.current;
-    if (!view || !compartment) return;
+    const gutters = lineGuttersRef.current;
+    if (!view || !compartment || !gutters) return;
     view.dispatch({
-      effects: compartment.reconfigure(lineNumbers ? editorLineNumbers() : []),
+      effects: compartment.reconfigure(gutters(lineNumbers)),
     });
   }, [lineNumbers, viewRef]);
 

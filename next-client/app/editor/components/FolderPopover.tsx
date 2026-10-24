@@ -27,7 +27,7 @@ interface FolderPopoverProps {
   /** Shown for the vault's root. */
   rootName: string;
   onOpenNote: (handle: FileSystemFileHandle, path: string) => void;
-  /** Creates (and opens) a note named `name` in `folder`; absent hides New Note. */
+  /** Creates (and opens) a note named `name` in `folder`; absent hides New File. */
   onNewNote?: (folder: string, name: string) => void;
   /** Creates a folder named `name` in `folder`, resolving to its path (null
    *  when it failed); absent hides New Folder. */
@@ -55,7 +55,7 @@ type Creating = "note" | "folder" | null;
 // opens (with no matches, a "Create “…”" row makes a note by that name in
 // the folder), → enters a folder, ← or Backspace (with nothing typed) goes up,
 // Escape or a click outside closes it. Past VIRTUALIZE_THRESHOLD rows the
-// list is virtualized. The header's New Note and New Folder buttons turn the
+// list is virtualized. The header's New File and New Folder buttons turn the
 // field into a name field for that folder: Enter creates (a note opens, a
 // new folder is stepped into), Escape backs out. The footer stays short (one
 // row per group, as menus should): "Show in Files" shows the folder in the
@@ -229,7 +229,7 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
     ...(onCloseVault ? [{ label: "Close Vault", icon: <HiOutlineLogout size={15} aria-hidden="true" />, divider: true, onClick: () => { onClose(); onCloseVault(); } }] : []),
   ];
   const hasFooter = !!onShowInFiles || vaultItems.length > 0;
-  const fieldLabel = creating === "note" ? "New note name" : creating === "folder" ? "New folder name" : null;
+  const fieldLabel = creating === "note" ? "New file name" : creating === "folder" ? "New folder name" : null;
 
   const renderRow = (row: FolderRow, index: number) => (
     <Button
@@ -334,7 +334,7 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
             aria-selected
             tabIndex={-1}
             onClick={createFromQuery}
-            title={`New Note “${typed}” in ${name}`}
+            title={`New File “${typed}” in ${name}`}
             className={ACTIVE_ROW}
           >
             <span className={MENU_ICON_CLASS}><HiOutlineDocumentAdd size={15} aria-hidden="true" /></span>

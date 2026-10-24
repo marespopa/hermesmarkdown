@@ -1,11 +1,10 @@
 // Vaults opened on this device, most recent first, for the sidebar's vault
 // switcher and its no-vault start screen. Kept in IndexedDB because a disk
 // vault's entry holds its folder handle, which localStorage can't store.
-import type { GitHubVaultDescriptor } from "./github-vault-workspace";
 import type { BrowserVaultDescriptor } from "./opfs";
 import { readKey, writeKey } from "./idb";
 
-const KEY_RECENT_VAULTS = "recentVaults";
+export const RECENT_VAULTS_KEY = "recentVaults";
 
 export const MAX_RECENT_VAULTS = 8;
 
@@ -18,8 +17,7 @@ interface RecentVaultBase {
 
 export type RecentVault =
   | (RecentVaultBase & { kind: "local"; handle: FileSystemDirectoryHandle })
-  | (RecentVaultBase & { kind: "browser"; descriptor: BrowserVaultDescriptor })
-  | (RecentVaultBase & { kind: "github"; descriptor: GitHubVaultDescriptor });
+  | (RecentVaultBase & { kind: "browser"; descriptor: BrowserVaultDescriptor });
 
 // Puts `entry` first, dropping an older entry for the same vault, and keeps
 // at most `max`.
@@ -42,7 +40,7 @@ export function removeRecentVault(list: readonly RecentVault[], key: string): Re
 function isRecentVault(value: any): value is RecentVault {
   if (!value || typeof value.key !== "string" || typeof value.name !== "string") return false;
   if (value.kind === "local") return !!value.handle;
-  return (value.kind === "browser" || value.kind === "github") && !!value.descriptor;
+  return value.kind === "browser" && !!value.descriptor;
 }
 
 const isSupported = () => typeof window !== "undefined" && !!window.indexedDB;
@@ -50,7 +48,7 @@ const isSupported = () => typeof window !== "undefined" && !!window.indexedDB;
 export async function loadRecentVaults(): Promise<RecentVault[]> {
   if (!isSupported()) return [];
   try {
-    const list = await readKey<unknown>(KEY_RECENT_VAULTS);
+    const list = await readKey<unknown>(RECENT_VAULTS_KEY);
     return Array.isArray(list) ? list.filter(isRecentVault) : [];
   } catch (err) {
     console.warn("Failed to load recent vaults from IDB:", err);
@@ -61,7 +59,7 @@ export async function loadRecentVaults(): Promise<RecentVault[]> {
 export async function saveRecentVaults(list: readonly RecentVault[]): Promise<void> {
   if (!isSupported()) return;
   try {
-    await writeKey(KEY_RECENT_VAULTS, list);
+    await writeKey(RECENT_VAULTS_KEY, list);
   } catch (err) {
     console.warn("Failed to save recent vaults to IDB:", err);
   }

@@ -77,7 +77,7 @@ export function useRecoveryActions() {
     const low = await readStorageLow();
     if (low) {
       reportRecoveryIssue({ kind: "storage-low", ...low });
-      toast("Cache cleared, but storage is still nearly full. Export notes you need.", { id: "recovery-space" });
+      toast("Cache cleared, but storage is still nearly full. Export files you need.", { id: "recovery-space" });
     } else {
       clearRecoveryIssue("storage-full", "storage-low");
       toast.success("Cache cleared", { id: "recovery-space" });

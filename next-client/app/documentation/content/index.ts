@@ -23,7 +23,7 @@ export const GROUPS: Group[] = [
     summary: "Writing, Markdown marks, tables, templates, tabs, and PDF export.",
     items: [...editorWritingItems, ...templatesItems, ...editorWorkspaceItems, exportPdfItem, exportHtmlItem],
   },
-  { ...vaultGroup, summary: "How notes are stored: folders on disk, browser vaults and GitHub." },
+  { ...vaultGroup, summary: "How notes are stored: folders on disk and browser vaults, and using git." },
   { ...aiFeaturesGroup, summary: "Bring your own key for chat, drafting, formulas and more." },
   { ...settingsGroup, summary: "Appearance, Home and vault options, and keyboard shortcuts." },
   { ...mobileGroup, summary: "Using HermesMarkdown on a phone or tablet." },

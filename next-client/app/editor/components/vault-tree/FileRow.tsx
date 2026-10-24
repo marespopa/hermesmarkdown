@@ -170,7 +170,7 @@ export function FileRow({
             <span className="w-3 shrink-0" />
             <FileIcon path={entryPath ?? entry.name} />
             {editing ? (
-              <InlineNameField label="Note name" {...editing} />
+              <InlineNameField label="File name" {...editing} />
             ) : (
               <span title={displayName} className="min-w-0 flex-1 truncate">
                 <HighlightedName name={displayName} query={highlightQuery} />

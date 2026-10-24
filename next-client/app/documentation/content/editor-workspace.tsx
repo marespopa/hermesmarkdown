@@ -195,23 +195,23 @@ tags: []
     id: "command-palette",
     title: "Command palette",
     lead: "A fuzzy-searchable list of every app-level action — open it instead of hunting for a menu.",
-    keywords: "palette commands fuzzy filter full-text search note text",
+    keywords: "palette commands fuzzy filter full-text search note file text grep regex",
     body: (
       <>
         <p>
           Open it anywhere with <code>CTRL/CMD+K</code> (files) or <code>CTRL/CMD+SHIFT+P</code>{" "}
           (commands). On mobile, tap the active-file bar. The palette opens in Quick Open mode,
-          where plain text searches note names and paths. To search inside notes, start with{" "}
+          where plain text searches file names and paths. To search inside files, start with{" "}
           <code>/</code> or press <code>CTRL/CMD+SHIFT+F</code>.
         </p>
         <p>
-          With nothing typed it lists your pinned and recent notes, then a short menu of what you
-          reach for most: <strong>Search Notes…</strong> (note text), <strong>Ask or Edit with AI…</strong>,{" "}
-          <strong>New Note</strong>, <strong>Insert template…</strong>, <strong>Toggle Focus Mode</strong>;
+          With nothing typed it lists your pinned and recent files, then a short menu of what you
+          reach for most: <strong>Search in Files…</strong> (file text), <strong>Ask or Edit with AI…</strong>,{" "}
+          <strong>New File</strong>, <strong>Insert template…</strong>, <strong>Toggle Focus Mode</strong>;
           then, set apart, the pages it can take you to: <strong>Open Tasks</strong>,{" "}
           <strong>Open Templates</strong>, <strong>Open Settings</strong> and <strong>Open Documentation</strong>.
           An arrow marks a row that opens another page; <strong>Open Documentation</strong> opens in a new
-          tab, so your note stays put. A row with a chevron opens a menu in place; <code>Backspace</code> in its empty search field, or the back button, goes up a
+          tab, so your file stays put. A row with a chevron opens a menu in place; <code>Backspace</code> in its empty search field, or the back button, goes up a
           level.
         </p>
         <KV
@@ -221,20 +221,27 @@ tags: []
             { label: ">", value: "Commands by name, description, category, or keyword" },
             { label: "!", value: "Tasks; choose one to open its note at the source line" },
             { label: "@", value: "Headings in the active note; choose one to place it at the top" },
-            { label: "/", value: "Note text across the vault; choose a line to open the note at that match" },
+            { label: "/", value: "File text across the vault (code files too, with Search Code Files on); choose a line to open it at that match" },
             { label: "~", value: "Your templates; Enter inserts one into the note, CTRL/CMD+Enter starts a new note from it" },
           ]}
         />
         <p>
-          Note text search ignores case and finds notes that contain every word you type, in any
+          Text search ignores case and finds files that contain every word you type, in any
           order (at least 2 characters; no fuzzy matching). Frontmatter isn&apos;t searched; code
-          blocks are. Exact phrases rank first, and each note shows up to three matching lines.
-          Private notes never appear in note text results, whatever the Privacy Mode. Right after
-          a vault opens, a footnote shows how many notes are still being indexed.
+          blocks are. Exact phrases rank first, and each file shows up to three matching lines.
+          Private notes never appear in text results, whatever the Privacy Mode. Right after
+          a vault opens, a footnote shows how many files are still being indexed.
+        </p>
+        <p>
+          Turn on <strong>Regex</strong> at the foot of the palette, or press <code>Alt+R</code>, to
+          search with a regular expression instead, such as <code>^todo</code> or{" "}
+          <code>fetch\w+\(</code>. It ignores case, and <code>^</code> and <code>$</code> match at
+          the start and end of each line. Regex stays on until you turn it off. A pattern that takes
+          too long is stopped, and the palette says so.
         </p>
         <p>
           The palette&apos;s footer lists these modes as chips (Tags, Tasks, Headings, Text, Templates,
-          Commands): click one instead of typing its prefix, and click it again to go back to notes.
+          Commands): click one instead of typing its prefix, and click it again to go back to files.
         </p>
         <Callout type="tip">
           Prefixes select a result type; they are not combined. For example, <code>#project</code>{" "}
@@ -242,7 +249,7 @@ tags: []
         </Callout>
         <p>
           Matching is fuzzy and deterministic. Recently opened files and recently run commands
-          receive a ranking boost. Commands that need a vault, active note, selection, or AI provider
+          receive a ranking boost. Commands that need a vault, active file, selection, or AI provider
           remain visible when useful and explain why they are disabled.
           Async commands show a running state and cannot be submitted twice. Press{" "}
           <code>CTRL/CMD+D</code> to pin the selected file or command (up to five) to the top of the
@@ -251,7 +258,7 @@ tags: []
         <KV
           rows={[
             { label: "Save", value: "CTRL+S" },
-            { label: "Notes", value: "New Note, Open Note from Disk…, Export as Markdown (always a .md download, never a save), Copy Markdown, Rename / Duplicate / Move / Delete Note" },
+            { label: "Files", value: "New File, Open File from Disk…, Export as Markdown (always a .md download, never a save), Copy Markdown, Rename / Duplicate / Move / Delete File" },
             { label: "Folders", value: "New folder (one level at a time)" },
             { label: "Editing", value: "Undo, redo, focus, formatting, tasks, and templates" },
             { label: "AI", value: "Ask or Edit with AI… (CTRL/CMD+J): Freeform Prompt, Improve Writing, Summarize / Structure, Insert Element" },
@@ -259,13 +266,13 @@ tags: []
         />
         <KV
           rows={[
-            { label: "Pin Note", value: "Keep the note first in the palette and in Files" },
+            { label: "Pin File", value: "Keep the file first in the palette and in Files" },
             { label: "Export as PDF", value: "Print the note, or save it as a PDF" },
             { label: "Export as HTML", value: "Download the note as a standalone web page" },
             { label: "Show Files", value: "CTRL/CMD+SHIFT+E" },
             { label: "Open Tasks", value: "—" },
             { label: "Open Templates", value: "Your templates and template packs" },
-            { label: "Open notes", value: "Next/previous, close current/other/all" },
+            { label: "Open files", value: "Next/previous, close current/other/all" },
             { label: "Tasks", value: "Grouping, due-date filters, and clear filters" },
             { label: "Toggle Hidden Files / Toggle Sidebar", value: "—" },
             { label: "Theme: Light / Dark / System", value: "—" },
@@ -274,23 +281,22 @@ tags: []
             { label: "Toggle Focus Mode", value: "Dim other paragraphs, or turn Focus off" },
             { label: "Focus: …", value: "Off, or dim other paragraphs or sentences" },
             { label: "Settings", value: "Editor Font, Text Size, Autosave, Open Settings" },
-            { label: "GitHub", value: "Commit, push, sync, pull — GitHub vaults only" },
           ]}
         />
         <KV
           rows={[
             { label: "Open Vault / Close Vault / Refresh Vault", value: "—" },
             { label: "Create New Vault", value: "—" },
-            { label: "New Note", value: "Blank note, named from its first line" },
+            { label: "New File", value: "Blank file, named from its first line" },
             { label: "New Folder", value: "Choose a vault folder, then enter a name" },
             { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },
             { label: "Ask or Edit with AI…", value: "CTRL/CMD+J · when AI features are on" },
-            { label: "Navigate", value: "Open All Notes, Open Tags, Open Tasks, Open Templates, Open Trash, Open Settings, Open Documentation, Show Keyboard Shortcuts" },
+            { label: "Navigate", value: "Open All Files, Open Tags, Open Tasks, Open Templates, Open Trash, Open Settings, Open Documentation, Show Keyboard Shortcuts" },
           ]}
         />
         <p>
-          Searching for a note that doesn&apos;t exist? The last result,{" "}
-          <strong>Create &quot;…&quot;</strong>, starts a new note with that title.
+          Searching for a file that doesn&apos;t exist? The last result,{" "}
+          <strong>Create &quot;…&quot;</strong>, starts a new file with that title.
         </p>
         <p>
           Use <code>↑</code>/<code>↓</code> (or <code>Tab</code>/<code>Shift+Tab</code>) to move

@@ -6,7 +6,8 @@ import { searchKeymap } from "@codemirror/search";
 import { loadedVim } from "./vim-loader";
 import { editorTheme } from "./theme";
 import { CODE_FONT } from "./live-markers-theme";
-import { editorLineNumbers } from "./line-numbers";
+import { codeEditing, codeGutters } from "./code-editing";
+import { editorFilePath, formatCodeKeymap } from "./format-code-command";
 import { invisibles } from "./invisibles";
 import { findReplace } from "./find-replace";
 import type { BuildExtensionsOptions } from "./extensions";
@@ -16,8 +17,11 @@ import type { BuildExtensionsOptions } from "./extensions";
 // colours), in the code font, and nothing else of a note's applies: no
 // Markdown rendering or mark reveal, slash menu, shortcodes, wikilinks,
 // tables, Markdown paste or images, so typing and pasting are never
-// rewritten. Tab indents; word wrap, line numbers, invisibles, Vim and
-// find work as in notes. Flow mode is a note's, so it's left out.
+// rewritten. Tab indents; lines are always numbered (the Line Numbers
+// setting is the notes'); word wrap, invisibles, Vim and find work as in
+// notes. Flow mode is a note's, so it's left out. A file
+// with a recognised language also gets code editing (code-editing.ts):
+// bracket pairs, re-indent and folding.
 const codeFontTheme = EditorView.theme({
   ".cm-content, .cm-gutters": { fontFamily: CODE_FONT },
 });
@@ -27,8 +31,10 @@ export function buildPlainTextExtensions(opts: BuildExtensionsOptions): Extensio
     editorTheme(),
     codeFontTheme,
     opts.codeLanguage ?? [],
+    opts.codeLanguage ? codeEditing() : [],
+    editorFilePath.of(opts.filePath ?? ""),
     opts.wordWrapCompartment.of(opts.wordWrap ? EditorView.lineWrapping : []),
-    opts.lineNumbersCompartment.of(opts.lineNumbers ? editorLineNumbers() : []),
+    opts.lineNumbersCompartment.of(codeGutters(!!opts.codeLanguage)),
     opts.invisiblesCompartment.of(opts.showInvisibles ? invisibles() : []),
     opts.flowModeCompartment.of([]),
     EditorView.scrollMargins.of((view) => ({
@@ -41,6 +47,7 @@ export function buildPlainTextExtensions(opts: BuildExtensionsOptions): Extensio
     crosshairCursor(),
     opts.vimModeCompartment.of(opts.vimMode ? loadedVim()?.vim() ?? [] : []),
     findReplace(),
+    keymap.of(formatCodeKeymap(false)),
     keymap.of([...searchKeymap, ...historyKeymap, indentWithTab, ...defaultKeymap.filter((binding) => binding.key !== "Mod-[" && binding.key !== "Mod-]")]),
     EditorView.domEventHandlers({
       keydown: (event, view) => {

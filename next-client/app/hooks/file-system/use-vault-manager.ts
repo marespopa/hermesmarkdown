@@ -46,6 +46,7 @@ import { useOpenVault } from "./use-open-vault";
 import { clearNoteContent } from "@/app/services/content-search-client";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { loadStoredWorkspace } from "./stored-workspace";
+import { migrateLegacyGitHubVaults } from "@/app/services/legacy-github-vaults";
 
 // Each scan and each indexing run takes a number; an older one drops its
 // results once a newer one starts, or once another vault is open. Module
@@ -175,7 +176,7 @@ export function useVaultManager() {
     [setIndexerState, setFileMetadata, setVaultFolderPaths, setVaultTextFiles, showHiddenFiles, store],
   );
 
-  const { initVaultFromHandle, initGitHubVault, openVault } = useOpenVault({ scanVault, indexVaultTags, detectCloudVault });
+  const { initVaultFromHandle, openVault } = useOpenVault({ scanVault, indexVaultTags, detectCloudVault });
 
   // A single gesture can reach restoreVault twice (the gate's window listener
   // and the Restore Access button); only the first opens the browser prompt.
@@ -250,6 +251,8 @@ export function useVaultManager() {
     }
 
     async function restoreSavedVault() {
+      // Once: GitHub vaults left from before their removal become browser vaults.
+      await migrateLegacyGitHubVaults();
       const savedHandle = await loadVaultHandle();
       if (savedHandle) {
         setVaultHandle(savedHandle);
@@ -308,7 +311,6 @@ export function useVaultManager() {
     scanVault,
     indexVaultTags,
     initVaultFromHandle,
-    initGitHubVault,
     openVault,
     restoreVault,
     closeVault,

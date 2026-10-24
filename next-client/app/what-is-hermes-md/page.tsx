@@ -63,8 +63,7 @@ export default function WhatIsHermesMd() {
                 where: a folder of <InlineCode>.md</InlineCode> files on your disk, edited in place
                 (Chrome, Edge, and other Chromium browsers; an existing Obsidian vault works too), a
                 browser vault kept in the browser&apos;s own storage (any browser, including Safari,
-                Firefox, phones, and tablets), or a GitHub repository when you want the same notes on
-                several devices. Installed as an app, it works offline. Only GitHub sync and the
+                Firefox, phones, and tablets). Installed as an app, it works offline. Only the
                 optional bring-your-own-key AI features talk to a server. It has no relationship to any
                 AI agent&apos;s memory system.
               </p>

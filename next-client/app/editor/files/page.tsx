@@ -92,11 +92,11 @@ export default function FilesPage() {
   if (!isMounted) return null;
 
   return (
-    <ShellPage title="All Notes">
+    <ShellPage title="All Files">
       <main className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-4 py-5 sm:px-8">
         <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="truncate text-ui-title-3 font-semibold">All Notes</h1>
+            <h1 className="truncate text-ui-title-3 font-semibold">All Files</h1>
             <p className="truncate text-ui-caption text-stone">{vaultName ?? "No vault open"}</p>
           </div>
         {vaultHandle && (
@@ -133,7 +133,7 @@ export default function FilesPage() {
             <div className="mb-3 flex items-center justify-between gap-3 text-ui-footnote text-fg-muted">
               <p>
                 {isFiltered
-                  ? formatCount(totalResultsCount, ["matching note", "matching notes"])
+                  ? formatCount(totalResultsCount, ["matching file", "matching files"])
                   : `${formatCount(allFiles.length, ["note", "notes"])}, ${formatCount(folderPaths.length, ["folder", "folders"])}`}
               </p>
             </div>

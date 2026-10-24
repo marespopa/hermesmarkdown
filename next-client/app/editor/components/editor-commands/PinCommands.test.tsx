@@ -43,7 +43,7 @@ describe("PinCommands", () => {
     setup();
     expect(menu()).toMatchObject({ label: "Pin Page to Sidebar…", category: "Workspace", disabledReason: undefined });
     expect(menu().subcommands!.map((command) => [command.id, command.label])).toEqual([
-      ["pin-page:files", "All Notes"],
+      ["pin-page:files", "All Files"],
       ["pin-page:tags", "Tags"],
       ["pin-page:tasks", "Tasks"],
       ["pin-page:templates", "Templates"],

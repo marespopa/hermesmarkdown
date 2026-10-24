@@ -85,7 +85,7 @@ export default function LandingPage() {
             </Link>
           </div>
           <p className="text-ui-footnote text-neutral-500 dark:text-neutral-500">
-            Private by default. Your notes stay in files you control.
+            Private by default. Your work stays in files you control.
           </p>
         </div>
       </section>
@@ -113,7 +113,7 @@ export default function LandingPage() {
           <p className={`text-lg ${BODY}`}>
             HermesMarkdown edits plain Markdown files where they already live.
             There is nothing to install and nothing to sign up for, and your
-            notes stay readable by any other editor or tool.
+            files stay readable by any other editor or tool.
           </p>
         </div>
         <ul className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -132,7 +132,7 @@ export default function LandingPage() {
             Works in every modern browser
           </h2>
           <p className={`text-lg ${BODY}`}>
-            Where your notes live depends on what the browser allows.
+            Where your files live depends on what the browser allows.
           </p>
         </div>
         <ul className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-3">

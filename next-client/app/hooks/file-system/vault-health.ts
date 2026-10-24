@@ -2,7 +2,7 @@ import { clearRecoveryIssue, reportRecoveryIssue } from "@/app/atoms/recovery-at
 
 // Whether the open vault folder can still be written: the browser may have
 // taken back permission, or the folder may have been deleted or moved
-// outside Hermes. Browser-storage and GitHub workspaces have no
+// outside Hermes. Browser-storage vaults have no
 // queryPermission and can't go missing this way, so they read as "ok" unless
 // listing them fails.
 export type VaultHealth = "ok" | "access-lost" | "vault-missing";

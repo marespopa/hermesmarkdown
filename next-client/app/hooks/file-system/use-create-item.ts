@@ -148,7 +148,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
       const baseName = trimmedName.endsWith(".md") ? trimmedName.slice(0, -3) : trimmedName;
 
       try {
-        const { handle: newFileHandle, fileName } = await createUniqueFile(targetDir, baseName);
+        const { handle: newFileHandle, fileName } = await createUniqueFile(targetDir, baseName, { keepTextName: true });
 
         // Write content immediately if provided.
         // If empty, pad with a newline to prevent creating a 0-byte file,
