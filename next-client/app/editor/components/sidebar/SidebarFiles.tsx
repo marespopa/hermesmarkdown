@@ -3,7 +3,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { HiOutlineSearch } from "react-icons/hi";
 import BareInput from "@/app/components/Input/BareInput";
-import { FIELD_COMPACT_CLASS } from "@/app/components/Input/field-styles";
+import { FIELD_SIDEBAR_CLASS } from "@/app/components/Input/field-styles";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { usePins } from "@/app/hooks/use-pins";
 import VaultFileTree from "../VaultFileTree";
@@ -74,7 +74,7 @@ export default function SidebarFiles({ treeController, activeFilePath, openHandl
       })}
     >
       <div className="relative mb-1">
-        <HiOutlineSearch size={14} aria-hidden="true" className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-faint" />
+        <HiOutlineSearch size={13} aria-hidden="true" className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-fg-faint" />
         <BareInput
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -94,7 +94,7 @@ export default function SidebarFiles({ treeController, activeFilePath, openHandl
           aria-invalid={filter && !filter.valid ? true : undefined}
           title={filter && !filter.valid ? "Not a valid pattern: matching the text as typed" : "Search file paths (a regular expression works too)"}
           spellCheck={false}
-          className={`${FIELD_COMPACT_CLASS} w-full border border-edge pl-8`}
+          className={`${FIELD_SIDEBAR_CLASS} w-full pl-7`}
         />
       </div>
       <VaultFileTree
