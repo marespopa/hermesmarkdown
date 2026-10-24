@@ -87,7 +87,7 @@ describe("buildEditorCommands", () => {
     expect(unpinned.toggleNotePin).toHaveBeenCalledWith("Note.md");
 
     const pinned = buildEditorCommands(createContext({ pinnedNotePaths: ["Note.md"] }));
-    expect(pinned.find((command) => command.id === "toggle-note-pin")?.label).toBe("Unpin Note");
+    expect(pinned.find((command) => command.id === "toggle-note-pin")?.label).toBe("Unpin File");
   });
 
   it("offers New board only with a vault, and runs createBoard", () => {

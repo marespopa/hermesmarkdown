@@ -236,7 +236,7 @@ describe("PaneLeaf Tab Indicators", () => {
     fireEvent.contextMenu(screen.getByText("file1"));
     fireEvent.click(screen.getByRole("menuitem", { name: "Pin File" }));
     fireEvent.contextMenu(screen.getByText("file1"));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Unpin Note" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Unpin File" }));
     fireEvent.contextMenu(screen.getByText("file1"));
     expect(screen.getByRole("menuitem", { name: "Pin File" })).toBeInTheDocument();
   });

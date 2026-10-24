@@ -44,7 +44,7 @@ describe("extractCodeOutline", () => {
 
   it("names a Rust impl by its header and a C++ function by its name, not its return type", () => {
     expect(outline(rust, "struct Point { x: i32 }\nimpl Display for Point {\n    fn fmt(&self) {}\n}\n"))
-      .toEqual(["1 Point @1", "1 impl Display for Point @2", "2 fmt @3"]);
+      .toEqual(["1 Point @1", "2 x @1", "1 impl Display for Point @2", "2 fmt @3"]);
     expect(outline(cpp, "struct Point { int x; };\nPoint make() { return {}; }\nstruct Point p;\n"))
       .toEqual(["1 Point @1", "2 x @1", "1 make @2"]);
   });
