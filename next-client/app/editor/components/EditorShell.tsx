@@ -10,13 +10,15 @@ import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useVaultPins } from "@/app/hooks/use-vault-pins";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { formatShortcut } from "@/app/utils/platform";
+import { useRecentVaultTracker } from "../hooks/use-recent-vaults";
 import BrowserVaultDialog from "./BrowserVaultDialog";
-import GitHubVaultDialog from "./GitHubVaultDialog";
+import RecentVaultsDialog from "./RecentVaultsDialog";
 import NewVaultDialog from "./NewVaultDialog";
 import Button from "@/app/components/Button";
 import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 import PaneToolbarButton from "./PaneToolbarButton";
-import CopyMarkdownButton from "./CopyMarkdownButton";
+import CopyContentButton from "./CopyContentButton";
+import OutlineToggleButton from "./OutlineToggleButton";
 import SearchPill from "./SearchPill";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import ActiveFileIndexer from "./ActiveFileIndexer";
@@ -44,7 +46,7 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
 // the sidebar is hidden, a Show sidebar button sits in the top-left corner
 // of every page, the editor too (it has no toolbar). On the editor the
 // SearchPill sits in the top-right corner, where the pages' title bars have
-// theirs, with Copy Markdown just left of it, so the page itself stays bare. Nothing
+// theirs, with Copy Contents just left of it, so the page itself stays bare. Nothing
 // hides on its own: the sidebar opens and closes only when you toggle it,
 // remembered. RecoveryBanner floats above the content while notes can't be
 // saved (lost vault access, a missing vault folder, full storage). Once the
@@ -62,6 +64,8 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   const hasSidebar = !isMobileChrome && !isVaultLocked;
   useVaultPins(!isVaultLocked);
   useVaultSync();
+  // On every route, so the Vault menu lists the recents from Settings too.
+  useRecentVaultTracker();
   const onEditor = usePathname() === "/editor";
 
   useEffect(() => {
@@ -105,18 +109,19 @@ export default function EditorShell({ children }: { children: ReactNode }) {
         // The way into the command palette, the center of the app: every
         // note and command (as Ctrl/Cmd+K). Placed as in ShellPage's title
         // bar, so it stays put moving between the editor and the pages.
-        // Copy Markdown sits just left of it.
+        // Copy Contents sits just left of it, the outline toggle left of that.
         <div className="fixed top-1.5 right-8 z-30 flex items-center gap-1.5">
-          <CopyMarkdownButton />
+          <OutlineToggleButton />
+          <CopyContentButton />
           <SearchPill />
         </div>
       )}
       {!isVaultLocked && <RecoveryBanner />}
       {!isVaultLocked && <PinCommands />}
       <NewVaultDialog />
-      <GitHubVaultDialog />
       <ActiveFileIndexer />
       <BrowserVaultDialog />
+      <RecentVaultsDialog />
     </div>
   );
 }

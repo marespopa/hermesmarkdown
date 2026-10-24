@@ -98,7 +98,7 @@ export default function AppCommands() {
           action: () => router.push(href),
         };
   const pageCommands = [
-    page("open-all-notes", "Open All Notes", "/editor/files", "files notes list library browse vault"),
+    page("open-all-notes", "Open All Files", "/editor/files", "files notes list library browse vault"),
     page("open-tags", "Open Tags", "/editor/tags", "tags hashtags labels topics browse"),
     page("open-trash", "Open Trash", "/editor/trash", "trash deleted restore put back recover bin"),
     page("go-tasks", "Open Tasks", "/editor/tasks", "tasks todos checklist", false),

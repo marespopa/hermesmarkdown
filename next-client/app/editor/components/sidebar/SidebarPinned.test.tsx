@@ -6,7 +6,7 @@ import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_pins } from "@/app/atoms/pin-atoms";
 import { seedPins } from "@/app/atoms/pin-atoms.test-utils";
 import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
-import { atom_filesRevealPath, atom_indexerState } from "@/app/atoms/ui-atoms";
+import { atom_filesRevealPath, atom_indexerState, atom_openingFilePath } from "@/app/atoms/ui-atoms";
 import { atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
 import type { Pin } from "@/app/services/pins-model";
 import SidebarPinned from "./SidebarPinned";
@@ -23,6 +23,13 @@ vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => ({ openFile
 
 const showErrorToast = vi.hoisted(() => vi.fn());
 vi.mock("@/app/components/Toastr", () => ({ showErrorToast }));
+vi.mock("../FolderPopover", () => ({
+  default: ({ folder, onShowInFiles }: { folder: string; onShowInFiles: (folder: string) => void }) => (
+    <div role="dialog" aria-label={`Folder ${folder}`}>
+      <button type="button" onClick={() => onShowInFiles(folder)}>Show in Files</button>
+    </div>
+  ),
+}));
 
 const handle = { kind: "file", name: "roadmap.md" };
 const meta = (path: string, extra: Partial<FileMetadata> = {}): FileMetadata => ({
@@ -85,13 +92,27 @@ describe("SidebarPinned", () => {
     expect(rowButton("roadmap")).toHaveAttribute("title", "projects/roadmap.md");
   });
 
-  it("opens a note, reveals a folder in Files and opens a page", async () => {
+  it("marks a note current with a spinner while it opens, before the read is done", () => {
+    const store = setup({ activePath: "other.md" });
+    act(() => { store.set(atom_openingFilePath, "projects/roadmap.md"); });
+    expect(rowButton("roadmap")).toHaveAttribute("aria-current", "page");
+    expect(rowButton("roadmap")).toHaveAttribute("aria-busy", "true");
+    act(() => { store.set(atom_openingFilePath, null); });
+    expect(rowButton("roadmap")).not.toHaveAttribute("aria-busy");
+  });
+
+  it("opens a note, a folder's list (Show in Files from it) and a page", async () => {
     const store = setup();
     fireEvent.click(rowButton("roadmap"));
     await waitFor(() => expect(openFile).toHaveBeenCalledWith(handle, "projects/roadmap.md"));
 
     fireEvent.click(rowButton("projects"));
+    expect(rowButton("projects")).toHaveAttribute("aria-expanded", "true");
+    expect(store.get(atom_filesRevealPath)).not.toBe("projects");
+    fireEvent.click(screen.getByRole("button", { name: "Show in Files" }));
     expect(store.get(atom_filesRevealPath)).toBe("projects");
+    fireEvent.click(rowButton("projects"));
+    expect(screen.queryByRole("dialog", { name: "Folder projects" })).not.toBeInTheDocument();
 
     fireEvent.click(rowButton("Tasks"));
     expect(navigation.push).toHaveBeenCalledWith("/editor/tasks");
@@ -126,11 +147,19 @@ describe("SidebarPinned", () => {
     expect(rowButton("projects")).not.toHaveAttribute("aria-current");
   });
 
+  it("opens the emoji picker from a click on the icon", () => {
+    setup();
+    fireEvent.click(screen.getByRole("button", { name: "Change icon of roadmap" }));
+    expect(screen.getByRole("dialog", { name: "Pin icon" })).toBeInTheDocument();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
   it("sets the icon and unpins from the row's menu", async () => {
     const store = setup();
-    fireEvent.click(screen.getByRole("button", { name: "roadmap actions" }));
+    fireEvent.contextMenu(screen.getByRole("button", { name: "Change icon of roadmap" }));
     expect(screen.getByRole("menuitem", { name: "Change Icon…" })).toBeInTheDocument();
     expect(screen.queryByRole("menuitem", { name: "Move Up" })).not.toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
 
     fireEvent.contextMenu(rowButton("projects"));
     expect(screen.getByRole("menuitem", { name: "Set Icon…" })).toBeInTheDocument();
@@ -205,7 +234,7 @@ describe("SidebarPinned", () => {
     fireEvent.keyDown(rowButton("roadmap"), { key: "ArrowDown", altKey: true });
     await waitFor(() => expect(targets(store)).toEqual(["projects", "projects/roadmap.md", "release", "tasks"]));
 
-    fireEvent.keyDown(screen.getByRole("button", { name: "Tasks actions" }), { key: "ArrowUp", altKey: true });
+    fireEvent.keyDown(screen.getByRole("button", { name: "Add icon to Tasks" }), { key: "ArrowUp", altKey: true });
     await waitFor(() => expect(targets(store)).toEqual(["projects", "projects/roadmap.md", "tasks", "release"]));
   });
 

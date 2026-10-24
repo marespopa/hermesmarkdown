@@ -17,6 +17,13 @@ interface PinIconPopoverProps {
   /** Saves an icon (null removes it); resolves true once written. */
   onPick: (icon: string | null) => Promise<boolean>;
   onClose: () => void;
+  /** The button that opened it: presses on it don't count as outside
+   *  clicks, so it can toggle the popover shut itself. */
+  anchorRef?: React.RefObject<HTMLElement | null>;
+  /** Accessible name. */
+  label?: string;
+  /** Opened from a modal dialog: stacks above it (DialogModal is z-[1000]). */
+  overDialog?: boolean;
 }
 
 const EDGE = 8;
@@ -27,7 +34,8 @@ interface Tile {
   name: string;
 }
 
-// A pinned row's emoji picker (the sidebar's Pinned section): a search field
+// The emoji picker for a pinned row (the sidebar's Pinned section) and for
+// the open vault's icon (SidebarHeader): a search field
 // over the app's local emoji index (emoji-index.ts; curated ones first with
 // nothing typed), a grid of up to 64 matches, and Remove Icon. A single
 // emoji pasted into the field is offered as the first tile. Enter picks the
@@ -35,7 +43,7 @@ interface Tile {
 // write went through (a failed write toasts and leaves it open). Escape or a
 // click outside closes it without writing. Rendered into `document.body` in
 // the shared menu look, kept on screen like FolderPopover.
-export default function PinIconPopover({ anchor, current, onPick, onClose }: PinIconPopoverProps) {
+export default function PinIconPopover({ anchor, current, onPick, onClose, anchorRef, label = "Pin icon", overDialog = false }: PinIconPopoverProps) {
   const [entries, setEntries] = useState<EmojiEntry[] | null>(null);
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
@@ -73,11 +81,13 @@ export default function PinIconPopover({ anchor, current, onPick, onClose }: Pin
 
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
-      if (!panelRef.current?.contains(event.target as Node)) onClose();
+      const target = event.target as Node;
+      if (anchorRef?.current?.contains(target)) return;
+      if (!panelRef.current?.contains(target)) onClose();
     };
     document.addEventListener("mousedown", onPointerDown);
     return () => document.removeEventListener("mousedown", onPointerDown);
-  }, [onClose]);
+  }, [onClose, anchorRef]);
 
   // Focus goes to the search field, and back where it was on close.
   useEffect(() => {
@@ -103,7 +113,7 @@ export default function PinIconPopover({ anchor, current, onPick, onClose }: Pin
     <div
       ref={panelRef}
       role="dialog"
-      aria-label="Pin icon"
+      aria-label={label}
       // Escape closes the popover only: portaled, its keys still bubble to
       // the sidebar, whose Escape would hide it.
       onKeyDown={(event) => {
@@ -113,7 +123,7 @@ export default function PinIconPopover({ anchor, current, onPick, onClose }: Pin
         onClose();
       }}
       style={{ left: pos.x, top: pos.y }}
-      className={`${MENU_PANEL_CLASS} w-[min(18.5rem,calc(100vw-16px))] origin-top-left transition-[opacity,transform] duration-150 ease-out motion-reduce:transition-none ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+      className={`${overDialog ? MENU_PANEL_CLASS.replace("z-50", "z-[1010]") : MENU_PANEL_CLASS} w-[min(18.5rem,calc(100vw-16px))] origin-top-left transition-[opacity,transform] duration-150 ease-out motion-reduce:transition-none ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
     >
       <BareInput
         ref={inputRef}

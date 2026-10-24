@@ -22,9 +22,9 @@ describe("ThemePicker", () => {
 });
 
 describe("theme palettes", () => {
-  it("offers the palettes in pairs, plus the light-only Sepia", () => {
+  it("offers the palettes in pairs, plus Sepia and Nord", () => {
     expect(LIGHT_THEMES.map((t) => t.value)).toEqual(["paper", "sepia", "solarized", "plain"]);
-    expect(DARK_THEMES.map((t) => t.value)).toEqual(["ink", "nord", "graphite"]);
+    expect(DARK_THEMES.map((t) => t.value)).toEqual(["ink", "nord", "solarized", "graphite"]);
   });
 
   it("moves palettes from earlier versions to their closest current one", () => {

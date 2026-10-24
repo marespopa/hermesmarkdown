@@ -3,7 +3,7 @@
 Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean doc: state, storage, network, usage, props).
 
 - State lives in Jotai atoms (`app/atoms/*`). Persisted preferences use `atomWithStorage` (`localStorage`), and vault handles live in IndexedDB (`app/services/idb.ts`).
-- Notes are plain files accessed through the File System Access API (`useFileSystem`). Only the opt-in AI (`/api/ai`) and GitHub vault (`/api/github/*`) features reach the network.
+- Notes are plain files accessed through the File System Access API (`useFileSystem`). Only the opt-in AI (`/api/ai`) reaches the network.
 - Commands register with the palette through `useRegisterCommand` (see `editor-commands/README.md`).
 
 | Component | Role |
@@ -20,7 +20,8 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [EditorCommands](EditorCommands.md) | Registers the editor command-palette entries (renders nothing). |
 | [BlockTypeMenu](BlockTypeMenu.md) | The selection toolbar's "Turn into" dropdown: shows the line's block type and turns selected lines into text, a heading, a list, a to-do or a quote. |
 | [BrowserVaultDialog](BrowserVaultDialog.md) | Create, reopen, or delete vaults stored in browser storage (Safari, Firefox, mobile). |
-| [GitHubVaultDialog](GitHubVaultDialog.md) | Sign in to GitHub, pick or create a repository, and open it as a vault. |
+| [RecentVaultsDialog](RecentVaultsDialog.md) | Open, reorder, pin or remove recent vaults; only pinned ones are listed in the Vault menu, and they never age out. |
+| [OutlineToggleButton](OutlineToggleButton.md) | The editor corner's pill that shows or hides the note's outline, left of Copy Contents. |
 | [ImageDialog](ImageDialog.md) | Lightbox for note images; resolves vault-relative paths locally. |
 | [LinkPill](LinkPill.md) | Floating pill over a Markdown or wiki link in the editor, offering open and edit (label and URL). |
 | [MarkdownEditor](MarkdownEditor.md) | CodeMirror 6 Markdown editor with inline pills, callouts, slash templates, and folding. |
@@ -36,7 +37,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |
 | [PaneToolbarButton](PaneToolbarButton.md) | Icon-only toolbar button with a tooltip. |
 | [PinIconPopover](PinIconPopover.md) | A pinned row's emoji picker (the sidebar's Pinned section): search the local emoji index, paste one, Remove Icon; closes once the icon is written. |
-| [FolderPopover](FolderPopover.md) | A breadcrumb folder's notes and subfolders, under the pane title: step in and up, search everything below it (virtualized past 200 rows), open a note, New Note / New Folder (header buttons) named in place, Show in Files; at the vault's root, a Vault ▸ submenu with the vault switcher and Close Vault. `folder-listing.ts` lists and searches a folder. |
+| [FolderPopover](FolderPopover.md) | A breadcrumb folder's notes and subfolders, under the pane title: step in and up, search everything below it (virtualized past 200 rows), open a note, New File / New Folder (header buttons) named in place, Show in Files; at the vault's root, a Vault ▸ submenu with the vault switcher and Close Vault. `folder-listing.ts` lists and searches a folder. |
 | [PaneTitle](PaneTitle.md) | The pane's header, in place of a toolbar: the note's folder breadcrumb (each folder opens a `FolderPopover`), its name and a save dot, at the top left; a click on the name (or a right-click) opens the note's menu, whose Rename renames it in place. `save-state.tsx` holds the save-state dot, icon and labels it shares with the mobile file bar. |
 | [PdfExport](PdfExport.md) | Mounts **Export as PDF** (palette and More menu): the focused note rendered with its `pdf_*` page setup, shown in the export dialog, and printed through the browser's dialog, on the device; also **Export as HTML**, a standalone `.html` download. |
 | [PdfExportDialog](PdfExportDialog.md) | The export dialog: the note's page setup beside a preview of its pages; Save as PDF… opens the print dialog. |
@@ -50,20 +51,20 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [TaskDialog](TaskDialog.md) | Form for building a task line (title, status, priority, due date, tags). |
 | [UnifiedSearchInput](UnifiedSearchInput.md) | Search field that turns `#tag` entries into removable tag chips alongside free text, with tag autocomplete. |
 | [EditorSkeleton](EditorSkeleton.md) | Shown while the saved vault loads: the editor's outline (sidebar, tab pills, the note's text column); on an /editor sub-page, that page's outline (RouteSkeletons). |
-| [RouteSkeletons](RouteSkeletons.md) | Loading outlines of the /editor sub-pages (Templates, Tasks, All Notes, Trash, Settings), chosen by path for EditorSkeleton. |
+| [RouteSkeletons](RouteSkeletons.md) | Loading outlines of the /editor sub-pages (Templates, Tasks, All Files, Trash, Settings), chosen by path for EditorSkeleton. |
 | [VaultAccessGate](VaultAccessGate.md) | Wraps every /editor route: restores the saved vault on load and keeps the route hidden until it is readable, with the Restore Access prompt when needed. |
 | [VaultPendingOverlay](VaultPendingOverlay.md) | Prompt shown after reload when the stored vault handle needs the user to grant permission again. |
-| [VaultActionButtons](VaultActionButtons.md) | Open / Create / Browser Vault buttons, shown where no vault is open. |
+| [VaultActionButtons](VaultActionButtons.md) | Open / Create Vault buttons, shown where no vault is open. |
 | [VaultFileTree](VaultFileTree.md) | Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves. |
 | [vault-tree/](vault-tree/README.md) | `VaultFileTree` building blocks: tree model, `FileRow`, `FolderRow`, `TreeNodes`. |
-| [FolderPrompt](FolderPrompt.md) | The only first-run question, asked late: once a draft has text and no vault is open, a quiet bottom bar offers Choose Folder… (or Keep Notes in This Browser) and Not Now. |
+| [FolderPrompt](FolderPrompt.md) | The only first-run question, asked late: once a draft has text and no vault is open, a quiet bottom bar offers Choose Folder… (or Keep Files in This Browser) and Not Now. |
 | [WikiLinkDialog](WikiLinkDialog.md) | Picks or creates a `[[WikiLink]]` target, with substring-matched suggestions from vault file metadata. |
 | [EditorShell](EditorShell.md) | The frame of every /editor route: hosts the sidebar (a plain panel that takes room), sets `--content-left`, owns the sidebar shortcuts and the vault dialogs, shows the open vault's pins (`useVaultPins`) and mounts `PinCommands`. |
 | [RecoveryBanner](RecoveryBanner.md) | The line above the editor while notes can't be saved (vault access lost, vault folder missing, storage full or nearly full) or the note is very large; offers Export note as .md and a fix. |
 | [ActiveFileIndexer](ActiveFileIndexer.md) | Re-indexes the active note a second after its text changes; mounted once by EditorShell so typing re-renders only it. |
-| [CopyMarkdownButton](CopyMarkdownButton.md) | Copies the active note as Markdown; sits just left of the SearchPill in the editor's top-right corner, in its look. |
+| [CopyContentButton](CopyContentButton.md) | Copies the active note as Markdown; sits just left of the SearchPill in the editor's top-right corner, in its look. |
 | [SearchPill](SearchPill.md) | The command palette's search field at rest, in the toolbar and every page's title bar: the app's main way in. |
-| [ShellPage](ShellPage.md) | The frame of every /editor page (Tasks, Templates, Trash, All Notes, Settings): a title bar and the page, beside the open sidebar. |
+| [ShellPage](ShellPage.md) | The frame of every /editor page (Tasks, Templates, Trash, All Files, Settings): a title bar and the page, beside the open sidebar. |
 | [WorkspaceSidebar](WorkspaceSidebar.md) | The window's sidebar (desktop), the same on every /editor route and only the library: the vault switcher, New note, Pinned and Files; hideable and resizable. |
 | [sidebar/](sidebar/README.md) | `WorkspaceSidebar`'s parts and its navigation hook. |
 

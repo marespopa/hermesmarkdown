@@ -18,14 +18,14 @@ import { TabContextMenuItem } from "../components/TabContextMenu";
 import { useMaterializeDraft } from "./use-materialize-draft";
 import { flushBoardWrite } from "@/app/utils/board/board-flush";
 
-/** Copies a note's Markdown to the clipboard, with a toast either way. */
-export async function copyMarkdownToClipboard(content: string) {
+/** Copies a file's text (a note's Markdown, a code file's source) to the clipboard, with a toast either way. */
+export async function copyContentToClipboard(content: string) {
   try {
     await navigator.clipboard.writeText(content);
-    showCopyToast("Markdown copied to clipboard!");
+    showCopyToast("Copied to clipboard!");
   } catch (err) {
     console.error("Failed to copy:", err);
-    showErrorToast("Failed to copy markdown");
+    showErrorToast("Failed to copy");
   }
 }
 
@@ -82,7 +82,7 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
       }
     }
 
-    // Draft saved to the vault for the first time → the New Notes folder, named from its first line.
+    // Draft saved to the vault for the first time → the New Files folder, named from its first line.
     if (vaultHandle) {
       await materializeDraft(leaf?.id);
       return;
@@ -92,7 +92,7 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
     await handleExport();
   }, [content, liveHandle, filePath, vaultHandle, saveFile, materializeDraft, leaf?.id, handleExport]);
 
-  const handleCopy = useCallback(() => copyMarkdownToClipboard(content), [content]);
+  const handleCopy = useCallback(() => copyContentToClipboard(content), [content]);
 
   const closeTabWithAutosave = useCallback(async (path: string) => {
     if (!leaf) return;

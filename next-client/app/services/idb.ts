@@ -1,17 +1,10 @@
-import type { GitHubVaultDescriptor, GitHubVaultManifest } from "./github-vault-workspace";
 import { isBrowserVaultDescriptor, type BrowserVaultDescriptor } from "./opfs";
 
 const DB_NAME = "HermesMDVaultDB";
 const STORE_NAME = "handles";
 const KEY_VAULT = "lastVaultHandle";
-const KEY_GITHUB_VAULT = "lastGithubVault";
-const KEY_GITHUB_MANIFEST_PREFIX = "githubManifest:";
 const KEY_BROWSER_VAULT = "lastBrowserVault";
 const KEY_BROWSER_VAULT_REGISTRY = "browserVaults";
-
-function getGitHubManifestKey(descriptor: Pick<GitHubVaultDescriptor, "repositoryId" | "branch">) {
-  return `${KEY_GITHUB_MANIFEST_PREFIX}${descriptor.repositoryId}:${descriptor.branch}`;
-}
 
 const isSupported = () => typeof window !== "undefined" && !!window.indexedDB;
 
@@ -46,7 +39,6 @@ export async function saveVaultHandle(handle: FileSystemDirectoryHandle) {
       const tx = db.transaction(STORE_NAME, "readwrite");
       const store = tx.objectStore(STORE_NAME);
       const request = store.put(handle, KEY_VAULT);
-      store.delete(KEY_GITHUB_VAULT);
       store.delete(KEY_BROWSER_VAULT);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
@@ -54,90 +46,6 @@ export async function saveVaultHandle(handle: FileSystemDirectoryHandle) {
   } catch (err) {
     console.warn("Failed to save vault handle to IDB:", err);
   }
-}
-
-export async function saveGitHubVaultDescriptor(descriptor: GitHubVaultDescriptor) {
-  if (!isSupported()) return;
-
-  try {
-    const db = await getDB();
-    return new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readwrite");
-      const store = tx.objectStore(STORE_NAME);
-      const request = store.put(descriptor, KEY_GITHUB_VAULT);
-      store.delete(KEY_VAULT);
-      store.delete(KEY_BROWSER_VAULT);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
-  } catch (err) {
-    console.warn("Failed to save GitHub vault descriptor to IDB:", err);
-  }
-}
-
-export async function loadGitHubVaultDescriptor(): Promise<GitHubVaultDescriptor | null> {
-  if (!isSupported()) return null;
-
-  try {
-    const db = await getDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, "readonly");
-      const store = tx.objectStore(STORE_NAME);
-      const request = store.get(KEY_GITHUB_VAULT);
-      request.onsuccess = () => {
-        const descriptor = request.result;
-        const valid = descriptor &&
-          descriptor.version === 1 &&
-          descriptor.kind === "github" &&
-          Number.isSafeInteger(descriptor.repositoryId) &&
-          typeof descriptor.owner === "string" &&
-          typeof descriptor.repository === "string" &&
-          typeof descriptor.branch === "string" &&
-          typeof descriptor.displayName === "string" &&
-          (typeof descriptor.baseHeadSha === "string" || descriptor.baseHeadSha === null);
-        resolve(valid ? descriptor as GitHubVaultDescriptor : null);
-      };
-      request.onerror = () => reject(request.error);
-    });
-  } catch (err) {
-    console.warn("Failed to load GitHub vault descriptor from IDB:", err);
-    return null;
-  }
-
-}
-
-export async function saveGitHubVaultManifest(
-  descriptor: Pick<GitHubVaultDescriptor, "repositoryId" | "branch">,
-  manifest: GitHubVaultManifest,
-) {
-  if (!isSupported()) return;
-  const db = await getDB();
-  return new Promise<void>((resolve, reject) => {
-    const request = db.transaction(STORE_NAME, "readwrite").objectStore(STORE_NAME)
-      .put(manifest, getGitHubManifestKey(descriptor));
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
-}
-
-export async function loadGitHubVaultManifest(
-  descriptor: Pick<GitHubVaultDescriptor, "repositoryId" | "branch">,
-): Promise<GitHubVaultManifest | null> {
-  if (!isSupported()) return null;
-  const db = await getDB();
-  return new Promise((resolve, reject) => {
-    const request = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME)
-      .get(getGitHubManifestKey(descriptor));
-    request.onsuccess = () => {
-      const manifest = request.result;
-      const valid = manifest && manifest.version === 1 &&
-        (typeof manifest.baseHeadSha === "string" || manifest.baseHeadSha === null) &&
-        manifest.entries && typeof manifest.entries === "object" &&
-        (typeof manifest.pendingSyncOperationId === "string" || manifest.pendingSyncOperationId === null);
-      resolve(valid ? manifest as GitHubVaultManifest : null);
-    };
-    request.onerror = () => reject(request.error);
-  });
 }
 
 export async function loadVaultHandle(): Promise<FileSystemDirectoryHandle | null> {
@@ -167,7 +75,6 @@ export async function clearVaultHandle() {
       const tx = db.transaction(STORE_NAME, "readwrite");
       const store = tx.objectStore(STORE_NAME);
       const request = store.delete(KEY_VAULT);
-      store.delete(KEY_GITHUB_VAULT);
       store.delete(KEY_BROWSER_VAULT);
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
@@ -214,6 +121,24 @@ export function readKey<T>(key: string): Promise<T | undefined> {
   }));
 }
 
+// Every key in the store; used to find keys left by removed features.
+export function listKeys(): Promise<string[]> {
+  return getDB().then((db) => new Promise<string[]>((resolve, reject) => {
+    const request = db.transaction(STORE_NAME, "readonly").objectStore(STORE_NAME).getAllKeys();
+    request.onsuccess = () => resolve(request.result.filter((key): key is string => typeof key === "string"));
+    request.onerror = () => reject(request.error);
+  }));
+}
+
+export function deleteKeys(keys: readonly string[]): Promise<void> {
+  return getDB().then((db) => new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    for (const key of keys) tx.objectStore(STORE_NAME).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+
 export function writeKey(key: string, value: unknown): Promise<void> {
   return getDB().then((db) => new Promise<void>((resolve, reject) => {
     const tx = db.transaction(STORE_NAME, "readwrite");
@@ -238,13 +163,18 @@ export async function saveBrowserVaultDescriptor(descriptor: BrowserVaultDescrip
         KEY_BROWSER_VAULT_REGISTRY,
       );
       store.delete(KEY_VAULT);
-      store.delete(KEY_GITHUB_VAULT);
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
     });
   } catch (err) {
     console.warn("Failed to save browser vault descriptor to IDB:", err);
   }
+}
+
+// Adds a browser vault to the registry without making it the last-opened one.
+export async function registerBrowserVault(descriptor: BrowserVaultDescriptor) {
+  const registry = await loadBrowserVaultRegistry();
+  await writeKey(KEY_BROWSER_VAULT_REGISTRY, [...registry.filter((entry) => entry.id !== descriptor.id), descriptor]);
 }
 
 export async function loadBrowserVaultDescriptor(): Promise<BrowserVaultDescriptor | null> {

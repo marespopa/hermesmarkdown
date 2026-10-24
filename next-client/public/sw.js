@@ -4,7 +4,7 @@
 //   editor shell) when offline. Every successful navigation refreshes the cache.
 // - /_next/static and public assets: cache first. Next.js hashes these file
 //   names, so a cached copy never goes stale.
-// - /api/* (AI, GitHub) and cross-origin requests are never touched.
+// - /api/* (AI) and cross-origin requests are never touched.
 //
 // The app registers this file as /sw.js?v=<app version>. A new version
 // takes over as soon as it installs, without reloading open pages, and old

@@ -151,6 +151,21 @@ html.dark[data-dark-theme="graphite"] {
   ));
 }
 
+/* Dark: Solarized — the Solarized base03 / base02 deep teal with base2 text;
+   the accents are lightened Solarized blue/yellow/orange/green/cyan/magenta/
+   violet to clear 4.5:1 on raised, as the light one's are darkened. */
+html.dark[data-dark-theme="solarized"] {
+  @include dark-palette((
+    surface: #002B36, raised: #073642, chrome: #00222B,
+    overlay: #073642, input: #00252F, border: #164B57, tint: rgb(147, 161, 161),
+    fg: #EEE8D5, fg-muted: #A9B7B6, fg-faint: #93A1A1,
+    clay: #5AABE3, moss: #5AABE3, moss-hover: #78BCEA, hold: #CDA02A,
+    prog: #E8794A, done: #9CB13A,
+    link: #5AABE3, link-hover: #78BCEA,
+    code-string: #4DB8AE, code-number: #E86FA6, code-function: #9A9EE0,
+  ));
+}
+
 /* Dark: Nord — the Nord polar-night grays with snow-storm text and its
    frost/aurora accents (orange lightened to clear 4.5:1 on raised). */
 html.dark[data-dark-theme="nord"] {

@@ -27,7 +27,7 @@ interface FolderPopoverProps {
   /** Shown for the vault's root. */
   rootName: string;
   onOpenNote: (handle: FileSystemFileHandle, path: string) => void;
-  /** Creates (and opens) a note named `name` in `folder`; absent hides New Note. */
+  /** Creates (and opens) a note named `name` in `folder`; absent hides New File. */
   onNewNote?: (folder: string, name: string) => void;
   /** Creates a folder named `name` in `folder`, resolving to its path (null
    *  when it failed); absent hides New Folder. */
@@ -37,7 +37,14 @@ interface FolderPopoverProps {
   /** Close Vault, last in the root's Vault submenu. */
   onCloseVault?: () => void;
   onClose: () => void;
+  /** Its anchor is out of sight (a pinned folder's row in the hidden
+   *  sidebar): the popover opens centred near the window's top instead, where
+   *  the command palette does. */
+  centered?: boolean;
 }
+
+// How far down the window a centred popover starts, as the palette's.
+const CENTERED_TOP = 0.15;
 
 const EDGE = 8;
 const NO_TAGS: string[] = [];
@@ -55,7 +62,7 @@ type Creating = "note" | "folder" | null;
 // opens (with no matches, a "Create “…”" row makes a note by that name in
 // the folder), → enters a folder, ← or Backspace (with nothing typed) goes up,
 // Escape or a click outside closes it. Past VIRTUALIZE_THRESHOLD rows the
-// list is virtualized. The header's New Note and New Folder buttons turn the
+// list is virtualized. The header's New File and New Folder buttons turn the
 // field into a name field for that folder: Enter creates (a note opens, a
 // new folder is stepped into), Escape backs out. The footer stays short (one
 // row per group, as menus should): "Show in Files" shows the folder in the
@@ -63,7 +70,7 @@ type Creating = "note" | "folder" | null;
 // vault switcher (useVaultMenuItems: recent vaults, Open / Create / Browser
 // Vault) and Close Vault.
 // Rendered into `document.body` in the shared menu look (menu-classes.ts).
-export default function FolderPopover({ folder, anchor, currentPath, rootName, onOpenNote, onNewNote, onNewFolder, onShowInFiles, onCloseVault, onClose }: FolderPopoverProps) {
+export default function FolderPopover({ folder, anchor, currentPath, rootName, onOpenNote, onNewNote, onNewFolder, onShowInFiles, onCloseVault, onClose, centered = false }: FolderPopoverProps) {
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
   const vaultSwitcher = useVaultMenuItems();
   const [dir, setDir] = useState(folder);
@@ -164,11 +171,20 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
   useLayoutEffect(() => {
     const rect = panelRef.current?.getBoundingClientRect();
     if (!rect) return;
+    if (centered) {
+      const top = Math.round(window.innerHeight * CENTERED_TOP);
+      setPos({
+        x: Math.max(EDGE, Math.round((window.innerWidth - rect.width) / 2)),
+        y: top + rect.height > window.innerHeight - EDGE ? Math.max(EDGE, window.innerHeight - rect.height - EDGE) : top,
+        ready: true,
+      });
+      return;
+    }
     const x = Math.max(EDGE, Math.min(anchor.left, window.innerWidth - rect.width - EDGE));
     const below = anchor.bottom + 4;
     const y = below + rect.height > window.innerHeight - EDGE ? Math.max(EDGE, window.innerHeight - rect.height - EDGE) : below;
     setPos({ x, y, ready: true });
-  }, [anchor]);
+  }, [anchor, centered]);
 
   // A new folder or search starts at the top of its list.
   useEffect(() => {
@@ -229,7 +245,7 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
     ...(onCloseVault ? [{ label: "Close Vault", icon: <HiOutlineLogout size={15} aria-hidden="true" />, divider: true, onClick: () => { onClose(); onCloseVault(); } }] : []),
   ];
   const hasFooter = !!onShowInFiles || vaultItems.length > 0;
-  const fieldLabel = creating === "note" ? "New note name" : creating === "folder" ? "New folder name" : null;
+  const fieldLabel = creating === "note" ? "New file name" : creating === "folder" ? "New folder name" : null;
 
   const renderRow = (row: FolderRow, index: number) => (
     <Button
@@ -259,7 +275,7 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
       role="dialog"
       aria-label={`Folder ${name}`}
       style={{ left: pos.x, top: pos.y }}
-      className={`${MENU_PANEL_CLASS} w-[min(20rem,calc(100vw-16px))] origin-top-left transition-[opacity,transform] duration-150 ease-out motion-reduce:transition-none ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+      className={`${MENU_PANEL_CLASS} w-[min(20rem,calc(100vw-16px))] ${centered ? "origin-top" : "origin-top-left"} transition-[opacity,transform] duration-150 ease-out motion-reduce:transition-none ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
     >
       <div className="flex items-center gap-1 px-1 pt-0.5">
         <Button
@@ -334,7 +350,7 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
             aria-selected
             tabIndex={-1}
             onClick={createFromQuery}
-            title={`New Note “${typed}” in ${name}`}
+            title={`New File “${typed}” in ${name}`}
             className={ACTIVE_ROW}
           >
             <span className={MENU_ICON_CLASS}><HiOutlineDocumentAdd size={15} aria-hidden="true" /></span>

@@ -159,7 +159,7 @@ describe("WorkspaceSidebar", () => {
     fileSystem.vaultHandle = vault;
     renderSidebar(true);
     fireEvent.click(screen.getByRole("button", { name: "Files options" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "New Note" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New File" }));
     expect(fileSystem.createNewFile).toHaveBeenCalledWith(vault);
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
 
@@ -172,7 +172,7 @@ describe("WorkspaceSidebar", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar(true);
     fireEvent.click(screen.getByRole("button", { name: "Files options" }));
-    expect(screen.getAllByRole("menuitem").map((item) => item.textContent)).toEqual(["New Note", "New Folder"]);
+    expect(screen.getAllByRole("menuitem").map((item) => item.textContent)).toEqual(["New File", "New Folder"]);
   });
 
   it("closes the Files menu on Escape", () => {
@@ -199,12 +199,14 @@ describe("WorkspaceSidebar", () => {
     expect(screen.queryByTestId("file-tree")).not.toBeInTheDocument();
   });
 
-  it("is the library: the vault and Files, with no Open Notes or Outline; the rest is the palette's", () => {
+  it("is the library: the vault and Files, with no Open Notes or Outline; the rest is the palette's, but Settings and Help", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar(true, null, false, { "a.md": { fileName: "a.md", content: "# Plan", lastSavedContent: "" } });
 
     expect(screen.getByRole("region", { name: "Files" })).toBeInTheDocument();
-    for (const name of ["Home", "All Notes", "Tags", "Tasks", "Templates", "Trash", "Export", "Settings", "Documentation"]) {
+    expect(screen.getByRole("button", { name: "Settings" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Help" })).toBeInTheDocument();
+    for (const name of ["Home", "All Files", "Tags", "Tasks", "Templates", "Trash", "Export", "Documentation"]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
     }
     for (const name of ["Pinned", "Recent", "Open Notes", "Outline", "Linked from"]) {
@@ -332,14 +334,14 @@ describe("WorkspaceSidebar", () => {
 
   it("asks the editor for a new note, from any route", () => {
     renderSidebar();
-    fireEvent.click(screen.getByRole("button", { name: "New note" }));
+    fireEvent.click(screen.getByRole("button", { name: "New file" }));
     expect(screen.getByTestId("new-note")).toHaveTextContent("true");
     expect(navigation.push).not.toHaveBeenCalled();
     cleanup();
 
     navigation.pathname = "/editor/tasks";
     renderSidebar();
-    fireEvent.click(screen.getByRole("button", { name: "New note" }));
+    fireEvent.click(screen.getByRole("button", { name: "New file" }));
     expect(navigation.push).toHaveBeenCalledWith("/editor");
   });
 
@@ -351,7 +353,7 @@ describe("WorkspaceSidebar", () => {
 
   it("hides on Escape inside it", () => {
     renderSidebar();
-    fireEvent.keyDown(screen.getByRole("button", { name: "New note" }), { key: "Escape" });
+    fireEvent.keyDown(screen.getByRole("button", { name: "New file" }), { key: "Escape" });
     expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
   });
 

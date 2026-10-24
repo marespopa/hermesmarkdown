@@ -1,8 +1,8 @@
 // Color themes per mode: the light mode and the dark mode each pick one of
 // their own palettes (Settings → Appearance, the Theme commands), in pairs:
-// Paper / Ink (paper and blue ink; Ink is the dark paper), Solarized / Nord,
-// and Plain / Graphite (neutral, no tint at all), plus Sepia, a warm reading
-// page with no dark pair of its own (Ink is the warm dark one). Paper and
+// Paper / Ink (paper and blue ink; Ink is the dark paper), Solarized /
+// Solarized, and Plain / Graphite (neutral, no tint at all), plus Sepia, a
+// warm reading page, and Nord, arctic blue, with no pair of their own. Paper and
 // Ink, the paper pair, are the defaults. The colors live
 // in theme-palettes.scss, keyed by <html data-light-theme / data-dark-theme>;
 // the first palette of each list is the default, set on <html> before the
@@ -11,7 +11,7 @@
 // The swatch values here only draw the picker's previews.
 
 export type LightTheme = "paper" | "sepia" | "solarized" | "plain";
-export type DarkTheme = "ink" | "nord" | "graphite";
+export type DarkTheme = "ink" | "nord" | "solarized" | "graphite";
 
 export interface ThemePalette<T extends string> {
   value: T;
@@ -59,6 +59,12 @@ export const DARK_THEMES: ThemePalette<DarkTheme>[] = [
     label: "Nord",
     description: "Arctic blue",
     swatch: { surface: "#2E3440", chrome: "#262B35", fg: "#ECEFF4", accent: "#88C0D0" },
+  },
+  {
+    value: "solarized",
+    label: "Solarized",
+    description: "Classic deep teal",
+    swatch: { surface: "#002B36", chrome: "#00222B", fg: "#EEE8D5", accent: "#5AABE3" },
   },
   {
     value: "graphite",

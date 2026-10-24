@@ -79,7 +79,7 @@ describe("PaneTitle", () => {
   it("shows the vault's root alone when no note is open", () => {
     render(<PaneTitle {...base} title={null} onOpenFolder={vi.fn()} rootName="Notes" />);
     expect(screen.getByRole("button", { name: "Folder Notes" })).toBeInTheDocument();
-    expect(screen.queryByText("No note open")).not.toBeInTheDocument();
+    expect(screen.queryByText("No file open")).not.toBeInTheDocument();
     expect(screen.queryByText("/")).not.toBeInTheDocument();
   });
 
@@ -91,7 +91,7 @@ describe("PaneTitle", () => {
     expect(screen.getByText("Roadmap")).toBeInTheDocument();
     rerender(<PaneTitle {...base} title={null} onVaultMenu={onVaultMenu} vaultMenuOpen />);
     expect(screen.getByRole("button", { name: "No vault. Open a vault" })).toHaveAttribute("aria-expanded", "true");
-    expect(screen.queryByText("No note open")).not.toBeInTheDocument();
+    expect(screen.queryByText("No file open")).not.toBeInTheDocument();
     expect(screen.queryByText("/")).not.toBeInTheDocument();
   });
 
@@ -140,28 +140,28 @@ describe("PaneTitle", () => {
   it("opens the note's menu from a click on its name, without starting a rename", () => {
     const onMenu = vi.fn();
     render(<PaneTitle {...base} onRename={vi.fn()} onMenu={onMenu} />);
-    fireEvent.click(screen.getByRole("button", { name: "Roadmap. Note actions" }));
+    fireEvent.click(screen.getByRole("button", { name: "Roadmap. File actions" }));
     expect(onMenu).toHaveBeenCalledOnce();
-    expect(screen.queryByRole("textbox", { name: "Note name" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "File name" })).not.toBeInTheDocument();
   });
 
   it("marks the name expanded while its menu is open", () => {
     render(<PaneTitle {...base} onMenu={vi.fn()} menuOpen />);
-    expect(screen.getByRole("button", { name: "Roadmap. Note actions" })).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("button", { name: "Roadmap. File actions" })).toHaveAttribute("aria-expanded", "true");
   });
 
   it("shows the name as plain text without a menu to open", () => {
     render(<PaneTitle {...base} title={null} />);
-    expect(screen.queryByRole("button", { name: /Note actions/ })).not.toBeInTheDocument();
-    expect(screen.getByText("No note open")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /File actions/ })).not.toBeInTheDocument();
+    expect(screen.getByText("No file open")).toBeInTheDocument();
   });
 
   it("renames in place when the menu's Rename asks", () => {
     const onRename = vi.fn();
     const { rerender } = render(<PaneTitle {...base} onRename={onRename} onMenu={vi.fn()} />);
-    expect(screen.queryByRole("textbox", { name: "Note name" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "File name" })).not.toBeInTheDocument();
     rerender(<PaneTitle {...base} onRename={onRename} onMenu={vi.fn()} renameRequest={1} />);
-    const field = screen.getByRole("textbox", { name: "Note name" });
+    const field = screen.getByRole("textbox", { name: "File name" });
     fireEvent.change(field, { target: { value: "Launch plan" } });
     fireEvent.keyDown(field, { key: "Enter" });
     expect(onRename).toHaveBeenCalledWith("Launch plan");

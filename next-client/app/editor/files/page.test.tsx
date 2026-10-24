@@ -54,18 +54,18 @@ describe("FilesPage", () => {
     expect(screen.getByText("1,204 notes, 1 folder")).toBeInTheDocument();
   });
 
-  it("reads 1 matching note when filtered to one", () => {
+  it("reads 1 matching file when filtered to one", () => {
     search.searchQuery = "road";
     search.totalResultsCount = 1;
     search.processedFiles = [{ path: "a.md", name: "a.md" }];
     render(<Provider><FilesPage /></Provider>);
-    expect(screen.getByText("1 matching note")).toBeInTheDocument();
+    expect(screen.getByText("1 matching file")).toBeInTheDocument();
   });
 
   it("has the shared create actions and no Refresh button", () => {
     render(<Provider><FilesPage /></Provider>);
     expect(screen.queryByRole("button", { name: "Refresh" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "New Note" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "New File" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "New Folder" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "New Note from Template…" })).not.toBeInTheDocument();
   });

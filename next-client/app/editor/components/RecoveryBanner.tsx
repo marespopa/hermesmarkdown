@@ -45,7 +45,7 @@ export default function RecoveryBanner() {
     message = `Hermes lost access to ${vaultName}. Your edits are held in memory.`;
     actions = [{ label: "Grant access again", onClick: () => void regrantAccess() }, exportAction];
   } else if (issue?.kind === "vault-missing") {
-    message = `${vaultName} was moved or deleted. Your open notes are held in memory.`;
+    message = `${vaultName} was moved or deleted. Your open files are held in memory.`;
     actions = [exportAction, { label: "Choose folder", onClick: () => void chooseVault() }];
     tone = "text-danger";
   } else if (issue?.kind === "storage-full") {
@@ -57,7 +57,7 @@ export default function RecoveryBanner() {
     actions = [exportAction, clearCache];
     onDismiss = () => setIssue(null);
   } else if (isLarge && !dismissedLarge.includes(activePath)) {
-    message = "This note is very large, so typing may lag.";
+    message = "This file is very large, so typing may lag.";
     actions = [];
     tone = "text-fg-faint";
     onDismiss = () => setDismissedLarge((paths) => [...paths, activePath]);

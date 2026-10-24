@@ -163,8 +163,8 @@ export default function MarkdownEditorPage() {
               <strong className="text-ink-light dark:text-ink-dark font-semibold">HermesMarkdown</strong>{" "}
               is a local-first Markdown editor that runs entirely in your browser. It reads and writes
               files directly to your device&apos;s disk through the File System Access API, so there&apos;s
-              no account and no cloud upload. Optional GitHub-backed vaults and bring-your-own-key AI
-              are the only features that talk to a server.
+              no account and no cloud upload. Optional bring-your-own-key AI is the only feature that
+              talks to a server.
             </p>
             <p>
               It supports tabs for working on several notes, WikiLinks for connecting

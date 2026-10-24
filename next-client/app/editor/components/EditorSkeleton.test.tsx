@@ -49,10 +49,10 @@ describe("EditorSkeleton", () => {
     expect(screen.queryByText("Template packs")).not.toBeInTheDocument();
   });
 
-  it("outlines All Notes, Settings and Trash on a refresh there", () => {
+  it("outlines All Files, Settings and Trash on a refresh there", () => {
     pathname.current = "/editor/files";
     renderSkeleton();
-    expect(screen.getByRole("heading", { name: "All Notes", hidden: true })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "All Files", hidden: true })).toBeInTheDocument();
     cleanup();
     pathname.current = "/editor/settings";
     renderSkeleton();

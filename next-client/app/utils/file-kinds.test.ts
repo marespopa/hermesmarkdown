@@ -10,8 +10,14 @@ describe("file kinds", () => {
     }
   });
 
-  it("leaves out binaries, extensionless names and the vault's data folder", () => {
-    for (const path of ["photo.png", "doc.pdf", "Makefile", ".hermesmarkdown/trash/old.yaml"]) {
+  it("knows text files by name: build files, licences and tool dotfiles", () => {
+    for (const path of ["Dockerfile", "app/Makefile", "LICENSE", ".gitignore", "web/.editorconfig", ".nvmrc"]) {
+      expect(isPlainTextPath(path)).toBe(true);
+    }
+  });
+
+  it("leaves out binaries, other extensionless names and the vault's data folder", () => {
+    for (const path of ["photo.png", "doc.pdf", "bin/server", ".DS_Store", ".hermesmarkdown/trash/old.yaml"]) {
       expect(isPlainTextPath(path)).toBe(false);
     }
   });

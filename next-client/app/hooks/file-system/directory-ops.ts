@@ -34,7 +34,7 @@ export async function entryExists(dir: FileSystemDirectoryHandle, name: string):
   return false;
 }
 
-async function copyInto(src: FileSystemDirectoryHandle, dest: FileSystemDirectoryHandle): Promise<void> {
+export async function copyInto(src: FileSystemDirectoryHandle, dest: FileSystemDirectoryHandle): Promise<void> {
   for await (const entry of (src as any).values()) {
     if (entry.kind === "directory") {
       const child = await withRetry(() => dest.getDirectoryHandle(entry.name, { create: true }));

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAtomValue, useStore } from "jotai";
 import toast from "react-hot-toast";
+import { atom_pendingVaultIcon } from "@/app/atoms/ui-atoms";
 import {
   atom_recentVaults,
   atom_vaultDescriptor,
@@ -11,14 +12,16 @@ import {
   type VaultDescriptor,
 } from "@/app/atoms/vault-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { getGitHubVaultWorkspace } from "@/app/services/github-vault-workspace";
 import { loadBrowserVaultRegistry, verifyPermission } from "@/app/services/idb";
 import { listBrowserVaultIds } from "@/app/services/opfs";
 import {
   addRecentVault,
   loadRecentVaults,
+  moveRecentVault,
   removeRecentVault,
   saveRecentVaults,
+  setRecentVaultIcon,
+  setRecentVaultPinned,
   type RecentVault,
 } from "@/app/services/recent-vaults";
 
@@ -29,15 +32,16 @@ export function recentVaultEntry(
   descriptor: VaultDescriptor | null,
   openedAt = Date.now(),
 ): RecentVault {
-  if (descriptor?.kind === "browser" || descriptor?.kind === "github") {
-    return { key, kind: descriptor.kind, name: descriptor.displayName, descriptor, openedAt } as RecentVault;
+  if (descriptor?.kind === "browser") {
+    return { key, kind: "browser", name: descriptor.displayName, descriptor, openedAt };
   }
   return { key, kind: "local", name: handle.name, handle, openedAt };
 }
 
-// Mounted once, by the editor page: loads the recents list, then moves each
+// Mounted once, by EditorShell (every /editor route): loads the recents list, then moves each
 // vault that opens (or is restored) to the top of it. Follows descriptor
-// changes too, so a GitHub vault's entry keeps its latest synced commit.
+// changes too, so a renamed browser vault's entry keeps its new name. A vault
+// just made in Create Vault takes the emoji picked there (atom_pendingVaultIcon).
 export function useRecentVaultTracker() {
   const store = useStore();
   const vaultKey = useAtomValue(atom_vaultKey);
@@ -57,25 +61,43 @@ export function useRecentVaultTracker() {
 
   useEffect(() => {
     if (!isLoaded || !vaultKey || !vaultHandle) return;
-    const next = addRecentVault(store.get(atom_recentVaults), recentVaultEntry(vaultKey, vaultHandle, descriptor));
+    const entry = recentVaultEntry(vaultKey, vaultHandle, descriptor);
+    const pending = store.get(atom_pendingVaultIcon);
+    if (pending?.name === entry.name) {
+      entry.icon = pending.icon;
+      store.set(atom_pendingVaultIcon, null);
+    }
+    const next = addRecentVault(store.get(atom_recentVaults), entry);
     store.set(atom_recentVaults, next);
     void saveRecentVaults(next);
   }, [isLoaded, vaultKey, vaultHandle, descriptor, store]);
 }
 
-// The recents other than the open vault, and ways to reopen or forget one.
-// Forgetting only drops the entry; the vault's files are untouched.
+// The recents other than the open vault, and ways to reopen, forget, pin,
+// reorder or set the icon of one (each change saved at once). Forgetting only drops the entry;
+// the vault's files are untouched.
 export function useRecentVaults() {
   const store = useStore();
-  const recentVaults = useAtomValue(atom_recentVaults);
+  const allRecentVaults = useAtomValue(atom_recentVaults);
   const vaultKey = useAtomValue(atom_vaultKey);
   const { initVaultFromHandle, openBrowserVault, isVaultSupported } = useFileSystem();
 
-  const forgetRecentVault = useCallback((key: string) => {
-    const next = removeRecentVault(store.get(atom_recentVaults), key);
+  const update = useCallback((change: (list: RecentVault[]) => RecentVault[]) => {
+    const next = change(store.get(atom_recentVaults));
     store.set(atom_recentVaults, next);
     void saveRecentVaults(next);
   }, [store]);
+
+  const forgetRecentVault = useCallback((key: string) => update((list) => removeRecentVault(list, key)), [update]);
+  const pinRecentVault = useCallback(
+    (key: string, pinned: boolean) => update((list) => setRecentVaultPinned(list, key, pinned)),
+    [update],
+  );
+  const setIcon = useCallback(
+    (key: string, icon: string | null) => update((list) => setRecentVaultIcon(list, key, icon)),
+    [update],
+  );
+  const moveRecent = useCallback((key: string, to: number) => update((list) => moveRecentVault(list, key, to)), [update]);
 
   const openRecentVault = useCallback(async (entry: RecentVault): Promise<boolean> => {
     try {
@@ -92,20 +114,14 @@ export function useRecentVaults() {
         await initVaultFromHandle(entry.handle);
         return true;
       }
-      if (entry.kind === "browser") {
-        // Opening a missing browser vault would quietly create an empty one.
-        if (!(await listBrowserVaultIds()).includes(entry.descriptor.id)) {
-          forgetRecentVault(entry.key);
-          toast.error(`"${entry.name}" no longer exists in this browser.`);
-          return false;
-        }
-        const registry = await loadBrowserVaultRegistry();
-        return openBrowserVault(registry.find((item) => item.id === entry.descriptor.id) ?? entry.descriptor);
+      // Opening a missing browser vault would quietly create an empty one.
+      if (!(await listBrowserVaultIds()).includes(entry.descriptor.id)) {
+        forgetRecentVault(entry.key);
+        toast.error(`"${entry.name}" no longer exists in this browser.`);
+        return false;
       }
-      // A GitHub vault reopens from its local copy, as on startup.
-      const handle = await getGitHubVaultWorkspace(entry.descriptor);
-      await initVaultFromHandle(handle, { descriptor: entry.descriptor });
-      return true;
+      const registry = await loadBrowserVaultRegistry();
+      return openBrowserVault(registry.find((item) => item.id === entry.descriptor.id) ?? entry.descriptor);
     } catch (err) {
       console.error("Failed to open recent vault:", err);
       toast.error(`Failed to open "${entry.name}".`);
@@ -114,8 +130,15 @@ export function useRecentVaults() {
   }, [isVaultSupported, initVaultFromHandle, openBrowserVault, forgetRecentVault]);
 
   return {
-    recentVaults: recentVaults.filter((entry) => entry.key !== vaultKey),
+    recentVaults: allRecentVaults.filter((entry) => entry.key !== vaultKey),
+    /** The open vault included, for editing the list. */
+    allRecentVaults,
+    /** The open vault's entry (its icon), once the tracker has added it. */
+    openVaultEntry: allRecentVaults.find((entry) => entry.key === vaultKey) ?? null,
     openRecentVault,
     forgetRecentVault,
+    pinRecentVault,
+    moveRecentVault: moveRecent,
+    setRecentVaultIcon: setIcon,
   };
 }

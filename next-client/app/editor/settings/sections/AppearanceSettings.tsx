@@ -80,7 +80,7 @@ export default function AppearanceSettings() {
         />
         <SettingItem
           label="Text size"
-          description="The size of your notes' text."
+          description="The size of the editor's text."
           layout="stack"
           control={<SegmentedControl options={TEXT_SIZES} value={textSize} onChange={setTextSize} />}
         />

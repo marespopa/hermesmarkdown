@@ -21,21 +21,14 @@ import {
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
   saveVaultHandle,
-  saveGitHubVaultDescriptor,
   saveBrowserVaultDescriptor,
-  saveGitHubVaultManifest,
 } from "@/app/services/idb";
-import {
-  materializeGitHubVault,
-  createGitHubVaultManifestFromFiles,
-  type GitHubVaultDescriptor,
-  type GitHubVaultRemoteFile,
-} from "@/app/services/github-vault-workspace";
 import { withPickerLock, isVaultSupported } from "./shared";
 import { singlePaneLayout } from "./vault-scan";
 import { clearNoteContent } from "@/app/services/content-search-client";
 import { atom_browserVaultDialogOpen, atom_showFiles } from "@/app/atoms/ui-atoms";
 import { purgeExpiredTrash } from "./trash-ops";
+import { writeVaultHint } from "@/app/services/vault-hint";
 
 interface UseOpenVaultArgs {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -44,7 +37,7 @@ interface UseOpenVaultArgs {
 }
 
 // Opening a vault: from a handle (every open goes through
-// initVaultFromHandle), a GitHub vault's local copy, or the folder picker.
+// initVaultFromHandle) or the folder picker.
 // Part of useVaultManager, which passes in its scan and index.
 export function useOpenVault({ scanVault, indexVaultTags, detectCloudVault }: UseOpenVaultArgs) {
   const setVaultHandle = useSetAtom(atom_vaultHandle);
@@ -109,9 +102,10 @@ export function useOpenVault({ scanVault, indexVaultTags, detectCloudVault }: Us
         detectCloudVault(handle);
         if (persist) await saveVaultHandle(handle);
       } else if (persist) {
-        if (descriptor.kind === "browser") await saveBrowserVaultDescriptor(descriptor);
-        else await saveGitHubVaultDescriptor(descriptor);
+        await saveBrowserVaultDescriptor(descriptor);
       }
+      // The next load keeps the vault's skeleton up until it's readable.
+      if (persist) writeVaultHint("saved");
       // The open notes first (a few files, read again from disk), then the top
       // folder; the whole vault is indexed last, behind the editor.
       await rebindHandles(handle);
@@ -130,16 +124,6 @@ export function useOpenVault({ scanVault, indexVaultTags, detectCloudVault }: Us
       toast.success(isNewVault ? `Vault created: ${vaultName}` : `Vault opened: ${vaultName}`);
     }
   }, [setOpeningVaultName, setVaultHandle, setVaultDescriptor, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setVaultFiles, setVaultFolderPaths, setVaultTextFiles, setOpenFiles, setWorkspaceLayout, setIsCloudVault, scanVault, indexVaultTags, rebindHandles, detectCloudVault, store]);
-
-  const initGitHubVault = useCallback(async (
-    descriptor: GitHubVaultDescriptor,
-    files: readonly GitHubVaultRemoteFile[] = [],
-  ) => {
-    // Materialize before opening so scan/index never observes a partial remote vault.
-    const workspace = await materializeGitHubVault(descriptor, files);
-    await saveGitHubVaultManifest(descriptor, createGitHubVaultManifestFromFiles(descriptor.baseHeadSha, files));
-    await initVaultFromHandle(workspace, { descriptor });
-  }, [initVaultFromHandle]);
 
   const openVault = useCallback(async (): Promise<boolean> => {
     if (!isVaultSupported) {
@@ -170,5 +154,5 @@ export function useOpenVault({ scanVault, indexVaultTags, detectCloudVault }: Us
     }
   }, [initVaultFromHandle, setBrowserVaultDialogOpen]);
 
-  return { initVaultFromHandle, initGitHubVault, openVault };
+  return { initVaultFromHandle, openVault };
 }

@@ -24,7 +24,7 @@ export const PANE_ACTION_BUTTON_CLASS = `${BUTTON_BASE} w-7 h-7 rounded-full`;
 // Pressed / open state for a toggle or menu button in a section.
 export const PANE_ACTION_ACTIVE_CLASS = RAISED;
 // A square button in the SearchPill's look (same height, tint and rounding):
-// Copy Markdown in the editor's corner.
+// Copy Contents in the editor's corner.
 export const PILL_BUTTON_CLASS = "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-black/[0.05] text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage disabled:opacity-40 disabled:hover:text-fg-muted dark:bg-white/[0.07]";
 
 // One glyph size for every pane-header icon.

@@ -101,8 +101,8 @@ describe("FolderPopover", () => {
   it("names a new note in place and creates it in the folder it's on", () => {
     const onNewNote = vi.fn();
     const { onClose } = renderPopover({ onNewNote });
-    fireEvent.click(screen.getByRole("button", { name: "New Note" }));
-    const field = screen.getByRole("textbox", { name: "New note name" });
+    fireEvent.click(screen.getByRole("button", { name: "New File" }));
+    const field = screen.getByRole("textbox", { name: "New file name" });
     expect(field).toHaveFocus();
     fireEvent.change(field, { target: { value: "Launch plan" } });
     fireEvent.keyDown(field, { key: "Enter" });
@@ -125,8 +125,8 @@ describe("FolderPopover", () => {
 
   it("backs out of naming with Escape, keeping the popover open", () => {
     const { onClose } = renderPopover({ onNewNote: vi.fn() });
-    fireEvent.click(screen.getByRole("button", { name: "New Note" }));
-    fireEvent.keyDown(screen.getByRole("textbox", { name: "New note name" }), { key: "Escape" });
+    fireEvent.click(screen.getByRole("button", { name: "New File" }));
+    fireEvent.keyDown(screen.getByRole("textbox", { name: "New file name" }), { key: "Escape" });
     expect(screen.getByRole("textbox", { name: "Filter this folder" })).toBeInTheDocument();
     expect(onClose).not.toHaveBeenCalled();
   });
@@ -142,16 +142,16 @@ describe("FolderPopover", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("only says there are no matches without New Note", () => {
+  it("only says there are no matches without New File", () => {
     renderPopover();
     fireEvent.change(screen.getByRole("textbox", { name: "Filter this folder" }), { target: { value: "zzz" } });
     expect(screen.getByText("No matches")).toBeInTheDocument();
     expect(screen.queryByRole("option")).not.toBeInTheDocument();
   });
 
-  it("has no New Note or New Folder without their handlers", () => {
+  it("has no New File or New Folder without their handlers", () => {
     renderPopover();
-    expect(screen.queryByRole("button", { name: "New Note" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "New File" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "New Folder" })).not.toBeInTheDocument();
   });
 
@@ -197,5 +197,13 @@ describe("FolderPopover", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
     fireEvent.mouseDown(document.body);
     expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it("opens centred near the window's top when its anchor is out of sight", () => {
+    renderPopover({ centered: true });
+    const panel = screen.getByRole("dialog");
+    // jsdom panels have no size: centred is half the window across, 15% down.
+    expect(panel.style.left).toBe(`${Math.round(window.innerWidth / 2)}px`);
+    expect(panel.style.top).toBe(`${Math.round(window.innerHeight * 0.15)}px`);
   });
 });

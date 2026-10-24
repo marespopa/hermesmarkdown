@@ -33,7 +33,6 @@ import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
 import { useToolHandoff } from "./hooks/use-tool-handoff";
 import { useEditorShortcuts } from "./hooks/use-editor-shortcuts";
-import { useGitHubVaultActions } from "./hooks/use-github-vault-actions";
 import { useNavigateWithGuard } from "./hooks/use-navigate-with-guard";
 import { useSyncCurrentDirectory } from "./hooks/use-sync-current-directory";
 import DraftImportDialog from "./components/DraftImportDialog";
@@ -42,7 +41,6 @@ import { usePaletteCreateNote } from "./hooks/use-palette-create-note";
 import { useActiveFileUrlSync } from "./hooks/use-active-file-url";
 import { useFirstRun } from "./hooks/use-first-run";
 import { useChooseFolder } from "./hooks/use-choose-folder";
-import { useRecentVaultTracker } from "./hooks/use-recent-vaults";
 import { showSuccessToast } from "@/app/components/Toastr";
 import { downloadMarkdown } from "@/app/utils/download-markdown";
 
@@ -91,7 +89,6 @@ export default function LiteEditor() {
   useFileWatcher();
   useFirstRun(isMobileChrome);
   const chooseFolder = useChooseFolder(materializeDraft);
-  useRecentVaultTracker();
 
   // "Open AI Chat" (keyboard shortcut / command palette) bumps this counter
   // from outside the editor; the actual open() call has to happen here since
@@ -129,9 +126,11 @@ export default function LiteEditor() {
     return () => window.removeEventListener("focusin", handleFocus);
   }, []);
 
+  // Mounted: the page shows from its first paint after hydration, with no
+  // veil or fixed wait (a first visit lands straight in the editor).
   useEffect(() => {
-    const timer = setTimeout(() => setIsMounting(false), 200);
-    return () => clearTimeout(timer);
+    const frame = requestAnimationFrame(() => setIsMounting(false));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -151,13 +150,6 @@ export default function LiteEditor() {
       await exportFile(current, fileName);
     }
   }, [activeFileHandle, vaultHandle, saveFile, exportFile, fileName, materializeDraft, isVaultSupported, isBrowserVaultSupported, chooseFolder]);
-
-  const { isGitHubVault, runGitHubCommitCommand, runGitHubPullCommand } = useGitHubVaultActions({
-    vaultHandle,
-    activeFileHandle,
-    saveFile,
-    refreshVault: handleRefreshVault,
-  });
 
   // Shortcut Listener with Ref Pattern for stability
   const handleSaveRef = useRef(handleSave);
@@ -213,11 +205,6 @@ export default function LiteEditor() {
       <EditorCommands
         onNewFile={handleNewFile}
         onExport={handleExport}
-        githubVault={isGitHubVault}
-        onGitHubCommit={() => void runGitHubCommitCommand()}
-        onGitHubPush={() => void runGitHubCommitCommand()}
-        onGitHubSync={() => void runGitHubCommitCommand()}
-        onGitHubPull={() => void runGitHubPullCommand()}
         onSave={() => handleSaveRef.current()}
         isMobileChrome={isMobileChrome}
         onOpenTasks={() => navigateWithGuard("/editor/tasks", "Tasks")}
@@ -227,7 +214,7 @@ export default function LiteEditor() {
         onRunAIAction={aiActions.runAIActionById}
       />
       {/* On the feed, its skeleton (gate, then the main area) leads straight into it. */}
-      <LoadingOverlay isVisible={isMounting || !!navigatingLabel} text={navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
+      <LoadingOverlay isVisible={!!navigatingLabel} text={`${navigatingLabel}...`} />
       {/* Switching files keeps the editor on screen; a slim bar (shown only if
           it takes >150ms) signals the read + re-render instead of a full veil. */}
       <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />

@@ -66,7 +66,7 @@ describe("RecoveryBanner", () => {
 
   it("notes a very large note until dismissed", () => {
     renderWith(null, "x".repeat(LARGE_NOTE_CHARS + 1));
-    expect(screen.getByRole("status")).toHaveTextContent("This note is very large");
+    expect(screen.getByRole("status")).toHaveTextContent("This file is very large");
     fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
     expect(screen.queryByRole("status")).toBeNull();
   });

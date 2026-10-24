@@ -32,10 +32,10 @@ const props = (pinned: string[] = []) => {
 const labels = (items: { label: string }[]) => items.map((item) => item.label);
 
 describe("treeMenuItems pins", () => {
-  it("offers Pin on a folder after New Note / New Folder and before Rename", () => {
+  it("offers Pin on a folder after New File / New Folder and before Rename", () => {
     const { props: treeProps, togglePin } = props();
     const items = treeMenuItems({ type: "row", kind: "folder", path: "projects" }, treeProps, actions);
-    expect(labels(items)).toEqual(["New Note", "New Folder", "Pin", "Rename", "Move to Trash"]);
+    expect(labels(items)).toEqual(["New File", "New Folder", "Pin", "Rename", "Move to Trash"]);
     items.find((item) => item.label === "Pin")!.onSelect();
     expect(togglePin).toHaveBeenCalledWith("projects", "folder");
   });

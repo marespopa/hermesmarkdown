@@ -17,7 +17,7 @@ const ICON = { size: 15, "aria-hidden": true, className: SIDEBAR_ICON_CLASS } as
 // The app pages a pin can open: every /editor page the palette navigates to
 // (the hrefs match AppCommands' page commands and Open Settings).
 export const PINNED_PAGES: Record<PinPage, { label: string; href: string; icon: ReactNode }> = {
-  files: { label: "All Notes", href: "/editor/files", icon: <HiOutlineCollection {...ICON} /> },
+  files: { label: "All Files", href: "/editor/files", icon: <HiOutlineCollection {...ICON} /> },
   tags: { label: "Tags", href: "/editor/tags", icon: <HiOutlineHashtag {...ICON} /> },
   tasks: { label: "Tasks", href: "/editor/tasks", icon: <HiOutlineCheckCircle {...ICON} /> },
   templates: { label: "Templates", href: "/editor/templates", icon: <HiOutlineTemplate {...ICON} /> },

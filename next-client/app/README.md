@@ -7,7 +7,7 @@ This directory contains the core logic and routing for the HermesMarkdown Markdo
 - **Editor**: CodeMirror 6
 - **Styling**: Tailwind CSS backed by CSS-variable tokens (see [../DESIGN.md](../DESIGN.md)), plus SCSS for globals and the editor
 - **State Management**: [Jotai](https://jotai.org/) (Atoms)
-- **Persistence**: IndexedDB (via `app/services/idb.ts`) for File System handles and the GitHub vault descriptor/manifest; `localStorage` for settings.
+- **Persistence**: IndexedDB (via `app/services/idb.ts`) for File System handles and browser vault descriptors; `localStorage` for settings.
 
 ## Development Guidelines
 
@@ -16,12 +16,12 @@ This directory contains the core logic and routing for the HermesMarkdown Markdo
 - **Consistency**: Ensure consistent use of component variants (e.g., `primary` for main actions, `secondary` for cancellations or dismissals).
 
 ## Directory Structure
-- `api/`: Server routes — `ai/` (AI provider proxy) and `github/` (OAuth and GitHub vault sync).
+- `api/`: Server routes — `ai/` (AI provider proxy).
 - `atoms/`: Global state definitions using Jotai.
 - `components/`: Global UI components (Buttons, Modals, Command Palette, etc.).
 - `editor/`: The main editor application: CodeMirror extensions, components, hooks, settings, Files (`files/`, the mobile file view) and Tasks (`tasks/`) pages.
 - `hooks/`: Custom React hooks, notably `useFileSystem` for local file access.
-- `services/`: AI, GitHub vault, and IndexedDB services.
+- `services/`: AI and IndexedDB services.
 - `utils/`: Shared helpers (frontmatter parsing, task extraction, workspace queries, image paste, platform detection). `utils/templates/` is the template engine and the built-in template packs; `utils/periods/` names ISO weeks, months, quarters and years (the `ww` / `GGGG` date formats and the legacy `{{weekSheet}}`-style tokens).
 - `workers/`: Web worker that indexes vault metadata off the main thread.
 - `types/`: Shared TypeScript types.
@@ -39,7 +39,7 @@ This directory contains the core logic and routing for the HermesMarkdown Markdo
 
 ### Vault Backend
 
-The app uses the browser **File System Access API** for local vaults, with hooks under `hooks/file-system/`, unified by `hooks/use-file-system.ts`. GitHub-backed vaults use the Origin Private File System with the same hooks.
+The app uses the browser **File System Access API** for local vaults, with hooks under `hooks/file-system/`, unified by `hooks/use-file-system.ts`. Browser vaults use the Origin Private File System with the same hooks.
 
 ### State Management
 State is managed via **Jotai**. Atoms (re-exported from `app/atoms/atoms.ts`; see `app/atoms/README.md`) track:

@@ -8,7 +8,7 @@ Description: Renders nothing visible. It builds the editor's command-palette ent
 
 ## Dependencies
 - Core: `editor-commands/*` contributor modules, `CommandPaletteContext`.
-- Zero-Cloud: No side effects on mount. GitHub commands call the GitHub API only when the user runs them, via the `onGitHub*` handlers.
+- Zero-Cloud: No side effects on mount.
 
 ## Quick Usage
 ```tsx
@@ -22,11 +22,9 @@ import EditorCommands from "./EditorCommands";
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| onNewFile / onSave / onExport / onImport | `() => void` |  | Document actions: New Note, Save, Export as Markdown (`onExport`, always a .md download, never a save), Open Note from Disk… (`onImport`) |
+| onNewFile / onSave / onExport / onImport | `() => void` |  | Document actions: New File, Save, Export as Markdown (`onExport`, always a .md download, never a save), Open File from Disk… (`onImport`) |
 | onRunAIAction | `(id: string) => void` |  | Runs a palette AI action (`improve`, `summarize`, …) |
 | onOpenTasks / onOpenTemplates | `() => void` |  | Navigation |
-| githubVault? | `boolean` |  | Enables the GitHub commands |
-| onGitHubCommit? / onGitHubPush? / onGitHubPull? / onGitHubSync? | `() => void` |  | GitHub actions |
 | isMobileChrome? / onRefreshVault? |  |  | Mobile and vault helpers |
 
 `RegisteredCommands` takes `commands: Command[]`. See `editor-commands/README.md`.

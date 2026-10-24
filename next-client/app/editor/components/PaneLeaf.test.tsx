@@ -13,7 +13,7 @@ import {
 import { atom_pinsVaultKey } from "@/app/atoms/pin-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
-import { atom_autosaveMode } from "@/app/atoms/ui-atoms";
+import { atom_autosaveMode, atom_openingFilePath } from "@/app/atoms/ui-atoms";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 import React from "react";
@@ -125,6 +125,27 @@ describe("PaneLeaf Tab Indicators", () => {
     expect(screen.queryByRole("button", { name: /Save$/ })).not.toBeInTheDocument();
   });
 
+  it("shows a note being opened by its title at once, its body outlined until it's read", () => {
+    const initialValues = [
+      [atom_activePaneId, "pane-1"],
+      [atom_openFiles, {
+        "file1.md": { fileName: "file1.md", content: "dirty", lastSavedContent: "clean" },
+      }],
+      [atom_openingFilePath, "projects/roadmap.md"],
+    ];
+
+    render(
+      <TestProvider initialValues={initialValues}>
+        <PaneLeaf leaf={mockLeaf} />
+      </TestProvider>
+    );
+
+    expect(screen.getByText("roadmap")).toBeInTheDocument();
+    expect(screen.getByText("Opening roadmap…")).toBeInTheDocument();
+    // The previous note's save dot doesn't carry over to the one opening.
+    expect(screen.queryByRole("button", { name: "Unsaved changes. Save" })).not.toBeInTheDocument();
+  });
+
   it("shows no save state when the note is saved", () => {
     const initialValues = [
       [atom_activePaneId, "pane-1"],
@@ -200,7 +221,7 @@ describe("PaneLeaf Tab Indicators", () => {
     expect(screen.queryByRole("button", { name: /^Save/ })).not.toBeInTheDocument();
   });
 
-  it("offers Copy Markdown in the active tab's menu", () => {
+  it("offers Copy Contents in the active tab's menu", () => {
     render(
       <TestProvider initialValues={[
         [atom_activePaneId, "pane-1"],
@@ -212,7 +233,7 @@ describe("PaneLeaf Tab Indicators", () => {
     );
 
     fireEvent.contextMenu(screen.getByText("file1"));
-    expect(screen.getByText("Copy Markdown")).toBeInTheDocument();
+    expect(screen.getByText("Copy Contents")).toBeInTheDocument();
   });
 
   it("pins the note from its title's menu, and unpins it", () => {
@@ -234,11 +255,11 @@ describe("PaneLeaf Tab Indicators", () => {
     );
 
     fireEvent.contextMenu(screen.getByText("file1"));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Pin Note" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Pin File" }));
     fireEvent.contextMenu(screen.getByText("file1"));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Unpin Note" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Unpin File" }));
     fireEvent.contextMenu(screen.getByText("file1"));
-    expect(screen.getByRole("menuitem", { name: "Pin Note" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Pin File" })).toBeInTheDocument();
   });
 
   it("offers no pin for a tab with no vault open", () => {
@@ -253,7 +274,7 @@ describe("PaneLeaf Tab Indicators", () => {
     );
 
     fireEvent.contextMenu(screen.getByText("file1"));
-    expect(screen.queryByRole("menuitem", { name: "Pin Note" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: "Pin File" })).not.toBeInTheDocument();
   });
 
   it("guides an empty pane toward creating or opening a note", () => {
@@ -270,7 +291,7 @@ describe("PaneLeaf Tab Indicators", () => {
     );
 
     expect(screen.getByRole("heading", { name: "Start writing" })).toBeInTheDocument();
-    expect(screen.getByText("Create a new note, open a file from your device, or connect a vault.")).toBeInTheDocument();
+    expect(screen.getByText("Create a new file, open one from your device, or connect a vault.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /New File/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open File" })).toBeInTheDocument();
     const commandButton = screen.getByRole("button", { name: /Browse all commands/ });
@@ -317,33 +338,33 @@ describe("PaneLeaf title rename", () => {
   it("shows the note's folder before its name", () => {
     renderNote();
     expect(screen.getByTitle("notes")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "a. Note actions" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "a. File actions" })).toBeInTheDocument();
   });
 
   // The name opens the note's menu; its Rename turns the name into a field.
   const startRename = () => {
-    fireEvent.click(screen.getByRole("button", { name: "a. Note actions" }));
+    fireEvent.click(screen.getByRole("button", { name: "a. File actions" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
   };
 
   it("renames the note in place from its title's menu", () => {
     renderNote();
     startRename();
-    const field = screen.getByRole("textbox", { name: "Note name" });
+    const field = screen.getByRole("textbox", { name: "File name" });
     fireEvent.change(field, { target: { value: "b" } });
     fireEvent.keyDown(field, { key: "Enter" });
     expect(renameFile).toHaveBeenCalledWith(handle, "b.md", "notes/a.md");
-    expect(screen.queryByRole("textbox", { name: "Note name" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "File name" })).not.toBeInTheDocument();
   });
 
   it("backs out of a rename with Escape", () => {
     renderNote();
     startRename();
-    const field = screen.getByRole("textbox", { name: "Note name" });
+    const field = screen.getByRole("textbox", { name: "File name" });
     fireEvent.change(field, { target: { value: "b" } });
     fireEvent.keyDown(field, { key: "Escape" });
     expect(renameFile).not.toHaveBeenCalled();
-    expect(screen.getByRole("button", { name: "a. Note actions" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "a. File actions" })).toBeInTheDocument();
   });
 
   it("can't rename the draft", () => {
@@ -358,7 +379,7 @@ describe("PaneLeaf title rename", () => {
         <PaneLeaf leaf={draft} />
       </TestProvider>
     );
-    fireEvent.click(screen.getByRole("button", { name: "Untitled. Note actions" }));
+    fireEvent.click(screen.getByRole("button", { name: "Untitled. File actions" }));
     expect(screen.queryByRole("menuitem", { name: /Rename/ })).not.toBeInTheDocument();
   });
 });

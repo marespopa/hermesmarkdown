@@ -22,7 +22,7 @@ const ICON = { size: 14, className: "opacity-80 shrink-0" };
 // space's menu in the tree. Only the handlers given are listed.
 export function fileCreateActions({ newNote, newFolder }: FileCreateHandlers): FileCreateAction[] {
   return [
-    ...(newNote ? [{ id: "note" as const, label: "New Note", icon: <HiOutlineDocumentAdd {...ICON} />, onSelect: newNote }] : []),
+    ...(newNote ? [{ id: "note" as const, label: "New File", icon: <HiOutlineDocumentAdd {...ICON} />, onSelect: newNote }] : []),
     ...(newFolder ? [{ id: "folder" as const, label: "New Folder", icon: <HiOutlineFolderAdd {...ICON} />, onSelect: newFolder }] : []),
   ];
 }

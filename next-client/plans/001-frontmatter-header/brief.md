@@ -24,8 +24,8 @@ A note's YAML frontmatter is shown as typed on a tinted panel (codemirror/frontm
 - Docs: user docs (get-started / editor docs), component .md files, DESIGN.md if a new token is needed.
 
 ## Open questions for the architect
-- Status values: WORKFLOW_TAGS today is draft/review/active/archived; the brief that started this used todo/in-progress/done. One list, or both?
-- Malformed YAML or nested values (lists of objects): fall back to showing the raw YAML?
+- Status values: WORKFLOW_TAGS today is draft/review/active/archived; the brief that started this used todo/in-progress/done. One list, or both? - use both
+- Malformed YAML or nested values (lists of objects): fall back to showing the raw YAML? - show raw
 
 ## Out of scope
 - A raw-mode toggle, Cmd/Ctrl+Shift+Y, a `---` icon, or a setting with three rendering modes (the caret reveal replaces them).

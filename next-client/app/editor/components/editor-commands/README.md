@@ -12,14 +12,14 @@ without changing the public props contract or command behavior.
 - `build-editor-commands.ts` combines contributor groups in their original
   registration order.
 - `document-vault-commands.ts` defines document lifecycle, note operations, and
-  vault commands: `New Note` (a draft named from its first line),
+  vault commands: `New File` (a draft named from its first line),
   `New board` (with a vault open: asks the name, then `<name>.board.md` in the
-  New Notes folder, numbered `<name> (1).board.md` on a clash; `useCreateBoard`), `Edit Board as
+  New Files folder, numbered `<name> (1).board.md` on a clash; `useCreateBoard`), `Edit Board as
   Markdown` / `Open as Board` (the active note, only when it is a board),
   `Export as Markdown` (always a .md download of the note, vault note or
-  draft; it never saves), `Open Note from Disk…` (a file from the device opens
+  draft; it never saves), `Open File from Disk…` (a file from the device opens
   as a draft; distinct from `Import files into vault…`), Duplicate / Move /
-  Rename / Delete Note, and `New template…` (with a vault open: name prompt, then
+  Rename / Delete File, and `New template…` (with a vault open: name prompt, then
   `templates/<name>.md` with a minimal body, or the existing template of that
   name opened unchanged).
 - `editor-ai-commands.ts` defines editor formatting, templates and AI
@@ -39,8 +39,6 @@ Settings, Open Documentation, `Theme: …` and Show Keyboard Shortcuts come from
 `components/CommandPalette/AppCommands.tsx`; word wrap, line numbers, Focus and
 the other editor preferences from `settings/components/SettingsCommands.tsx`;
 Show Files from the palette itself.
-- `github-vault-commands.ts` defines the `GitHub: Commit / Push / Sync / Pull`
-  commands, registered only while a GitHub vault is open.
 - `vault-storage-commands.ts` defines `Browser vaults…` (where browser storage
   is available), whole-vault export/import (zip for every vault, folder copy on
   Chromium, folder import where the browser supports it), and `Delete browser
@@ -55,7 +53,7 @@ Show Files from the palette itself.
 - `RegisteredCommands.tsx` applies the existing `useRegisterCommand` pattern to
   the ordered command list.
 - `PinCommands.tsx` registers **Pin Page to Sidebar…** (`pin-page`, Workspace),
-  a menu with one command per app page (`pin-page:files` All Notes, Tags,
+  a menu with one command per app page (`pin-page:files` All Files, Tags,
   Tasks, Templates, Trash, Settings) that pins it to the sidebar's Pinned
   section; an already pinned page is disabled ("Already pinned"), and the menu
   is disabled without a vault ("Open a vault first") or on mobile ("The

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAtomValue, useStore } from "jotai";
 import toast from "react-hot-toast";
 import { atom_activeFilePath, atom_activePaneId, atom_workspaceLayout, getWorkspaceTabs } from "@/app/atoms/atoms";
+import { atom_openingFilePath } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
 import { FILE_PARAM, readUrlParam, replaceUrlParam } from "../utils/editor-url";
 
@@ -30,7 +31,8 @@ export function useActiveFileUrlSync({ isVaultLocked, openFile }: UseActiveFileU
     if (hasStartedRef.current || isVaultLocked) return;
     hasStartedRef.current = true;
     const target = readUrlParam(FILE_PARAM);
-    if (!target || target === store.get(atom_activeFilePath)) {
+    // Already open, or being opened (the sidebar navigates here while it reads).
+    if (!target || target === store.get(atom_activeFilePath) || target === store.get(atom_openingFilePath)) {
       setIsRestored(true);
       return;
     }

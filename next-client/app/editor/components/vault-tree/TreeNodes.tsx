@@ -25,7 +25,7 @@ function PendingRow({ pending, depth }: { pending: PendingCreate; depth: number 
     >
       <span className="w-3 shrink-0" />
       <Icon size={16} className={`shrink-0 ${pending.kind === "folder" ? "text-sage" : "text-fg-faint"}`} />
-      <InlineNameField label={pending.kind === "folder" ? "New folder name" : "New note name"} {...pending.editing} />
+      <InlineNameField label={pending.kind === "folder" ? "New folder name" : "New file name"} {...pending.editing} />
     </div>
   );
 }

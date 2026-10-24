@@ -98,7 +98,7 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
 
   const reveal = useTreeReveal({ rows, selectOnly, scrollToPath, scrollRef });
 
-  // The New Note / New Folder menu at the vault's root, for a right-click on
+  // The New File / New Folder menu at the vault's root, for a right-click on
   // the tree's empty space or elsewhere in the sidebar. False without either.
   const canCreate = !!(props.createNewFile || props.createFolder);
   const { clear: clearSelection } = selection;

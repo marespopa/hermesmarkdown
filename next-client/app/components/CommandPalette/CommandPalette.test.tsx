@@ -140,7 +140,7 @@ describe("CommandPalette", () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
-    expect(await screen.findByRole("option", { name: /Search Notes…/ })).toBeInTheDocument();
+    expect(await screen.findByRole("option", { name: /Search in Files…/ })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: /New file/ })).toBeInTheDocument();
     expect(screen.queryByRole("option", { name: /Show Files/ })).not.toBeInTheDocument();
     expect(screen.queryByText("Recently Opened Files")).not.toBeInTheDocument();
@@ -365,7 +365,7 @@ describe("CommandPalette", () => {
     expect(await screen.findByRole("option", { name: "Roadmap.md Projects" })).toBeInTheDocument();
     const options = screen.getAllByRole("option");
     expect(options[0]).toHaveAccessibleName("Roadmap.md Projects");
-    expect(options[1]).toHaveAccessibleName(/Search Notes…/);
+    expect(options[1]).toHaveAccessibleName(/Search in Files…/);
     expect(screen.getByRole("listbox")).not.toHaveTextContent("Test command");
     expect(screen.queryByText("Pinned")).not.toBeInTheDocument();
     expect(screen.queryByText("Frequently Used Commands")).not.toBeInTheDocument();
@@ -683,18 +683,18 @@ describe("CommandPalette", () => {
       </Provider>,
     );
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
-    await screen.findByRole("option", { name: /Search Notes…/ });
+    await screen.findByRole("option", { name: /Search in Files…/ });
 
     expect(screen.getAllByRole("option").map((option) => option.getAttribute("aria-label"))).toEqual([
-      expect.stringContaining("Search Notes…"), "New file", "Open Settings", "Open Documentation (opens in a new tab)",
+      expect.stringContaining("Search in Files…"), "New file", "Open Settings", "Open Documentation (opens in a new tab)",
     ]);
     expect(within(screen.getByRole("listbox")).getAllByRole("presentation")).toHaveLength(1);
   });
 
-  it("Search Notes… switches to note text search without closing", async () => {
+  it("Search in Files… switches to note text search without closing", async () => {
     renderPalette();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
-    fireEvent.click(await screen.findByRole("option", { name: /Search Notes…/ }));
+    fireEvent.click(await screen.findByRole("option", { name: /Search in Files…/ }));
 
     expect(screen.getByRole("combobox")).toHaveValue("/");
   });
@@ -764,7 +764,7 @@ describe("CommandPalette", () => {
       fireEvent.keyDown(input, { key: "Backspace" });
       expect(input).toHaveAttribute("placeholder", "Ask or Edit with AI…");
       fireEvent.keyDown(input, { key: "Backspace" });
-      expect(screen.getByRole("option", { name: /Search Notes…/ })).toBeInTheDocument();
+      expect(screen.getByRole("option", { name: /Search in Files…/ })).toBeInTheDocument();
     });
   });
 

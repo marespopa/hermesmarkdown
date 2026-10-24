@@ -3,7 +3,6 @@ import { buildDocumentVaultCommandGroups } from "./document-vault-commands";
 import { buildEditorAiCommandGroups } from "./editor-ai-commands";
 import type { EditorCommandContext } from "./use-editor-command-context";
 import { buildWorkspaceTaskViewCommandGroups } from "./workspace-task-view-commands";
-import { buildGitHubVaultCommands } from "./github-vault-commands";
 import { buildPrivacyCommands } from "./privacy-commands";
 import { buildVaultStorageCommands } from "./vault-storage-commands";
 
@@ -11,7 +10,6 @@ export function buildEditorCommands(context: EditorCommandContext): Command[] {
   const documentVault = buildDocumentVaultCommandGroups(context);
   const editorAi = buildEditorAiCommandGroups(context);
   const workspaceTasksViews = buildWorkspaceTaskViewCommandGroups(context);
-  const githubVault = buildGitHubVaultCommands(context);
   const vaultStorage = buildVaultStorageCommands(context);
 
   return [
@@ -22,7 +20,6 @@ export function buildEditorCommands(context: EditorCommandContext): Command[] {
     ...workspaceTasksViews.preferencesAndNavigation,
     ...buildPrivacyCommands(context),
     ...documentVault.vaultActions,
-    ...githubVault,
     ...vaultStorage,
     ...editorAi.aiMenu,
     ...editorAi.focusAndHistory,

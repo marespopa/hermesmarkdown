@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
 import { atom_pendingScrollTarget } from "@/app/atoms/atoms";
+import { flashLine } from "../utils/flash-line";
 
 // When something asks to open a note at a line (Tasks page, palette `/`
 // note-text results), scroll that line into view in this pane, place the
@@ -24,18 +25,7 @@ export function useScrollToPendingTarget(editorView: EditorView | null, filePath
       effects: EditorView.scrollIntoView(anchor, { y: "center" }),
     });
     editorView.focus();
-    requestAnimationFrame(() => {
-      if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-      const node = editorView.domAtPos(line.from).node;
-      const lineElement = (node instanceof HTMLElement ? node : node.parentElement)?.closest(".cm-line");
-      lineElement?.animate?.(
-        [
-          { backgroundColor: "rgba(107, 142, 35, 0.24)" },
-          { backgroundColor: "rgba(107, 142, 35, 0)" },
-        ],
-        { duration: 1400, easing: "ease-out" },
-      );
-    });
+    flashLine(editorView, line.from);
     setPendingScrollTarget(null);
   }, [editorView, filePath, pendingScrollTarget, setPendingScrollTarget]);
 }

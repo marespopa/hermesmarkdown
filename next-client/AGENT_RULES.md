@@ -17,6 +17,12 @@ You are a senior software engineer agent working on HermesMarkdown. You must adh
 - **Atomic State**: Use atoms defined in `app/atoms/` for global state.
 - **Isolation**: When testing, always wrap components in a `<Provider>` to ensure fresh state.
 
+### Optimistic UI
+- **Answer the click at once**: every user action shows its result, or that it's under way, in the same frame. Mark the target as current or selected, move or remove the item, switch the view, then do the slow work (disk reads, writes, indexing) behind it.
+- **Feedback for anything that can take time**: a spinner, progress bar or pending state on the thing that was acted on. Delay it ~150ms (`.loading-bar-appear`) so fast operations show nothing.
+- **Roll back on failure**: if the work fails, undo the optimistic change and say why (a toast), never leave the UI showing something that didn't happen.
+- **Never block the user's path**: background work (sync, rescans, indexing) yields to user actions and never races them.
+
 ---
 
 ## 🧪 Testing Standards (Vitest)

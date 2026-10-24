@@ -24,7 +24,7 @@ const barPlacement = {
 // Asks where notes live once there is something to keep: shown while no
 // vault is open and the draft has text, at the bottom of the window (the
 // top on phones). One sentence, one primary action
-// (Choose Folder…, or Keep Notes in This Browser where folders can't be
+// (Choose Folder…, or Keep Files in This Browser where folders can't be
 // opened, or Download where neither works) and Not Now, which shrinks it to
 // a quiet "Not saved to a folder" mark that opens it again. The editor page decides when it
 // can show (no vault, not locked).
@@ -51,20 +51,20 @@ export default function FolderPrompt({ onChooseFolder, onDownload, placement = "
 
   const canChoose = isVaultSupported || isBrowserVaultSupported;
   const detail = isVaultSupported
-    ? "Until then, this note is kept only in this browser."
+    ? "Until then, this file is kept only in this browser."
     : isBrowserVaultSupported
-      ? "This browser can't open folders, so notes are kept in its storage."
-      : "This browser can't save notes. Download a copy to keep it.";
-  const primaryLabel = isVaultSupported ? "Choose Folder…" : isBrowserVaultSupported ? "Keep Notes in This Browser" : "Download";
+      ? "This browser can't open folders, so files are kept in its storage."
+      : "This browser can't save files. Download a copy to keep it.";
+  const primaryLabel = isVaultSupported ? "Choose Folder…" : isBrowserVaultSupported ? "Keep Files in This Browser" : "Download";
 
   return (
     <div className={bar}>
       <section
-        aria-label="Where your notes live"
+        aria-label="Where your files live"
         className="glass-panel pointer-events-auto flex max-w-xl flex-wrap items-center gap-x-4 gap-y-2 rounded-xl py-2 pl-4 pr-2"
       >
         <p className="min-w-0 flex-1 basis-56 text-ui-footnote text-fg">
-          <span className="font-semibold">Choose where your notes live.</span>{" "}
+          <span className="font-semibold">Choose where your files live.</span>{" "}
           <span className="text-fg-muted">{detail}</span>
         </p>
         <div className="ml-auto flex items-center gap-1">

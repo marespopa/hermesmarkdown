@@ -18,7 +18,7 @@ export const settingsGroup: Group = {
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically.
             Each mode has its own color theme: Paper (the default), Sepia, Solarized or Plain for light,
-            and Ink (the default), Nord or Graphite for dark. Paper and Ink are paper and blue ink (Ink is
+            and Ink (the default), Nord, Solarized or Graphite for dark. Paper and Ink are paper and blue ink (Ink is
             the dark paper); Sepia is a warm cream page for long reading; Plain and Graphite are neutral, with no tint. Every theme has a faint paper grain. You can also pick them on the
             home page before you start. Each theme has its own accent hue, kept to the
             caret, text selection, focus rings, toggles and selections; icons and buttons stay quiet ink on paper. In code blocks, keywords take that accent, and
@@ -35,8 +35,8 @@ export const settingsGroup: Group = {
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
-              { label: "Light / Dark theme", value: "Paper, Sepia, Solarized, Plain / Nord, Ink, Graphite" },
-              { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Toggle Sidebar: navigation, notes and the vault's files on the window's left edge, on every editor page (desktop)" },
+              { label: "Light / Dark theme", value: "Paper, Sepia, Solarized, Plain / Ink, Nord, Solarized, Graphite" },
+              { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Toggle Sidebar: navigation and the vault's files on the window's left edge, on every editor page (desktop)" },
               { label: "Typeface", value: "Quattro by default, Duospace or Geist Mono" },
               { label: "Code font", value: "Geist Mono by default, JetBrains Mono, Fira Code or your system's monospace" },
             ]}
@@ -52,14 +52,14 @@ export const settingsGroup: Group = {
     },
     {
       id: "vault-home-settings",
-      title: "New notes & templates",
-      lead: "Choose where new notes go. Templates always live in templates/.",
-      keywords: "new notes folder templates folder template packs settings vault",
+      title: "New files & templates",
+      lead: "Choose where new files go. Templates always live in templates/.",
+      keywords: "new files folder new notes folder templates folder template packs settings vault",
       body: (
         <>
           <KV
             rows={[
-              { label: "New Notes Folder", value: "Empty = vault root, or a folder like inbox" },
+              { label: "New Files Folder", value: "Empty = vault root, or a folder like inbox" },
             ]}
           />
           <p>
@@ -109,7 +109,7 @@ export const mobileGroup: Group = {
             A thin bar stays fixed at the top of the screen showing the active file's name and save
             status — there's no keyboard shortcut for the command palette on mobile, so tapping this
             bar is the one always-present way to open it. From there, Show Files, Search, Open Tasks,
-            New Note, and every other command work exactly as they do on desktop.
+            New File, and every other command work exactly as they do on desktop.
           </p>
           <p>Files and Search open full screen rather than as docked panels.</p>
         </>
@@ -124,9 +124,9 @@ export const mobileGroup: Group = {
         <>
           <KV
             rows={[
-              { label: "iPhone / iPad (Safari)", value: "Browser vault or GitHub vault" },
-              { label: "Android (Chrome)", value: "Folder on the device, browser vault, or GitHub vault" },
-              { label: "Other mobile browsers", value: "Browser vault or GitHub vault" },
+              { label: "iPhone / iPad (Safari)", value: "Browser vault" },
+              { label: "Android (Chrome)", value: "Folder on the device or browser vault" },
+              { label: "Other mobile browsers", value: "Browser vault" },
             ]}
           />
           <p>
@@ -137,7 +137,7 @@ export const mobileGroup: Group = {
           <Callout type="warning">
             iOS may clear a website&apos;s data when it hasn&apos;t been used for a while. Installing
             to the home screen protects it, and <strong>Export vault as zip</strong> keeps a backup
-            in Files. To import on iOS, pick a <code>.zip</code> or individual notes — folder picking
+            in Files. To import on iOS, pick a <code>.zip</code> or individual files — folder picking
             isn&apos;t available there. See{" "}
             <TextLink href="#browser-vaults">Browser vaults</TextLink>.
           </Callout>

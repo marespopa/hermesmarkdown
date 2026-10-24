@@ -54,6 +54,18 @@ describe("createUniqueFile", () => {
     expect((await createUniqueFile(fakeDir(["foo.boardgame.md"]), "foo.boardgame")).fileName).toBe("foo.boardgame (1).md");
   });
 
+  it("keeps a typed text file name, numbered before its extension", async () => {
+    const dir = fakeDir(["util.ts", "Dockerfile"]);
+    expect((await createUniqueFile(dir, "util.ts", { keepTextName: true })).fileName).toBe("util (1).ts");
+    expect((await createUniqueFile(dir, "Dockerfile", { keepTextName: true })).fileName).toBe("Dockerfile (1)");
+    expect((await createUniqueFile(dir, "config.json", { keepTextName: true })).fileName).toBe("config.json");
+  });
+
+  it("makes a note of a text-looking name unless asked to keep it", async () => {
+    expect((await createUniqueFile(fakeDir(), "index.ts")).fileName).toBe("index.ts.md");
+    expect((await createUniqueFile(fakeDir(), "Q3 plan", { keepTextName: true })).fileName).toBe("Q3 plan.md");
+  });
+
   it("rethrows errors other than a missing file", async () => {
     const dir = fakeDir();
     dir.getFileHandle.mockRejectedValue(Object.assign(new Error("denied"), { name: "NotAllowedError" }));

@@ -115,12 +115,14 @@ const REPORT_BATCH_SIZE = 100;
 // .hermesmarkdown/index.yaml) are included too. Secret files never are. Gives up
 // after `timeoutMs` so a huge tree can never pin the indexer. `onFiles`
 // gets the notes as they're found (per folder, in batches), before the walk
-// is over; the result still lists every one.
+// is over, and `onTextFiles` the code and other text files the same way; the
+// result still lists every one.
 export async function collectVaultFiles(
   root: FileSystemDirectoryHandle,
   includeHidden: boolean,
   timeoutMs = 60000,
   onFiles?: (files: CollectedFile[]) => void,
+  onTextFiles?: (files: CollectedFile[]) => void,
 ): Promise<CollectResult> {
   const files: CollectedFile[] = [];
   const folders: string[] = [];
@@ -138,10 +140,11 @@ export async function collectVaultFiles(
 
   // Never throws into the walk; nothing is reported once it's over (the
   // result carries those notes).
-  const report = (found: CollectedFile[]) => {
-    if (!onFiles || finished || found.length === 0) return;
+  // `to` is always passed: a missing onTextFiles must never fall back to onFiles.
+  const report = (found: CollectedFile[], to: ((files: CollectedFile[]) => void) | undefined) => {
+    if (!to || finished || found.length === 0) return;
     try {
-      onFiles(found);
+      to(found);
     } catch (err) {
       console.warn("Failed to report collected files:", err);
     }
@@ -149,6 +152,7 @@ export async function collectVaultFiles(
 
   async function listDir(dirHandle: FileSystemDirectoryHandle, path: string, queue: Array<[FileSystemDirectoryHandle, string]>) {
     let found: CollectedFile[] = [];
+    let foundText: CollectedFile[] = [];
     try {
       for await (const entry of (dirHandle as any).values()) {
         if (finished) return;
@@ -158,11 +162,17 @@ export async function collectVaultFiles(
           files.push(file);
           found.push(file);
           if (found.length >= REPORT_BATCH_SIZE) {
-            report(found);
+            report(found, onFiles);
             found = [];
           }
         } else if (entry.kind === "file" && isListedTextFile(entry.name, currentPath, includeHidden)) {
-          textFiles.push({ handle: entry as FileSystemFileHandle, path: currentPath });
+          const file = { handle: entry as FileSystemFileHandle, path: currentPath };
+          textFiles.push(file);
+          foundText.push(file);
+          if (foundText.length >= REPORT_BATCH_SIZE) {
+            report(foundText, onTextFiles);
+            foundText = [];
+          }
         } else if (
           entry.kind === "directory" &&
           !isIgnoredDir(entry.name, currentPath) &&
@@ -177,7 +187,8 @@ export async function collectVaultFiles(
       console.warn(`Failed to collect files from ${path || "root"}:`, err);
       if (path) failedSubdirs++;
     }
-    report(found);
+    report(found, onFiles);
+    report(foundText, onTextFiles);
   }
 
   await new Promise<void>((resolve) => {

@@ -3,7 +3,7 @@
 Description: Asks where notes live, once there is something to keep. There is no setup flow: a first visit lands in the editor on a blank draft, and this quiet bar appears at the bottom of the window while no vault is open and the draft has text. It holds one sentence ("Choose where your notes live." plus what happens until then), **Not Now**, and one primary action:
 
 - **Choose Folder…** where the browser can open folders: the OS folder picker, which can also make a new folder (`useChooseFolder` → `openVault`). Opening a vault clears every open tab, so `useChooseFolder` holds the draft's text meanwhile, puts it back once the vault is open, saves it into the vault straight away, and keeps it in front.
-- **Keep Notes in This Browser** where it can't (Safari, Firefox, phones): opens the browser-vault dialog; the vault made there gets the draft the same way.
+- **Keep Files in This Browser** where it can't (Safari, Firefox, phones): opens the browser-vault dialog; the vault made there gets the draft the same way.
 - **Download** where neither works: downloads the note as Markdown.
 
 It sits at the bottom of the window, and on phones at the top, under the file bar, clear of the keyboard and of the formatting toolbar docked above it. **Not Now** shrinks it to a small "Not saved to a folder" mark for the rest of the visit; clicking the mark opens the bar again. Cmd/Ctrl+S with no vault runs the same choice (the editor page's `handleSave`).

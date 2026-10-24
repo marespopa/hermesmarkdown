@@ -72,10 +72,10 @@ describe("LandingPage", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: "A local-first Markdown editor in your browser",
+        name: "A local-first editor for notes and code",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "Works offline" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 3, name: "Code files, too" })).toBeInTheDocument();
     for (const { q, a } of LANDING_FAQ) {
       expect(screen.getByText(q)).toBeInTheDocument();
       expect(screen.getByText(a)).toBeInTheDocument();

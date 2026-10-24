@@ -16,7 +16,7 @@ export function boardBaseName(name: string): string | null {
   return stem ? `${stem}.board` : null;
 }
 
-// "New board": asks the name, then `<name>.board.md` in the New Notes folder
+// "New board": asks the name, then `<name>.board.md` in the New Files folder
 // (numbered `<name> (1).board.md` on a clash by createUniqueFile). Cancel or
 // a blank name creates nothing. createFile opens it and shows its own
 // success and error toasts.

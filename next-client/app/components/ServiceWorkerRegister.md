@@ -4,7 +4,7 @@ Description: Registers `public/sw.js` so the installed app (PWA) starts and runs
 
 ## Local State & Storage
 - State: None. Registration happens once in an effect.
-- Persistence: The service worker keeps the app shell and hashed `/_next/static` assets in Cache Storage (`hermes-<version>`). Old caches are removed when a new version activates. Notes are never cached here; vaults live on disk, in browser storage (OPFS), or in the GitHub workspace.
+- Persistence: The service worker keeps the app shell and hashed `/_next/static` assets in Cache Storage (`hermes-<version>`). Old caches are removed when a new version activates. Notes are never cached here; vaults live on disk or in browser storage (OPFS).
 
 ## Dependencies
 - Core: None.

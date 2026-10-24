@@ -52,7 +52,7 @@ function reportCreateError(err: any) {
 
 // Note creation from links (a missing [[link]], the WikiLink dialog), with or
 // without a template: the note goes in the link's folder when it has one,
-// else the New Notes folder, and the link names it; a note of that name
+// else the New Files folder, and the link names it; a note of that name
 // already there is opened (or linked) as it is, never duplicated or
 // overwritten. Also "New template…", which creates a template file with a
 // minimal body.
@@ -238,7 +238,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   );
   // The palette's `~` templates (Ctrl/Cmd+Enter, or Enter with no note
   // open): asks the new note's name, then creates it from `entry` in the
-  // New Notes folder (or the name's own folder) and opens it. A note of that
+  // New Files folder (or the name's own folder) and opens it. A note of that
   // name already there opens unchanged. Resolves to its path, or null.
   const createNoteFromTemplate = useCallback(async (entry: TemplateEntry): Promise<string | null> => {
     const name = await dialog.prompt("Name the new note", entry.name, "New note from template");

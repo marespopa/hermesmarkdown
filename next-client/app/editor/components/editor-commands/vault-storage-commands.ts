@@ -53,7 +53,7 @@ export function buildVaultStorageCommands(context: EditorCommandContext): Comman
           {
             id: "import-into-vault",
             label: "Import files into vault…",
-            description: "Add notes, attachments, or a zip to this vault without overwriting",
+            description: "Add files or a zip to this vault without overwriting",
             category: "Vault" as const,
             keywords: "restore upload zip import files vault",
             action: () => { void importIntoVault("files"); },
@@ -62,7 +62,7 @@ export function buildVaultStorageCommands(context: EditorCommandContext): Comman
             ? [{
                 id: "import-folder-into-vault",
                 label: "Import folder into vault…",
-                description: "Add a folder of notes to this vault without overwriting",
+                description: "Add a folder of files to this vault without overwriting",
                 category: "Vault" as const,
                 keywords: "restore upload folder import vault",
                 action: () => { void importIntoVault("folder"); },
@@ -74,7 +74,7 @@ export function buildVaultStorageCommands(context: EditorCommandContext): Comman
       ? [{
           id: "rename-browser-vault",
           label: "Rename vault…",
-          description: "Change this browser vault's name; its notes stay as they are",
+          description: "Change this browser vault's name; its files stay as they are",
           category: "Vault" as const,
           keywords: "rename name title browser vault",
           action: async () => {
@@ -90,7 +90,7 @@ export function buildVaultStorageCommands(context: EditorCommandContext): Comman
           danger: true,
           action: async () => {
             const confirmed = await dialog.confirm(
-              `All notes in "${vaultDescriptor.displayName}" will be removed from this browser. Export the vault first if you want a copy.`,
+              `All files in "${vaultDescriptor.displayName}" will be removed from this browser. Export the vault first if you want a copy.`,
               "Delete this browser vault?",
               "Delete Vault",
               "Cancel",

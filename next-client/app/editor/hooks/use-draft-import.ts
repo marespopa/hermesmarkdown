@@ -16,7 +16,7 @@ export interface PendingDraft {
 
 // Imported text always goes into the draft, never the active tab: with a
 // vault note open, writing through the active tab replaced the note, and
-// autosave then wrote that to disk. "Open Note from Disk…" uses the native picker when
+// autosave then wrote that to disk. "Open File from Disk…" uses the native picker when
 // available, otherwise a hidden <input type="file">. `offerDraft` fills an
 // empty draft straight away; a draft with text sets `pendingDraft`, so the
 // caller can ask before overwriting (DraftImportDialog).

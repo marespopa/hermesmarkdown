@@ -1,18 +1,23 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { HiOutlineEmojiHappy } from "react-icons/hi";
 import { TbPinned } from "react-icons/tb";
 import Button from "@/app/components/Button";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
+import { atom_showFolderInFiles, atom_vaultName } from "@/app/atoms/vault-atoms";
+import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { usePins } from "@/app/hooks/use-pins";
 import { formatShortcut } from "@/app/utils/platform";
+import FolderPopover from "../FolderPopover";
 import PinIconPopover from "../PinIconPopover";
+import { useFolderCreateActions } from "../../hooks/use-folder-create-actions";
 import TabContextMenu, { type TabContextMenuItem } from "../TabContextMenu";
 import { pinGlyph } from "./pinned-pages";
 import SidebarSection from "./SidebarSection";
 import { SIDEBAR_ITEM_CURRENT_CLASS, SIDEBAR_ITEM_IDLE_CLASS } from "./sidebar-classes";
 import { usePinnedRows, type PinnedRow } from "./use-pinned-rows";
+import { useSidebarNavigation } from "./use-sidebar-navigation";
 
 const MENU_ICON = { size: 15, "aria-hidden": true } as const;
 
@@ -24,8 +29,12 @@ const SIDEBAR_ROW_CLASS = "flex items-center h-7 rounded-md text-ui-footnote tra
 // notes, folders, tags and app pages, in the file's order (usePinnedRows).
 // Each row leads with its emoji icon (shown only here) or its kind's glyph;
 // a click on the label opens it, and the current one is highlighted. A click
-// on the icon, a right-click or the menu key opens its menu: Set / Change
-// Icon… (the emoji picker, PinIconPopover) and Unpin. Dragging a row (or
+// on the icon opens the emoji picker straight away (PinIconPopover; with no
+// emoji, the glyph turns into a smiley on hover), as the sidebar header's
+// vault icon does. A right-click or the menu key opens its menu: Set / Change
+// Icon… and Unpin. A pinned folder opens the breadcrumb's folder list
+// (FolderPopover) under its row, a click or its Ctrl/Cmd+number again
+// closing it; the list's Show in Files reveals it in the tree. Dragging a row (or
 // Alt+↑/↓ on it) reorders the pins. At most nine are listed (PINS_MAX), each
 // opened by Ctrl/Cmd+1–9 from anywhere, its key shown at the row's end.
 // Pinning itself is done elsewhere (the Files and note menus, the palette,
@@ -43,10 +52,28 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
   const [picker, setPicker] = useState<{ key: string; anchor: DOMRect } | null>(null);
   const rowRefs = useRef(new Map<string, HTMLDivElement>());
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  // The icon button the picker opened from: a second click on it closes it.
+  const pickerButtonRef = useRef<HTMLButtonElement | null>(null);
   // The row being dragged and where it would land: an insertion point, 0
   // above the first row up to the count below the last.
   const [dragging, setDragging] = useState<string | null>(null);
   const [dropAt, setDropAt] = useState<number | null>(null);
+  // The pinned folder whose list is open, under its row.
+  const [folderMenu, setFolderMenu] = useState<{ key: string; folder: string; anchor: DOMRect } | null>(null);
+  const vaultName = useAtomValue(atom_vaultName) ?? "Vault";
+  const showFolderInFiles = useSetAtom(atom_showFolderInFiles);
+  // Hidden, its rows are out of sight: a folder's list opens centred.
+  const sidebarOpen = useAtomValue(atom_sidebarOpen);
+  const { openHandle, toEditor } = useSidebarNavigation();
+  const { newNoteIn, newFolderIn } = useFolderCreateActions();
+
+  // A click (or Ctrl/Cmd+number): a folder toggles its list, the rest open.
+  const activate = useCallback((row: PinnedRow) => {
+    const rect = rowRefs.current.get(row.key)?.getBoundingClientRect();
+    if (row.pin.kind !== "folder" || row.missing || !rect) return row.open();
+    const folder = row.pin.target;
+    setFolderMenu((open) => (open?.key === row.key ? null : { key: row.key, folder, anchor: rect }));
+  }, []);
 
   const listed = rows.map((row) => row.key);
 
@@ -69,11 +96,11 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
       const row = rows[Number(event.key) - 1];
       if (!row) return;
       event.preventDefault();
-      row.open();
+      activate(row);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [rows]);
+  }, [rows, activate]);
 
   if (!rows.length) return null;
 
@@ -163,49 +190,69 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
                 setDragging(row.key);
               }}
               onDragEnd={endDrag}
-              className={`relative ${SIDEBAR_ROW_CLASS} ${row.current ? SIDEBAR_ITEM_CURRENT_CLASS : SIDEBAR_ITEM_IDLE_CLASS} ${dragging === row.key ? "opacity-50" : ""}`}
+              className={`relative ${SIDEBAR_ROW_CLASS} ${row.current || folderMenu?.key === row.key ? SIDEBAR_ITEM_CURRENT_CLASS : SIDEBAR_ITEM_IDLE_CLASS} ${dragging === row.key ? "opacity-50" : ""}`}
             >
               {dropAt !== null && (dropAt === index || (dropAt === index + 1 && index === rows.length - 1)) && (
                 <span aria-hidden="true" className={`pointer-events-none absolute inset-x-1 h-0.5 rounded-full bg-fg-faint ${dropAt === index ? "-top-px" : "-bottom-px"}`} />
               )}
-              {/* The icon opens the row's menu. */}
+              {/* The icon opens the emoji picker. */}
               <Button
                 variant="unstyled"
-                aria-label={`${row.label} actions`}
-                aria-haspopup="menu"
-                aria-expanded={menu?.key === row.key}
-                title={`${row.label} actions`}
+                aria-label={row.pin.icon ? `Change icon of ${row.label}` : `Add icon to ${row.label}`}
+                aria-haspopup="dialog"
+                aria-expanded={picker?.key === row.key}
+                title={row.pin.icon ? "Change icon" : "Add icon"}
                 onClick={(event) => {
-                  if (menu?.key === row.key) {
-                    setMenu(null);
+                  if (picker?.key === row.key) {
+                    setPicker(null);
                     return;
                   }
-                  const rect = event.currentTarget.getBoundingClientRect();
-                  menuButtonRef.current = event.currentTarget;
-                  setMenu({ x: rect.left, y: rect.bottom + 4, key: row.key, align: "start" });
+                  const rect = rowRefs.current.get(row.key)?.getBoundingClientRect();
+                  pickerButtonRef.current = event.currentTarget;
+                  if (rect) setPicker({ key: row.key, anchor: rect });
                 }}
                 onContextMenu={openMenuAt(row.key)}
                 onKeyDown={moveByKey(row.key)}
-                className="flex h-5 shrink-0 items-center justify-center pl-2 pr-1.5"
+                className="group flex h-5 shrink-0 items-center justify-center pl-2 pr-1.5"
               >
                 <span className="flex w-[15px] items-center justify-center">
-                  {row.pin.icon ? <span aria-hidden="true" className="text-[13px] leading-none">{row.pin.icon}</span> : pinGlyph(row.pin)}
+                  {row.pin.icon ? (
+                    <span aria-hidden="true" className="text-[13px] leading-none">{row.pin.icon}</span>
+                  ) : (
+                    <>
+                      <span className="flex group-hover:hidden group-focus-visible:hidden">{pinGlyph(row.pin)}</span>
+                      <HiOutlineEmojiHappy {...MENU_ICON} className="hidden group-hover:block group-focus-visible:block" />
+                    </>
+                  )}
                 </span>
               </Button>
               <Button
                 variant="unstyled"
-                onClick={row.open}
+                onClick={() => activate(row)}
+                // The open folder list's own outside-press would close it
+                // before this click toggles it: the click closes it instead.
+                onMouseDown={(event) => { if (folderMenu?.key === row.key) event.stopPropagation(); }}
+                aria-haspopup={row.pin.kind === "folder" ? "dialog" : undefined}
+                aria-expanded={row.pin.kind === "folder" ? folderMenu?.key === row.key : undefined}
                 onContextMenu={openMenuAt(row.key)}
                 onKeyDown={moveByKey(row.key)}
                 aria-current={row.current ? "page" : undefined}
+                aria-busy={row.opening || undefined}
                 aria-keyshortcuts={`Control+${index + 1} Meta+${index + 1}`}
                 title={row.missing ? "Not found in this vault" : row.title}
                 className="flex h-full min-w-0 flex-1 items-center gap-2 pl-1.5 pr-2 text-left"
               >
                 <span className={`min-w-0 flex-1 truncate ${row.missing ? "text-fg-faint" : ""}`}>{row.label}</span>
-                <kbd aria-hidden="true" className="shrink-0 font-mono text-[10px] text-fg-faint [@media(hover:none)]:hidden">
-                  {formatShortcut(String(index + 1))}
-                </kbd>
+                {row.opening ? (
+                  // After a moment (a quick open shows only the highlight).
+                  <span aria-hidden="true" className="loading-bar-appear flex h-3 w-3 shrink-0 items-center justify-center">
+                    <span className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-fg-faint border-t-transparent motion-reduce:animate-none" />
+                  </span>
+                ) : (
+                  <kbd aria-hidden="true" className="shrink-0 font-mono text-[10px] text-fg-faint [@media(hover:none)]:hidden">
+                    {formatShortcut(String(index + 1))}
+                  </kbd>
+                )}
               </Button>
             </div>
           ))}
@@ -221,6 +268,20 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
             onClose={() => setMenu(null)}
           />
         )}
+        {folderMenu && (
+          <FolderPopover
+            folder={folderMenu.folder}
+            anchor={folderMenu.anchor}
+            currentPath={activePath}
+            rootName={vaultName}
+            onOpenNote={(handle, path) => void openHandle(handle, path)}
+            onNewNote={(folder, name) => void newNoteIn(folder, name).then(() => toEditor())}
+            onNewFolder={newFolderIn}
+            onShowInFiles={(folder) => showFolderInFiles(folder)}
+            onClose={() => setFolderMenu(null)}
+            centered={!sidebarOpen}
+          />
+        )}
         {picker && pickerRow && (
           <PinIconPopover
             anchor={picker.anchor}
@@ -230,6 +291,7 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
               return result === "ok" || result === "unchanged";
             }}
             onClose={() => setPicker(null)}
+            anchorRef={pickerButtonRef}
           />
         )}
       </SidebarSection>

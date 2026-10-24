@@ -69,8 +69,8 @@ export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
         <h2 className="text-ui-title-3 text-fg">Start writing</h2>
         <p className="mt-2 max-w-sm text-ui-footnote leading-relaxed text-fg-muted">
           {vaultHandle
-            ? "Create a new note or open one from your vault."
-            : "Create a new note, open a file from your device, or connect a vault."}
+            ? "Create a new file or open one from your vault."
+            : "Create a new file, open one from your device, or connect a vault."}
         </p>
         <div className="mt-6 flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
           <Button variant="primary" onClick={handleNewFile} className="w-full sm:w-auto">
@@ -82,15 +82,15 @@ export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
           </Button>
           <Button variant="secondary" onClick={handleOpenFile} className="w-full sm:w-auto">
             <HiOutlineFolderOpen size={17} />
-            {vaultHandle ? "Open Note" : "Open File"}
+            Open File
           </Button>
         </div>
         {!vaultHandle && (isVaultSupported || isBrowserVaultSupported) && (
           <div className="mt-5 flex w-full flex-col items-center gap-2 border-t border-edge pt-5">
             <p className="text-ui-caption text-fg-muted">
               {isVaultSupported
-                ? "Keep your notes together in a local vault."
-                : "Keep your notes together in a vault stored in this browser."}
+                ? "Keep your files together in a local vault."
+                : "Keep your files together in a vault stored in this browser."}
             </p>
             <VaultActionButtons />
           </div>

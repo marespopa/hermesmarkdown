@@ -15,7 +15,7 @@ describe("SearchPill", () => {
     const open = vi.fn();
     palette.value = { open, isOpen: false };
     render(<SearchPill />);
-    fireEvent.click(screen.getByRole("button", { name: "Search or create a note…" }));
+    fireEvent.click(screen.getByRole("button", { name: "Search or create a file…" }));
     expect(open).toHaveBeenCalledOnce();
   });
 

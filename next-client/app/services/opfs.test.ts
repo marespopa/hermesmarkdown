@@ -34,7 +34,7 @@ describe("browser vault descriptors", () => {
     expect(isBrowserVaultDescriptor(valid)).toBe(true);
     expect(isBrowserVaultDescriptor({ ...valid, lastExportedAt: 5 })).toBe(true);
     expect(isBrowserVaultDescriptor({ ...valid, id: "../escape" })).toBe(false);
-    expect(isBrowserVaultDescriptor({ ...valid, kind: "github" })).toBe(false);
+    expect(isBrowserVaultDescriptor({ ...valid, kind: "local" })).toBe(false);
     expect(isBrowserVaultDescriptor({ ...valid, lastExportedAt: "yesterday" })).toBe(false);
     expect(isBrowserVaultDescriptor(null)).toBe(false);
   });

@@ -123,6 +123,23 @@ describe("collectVaultFiles", () => {
     expect(batches.filter((b) => b[0].startsWith("big/")).map((b) => b.length)).toEqual([100, 50]);
   });
 
+  it("reports code and other text files as they're found, apart from the notes", async () => {
+    const vault = await makeVault();
+    for (let i = 0; i < 120; i++) await vault.writeText(`src/m${i}.ts`, "x");
+    const notes: string[] = [];
+    const text: string[][] = [];
+    const result = await collectVaultFiles(
+      vault.asHandle(), false, undefined,
+      (files) => notes.push(...files.map((f) => f.path)),
+      (files) => text.push(files.map((f) => f.path)),
+    );
+
+    expect(text.flat().sort()).toEqual(result.textFiles.map((f) => f.path).sort());
+    expect(text.flat()).toContain("notes/app.tsx");
+    expect(notes.some((path) => path.endsWith(".ts"))).toBe(false);
+    expect(text.filter((b) => b[0].startsWith("src/")).map((b) => b.length)).toEqual([100, 20]);
+  });
+
   it("keeps walking when the callback throws", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const result = await collectVaultFiles((await makeVault()).asHandle(), false, undefined, () => {

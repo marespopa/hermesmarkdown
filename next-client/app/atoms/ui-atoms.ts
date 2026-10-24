@@ -206,7 +206,7 @@ export const atom_showFiles = atom(null, (get, set) => {
   if (get(atom_sidebarCollapsed).Files) set(atom_sidebarCollapsed, (previous) => ({ ...previous, Files: false }));
   set(atom_filesFocusRequested, true);
 });
-// The New Notes folder ("" = vault root; created on demand): where drafts are
+// The New Files folder ("" = vault root; created on demand): where drafts are
 // saved on their first save, and where notes made from a template or a link
 // without a folder go.
 export const atom_newNoteFolder = atomWithStorage<string>("newNoteFolder", "");
@@ -254,6 +254,13 @@ export const atom_showHiddenFiles = atomWithStorage<boolean>(
   "hermes_show_hidden_files",
   false,
 );
+// The palette's `/` text search also reads code and other text files from
+// disk (services/text-grep-client.ts). Off by default: they're never in the
+// note-text index, so each search reads them again.
+export const atom_searchCodeFiles = atomWithStorage<boolean>("hermes_search_code_files", false);
+// The `/` search reads the query as a regular expression (the palette's
+// Regex chip, Alt+R). Remembered, like a find bar's regex toggle.
+export const atom_searchRegex = atomWithStorage<boolean>("hermes_search_regex", false);
 // File tree folder expansion, keyed by vault (see atom_vaultKey). Stores the
 // user's manual overrides only; folders on the active file's path open
 // automatically on top of this.
@@ -274,10 +281,13 @@ export const atom_vaultCreationParentHandle = atom<FileSystemDirectoryHandle | n
 export const atom_vaultCreationError = atom<string | null>(null);
 // Post-onboarding trigger: set true to open the NewVaultDialog
 export const atom_newVaultFlowOpen = atom<boolean>(false);
-// GitHub selection is intentionally transient: repository credentials stay server-side.
-export const atom_githubVaultDialogOpen = atom<boolean>(false);
 // Browser vault picker: create, reopen, or delete vaults kept in browser storage.
 export const atom_browserVaultDialogOpen = atom<boolean>(false);
+// Recent Vaults: reorder, pin or remove the vault switcher's recent vaults.
+export const atom_recentVaultsDialogOpen = atom<boolean>(false);
+// The emoji picked in Create Vault, for the vault of that name once it opens
+// (useRecentVaultTracker puts it on the vault's recents entry).
+export const atom_pendingVaultIcon = atom<{ name: string; icon: string } | null>(null);
 export const atom_keyboardShortcutsOpen = atom<boolean>(false);
 export const atom_selectedFileTags = atom<string[]>([]);
 export const atom_showCommandPaletteFab = atomWithStorage<boolean>(
@@ -361,6 +371,9 @@ export type AiActionStatus =
 export const atom_aiActionStatus = atom<AiActionStatus>({ seq: 0, status: "idle" });
 
 export const atom_isFileLoading = atom<boolean>(false);
+// The file openFile is opening, set before its text is read: the pane shows
+// its title (and a body skeleton) and the sidebar marks it current at once.
+export const atom_openingFilePath = atom<string | null>(null);
 
 // Bumped to request the AI Builder dialog from outside the editor (e.g. the
 // status bar), since the actual handler lives inside useAIEditorActions,

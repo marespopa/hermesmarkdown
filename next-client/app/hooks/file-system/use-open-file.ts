@@ -15,7 +15,7 @@ import {
   contentStore,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_isFileLoading } from "@/app/atoms/ui-atoms";
+import { atom_isFileLoading, atom_openingFilePath } from "@/app/atoms/ui-atoms";
 import { nextPaint } from "@/app/utils/next-paint";
 import { useDialog } from "../use-dialog";
 import { resolveFileMetaByName } from "./resolve-file-by-name";
@@ -30,6 +30,7 @@ export function useOpenFile() {
   const [, setFileLastModified] = useAtom(atom_fileLastModified);
   const [, setFileConflict] = useAtom(atom_fileConflict);
   const [, setIsFileLoading] = useAtom(atom_isFileLoading);
+  const setOpeningFilePath = useSetAtom(atom_openingFilePath);
   const dialog = useDialog();
 
   const openFile = useCallback(
@@ -69,6 +70,10 @@ export function useOpenFile() {
       }
 
       const finalPath = path || fileHandle.name;
+      // Optimistic: the pane and the sidebar switch to it now, before the read.
+      setOpeningFilePath(finalPath);
+      // Only this open's own mark is cleared (a newer open may have taken over).
+      const clearOpening = () => setOpeningFilePath((current) => (current === finalPath ? null : current));
 
       // 0. Saved content on disk always wins when (re)opening a file. If the
       // browser holds different, unsaved text for it, that text is kept as a
@@ -92,7 +97,10 @@ export function useOpenFile() {
           "Cancel",
           "You can save your draft first to avoid losing work.",
         );
-        if (!confirmed) return;
+        if (!confirmed) {
+          clearOpening();
+          return;
+        }
       }
 
       try {
@@ -161,20 +169,21 @@ export function useOpenFile() {
                 current = await current.getDirectoryHandle(parts[i]);
               }
               const freshHandle = await current.getFileHandle(parts[parts.length - 1]);
-              return openFile(freshHandle, pathForRefresh, force, retryCount + 1);
+              return await openFile(freshHandle, pathForRefresh, force, retryCount + 1);
             } catch (retryErr) {
               console.warn("Failed to refresh handle for open retry:", retryErr);
             }
           }
           
           await new Promise((resolve) => setTimeout(resolve, 200));
-          return openFile(fileHandle, providedPath, force, retryCount + 1);
+          return await openFile(fileHandle, providedPath, force, retryCount + 1);
         }
 
         console.error("File System Error:", err?.message || err);
         toast.error("Failed to open file");
       } finally {
         setIsFileLoading(false);
+        clearOpening();
       }
     },
     [
@@ -188,6 +197,7 @@ export function useOpenFile() {
       lastSavedContent,
       setOpenFiles,
       setIsFileLoading,
+      setOpeningFilePath,
       dialog,
     ],
   );
