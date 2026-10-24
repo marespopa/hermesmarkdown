@@ -3,7 +3,7 @@
 //   /editor?file=<vault path>   the note in the focused tab
 //   /editor                     the draft
 //   /editor/tasks, /editor/templates, /editor/trash, /editor/files
-//   /editor/tags?tag=<tag>
+//   /editor/tags?tag=<tag>      (editorTagHref; the page follows changes to it)
 //   /editor/settings?section=<id>
 // Query parameters inside a page are rewritten in place (replaceUrlParam),
 // which the App Router keeps in sync with useSearchParams.
@@ -22,6 +22,11 @@ function serialize(params: URLSearchParams): string {
 export function editorFileHref(path?: string | null): string {
   if (!path || path === "draft") return "/editor";
   return `/editor?${serialize(new URLSearchParams({ [FILE_PARAM]: path }))}`;
+}
+
+// The Tags page on `tag` (a pinned tag's link).
+export function editorTagHref(tag: string): string {
+  return `/editor/tags?${serialize(new URLSearchParams({ [TAG_PARAM]: tag }))}`;
 }
 
 export function readUrlParam(name: string): string | null {

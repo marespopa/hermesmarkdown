@@ -131,7 +131,7 @@ export default function GitHubVaultDialog() {
         <div>
           <h2 id="github-vault-title" className="text-ui-title-3 font-bold">Connect GitHub Vault</h2>
           <p className="mt-1 text-ui-footnote text-fg-muted">
-            Choose a repository or create a new private vault. Only Markdown and .hermes files are imported.
+            Choose a repository or create a new private vault. Only Markdown and .hermesmarkdown files are imported.
           </p>
         </div>
 

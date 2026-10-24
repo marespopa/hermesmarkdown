@@ -99,7 +99,7 @@ export function createFileObserver(onChange: () => void): FileObserver | null {
 // folder appeared, went away or moved (or the browser can't say what
 // happened). Edits to a file's text don't (the open-file watcher and the
 // focus re-index cover those), nor does anything in a hidden folder such as
-// `.hermes/` (the Trash).
+// `.hermesmarkdown/` (the Trash).
 export function changesFileList(record: FileSystemChangeRecord): boolean {
   if (record.type === "modified" || record.type === "errored") return false;
   return !(record.relativePathComponents ?? []).some((part) => part.startsWith("."));

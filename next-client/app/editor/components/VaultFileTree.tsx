@@ -11,12 +11,15 @@ import { buildFileTree, canDropInto, type DraggedEntry, flattenVisible, getEntry
 import { TreeContextMenu } from "./vault-tree/TreeContextMenu";
 import { handleTreeKey } from "./vault-tree/tree-keyboard";
 import { treeMenuItems } from "./vault-tree/tree-menu-items";
-import { TreeNodes } from "./vault-tree/TreeNodes";
+import { TreeItemRow } from "./vault-tree/TreeNodes";
+import { TreeListStatus } from "./vault-tree/TreeListStatus";
+import { ancestorFolders, useSelectActiveRow } from "./vault-tree/use-active-row";
 import { useFolderExpansion } from "./vault-tree/use-folder-expansion";
 import { useTouchTreeDrag } from "./vault-tree/use-touch-tree-drag";
 import { useTreeReveal } from "./vault-tree/use-tree-reveal";
 import { useTreeActions } from "./vault-tree/use-tree-actions";
 import { useTreeSelection } from "./vault-tree/use-tree-selection";
+import { useVirtualTree } from "./vault-tree/use-virtual-tree";
 
 export default function VaultFileTree(props: VaultFileTreeProps) {
   const {
@@ -28,6 +31,7 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     isSearchActive = false,
     highlightQuery = "",
     treeView = false,
+    expandAll = false,
     columns = false,
     folderPaths = [],
     undoFileOperation,
@@ -48,43 +52,27 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     [treeView, processedFiles, folderPaths],
   );
 
-  const activeAncestorPaths = useMemo(() => {
-    const ancestors = new Set<string>();
-    if (!activeFilePath) return ancestors;
-    const segments = activeFilePath.split("/");
-    segments.pop();
-    let acc = "";
-    for (const segment of segments) {
-      acc = acc ? `${acc}/${segment}` : segment;
-      ancestors.add(acc);
-    }
-    return ancestors;
-  }, [activeFilePath]);
+  const activeAncestorPaths = useMemo(() => ancestorFolders(activeFilePath), [activeFilePath]);
 
-  const { isFolderCollapsed, toggleFolder, expandFolder } = useFolderExpansion(activeAncestorPaths);
+  const expansion = useFolderExpansion(activeAncestorPaths);
+  const { toggleFolder, expandFolder } = expansion;
+  const isFolderCollapsed = useMemo(() => (expandAll ? () => false : expansion.isFolderCollapsed), [expandAll, expansion.isFolderCollapsed]);
 
   const rows = useMemo(() => flattenVisible(tree, isFolderCollapsed), [tree, isFolderCollapsed]);
   const selection = useTreeSelection(rows);
   const [treeFocused, setTreeFocused] = useState(false);
 
-  // Opening a file (from the palette, a link, a tab) selects its row, as in
-  // a code editor's explorer. Once per change of active file, after its
-  // folders have opened, so clicks and multi-selects made since stand.
-  const selectedActiveRef = useRef<string | null>(null);
   const { selectOnly } = selection;
-  useEffect(() => {
-    if (!treeView || !activeFilePath) {
-      selectedActiveRef.current = null;
-      return;
-    }
-    if (selectedActiveRef.current === activeFilePath) return;
-    if (!rows.some((row) => row.path === activeFilePath)) return;
-    selectedActiveRef.current = activeFilePath;
-    selectOnly(activeFilePath);
-  }, [treeView, activeFilePath, rows, selectOnly]);
+  useSelectActiveRow({ activeFilePath, treeView, rows, selectOnly });
+
+  // A long tree renders only the rows in view (below); scrolling to a row
+  // then goes through the virtualizer, which these refs reach.
+  const virtualScrollRef = useRef<((path: string) => boolean | null) | null>(null);
 
   // Whether the row was found (a row inside a collapsed folder isn't rendered).
   const scrollToPath = useCallback((path: string): boolean => {
+    const virtualResult = virtualScrollRef.current?.(path);
+    if (virtualResult != null) return virtualResult;
     const container = scrollRef.current;
     if (!container) return false;
     const el = container.querySelector<HTMLElement>(
@@ -110,6 +98,18 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
 
   const reveal = useTreeReveal({ rows, selectOnly, scrollToPath, scrollRef });
 
+  // The New Note / New Folder menu at the vault's root, for a right-click on
+  // the tree's empty space or elsewhere in the sidebar. False without either.
+  const canCreate = !!(props.createNewFile || props.createFolder);
+  const { clear: clearSelection } = selection;
+  const { openMenu } = actions;
+  const openBackgroundMenu = useCallback((x: number, y: number) => {
+    if (!treeView || !canCreate) return false;
+    clearSelection();
+    openMenu({ type: "background" }, x, y);
+    return true;
+  }, [treeView, canCreate, clearSelection, openMenu]);
+
   const focusPath = selection.focusPath;
   useEffect(() => {
     if (!controllerRef) return;
@@ -120,9 +120,10 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
         if (focusPath) scrollToPath(focusPath);
       },
       reveal,
+      openBackgroundMenu,
     };
     return () => { controllerRef.current = null; };
-  }, [controllerRef, actions.startCreate, focusPath, scrollToPath, reveal]);
+  }, [controllerRef, actions.startCreate, focusPath, scrollToPath, reveal, openBackgroundMenu]);
 
   const canDropAtRoot = canDropInto(draggedEntry, "");
 
@@ -134,6 +135,17 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
   });
 
   const shouldVirtualize = !treeView && processedFiles.length > VIRTUALIZE_THRESHOLD;
+
+  const { items, virtualizeTree, listRef, treeVirtualizer, scrollMargin, scrollToRow } = useVirtualTree({
+    treeView,
+    rows,
+    pendingCreate: actions.pendingCreate,
+    isFolderCollapsed,
+    scrollRef,
+  });
+  useEffect(() => {
+    virtualScrollRef.current = scrollToRow;
+  }, [scrollToRow]);
 
   // Rows are variable height (a second "folder path" line shows up for
   // nested files), so each row self-reports its real height via
@@ -171,9 +183,6 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeFilePath, shouldVirtualize, processedFiles]);
-
-  const emptyStateMessage = isSearchActive ? "No file found" : "No files yet";
-  const emptyStateHint = undefined;
 
   const rowProps = (entry: any) => {
     const entryPath = getEntryPath(entry);
@@ -218,6 +227,18 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     editing: actions.renameEditing(node.path),
   });
 
+  const treeRowProps = {
+    pendingCreate: actions.pendingCreate,
+    isFolderCollapsed,
+    isActiveAncestor: (path: string) => activeAncestorPaths.has(path),
+    onToggleFolder: toggleFolder,
+    rowProps,
+    folderProps,
+    setDraggedEntry,
+    onDragStartFile: actions.startDrag,
+    touchDrag: { start: startTouchDrag, isPressing: isTouchPressing, dropTarget: touchDropTarget },
+  };
+
   const onTreeKeyDown = (e: React.KeyboardEvent) => {
     if (!treeView || actions.renamingPath || actions.pendingCreate || actions.menu) return;
     // Keys on a row's ⋯ button stay the button's.
@@ -257,10 +278,7 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
         }}
         onClick={() => treeView && selection.clear()}
         onContextMenu={(e) => {
-          if (!treeView || (!props.createNewFile && !props.createFolder)) return;
-          e.preventDefault();
-          selection.clear();
-          actions.openMenu({ type: "background" }, e.clientX, e.clientY);
+          if (openBackgroundMenu(e.clientX, e.clientY)) e.preventDefault();
         }}
         onDragOver={(e) => {
           if (!treeView || !canDropAtRoot || touchGhost) return;
@@ -284,19 +302,24 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
         {treeView ? (
           // Stripes fill the view below the last row too (under the header).
           <div className={`list-rows ${showColumns ? "min-h-[calc(100%-1.75rem)]" : ""}`}>
-          <TreeNodes
-            nodes={tree}
-            level={0}
-            isFolderCollapsed={isFolderCollapsed}
-            isActiveAncestor={(path) => activeAncestorPaths.has(path)}
-            onToggleFolder={toggleFolder}
-            rowProps={rowProps}
-            folderProps={folderProps}
-            pendingCreate={actions.pendingCreate}
-            setDraggedEntry={setDraggedEntry}
-            onDragStartFile={actions.startDrag}
-            touchDrag={{ start: startTouchDrag, isPressing: isTouchPressing, dropTarget: touchDropTarget }}
-          />
+          <div ref={listRef}>
+            {virtualizeTree ? (
+              <div style={{ height: treeVirtualizer.getTotalSize(), position: "relative", width: "100%" }}>
+                {treeVirtualizer.getVirtualItems().map((virtualRow) => (
+                  <div
+                    key={virtualRow.key}
+                    data-index={virtualRow.index}
+                    ref={treeVirtualizer.measureElement}
+                    style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${virtualRow.start - scrollMargin}px)` }}
+                  >
+                    <TreeItemRow item={items[virtualRow.index]} {...treeRowProps} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              items.map((item) => <TreeItemRow key={item.key} item={item} {...treeRowProps} />)
+            )}
+          </div>
           </div>
         ) : shouldVirtualize ? (
           <div style={{ height: rowVirtualizer.getTotalSize(), position: "relative", width: "100%" }}>
@@ -333,36 +356,11 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
           })
         )}
 
-        {processedFiles.length === 0 && (!treeView || (tree.length === 0 && !actions.pendingCreate)) && (
-          <div className="px-4 py-8 flex flex-col items-center gap-2 text-center">
-            {isIndexing ? (
-              <>
-                <div className="w-4 h-4 rounded-full border-2 border-edge border-t-sage dark:border-t-sage animate-spin" />
-                <p className="opacity-40 text-ui-caption italic">
-                  Scanning vault…
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="opacity-30 text-ui-footnote font-medium italic">
-                  {emptyStateMessage}
-                </p>
-                {emptyStateHint && (
-                  <p className="opacity-20 text-ui-caption italic">
-                    {emptyStateHint}
-                  </p>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {isIndexing && processedFiles.length > 0 && (
-          <div className="flex items-center justify-center gap-2 py-2">
-            <div className="w-3 h-3 rounded-full border-2 border-edge border-t-sage dark:border-t-sage animate-spin" />
-            <p className="opacity-40 text-ui-caption italic">Still scanning vault…</p>
-          </div>
-        )}
+        <TreeListStatus
+          isEmpty={processedFiles.length === 0 && (!treeView || (tree.length === 0 && !actions.pendingCreate))}
+          isIndexing={isIndexing}
+          isSearchActive={isSearchActive}
+        />
       </div>
       {actions.menu && (
         <TreeContextMenu

@@ -27,8 +27,8 @@ export const vaultGroup: Group = {
             the folder in any other editor, sync it with Dropbox or Google Drive, or move it to another
             machine — nothing about it depends on HermesMarkdown being installed. The only folders
             HermesMarkdown creates on its own are <code>assets/</code>, for images you paste or drop
-            into a note, and the hidden <code>.hermes/trash/</code>, which holds what you delete
-            for 30 days.
+            into a note, and the hidden <code>.hermesmarkdown/trash/</code>, which holds what you delete
+            for 30 days. What you pin to the sidebar is kept in this browser, not in the vault.
           </p>
           <KV
             rows={[
@@ -64,6 +64,13 @@ export const vaultGroup: Group = {
             before filling it.
           </p>
           <p>
+            Files shows every file by its full name, extension included. Besides your notes it lists
+            the vault&apos;s other text files (code, JSON, YAML, CSV, plain text…); they open as plain
+            text, highlighted for their language, and stay out of All Notes, tags, tasks and search.
+            A note&apos;s <code>type:</code> in its frontmatter (or a <code>#type/…</code> tag) picks its
+            icon: project, task, meeting or bookmark.
+          </p>
+          <p>
             New notes and folders, and renames, are named right in the list: type, then press{" "}
             <strong>Return</strong> or click away to keep the name, or <strong>Esc</strong> to back out.
           </p>
@@ -85,7 +92,7 @@ export const vaultGroup: Group = {
             ]}
           />
           <Callout type="note">
-            Deleting moves notes and folders to the vault&apos;s Trash (<code>.hermes/trash/</code>)
+            Deleting moves notes and folders to the vault&apos;s Trash (<code>.hermesmarkdown/trash/</code>)
             instead of erasing them. The toast&apos;s <strong>Undo</strong> or CMD/CTRL+Z in the file
             tree puts them back; anything in the Trash is removed for good after 30 days. The Trash is
             never indexed, searched, exported or synced to GitHub. If an item can&apos;t be moved to the
@@ -104,13 +111,13 @@ export const vaultGroup: Group = {
           <p>
             Choose <strong>Connect GitHub Vault</strong> when opening a vault. You can select a
             repository you can access or create a new private repository. HermesMarkdown imports
-            Markdown files and files under <code>.hermes/</code>; other repository files are left
+            Markdown files and files under <code>.hermesmarkdown/</code>; other repository files are left
             outside the vault workspace.
           </p>
           <KV
             rows={[
               { label: "New repository", value: "Private" },
-              { label: "Imported content", value: "*.md and .hermes/**" },
+              { label: "Imported content", value: "*.md and .hermesmarkdown/**" },
               { label: "Branch", value: "Repository default branch" },
               { label: "Credentials", value: "Encrypted HttpOnly session cookie" },
             ]}

@@ -8,7 +8,6 @@ import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { atom_vaultName } from "@/app/atoms/vault-atoms";
 import { atom_selectedFileTags } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import VaultFileTree from "../components/VaultFileTree";
 import UnifiedSearchInput from "../components/UnifiedSearchInput";
@@ -37,9 +36,8 @@ export default function FilesPage() {
     vaultHandle,
   } = useFileSystem();
   const vaultName = useAtomValue(atom_vaultName);
-  // No Refresh button: the list follows the disk (watched where the browser
-  // can, and rescanned on focus and on a timer everywhere).
-  useVaultSync();
+  // No Refresh button: the list follows the disk (useVaultSync, mounted by
+  // EditorShell on every /editor route).
   const {
     allFiles,
     folderPaths,

@@ -65,7 +65,7 @@ export default function WikiLinkDialog({
 
   const items = useMemo((): SearchItem[] => {
     return Object.values(fileMetadata)
-      .filter((m) => !m.path.startsWith(".hermes/"))
+      .filter((m) => !m.path.startsWith(".hermesmarkdown/"))
       .map((m) => ({
         id: `file:${m.path}`,
         name: m.name.replace(/\.md$/, ""),

@@ -18,10 +18,12 @@ const MODE_LABEL: Record<string, string> = {
 //
 // The pill stays mounted (opacity only, never `invisible`): the library
 // focuses the prompt's input synchronously when it opens, before React has
-// re-rendered, so the host must already be focusable.
-export default function VimStatusPill({ status, hostRef }: {
+// re-rendered, so the host must already be focusable. With the outline on
+// (`besideOutline`), the pill sits left of it rather than on it.
+export default function VimStatusPill({ status, hostRef, besideOutline = false }: {
   status: VimStatus;
   hostRef: React.RefObject<HTMLDivElement | null>;
+  besideOutline?: boolean;
 }) {
   const { mode, prompting } = status;
   const visible = prompting || mode !== "insert";
@@ -33,7 +35,7 @@ export default function VimStatusPill({ status, hostRef }: {
         aria-hidden={!visible}
         className={`absolute bottom-4 flex items-center gap-2 rounded-full glass-panel px-3 py-1 text-ui-caption text-fg-muted
           transition-[opacity,transform] duration-150
-          ${prompting ? "left-1/2 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2" : "right-4"}
+          ${prompting ? "left-1/2 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2" : besideOutline ? "right-4 md:right-60" : "right-4"}
           ${visible ? "pointer-events-auto opacity-100" : "translate-y-1 opacity-0"}`}
       >
         {!prompting && (

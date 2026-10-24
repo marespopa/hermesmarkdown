@@ -3,7 +3,7 @@ import { renderHook } from "@testing-library/react";
 import { useFileSystem } from "./use-file-system";
 import { useDialog } from "./use-dialog";
 import toast from "react-hot-toast";
-import { useAtom, useSetAtom, useAtomValue } from "jotai";
+import { getDefaultStore, useAtom, useSetAtom, useAtomValue } from "jotai";
 import {
   atom_currentDirectoryHandle,
   atom_fileMetadata,
@@ -81,6 +81,8 @@ describe("useFileSystem - createFile conflict resolution", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Scans and indexing read the open vault from the store (useAtom is mocked).
+    getDefaultStore().set(atom_vaultHandle, mockVaultHandle as any);
     mockVaultHandle.getDirectoryHandle.mockReset();
     mockVaultHandle.getFileHandle.mockReset();
     mockVaultHandle.values.mockReset();

@@ -14,3 +14,6 @@ export const FIELD_CLASS = `${FIELD_SURFACE} h-11 rounded-[10px] px-3.5 text-ui-
 
 /** A compact field: 32px tall, for settings rows, toolbars and popovers. */
 export const FIELD_COMPACT_CLASS = `${FIELD_SURFACE} h-8 rounded-lg px-2.5 text-ui-footnote`;
+
+/** A sidebar field: 28px tall and rounded like the sidebar's rows, so it sits in their rhythm. */
+export const FIELD_SIDEBAR_CLASS = `${FIELD_SURFACE} h-7 rounded-md px-2 text-ui-footnote`;

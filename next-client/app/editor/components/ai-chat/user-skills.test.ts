@@ -1,0 +1,43 @@
+import { describe, expect, it } from "vitest";
+import type { FileMetadata } from "@/app/atoms/metadata";
+import { MemoryDirectoryHandle } from "@/app/services/memory-file-system.test-utils";
+import { isUserSkillActive, readUserSkill, skillCommandFor, userSkillsFrom } from "./user-skills";
+
+const meta = (path: string, extra: Partial<FileMetadata> = {}) =>
+  ({ path, name: path.split("/").pop()!, tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [], handle: {} as never, ...extra }) as FileMetadata;
+
+describe("user skills", () => {
+  it("names a skill's command after its file", () => {
+    expect(skillCommandFor("skills/Standup notes.md")).toBe("/standup-notes");
+    expect(skillCommandFor("release-check.md")).toBe("/release-check");
+  });
+
+  it("finds notes of type skill, from frontmatter or a type tag, leaving out taken commands", () => {
+    const skills = userSkillsFrom({
+      "skills/standup.md": meta("skills/standup.md", { frontmatter: { type: "skill" } }),
+      "release-check.md": meta("release-check.md", { tags: ["type/skill"] }),
+      "template.md": meta("template.md", { frontmatter: { type: "skill" } }),
+      "roadmap.md": meta("roadmap.md", { frontmatter: { type: "project" } }),
+    }, ["/template", "/tasks"]);
+    expect(skills).toEqual([
+      { path: "release-check.md", command: "/release-check" },
+      { path: "skills/standup.md", command: "/standup" },
+    ]);
+  });
+
+  it("turns on only for a message starting with the command as a word", () => {
+    const skill = { path: "skills/standup.md", command: "/standup" };
+    expect(isUserSkillActive(skill, ["  /Standup for today"])).toBe(true);
+    expect(isUserSkillActive(skill, ["/standup"])).toBe(true);
+    expect(isUserSkillActive(skill, ["/standups please", "run /standup"])).toBe(false);
+  });
+
+  it("reads the note's text after its frontmatter, and nothing for an empty or missing note", async () => {
+    const vault = new MemoryDirectoryHandle("vault");
+    await vault.writeText("skills/standup.md", "---\ntype: skill\n---\nList what changed since yesterday.\n");
+    await vault.writeText("skills/empty.md", "---\ntype: skill\n---\n");
+    expect(await readUserSkill(vault.asHandle(), "skills/standup.md")).toBe("List what changed since yesterday.");
+    expect(await readUserSkill(vault.asHandle(), "skills/empty.md")).toBeNull();
+    expect(await readUserSkill(vault.asHandle(), "skills/gone.md")).toBeNull();
+  });
+});

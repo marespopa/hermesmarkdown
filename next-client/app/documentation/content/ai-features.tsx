@@ -1,4 +1,4 @@
-import { Callout, KV, type Group } from "../doc-primitives";
+import { Callout, Code, KV, type Group } from "../doc-primitives";
 import TextLink from "@/app/components/TextLink";
 
 // Documentation content: AI Features group.
@@ -92,7 +92,7 @@ export const aiFeaturesGroup: Group = {
       id: "ai-templates",
       title: "AI templates",
       lead: "Ask AI Chat for a template and it writes one you can save into templates/ with one click.",
-      keywords: "ai template skill create rfc prompt save replace hermes skills create-template",
+      keywords: "ai template skill create rfc prompt save replace",
       body: (
         <>
           <p>
@@ -108,11 +108,6 @@ export const aiFeaturesGroup: Group = {
             name exists, the button reads <strong>Replace template</strong>. Saved templates show up
             in <code>/template</code> straight away. You need an open vault to save.
           </p>
-          <Callout type="tip">
-            To change how the chat writes templates, put your own instructions in{" "}
-            <code>.hermes/skills/create-template.md</code> in your vault. When that file exists, its
-            text (below any frontmatter) replaces the built-in instructions. The app never writes it.
-          </Callout>
           <p>
             The template instructions are only added to chats that mention templates, as part of the
             same AI request. Nothing else is sent.
@@ -137,9 +132,33 @@ export const aiFeaturesGroup: Group = {
           </p>
           <Callout type="tip">
             Private notes (<code>private: true</code> or a <code>private</code> tag) are never sent. Their tasks are left out and
-            only counted. To change how the skill writes, put your own instructions in{" "}
-            <code>.hermes/skills/tasks.md</code>. The app still adds the task list.
+            only counted.
           </Callout>
+        </>
+      ),
+    },
+    {
+      id: "ai-skill-notes",
+      title: "Your own skills",
+      lead: "Write a note of type skill, and /its-name turns it on in AI Chat.",
+      keywords: "ai skill skills custom own instructions prompt command slash note type",
+      body: (
+        <>
+          <p>
+            Any note with <code>type: skill</code> in its frontmatter (or a <code>#type/skill</code> tag)
+            is a skill, wherever it is in your vault. Start an AI Chat message with a slash and the
+            note&apos;s file name, lowercase with hyphens for spaces (<code>Standup notes.md</code> is{" "}
+            <code>/standup-notes</code>), and the note&apos;s text below its frontmatter is added to the
+            chat&apos;s instructions from then on.
+          </p>
+          <Code>{`---
+type: skill
+---
+Write today's standup from my notes: done, next, blocked. Keep each to one line.`}</Code>
+          <p>
+            The note is read fresh each time you send, so edits apply at once. The app never creates or
+            changes skill notes. <code>/template</code> and <code>/tasks</code> are the app&apos;s own skills.
+          </p>
         </>
       ),
     },

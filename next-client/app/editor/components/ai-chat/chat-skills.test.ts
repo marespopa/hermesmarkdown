@@ -1,26 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   isSkillActive,
-  loadSkillInstructions,
   parseTemplateBlocks,
   TASKS_SKILL,
   TEMPLATE_SKILL,
 } from "./chat-skills";
-
-const notFound = () => Object.assign(new Error("missing"), { name: "NotFoundError" });
-
-// A vault whose only file is `.hermes/skills/create-template.md` (or none).
-function vaultWith(override: string | null, { failRead = false } = {}) {
-  const file = {
-    getFile: async () => {
-      if (failRead) throw new Error("locked");
-      return { text: async () => override ?? "" };
-    },
-  };
-  const skills = { getFileHandle: vi.fn(async () => { if (override === null) throw notFound(); return file; }) };
-  const hermes = { getDirectoryHandle: vi.fn(async () => skills) };
-  return { getDirectoryHandle: vi.fn(async () => hermes) } as unknown as FileSystemDirectoryHandle;
-}
 
 describe("isSkillActive", () => {
   it("turns on for template / templates, or a /template message", () => {
@@ -72,21 +56,7 @@ describe("parseTemplateBlocks", () => {
   });
 });
 
-describe("loadSkillInstructions", () => {
-  it("uses the built-in text without a vault or an override file", async () => {
-    expect(await loadSkillInstructions(TEMPLATE_SKILL, null)).toBe(TEMPLATE_SKILL.builtin);
-    expect(await loadSkillInstructions(TEMPLATE_SKILL, vaultWith(null))).toBe(TEMPLATE_SKILL.builtin);
-  });
-
-  it("uses the override file's body when it exists", async () => {
-    const vault = vaultWith("---\ndescription: mine\n---\nAlways add a Status line.");
-    expect(await loadSkillInstructions(TEMPLATE_SKILL, vault)).toBe("Always add a Status line.");
-  });
-
-  it("falls back to the built-in text on a read error", async () => {
-    expect(await loadSkillInstructions(TEMPLATE_SKILL, vaultWith("x", { failRead: true }))).toBe(TEMPLATE_SKILL.builtin);
-  });
-
+describe("TEMPLATE_SKILL", () => {
   it("builds the built-in text from the syntax guide and block format", () => {
     expect(TEMPLATE_SKILL.builtin).toContain("{{prompt:Label}}");
     expect(TEMPLATE_SKILL.builtin).toContain("~~~~hermes-template rfc.md");

@@ -21,6 +21,14 @@ describe("collectAnnotationDisplayMatches", () => {
     ]);
   });
 
+  it("chips a whole ISO datetime, such as a frontmatter timestamp", () => {
+    const matches = collectAnnotationDisplayMatches("created: 2026-10-24T15:14:54Z");
+
+    expect(matches.map(({ label, kind, raw }) => ({ label, kind, raw }))).toEqual([
+      { label: "2026-10-24T15:14:54Z", kind: "iso", raw: "2026-10-24T15:14:54Z" },
+    ]);
+  });
+
   it("shows a task's @started and @done stamps as labelled date chips", () => {
     const matches = collectAnnotationDisplayMatches("- [x] Ship @started(2026-10-08) @done(2026-10-12)");
 

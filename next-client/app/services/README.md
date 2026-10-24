@@ -13,9 +13,11 @@ Atom persistence uses Jotai `atomWithStorage` (`localStorage`) directly in `app/
 
 ## Files
 
+- `pins-model.ts` — The sidebar's pins, pure (pins are kept on this device, `atoms/pin-atoms.ts`): `PIN_PAGES`, `Pin` / `PinKind`, `pinKey()`, `PINS_MAX` (9); the entry rules (`parsePinItem`: one kind key — `note` (a `.md` vault path), `folder`, `tag` (normalised), `page` — and an optional single-emoji `icon`, `normalizePinIcon`), `listedPins` (recognised entries, first of each), `pinsDocument`, and the edits on a document of raw entries, each returning a new one or null when nothing changes: `addPins` (as many as fit), `pinsOverLimit`, `removePin`, `setPinIcon`, `movePin`, `remapPinPaths`, `forgetPinPaths`; `samePins`.
 - `file-writer.ts` — `writeFileContent()`, the single write path for vault files. Uses `createWritable()` when the handle has it; otherwise (Safari before 26) sends the bytes to `app/workers/opfs-writer.worker.ts`, which writes through `createSyncAccessHandle()`.
 - `content-search-client.ts` — Main-thread side of the note-text index in the metadata worker: `indexNoteContent`, `removeNoteContent`, `remapNoteContent`, `markContentIndexed` / `needsContentIndex` (which notes the worker already has this session, by modified time), and `searchNoteContent` (resolves `null` when superseded or after 5 s). Holds no note text. No-ops without a worker.
-- `vault-trash.ts` — The vault Trash's layout: `TRASH_DIR` (`.hermes/trash`), `isTrashPath()`, slot names by deletion time (`trashSlotName` / `trashSlotDate`) and the 30-day expiry (`isTrashSlotExpired`). The Trash is skipped by indexing, export and GitHub sync.
+- `vault-trash.ts` — The vault Trash's layout: `TRASH_DIR` (`.hermesmarkdown/trash`), `isTrashPath()`, slot names by deletion time (`trashSlotName` / `trashSlotDate`) and the 30-day expiry (`isTrashSlotExpired`). The Trash is skipped by indexing, export and GitHub sync.
+- `vault-data-dir.ts` — The vault's data folder, `VAULT_DATA_DIR` (`.hermesmarkdown`), which holds only the Trash and is created only when something is moved there; `isVaultDataPath()`. Pins and AI skills are the app's, never in the vault.
 - `vault-archive.ts` — Whole-vault zip export / import (`fflate`; exports wrap entries in a vault-named folder, which import strips), folder copy, path sanitizing (no traversal, skips `.git` / `node_modules` and the Trash; Android storage-URI paths from a folder pick are rebuilt into folder-relative ones), and conflict-free naming (`name (1).md`).
 
 ## AI (client)
@@ -25,7 +27,7 @@ Atom persistence uses Jotai `atomWithStorage` (`localStorage`) directly in `app/
 
 ## GitHub vaults
 
-- `github-vault-workspace.ts` (client) — Mirrors repository files into the Origin Private File System: path validation (Markdown and `.hermes/` only, never the Trash), descriptor / manifest types, read / write / delete, blob SHAs.
+- `github-vault-workspace.ts` (client) — Mirrors repository files into the Origin Private File System: path validation (Markdown and `.hermesmarkdown/` only, never the Trash), descriptor / manifest types, read / write / delete, blob SHAs.
 - `github-vault-sync.ts` (client) — Computes local changes, commits them through `/api/github/repos/[owner]/[repository]/sync`, and pulls with a three-way merge (conflicts left as markers).
 - `github-api.ts` (server) — Authenticated `fetch` to the GitHub API, request schemas, and error mapping (uses `NextRequest`).
 - `github-auth.ts` (server) — OAuth state and the encrypted HttpOnly session cookie that holds the access token.

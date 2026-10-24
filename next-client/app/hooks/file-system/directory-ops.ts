@@ -149,6 +149,9 @@ export async function entryAtPath(
   }
 }
 
+// A name for the middle step of a case-only rename, unused in the folder.
+export const caseStepName = (name: string) => `${name}.renaming-${Date.now().toString(36)}`;
+
 // Moves and/or renames the item at `fromPath` to `toPath` (both vault-relative),
 // creating the destination's folders as needed. Never overwrites: throws when
 // `toPath` is taken. Native move first, copy-and-remove as the fallback.
@@ -158,6 +161,20 @@ export async function relocateEntry(
   toPath: string,
 ): Promise<void> {
   if (fromPath === toPath) return;
+  // Only the letter case changes (undoing "Draft.md" → "draft.md"): storage
+  // that ignores case sees the new name as taken, so it goes through an
+  // unused name first, and back to the old name if the second step fails.
+  if (fromPath.toLowerCase() === toPath.toLowerCase()) {
+    const step = caseStepName(fromPath);
+    await relocateEntry(vault, fromPath, step);
+    try {
+      await relocateEntry(vault, step, toPath);
+    } catch (err) {
+      await relocateEntry(vault, step, fromPath).catch(() => {});
+      throw err;
+    }
+    return;
+  }
   if (toPath.startsWith(`${fromPath}/`)) throw new Error("Cannot move a folder into itself");
   const { handle, parent } = await entryAtPath(vault, fromPath);
   const destSegments = toPath.split("/").filter(Boolean);

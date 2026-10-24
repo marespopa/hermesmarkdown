@@ -35,23 +35,3 @@ export function extractOutline(content: string): OutlineHeading[] {
   }
   return headings;
 }
-
-export interface OutlineNode {
-  heading: OutlineHeading;
-  children: OutlineNode[];
-}
-
-// The headings as a tree: each one holds the deeper headings after it, up to
-// the next heading of its level or above. A skipped level (an H3 straight
-// under an H1) nests one step, as the reader would expect.
-export function buildOutlineTree(headings: OutlineHeading[]): OutlineNode[] {
-  const roots: OutlineNode[] = [];
-  const stack: OutlineNode[] = [];
-  for (const heading of headings) {
-    const node: OutlineNode = { heading, children: [] };
-    while (stack.length && stack[stack.length - 1].heading.level >= heading.level) stack.pop();
-    (stack.length ? stack[stack.length - 1].children : roots).push(node);
-    stack.push(node);
-  }
-  return roots;
-}

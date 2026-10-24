@@ -25,7 +25,7 @@ const plan = {
   slot: "2026-10-06T09-43-55-123Z-0",
   name: "plan.md",
   kind: "file",
-  trashPath: ".hermes/trash/2026-10-06T09-43-55-123Z-0/plan.md",
+  trashPath: ".hermesmarkdown/trash/2026-10-06T09-43-55-123Z-0/plan.md",
   originalPath: "notes/plan.md",
   deletedAt: new Date("2026-10-06T09:43:55.123Z"),
 };

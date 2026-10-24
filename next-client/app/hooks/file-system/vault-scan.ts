@@ -1,4 +1,6 @@
 import { isTrashPath } from "@/app/services/vault-trash";
+import { isPlainTextPath } from "@/app/utils/file-kinds";
+import { VAULT_DATA_DIR } from "@/app/services/vault-data-dir";
 
 // Pure vault-walking helpers used by use-vault-manager.ts: directory listing,
 // the recursive markdown walk for indexing, and cloud-folder detection. No
@@ -31,8 +33,9 @@ export async function isStrayDocumentFolder(entry: FileSystemHandle, parentPath:
   }
 }
 
-// One directory level for the file views: .md files and (non-hidden unless
-// `includeHidden`) folders, sorted by name, each tagged with its vault path.
+// One directory level for the file views: .md files, other text files
+// (isPlainTextPath) and (non-hidden unless `includeHidden`) folders, sorted
+// by name, each tagged with its vault path.
 export async function listDirectoryEntries(
   vaultHandle: FileSystemDirectoryHandle | null,
   handle: FileSystemDirectoryHandle,
@@ -52,7 +55,7 @@ export async function listDirectoryEntries(
   for await (const entry of (handle as any).values()) {
     // Attach path to the handle object for easier access in UI components
     (entry as any).path = dirPath ? `${dirPath}/${entry.name}` : entry.name;
-    if (entry.kind === "file" && entry.name.endsWith(".md")) {
+    if (entry.kind === "file" && (entry.name.endsWith(".md") || isListedTextFile(entry.name, entry.path, includeHidden))) {
       entries.push(entry);
     } else if (
       entry.kind === "directory" &&
@@ -74,6 +77,8 @@ export interface CollectResult {
   files: CollectedFile[];
   /** Every folder walked (vault-relative paths), empty ones included. */
   folders: string[];
+  /** Text files that aren't notes (isPlainTextPath): listed, never indexed. */
+  textFiles: CollectedFile[];
   /** Subfolders that couldn't be read (usually missing permission). */
   failedSubdirs: number;
   /** The walk hit the time limit; `files` holds what was found so far. */
@@ -85,11 +90,16 @@ export interface CollectResult {
 const SKIPPED_DIRS = new Set(["node_modules", "vendor", ".git", ".svn", ".hg", "__pycache__", ".venv", ".cache", ".Trash"]);
 // The one hidden folder whose non-Markdown files are vault data (index.yaml,
 // schema.yaml, …). Other dotfolders (.obsidian, .vscode, …) only add notes.
-const VAULT_DATA_DIR = ".hermes";
 // Folders listed at once; the walk is bound by per-folder listing latency.
 const WALK_CONCURRENCY = 8;
 
 // Secrets-style files (.env, .env.local, …) are never read or indexed.
+// A text file the file views list (isPlainTextPath): never a secret, and
+// not a dotfile unless hidden files are shown.
+function isListedTextFile(name: string, path: string, includeHidden: boolean): boolean {
+  return isPlainTextPath(path) && !isSecretFile(name) && (includeHidden || !name.startsWith("."));
+}
+
 export function isSecretFile(name: string): boolean {
   return /^\.env(\..*)?$/i.test(name);
 }
@@ -101,8 +111,8 @@ const REPORT_BATCH_SIZE = 100;
 // Recursively collects the vault's markdown files for indexing, and the
 // folders walked for the file tree, listing up to WALK_CONCURRENCY folders
 // at once. Skips SKIPPED_DIRS and dotfolders
-// unless `includeHidden`, in which case non-.md files in .hermes/ (e.g.
-// .hermes/index.yaml) are included too. Secret files never are. Gives up
+// unless `includeHidden`, in which case non-.md files in .hermesmarkdown/ (e.g.
+// .hermesmarkdown/index.yaml) are included too. Secret files never are. Gives up
 // after `timeoutMs` so a huge tree can never pin the indexer. `onFiles`
 // gets the notes as they're found (per folder, in batches), before the walk
 // is over; the result still lists every one.
@@ -114,11 +124,12 @@ export async function collectVaultFiles(
 ): Promise<CollectResult> {
   const files: CollectedFile[] = [];
   const folders: string[] = [];
+  const textFiles: CollectedFile[] = [];
   let failedSubdirs = 0;
   let timedOut = false;
   let finished = false;
 
-  // The Trash (.hermes/trash) holds deleted notes: never indexed or listed.
+  // The Trash (.hermesmarkdown/trash) holds deleted notes: never indexed or listed.
   const isIgnoredDir = (name: string, path: string) =>
     SKIPPED_DIRS.has(name) || (!includeHidden && name.startsWith(".")) || isTrashPath(path);
   const isWanted = (name: string, path: string) =>
@@ -150,6 +161,8 @@ export async function collectVaultFiles(
             report(found);
             found = [];
           }
+        } else if (entry.kind === "file" && isListedTextFile(entry.name, currentPath, includeHidden)) {
+          textFiles.push({ handle: entry as FileSystemFileHandle, path: currentPath });
         } else if (
           entry.kind === "directory" &&
           !isIgnoredDir(entry.name, currentPath) &&
@@ -195,7 +208,7 @@ export async function collectVaultFiles(
     pump();
   });
   // A copy: listings still in flight after a timeout must not change it.
-  return { files: files.slice(), folders: folders.slice(), failedSubdirs, timedOut };
+  return { files: files.slice(), folders: folders.slice(), textFiles: textFiles.slice(), failedSubdirs, timedOut };
 }
 
 // Reads collected files for the metadata worker (file permissions are scoped

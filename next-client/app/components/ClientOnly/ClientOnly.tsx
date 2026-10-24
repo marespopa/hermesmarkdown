@@ -15,5 +15,6 @@ export default function ClientOnly({
   if (!hasMounted) {
     return null;
   }
+  
   return <div {...delegated}>{children}</div>;
 }

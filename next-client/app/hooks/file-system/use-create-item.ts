@@ -104,6 +104,10 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
         setVaultFolderPaths((prev) => (prev.includes(folderPath) ? prev : [...prev, folderPath]));
       }
       await scanVault(vaultHandle);
+      // An index already walking the vault may have passed this folder's
+      // parent, and its folder list would drop the new one when it ends:
+      // re-index (as for a new note), which takes over from that run.
+      void indexVaultTags();
       if (name === undefined) toast.success(`Created: ${folderName}`);
       return folder;
     } catch (error) {
@@ -111,7 +115,7 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
       toast.error("Failed to create folder.");
       return null;
     }
-  }, [dialog, scanVault, setVaultFolderPaths, vaultHandle]);
+  }, [dialog, scanVault, indexVaultTags, setVaultFolderPaths, vaultHandle]);
 
   const chooseTargetDirectory = useCallback(async () => {
     const target = await selectTargetDirectory(

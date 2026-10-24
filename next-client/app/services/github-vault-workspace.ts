@@ -1,6 +1,7 @@
 import { isTrashPath } from "./vault-trash";
 import { getVaultsDirectory } from "./opfs";
 import { writeFileContent } from "./file-writer";
+import { VAULT_DATA_DIR } from "./vault-data-dir";
 
 export const GITHUB_VAULT_DESCRIPTOR_VERSION = 1;
 export const GITHUB_VAULT_MANIFEST_VERSION = 1;
@@ -71,7 +72,7 @@ export function normalizeGitHubVaultPath(path: string): string {
 export function isGitHubVaultPathAllowed(path: string): boolean {
   const normalized = normalizeGitHubVaultPath(path);
   if (isTrashPath(normalized)) return false;
-  return normalized.endsWith(".md") || normalized.startsWith(".hermes/");
+  return normalized.endsWith(".md") || normalized.startsWith(`${VAULT_DATA_DIR}/`);
 }
 
 export function getGitHubVaultWorkspaceName(descriptor: Pick<GitHubVaultDescriptor, "repositoryId" | "branch">): string {

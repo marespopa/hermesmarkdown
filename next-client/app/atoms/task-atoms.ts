@@ -13,7 +13,7 @@ export const atom_allTasks = atom<TaskItem[]>((get) => {
   const out: TaskItem[] = [];
   for (const file of Object.values(meta)) {
     // Template files hold placeholder tasks (`- [ ] {{prompt:Task}}`), not real ones.
-    if (file.path.startsWith(".hermes/") || isTemplatePath(file.path, templatesFolder)) continue;
+    if (file.path.startsWith(".hermesmarkdown/") || isTemplatePath(file.path, templatesFolder)) continue;
     for (const t of file.tasks || []) out.push(t);
   }
   return out;
@@ -31,7 +31,7 @@ export const atom_visibleTasks = atom<DisplayTask[]>((get) => {
   const templatesFolder = get(atom_templatesFolder).folder;
   const out: DisplayTask[] = [];
   for (const file of Object.values(meta)) {
-    if (file.path.startsWith(".hermes/") || isTemplatePath(file.path, templatesFolder)) continue;
+    if (file.path.startsWith(".hermesmarkdown/") || isTemplatePath(file.path, templatesFolder)) continue;
     const isPrivate = isPrivateFrontmatter(file.frontmatter);
     if (isPrivate && level === "hidden") continue;
     for (const t of file.tasks || []) {

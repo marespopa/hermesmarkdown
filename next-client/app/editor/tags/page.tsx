@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { Suspense, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { HiOutlineDocumentText } from "react-icons/hi";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
@@ -12,7 +12,8 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import ShellPage from "../components/ShellPage";
 import { SIDEBAR_ICON_CLASS, sidebarItemClass } from "../components/sidebar/sidebar-classes";
 import { formatModified } from "../components/vault-tree/list-columns";
-import { editorFileHref, readUrlParam, replaceUrlParam, TAG_PARAM } from "../utils/editor-url";
+import { editorFileHref, replaceUrlParam, TAG_PARAM } from "../utils/editor-url";
+import TagHeading from "./TagHeading";
 
 interface TagEntry {
   tag: string;
@@ -21,18 +22,31 @@ interface TagEntry {
 
 // Tags: every tag in the vault with how many notes carry it, and the notes
 // of the one you pick, most recently changed first. The pick is in the URL
-// (`?tag=release`), so a refresh or a link lands on it. Only notes that
-// listings may show count (atom_noteDisplayItems), so Privacy Mode applies
-// to the counts as well as the titles. A note opens in the editor at its URL.
+// (`?tag=release`), so a refresh or a link lands on it, and the page follows
+// the URL while open (a pinned tag clicked in the sidebar rewrites it). Only
+// notes that listings may show count (atom_noteDisplayItems), so Privacy Mode
+// applies to the counts as well as the titles. A note opens in the editor at
+// its URL. The chosen tag's heading has a Pin button (TagHeading).
+// useSearchParams needs a Suspense boundary in a prerendered route.
 export default function TagsPage() {
+  return (
+    <Suspense fallback={null}>
+      <TagsView />
+    </Suspense>
+  );
+}
+
+function TagsView() {
   const router = useRouter();
   const { openFile, vaultHandle } = useFileSystem();
   const metadata = useAtomValue(atom_fileMetadata);
   const displayItems = useAtomValue(atom_noteDisplayItems);
-  const [selected, setSelected] = useState<string | null>(null);
-
-  // Read after mount: the URL doesn't exist on the server.
-  useEffect(() => setSelected(readUrlParam(TAG_PARAM)), []);
+  const urlTag = useSearchParams()?.get(TAG_PARAM) ?? null;
+  // A pick shows at once; once the URL changes (the pick itself synced, or a
+  // pinned tag's link) the URL wins.
+  const [picked, setPicked] = useState<{ from: string | null; tag: string | null } | null>(null);
+  if (picked && picked.from !== urlTag) setPicked(null);
+  const selected = picked && picked.from === urlTag ? picked.tag : urlTag;
 
   const tags = useMemo<TagEntry[]>(() => {
     const counts = new Map<string, number>();
@@ -53,7 +67,7 @@ export default function TagsPage() {
   );
 
   const pick = (tag: string | null) => {
-    setSelected(tag);
+    setPicked({ from: urlTag, tag });
     replaceUrlParam(TAG_PARAM, tag);
   };
 
@@ -97,7 +111,7 @@ export default function TagsPage() {
                 <p className="text-ui-footnote text-fg-muted">Pick a tag to see its notes.</p>
               ) : (
                 <>
-                  <h1 className="mb-4 text-ui-title-2 font-semibold tracking-tight">#{selected}</h1>
+                  <TagHeading tag={selected} hasVault={!!vaultHandle} />
                   {notes.length === 0 ? (
                     <p className="text-ui-footnote text-fg-muted">No notes carry this tag.</p>
                   ) : (

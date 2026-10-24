@@ -31,7 +31,7 @@ This directory contains the core logic and routing for the HermesMarkdown Markdo
 ## Key Concepts
 
 ### Workspace Layout
-- **Main Workspace**: One flush pane (`editor/components/PaneLeaf.tsx`) with up to 20 open notes, switched from the sidebar's Open Notes, the palette or Ctrl/Cmd+1–9.
+- **Main Workspace**: One flush pane (`editor/components/PaneLeaf.tsx`) with up to 20 open notes, switched from the command palette (Ctrl/Cmd+K).
 - **Files**: The vault's tree, one name everywhere. On desktop it's the sidebar's Files section; **Show Files** (command palette, `Ctrl/Cmd+Shift+E`) shows the sidebar and focuses it. On mobile the same command opens the full-screen Files page (`/editor/files`).
 - **Tasks**: A dedicated full view at `/editor/tasks`.
 - **Command palette**: The primary navigation surface — quick switcher, commands, tags, tasks, and headings.

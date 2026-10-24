@@ -11,6 +11,7 @@ import { flowMode as flowModeExtension, type FlowLevel } from "../codemirror/flo
 import { invisibles } from "../codemirror/invisibles";
 import { editorLineNumbers } from "../codemirror/line-numbers";
 import { changedRange } from "@/app/utils/text-diff";
+import { isPlainTextPath } from "@/app/utils/file-kinds";
 
 interface UseCodeMirrorEditorOptions {
   value: string;
@@ -33,6 +34,8 @@ interface UseCodeMirrorEditorOptions {
   csvConfirmRef?: { current: ((preview: string) => Promise<boolean>) | null };
   pasteImageRef?: { current: ((file: File) => Promise<string | null>) | null };
   onViewCreated?: (view: EditorView) => void;
+  /** The open file: a text file that isn't a note opens as plain text, highlighted by its name. */
+  filePath?: string;
 }
 
 // Owns the CodeMirror 6 EditorView lifecycle: mounts it into containerRef,
@@ -63,7 +66,10 @@ export function useCodeMirrorEditor({
   csvConfirmRef,
   pasteImageRef,
   onViewCreated,
+  filePath,
 }: UseCodeMirrorEditorOptions) {
+  // Fixed for the view's life: the editor is remounted for each file (PaneLeaf).
+  const plainText = !!filePath && isPlainTextPath(filePath);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   // The text the view last reported through onChange: when it comes back as
@@ -94,6 +100,7 @@ export function useCodeMirrorEditor({
         // Vim is loaded only when it's on (see vim-loader.ts).
         vimMode ? loadVim() : null,
       ]);
+      const codeLanguage = plainText && filePath ? await loadCodeLanguage(filePath) : null;
 
       if (destroyed) return;
 
@@ -133,6 +140,8 @@ export function useCodeMirrorEditor({
           wikiLinkTriggerRef,
           csvConfirmRef,
           pasteImageRef,
+          plainText,
+          codeLanguage,
         }),
       });
 
@@ -222,9 +231,9 @@ export function useCodeMirrorEditor({
   useEffect(() => {
     const view = viewRef.current;
     const compartment = flowModeCompartmentRef.current;
-    if (!view || !compartment) return;
+    if (!view || !compartment || plainText) return;
     view.dispatch({ effects: compartment.reconfigure(flowMode ? flowModeExtension(flowMode) : []) });
-  }, [flowMode, viewRef]);
+  }, [flowMode, plainText, viewRef]);
 
   // Keep the view in sync when `value` changes for a reason other than
   // the user typing in it (e.g. external file reload, undo outside CM6,
@@ -243,4 +252,20 @@ export function useCodeMirrorEditor({
   }, [value, viewRef]);
 
   return { containerRef, viewRef };
+}
+
+// The language for a text file's name (its extension, or a name such as
+// Dockerfile), from the same list notes' code blocks use; null when there
+// is none or it fails to load (the file is then shown unhighlighted).
+async function loadCodeLanguage(filePath: string) {
+  try {
+    const [{ LanguageDescription }, { languages }] = await Promise.all([
+      import("@codemirror/language"),
+      import("@codemirror/language-data"),
+    ]);
+    const description = LanguageDescription.matchFilename(languages, filePath.split("/").pop() ?? filePath);
+    return description ? await description.load() : null;
+  } catch {
+    return null;
+  }
 }

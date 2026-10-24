@@ -12,12 +12,13 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_forgetFileTreePaths, atom_vaultFiles, atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
-import { atom_forgetNotePins } from "@/app/atoms/note-pin-atoms";
+import { atom_forgetPins } from "@/app/atoms/pin-atoms";
 import { removePathsFromLayout } from "@/app/atoms/utils";
 import type { FileUndoGroup } from "@/app/atoms/vault-atoms";
 import { useDialog } from "../use-dialog";
 import { emptyDirectory } from "./directory-ops";
 import { moveToTrash } from "./trash-ops";
+import { TRASH_DIR } from "@/app/services/vault-trash";
 import { showUndoToast } from "./undo-toast";
 
 interface UseDeleteItemProps {
@@ -40,7 +41,7 @@ export function outermostItems<T extends { path: string }>(items: T[]): T[] {
   return unique.filter((item) => !unique.some((other) => other !== item && item.path.startsWith(`${other.path}/`)));
 }
 
-// Delete moves items to the vault's Trash (`.hermes/trash`, emptied after 30
+// Delete moves items to the vault's Trash (`.hermesmarkdown/trash`, emptied after 30
 // days) and offers Undo; only when that fails, or the item's path is
 // unknown, is it deleted permanently, after a confirmation.
 export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileOperation }: UseDeleteItemProps) {
@@ -53,7 +54,7 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
   const setVaultFiles = useSetAtom(atom_vaultFiles);
   const setVaultFolderPaths = useSetAtom(atom_vaultFolderPaths);
   const forgetFileTreePaths = useSetAtom(atom_forgetFileTreePaths);
-  const forgetNotePins = useSetAtom(atom_forgetNotePins);
+  const forgetPins = useSetAtom(atom_forgetPins);
   const dialog = useDialog();
 
   // Clears a removed item (and, for a folder, everything in it) from the
@@ -76,11 +77,11 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
       return next;
     });
     if (handle.kind === "directory" && path) forgetFileTreePaths(path);
-    if (path) forgetNotePins(path);
+    if (path) void forgetPins(path);
     if (activeFileHandle?.name === handle.name || (handle.kind === "directory" && activeFileHandle)) {
       setActiveFileHandle(null);
     }
-  }, [setFileMetadata, setVaultFiles, setVaultFolderPaths, setWorkspaceLayout, setOpenFiles, forgetFileTreePaths, forgetNotePins, activeFileHandle, setActiveFileHandle]);
+  }, [setFileMetadata, setVaultFiles, setVaultFolderPaths, setWorkspaceLayout, setOpenFiles, forgetFileTreePaths, forgetPins, activeFileHandle, setActiveFileHandle]);
 
   const deleteForever = useCallback(
     async (handle: FileSystemHandle, path?: string, question?: string) => {
@@ -239,7 +240,13 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
       const now = new Date();
       const moves: FileUndoGroup["moves"] = [];
       const failed: typeof located = [];
+      // The vault's data folder holds the Trash, so it can't go in it.
+      const holdsTrash: typeof located = [];
       for (const [index, item] of outermostItems(located).entries()) {
+        if (TRASH_DIR.startsWith(`${item.path}/`)) {
+          holdsTrash.push(item);
+          continue;
+        }
         try {
           moves.push({ from: item.path, to: await moveToTrash(vaultHandle, item.path, now, index) });
           const isTrashed = (p: string) => p === item.path || (item.handle.kind === "directory" && p.startsWith(`${item.path}/`));
@@ -258,6 +265,13 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
         showUndoToast(
           moves.length === 1 ? `Moved “${name}” to Trash` : `Moved ${moves.length} items to Trash`,
           () => void undoFileOperation(group ?? undefined),
+        );
+      }
+      for (const item of holdsTrash) {
+        await deleteForever(
+          item.handle,
+          item.path,
+          `“${item.handle.name}” holds the Trash, so it can't be moved there. Delete it and everything in the Trash permanently? This cannot be undone.`,
         );
       }
       for (const item of failed) {

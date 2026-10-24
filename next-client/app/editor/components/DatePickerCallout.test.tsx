@@ -27,6 +27,29 @@ describe("DatePickerCallout", () => {
     expect(screen.getByText("June 2026")).toBeInTheDocument();
   });
 
+  it("shows the kept time of a datetime read-only, and nothing for a plain date", () => {
+    const { rerender } = render(
+      <DatePickerCallout
+        isOpen={true}
+        initialDate={initialDate}
+        keptTime="15:14:54Z"
+        onSelectDate={mockOnSelectDate}
+        onClose={mockOnClose}
+      />,
+    );
+    expect(screen.getByText("Keeps time 15:14:54Z")).toBeInTheDocument();
+
+    rerender(
+      <DatePickerCallout
+        isOpen={true}
+        initialDate={initialDate}
+        onSelectDate={mockOnSelectDate}
+        onClose={mockOnClose}
+      />,
+    );
+    expect(screen.queryByText(/Keeps time/)).not.toBeInTheDocument();
+  });
+
   it("renders nothing when closed", () => {
     render(
       <DatePickerCallout

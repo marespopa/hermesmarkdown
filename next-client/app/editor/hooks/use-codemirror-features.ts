@@ -194,7 +194,8 @@ export function useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWik
     const iso = `${y}-${m}-${d}`;
     let formatted = "";
     if (dateMatch.format === "iso") {
-      formatted = dateMatch.rawString.startsWith("@due(") ? `@due(${iso})` : iso;
+      // A picked day keeps the time an ISO datetime already had.
+      formatted = dateMatch.rawString.startsWith("@due(") ? `@due(${iso})` : iso + dateMatch.rawString.slice(10);
     } else if (dateMatch.format === "wiki") formatted = `[[${iso}]]`;
     else if (dateMatch.format === "slashed") formatted = `${m}/${d}/${y}`;
     else if (dateMatch.format === "dotted") formatted = `${d}.${m}.${y}`;

@@ -1,5 +1,3 @@
-import { resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
-import { templateBody } from "@/app/utils/templates/template-frontmatter";
 import { TEMPLATE_SYNTAX_GUIDE } from "@/app/utils/templates/template-lint";
 import { sanitizeTemplateFileName } from "@/app/utils/templates/template-registry";
 
@@ -16,9 +14,8 @@ export interface ChatSkill {
   /** Starting a message with this turns the skill on, e.g. `/template`. */
   command: string;
   trigger: RegExp;
+  /** The skill's instructions; skills live in the app, never in the vault. */
   builtin: string;
-  /** Vault-relative plain-Markdown file whose body replaces `builtin` when present. */
-  overridePath: string;
 }
 
 export const TEMPLATE_BLOCK_INFO = "hermes-template";
@@ -47,7 +44,6 @@ export const TEMPLATE_SKILL: ChatSkill = {
   command: "/template",
   trigger: /\btemplates?\b/i,
   builtin: TEMPLATE_SKILL_BUILTIN,
-  overridePath: ".hermes/skills/create-template.md",
 };
 
 const TASKS_SKILL_BUILTIN = [
@@ -67,29 +63,12 @@ export const TASKS_SKILL: ChatSkill = {
   command: "/tasks",
   trigger: /\b(?:tasks?|to-?dos?|action items?|next actions?)\b/i,
   builtin: TASKS_SKILL_BUILTIN,
-  overridePath: ".hermes/skills/tasks.md",
 };
 
 export const CHAT_SKILLS: ChatSkill[] = [TEMPLATE_SKILL, TASKS_SKILL];
 
 export function isSkillActive(skill: ChatSkill, userTexts: string[]): boolean {
   return userTexts.some((text) => text.trimStart().toLowerCase().startsWith(skill.command) || skill.trigger.test(text));
-}
-
-// The vault override's body (after its frontmatter), read fresh each time;
-// the built-in text when there is no vault, no file, an empty one or a read error.
-export async function loadSkillInstructions(
-  skill: ChatSkill,
-  vaultHandle: FileSystemDirectoryHandle | null,
-): Promise<string> {
-  if (!vaultHandle) return skill.builtin;
-  try {
-    const handle = await resolveFileHandleAtPath(vaultHandle, skill.overridePath);
-    const body = templateBody(await (await handle.getFile()).text()).trim();
-    return body || skill.builtin;
-  } catch {
-    return skill.builtin;
-  }
 }
 
 export interface TemplateBlock {

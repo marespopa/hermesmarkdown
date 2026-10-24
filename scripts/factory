@@ -273,8 +273,8 @@ cmd_new() {
   local slug=$1; shift
   [[ $slug =~ ^[a-z0-9][a-z0-9-]*$ ]] || die "slug must be kebab-case"
   local last n dir title=${*:-$slug}
-  # Archived plans (plans/archive/NNN-*) keep their numbers, so count them too.
-  last=$({ plan_dirs; archive_dirs; } \
+  # Numbers count from the active plans only; archived plans are history.
+  last=$(plan_dirs \
     | sed -E 's|.*/([0-9]{3})-.*|\1|' | sort | tail -n1)
   n=$(printf '%03d' $(( 10#${last:-0} + 1 )))
   dir="$PLANS/$n-$slug"

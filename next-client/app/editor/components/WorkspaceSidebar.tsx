@@ -1,16 +1,14 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import React, { Suspense, useEffect, useRef } from "react";
+import { useAtom, useAtomValue } from "jotai";
 import { atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesRevealPath, atom_pendingScrollTarget, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
+import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesRevealPath, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
-import LinkedFromSection from "./sidebar/LinkedFromSection";
 import SidebarFiles from "./sidebar/SidebarFiles";
 import SidebarHeader from "./sidebar/SidebarHeader";
-import SidebarOpenNotes from "./sidebar/SidebarOpenNotes";
-import SidebarOutline from "./sidebar/SidebarOutline";
+import SidebarPinned from "./sidebar/SidebarPinned";
 import { useSidebarNavigation } from "./sidebar/use-sidebar-navigation";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
 
@@ -20,8 +18,11 @@ const NO_TAGS: string[] = [];
 
 // The window's sidebar (desktop), the same on every /editor route
 // (EditorShell hosts it), and kept to the library: the vault (a switcher),
-// New note and Hide; the note in front's Outline and Linked from (notes
-// linking to it); and the vault's Files.
+// New note and Hide; the vault's Pinned items (notes, folders, tags and
+// pages, kept on this device, Ctrl/Cmd+1–9), first; and the vault's
+// Files, with a filter.
+// Switching between open notes is the palette's (Ctrl/Cmd+K), and the note's
+// outline is the editor's optional one (Ctrl/Cmd+Shift+M, EditorOutline).
 // Everything else (Home, All Notes, Tags, Tasks, Templates, Trash, Export,
 // Settings, Documentation, search) is the command palette's (Ctrl/Cmd+K,
 // SearchPill) or the toolbar's More menu. A plain panel in the chrome colour with a hairline
@@ -30,14 +31,13 @@ const NO_TAGS: string[] = [];
 // header's button, Escape inside it or Ctrl/Cmd+\; shown again from the
 // toolbar's), or, with Close Sidebar While Writing on (Settings → Editor),
 // until you type in a note. Resizes by dragging its trailing edge
-// (`atom_sidebarWidth`, double-click to reset).
+// (`atom_sidebarWidth`, which keeps it within its bounds; double-click to reset).
 export default function WorkspaceSidebar() {
   const [open, setOpen] = useAtom(atom_sidebarOpen);
   const [width, setWidth] = useAtom(atom_sidebarWidth);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const navigation = useSidebarNavigation();
-  const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
   const treeController = useRef<VaultFileTreeController | null>(null);
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
 
@@ -79,7 +79,7 @@ export default function WorkspaceSidebar() {
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!dragRef.current) return;
     const next = dragRef.current.startWidth + event.clientX - dragRef.current.startX;
-    setWidth(Math.round(Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, next))));
+    setWidth(next);
   };
   const handlePointerUp = () => {
     dragRef.current = null;
@@ -102,14 +102,25 @@ export default function WorkspaceSidebar() {
     >
       <SidebarHeader onNewNote={navigation.newNote} onHide={() => setOpen(false)} />
 
-      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-1">
-        <SidebarOpenNotes onEditor={onWorkspace} onOpen={navigation.openOpenNote} />
-        {onWorkspace && activeTabPath && (
-          // The note is already in front: the editor just moves the caret there.
-          <SidebarOutline path={activeTabPath} onJump={(line) => setPendingScrollTarget({ path: activeTabPath, line })} />
-        )}
-        {onWorkspace && hasVault && activeTabPath && activeTabPath !== "draft" && (
-          <LinkedFromSection path={activeTabPath} onOpen={navigation.openHandle} />
+      {/* The scroll box: the Files tree virtualizes its rows against it (data-scroll-root).
+          A right-click on it outside Pinned, a row or the Search field opens
+          the Files root's New Note / New Folder menu, as on the tree's empty space. */}
+      <div
+        data-scroll-root
+        onContextMenu={(event) => {
+          if (event.defaultPrevented || !(event.target instanceof Element)) return;
+          if (event.target.closest("[data-sidebar-pinned], input, textarea")) return;
+          if (treeController.current?.openBackgroundMenu(event.clientX, event.clientY)) event.preventDefault();
+        }}
+        className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-1"
+      >
+        {hasVault && (
+          <div data-sidebar-pinned>
+            {/* usePinnedRows reads useSearchParams (a pinned tag's current row). */}
+            <Suspense fallback={null}>
+              <SidebarPinned activePath={currentPath} />
+            </Suspense>
+          </div>
         )}
         {hasVault && (
           <SidebarFiles
@@ -132,7 +143,7 @@ export default function WorkspaceSidebar() {
           const delta = event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0;
           if (!delta) return;
           event.preventDefault();
-          setWidth(Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width + delta)));
+          setWidth(width + delta);
         }}
         aria-orientation="vertical"
         aria-label="Resize sidebar"

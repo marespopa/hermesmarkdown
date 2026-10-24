@@ -1,13 +1,13 @@
 # SidebarHeader
 
-Description: The sidebar's top bar, at the top: the app's name, **HermesMarkdown**, as a quiet wordmark (`text-ui-footnote` semibold, a soft fill on hover); a click on it hides the sidebar, as **Hide sidebar** and `Ctrl/Cmd+\` do; then **New note** and **Hide sidebar** icon buttons (`PaneToolbarButton`). It no longer switches vaults: that's the pane title's first crumb (`PaneTitle`: the vault root's `FolderPopover`, or the "No vault" crumb's menu) and the command palette.
+Description: The sidebar's top bar, at the top: the **vault switcher**, the open vault's name (`atom_vaultName`, "No vault" without one) in `text-ui-footnote` semibold with a small chevron and a soft fill on hover or while open. A click opens the vault menu (`TabContextMenu`, "Switch vault") with the items the pane title's crumb uses (`useVaultMenuItems`): recent vaults, the open one checked, then **Open Vault…**, **Create Vault…** and **Browser Vault…** where they're available. Then **New note** and **Hide sidebar** icon buttons (`PaneToolbarButton`).
 
 ## Local State & Storage
-- State: None.
+- State: the vault menu's position while it's open (local).
 - Persistence: None.
 
 ## Dependencies
-- Core: `PaneToolbarButton`.
+- Core: `PaneToolbarButton`, `TabContextMenu`, `useVaultMenuItems`, `atom_vaultName`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

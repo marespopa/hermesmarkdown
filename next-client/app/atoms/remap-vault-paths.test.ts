@@ -7,7 +7,6 @@ import {
   atom_fileMetadata,
   atom_fileTreeExpansion,
   atom_forgetFileTreePaths,
-  atom_notePins,
   atom_liveHandles,
   atom_openFiles,
   atom_remapVaultPaths,
@@ -19,6 +18,8 @@ import {
   remapPathsInLayout,
 } from "./atoms";
 import type { FileMetadata } from "./metadata";
+import { atom_pins } from "./pin-atoms";
+import { seedPins } from "./pin-atoms.test-utils";
 import type { PanelLeaf } from "@/app/types/workspace";
 
 const remapNoteContent = vi.hoisted(() => vi.fn());
@@ -155,10 +156,22 @@ describe("atom_remapVaultPaths", () => {
     expect([...store.get(atom_revealedPrivatePaths)].sort()).toEqual(["archive/deep/plan.md", "notes-old.md"]);
   });
 
-  it("moves Home pins with a folder move", async () => {
-    store.set(atom_notePins, { "local:vault": ["notes/deep/idea.md", "notes-old.md"] });
+  it("moves the vault's pins with a folder move, keeping icons and order", async () => {
+    seedPins(store, [
+      { kind: "note", target: "notes/deep/idea.md", icon: "🚀" },
+      { kind: "folder", target: "notes", icon: null },
+      { kind: "note", target: "notes-old.md", icon: null },
+      { kind: "tag", target: "notes", icon: null },
+    ]);
+
     await store.set(atom_remapVaultPaths, { oldPath: "notes", newPath: "archive" });
-    expect(store.get(atom_notePins)["local:vault"]).toEqual(["archive/deep/idea.md", "notes-old.md"]);
+
+    expect(store.get(atom_pins)).toEqual([
+      { kind: "note", target: "archive/deep/idea.md", icon: "🚀" },
+      { kind: "folder", target: "archive", icon: null },
+      { kind: "note", target: "notes-old.md", icon: null },
+      { kind: "tag", target: "notes", icon: null },
+    ]);
   });
 
   it("moves walked folders, empty ones included, with a folder move", async () => {

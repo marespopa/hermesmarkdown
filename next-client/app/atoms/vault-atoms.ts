@@ -1,7 +1,8 @@
 import { atom } from "jotai";
 import { atom_openFiles, atom_liveHandles } from "./file-atoms";
 import { atom_workspaceLayout } from "./workspace-atoms";
-import { atom_fileTreeExpansion, atom_filesRevealPath, atom_notePins, atom_showFiles } from "./ui-atoms";
+import { atom_fileTreeExpansion, atom_filesRevealPath, atom_showFiles } from "./ui-atoms";
+import { atom_remapPins } from "./pin-atoms";
 import { atom_fileMetadata } from "./metadata";
 import { atom_revealedPrivatePaths } from "./privacy-atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
@@ -20,6 +21,9 @@ export const atom_vaultFiles = atom<FileSystemHandle[]>([]);
 // Every folder the indexing walk found (vault-relative paths), so the file
 // tree can show folders at any depth even when they hold no notes.
 export const atom_vaultFolderPaths = atom<string[]>([]);
+// Text files that aren't notes (utils/file-kinds.ts), from the same walk:
+// listed in Files and opened as plain text, never indexed.
+export const atom_vaultTextFiles = atom<{ handle: FileSystemFileHandle; path: string }[]>([]);
 
 // File operations that can be undone (⌘Z in the file tree, or a toast's
 // Undo), newest last. Each group is one user action — a rename, a move or a
@@ -41,6 +45,9 @@ export const atom_isVaultRestoring = atom<boolean>(true);
 // True from the moment access is granted again until the vault is scanned and
 // "Vault restored" shows; the route stays behind the overlay until then.
 export const atom_isVaultUnlocking = atom<boolean>(false);
+// The name of the vault being opened by the user (switched to, created or
+// picked), until its open notes are bound and top folder listed; null otherwise.
+export const atom_openingVaultName = atom<string | null>(null);
 export const atom_isCloudVault = atom<boolean>(false);
 export const atom_fileSystemVersion = atom<number>(0);
 
@@ -162,8 +169,9 @@ export const atom_rebindHandles = atom(
 
 // Follows a file or folder that was renamed or moved on disk: re-keys open
 // tabs (keeping unsaved edits), pane layouts, indexed metadata, the worker's
-// note-text index, the file tree's remembered expansion and Home pins (and
-// private-note session reveals) from `oldPath` to `newPath`, for the item
+// note-text index, the file tree's remembered expansion, the vault's pins
+// (through atom_remapPins) and private-note session
+// reveals from `oldPath` to `newPath`, for the item
 // and everything under it. Handles are path-based, so moving a folder leaves
 // its children's handles stale — each moved tab gets a fresh handle resolved
 // at its new path, so the next save lands in the moved file.
@@ -254,12 +262,10 @@ export const atom_remapVaultPaths = atom(
           [vaultKey]: { expanded: entry.expanded.map(mapPath), collapsed: entry.collapsed.map(mapPath) },
         };
       });
-      set(atom_notePins, (prev) => {
-        const pins = prev[vaultKey];
-        if (!pins?.some((p) => remapPath(p, oldPath, newPath) !== null)) return prev;
-        return { ...prev, [vaultKey]: pins.map(mapPath) };
-      });
     }
+
+    // Last: it writes the vault's pins file, after every state update above.
+    await set(atom_remapPins, { oldPath, newPath });
   },
 );
 

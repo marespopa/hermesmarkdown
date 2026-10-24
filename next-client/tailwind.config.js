@@ -30,6 +30,7 @@ module.exports = {
         'ui-title-1': ['1.75rem', { lineHeight: '2.125rem', letterSpacing: '-0.021em' }],   // 28/34
         'ui-title-2': ['1.375rem', { lineHeight: '1.75rem', letterSpacing: '-0.018em' }],   // 22/28
         'ui-title-3': ['1.25rem', { lineHeight: '1.5625rem', letterSpacing: '-0.017em' }],  // 20/25
+        'ui-headline': ['1.0625rem', { lineHeight: '1.375rem', letterSpacing: '-0.013em' }], // 17/22, use with font-semibold
         'ui-body': ['1.0625rem', { lineHeight: '1.375rem', letterSpacing: '-0.013em' }],    // 17/22
         'ui-callout': ['1rem', { lineHeight: '1.3125rem', letterSpacing: '-0.011em' }],     // 16/21
         'ui-subhead': ['0.9375rem', { lineHeight: '1.25rem', letterSpacing: '-0.009em' }],  // 15/20

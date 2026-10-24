@@ -36,6 +36,9 @@ export const atom_showInvisibles = atomWithStorage<boolean>("showInvisibles", fa
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 // The faint word count pill in the editor corner (WordCountPill). Off by default.
 export const atom_showWordCount = atomWithStorage<boolean>("showWordCount", false);
+// The note's outline in the pane's bottom-right corner (EditorOutline;
+// Ctrl/Cmd+Shift+M, Settings → Editor → View). Off by default.
+export const atom_showOutline = atomWithStorage<boolean>("showOutline", false);
 // Lets the editor's text column fill the sheet instead of stopping at the
 // reading width (--editor-measure, editor-typography.scss). On by default.
 export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
@@ -62,14 +65,23 @@ export const atom_toggleSentenceFocus = atom(null, (get, set) => {
 // The window's sidebar (desktop): open notes and the vault's file tree, on the
 // leading edge. Hidden by default; toggled from its corner button, Ctrl/Cmd+\\ or Ctrl/Cmd+Alt+S.
 export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
-export const SIDEBAR_MIN_WIDTH = 200;
+// The minimum leaves the header's vault switcher room for a short vault name
+// beside its two buttons (a longer one truncates).
+export const SIDEBAR_MIN_WIDTH = 240;
 export const SIDEBAR_MAX_WIDTH = 420;
-export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 256);
+const clampSidebarWidth = (width: number) => Math.round(Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width)));
+const atom_sidebarWidthStored = atomWithStorage<number>("sidebarWidth", 256);
+// Read and written within the bounds, so a width saved under an older,
+// smaller minimum opens at the current one.
+export const atom_sidebarWidth = atom(
+  (get) => clampSidebarWidth(get(atom_sidebarWidthStored)),
+  (_get, set, width: number) => set(atom_sidebarWidthStored, clampSidebarWidth(width)),
+);
 // Settings → Editor → Close Sidebar While Writing: typing in a note puts the
 // sidebar away, so the page has the window to itself. Off by default: the
 // sidebar otherwise closes only when you close it.
 export const atom_closeSidebarWhileWriting = atomWithStorage<boolean>("closeSidebarWhileWriting", false);
-// Sidebar sections the user folded (by title: "Open Notes", "Files"), remembered.
+// Sidebar sections the user folded (by title: "Pinned", "Files"), remembered.
 export const atom_sidebarCollapsed = atomWithStorage<Record<string, boolean>>("sidebarCollapsed", {}, undefined, { getOnInit: true });
 // Each stack falls back to the Apple system face with the same role.
 export const MONO_FONT_STACK =
@@ -232,7 +244,7 @@ export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   "frontmatterHasPrompted",
   false,
 );
-// Shows dotfiles/dotfolders (e.g. .hermes/) and underscore-prefixed skill/meta
+// Shows dotfiles/dotfolders (e.g. .hermesmarkdown/) and underscore-prefixed skill/meta
 // files in the file tree and search. Off by default, so the file tree
 // stays focused on the user's own notes; the settings page and command
 // palette offer a quick opt-in for when someone needs to see those files.
@@ -253,11 +265,6 @@ export const atom_fileTreeExpansion = atomWithStorage<Record<string, FileTreeExp
   "hermes_file_tree_expansion",
   {},
 );
-// Pinned notes, keyed by vault (see atom_vaultKey), newest pin first: shown
-// first in the command palette and at the top of the sidebar's Files. Read
-// and toggled through note-pin-atoms.ts. The storage key is from when they
-// pinned notes to the old home feed, kept so existing pins carry over.
-export const atom_notePins = atomWithStorage<Record<string, string[]>>("hermes_home_pins", {});
 
 // Vault creation flow — transient, never persisted
 export type VaultCreationSubStep = "name-and-folder" | "installing";

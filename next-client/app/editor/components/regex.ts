@@ -1,4 +1,5 @@
-export const REGEX_DATE_ISO = /\d{4}-\d{2}-\d{2}/g;
+// A date, optionally with an ISO time: 2026-10-24 or 2026-10-24T15:14:54Z.
+export const REGEX_DATE_ISO = /\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?)?/g;
 export const REGEX_DATE_SLASHED = /\d{2}\/\d{2}\/\d{4}/g;
 export const REGEX_DATE_DOTTED = /\d{2}\.\d{2}\.\d{4}/g;
 export const REGEX_DATE_WIKI = /\[\[\d{4}-\d{2}-\d{2}\]\]/g;

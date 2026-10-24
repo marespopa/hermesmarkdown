@@ -5,14 +5,11 @@ import { parseFmFields } from "@/app/utils/frontmatter-utils";
 import { extractTasks } from "@/app/utils/taskExtractor";
 import { notePreview } from "@/app/utils/markdown-preview";
 import { stripBoardFence } from "@/app/utils/board/board-format";
+import { normalizeTag } from "@/app/utils/tag-normalize";
 import { REGEX_FRONTMATTER } from "./content-index";
 
 const REGEX_TAG = /(?<=^|\s)#(?=[a-zA-Z0-9_\-/]*[a-zA-Z])([a-zA-Z0-9_\-/]+)/g;
 const REGEX_LINK = /\[\[(.*?)\]\]/g;
-
-function normalizeTag(tag: string): string {
-  return tag.trim().replace(/^["']|["']$/g, "").replace(/^#/, "").toLowerCase();
-}
 
 function parseFrontmatterTags(fmContent: string): string[] {
   const inlineMatch = fmContent.match(/^tags:\s*\[(.*?)\]/m);

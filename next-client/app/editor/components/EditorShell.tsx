@@ -7,6 +7,8 @@ import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import { atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { atom_isVaultPending, atom_isVaultRestoring } from "@/app/atoms/vault-atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
+import { useVaultPins } from "@/app/hooks/use-vault-pins";
+import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { formatShortcut } from "@/app/utils/platform";
 import BrowserVaultDialog from "./BrowserVaultDialog";
 import GitHubVaultDialog from "./GitHubVaultDialog";
@@ -19,6 +21,7 @@ import SearchPill from "./SearchPill";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import ActiveFileIndexer from "./ActiveFileIndexer";
 import RecoveryBanner from "./RecoveryBanner";
+import PinCommands from "./editor-commands/PinCommands";
 
 // Show / hide the sidebar: Ctrl/Cmd+\, Ctrl/Cmd+Alt+S (`code`, since Alt
 // changes `key` on macOS), or Ctrl+[ — Ctrl on macOS too, where Cmd+[ is the
@@ -44,7 +47,11 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
 // theirs, with Copy Markdown just left of it, so the page itself stays bare. Nothing
 // hides on its own: the sidebar opens and closes only when you toggle it,
 // remembered. RecoveryBanner floats above the content while notes can't be
-// saved (lost vault access, a missing vault folder, full storage).
+// saved (lost vault access, a missing vault folder, full storage). Once the
+// vault is unlocked it shows the vault's pins (kept on this device,
+// useVaultPins) and offers Pin Page to Sidebar…
+// (PinCommands) on every route. It keeps the vault's file list in step with
+// the disk on every route too (useVaultSync), since the sidebar shows it.
 export default function EditorShell({ children }: { children: ReactNode }) {
   const isMobileChrome = useIsMobileChrome();
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
@@ -53,6 +60,8 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   const isVaultPending = useAtomValue(atom_isVaultPending);
   const isVaultLocked = isVaultRestoring || isVaultPending;
   const hasSidebar = !isMobileChrome && !isVaultLocked;
+  useVaultPins(!isVaultLocked);
+  useVaultSync();
   const onEditor = usePathname() === "/editor";
 
   useEffect(() => {
@@ -103,6 +112,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
         </div>
       )}
       {!isVaultLocked && <RecoveryBanner />}
+      {!isVaultLocked && <PinCommands />}
       <NewVaultDialog />
       <GitHubVaultDialog />
       <ActiveFileIndexer />
