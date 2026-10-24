@@ -250,11 +250,11 @@ export const getStartedGroup: Group = {
             button and click it to save, or to try again. Click the name to rename the file in
             place: press <code>Enter</code> or click away to keep the new name, <code>Esc</code> to back out. The
             search bar in the top-right corner (or <code>CTRL/CMD+K</code>) opens the command palette, where every file
-            and command is: Save, Copy Markdown, Export as PDF or HTML, Pin File, Settings, Documentation, Ask or Edit with AI and the rest.
+            and command is: Save, Copy Contents, Export as PDF or HTML, Pin File, Settings, Documentation, Ask or Edit with AI and the rest.
             The editor keeps up to 20 files
             open behind the one in front; switch between them from the command palette
             (<code>CTRL/CMD+K</code>). Opening another closes the one you looked at least recently, never one
-            with unsaved changes. Click the file&apos;s name at the top, or right-click it, for its menu: Copy Markdown, Pin File, Rename…, Move
+            with unsaved changes. Click the file&apos;s name at the top, or right-click it, for its menu: Copy Contents, Pin File, Rename…, Move
             to Trash, and Close, Close Others or Close All. While the sidebar is hidden, its button sits in the top-left corner.
           </p>
           <p>

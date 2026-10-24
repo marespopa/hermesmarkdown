@@ -258,7 +258,7 @@ tags: []
         <KV
           rows={[
             { label: "Save", value: "CTRL+S" },
-            { label: "Files", value: "New File, Open File from Disk…, Export as Markdown (always a .md download, never a save), Copy Markdown, Rename / Duplicate / Move / Delete File" },
+            { label: "Files", value: "New File, Open File from Disk…, Export as Markdown (always a .md download, never a save), Copy Contents, Rename / Duplicate / Move / Delete File" },
             { label: "Folders", value: "New folder (one level at a time)" },
             { label: "Editing", value: "Undo, redo, focus, formatting, tasks, and templates" },
             { label: "AI", value: "Ask or Edit with AI… (CTRL/CMD+J): Freeform Prompt, Improve Writing, Summarize / Structure, Insert Element" },
