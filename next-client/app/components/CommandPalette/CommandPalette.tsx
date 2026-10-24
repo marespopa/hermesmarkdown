@@ -2,7 +2,7 @@
 
 import { atom_visibleTasks } from "@/app/atoms/task-atoms";
 import { atom_templates } from "@/app/atoms/template-atoms";
-import { atom_activeEditorView, atom_commandUseCounts, atom_editorFontFamily, atom_pendingScrollTarget, atom_recentFilePaths, atom_showHiddenFiles, type PalettePinnedItem } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_commandUseCounts, atom_editorFontFamily, atom_pendingScrollTarget, atom_recentFilePaths, atom_searchRegex, atom_showHiddenFiles, type PalettePinnedItem } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import { showErrorToast } from "@/app/components/Toastr";
@@ -37,6 +37,7 @@ export default function CommandPalette() {
   const fontFamily = useAtomValue(atom_editorFontFamily);
   const commandUseCounts = useAtomValue(atom_commandUseCounts);
   const [recentFilePaths, setRecentFilePaths] = useAtom(atom_recentFilePaths);
+  const setSearchRegex = useSetAtom(atom_searchRegex);
   // Pinned notes (shared with the sidebar's Files) and pinned commands.
   const { pinnedItems, isPinned, togglePin: togglePinnedRow } = usePalettePins();
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
@@ -62,13 +63,13 @@ export default function CommandPalette() {
     keywords: "files navigator tree browse explorer folders",
     action: showFilesAction,
   }), [showFilesAction]);
-  // Search Notes…: the `/` scope (note text), from the palette's menu.
+  // Search in Files…: the `/` scope (note text), from the palette's menu.
   const searchNotesCommand = useMemo<Command>(() => ({
     id: "search-notes",
-    label: "Search Notes…",
+    label: "Search in Files…",
     category: "Navigation",
     shortcut: formatShortcut("F", { shift: true }),
-    keywords: "search find note text content full text",
+    keywords: "search find file note text content full text grep regex",
     closeOnRun: false,
     action: () => { setScope("content"); setQuery(""); inputRef.current?.focus(); },
   }), []);
@@ -222,7 +223,7 @@ export default function CommandPalette() {
       try {
         await createNote?.(row.title);
       } catch (error) {
-        showErrorToast(error instanceof Error ? error.message : "Failed to create note");
+        showErrorToast(error instanceof Error ? error.message : "Failed to create file");
       }
       return;
     }
@@ -286,6 +287,10 @@ export default function CommandPalette() {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
       event.preventDefault(); togglePin(rows[selectedIndex]); return;
     }
+    // Alt+R: Regex on or off in the `/` scope (event.code: Option+R types ® on a Mac).
+    if (event.altKey && !event.ctrlKey && !event.metaKey && event.code === "KeyR" && scope === "content" && !menu) {
+      event.preventDefault(); setSearchRegex((on) => !on); return;
+    }
     // Backspace in an empty menu search goes back a level.
     if (event.key === "Backspace" && menu && !query) {
       event.preventDefault(); setMenuPath((path) => path.slice(0, -1)); return;
@@ -308,12 +313,16 @@ export default function CommandPalette() {
   const menuTitle = menuStack.map((command) => command.label.replace(/…$/, "")).join(" › ");
   const scopeMessage = scope === "template" && templates.length === 0 ? "No templates yet. Open Templates to add one or a pack."
     : scope !== "content" ? null
-    : contentSearch.status === "unavailable" ? "Note text search isn't available in this browser."
-      : contentSearch.status === "short" ? "Type at least 2 characters to search note text." : null;
+    : contentSearch.status === "unavailable" ? "Text search isn't available in this browser."
+      : contentSearch.status === "short" ? "Type at least 2 characters to search file text."
+        : contentSearch.invalid ? "Not a valid regular expression yet." : null;
   const contentFootnote = scope !== "content" || contentSearch.status === "unavailable" ? null
-    : contentSearch.capped ? "Note text search covers part of this vault (size limit reached)."
-      : contentSearch.pending > 0 ? `Indexing note text… ${contentSearch.pending} note${contentSearch.pending === 1 ? "" : "s"} left` : null;
-  const showsEmptyState = rows.length === 0 && !!(query || scope) && !scopeMessage && !(scope === "content" && contentSearch.status === "searching");
+    : contentSearch.stalled ? "Search stopped: this pattern takes too long. Try a simpler one."
+      : contentSearch.capped ? "Text search covers part of this vault (size limit reached)."
+        : contentSearch.pending > 0 ? `Indexing file text… ${contentSearch.pending} file${contentSearch.pending === 1 ? "" : "s"} left`
+          : contentSearch.fileScan ? `Searching files… ${contentSearch.fileScan.scanned} of ${contentSearch.fileScan.total}` : null;
+  const showsEmptyState = rows.length === 0 && !!(query || scope) && !scopeMessage
+    && !(scope === "content" && (contentSearch.status === "searching" || contentSearch.fileScan));
 
   return <OverlayPanel isOpen={isOpen} onClose={close} variant={isMobileChrome ? "sheet" : "modal"} backdrop="dim"
     // During a search-pill morph the view transition animates; the panel's own
@@ -342,7 +351,7 @@ export default function CommandPalette() {
     <div id="command-palette-results" role="listbox" aria-label="Command palette results" className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto" style={{ fontFamily }}>
       {rows.length === 0 && !query && !scope && (
         <div className="animate-in fade-in slide-in-from-top-1 px-6 py-8 text-center text-ui-footnote text-fg-muted duration-200 motion-reduce:animate-none">
-          <p className="font-medium text-fg">Start typing to find a note or action.</p>
+          <p className="font-medium text-fg">Start typing to find a file or action.</p>
         </div>
       )}
       {scopeMessage && <p className="px-6 py-8 text-center text-ui-footnote text-fg-muted">{scopeMessage}</p>}
@@ -367,6 +376,7 @@ export default function CommandPalette() {
       {contentFootnote && <p className="px-5 pb-2 text-ui-footnote text-fg-muted">{contentFootnote}</p>}
     </div>
     <PaletteFooter scope={menu ? null : scope}
+      regex={!menu && scope === "content" ? { on: contentSearch.regex, onToggle: () => { setSearchRegex((on) => !on); inputRef.current?.focus(); } } : undefined}
       onScope={(next) => { setMenuPath([]); setScope((current) => (current === next ? null : next)); setQuery(""); inputRef.current?.focus(); }} />
     {contextRow && <div role="menu" aria-label="Palette item actions" className="absolute right-3 top-28 z-10 animate-in fade-in zoom-in-95 slide-in-from-top-1 rounded-lg glass-panel p-1 duration-150 motion-reduce:animate-none"><Button variant="menu-item" role="menuitem" onClick={() => togglePin(contextRow)}>{isPinned(contextRow) ? "Unpin item" : "Pin item"} <span className="ml-auto text-fg-faint">Ctrl+D</span></Button></div>}
     </div>

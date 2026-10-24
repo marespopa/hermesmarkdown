@@ -33,7 +33,7 @@ export function usePalettePins() {
     if (!row) return;
     if (row.kind === "file") {
       if (!vaultKey) {
-        showErrorToast("Open a vault to pin notes");
+        showErrorToast("Open a vault to pin files");
         return;
       }
       void togglePinAs("note", row.id);

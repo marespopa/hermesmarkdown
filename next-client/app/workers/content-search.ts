@@ -2,7 +2,7 @@
 // matching of whitespace-separated terms (plain substrings, no fuzzy or
 // regex syntax), line ranking, snippets and highlight offsets. Pure.
 
-import { ContentIndex, foldCase } from "./content-index";
+import { ContentIndex, foldCase, type ContentEntry } from "./content-index";
 import type { ContentHit, ContentRequest, ContentResults } from "./content-search-protocol";
 
 export const MIN_QUERY_CHARS = 2;
@@ -62,13 +62,18 @@ function spansFor(text: string, offsets: number[]): Map<number, LineSpan> {
 
 // The trimmed line, windowed around the first match, with highlight indices.
 export function buildSnippet(raw: string, foldedLine: string, terms: string[]): { snippet: string; highlights: number[] } {
+  const ranges = terms.flatMap((term) =>
+    occurrences(foldedLine, term, 0, foldedLine.length).map((at) => [at, at + term.length] as const));
+  return snippetFromRanges(raw, ranges);
+}
+
+// The same, from match ranges ([from, to) offsets in the untrimmed line).
+export function snippetFromRanges(raw: string, ranges: readonly (readonly [number, number])[]): { snippet: string; highlights: number[] } {
   const lead = raw.length - raw.trimStart().length;
   const trimmed = raw.trim();
   const covered = new Set<number>();
-  for (const term of terms) {
-    for (const at of occurrences(foldedLine, term, 0, foldedLine.length)) {
-      for (let index = at; index < at + term.length; index++) covered.add(index - lead);
-    }
+  for (const [from, to] of ranges) {
+    for (let index = from; index < to; index++) covered.add(index - lead);
   }
   const inTrimmed = [...covered].filter((index) => index >= 0 && index < trimmed.length).sort((a, b) => a - b);
   if (trimmed.length <= SNIPPET_CHARS) return { snippet: trimmed, highlights: inTrimmed };
@@ -86,12 +91,20 @@ function startsWord(text: string, at: number): boolean {
   return at === 0 || !WORD_CHAR.test(text[at - 1]);
 }
 
-interface RankedNote { path: string; score: number; hits: ContentHit[] }
+export interface RankedNote { path: string; score: number; hits: ContentHit[] }
 
 function rankNote(path: string, index: ContentIndex, query: ContentQuery): RankedNote | null {
   const entry = index.get(path);
   if (!entry || entry.isPrivate) return null;
-  const { text, folded, bodyStart, name } = entry;
+  return rankText(path, entry, query);
+}
+
+// Ranks one file's lines for `query` (also used by the text-file grep).
+export function rankText(
+  path: string,
+  { text, folded, bodyStart, name }: Pick<ContentEntry, "text" | "folded" | "bodyStart" | "name">,
+  query: ContentQuery,
+): RankedNote | null {
   const { terms, phrase } = query;
   if (terms.some((term) => folded.indexOf(term, bodyStart) === -1)) return null;
 

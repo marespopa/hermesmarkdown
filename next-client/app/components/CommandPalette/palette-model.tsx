@@ -13,7 +13,7 @@ import type { Command } from "./CommandPaletteContext";
 export const MAX_VISIBLE_ROWS = 12;
 // Shared by the palette input (when notes can be created) and the search
 // pill (SearchPill) that morphs into it.
-export const SEARCH_OR_CREATE_PLACEHOLDER = "Search or create a note…";
+export const SEARCH_OR_CREATE_PLACEHOLDER = "Search or create a file…";
 // A key cap: the toolbar pill's ⌘K, row shortcuts and the footer's hints.
 export const SEARCH_KBD_CLASS = "hidden shrink-0 rounded border border-edge px-1.5 py-0.5 font-mono text-ui-micro text-fg-muted sm:inline";
 // The palette's own field: the panel's top edge, not a pill inside it.
@@ -60,7 +60,8 @@ export const SCOPES = [
 ] as const;
 
 export type Scope = (typeof SCOPES)[number]["id"];
-export type FileResult = { path: string; name: string; handle: FileSystemFileHandle; tags: string[]; isPrivate: boolean };
+// `isText`: a code or other text file (never indexed; no tags, never private).
+export type FileResult = { path: string; name: string; handle: FileSystemFileHandle; tags: string[]; isPrivate: boolean; isText?: boolean };
 type TagMatch = { tag: string; score: number; indices: number[] };
 type TaggedFileMatch = { file: FileResult; matches: TagMatch[]; score: number };
 export type Row =
@@ -102,7 +103,7 @@ export function buildCreateRow(query: string, files: FileResult[]): Extract<Row,
   if (!title) return null;
   const wanted = title.toLowerCase();
   if (files.some((file) => file.name.replace(/\.md$/i, "").toLowerCase() === wanted)) return null;
-  return { kind: "create", id: `create:${title}`, label: `Create "${title}"`, detail: "New note", title, titleIndices: [], detailIndices: [], score: 0 };
+  return { kind: "create", id: `create:${title}`, label: `Create "${title}"`, detail: "New file", title, titleIndices: [], detailIndices: [], score: 0 };
 }
 
 // The `#` scope's rows: notes carrying every tag the query names (space-
