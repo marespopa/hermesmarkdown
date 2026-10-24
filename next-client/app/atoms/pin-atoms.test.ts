@@ -5,6 +5,7 @@ import {
   atom_forgetPins,
   atom_pinnedNotePaths,
   atom_pins,
+  atom_pinsByVault,
   atom_pinsVaultKey,
   atom_remapPins,
   atom_updatePins,
@@ -47,10 +48,10 @@ describe("pin atoms", () => {
   });
 
   it("drops anything odd in storage", () => {
-    localStorage.setItem(PINS_STORAGE_KEY, JSON.stringify({ "local:Notes": [{ kind: "tag", target: "bug" }, { kind: "widget" }, null, "x"] }));
-    const fresh = createStore();
-    fresh.set(atom_pinsVaultKey, "local:Notes");
-    expect(fresh.get(atom_pins)).toEqual([tag("bug")]);
+    // Seeded through the store: the storage atom reads localStorage when the module loads.
+    store.set(atom_pinsByVault, { "local:Notes": [{ kind: "tag", target: "bug" }, { kind: "widget" }, null, "x"] } as never);
+    store.set(atom_pinsVaultKey, "local:Notes");
+    expect(store.get(atom_pins)).toEqual([tag("bug")]);
   });
 
   it("lists pinned note paths in pin order, the same array while they're unchanged", async () => {
