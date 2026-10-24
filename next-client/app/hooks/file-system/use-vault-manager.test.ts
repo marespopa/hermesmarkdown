@@ -51,7 +51,7 @@ describe("useVaultManager, opening another vault", () => {
     const oldListing = deferred<any[]>();
     vi.mocked(listDirectoryEntries).mockImplementation((_vault, handle) =>
       handle === oldVault ? oldListing.promise : Promise.resolve([{ name: "new.md" }]));
-    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [file("new.md")], folders: [], failedSubdirs: 0, timedOut: false });
+    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [file("new.md")], folders: [], textFiles: [], failedSubdirs: 0, timedOut: false });
 
     let oldScan!: Promise<void>;
     act(() => { oldScan = first.current.scanVault(oldVault); });
@@ -93,7 +93,7 @@ describe("useVaultManager, opening another vault", () => {
     store.set(atom_vaultHandle, oldVault);
     const [first, second] = renderTwo(store);
     vi.mocked(listDirectoryEntries).mockResolvedValue([]);
-    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [], folders: [], failedSubdirs: 0, timedOut: false });
+    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [], folders: [], textFiles: [], failedSubdirs: 0, timedOut: false });
     // A background sync holds the callback from before the switch.
     const indexFromBeforeSwitch = first.current.indexVaultTags;
     await act(() => second.current.initVaultFromHandle(newVault, { announce: false }));
@@ -110,7 +110,7 @@ describe("useVaultManager, opening another vault", () => {
     const [, second] = renderTwo(store);
     const listing = deferred<any[]>();
     vi.mocked(listDirectoryEntries).mockReturnValue(listing.promise);
-    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [], folders: [], failedSubdirs: 0, timedOut: false });
+    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [], folders: [], textFiles: [], failedSubdirs: 0, timedOut: false });
 
     let opening!: Promise<void>;
     act(() => { opening = second.current.initVaultFromHandle(dir("new"), { announce: false }); });
@@ -131,7 +131,7 @@ describe("useVaultManager, opening another vault", () => {
     store.set(atom_openFiles, files);
     const [, second] = renderTwo(store);
     vi.mocked(listDirectoryEntries).mockResolvedValue([]);
-    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [], folders: [], failedSubdirs: 0, timedOut: false });
+    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [], folders: [], textFiles: [], failedSubdirs: 0, timedOut: false });
 
     await act(() => second.current.initVaultFromHandle(dir("saved"), { persist: false, announce: false, keepTabs: true }));
 
@@ -146,7 +146,7 @@ describe("useVaultManager, opening another vault", () => {
     const [, second] = renderTwo(store);
     const listing = deferred<any[]>();
     vi.mocked(listDirectoryEntries).mockReturnValue(listing.promise);
-    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [], folders: [], failedSubdirs: 0, timedOut: false });
+    vi.mocked(collectVaultFiles).mockResolvedValue({ files: [], folders: [], textFiles: [], failedSubdirs: 0, timedOut: false });
 
     let opening!: Promise<void>;
     act(() => { opening = second.current.initVaultFromHandle(dir("work")); });
