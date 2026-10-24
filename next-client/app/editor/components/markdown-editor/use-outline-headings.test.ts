@@ -44,4 +44,19 @@ describe("useOutlineHeadings", () => {
       { level: 2, text: "Load", line: 3, kind: "method" },
     ]);
   });
+
+  it("reads a note's headings at once, then again only after typing pauses", () => {
+    const { result, rerender } = renderHook(({ text, path }) => useOutlineHeadings(null, text, false, path), {
+      initialProps: { text: "# Plan", path: "a.md" },
+    });
+    expect(result.current.map((h) => h.text)).toEqual(["Plan"]);
+
+    rerender({ text: "# Plan\n## Goals", path: "a.md" });
+    expect(result.current.map((h) => h.text)).toEqual(["Plan"]);
+    act(() => { vi.advanceTimersByTime(200); });
+    expect(result.current.map((h) => h.text)).toEqual(["Plan", "Goals"]);
+
+    rerender({ text: "# Other", path: "b.md" });
+    expect(result.current.map((h) => h.text)).toEqual(["Other"]);
+  });
 });

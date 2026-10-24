@@ -139,4 +139,13 @@ describe("EditorOutline", () => {
     fireEvent.click(screen.getByRole("button", { name: "Close outline" }));
     expect(store.get(atom_showOutline)).toBe(false);
   });
+
+  it("renders only the rows in view for a long outline", () => {
+    const long = Array.from({ length: 500 }, (_, i) => `## Section ${i}`).join("\n");
+    setup(long);
+    const nav = screen.getByRole("navigation", { name: "Outline" });
+    // The list keeps every row's height (500 × 29px) but renders few of them.
+    expect(nav.querySelector('[style*="height: 14500px"]')).not.toBeNull();
+    expect(screen.queryAllByRole("button").filter((row) => row.textContent?.startsWith("Section")).length).toBeLessThan(50);
+  });
 });
