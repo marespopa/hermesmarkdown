@@ -37,7 +37,14 @@ interface FolderPopoverProps {
   /** Close Vault, last in the root's Vault submenu. */
   onCloseVault?: () => void;
   onClose: () => void;
+  /** Its anchor is out of sight (a pinned folder's row in the hidden
+   *  sidebar): the popover opens centred near the window's top instead, where
+   *  the command palette does. */
+  centered?: boolean;
 }
+
+// How far down the window a centred popover starts, as the palette's.
+const CENTERED_TOP = 0.15;
 
 const EDGE = 8;
 const NO_TAGS: string[] = [];
@@ -63,7 +70,7 @@ type Creating = "note" | "folder" | null;
 // vault switcher (useVaultMenuItems: recent vaults, Open / Create / Browser
 // Vault) and Close Vault.
 // Rendered into `document.body` in the shared menu look (menu-classes.ts).
-export default function FolderPopover({ folder, anchor, currentPath, rootName, onOpenNote, onNewNote, onNewFolder, onShowInFiles, onCloseVault, onClose }: FolderPopoverProps) {
+export default function FolderPopover({ folder, anchor, currentPath, rootName, onOpenNote, onNewNote, onNewFolder, onShowInFiles, onCloseVault, onClose, centered = false }: FolderPopoverProps) {
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
   const vaultSwitcher = useVaultMenuItems();
   const [dir, setDir] = useState(folder);
@@ -164,11 +171,20 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
   useLayoutEffect(() => {
     const rect = panelRef.current?.getBoundingClientRect();
     if (!rect) return;
+    if (centered) {
+      const top = Math.round(window.innerHeight * CENTERED_TOP);
+      setPos({
+        x: Math.max(EDGE, Math.round((window.innerWidth - rect.width) / 2)),
+        y: top + rect.height > window.innerHeight - EDGE ? Math.max(EDGE, window.innerHeight - rect.height - EDGE) : top,
+        ready: true,
+      });
+      return;
+    }
     const x = Math.max(EDGE, Math.min(anchor.left, window.innerWidth - rect.width - EDGE));
     const below = anchor.bottom + 4;
     const y = below + rect.height > window.innerHeight - EDGE ? Math.max(EDGE, window.innerHeight - rect.height - EDGE) : below;
     setPos({ x, y, ready: true });
-  }, [anchor]);
+  }, [anchor, centered]);
 
   // A new folder or search starts at the top of its list.
   useEffect(() => {
@@ -259,7 +275,7 @@ export default function FolderPopover({ folder, anchor, currentPath, rootName, o
       role="dialog"
       aria-label={`Folder ${name}`}
       style={{ left: pos.x, top: pos.y }}
-      className={`${MENU_PANEL_CLASS} w-[min(20rem,calc(100vw-16px))] origin-top-left transition-[opacity,transform] duration-150 ease-out motion-reduce:transition-none ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+      className={`${MENU_PANEL_CLASS} w-[min(20rem,calc(100vw-16px))] ${centered ? "origin-top" : "origin-top-left"} transition-[opacity,transform] duration-150 ease-out motion-reduce:transition-none ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
     >
       <div className="flex items-center gap-1 px-1 pt-0.5">
         <Button

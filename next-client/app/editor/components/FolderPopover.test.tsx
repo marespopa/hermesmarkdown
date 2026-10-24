@@ -198,4 +198,12 @@ describe("FolderPopover", () => {
     fireEvent.mouseDown(document.body);
     expect(onClose).toHaveBeenCalledTimes(2);
   });
+
+  it("opens centred near the window's top when its anchor is out of sight", () => {
+    renderPopover({ centered: true });
+    const panel = screen.getByRole("dialog");
+    // jsdom panels have no size: centred is half the window across, 15% down.
+    expect(panel.style.left).toBe(`${Math.round(window.innerWidth / 2)}px`);
+    expect(panel.style.top).toBe(`${Math.round(window.innerHeight * 0.15)}px`);
+  });
 });

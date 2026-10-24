@@ -6,6 +6,7 @@ import { TbPinned } from "react-icons/tb";
 import Button from "@/app/components/Button";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_showFolderInFiles, atom_vaultName } from "@/app/atoms/vault-atoms";
+import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { usePins } from "@/app/hooks/use-pins";
 import { formatShortcut } from "@/app/utils/platform";
 import FolderPopover from "../FolderPopover";
@@ -61,6 +62,8 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
   const [folderMenu, setFolderMenu] = useState<{ key: string; folder: string; anchor: DOMRect } | null>(null);
   const vaultName = useAtomValue(atom_vaultName) ?? "Vault";
   const showFolderInFiles = useSetAtom(atom_showFolderInFiles);
+  // Hidden, its rows are out of sight: a folder's list opens centred.
+  const sidebarOpen = useAtomValue(atom_sidebarOpen);
   const { openHandle, toEditor } = useSidebarNavigation();
   const { newNoteIn, newFolderIn } = useFolderCreateActions();
 
@@ -276,6 +279,7 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
             onNewFolder={newFolderIn}
             onShowInFiles={(folder) => showFolderInFiles(folder)}
             onClose={() => setFolderMenu(null)}
+            centered={!sidebarOpen}
           />
         )}
         {picker && pickerRow && (
