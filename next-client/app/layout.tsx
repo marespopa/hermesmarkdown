@@ -11,7 +11,7 @@ import { CODE_FONT_STACKS } from "./atoms/ui-atoms";
 import { DARK_THEMES, DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, LEGACY_THEME_MAP, LIGHT_THEMES } from "./theme-palettes";
 
 const SITE_DESCRIPTION =
-  "Edit local Markdown folders in your browser, saved to disk or to a browser vault on Safari, Firefox and mobile. Works offline. No accounts, no cloud.";
+  "Edit Markdown notes and code files from local folders in your browser, saved to disk or to a browser vault on Safari, Firefox and mobile. Works offline. No accounts, no cloud.";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
@@ -76,11 +76,11 @@ const SOFTWARE_APPLICATION_JSON_LD = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "HermesMarkdown",
-  applicationCategory: "productivity, text editor",
+  applicationCategory: "productivity, text editor, code editor",
   operatingSystem: "Web browser",
   url: "https://hermesmarkdown.com",
   description:
-    "HermesMarkdown is a local-first Markdown editor that runs entirely in your browser and works offline. It reads/writes files directly on disk, or keeps them in a browser vault where folder access isn't available (Safari, Firefox, iOS). No accounts, no cloud sync. It is unrelated to Hermes Agent's SOUL.md, memory.md, or plan-mode files.",
+    "HermesMarkdown is a local-first editor for Markdown notes and code files that runs entirely in your browser and works offline. It reads/writes files directly on disk, or keeps them in a browser vault where folder access isn't available (Safari, Firefox, iOS). No accounts, no cloud sync. It is unrelated to Hermes Agent's SOUL.md, memory.md, or plan-mode files.",
   offers: {
     "@type": "Offer",
     price: "0",

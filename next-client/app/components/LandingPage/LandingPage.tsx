@@ -66,8 +66,9 @@ export default function LandingPage() {
             A place where all you can do is write.
           </h1>
           <p className="max-w-2xl text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 md:text-xl">
-            A Markdown editor that runs in your browser and saves straight to
-            your device. No accounts, no cloud, nothing between you and the page.
+            An editor for your notes and code that runs in your browser and
+            saves straight to your device. No accounts, no cloud, nothing
+            between you and the page.
           </p>
           <div ref={heroCtaRef} className="flex flex-col items-start gap-5 pt-2 sm:flex-row sm:items-center">
             <Button
@@ -108,12 +109,12 @@ export default function LandingPage() {
       <section className={SECTION} aria-labelledby="landing-features">
         <div className="max-w-3xl space-y-4">
           <h2 id="landing-features" className={H2}>
-            A local-first Markdown editor in your browser
+            A local-first editor for notes and code
           </h2>
           <p className={`text-lg ${BODY}`}>
-            HermesMarkdown edits plain Markdown files where they already live.
-            There is nothing to install and nothing to sign up for, and your
-            files stay readable by any other editor or tool.
+            HermesMarkdown edits Markdown notes and code files where they
+            already live. There is nothing to install and nothing to sign up
+            for, and your files stay readable by any other editor or tool.
           </p>
         </div>
         <ul className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">

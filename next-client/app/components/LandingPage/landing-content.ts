@@ -7,19 +7,19 @@ export type LandingFaq = { q: string; a: string };
 export const LANDING_FEATURES: LandingFeature[] = [
   {
     title: "Your files, on your disk",
-    body: "Open a folder of .md files and edit them in place. Nothing is uploaded, and an existing Obsidian vault opens as-is.",
+    body: "Open a folder and edit its files in place, offline too. Nothing is uploaded, there is no account, and an existing Obsidian vault opens as-is.",
   },
   {
-    title: "Works offline",
-    body: "Install it as an app from the browser and keep writing without a connection. There is no account to sign in to.",
+    title: "Notes that connect",
+    body: "Link notes with [[wikilinks]], embed a note, a heading, an image or a CSV table with ![[Note]], edit tables like a spreadsheet with formulas, and sketch on drawing boards stored as Markdown.",
   },
   {
-    title: "Linked notes",
-    body: "Connect notes with [[wikilinks]], and embed a note, a heading, an image or a CSV table on its own line with ![[Note]].",
+    title: "Code files, too",
+    body: "TypeScript, Python, JSON, YAML and other text files open in the same editor, with highlighting, line numbers, folding, an outline of their functions and classes, and Format Code with your Prettier config.",
   },
   {
-    title: "Tables and drawing boards",
-    body: "Edit Markdown tables like a spreadsheet, with sorting and formulas, and sketch on infinite drawing boards stored as Markdown.",
+    title: "Search everything",
+    body: "Find any file by name, or search the text of notes and code across the vault, with a regular expression when you need one.",
   },
   {
     title: "Make it yours",
@@ -62,6 +62,10 @@ export const LANDING_FAQ: LandingFaq[] = [
   {
     q: "Does it work on Safari, Firefox, iPhone and iPad?",
     a: "Yes. Where the browser can't open a folder on disk, as in Safari, Firefox and mobile browsers, files are kept in a browser vault on the device.",
+  },
+  {
+    q: "Can I edit code files with it?",
+    a: "Yes. Code and other text files in the vault open in the same editor, highlighted for their language, with an outline of their symbols, regex search across files and Prettier formatting. Git stays outside the browser: commit with the tools you already use.",
   },
   {
     q: "Can I use it with my Obsidian vault?",
