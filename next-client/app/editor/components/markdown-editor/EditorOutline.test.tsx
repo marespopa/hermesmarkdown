@@ -1,6 +1,8 @@
 import React from "react";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { createStore, Provider } from "jotai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { atom_showOutline } from "@/app/atoms/ui-atoms";
 import EditorOutline from "./EditorOutline";
 
 // A fake editor: every line 20px tall, the document at the pane's top, which
@@ -38,8 +40,14 @@ function setup(text: string, props: { isCode?: boolean; filePath?: string } = {}
   scroller.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
   document.body.append(scroller);
   const view = fakeView(text, scroller);
-  render(<EditorOutline view={view as never} scrollerRef={{ current: scroller }} text={text} {...props} />);
-  return { scroller, view };
+  const store = createStore();
+  store.set(atom_showOutline, true);
+  render(
+    <Provider store={store}>
+      <EditorOutline view={view as never} scrollerRef={{ current: scroller }} text={text} {...props} />
+    </Provider>,
+  );
+  return { scroller, view, store };
 }
 
 // Twenty lines: headings on lines 1, 5 and 12.
@@ -96,7 +104,7 @@ describe("EditorOutline", () => {
       vi.advanceTimersByTime(250);
     });
     vi.useRealTimers();
-    expect(screen.getAllByRole("button").map((row) => row.textContent)).toEqual(["Status", "Draft", "Done"]);
+    expect(screen.getAllByRole("button").filter((row) => row.textContent).map((row) => row.textContent)).toEqual(["Status", "Draft", "Done"]);
     expect(screen.getByRole("button", { name: "Done" })).toHaveAttribute("aria-current", "location");
     expect(screen.getByRole("button", { name: "Draft" })).not.toHaveAttribute("aria-current");
     expect(error).not.toHaveBeenCalled();
@@ -124,5 +132,11 @@ describe("EditorOutline", () => {
   it("renders nothing for a note without headings", () => {
     setup("Just text\nand more");
     expect(screen.queryByRole("navigation", { name: "Outline" })).not.toBeInTheDocument();
+  });
+
+  it("turns the outline off from its ×", () => {
+    const { store } = setup(NOTE);
+    fireEvent.click(screen.getByRole("button", { name: "Close outline" }));
+    expect(store.get(atom_showOutline)).toBe(false);
   });
 });

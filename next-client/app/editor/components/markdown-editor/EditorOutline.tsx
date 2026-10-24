@@ -2,6 +2,9 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { EditorView } from "@codemirror/view";
+import { useSetAtom } from "jotai";
+import { HiX } from "react-icons/hi";
+import { atom_showOutline } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { useOutlineHeadings } from "./use-outline-headings";
 import { SymbolIcon } from "./SymbolIcon";
@@ -27,10 +30,12 @@ function documentTop(view: EditorView, scroller: HTMLElement): number {
 // with its kind's icon (useOutlineHeadings). The section read now (the last heading above a quarter of the pane)
 // is the current row, kept in view inside the box, which scrolls on its own
 // for a long outline. A click puts the caret on that heading and scrolls it
-// to where the current section is read, briefly flashing its line. Renders nothing for a note without
-// headings; hidden on narrow screens.
+// to where the current section is read, briefly flashing its line. A small ×
+// on its top-right corner (shown on hover or focus) turns the outline off.
+// Renders nothing for a note without headings; hidden on narrow screens.
 export default function EditorOutline({ view, scrollerRef, text, isCode = false, filePath }: { view: EditorView | null; scrollerRef: React.RefObject<HTMLDivElement | null>; text: string; isCode?: boolean; filePath?: string | null }) {
   const headings = useOutlineHeadings(view, text, isCode, filePath);
+  const setShowOutline = useSetAtom(atom_showOutline);
   // The current row's index (several symbols can share a line).
   const [current, setCurrent] = useState<number | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -102,8 +107,19 @@ export default function EditorOutline({ view, scrollerRef, text, isCode = false,
     <div className="pointer-events-none sticky bottom-0 z-10 h-0 max-md:hidden">
       <nav
         aria-label="Outline"
-        className="pointer-events-auto absolute bottom-4 right-4 w-52 rounded-xl glass-panel"
+        className="group/outline pointer-events-auto absolute bottom-4 right-4 w-52 rounded-xl glass-panel"
       >
+        {/* On the corner, clear of the rows. */}
+        <Button
+          variant="unstyled"
+          aria-label="Close outline"
+          title="Close outline"
+          onMouseDown={(event: React.MouseEvent) => event.preventDefault()}
+          onClick={() => setShowOutline(false)}
+          className="absolute -top-2 -right-2 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-edge bg-surface text-fg-muted shadow-sm opacity-0 transition-opacity hover:text-fg group-hover/outline:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+        >
+          <HiX size={11} aria-hidden="true" />
+        </Button>
         <div ref={listRef} className="relative flex max-h-60 flex-col gap-px overflow-y-auto p-1">
           {headings.map((heading, index) => (
             <Button
