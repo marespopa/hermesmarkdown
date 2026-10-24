@@ -283,6 +283,11 @@ export const atom_vaultCreationError = atom<string | null>(null);
 export const atom_newVaultFlowOpen = atom<boolean>(false);
 // Browser vault picker: create, reopen, or delete vaults kept in browser storage.
 export const atom_browserVaultDialogOpen = atom<boolean>(false);
+// Recent Vaults: reorder, pin or remove the vault switcher's recent vaults.
+export const atom_recentVaultsDialogOpen = atom<boolean>(false);
+// The emoji picked in Create Vault, for the vault of that name once it opens
+// (useRecentVaultTracker puts it on the vault's recents entry).
+export const atom_pendingVaultIcon = atom<{ name: string; icon: string } | null>(null);
 export const atom_keyboardShortcutsOpen = atom<boolean>(false);
 export const atom_selectedFileTags = atom<string[]>([]);
 export const atom_showCommandPaletteFab = atomWithStorage<boolean>(

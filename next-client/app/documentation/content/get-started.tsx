@@ -48,8 +48,9 @@ export const getStartedGroup: Group = {
       body: (
         <>
           <p>
-            Choose <strong>Browser vaults…</strong> from the command palette (or <em>Browser Vault</em>{" "}
-            on the start screen), name the vault, and click <em>Create</em>. It works like any other
+            Choose <strong>Create Vault…</strong> from the vault menu or the start screen, pick{" "}
+            <em>In this browser</em> (browsers that can&apos;t open folders skip this step), name the
+            vault, and click <em>Create Vault</em>. It works like any other
             vault — folders, WikiLinks, tasks, attachments — but the files live inside this
             browser's storage instead of a folder you can see on disk.
           </p>

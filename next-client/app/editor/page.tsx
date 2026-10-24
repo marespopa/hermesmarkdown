@@ -41,7 +41,6 @@ import { usePaletteCreateNote } from "./hooks/use-palette-create-note";
 import { useActiveFileUrlSync } from "./hooks/use-active-file-url";
 import { useFirstRun } from "./hooks/use-first-run";
 import { useChooseFolder } from "./hooks/use-choose-folder";
-import { useRecentVaultTracker } from "./hooks/use-recent-vaults";
 import { showSuccessToast } from "@/app/components/Toastr";
 import { downloadMarkdown } from "@/app/utils/download-markdown";
 
@@ -90,7 +89,6 @@ export default function LiteEditor() {
   useFileWatcher();
   useFirstRun(isMobileChrome);
   const chooseFolder = useChooseFolder(materializeDraft);
-  useRecentVaultTracker();
 
   // "Open AI Chat" (keyboard shortcut / command palette) bumps this counter
   // from outside the editor; the actual open() call has to happen here since

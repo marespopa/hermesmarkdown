@@ -2,6 +2,7 @@ import React from "react";
 import { act, renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { atom_pendingVaultIcon } from "@/app/atoms/ui-atoms";
 import { atom_recentVaults, atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import type { RecentVault } from "@/app/services/recent-vaults";
 import { recentVaultEntry, useRecentVaults, useRecentVaultTracker } from "./use-recent-vaults";
@@ -107,5 +108,19 @@ describe("useRecentVaultTracker", () => {
 
     expect(store.get(atom_recentVaults).map((entry) => entry.key)).toEqual(["local:journal", "browser:abc"]);
     expect(services.saveRecentVaults).toHaveBeenLastCalledWith(store.get(atom_recentVaults));
+  });
+
+  it("gives a vault just made in Create Vault the icon picked there", async () => {
+    const { store, wrapper } = setup();
+    services.loadRecentVaults.mockResolvedValueOnce([]);
+    store.set(atom_pendingVaultIcon, { name: "journal", icon: "📓" });
+    store.set(atom_vaultHandle, folder);
+    store.set(atom_vaultDescriptor, { kind: "local" });
+
+    renderHook(() => useRecentVaultTracker(), { wrapper });
+    await act(async () => {});
+
+    expect(store.get(atom_recentVaults)[0]).toMatchObject({ key: "local:journal", icon: "📓" });
+    expect(store.get(atom_pendingVaultIcon)).toBeNull();
   });
 });

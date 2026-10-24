@@ -10,7 +10,9 @@ import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useVaultPins } from "@/app/hooks/use-vault-pins";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { formatShortcut } from "@/app/utils/platform";
+import { useRecentVaultTracker } from "../hooks/use-recent-vaults";
 import BrowserVaultDialog from "./BrowserVaultDialog";
+import RecentVaultsDialog from "./RecentVaultsDialog";
 import NewVaultDialog from "./NewVaultDialog";
 import Button from "@/app/components/Button";
 import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
@@ -61,6 +63,8 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   const hasSidebar = !isMobileChrome && !isVaultLocked;
   useVaultPins(!isVaultLocked);
   useVaultSync();
+  // On every route, so the Vault menu lists the recents from Settings too.
+  useRecentVaultTracker();
   const onEditor = usePathname() === "/editor";
 
   useEffect(() => {
@@ -115,6 +119,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
       <NewVaultDialog />
       <ActiveFileIndexer />
       <BrowserVaultDialog />
+      <RecentVaultsDialog />
     </div>
   );
 }

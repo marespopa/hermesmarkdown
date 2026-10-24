@@ -126,11 +126,19 @@ describe("SidebarPinned", () => {
     expect(rowButton("projects")).not.toHaveAttribute("aria-current");
   });
 
+  it("opens the emoji picker from a click on the icon", () => {
+    setup();
+    fireEvent.click(screen.getByRole("button", { name: "Change icon of roadmap" }));
+    expect(screen.getByRole("dialog", { name: "Pin icon" })).toBeInTheDocument();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
   it("sets the icon and unpins from the row's menu", async () => {
     const store = setup();
-    fireEvent.click(screen.getByRole("button", { name: "roadmap actions" }));
+    fireEvent.contextMenu(screen.getByRole("button", { name: "Change icon of roadmap" }));
     expect(screen.getByRole("menuitem", { name: "Change Icon…" })).toBeInTheDocument();
     expect(screen.queryByRole("menuitem", { name: "Move Up" })).not.toBeInTheDocument();
+    fireEvent.keyDown(document, { key: "Escape" });
 
     fireEvent.contextMenu(rowButton("projects"));
     expect(screen.getByRole("menuitem", { name: "Set Icon…" })).toBeInTheDocument();
@@ -205,7 +213,7 @@ describe("SidebarPinned", () => {
     fireEvent.keyDown(rowButton("roadmap"), { key: "ArrowDown", altKey: true });
     await waitFor(() => expect(targets(store)).toEqual(["projects", "projects/roadmap.md", "release", "tasks"]));
 
-    fireEvent.keyDown(screen.getByRole("button", { name: "Tasks actions" }), { key: "ArrowUp", altKey: true });
+    fireEvent.keyDown(screen.getByRole("button", { name: "Add icon to Tasks" }), { key: "ArrowUp", altKey: true });
     await waitFor(() => expect(targets(store)).toEqual(["projects", "projects/roadmap.md", "tasks", "release"]));
   });
 

@@ -24,8 +24,10 @@ const SIDEBAR_ROW_CLASS = "flex items-center h-7 rounded-md text-ui-footnote tra
 // notes, folders, tags and app pages, in the file's order (usePinnedRows).
 // Each row leads with its emoji icon (shown only here) or its kind's glyph;
 // a click on the label opens it, and the current one is highlighted. A click
-// on the icon, a right-click or the menu key opens its menu: Set / Change
-// Icon… (the emoji picker, PinIconPopover) and Unpin. Dragging a row (or
+// on the icon opens the emoji picker straight away (PinIconPopover; with no
+// emoji, the glyph turns into a smiley on hover), as the sidebar header's
+// vault icon does. A right-click or the menu key opens its menu: Set / Change
+// Icon… and Unpin. Dragging a row (or
 // Alt+↑/↓ on it) reorders the pins. At most nine are listed (PINS_MAX), each
 // opened by Ctrl/Cmd+1–9 from anywhere, its key shown at the row's end.
 // Pinning itself is done elsewhere (the Files and note menus, the palette,
@@ -43,6 +45,8 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
   const [picker, setPicker] = useState<{ key: string; anchor: DOMRect } | null>(null);
   const rowRefs = useRef(new Map<string, HTMLDivElement>());
   const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  // The icon button the picker opened from: a second click on it closes it.
+  const pickerButtonRef = useRef<HTMLButtonElement | null>(null);
   // The row being dragged and where it would land: an insertion point, 0
   // above the first row up to the count below the last.
   const [dragging, setDragging] = useState<string | null>(null);
@@ -168,28 +172,35 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
               {dropAt !== null && (dropAt === index || (dropAt === index + 1 && index === rows.length - 1)) && (
                 <span aria-hidden="true" className={`pointer-events-none absolute inset-x-1 h-0.5 rounded-full bg-fg-faint ${dropAt === index ? "-top-px" : "-bottom-px"}`} />
               )}
-              {/* The icon opens the row's menu. */}
+              {/* The icon opens the emoji picker. */}
               <Button
                 variant="unstyled"
-                aria-label={`${row.label} actions`}
-                aria-haspopup="menu"
-                aria-expanded={menu?.key === row.key}
-                title={`${row.label} actions`}
+                aria-label={row.pin.icon ? `Change icon of ${row.label}` : `Add icon to ${row.label}`}
+                aria-haspopup="dialog"
+                aria-expanded={picker?.key === row.key}
+                title={row.pin.icon ? "Change icon" : "Add icon"}
                 onClick={(event) => {
-                  if (menu?.key === row.key) {
-                    setMenu(null);
+                  if (picker?.key === row.key) {
+                    setPicker(null);
                     return;
                   }
-                  const rect = event.currentTarget.getBoundingClientRect();
-                  menuButtonRef.current = event.currentTarget;
-                  setMenu({ x: rect.left, y: rect.bottom + 4, key: row.key, align: "start" });
+                  const rect = rowRefs.current.get(row.key)?.getBoundingClientRect();
+                  pickerButtonRef.current = event.currentTarget;
+                  if (rect) setPicker({ key: row.key, anchor: rect });
                 }}
                 onContextMenu={openMenuAt(row.key)}
                 onKeyDown={moveByKey(row.key)}
-                className="flex h-5 shrink-0 items-center justify-center pl-2 pr-1.5"
+                className="group flex h-5 shrink-0 items-center justify-center pl-2 pr-1.5"
               >
                 <span className="flex w-[15px] items-center justify-center">
-                  {row.pin.icon ? <span aria-hidden="true" className="text-[13px] leading-none">{row.pin.icon}</span> : pinGlyph(row.pin)}
+                  {row.pin.icon ? (
+                    <span aria-hidden="true" className="text-[13px] leading-none">{row.pin.icon}</span>
+                  ) : (
+                    <>
+                      <span className="flex group-hover:hidden group-focus-visible:hidden">{pinGlyph(row.pin)}</span>
+                      <HiOutlineEmojiHappy {...MENU_ICON} className="hidden group-hover:block group-focus-visible:block" />
+                    </>
+                  )}
                 </span>
               </Button>
               <Button
@@ -230,6 +241,7 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
               return result === "ok" || result === "unchanged";
             }}
             onClose={() => setPicker(null)}
+            anchorRef={pickerButtonRef}
           />
         )}
       </SidebarSection>

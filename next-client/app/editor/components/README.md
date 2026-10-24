@@ -20,6 +20,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [EditorCommands](EditorCommands.md) | Registers the editor command-palette entries (renders nothing). |
 | [BlockTypeMenu](BlockTypeMenu.md) | The selection toolbar's "Turn into" dropdown: shows the line's block type and turns selected lines into text, a heading, a list, a to-do or a quote. |
 | [BrowserVaultDialog](BrowserVaultDialog.md) | Create, reopen, or delete vaults stored in browser storage (Safari, Firefox, mobile). |
+| [RecentVaultsDialog](RecentVaultsDialog.md) | Open, reorder, pin or remove recent vaults; only pinned ones are listed in the Vault menu, and they never age out. |
 | [ImageDialog](ImageDialog.md) | Lightbox for note images; resolves vault-relative paths locally. |
 | [LinkPill](LinkPill.md) | Floating pill over a Markdown or wiki link in the editor, offering open and edit (label and URL). |
 | [MarkdownEditor](MarkdownEditor.md) | CodeMirror 6 Markdown editor with inline pills, callouts, slash templates, and folding. |
@@ -52,7 +53,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [RouteSkeletons](RouteSkeletons.md) | Loading outlines of the /editor sub-pages (Templates, Tasks, All Files, Trash, Settings), chosen by path for EditorSkeleton. |
 | [VaultAccessGate](VaultAccessGate.md) | Wraps every /editor route: restores the saved vault on load and keeps the route hidden until it is readable, with the Restore Access prompt when needed. |
 | [VaultPendingOverlay](VaultPendingOverlay.md) | Prompt shown after reload when the stored vault handle needs the user to grant permission again. |
-| [VaultActionButtons](VaultActionButtons.md) | Open / Create / Browser Vault buttons, shown where no vault is open. |
+| [VaultActionButtons](VaultActionButtons.md) | Open / Create Vault buttons, shown where no vault is open. |
 | [VaultFileTree](VaultFileTree.md) | Virtualized file list or folder tree for the vault, with search highlighting, inline rename, a row action menu, and drag-and-drop moves. |
 | [vault-tree/](vault-tree/README.md) | `VaultFileTree` building blocks: tree model, `FileRow`, `FolderRow`, `TreeNodes`. |
 | [FolderPrompt](FolderPrompt.md) | The only first-run question, asked late: once a draft has text and no vault is open, a quiet bottom bar offers Choose Folder… (or Keep Files in This Browser) and Not Now. |
