@@ -26,7 +26,7 @@ import { useNoteMenuItems } from "../hooks/use-note-menu-items";
 import { useVaultMenuItems } from "../hooks/use-vault-menu-items";
 import { useFolderCreateActions } from "../hooks/use-folder-create-actions";
 import PaneEmptyState from "./PaneEmptyState";
-import { EDITOR_CORNER_WIDTH } from "./CopyMarkdownButton";
+import { EDITOR_CORNER_WIDTH } from "./CopyContentButton";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
 import { atom_autosaveMode, atom_saveRequested, AUTOSAVE_DELAY, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 
@@ -164,7 +164,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       )}
       {!isMobileChrome && (
         <div
-          // Clear of Copy Markdown and the SearchPill in the top-right corner (EditorShell).
+          // Clear of Copy Contents and the SearchPill in the top-right corner (EditorShell).
           style={{ paddingRight: `calc(${EDITOR_CORNER_WIDTH} + 3rem)` }}
           className={`pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-start transition-[padding] duration-layout ease-layout motion-reduce:transition-none ${sidebarOpen ? "pl-3" : "pl-12"}`}
         >

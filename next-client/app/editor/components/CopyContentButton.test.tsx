@@ -3,7 +3,7 @@ import { createStore, Provider } from "jotai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom";
 import { atom_activePaneId, atom_fileContent, atom_workspaceLayout } from "@/app/atoms/atoms";
-import CopyMarkdownButton from "./CopyMarkdownButton";
+import CopyContentButton from "./CopyContentButton";
 
 const toasts = vi.hoisted(() => ({ copy: vi.fn(), error: vi.fn() }));
 
@@ -24,13 +24,13 @@ function renderWith(paths: string[], content = "") {
   if (paths[0]) store.set(atom_fileContent(paths[0]), content);
   render(
     <Provider store={store}>
-      <CopyMarkdownButton />
+      <CopyContentButton />
     </Provider>,
   );
-  return screen.getByRole("button", { name: "Copy Markdown" });
+  return screen.getByRole("button", { name: "Copy Contents" });
 }
 
-describe("CopyMarkdownButton", () => {
+describe("CopyContentButton", () => {
   beforeEach(() => {
     writeText.mockReset();
     toasts.copy.mockReset();
@@ -49,7 +49,7 @@ describe("CopyMarkdownButton", () => {
     writeText.mockRejectedValue(new Error("denied"));
     vi.spyOn(console, "error").mockImplementation(() => {});
     fireEvent.click(renderWith(["Release plan.md"], "Draft"));
-    await waitFor(() => expect(toasts.error).toHaveBeenCalledWith("Failed to copy markdown"));
+    await waitFor(() => expect(toasts.error).toHaveBeenCalledWith("Failed to copy"));
   });
 
   it("is disabled without a note", () => {

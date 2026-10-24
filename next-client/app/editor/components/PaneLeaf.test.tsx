@@ -200,7 +200,7 @@ describe("PaneLeaf Tab Indicators", () => {
     expect(screen.queryByRole("button", { name: /^Save/ })).not.toBeInTheDocument();
   });
 
-  it("offers Copy Markdown in the active tab's menu", () => {
+  it("offers Copy Contents in the active tab's menu", () => {
     render(
       <TestProvider initialValues={[
         [atom_activePaneId, "pane-1"],
@@ -212,7 +212,7 @@ describe("PaneLeaf Tab Indicators", () => {
     );
 
     fireEvent.contextMenu(screen.getByText("file1"));
-    expect(screen.getByText("Copy Markdown")).toBeInTheDocument();
+    expect(screen.getByText("Copy Contents")).toBeInTheDocument();
   });
 
   it("pins the note from its title's menu, and unpins it", () => {

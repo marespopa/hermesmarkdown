@@ -15,7 +15,7 @@ import { isBoard } from "@/app/utils/board/is-board";
 import type { TabContextMenuItem } from "../components/TabContextMenu";
 import { usePaneFileActions } from "./use-pane-file-actions";
 
-// The open note's menu, opened from the pane's title: Copy Markdown, Edit as Markdown /
+// The open note's menu, opened from the pane's title: Copy Contents, Edit as Markdown /
 // Open as Board for a board, Pin / Unpin; then Rename… and Move to Trash for
 // a vault note; then Close, Close Others and Close All (of `leaf`).
 export function useNoteMenuItems(leaf: PanelLeaf | null) {
@@ -34,12 +34,12 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
     const content = openFiles[path]?.content ?? "";
     const items: TabContextMenuItem[] = [
       {
-        label: "Copy Markdown",
+        label: "Copy Contents",
         icon: <HiOutlineClipboardCopy size={15} />,
         onClick: () => {
           navigator.clipboard.writeText(content).then(
-            () => showCopyToast("Markdown copied to clipboard!"),
-            () => showErrorToast("Failed to copy markdown"),
+            () => showCopyToast("Copied to clipboard!"),
+            () => showErrorToast("Failed to copy"),
           );
         },
       },

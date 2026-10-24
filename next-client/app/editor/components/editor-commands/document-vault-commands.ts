@@ -181,8 +181,9 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     ...(activeLeaf && activeLeaf.openFilePaths.length > 0
       ? [{
           id: "copy-markdown",
-          label: "Copy Markdown",
-          keywords: "copy clipboard content",
+          label: "Copy Contents",
+          // Any open file: a note's Markdown, a code file's source.
+          keywords: "copy clipboard content markdown text code source",
           action: () => { void handleCopy(); },
         }]
       : []),

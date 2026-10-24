@@ -35,7 +35,7 @@ interface PaneTitleProps {
   renameRequest?: number;
   /** Saves the note; absent makes the save state plain text. */
   onSave?: () => void;
-  /** The note's menu (Copy Markdown, Pin, Close). */
+  /** The note's menu (Copy Contents, Pin, Close). */
   onContextMenu: (event: React.MouseEvent) => void;
   /** Opens (or closes) the same menu from a click on the name, below
    *  `anchor`; absent leaves the name plain text (no note open). */
