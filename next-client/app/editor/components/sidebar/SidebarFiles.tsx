@@ -23,7 +23,7 @@ interface SidebarFilesProps {
 // The vault's files as a tree (drag to move, F2 — Return on macOS — to
 // rename, right-click for actions, arrow keys to move through it). A note's
 // or folder's right-click menu has Pin / Unpin, which adds it to (or removes
-// it from) the vault's pins (usePins, `.hermesmarkdown/pins.yaml`), listed in the
+// it from) the vault's pins (usePins), listed in the
 // sidebar's Pinned section. A Search field above the tree narrows it to the
 // files whose vault path matches a regular expression (files-filter.ts), with
 // every folder around them open; Escape clears it, ↓ or Enter moves into the tree.

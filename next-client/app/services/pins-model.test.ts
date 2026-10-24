@@ -1,6 +1,5 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { dump, load } from "js-yaml";
 import {
   addPins,
   forgetPinPaths,
@@ -9,37 +8,20 @@ import {
   pinsOverLimit,
   movePin,
   normalizePinIcon,
-  parsePins,
-  PINS_HEADER,
   pinKey,
   removePin,
   remapPinPaths,
   samePins,
-  serializePins,
   setPinIcon,
   type PinsDocument,
-} from "./vault-pins-format";
+} from "./pins-model";
 
-const parse = (text: string) => parsePins(text, load);
-const docOf = (text: string): PinsDocument => {
-  const parsed = parse(text);
-  if (!parsed.ok) throw new Error("invalid");
-  return parsed.doc;
-};
+const docOf = (...items: unknown[]): PinsDocument => ({ items });
 const frozen = (doc: PinsDocument) => JSON.stringify(doc);
 
-describe("parsePins", () => {
-  it("parses all four kinds and their icons", () => {
-    const parsed = parse([
-      "version: 1",
-      "pins:",
-      "  - {note: projects/roadmap.md, icon: 🚀}",
-      "  - {folder: projects}",
-      "  - {tag: release, icon: 🏷️}",
-      "  - {page: tasks}",
-    ].join("\n"));
-    expect(parsed).toMatchObject({ ok: true, newer: false });
-    expect(parsed.ok && parsed.pins).toEqual([
+describe("listedPins", () => {
+  it("lists all four kinds and their icons", () => {
+    expect(listedPins(docOf({ note: "projects/roadmap.md", icon: "🚀" }, { folder: "projects" }, { tag: "release", icon: "🏷️" }, { page: "tasks" }))).toEqual([
       { kind: "note", target: "projects/roadmap.md", icon: "🚀" },
       { kind: "folder", target: "projects", icon: null },
       { kind: "tag", target: "release", icon: "🏷️" },
@@ -48,53 +30,17 @@ describe("parsePins", () => {
   });
 
   it("normalises a note path, a folder's trailing slash and a tag", () => {
-    const parsed = parse("pins:\n  - {note: ./roadmap.md}\n  - {note: /bug.md}\n  - {folder: projects/}\n  - {tag: '#Release'}");
-    expect(parsed.ok && parsed.pins.map(pinKey)).toEqual(["note:roadmap.md", "note:bug.md", "folder:projects", "tag:release"]);
+    const doc = docOf({ note: "./roadmap.md" }, { note: "/bug.md" }, { folder: "projects/" }, { tag: "#Release" });
+    expect(listedPins(doc).map(pinKey)).toEqual(["note:roadmap.md", "note:bug.md", "folder:projects", "tag:release"]);
   });
 
-  it("doesn't list entries that break the rules, and keeps them in items", () => {
-    const parsed = parse([
-      "pins:",
-      "  - {note: ../outside.md}",
-      "  - {note: 'projects\\\\roadmap.md'}",
-      "  - {note: projects/roadmap.txt}",
-      "  - {folder: /}",
-      "  - {page: inbox}",
-      "  - {note: a.md, folder: projects}",
-      "  - {link: example}",
-      "  - just text",
-      "  - [note, a.md]",
-      "  - {tag: bug}",
-    ].join("\n"));
-    expect(parsed.ok && parsed.pins.map(pinKey)).toEqual(["tag:bug"]);
-    expect(parsed.ok && parsed.doc.items).toHaveLength(10);
-  });
-
-  it("lists only the first of duplicate pins", () => {
-    const parsed = parse("pins:\n  - {tag: release, icon: 🚀}\n  - {tag: Release}\n  - {page: tasks}");
-    expect(parsed.ok && parsed.pins).toEqual([
-      { kind: "tag", target: "release", icon: "🚀" },
-      { kind: "page", target: "tasks", icon: null },
-    ]);
-  });
-
-  it("gives no pins for an empty file, a comment-only file and a missing pins key", () => {
-    for (const text of ["", "# nothing pinned yet\n", "version: 1\n", "pins:\n"]) {
-      const parsed = parse(text);
-      expect(parsed).toMatchObject({ ok: true, pins: [] });
-    }
-  });
-
-  it("is invalid for broken YAML, a list root or a pins value that isn't a list", () => {
-    expect(parse("pins: [\n  {note: a.md")).toEqual({ ok: false });
-    expect(parse("- {tag: bug}")).toEqual({ ok: false });
-    expect(parse("pins: release")).toEqual({ ok: false });
-  });
-
-  it("marks a file from a newer version", () => {
-    const parsed = parse("version: 2\npins:\n  - {tag: bug}\n  - {widget: clock}");
-    expect(parsed).toMatchObject({ ok: true, newer: true });
-    expect(parsed.ok && parsed.pins.map(pinKey)).toEqual(["tag:bug"]);
+  it("doesn't list entries that break the rules, or duplicates", () => {
+    const doc = docOf(
+      { note: "../outside.md" }, { note: "projects\\roadmap.md" }, { note: "projects/roadmap.txt" }, { folder: "/" },
+      { page: "inbox" }, { note: "a.md", folder: "projects" }, { link: "example" }, "just text", ["note", "a.md"],
+      { tag: "bug", icon: "🚀" }, { tag: "Bug" },
+    );
+    expect(listedPins(doc)).toEqual([{ kind: "tag", target: "bug", icon: "🚀" }]);
   });
 });
 
@@ -111,13 +57,12 @@ describe("normalizePinIcon", () => {
   });
 
   it("drops a bad icon but keeps the pin", () => {
-    const parsed = parse("pins:\n  - {tag: bug, icon: abc}\n  - {tag: release, icon: 42}");
-    expect(parsed.ok && parsed.pins.map((pin) => pin.icon)).toEqual([null, null]);
+    expect(listedPins(docOf({ tag: "bug", icon: "abc" }, { tag: "release", icon: 42 })).map((pin) => pin.icon)).toEqual([null, null]);
   });
 });
 
 describe("edits", () => {
-  const base = () => docOf("pins:\n  - {note: projects/roadmap.md, icon: 🚀, color: blue}\n  - {widget: clock}\n  - {tag: release}\n  - {page: tasks}");
+  const base = () => docOf({ note: "projects/roadmap.md", icon: "🚀", color: "blue" }, { widget: "clock" }, { tag: "release" }, { page: "tasks" });
 
   it("addPins appends new pins in order and skips present ones", () => {
     const doc = base();
@@ -183,7 +128,7 @@ describe("edits", () => {
   });
 
   it("remapPinPaths moves notes and folders at and under a moved folder, never a name-prefix sibling", () => {
-    const doc = docOf("pins:\n  - {note: notes/deep/idea.md, icon: 🚀}\n  - {folder: notes}\n  - {folder: notes/deep}\n  - {note: notes-old.md}\n  - {tag: notes}");
+    const doc = docOf({ note: "notes/deep/idea.md", icon: "🚀" }, { folder: "notes" }, { folder: "notes/deep" }, { note: "notes-old.md" }, { tag: "notes" });
     const before = frozen(doc);
     const next = remapPinPaths(doc, "notes", "archive")!;
     expect(next.items).toEqual([
@@ -199,7 +144,7 @@ describe("edits", () => {
   });
 
   it("forgetPinPaths removes notes and folders at and under a deleted path", () => {
-    const doc = docOf("pins:\n  - {note: notes/deep/idea.md}\n  - {folder: notes}\n  - {note: notes-old.md}\n  - {tag: notes}");
+    const doc = docOf({ note: "notes/deep/idea.md" }, { folder: "notes" }, { note: "notes-old.md" }, { tag: "notes" });
     const next = forgetPinPaths(doc, "notes")!;
     expect(listedPins(next).map(pinKey)).toEqual(["note:notes-old.md", "tag:notes"]);
     expect(forgetPinPaths(doc, "inbox")).toBeNull();
@@ -210,28 +155,5 @@ describe("edits", () => {
     expect(samePins(a, listedPins(base()))).toBe(true);
     expect(samePins(a, [...a].reverse())).toBe(false);
     expect(samePins(a, a.slice(1))).toBe(false);
-  });
-});
-
-describe("serializePins", () => {
-  it("writes the header, version 1, unknown keys and one line per pin, and round-trips", () => {
-    const doc = docOf("theme: compact\npins:\n  - {note: projects/roadmap.md, icon: 🚀, color: blue}\n  - {folder: projects}\n  - {widget: clock}");
-    const text = serializePins(doc, dump);
-    const lines = text.split("\n");
-    expect(lines[0]).toBe(PINS_HEADER);
-    expect(lines[1]).toBe("version: 1");
-    expect(text).toContain("theme: compact");
-    expect(lines.filter((line) => line.startsWith("  - "))).toHaveLength(3);
-    expect(text).toContain("  - {folder: projects}");
-    expect(text).toContain("  - {widget: clock}");
-    expect(load(text)).toEqual({
-      version: 1,
-      theme: "compact",
-      pins: [{ note: "projects/roadmap.md", icon: "🚀", color: "blue" }, { folder: "projects" }, { widget: "clock" }],
-    });
-  });
-
-  it("writes an empty list when nothing is pinned", () => {
-    expect(load(serializePins({ root: {}, items: [] }, dump))).toEqual({ version: 1, pins: [] });
   });
 });

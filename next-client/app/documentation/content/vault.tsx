@@ -27,11 +27,8 @@ export const vaultGroup: Group = {
             the folder in any other editor, sync it with Dropbox or Google Drive, or move it to another
             machine — nothing about it depends on HermesMarkdown being installed. The only folders
             HermesMarkdown creates on its own are <code>assets/</code>, for images you paste or drop
-            into a note, the hidden <code>.hermesmarkdown/trash/</code>, which holds what you delete
-            for 30 days, and <code>.hermesmarkdown/pins.yaml</code>, the{" "}
-            <TextLink href="#pins-file">sidebar&apos;s pinned items</TextLink>, once you pin something.
-            Vaults from earlier versions kept these in <code>.hermes/</code>; opening one moves them
-            to <code>.hermesmarkdown/</code> and leaves any other files in <code>.hermes/</code> alone.
+            into a note, and the hidden <code>.hermesmarkdown/trash/</code>, which holds what you delete
+            for 30 days. What you pin to the sidebar is kept in this browser, not in the vault.
           </p>
           <KV
             rows={[
@@ -47,40 +44,6 @@ export const vaultGroup: Group = {
             folder you can see. Nothing is locked in: <strong>Export vault as zip</strong> hands you
             every file, and <strong>Import files into vault…</strong> brings a zip or folder into any
             vault.
-          </p>
-        </>
-      ),
-    },
-    {
-      id: "pins-file",
-      title: "The pins file",
-      lead: "What you pin to the sidebar is saved in the vault, in .hermesmarkdown/pins.yaml, so it syncs with it.",
-      keywords: "pins pinned pins.yaml hermes yaml sync github icon emoji order file format",
-      body: (
-        <>
-          <p>
-            The sidebar&apos;s <strong>Pinned</strong> section is kept in <code>.hermesmarkdown/pins.yaml</code>{" "}
-            inside the vault, created the first time you pin something. It travels with the vault:
-            a synced folder carries it to your other devices, and a GitHub vault commits it on the next
-            sync like any note. Each pin is one line, in the order shown, with its optional icon (the
-            sidebar lists up to nine, one for each <code>CTRL/CMD+1–9</code>):
-          </p>
-          <Code>{`# Pinned items for this vault's sidebar (HermesMarkdown). One per line, in order.
-version: 1
-pins:
-  - {note: projects/roadmap.md, icon: 🚀}
-  - {folder: projects}
-  - {tag: release, icon: 🏷️}
-  - {page: tasks}`}</Code>
-          <p>
-            You can edit it by hand (turn on Show Hidden Files to open it in the app); the sidebar
-            updates when it&apos;s saved. Pages are <code>files</code> (All Notes), <code>tags</code>,{" "}
-            <code>tasks</code>, <code>templates</code>, <code>trash</code> and <code>settings</code>.
-            The app rewrites the whole file when you pin, unpin, reorder or set an icon, so comments
-            you add aren&apos;t kept; lines it doesn&apos;t recognise are kept as they are. If the file
-            isn&apos;t valid YAML (a half-finished edit, or a sync conflict), the sidebar keeps the pins
-            it last read, and the app never overwrites the file: pinning shows a message until it&apos;s
-            fixed.
           </p>
         </>
       ),

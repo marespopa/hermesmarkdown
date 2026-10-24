@@ -12,11 +12,13 @@ import { writeFileContent } from "@/app/services/file-writer";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { isTemplatePath } from "@/app/utils/templates/template-registry";
 import type { ChatMessage } from "./chat-helpers";
-import { CHAT_SKILLS, isSkillActive, loadSkillInstructions, type ChatSkill, type TemplateBlock } from "./chat-skills";
+import { CHAT_SKILLS, isSkillActive, type ChatSkill, type TemplateBlock } from "./chat-skills";
 import { openTasksBlock } from "./skill-context";
+import { isUserSkillActive, readUserSkill, userSkillsFrom } from "./user-skills";
 
 // AI Chat side of the chat skills: which skill text a turn sends (each active
-// skill's instructions, plus the open tasks the tasks skill works from, read
+// built-in skill's instructions, plus the open tasks the tasks skill works
+// from, and the user's own skill notes turned on by their /command, read
 // fresh each turn), and saving a reply's template block into
 // the templates folder (only from the user's explicit Save / Replace click).
 export function useChatSkills() {
@@ -40,13 +42,19 @@ export function useChatSkills() {
   const skillInstructionsFor = useCallback(async (messages: ChatMessage[]): Promise<string[]> => {
     const userTexts = messages.filter((m) => m.role === "user").map((m) => m.displayContent);
     const active = CHAT_SKILLS.filter((skill) => isSkillActive(skill, userTexts));
-    return Promise.all(active.map(async (skill) => {
-      const [instructions, context] = await Promise.all([
-        loadSkillInstructions(skill, store.get(atom_vaultHandle)),
-        skillContext(skill),
-      ]);
-      return context ? `${instructions}\n\n${context}` : instructions;
+    const builtIn = Promise.all(active.map(async (skill) => {
+      const context = await skillContext(skill);
+      return context ? `${skill.builtin}\n\n${context}` : skill.builtin;
     }));
+    // The user's own skill notes turned on by their /command (user-skills.ts).
+    const vault = store.get(atom_vaultHandle);
+    const own = vault
+      ? userSkillsFrom(store.get(atom_fileMetadata), CHAT_SKILLS.map((skill) => skill.command))
+        .filter((skill) => isUserSkillActive(skill, userTexts))
+      : [];
+    const ownTexts = Promise.all(own.map((skill) => readUserSkill(vault!, skill.path)));
+    const [fromApp, fromVault] = await Promise.all([builtIn, ownTexts]);
+    return [...fromApp, ...fromVault.filter((text): text is string => !!text)];
   }, [store, skillContext]);
 
   const templateExists = useCallback(

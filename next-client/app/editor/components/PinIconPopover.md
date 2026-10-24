@@ -9,7 +9,7 @@ Enter picks the first tile, a click picks that one; the popover closes once `onP
 - Persistence: None.
 
 ## Dependencies
-- Core: `Button`, `BareInput`, `FIELD_COMPACT_CLASS`, `menu-classes.ts`, `emoji-index.ts`, `normalizePinIcon` (`services/vault-pins-format.ts`).
+- Core: `Button`, `BareInput`, `FIELD_COMPACT_CLASS`, `menu-classes.ts`, `emoji-index.ts`, `normalizePinIcon` (`services/pins-model.ts`).
 - Zero-Cloud: the emoji index is a local chunk; no network or telemetry side effects.
 
 ## Quick Usage

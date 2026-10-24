@@ -5,8 +5,7 @@ import "@testing-library/jest-dom";
 import { Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
-import { atom_pinsState, type PinsState } from "@/app/atoms/pin-atoms";
-import { updatePinsFile } from "@/app/services/vault-pins";
+import { atom_pinsByVault, atom_pinsVaultKey } from "@/app/atoms/pin-atoms";
 import TagsPage from "./page";
 
 const push = vi.fn();
@@ -21,11 +20,6 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => fileSystem }));
 const mobileChrome = vi.hoisted(() => ({ value: false }));
 vi.mock("@/app/hooks/use-mobile-chrome", () => ({ default: () => mobileChrome.value }));
-vi.mock("@/app/services/vault-pins", () => ({
-  PinsFileInvalidError: class extends Error {},
-  PinsFileNewerError: class extends Error {},
-  updatePinsFile: vi.fn(async () => ({ pins: [{ kind: "tag", target: "release", icon: null }], changed: true })),
-}));
 
 const note = (path: string, tags: string[], modifiedAt: number) =>
   ({ path, name: path.split("/").pop()!, tags, links: [], frontmatter: {}, modifiedAt, wordCount: 3, tasks: [], handle: { name: path } }) as FileMetadata;
@@ -36,12 +30,10 @@ const metadata = {
   "inbox.md": note("inbox.md", [], 1),
 };
 
-const vault = { name: "Notes" } as unknown as FileSystemDirectoryHandle;
-const pinsState: PinsState = { vault, status: "ok", pins: [] };
 
 const Hydrate = ({ children }: { children: React.ReactNode }) => {
   useHydrateAtoms([[atom_fileMetadata, metadata]]);
-  useHydrateAtoms([[atom_pinsState, pinsState]]);
+  useHydrateAtoms([[atom_pinsByVault, {}], [atom_pinsVaultKey, "local:Notes"]]);
   return <>{children}</>;
 };
 
@@ -100,7 +92,6 @@ describe("TagsPage", () => {
     renderPage();
     fireEvent.click(screen.getByRole("button", { name: "Pin" }));
     await waitFor(() => expect(screen.getByRole("button", { name: "Pinned" })).toBeDisabled());
-    expect(updatePinsFile).toHaveBeenCalledWith(vault, expect.any(Function));
   });
 
   it("has no Pin button on mobile, which has no sidebar", () => {

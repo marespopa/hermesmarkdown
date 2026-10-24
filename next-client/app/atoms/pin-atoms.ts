@@ -1,26 +1,57 @@
 import { atom } from "jotai";
-import { selectAtom } from "jotai/utils";
+import { atomWithStorage, createJSONStorage, selectAtom } from "jotai/utils";
 import toast from "react-hot-toast";
-import { PinsFileInvalidError, PinsFileNewerError, updatePinsFile } from "@/app/services/vault-pins";
-import { forgetPinPaths, listedPins, remapPinPaths, samePins, type Pin, type PinsDocument } from "@/app/services/vault-pins-format";
+import { forgetPinPaths, listedPins, pinsDocument, remapPinPaths, type Pin, type PinsDocument } from "@/app/services/pins-model";
 import { remapPath } from "./utils";
 
-// The open vault's pins, as last read from its `.hermesmarkdown/pins.yaml`
-// (usePinsSync keeps them in step with the file) or written by the app
-// (atom_updatePins, the only writer). `vault` is the vault they were read
-// from: writes go there, so this module never imports vault-atoms (which
-// calls atom_remapPins) and there's no import cycle.
-// While "loading", `pins` are the ones this device last read for the vault
-// (pins-cache.ts) when `cached` is set, else none yet.
-export interface PinsState {
-  vault: FileSystemDirectoryHandle | null;
-  status: "none" | "loading" | "ok" | "invalid";
-  pins: readonly Pin[];
-  cached?: boolean;
-}
-export const NO_PINS_STATE: PinsState = { vault: null, status: "none", pins: [] };
-export const atom_pinsState = atom<PinsState>(NO_PINS_STATE);
-export const atom_pins = atom((get) => get(atom_pinsState).pins);
+// Pins are kept on this device only, never in the vault: every vault's pins,
+// keyed by vault (atom_vaultKey), in localStorage. A browser that won't
+// store them still shows them this session, and says so once.
+type StoredPins = Record<string, { kind: string; target: string; icon: string | null }[]>;
+const storage = createJSONStorage<StoredPins>(() => ({
+  getItem: (key) => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  setItem: (key, value) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      toast.error("Couldn't save pins: this browser's storage is blocked or full.", { id: "pins-save" });
+    }
+  },
+  removeItem: (key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // Blocked: nothing to remove.
+    }
+  },
+}));
+export const PINS_STORAGE_KEY = "hermes_pins";
+export const atom_pinsByVault = atomWithStorage<StoredPins>(PINS_STORAGE_KEY, {}, storage, { getOnInit: true });
+
+// The open vault's key, set by useVaultPins (null without a vault). Kept
+// here rather than read from vault-atoms, which calls atom_remapPins: no
+// import cycle.
+export const atom_pinsVaultKey = atom<string | null>(null);
+
+const NO_PINS: readonly Pin[] = [];
+
+// The open vault's pins, in order; anything odd in storage is dropped.
+export const atom_pins = atom((get): readonly Pin[] => {
+  const key = get(atom_pinsVaultKey);
+  const stored = key ? get(atom_pinsByVault)[key] : undefined;
+  if (!Array.isArray(stored)) return NO_PINS;
+  return listedPins({
+    items: stored.map((entry) => (entry && typeof entry === "object" && typeof entry.kind === "string"
+      ? { [entry.kind]: entry.target, ...(entry.icon ? { icon: entry.icon } : {}) }
+      : null)),
+  });
+});
 
 const sameStrings = (a: string[], b: string[]) => a.length === b.length && a.every((value, i) => value === b[i]);
 
@@ -33,80 +64,28 @@ export const atom_pinnedNotePaths = selectAtom(
   sameStrings,
 );
 
-export const PINS_INVALID_MESSAGE = "“.hermesmarkdown/pins.yaml” isn't valid YAML. Fix it, then try again.";
-export const PINS_NEWER_MESSAGE = "“.hermesmarkdown/pins.yaml” was saved by a newer version of HermesMarkdown.";
-export const PINS_ERROR_MESSAGE = "Couldn't save pins";
+export type PinsWriteResult = "ok" | "unchanged" | "no-vault";
+// An edit of the pins as a document (pins-model.ts), given the pins too;
+// null when nothing changes.
+export type PinsEdit = (doc: PinsDocument, pins: Pin[]) => PinsDocument | null;
 
-export type PinsWriteResult = "ok" | "unchanged" | "no-vault" | "invalid" | "newer" | "error";
-export type PinsEdit = Parameters<typeof updatePinsFile>[1];
-
-// The app's pin writes still in flight. While any is, usePinsSync doesn't
-// apply what it reads: the file may not have the change shown yet.
-let pendingWrites = 0;
-export const pinsWritePending = () => pendingWrites > 0;
-
-// The pins on screen as a document: the same edits apply to it as to the file
-// for every listed pin (the file's hidden entries only keep their places).
-const docOf = (pins: readonly Pin[]): PinsDocument => ({
-  root: {},
-  items: pins.map(({ kind, target, icon }) => (icon ? { [kind]: target, icon } : { [kind]: target })),
-});
-
-// Applies one edit to the file (read fresh, refused when it's invalid or
-// newer, toasting why). The edit shows at once, applied to the pins on
-// screen, and once the last write in flight lands the pins it wrote show
-// (the file always wins), unless the vault changed meanwhile; a refused or
-// failed write puts back the pins from before. No-op without a vault.
+// Applies one edit to the open vault's pins, shown and saved at once.
 export const atom_updatePins = atom(null, async (get, set, edit: PinsEdit): Promise<PinsWriteResult> => {
-  const before = get(atom_pinsState);
-  const { vault } = before;
-  if (!vault) return "no-vault";
-  let shown: PinsState | null = null;
-  if (before.status === "ok") {
-    const next = edit(docOf(before.pins), [...before.pins]);
-    if (next) {
-      shown = { vault, status: "ok", pins: listedPins(next) };
-      set(atom_pinsState, shown);
-    }
-  }
-  // Puts back the pins from before when nothing changed them since.
-  const undo = (state: PinsState) => {
-    if (shown && get(atom_pinsState) === shown) set(atom_pinsState, state);
-  };
-  pendingWrites++;
-  try {
-    const { pins, changed } = await updatePinsFile(vault, edit);
-    pendingWrites--;
-    const current = get(atom_pinsState);
-    if (!pendingWrites && current.vault === vault && (current.status !== "ok" || !samePins(current.pins, pins))) {
-      set(atom_pinsState, { vault, status: "ok", pins });
-    }
-    return changed ? "ok" : "unchanged";
-  } catch (err) {
-    pendingWrites--;
-    if (err instanceof PinsFileInvalidError) {
-      undo(before);
-      const current = get(atom_pinsState);
-      if (current.vault === vault) set(atom_pinsState, { ...current, status: "invalid" });
-      toast.error(PINS_INVALID_MESSAGE);
-      return "invalid";
-    }
-    undo(before);
-    if (err instanceof PinsFileNewerError) {
-      toast.error(PINS_NEWER_MESSAGE);
-      return "newer";
-    }
-    console.warn("Couldn't save pins:", err);
-    toast.error(PINS_ERROR_MESSAGE);
-    return "error";
-  }
+  const key = get(atom_pinsVaultKey);
+  if (!key) return "no-vault";
+  const current = get(atom_pins);
+  const next = edit(pinsDocument(current), [...current]);
+  if (!next) return "unchanged";
+  const pins = listedPins(next).map(({ kind, target, icon }) => ({ kind, target, icon }));
+  set(atom_pinsByVault, (prev) => ({ ...prev, [key]: pins }));
+  return "ok";
 });
 
 const touchesPath = (pins: readonly Pin[], path: string, newPath: string) =>
   pins.some((pin) => (pin.kind === "note" || pin.kind === "folder") && remapPath(pin.target, path, newPath) !== null);
 
 // A note or folder renamed or moved in the app (atom_remapVaultPaths): its
-// pins, and those under it, follow. Writes nothing when no pin is affected.
+// pins, and those under it, follow. Changes nothing when no pin is affected.
 export const atom_remapPins = atom(null, async (get, set, { oldPath, newPath }: { oldPath: string; newPath: string }) => {
   if (!oldPath || !newPath || oldPath === newPath || !touchesPath(get(atom_pins), oldPath, newPath)) return;
   await set(atom_updatePins, (doc) => remapPinPaths(doc, oldPath, newPath));

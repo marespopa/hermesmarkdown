@@ -9,7 +9,7 @@ import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
 import { atom_indexerState } from "@/app/atoms/ui-atoms";
 import { atom_showFolderInFiles, atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
 import { showErrorToast } from "@/app/components/Toastr";
-import { pinKey, PINS_MAX, type Pin, type PinPage } from "@/app/services/vault-pins-format";
+import { pinKey, PINS_MAX, type Pin, type PinPage } from "@/app/services/pins-model";
 import { editorTagHref, replaceUrlParam, TAG_PARAM } from "../../utils/editor-url";
 import { PINNED_PAGES } from "./pinned-pages";
 import { useSidebarNavigation } from "./use-sidebar-navigation";

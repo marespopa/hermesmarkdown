@@ -34,7 +34,6 @@ import {
 import { withPickerLock, isVaultSupported } from "./shared";
 import { singlePaneLayout } from "./vault-scan";
 import { clearNoteContent } from "@/app/services/content-search-client";
-import { migrateVaultDataDir } from "@/app/services/vault-data-dir";
 import { atom_browserVaultDialogOpen, atom_showFiles } from "@/app/atoms/ui-atoms";
 import { purgeExpiredTrash } from "./trash-ops";
 
@@ -101,8 +100,6 @@ export function useOpenVault({ scanVault, indexVaultTags, detectCloudVault }: Us
         setOpenFiles({});
         setWorkspaceLayout(singlePaneLayout([], null));
       }
-      // Before anything reads the vault's data folder (pins, the Trash).
-      await migrateVaultDataDir(handle);
       setVaultHandle(handle);
       setVaultDescriptor(descriptor);
       setCurrentDirectoryHandle(handle);

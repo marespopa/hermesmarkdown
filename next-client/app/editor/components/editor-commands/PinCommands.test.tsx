@@ -2,10 +2,10 @@ import React from "react";
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore, Provider } from "jotai";
-import { atom_pinsState } from "@/app/atoms/pin-atoms";
+import { atom_pins } from "@/app/atoms/pin-atoms";
+import { seedPins } from "@/app/atoms/pin-atoms.test-utils";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
-import { updatePinsFile } from "@/app/services/vault-pins";
 import PinCommands from "./PinCommands";
 
 const registered = vi.hoisted(() => ({ commands: new Map<string, unknown>() }));
@@ -16,11 +16,6 @@ vi.mock("@/app/components/CommandPalette/CommandPaletteContext", () => ({
 }));
 const mobileChrome = vi.hoisted(() => ({ value: false }));
 vi.mock("@/app/hooks/use-mobile-chrome", () => ({ default: () => mobileChrome.value }));
-vi.mock("@/app/services/vault-pins", () => ({
-  PinsFileInvalidError: class extends Error {},
-  PinsFileNewerError: class extends Error {},
-  updatePinsFile: vi.fn(async () => ({ pins: [{ kind: "page", target: "trash", icon: null }], changed: true })),
-}));
 
 const vault = { name: "Notes" } as unknown as FileSystemDirectoryHandle;
 const menu = () => registered.commands.get("pin-page") as Command;
@@ -29,7 +24,7 @@ const setup = (hasVault = true) => {
   const store = createStore();
   if (hasVault) {
     store.set(atom_vaultHandle, vault);
-    store.set(atom_pinsState, { vault, status: "ok", pins: [{ kind: "page", target: "tasks", icon: null }] });
+    seedPins(store, [{ kind: "page", target: "tasks", icon: null }]);
   }
   render(<Provider store={store}><PinCommands /></Provider>);
   return store;
@@ -38,6 +33,7 @@ const setup = (hasVault = true) => {
 describe("PinCommands", () => {
   beforeEach(() => {
     cleanup();
+    localStorage.clear();
     vi.clearAllMocks();
     registered.commands.clear();
     mobileChrome.value = false;
@@ -61,8 +57,10 @@ describe("PinCommands", () => {
   it("pins a page when run", async () => {
     const store = setup();
     await menu().subcommands!.find((command) => command.id === "pin-page:trash")!.action();
-    expect(updatePinsFile).toHaveBeenCalledWith(vault, expect.any(Function));
-    await waitFor(() => expect(store.get(atom_pinsState).pins).toEqual([{ kind: "page", target: "trash", icon: null }]));
+    await waitFor(() => expect(store.get(atom_pins)).toEqual([
+      { kind: "page", target: "tasks", icon: null },
+      { kind: "page", target: "trash", icon: null },
+    ]));
   });
 
   it("is disabled without a vault, and on mobile", () => {

@@ -5,7 +5,6 @@ import { HiOutlineEmojiHappy } from "react-icons/hi";
 import { TbPinned } from "react-icons/tb";
 import Button from "@/app/components/Button";
 import { useAtomValue } from "jotai";
-import { atom_pinsState } from "@/app/atoms/pin-atoms";
 import { usePins } from "@/app/hooks/use-pins";
 import { formatShortcut } from "@/app/utils/platform";
 import PinIconPopover from "../PinIconPopover";
@@ -21,7 +20,7 @@ const MENU_ICON = { size: 15, "aria-hidden": true } as const;
 // label are two buttons inside it, each padded on its own.
 const SIDEBAR_ROW_CLASS = "flex items-center h-7 rounded-md text-ui-footnote transition-colors";
 
-// The vault's pins (`.hermesmarkdown/pins.yaml`), the first section of the sidebar:
+// The vault's pins (kept on this device, pin-atoms.ts), the first section of the sidebar:
 // notes, folders, tags and app pages, in the file's order (usePinnedRows).
 // Each row leads with its emoji icon (shown only here) or its kind's glyph;
 // a click on the label opens it, and the current one is highlighted. A click
@@ -30,21 +29,15 @@ const SIDEBAR_ROW_CLASS = "flex items-center h-7 rounded-md text-ui-footnote tra
 // Alt+↑/↓ on it) reorders the pins. At most nine are listed (PINS_MAX), each
 // opened by Ctrl/Cmd+1–9 from anywhere, its key shown at the row's end.
 // Pinning itself is done elsewhere (the Files and note menus, the palette,
-// the Tags page, Pin Page to Sidebar…). Each change is written to the file
-// at once. A pin whose note or folder is gone shows faint. With no pins
-// listed it renders nothing, except its header alone while a vault's pins
-// are read for the first time on this device (after that they show at once
-// from usePinsSync's cache). `activePath` is the note in front
+// the Tags page, Pin Page to Sidebar…). Each change is saved at once, on
+// this device (pin-atoms.ts). A pin whose note or folder is gone shows
+// faint. With no pins it renders nothing. `activePath` is the note in front
 // on the editor (null elsewhere).
 // The drag's payload type: this list reorders with it, and nothing else does.
 const DRAG_TYPE = "application/x-hermes-pin";
 
 export default function SidebarPinned({ activePath }: { activePath: string | null }) {
   const rows = usePinnedRows(activePath);
-  // The first read of a vault this device hasn't cached pins for: the header
-  // shows at once, the rows when the file is read.
-  const pinsState = useAtomValue(atom_pinsState);
-  const firstLoad = pinsState.status === "loading" && !pinsState.cached;
   const { unpin, setIcon, move } = usePins();
   const [menu, setMenu] = useState<{ x: number; y: number; key: string; align: "start" | "end" } | null>(null);
   const [picker, setPicker] = useState<{ key: string; anchor: DOMRect } | null>(null);
@@ -82,7 +75,7 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [rows]);
 
-  if (!rows.length && !firstLoad) return null;
+  if (!rows.length) return null;
 
   const menuRow = menu ? rows.find((row) => row.key === menu.key) : undefined;
   const pickerRow = picker ? rows.find((row) => row.key === picker.key) : undefined;

@@ -10,6 +10,7 @@ import {
   atom_saveStatus,
   atom_workspaceLayout,
 } from "@/app/atoms/atoms";
+import { atom_pinsVaultKey } from "@/app/atoms/pin-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
 import { atom_autosaveMode } from "@/app/atoms/ui-atoms";
@@ -220,6 +221,8 @@ describe("PaneLeaf Tab Indicators", () => {
       <TestProvider initialValues={[
         [atom_activePaneId, "pane-1"],
         [atom_vaultHandle, { name: "Vault" } as FileSystemDirectoryHandle],
+        // The open vault's pins (useVaultPins sets this in the app).
+        [atom_pinsVaultKey, "local:Vault"],
         [atom_openFiles, {
           "file1.md": { fileName: "file1.md", content: "clean", lastSavedContent: "clean" },
           "file2.md": { fileName: "file2.md", content: "clean", lastSavedContent: "clean" },

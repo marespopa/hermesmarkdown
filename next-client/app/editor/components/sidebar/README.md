@@ -5,7 +5,7 @@ The parts of `WorkspaceSidebar` (one level up), top to bottom, and what they sha
 | Item | Purpose |
 |---|---|
 | [SidebarHeader](SidebarHeader.md) | Vault switcher (the open vault's name and its menu), New note, Hide sidebar. |
-| [SidebarPinned](SidebarPinned.md) | First, with a vault and at least one pin: the vault's pins (`.hermesmarkdown/pins.yaml`) — notes, folders, tags and pages — in order, at most nine, each with its emoji or glyph and its Ctrl/Cmd+1–9 key; a click on a row's icon opens its menu (set the icon, unpin it); drag rows (or Alt+↑/↓) to reorder. |
+| [SidebarPinned](SidebarPinned.md) | First, with a vault and at least one pin: the vault's pins (kept on this device, `pin-atoms.ts`) — notes, folders, tags and pages — in order, at most nine, each with its emoji or glyph and its Ctrl/Cmd+1–9 key; a click on a row's icon opens its menu (set the icon, unpin it); drag rows (or Alt+↑/↓) to reorder. |
 | [SidebarFiles](SidebarFiles.md) | The vault's file tree under a Search field (a regular expression on paths); a note's or folder's menu has Pin / Unpin. |
 | [SidebarSection](SidebarSection.md) | A collapsible group set apart by a full-width hairline, its chevron always shown, with an optional ⋯ menu. |
 | `sidebar-classes.ts` | The quiet look every part uses: 28px rows in the primary text colour, neutral grey icons (`SIDEBAR_ICON_CLASS`), the current row on a soft accent fill (`SIDEBAR_ACCENT_FILL`, the file tree's active-row fill), quiet icon buttons. |

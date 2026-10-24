@@ -9,7 +9,7 @@ import {
   HiOutlineTemplate,
   HiOutlineTrash,
 } from "react-icons/hi";
-import type { Pin, PinPage } from "@/app/services/vault-pins-format";
+import type { Pin, PinPage } from "@/app/services/pins-model";
 import { SIDEBAR_ICON_CLASS } from "./sidebar-classes";
 
 const ICON = { size: 15, "aria-hidden": true, className: SIDEBAR_ICON_CLASS } as const;

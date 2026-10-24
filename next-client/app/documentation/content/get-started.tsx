@@ -221,9 +221,8 @@ export const getStartedGroup: Group = {
             faint, and can be unpinned; renaming or moving it in the app keeps it pinned.
           </p>
           <p>
-            Pins are saved in the vault (see{" "}
-            <TextLink href="#pins-file">the pins file</TextLink>), so they follow it to
-            every device it syncs to. Pinned notes still lead the command palette before you type
+            Pins are kept in this browser, for each vault, and never change the vault: another device
+            or browser has its own. Pinned notes still lead the command palette before you type
             anything. In the palette you can pin commands too (<code>CTRL/CMD+D</code> on a command, up to
             five); those are the palette&apos;s own.
           </p>

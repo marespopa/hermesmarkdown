@@ -1,18 +1,11 @@
-// The vault's pins file, `.hermesmarkdown/pins.yaml`: what the sidebar's Pinned
-// section lists (notes, folders, tags and app pages, each with an optional
-// emoji icon), in order. Pure: parsing, the entry rules, serialising and the
-// edits; reading and writing the file is vault-pins.ts. One pin per line (a
-// flow mapping in a block list), so two devices pinning different things
-// merge cleanly on a GitHub Pull. Reading is lenient: entries the app doesn't
-// recognise (or duplicates) aren't listed but stay where they are on every
-// write, as do unknown keys.
+// The sidebar's pins for a vault: notes, folders, tags and app pages, each
+// with an optional emoji icon, in order. Pure: the entry rules and the
+// edits; they're kept per vault on this device (pins-store.ts). The edits
+// work on a document of raw entries, so an entry the app doesn't recognise
+// (or a duplicate) isn't listed but keeps its place.
 import { remapPath } from "@/app/atoms/utils";
 import { normalizeTag } from "@/app/utils/tag-normalize";
-import { VAULT_DATA_DIR } from "./vault-data-dir";
 
-export const PINS_FOLDER = VAULT_DATA_DIR;
-export const PINS_FILE = "pins.yaml";
-export const PINS_PATH = `${PINS_FOLDER}/${PINS_FILE}`;
 export const PIN_PAGES = ["files", "tags", "tasks", "templates", "trash", "settings"] as const;
 export type PinPage = (typeof PIN_PAGES)[number];
 export type PinKind = "note" | "folder" | "tag" | "page";
@@ -23,22 +16,13 @@ export interface Pin {
 }
 export const pinKey = (pin: Pick<Pin, "kind" | "target">) => `${pin.kind}:${pin.target}`;
 
-// The parsed file: raw top-level keys (without `pins`), raw entries (kept
-// verbatim), and the listed pins.
+// The pins as raw entries ({ note: "a.md", icon: "🚀" }), in order.
 export interface PinsDocument {
-  root: Record<string, unknown>;
   items: unknown[];
 }
-export type ParsedPins =
-  | { ok: true; doc: PinsDocument; pins: Pin[]; newer: boolean }
-  | { ok: false };
-export type YamlLoad = (source: string) => unknown;
-export type YamlDump = (value: unknown, options?: { flowLevel?: number; lineWidth?: number; noRefs?: boolean }) => string;
 
-export const PINS_VERSION = 1;
 // The most pins listed: one per Ctrl/Cmd+1–9 shortcut.
 export const PINS_MAX = 9;
-export const PINS_HEADER = "# Pinned items for this vault's sidebar (HermesMarkdown). One per line, in order.";
 
 const KINDS: readonly PinKind[] = ["note", "folder", "tag", "page"];
 const EMOJI = /\p{Extended_Pictographic}|\p{Regional_Indicator}|⃣/u;
@@ -108,35 +92,10 @@ export function listedPins(doc: PinsDocument): Pin[] {
   return pins;
 }
 
-// An empty or comment-only file, or one without `pins`, has no pins.
-// Invalid YAML, a root that isn't a mapping, or `pins` that isn't a list is
-// `{ ok: false }`. A `version` above PINS_VERSION is `newer` (read, never written).
-export function parsePins(text: string, load: YamlLoad): ParsedPins {
-  let root: unknown;
-  try {
-    root = load(text);
-  } catch {
-    return { ok: false };
-  }
-  if (root === null || root === undefined) {
-    return { ok: true, doc: { root: {}, items: [] }, pins: [], newer: false };
-  }
-  if (!isRecord(root)) return { ok: false };
-  const { pins: rawPins, ...rest } = root;
-  if (rawPins !== undefined && rawPins !== null && !Array.isArray(rawPins)) return { ok: false };
-  const doc: PinsDocument = { root: rest, items: Array.isArray(rawPins) ? rawPins : [] };
-  const newer = typeof rest.version === "number" && rest.version > PINS_VERSION;
-  return { ok: true, doc, pins: listedPins(doc), newer };
-}
-
-// The whole file: the header, `version: 1`, the other top-level keys as
-// parsed, then `pins`, one line per entry.
-export function serializePins(doc: PinsDocument, dump: YamlDump): string {
-  const rest = { ...doc.root };
-  delete rest.version;
-  const body = dump({ version: PINS_VERSION, ...rest, pins: doc.items }, { flowLevel: 2, lineWidth: -1, noRefs: true });
-  return `${PINS_HEADER}\n${body}`;
-}
+// The pins as a document, for the edits.
+export const pinsDocument = (pins: readonly Pin[]): PinsDocument => ({
+  items: pins.map(({ kind, target, icon }) => (icon ? { [kind]: target, icon } : { [kind]: target })),
+});
 
 // Each edit returns a new document, or null when nothing changes (no write).
 // Entries are copied before they change, so the input is never mutated.

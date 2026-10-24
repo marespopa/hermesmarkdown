@@ -170,7 +170,7 @@ export const atom_rebindHandles = atom(
 // Follows a file or folder that was renamed or moved on disk: re-keys open
 // tabs (keeping unsaved edits), pane layouts, indexed metadata, the worker's
 // note-text index, the file tree's remembered expansion, the vault's pins
-// (`.hermesmarkdown/pins.yaml`, through atom_remapPins) and private-note session
+// (through atom_remapPins) and private-note session
 // reveals from `oldPath` to `newPath`, for the item
 // and everything under it. Handles are path-based, so moving a folder leaves
 // its children's handles stale — each moved tab gets a fresh handle resolved

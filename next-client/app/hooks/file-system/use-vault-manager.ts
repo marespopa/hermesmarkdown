@@ -44,7 +44,6 @@ import { runVaultIndex } from "./run-vault-index";
 import { useVaultNavigation } from "./use-vault-navigation";
 import { useOpenVault } from "./use-open-vault";
 import { clearNoteContent } from "@/app/services/content-search-client";
-import { migrateVaultDataDir } from "@/app/services/vault-data-dir";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { loadStoredWorkspace } from "./stored-workspace";
 
@@ -192,7 +191,6 @@ export function useVaultManager() {
         // Pending (route hidden, inert) until the open notes are bound and the
         // top folder listed; the vault is then indexed behind the editor.
         setIsVaultUnlocking(true);
-        await migrateVaultDataDir(vaultHandle);
         setCurrentDirectoryHandle(vaultHandle);
         setIsCloudVault(false);
         detectCloudVault(vaultHandle);
@@ -260,7 +258,6 @@ export function useVaultManager() {
         // gesture and will throw a SecurityError if called automatically.
         const granted = await queryPermission(savedHandle);
         if (granted) {
-          await migrateVaultDataDir(savedHandle);
           // The editor can show while the vault is read, so reveal it now.
           setIsVaultRestoring(false);
           setCurrentDirectoryHandle(savedHandle);

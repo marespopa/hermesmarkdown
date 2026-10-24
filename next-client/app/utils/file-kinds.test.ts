@@ -11,7 +11,7 @@ describe("file kinds", () => {
   });
 
   it("leaves out binaries, extensionless names and the vault's data folder", () => {
-    for (const path of ["photo.png", "doc.pdf", "Makefile", ".hermesmarkdown/pins.yaml"]) {
+    for (const path of ["photo.png", "doc.pdf", "Makefile", ".hermesmarkdown/trash/old.yaml"]) {
       expect(isPlainTextPath(path)).toBe(false);
     }
   });

@@ -19,7 +19,7 @@ const NO_TAGS: string[] = [];
 // The window's sidebar (desktop), the same on every /editor route
 // (EditorShell hosts it), and kept to the library: the vault (a switcher),
 // New note and Hide; the vault's Pinned items (notes, folders, tags and
-// pages, from `.hermesmarkdown/pins.yaml`, Ctrl/Cmd+1–9), first; and the vault's
+// pages, kept on this device, Ctrl/Cmd+1–9), first; and the vault's
 // Files, with a filter.
 // Switching between open notes is the palette's (Ctrl/Cmd+K), and the note's
 // outline is the editor's optional one (Ctrl/Cmd+Shift+M, EditorOutline).

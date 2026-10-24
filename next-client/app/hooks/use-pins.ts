@@ -4,17 +4,17 @@ import { useCallback } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import toast from "react-hot-toast";
 import { atom_pins, atom_updatePins, type PinsEdit, type PinsWriteResult } from "@/app/atoms/pin-atoms";
-import { addPins, movePin, pinKey, PINS_MAX, pinsOverLimit, removePin, setPinIcon, type Pin, type PinKind } from "@/app/services/vault-pins-format";
+import { addPins, movePin, pinKey, PINS_MAX, pinsOverLimit, removePin, setPinIcon, type Pin, type PinKind } from "@/app/services/pins-model";
 import { normalizeTag } from "@/app/utils/tag-normalize";
 
 const targetOf = (kind: PinKind, target: string) => (kind === "tag" ? normalizeTag(target) : target);
 
 export const PINS_FULL_MESSAGE = `You can pin up to ${PINS_MAX} items. Unpin one to make room.`;
 
-// The vault's pins (`.hermesmarkdown/pins.yaml`) for components: what's pinned, and
-// each change, written to the file at once through atom_updatePins (which
-// toasts when it can't). Everything resolves to the write's result. At most
-// PINS_MAX are listed: a pin past that isn't added, and a toast says why.
+// The open vault's pins (pin-atoms.ts) for components: what's pinned, and
+// each change, saved at once through atom_updatePins. Everything resolves to
+// its result. At most PINS_MAX are listed: a pin past that isn't added, and
+// a toast says why.
 export function usePins(): {
   pins: readonly Pin[];
   isPinned: (kind: PinKind, target: string) => boolean;
@@ -32,8 +32,8 @@ export function usePins(): {
     return pins.some((pin) => pinKey(pin) === key);
   }, [pins]);
 
-  // An edit that adds `items`, checked against the file as just read: when
-  // they don't all fit under PINS_MAX, the toast says so after the write.
+  // An edit that adds `items`: when they don't all fit under PINS_MAX, the
+  // toast says so after the edit.
   const adding = useCallback(async (items: Pick<Pin, "kind" | "target">[], edit: PinsEdit) => {
     let full = false;
     const result = await update((doc, current) => {
@@ -49,7 +49,6 @@ export function usePins(): {
     return adding(items, (doc) => addPins(doc, items));
   }, [adding]);
 
-  // Decided against the file as just read, not the pins on screen.
   const togglePin = useCallback((kind: PinKind, target: string) => {
     const item = { kind, target: targetOf(kind, target) };
     const key = pinKey(item);

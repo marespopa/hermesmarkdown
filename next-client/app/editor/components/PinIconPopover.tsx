@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Button from "@/app/components/Button";
 import BareInput from "@/app/components/Input/BareInput";
 import { FIELD_COMPACT_CLASS } from "@/app/components/Input/field-styles";
-import { normalizePinIcon } from "@/app/services/vault-pins-format";
+import { normalizePinIcon } from "@/app/services/pins-model";
 import { loadEmojiIndex, matchEmojis, type EmojiEntry } from "../codemirror/emoji-index";
 import { MENU_PANEL_CLASS, MENU_SEPARATOR_CLASS } from "./menu-classes";
 

@@ -1,6 +1,6 @@
 # TagHeading
 
-Description: The Tags page's heading for the chosen tag (`#release`), wrapping on narrow widths. Beside it on desktop, a filled secondary **Pin** button (`TbPinned`) adds the tag to the vault's pins (`usePins().pin("tag", tag)`, written to `.hermesmarkdown/pins.yaml`), listed in the sidebar's Pinned section. Once the tag is pinned the button reads **Pinned** (`TbPinnedFilled`) and is disabled: unpinning happens from the pinned row's own menu. Disabled with no vault. Hidden on mobile chrome (`useIsMobileChrome`), which has no sidebar.
+Description: The Tags page's heading for the chosen tag (`#release`), wrapping on narrow widths. Beside it on desktop, a filled secondary **Pin** button (`TbPinned`) adds the tag to the vault's pins (`usePins().pin("tag", tag)`, kept on this device), listed in the sidebar's Pinned section. Once the tag is pinned the button reads **Pinned** (`TbPinnedFilled`) and is disabled: unpinning happens from the pinned row's own menu. Disabled with no vault. Hidden on mobile chrome (`useIsMobileChrome`), which has no sidebar.
 
 ## Local State & Storage
 - State: None (pins come from `atom_pins` through `usePins`).

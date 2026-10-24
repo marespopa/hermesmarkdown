@@ -7,7 +7,7 @@ import { atom_activePaneId, atom_openFiles, atom_workspaceLayout } from "@/app/a
 import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesRevealPath, atom_newNoteRequested, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_pinsState } from "@/app/atoms/pin-atoms";
+import { seedPins } from "@/app/atoms/pin-atoms.test-utils";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 
 const fileSystem = vi.hoisted(() => ({
@@ -27,12 +27,6 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-// The Pinned section's writes; its behaviour is SidebarPinned.test.tsx.
-vi.mock("@/app/services/vault-pins", () => ({
-  PinsFileInvalidError: class extends Error {},
-  PinsFileNewerError: class extends Error {},
-  updatePinsFile: vi.fn(),
-}));
 
 vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: () => ({
@@ -238,7 +232,7 @@ describe("WorkspaceSidebar", () => {
     expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
   });
 
-  it("lists the vault's pins first, in file order", () => {
+  it("lists the vault's pins first, in pin order", () => {
     const vault = { name: "Notes" };
     fileSystem.vaultHandle = vault;
     const store = createStore();
@@ -246,15 +240,11 @@ describe("WorkspaceSidebar", () => {
     store.set(atom_vaultHandle, vault as never);
     store.set(atom_workspaceLayout, { rootContainer: { ...left } });
     store.set(atom_openFiles, { "a.md": { fileName: "a.md", content: "A", lastSavedContent: "A", activeFilePath: "a.md" } });
-    store.set(atom_pinsState, {
-      vault: vault as never,
-      status: "ok",
-      pins: [
-        { kind: "tag", target: "release", icon: null },
-        { kind: "page", target: "tasks", icon: null },
-        { kind: "folder", target: "projects", icon: "🚀" },
-      ],
-    });
+    seedPins(store, [
+      { kind: "tag", target: "release", icon: null },
+      { kind: "page", target: "tasks", icon: null },
+      { kind: "folder", target: "projects", icon: "🚀" },
+    ]);
     render(<Provider store={store}><WorkspaceSidebar /></Provider>);
 
     const sections = screen.getAllByRole("region").map((section) => section.getAttribute("aria-label"));
@@ -276,7 +266,7 @@ describe("WorkspaceSidebar", () => {
     store.set(atom_sidebarOpen, true);
     store.set(atom_vaultHandle, vault as never);
     store.set(atom_workspaceLayout, { rootContainer: { ...left } });
-    store.set(atom_pinsState, { vault: vault as never, status: "ok", pins: [{ kind: "page", target: "tasks", icon: null }] });
+    seedPins(store, [{ kind: "page", target: "tasks", icon: null }]);
     render(<Provider store={store}><WorkspaceSidebar /></Provider>);
 
     fireEvent.contextMenu(screen.getByRole("region", { name: "Pinned" }));

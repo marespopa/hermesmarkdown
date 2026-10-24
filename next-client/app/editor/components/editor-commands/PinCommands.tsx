@@ -5,7 +5,7 @@ import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePins } from "@/app/hooks/use-pins";
-import { PIN_PAGES } from "@/app/services/vault-pins-format";
+import { PIN_PAGES } from "@/app/services/pins-model";
 import { PINNED_PAGES } from "../sidebar/pinned-pages";
 import RegisteredCommands from "./RegisteredCommands";
 
