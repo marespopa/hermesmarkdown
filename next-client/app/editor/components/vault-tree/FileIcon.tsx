@@ -23,6 +23,10 @@ const TYPE_ICONS: Record<string, IconType> = {
 export default function FileIcon({ path }: { path: string }) {
   const typeAtom = useMemo(() => selectAtom(atom_fileMetadata, (metadata) => noteTypeOf(metadata[path])), [path]);
   const type = useAtomValue(typeAtom);
-  const Icon = (type && TYPE_ICONS[type]) || (isPlainTextPath(path) ? HiOutlineCode : HiOutlineDocumentText);
-  return <Icon size={16} aria-hidden="true" data-icon={type ?? undefined} className="shrink-0 text-fg-faint" />;
+  return renderIcon((type && TYPE_ICONS[type]) || (isPlainTextPath(path) ? HiOutlineCode : HiOutlineDocumentText), type);
+}
+
+// Called, not rendered as a component chosen during render (react-hooks/static-components).
+function renderIcon(icon: IconType, type: string | null) {
+  return icon({ size: 16, "aria-hidden": true, "data-icon": type ?? undefined, className: "shrink-0 text-fg-faint" } as React.ComponentProps<IconType>);
 }
