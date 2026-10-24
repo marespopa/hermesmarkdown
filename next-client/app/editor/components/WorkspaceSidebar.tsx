@@ -30,7 +30,7 @@ const NO_TAGS: string[] = [];
 // header's button, Escape inside it or Ctrl/Cmd+\; shown again from the
 // toolbar's), or, with Close Sidebar While Writing on (Settings → Editor),
 // until you type in a note. Resizes by dragging its trailing edge
-// (`atom_sidebarWidth`, double-click to reset).
+// (`atom_sidebarWidth`, which keeps it within its bounds; double-click to reset).
 export default function WorkspaceSidebar() {
   const [open, setOpen] = useAtom(atom_sidebarOpen);
   const [width, setWidth] = useAtom(atom_sidebarWidth);
@@ -79,7 +79,7 @@ export default function WorkspaceSidebar() {
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!dragRef.current) return;
     const next = dragRef.current.startWidth + event.clientX - dragRef.current.startX;
-    setWidth(Math.round(Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, next))));
+    setWidth(next);
   };
   const handlePointerUp = () => {
     dragRef.current = null;
@@ -132,7 +132,7 @@ export default function WorkspaceSidebar() {
           const delta = event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0;
           if (!delta) return;
           event.preventDefault();
-          setWidth(Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width + delta)));
+          setWidth(width + delta);
         }}
         aria-orientation="vertical"
         aria-label="Resize sidebar"
