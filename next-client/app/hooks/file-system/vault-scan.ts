@@ -140,7 +140,8 @@ export async function collectVaultFiles(
 
   // Never throws into the walk; nothing is reported once it's over (the
   // result carries those notes).
-  const report = (found: CollectedFile[], to = onFiles) => {
+  // `to` is always passed: a missing onTextFiles must never fall back to onFiles.
+  const report = (found: CollectedFile[], to: ((files: CollectedFile[]) => void) | undefined) => {
     if (!to || finished || found.length === 0) return;
     try {
       to(found);
@@ -161,7 +162,7 @@ export async function collectVaultFiles(
           files.push(file);
           found.push(file);
           if (found.length >= REPORT_BATCH_SIZE) {
-            report(found);
+            report(found, onFiles);
             found = [];
           }
         } else if (entry.kind === "file" && isListedTextFile(entry.name, currentPath, includeHidden)) {
@@ -186,7 +187,7 @@ export async function collectVaultFiles(
       console.warn(`Failed to collect files from ${path || "root"}:`, err);
       if (path) failedSubdirs++;
     }
-    report(found);
+    report(found, onFiles);
     report(foundText, onTextFiles);
   }
 
