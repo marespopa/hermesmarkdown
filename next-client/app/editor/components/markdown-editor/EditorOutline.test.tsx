@@ -3,13 +3,16 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import EditorOutline from "./EditorOutline";
 
-// A fake editor: every line 20px tall, the document at the pane's top.
-function fakeView(text: string) {
+// A fake editor: every line 20px tall, the document at the pane's top, which
+// moves up as the pane scrolls (documentTop is relative to the viewport).
+function fakeView(text: string, scroller: HTMLElement) {
   const lines = text.split("\n");
   const starts = lines.map((_, i) => lines.slice(0, i).reduce((sum, line) => sum + line.length + 1, 0));
   const lineOf = (pos: number) => starts.filter((start) => start <= pos).length;
   return {
-    documentTop: 0,
+    get documentTop() {
+      return -scroller.scrollTop;
+    },
     state: {
       doc: {
         lines: lines.length,
@@ -31,7 +34,7 @@ function setup(text: string) {
   Object.defineProperty(scroller, "scrollTop", { get: () => scrollTop, set: (value: number) => { scrollTop = value; }, configurable: true });
   scroller.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
   document.body.append(scroller);
-  const view = fakeView(text);
+  const view = fakeView(text, scroller);
   render(<EditorOutline view={view as never} scrollerRef={{ current: scroller }} text={text} />);
   return { scroller, view };
 }

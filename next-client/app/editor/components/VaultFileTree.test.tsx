@@ -44,10 +44,10 @@ describe("VaultFileTree tree interactions", () => {
   it("opens files via double-click or the file options menu, but not single-click", () => {
     const { props } = renderFiles();
 
-    fireEvent.click(screen.getByText("note"));
+    fireEvent.click(screen.getByText("note.md"));
     expect(props.openFile).not.toHaveBeenCalled();
 
-    fireEvent.doubleClick(screen.getByText("note"));
+    fireEvent.doubleClick(screen.getByText("note.md"));
     expect(props.openFile).toHaveBeenCalledWith(fileHandle, "note.md");
     expect(props.openFile).toHaveBeenCalledTimes(1);
 
@@ -60,11 +60,11 @@ describe("VaultFileTree tree interactions", () => {
   it("opens files on a single click with singleClickOpen", () => {
     const { props } = renderFiles({ singleClickOpen: true });
 
-    fireEvent.click(screen.getByText("note"));
+    fireEvent.click(screen.getByText("note.md"));
     expect(props.openFile).toHaveBeenCalledWith(fileHandle, "note.md");
     expect(props.openFile).toHaveBeenCalledTimes(1);
 
-    fireEvent.doubleClick(screen.getByText("note"));
+    fireEvent.doubleClick(screen.getByText("note.md"));
     expect(props.openFile).toHaveBeenCalledTimes(1);
   });
 
@@ -79,17 +79,17 @@ describe("VaultFileTree tree interactions", () => {
       ],
     });
 
-    const source = screen.getByText("note").closest("[draggable]");
+    const source = screen.getByText("note.md").closest("[draggable]");
     const target = screen.getByText("Folder").closest("[draggable]");
     expect(source).not.toBeNull();
     expect(target).not.toBeNull();
 
     fireEvent.dragStart(source!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     fireEvent.dragOver(target!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
-    expect(screen.queryByText("nested")).not.toBeInTheDocument();
+    expect(screen.queryByText("nested.md")).not.toBeInTheDocument();
 
     act(() => vi.advanceTimersByTime(400));
-    expect(screen.getByText("nested")).toBeInTheDocument();
+    expect(screen.getByText("nested.md")).toBeInTheDocument();
   });
 
   it("cancels pending auto-expand when the drag leaves", () => {
@@ -103,14 +103,14 @@ describe("VaultFileTree tree interactions", () => {
       ],
     });
 
-    const source = screen.getByText("note").closest("[draggable]");
+    const source = screen.getByText("note.md").closest("[draggable]");
     const target = screen.getByText("Folder").closest("[draggable]");
     fireEvent.dragStart(source!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     fireEvent.dragOver(target!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     fireEvent.dragLeave(target!);
 
     act(() => vi.advanceTimersByTime(400));
-    expect(screen.queryByText("nested")).not.toBeInTheDocument();
+    expect(screen.queryByText("nested.md")).not.toBeInTheDocument();
   });
 
   it("moves a dropped file into the target folder", async () => {
@@ -124,7 +124,7 @@ describe("VaultFileTree tree interactions", () => {
       moveItem,
     });
 
-    const source = screen.getByText("note").closest("[draggable]");
+    const source = screen.getByText("note.md").closest("[draggable]");
     const target = screen.getByText("Folder").closest("[draggable]");
     fireEvent.dragStart(source!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     fireEvent.dragOver(target!, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
@@ -143,7 +143,7 @@ describe("VaultFileTree tree interactions", () => {
     const moveItem = vi.fn();
     renderFiles({ treeView: true, folderPaths: ["Folder"], resolveFolderHandle, moveItem });
 
-    const source = screen.getByText("note").closest("[draggable]")!;
+    const source = screen.getByText("note.md").closest("[draggable]")!;
     const target = screen.getByText("Folder").closest("[draggable]")!;
     document.elementFromPoint = vi.fn(() => target);
 
@@ -161,7 +161,7 @@ describe("VaultFileTree tree interactions", () => {
     const moveItem = vi.fn();
     renderFiles({ treeView: true, folderPaths: ["Folder"], resolveFolderHandle: vi.fn(), moveItem });
 
-    const source = screen.getByText("note").closest("[draggable]")!;
+    const source = screen.getByText("note.md").closest("[draggable]")!;
     document.elementFromPoint = vi.fn(() => screen.getByText("Folder"));
 
     fireEvent.touchStart(source, { touches: [{ clientX: 10, clientY: 10 }] });
@@ -209,11 +209,11 @@ describe("VaultFileTree tree interactions", () => {
       resolveFolderHandle,
       createNewFile,
     });
-    expect(screen.queryByText("nested")).not.toBeInTheDocument();
+    expect(screen.queryByText("nested.md")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByLabelText("Folder options"));
     fireEvent.click(screen.getByRole("menuitem", { name: "New Note" }));
-    expect(screen.getByText("nested")).toBeInTheDocument();
+    expect(screen.getByText("nested.md")).toBeInTheDocument();
     fireEvent.keyDown(screen.getByLabelText("New note name"), { key: "Enter" });
 
     await waitFor(() => expect(createNewFile).toHaveBeenCalledWith(folderHandle, "Untitled"));
@@ -239,11 +239,11 @@ describe("VaultFileTree tree interactions", () => {
     };
     const { store, unmount } = renderFiles(tree);
     fireEvent.click(screen.getByText("Folder"));
-    expect(screen.getByText("nested")).toBeInTheDocument();
+    expect(screen.getByText("nested.md")).toBeInTheDocument();
 
     unmount();
     renderFiles(tree, store);
-    expect(screen.getByText("nested")).toBeInTheDocument();
+    expect(screen.getByText("nested.md")).toBeInTheDocument();
   });
 
   it("opens the shared rename dialog for files", () => {
@@ -329,36 +329,36 @@ describe("VaultFileTree selection, keyboard and menus", () => {
   it("selects with a click, adds with Ctrl/⌘-click and extends with Shift-click", () => {
     renderFiles({ treeView: true, processedFiles: files });
 
-    fireEvent.click(screen.getByText("a"));
-    expect(selectedNames()).toEqual(["a"]);
-    fireEvent.click(screen.getByText("c"), { ctrlKey: true });
-    expect(selectedNames()).toEqual(["a", "c"]);
-    fireEvent.click(screen.getByText("a"));
-    fireEvent.click(screen.getByText("c"), { shiftKey: true });
-    expect(selectedNames()).toEqual(["a", "b", "c"]);
+    fireEvent.click(screen.getByText("a.md"));
+    expect(selectedNames()).toEqual(["a.md"]);
+    fireEvent.click(screen.getByText("c.md"), { ctrlKey: true });
+    expect(selectedNames()).toEqual(["a.md", "c.md"]);
+    fireEvent.click(screen.getByText("a.md"));
+    fireEvent.click(screen.getByText("c.md"), { shiftKey: true });
+    expect(selectedNames()).toEqual(["a.md", "b.md", "c.md"]);
   });
 
   it("selects the file that was opened, once per change of active file", () => {
     const { props, store, rerender } = renderFiles({ treeView: true, processedFiles: files, activeFilePath: "a.md" });
-    expect(selectedNames()).toEqual(["a"]);
+    expect(selectedNames()).toEqual(["a.md"]);
     const renderWith = (overrides: Partial<React.ComponentProps<typeof VaultFileTree>>) =>
       rerender(<Provider store={store}><VaultFileTree {...props} {...overrides} /></Provider>);
 
     // Opened from elsewhere (palette, link, tab): the selection follows.
     renderWith({ activeFilePath: "c.md" });
-    expect(selectedNames()).toEqual(["c"]);
+    expect(selectedNames()).toEqual(["c.md"]);
 
     // A selection made since stands while the same file stays open.
-    fireEvent.click(screen.getByText("b"), { ctrlKey: true });
+    fireEvent.click(screen.getByText("b.md"), { ctrlKey: true });
     renderWith({ activeFilePath: "c.md", processedFiles: [...files] });
-    expect(selectedNames()).toEqual(["b", "c"]);
+    expect(selectedNames()).toEqual(["b.md", "c.md"]);
   });
 
   it("doesn't open a note on a modified click, even with singleClickOpen", () => {
     const { props } = renderFiles({ treeView: true, processedFiles: files, singleClickOpen: true });
-    fireEvent.click(screen.getByText("b"), { metaKey: true });
+    fireEvent.click(screen.getByText("b.md"), { metaKey: true });
     expect(props.openFile).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByText("b"));
+    fireEvent.click(screen.getByText("b.md"));
     expect(props.openFile).toHaveBeenCalledWith(files[1].handle, "b.md");
   });
 
@@ -367,12 +367,12 @@ describe("VaultFileTree selection, keyboard and menus", () => {
     const tree = screen.getByRole("tree");
 
     fireEvent.keyDown(tree, { key: "ArrowDown" });
-    expect(selectedNames()).toEqual(["a"]);
+    expect(selectedNames()).toEqual(["a.md"]);
     fireEvent.keyDown(tree, { key: "ArrowDown" });
     fireEvent.keyDown(tree, { key: "ArrowDown", shiftKey: true });
-    expect(selectedNames()).toEqual(["b", "c"]);
+    expect(selectedNames()).toEqual(["b.md", "c.md"]);
     fireEvent.keyDown(tree, { key: "ArrowUp" });
-    expect(selectedNames()).toEqual(["b"]);
+    expect(selectedNames()).toEqual(["b.md"]);
 
     fireEvent.keyDown(tree, { key: "Enter" });
     expect(props.openFile).toHaveBeenCalledWith(files[1].handle, "b.md");
@@ -388,13 +388,13 @@ describe("VaultFileTree selection, keyboard and menus", () => {
 
     fireEvent.keyDown(tree, { key: "ArrowDown" });
     fireEvent.keyDown(tree, { key: "ArrowRight" });
-    expect(screen.getByText("nested")).toBeInTheDocument();
+    expect(screen.getByText("nested.md")).toBeInTheDocument();
     fireEvent.keyDown(tree, { key: "ArrowRight" });
-    expect(selectedNames()).toEqual(["nested"]);
+    expect(selectedNames()).toEqual(["nested.md"]);
     fireEvent.keyDown(tree, { key: "ArrowLeft" });
     expect(selectedNames()).toEqual(["Folder"]);
     fireEvent.keyDown(tree, { key: "ArrowLeft" });
-    expect(screen.queryByText("nested")).not.toBeInTheDocument();
+    expect(screen.queryByText("nested.md")).not.toBeInTheDocument();
   });
 
   it("renames the focused row in place with F2", () => {
@@ -409,8 +409,8 @@ describe("VaultFileTree selection, keyboard and menus", () => {
     const trashItems = vi.fn();
     renderFiles({ treeView: true, processedFiles: files, trashItems });
 
-    fireEvent.click(screen.getByText("a"));
-    fireEvent.click(screen.getByText("b"), { ctrlKey: true });
+    fireEvent.click(screen.getByText("a.md"));
+    fireEvent.click(screen.getByText("b.md"), { ctrlKey: true });
     fireEvent.keyDown(screen.getByRole("tree"), { key: "Delete" });
 
     await waitFor(() => expect(trashItems).toHaveBeenCalledWith([
@@ -427,7 +427,7 @@ describe("VaultFileTree selection, keyboard and menus", () => {
     fireEvent.keyDown(tree, { key: "z", ctrlKey: true });
     expect(undoFileOperation).toHaveBeenCalledTimes(1);
     fireEvent.keyDown(tree, { key: "a", ctrlKey: true });
-    expect(selectedNames()).toEqual(["a", "b", "c"]);
+    expect(selectedNames()).toEqual(["a.md", "b.md", "c.md"]);
     fireEvent.keyDown(tree, { key: "Escape" });
     expect(selectedNames()).toEqual([]);
   });
@@ -436,14 +436,14 @@ describe("VaultFileTree selection, keyboard and menus", () => {
     const trashItems = vi.fn();
     renderFiles({ treeView: true, processedFiles: files, trashItems });
 
-    fireEvent.contextMenu(screen.getByText("c"));
-    expect(selectedNames()).toEqual(["c"]);
+    fireEvent.contextMenu(screen.getByText("c.md"));
+    expect(selectedNames()).toEqual(["c.md"]);
     expect(screen.getByRole("menuitem", { name: /Move to Trash/ })).toBeInTheDocument();
     fireEvent.keyDown(screen.getByRole("menu"), { key: "Escape" });
 
-    fireEvent.click(screen.getByText("a"));
-    fireEvent.click(screen.getByText("b"), { shiftKey: true });
-    fireEvent.contextMenu(screen.getByText("b"));
+    fireEvent.click(screen.getByText("a.md"));
+    fireEvent.click(screen.getByText("b.md"), { shiftKey: true });
+    fireEvent.contextMenu(screen.getByText("b.md"));
     fireEvent.click(screen.getByRole("menuitem", { name: /Move 2 Items to Trash/ }));
     await waitFor(() => expect(trashItems).toHaveBeenCalledTimes(1));
     expect(trashItems.mock.calls[0][0].map((item: any) => item.path)).toEqual(["a.md", "b.md"]);
@@ -500,9 +500,9 @@ describe("VaultFileTree selection, keyboard and menus", () => {
     const moveItems = vi.fn();
     renderFiles({ treeView: true, folderPaths: ["Folder"], processedFiles: files, resolveFolderHandle, moveItems });
 
-    fireEvent.click(screen.getByText("a"));
-    fireEvent.click(screen.getByText("b"), { ctrlKey: true });
-    const source = screen.getByText("b").closest("[draggable]")!;
+    fireEvent.click(screen.getByText("a.md"));
+    fireEvent.click(screen.getByText("b.md"), { ctrlKey: true });
+    const source = screen.getByText("b.md").closest("[draggable]")!;
     const target = screen.getByText("Folder").closest("[draggable]")!;
     fireEvent.dragStart(source, { dataTransfer: { effectAllowed: "", dropEffect: "" } });
     fireEvent.dragOver(target, { dataTransfer: { effectAllowed: "", dropEffect: "" } });

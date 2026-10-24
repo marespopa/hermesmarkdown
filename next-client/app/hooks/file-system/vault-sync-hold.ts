@@ -23,3 +23,9 @@ export async function holdVaultSync<T>(op: () => Promise<T>): Promise<T> {
 export function isVaultSyncHeld(): boolean {
   return holds > 0 || Date.now() < quietUntil;
 }
+
+// Tests only: no hold, no quiet window (the window outlives a test's clock).
+export function resetVaultSyncHold(): void {
+  holds = 0;
+  quietUntil = 0;
+}

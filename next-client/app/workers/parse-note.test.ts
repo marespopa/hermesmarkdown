@@ -37,6 +37,6 @@ describe("parseNoteFile", () => {
   it("handles a fresh board", () => {
     const r = parseNoteFile({ path: "n.board.md", name: "n", content: NEW_BOARD_MARKDOWN, modifiedAt: 2 });
     expect(r.links).toEqual([]);
-    expect(r.frontmatter.hermesmarkdown).toBe("board");
+    expect(r.frontmatter.hermes).toBe("board");
   });
 });

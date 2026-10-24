@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore, Provider } from "jotai";
 import { atom_currentDirectoryHandle, atom_vaultHandle } from "@/app/atoms/atoms";
 import { FOCUS_SYNC_MIN_GAP, useVaultSync, VAULT_WATCH_DEBOUNCE } from "./use-vault-sync";
-import { holdVaultSync, VAULT_SYNC_QUIET_MS } from "./file-system/vault-sync-hold";
+import { holdVaultSync, resetVaultSyncHold, VAULT_SYNC_QUIET_MS } from "./file-system/vault-sync-hold";
 
 vi.mock("react-hot-toast", () => ({ default: { loading: vi.fn(), success: vi.fn(), error: vi.fn(), dismiss: vi.fn() } }));
 const fileSystem = vi.hoisted(() => ({ scanVault: vi.fn(async () => {}), indexVaultTags: vi.fn(async () => {}) }));
@@ -34,6 +34,7 @@ describe("useVaultSync folder watching", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     watcher.onChange = null;
+    resetVaultSyncHold();
     vi.useFakeTimers();
   });
   afterEach(() => vi.useRealTimers());
