@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { EditorView } from "@codemirror/view";
 import Button from "@/app/components/Button";
-import { extractOutline } from "@/app/utils/markdown-outline";
+import { useOutlineHeadings } from "./use-outline-headings";
+import { SymbolIcon } from "./SymbolIcon";
+import { flashLine } from "../../utils/flash-line";
 import { sidebarItemClass } from "../sidebar/sidebar-classes";
 
 // How far down the pane a heading counts as reached (a quarter of its
@@ -20,26 +22,41 @@ function documentTop(view: EditorView, scroller: HTMLElement): number {
 
 // The note's outline, off by default (atom_showOutline; Ctrl/Cmd+Shift+M,
 // Settings → Editor → View): a small box fixed in the pane's bottom-right
-// corner listing its H1–H3 headings (extractOutline) as text, indented by
-// level. The section read now (the last heading above a quarter of the pane)
+// corner listing its H1–H3 headings as text, indented by level; for a code
+// file (`isCode`), its functions, classes and other symbols instead, each
+// with its kind's icon (useOutlineHeadings). The section read now (the last heading above a quarter of the pane)
 // is the current row, kept in view inside the box, which scrolls on its own
 // for a long outline. A click puts the caret on that heading and scrolls it
-// to where the current section is read. Renders nothing for a note without
+// to where the current section is read, briefly flashing its line. Renders nothing for a note without
 // headings; hidden on narrow screens.
-export default function EditorOutline({ view, scrollerRef, text }: { view: EditorView | null; scrollerRef: React.RefObject<HTMLDivElement | null>; text: string }) {
-  const headings = useMemo(() => extractOutline(text), [text]);
+export default function EditorOutline({ view, scrollerRef, text, isCode = false, filePath }: { view: EditorView | null; scrollerRef: React.RefObject<HTMLDivElement | null>; text: string; isCode?: boolean; filePath?: string | null }) {
+  const headings = useOutlineHeadings(view, text, isCode, filePath);
+  // The current row's index (several symbols can share a line).
   const [current, setCurrent] = useState<number | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef(new Map<number, HTMLElement>());
+  // The clicked row stays current until the pane scrolls away from where the
+  // jump left it: near the file's ends (or with symbols sharing a line) the
+  // reading point can't land on it, and would mark a neighbour.
+  const pinRef = useRef<{ line: number; text: string; scrollTop: number } | null>(null);
 
-  // The current heading's line, from the pane's scroll.
+  // The current heading, from the pane's scroll (or the clicked one).
   const updateCurrent = useCallback(() => {
     const scroller = scrollerRef.current;
     if (!view || !scroller) return;
+    const pin = pinRef.current;
+    if (pin) {
+      const index = headings.findIndex((heading) => heading.line === pin.line && heading.text === pin.text);
+      if (index >= 0 && Math.abs(scroller.scrollTop - pin.scrollTop) <= 1) {
+        setCurrent(index);
+        return;
+      }
+      pinRef.current = null;
+    }
     const y = scroller.scrollTop + scroller.clientHeight * READ_LINE - documentTop(view, scroller);
     const line = view.state.doc.lineAt(view.lineBlockAtHeight(Math.max(0, y)).from).number;
     let at: number | null = null;
-    for (const heading of headings) if (heading.line <= line) at = heading.line;
+    for (let index = 0; index < headings.length; index++) if (headings[index].line <= line) at = index;
     setCurrent(at);
   }, [view, scrollerRef, headings]);
 
@@ -63,13 +80,18 @@ export default function EditorOutline({ view, scrollerRef, text }: { view: Edito
     else if (row.offsetTop + row.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = row.offsetTop + row.offsetHeight - list.clientHeight;
   }, [current]);
 
-  const jump = (line: number) => {
+  const jump = (index: number) => {
     const scroller = scrollerRef.current;
+    const { line, text } = headings[index];
     if (!view || !scroller || line > view.state.doc.lines) return;
     const from = view.state.doc.line(line).from;
     view.dispatch({ selection: { anchor: from } });
     scroller.scrollTop = documentTop(view, scroller) + view.lineBlockAt(from).top - scroller.clientHeight * READ_LINE;
+    // Where the pane actually stopped (clamped at the file's ends).
+    pinRef.current = { line, text, scrollTop: scroller.scrollTop };
+    setCurrent(index);
     view.focus();
+    flashLine(view, from);
   };
 
   if (!headings.length) return null;
@@ -83,20 +105,21 @@ export default function EditorOutline({ view, scrollerRef, text }: { view: Edito
         className="pointer-events-auto absolute bottom-4 right-4 w-52 rounded-xl glass-panel"
       >
         <div ref={listRef} className="relative flex max-h-60 flex-col gap-px overflow-y-auto p-1">
-          {headings.map((heading) => (
+          {headings.map((heading, index) => (
             <Button
-              key={heading.line}
+              key={`${index}:${heading.line}`}
               variant="unstyled"
               ref={(node: HTMLButtonElement | null) => {
-                if (node) rowRefs.current.set(heading.line, node);
-                else rowRefs.current.delete(heading.line);
+                if (node) rowRefs.current.set(index, node);
+                else rowRefs.current.delete(index);
               }}
-              aria-current={heading.line === current ? "location" : undefined}
+              aria-current={index === current ? "location" : undefined}
               onMouseDown={(event: React.MouseEvent) => event.preventDefault()}
-              onClick={() => jump(heading.line)}
+              onClick={() => jump(index)}
               style={{ paddingLeft: 8 + (heading.level - 1) * LEVEL_INDENT_PX }}
-              className={`${sidebarItemClass(heading.line === current)} w-full shrink-0 ${heading.level === 1 ? "font-medium" : ""}`}
+              className={`${sidebarItemClass(index === current)} w-full shrink-0 ${heading.level === 1 ? "font-medium" : ""}`}
             >
+              {heading.kind && <SymbolIcon kind={heading.kind} />}
               <span className="truncate">{heading.text}</span>
             </Button>
           ))}

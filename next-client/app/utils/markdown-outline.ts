@@ -2,10 +2,16 @@
 // each starts on (for jumping there). Headings inside fenced code blocks
 // and the frontmatter don't count.
 
+// What a code file's outline row is (its icon); a note's headings have none.
+export type SymbolKind =
+  | "module" | "class" | "struct" | "interface" | "enum" | "member" | "type"
+  | "function" | "method" | "property" | "field" | "event" | "constant" | "variable" | "key" | "selector";
+
 export interface OutlineHeading {
   level: 1 | 2 | 3;
   text: string;
   line: number;
+  kind?: SymbolKind;
 }
 
 const HEADING = /^ {0,3}(#{1,3})[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$/;
