@@ -4,6 +4,7 @@ import React, { useRef, useState } from "react";
 import { useSetAtom } from "jotai";
 import { usePathname, useRouter } from "next/navigation";
 import { HiOutlineBookOpen, HiOutlineCog, HiOutlineQuestionMarkCircle } from "react-icons/hi";
+import { TbKeyboard } from "react-icons/tb";
 import { atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { formatShortcut } from "@/app/utils/platform";
@@ -66,6 +67,7 @@ export default function SidebarFooter() {
             },
             {
               label: "Keyboard Shortcuts",
+              icon: <TbKeyboard size={14} aria-hidden="true" />,
               shortcut: formatShortcut("?"),
               onClick: () => setShortcutsOpen(true),
             },
