@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { setPinDragData } from "../../utils/pin-drag";
 import type { RowEditing } from "./FileRow";
 import type { PendingCreate } from "./TreeNodes";
 import {
@@ -203,9 +204,11 @@ export function useTreeActions({
     };
   }, [creating, focusTree, resolveFolderHandle, createFolder, createNewFile, reveal]);
 
-  // Dragging a selected row takes the whole selection along.
-  const startDrag = useCallback((entry: DraggedEntry) => {
+  // Dragging a selected row takes the whole selection along. The drag also
+  // carries its notes and folders for the sidebar's Pinned section to pin.
+  const startDrag = useCallback((entry: DraggedEntry, dataTransfer?: DataTransfer) => {
     if (!selection.selected.has(entry.path) || selection.selected.size < 2) {
+      if (dataTransfer) setPinDragData(dataTransfer, [entry]);
       setDraggedEntry(entry);
       return;
     }
@@ -215,6 +218,7 @@ export function useTreeActions({
         ? { kind: "file", path, name: file.name, handle: file.handle }
         : { kind: "folder", path, name: path.split("/").pop() ?? path };
     });
+    if (dataTransfer) setPinDragData(dataTransfer, group);
     setDraggedEntry({ ...entry, group });
   }, [selection.selected, entryByPath, setDraggedEntry]);
 

@@ -3,19 +3,21 @@
 import React from "react";
 import { useAtom } from "jotai";
 import { atom_vimMode } from "@/app/atoms/atoms";
-import { atom_closeSidebarWhileWriting, atom_focusMode, atom_showWordCount, type FocusMode } from "@/app/atoms/ui-atoms";
+import { atom_closeSidebarWhileWriting, atom_focusMode, atom_showMinimap, atom_showWordCount, type FocusMode } from "@/app/atoms/ui-atoms";
+import { formatShortcut } from "@/app/utils/platform";
 import Toggle from "@/app/components/Toggle";
 import { SelectControl, SettingGroup, SettingItem } from "../components/SettingControls";
 import { FOCUS_OPTIONS } from "../focus-options";
 
 // Settings → Editor: the Writing group (Vim mode, Focus, Close Sidebar While
-// Writing, Word Count). Word wrap, line numbers and invisibles are
+// Writing, Word Count) and the View group (Minimap). Word wrap, line numbers and invisibles are
 // command-palette toggles only (SettingsCommands).
 export default function EditorSettings() {
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [focusMode, setFocusMode] = useAtom(atom_focusMode);
   const [showWordCount, setShowWordCount] = useAtom(atom_showWordCount);
   const [closeSidebarWhileWriting, setCloseSidebarWhileWriting] = useAtom(atom_closeSidebarWhileWriting);
+  const [showMinimap, setShowMinimap] = useAtom(atom_showMinimap);
 
   return (
     <>
@@ -45,6 +47,13 @@ export default function EditorSettings() {
           label="Word Count"
           description="Show the note's word count faintly in the corner of the editor. It steps aside while you type."
           control={<Toggle variant="soft" active={showWordCount} onChange={setShowWordCount} label="Word count" />}
+        />
+      </SettingGroup>
+      <SettingGroup title="View">
+        <SettingItem
+          label="Minimap"
+          description={`Show the note drawn small down the editor's right edge, with the part on screen marked; click or drag it to scroll. ${formatShortcut("M", { shift: true })} turns it on or off.`}
+          control={<Toggle variant="soft" active={showMinimap} onChange={setShowMinimap} label="Minimap" />}
         />
       </SettingGroup>
     </>

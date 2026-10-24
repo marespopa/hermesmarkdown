@@ -199,23 +199,34 @@ export const getStartedGroup: Group = {
     },
     {
       id: "pinned-notes",
-      title: "Pinned notes",
-      lead: "Keep the notes you come back to at hand: first in the command palette and at the top of Files.",
-      keywords: "pin pinned unpin favorite favourite top quick access palette files sidebar",
+      title: "Pinned",
+      lead: "Keep what you come back to at hand: notes, folders, tags and pages, first in the sidebar.",
+      keywords: "pin pinned unpin favorite favourite top quick access palette files sidebar folder tag page icon emoji reorder drag move sync shortcut 1 9 limit",
       body: (
         <>
           <p>
-            To pin a note, right-click it in the sidebar&apos;s <strong>Files</strong> and choose{" "}
-            <strong>Pin</strong>, choose <strong>Pin Note</strong> in the note&apos;s right-click menu (on the button at
-            the top of the page), run <strong>Pin Note</strong>{" "}
-            from the command palette, or press <code>CTRL/CMD+D</code> on it in the palette. Pinned notes
-            are listed first, newest pin first, at the top of <strong>Files</strong> and in the command
-            palette before you type anything. The same places unpin it. Each vault keeps its own pins;
-            a pinned note that&apos;s renamed or moved stays pinned.
+            Pin a note or a folder by right-clicking it in the sidebar&apos;s <strong>Files</strong> and
+            choosing <strong>Pin</strong>. A note can also be pinned with <strong>Pin Note</strong> in its
+            right-click menu (on the button at the top of the page), the <strong>Pin Note</strong> command,
+            or <code>CTRL/CMD+D</code> on it in the command palette. Pin a tag with the{" "}
+            <strong>Pin</strong> button beside its name on the Tags page, and a page (All Notes, Tags,
+            Tasks, Templates, Trash or Settings) with <strong>Pin Page to Sidebar…</strong> in the palette.
           </p>
           <p>
-            In the palette you can pin commands too (<code>CTRL/CMD+D</code> on a command, up to five);
-            those are the palette&apos;s own.
+            Everything you pin is listed in the sidebar&apos;s <strong>Pinned</strong> section, at the top,
+            in the order you pinned it, up to nine. A click opens it: a folder opens in Files, a tag on the Tags page.
+            <code>CTRL/CMD+1–9</code> opens the pin in that place from anywhere; each row shows its key.
+            Drag rows to reorder them, or press Alt+↑ / Alt+↓ on one. To pin a note or folder, you can also drag it
+            there from Files. Click a row&apos;s icon (or right-click
+            the row) for its menu: it sets an emoji icon, shown only there, or unpins it. A pin whose note or folder was moved or deleted outside the app shows
+            faint, and can be unpinned; renaming or moving it in the app keeps it pinned.
+          </p>
+          <p>
+            Pins are saved in the vault (see{" "}
+            <TextLink href="#pins-file">the pins file</TextLink>), so they follow it to
+            every device it syncs to. Pinned notes still lead the command palette before you type
+            anything. In the palette you can pin commands too (<code>CTRL/CMD+D</code> on a command, up to
+            five); those are the palette&apos;s own.
           </p>
         </>
       ),
@@ -242,11 +253,9 @@ export const getStartedGroup: Group = {
             search bar in the top-right corner (or <code>CTRL/CMD+K</code>) opens the command palette, where every note
             and command is: Save, Copy Markdown, Export as PDF or HTML, Pin Note, Settings, Documentation, Ask or Edit with AI and the rest.
             The editor keeps up to 20 notes
-            open behind the one in front, listed in the sidebar&apos;s Open Notes: opening another closes the
-            one you looked at least recently, never one with unsaved changes, and <code>CTRL/CMD+1–9</code>{" "}
-            jumps between them (each of the first nine shows its shortcut there). Drag a note up or down the
-            list (or press <code>ALT+↑/↓</code> on it) to put it on the number you want. Right-click a note there, or
-            the note&apos;s name at the top, for its menu: Copy Markdown, Pin Note, Rename…, Move
+            open behind the one in front; switch between them from the command palette
+            (<code>CTRL/CMD+K</code>). Opening another closes the one you looked at least recently, never one
+            with unsaved changes. Click the note&apos;s name at the top, or right-click it, for its menu: Copy Markdown, Pin Note, Rename…, Move
             to Trash, and Close, Close Others or Close All. While the sidebar is hidden, its button sits in the top-left corner.
           </p>
           <p>
@@ -259,10 +268,13 @@ export const getStartedGroup: Group = {
           <p>
             The <strong>sidebar</strong> is your library, the same on every editor page: its header names the
             vault (click it to switch to a recent vault or open another) beside <strong>New note</strong> and the
-            button that hides it; below come <strong>Open Notes</strong> (the notes open in the editor:
-            click one to switch to it, or its × to close it; a dot marks unsaved changes), the{" "}
-            <strong>Outline</strong> of the note in front (click a heading to jump to it) and <strong>Files</strong>,
-            the vault&apos;s tree. A line sets each section apart, and each has a chevron to fold or unfold it.
+            button that hides it; below come <strong>Pinned</strong> (up to nine pins, opened with{" "}
+            <code>CTRL/CMD+1–9</code>) and <strong>Files</strong>, the vault&apos;s tree, with a{" "}
+            <strong>Filter</strong> box above it: type part of a path, or a regular expression
+            (<code>projects/.*plan</code>), and the tree shows only the files that match, their folders open;{" "}
+            <code>Esc</code> clears it. For an overview of a long note, turn on the{" "}
+            <strong>Minimap</strong> (<code>CTRL/CMD+SHIFT+M</code>, or Settings → Editor → View): the note drawn
+            small down the editor&apos;s right edge, with the part on screen marked; click or drag it to scroll. A line sets each section apart, and each has a chevron to fold or unfold it.
             It sits beside the page and pushes it over rather than covering it.
           </p>
           <p>

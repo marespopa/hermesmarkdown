@@ -20,9 +20,9 @@ export interface VaultFileTreeProps {
   processedFiles: any[];
   activeFilePath: string | null;
   openFile: (handle: FileSystemFileHandle, path?: string) => void;
-  // Pinned notes (note-pin-atoms.ts): with both, a note's menu offers Pin / Unpin.
-  isPinned?: (path: string) => boolean;
-  togglePin?: (path: string) => void;
+  // Pins (pin-atoms.ts): with both, notes and folders offer Pin / Unpin.
+  isPinned?: (path: string, kind: "file" | "folder") => boolean;
+  togglePin?: (path: string, kind: "file" | "folder") => void;
   // Resolves to the new vault path when it renamed (the inline name field
   // selects the renamed row).
   renameFile: (handle: FileSystemHandle, newName?: string, path?: string) => unknown;
@@ -42,6 +42,9 @@ export interface VaultFileTreeProps {
   isSearchActive?: boolean;
   highlightQuery?: string;
   treeView?: boolean;
+  // Tree only: every folder shown open (the sidebar's Files filter), leaving
+  // the remembered expansion as it is.
+  expandAll?: boolean;
   // Tree only: list-view column header plus Date Modified / Kind columns
   // (the Files page).
   columns?: boolean;

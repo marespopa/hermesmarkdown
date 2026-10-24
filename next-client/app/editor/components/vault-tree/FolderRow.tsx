@@ -23,7 +23,7 @@ export interface FolderRowProps {
   onToggle: (path: string) => void;
   draggedEntry: DraggedEntry | null;
   // Starts a drag of this folder (or of the whole selection it is part of).
-  onDragStartFolder: () => void;
+  onDragStartFolder: (dataTransfer: DataTransfer) => void;
   setDraggedEntry: (v: DraggedEntry | null) => void;
   onDropInto: (targetPath: string) => void;
   // Touch drag (see useTouchTreeDrag): picks the row up on long press, and
@@ -103,8 +103,8 @@ export function FolderRow({
             e.preventDefault();
             return;
           }
-          onDragStartFolder();
-          e.dataTransfer.effectAllowed = "move";
+          onDragStartFolder(e.dataTransfer);
+          e.dataTransfer.effectAllowed = "linkMove";
         }}
         onDragEnd={() => setDraggedEntry(null)}
         onDragOver={(e) => {

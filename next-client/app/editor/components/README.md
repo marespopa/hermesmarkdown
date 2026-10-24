@@ -35,6 +35,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [PrivateNoteVeil](PrivateNoteVeil.md) | The veil over a private note: lock, title, **Show note** and **Show all private notes this session**. |
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |
 | [PaneToolbarButton](PaneToolbarButton.md) | Icon-only toolbar button with a tooltip. |
+| [PinIconPopover](PinIconPopover.md) | A pinned row's emoji picker (the sidebar's Pinned section): search the local emoji index, paste one, Remove Icon; closes once the icon is written. |
 | [FolderPopover](FolderPopover.md) | A breadcrumb folder's notes and subfolders, under the pane title: step in and up, search everything below it (virtualized past 200 rows), open a note, New Note / New Folder (header buttons) named in place, Show in Files; at the vault's root, a Vault ▸ submenu with the vault switcher and Close Vault. `folder-listing.ts` lists and searches a folder. |
 | [PaneTitle](PaneTitle.md) | The pane's header, in place of a toolbar: the note's folder breadcrumb (each folder opens a `FolderPopover`), its name and a save dot, at the top left; a click on the name (or a right-click) opens the note's menu, whose Rename renames it in place. `save-state.tsx` holds the save-state dot, icon and labels it shares with the mobile file bar. |
 | [PdfExport](PdfExport.md) | Mounts **Export as PDF** (palette and More menu): the focused note rendered with its `pdf_*` page setup, shown in the export dialog, and printed through the browser's dialog, on the device; also **Export as HTML**, a standalone `.html` download. |
@@ -57,7 +58,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [vault-tree/](vault-tree/README.md) | `VaultFileTree` building blocks: tree model, `FileRow`, `FolderRow`, `TreeNodes`. |
 | [FolderPrompt](FolderPrompt.md) | The only first-run question, asked late: once a draft has text and no vault is open, a quiet bottom bar offers Choose Folder… (or Keep Notes in This Browser) and Not Now. |
 | [WikiLinkDialog](WikiLinkDialog.md) | Picks or creates a `[[WikiLink]]` target, with substring-matched suggestions from vault file metadata. |
-| [EditorShell](EditorShell.md) | The frame of every /editor route: hosts the sidebar (a plain panel that takes room), sets `--content-left`, owns the sidebar shortcuts and the vault dialogs. |
+| [EditorShell](EditorShell.md) | The frame of every /editor route: hosts the sidebar (a plain panel that takes room), sets `--content-left`, owns the sidebar shortcuts and the vault dialogs, keeps the vault's pins in step with `.hermes/pins.yaml` (`usePinsSync`) and mounts `PinCommands`. |
 | [RecoveryBanner](RecoveryBanner.md) | The line above the editor while notes can't be saved (vault access lost, vault folder missing, storage full or nearly full) or the note is very large; offers Export note as .md and a fix. |
 | [ActiveFileIndexer](ActiveFileIndexer.md) | Re-indexes the active note a second after its text changes; mounted once by EditorShell so typing re-renders only it. |
 | [CopyMarkdownButton](CopyMarkdownButton.md) | Copies the active note as Markdown; sits just left of the SearchPill in the editor's top-right corner, in its look. |

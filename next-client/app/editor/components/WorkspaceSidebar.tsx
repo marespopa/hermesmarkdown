@@ -1,16 +1,15 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import React, { Suspense, useEffect, useRef } from "react";
+import { useAtom, useAtomValue } from "jotai";
 import { atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesRevealPath, atom_pendingScrollTarget, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
+import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesRevealPath, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import LinkedFromSection from "./sidebar/LinkedFromSection";
 import SidebarFiles from "./sidebar/SidebarFiles";
 import SidebarHeader from "./sidebar/SidebarHeader";
-import SidebarOpenNotes from "./sidebar/SidebarOpenNotes";
-import SidebarOutline from "./sidebar/SidebarOutline";
+import SidebarPinned from "./sidebar/SidebarPinned";
 import { useSidebarNavigation } from "./sidebar/use-sidebar-navigation";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
 
@@ -20,8 +19,11 @@ const NO_TAGS: string[] = [];
 
 // The window's sidebar (desktop), the same on every /editor route
 // (EditorShell hosts it), and kept to the library: the vault (a switcher),
-// New note and Hide; the note in front's Outline and Linked from (notes
-// linking to it); and the vault's Files.
+// New note and Hide; the vault's Pinned items (notes, folders, tags and
+// pages, from `.hermes/pins.yaml`, Ctrl/Cmd+1–9), first; the note in front's
+// Linked from (notes linking to it); and the vault's Files, with a filter.
+// Switching between open notes is the palette's (Ctrl/Cmd+K), and the note's
+// outline is the optional minimap's (Ctrl/Cmd+Shift+M, EditorMinimap).
 // Everything else (Home, All Notes, Tags, Tasks, Templates, Trash, Export,
 // Settings, Documentation, search) is the command palette's (Ctrl/Cmd+K,
 // SearchPill) or the toolbar's More menu. A plain panel in the chrome colour with a hairline
@@ -37,7 +39,6 @@ export default function WorkspaceSidebar() {
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const navigation = useSidebarNavigation();
-  const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
   const treeController = useRef<VaultFileTreeController | null>(null);
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
 
@@ -103,10 +104,11 @@ export default function WorkspaceSidebar() {
       <SidebarHeader onNewNote={navigation.newNote} onHide={() => setOpen(false)} />
 
       <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none px-2 pt-1">
-        <SidebarOpenNotes onEditor={onWorkspace} onOpen={navigation.openOpenNote} />
-        {onWorkspace && activeTabPath && (
-          // The note is already in front: the editor just moves the caret there.
-          <SidebarOutline path={activeTabPath} onJump={(line) => setPendingScrollTarget({ path: activeTabPath, line })} />
+        {hasVault && (
+          // usePinnedRows reads useSearchParams (a pinned tag's current row).
+          <Suspense fallback={null}>
+            <SidebarPinned activePath={currentPath} />
+          </Suspense>
         )}
         {onWorkspace && hasVault && activeTabPath && activeTabPath !== "draft" && (
           <LinkedFromSection path={activeTabPath} onOpen={navigation.openHandle} />

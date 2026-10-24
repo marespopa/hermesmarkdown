@@ -12,7 +12,7 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_forgetFileTreePaths, atom_vaultFiles, atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
-import { atom_forgetNotePins } from "@/app/atoms/note-pin-atoms";
+import { atom_forgetPins } from "@/app/atoms/pin-atoms";
 import { removePathsFromLayout } from "@/app/atoms/utils";
 import type { FileUndoGroup } from "@/app/atoms/vault-atoms";
 import { useDialog } from "../use-dialog";
@@ -53,7 +53,7 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
   const setVaultFiles = useSetAtom(atom_vaultFiles);
   const setVaultFolderPaths = useSetAtom(atom_vaultFolderPaths);
   const forgetFileTreePaths = useSetAtom(atom_forgetFileTreePaths);
-  const forgetNotePins = useSetAtom(atom_forgetNotePins);
+  const forgetPins = useSetAtom(atom_forgetPins);
   const dialog = useDialog();
 
   // Clears a removed item (and, for a folder, everything in it) from the
@@ -76,11 +76,11 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
       return next;
     });
     if (handle.kind === "directory" && path) forgetFileTreePaths(path);
-    if (path) forgetNotePins(path);
+    if (path) void forgetPins(path);
     if (activeFileHandle?.name === handle.name || (handle.kind === "directory" && activeFileHandle)) {
       setActiveFileHandle(null);
     }
-  }, [setFileMetadata, setVaultFiles, setVaultFolderPaths, setWorkspaceLayout, setOpenFiles, forgetFileTreePaths, forgetNotePins, activeFileHandle, setActiveFileHandle]);
+  }, [setFileMetadata, setVaultFiles, setVaultFolderPaths, setWorkspaceLayout, setOpenFiles, forgetFileTreePaths, forgetPins, activeFileHandle, setActiveFileHandle]);
 
   const deleteForever = useCallback(
     async (handle: FileSystemHandle, path?: string, question?: string) => {

@@ -28,6 +28,7 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     isSearchActive = false,
     highlightQuery = "",
     treeView = false,
+    expandAll = false,
     columns = false,
     folderPaths = [],
     undoFileOperation,
@@ -61,7 +62,9 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     return ancestors;
   }, [activeFilePath]);
 
-  const { isFolderCollapsed, toggleFolder, expandFolder } = useFolderExpansion(activeAncestorPaths);
+  const expansion = useFolderExpansion(activeAncestorPaths);
+  const { toggleFolder, expandFolder } = expansion;
+  const isFolderCollapsed = useMemo(() => (expandAll ? () => false : expansion.isFolderCollapsed), [expandAll, expansion.isFolderCollapsed]);
 
   const rows = useMemo(() => flattenVisible(tree, isFolderCollapsed), [tree, isFolderCollapsed]);
   const selection = useTreeSelection(rows);
@@ -208,7 +211,7 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     showColumns,
     draggedEntry,
     setDraggedEntry,
-    onDragStartFolder: () => actions.startDrag({ kind: "folder", path: node.path, name: node.name }),
+    onDragStartFolder: (dataTransfer: DataTransfer) => actions.startDrag({ kind: "folder", path: node.path, name: node.name }, dataTransfer),
     onDropInto: (targetPath: string) => void actions.dropInto(targetPath),
     onOpenMenu: (x: number, y: number) => actions.openMenu({ type: "row", kind: "folder", path: node.path }, x, y),
     isSelected: selection.selected.has(node.path),

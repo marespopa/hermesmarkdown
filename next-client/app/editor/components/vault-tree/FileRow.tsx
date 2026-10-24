@@ -63,7 +63,7 @@ interface FileRowProps {
   // Renaming in place.
   editing?: RowEditing;
   draggable?: boolean;
-  onDragStartEntry?: () => void;
+  onDragStartEntry?: (dataTransfer: DataTransfer) => void;
   onDragEndEntry?: () => void;
   // Touch drag (see useTouchTreeDrag).
   onTouchDragStart?: (e: React.TouchEvent) => void;
@@ -125,8 +125,8 @@ export function FileRow({
             e.preventDefault();
             return;
           }
-          onDragStartEntry?.();
-          e.dataTransfer.effectAllowed = "move";
+          onDragStartEntry?.(e.dataTransfer);
+          e.dataTransfer.effectAllowed = "linkMove";
         }}
         onDragEnd={() => onDragEndEntry?.()}
         onClick={(e) => {

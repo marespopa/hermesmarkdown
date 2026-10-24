@@ -1,7 +1,8 @@
 "use client";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { atom_pinnedNotePaths, atom_toggleNotePin } from "@/app/atoms/note-pin-atoms";
+import { atom_pinnedNotePaths } from "@/app/atoms/pin-atoms";
+import { usePins } from "@/app/hooks/use-pins";
 import { useRouter } from "next/navigation";
 import {
   atom_activeFilePath,
@@ -107,7 +108,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const setRevealedPrivatePaths = useSetAtom(atom_revealedPrivatePaths);
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
   const pinnedNotePaths = useAtomValue(atom_pinnedNotePaths);
-  const toggleNotePin = useSetAtom(atom_toggleNotePin);
+  const { togglePin } = usePins();
+  const toggleNotePin = (path: string) => void togglePin("note", path);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
   const { filePath: activeFilePath, handleCopy, closeTabWithAutosave } = usePaneFileActions(activeLeaf);

@@ -54,6 +54,13 @@ Show Files from the palette itself.
   the preferences and navigation group.
 - `RegisteredCommands.tsx` applies the existing `useRegisterCommand` pattern to
   the ordered command list.
+- `PinCommands.tsx` registers **Pin Page to Sidebar…** (`pin-page`, Workspace),
+  a menu with one command per app page (`pin-page:files` All Notes, Tags,
+  Tasks, Templates, Trash, Settings) that pins it to the sidebar's Pinned
+  section; an already pinned page is disabled ("Already pinned"), and the menu
+  is disabled without a vault ("Open a vault first") or on mobile ("The
+  sidebar isn't shown on this screen"). Mounted by `EditorShell`, not
+  `EditorCommands`, so it's offered on every /editor route.
 
 ## Ordering and behavior
 

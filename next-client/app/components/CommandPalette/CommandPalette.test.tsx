@@ -7,6 +7,8 @@ import { version } from "../../../package.json";
 import CommandPalette from "./CommandPalette";
 import { CommandPaletteProvider, useCommandPalette, useRegisterCommand } from "./CommandPaletteContext";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_pinsState } from "@/app/atoms/pin-atoms";
+import { updatePinsFile } from "@/app/services/vault-pins";
 import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { MASKED_TEXT } from "@/app/utils/note-display";
@@ -14,7 +16,6 @@ import {
   atom_activeEditorView,
   atom_commandUseCounts,
   atom_filesFocusRequested,
-  atom_notePins,
   atom_palettePinnedItems,
   atom_recentFilePaths,
   atom_sidebarCollapsed,
@@ -30,9 +31,30 @@ vi.mock("@/app/hooks/use-file-system", () => ({
 
 let isMobileChrome = false;
 
-// Notes are pinned per vault (note-pin-atoms.ts): a vault named "Notes".
-const VAULT = [atom_vaultHandle, { name: "Notes" }] as const;
-const pinnedNotes = (...paths: string[]) => [atom_notePins, { "local:Notes": paths }] as const;
+// Notes are pinned in the vault's pins file (pin-atoms.ts): a vault named
+// "Notes", whose file holds `pinsDisk.notes`.
+const notesVault = vi.hoisted(() => ({ name: "Notes" }));
+const pinsDisk = vi.hoisted(() => ({ notes: [] as string[] }));
+vi.mock("@/app/services/vault-pins", async () => {
+  const format = await import("@/app/services/vault-pins-format");
+  return {
+    PinsFileInvalidError: class extends Error {},
+    PinsFileNewerError: class extends Error {},
+    updatePinsFile: vi.fn(async (_vault: unknown, edit: (doc: never, pins: never) => unknown) => {
+      const doc = { root: {}, items: pinsDisk.notes.map((note) => ({ note })) };
+      const next = edit(doc as never, format.listedPins(doc) as never) as ReturnType<typeof format.addPins>;
+      if (!next) return { pins: format.listedPins(doc), changed: false };
+      const pins = format.listedPins(next);
+      pinsDisk.notes = pins.map((pin) => pin.target);
+      return { pins, changed: true };
+    }),
+  };
+});
+const VAULT = [atom_vaultHandle, notesVault] as const;
+const pinnedNotes = (...paths: string[]) => {
+  pinsDisk.notes = paths;
+  return [atom_pinsState, { vault: notesVault, status: "ok", pins: paths.map((target) => ({ kind: "note", target, icon: null })) }] as const;
+};
 let pathname = "/editor";
 
 vi.mock("@/app/hooks/use-mobile-chrome", () => ({
@@ -92,6 +114,7 @@ describe("CommandPalette", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.localStorage.clear();
+    pinsDisk.notes = [];
     isMobileChrome = false;
     pathname = "/editor";
   });
@@ -370,6 +393,7 @@ describe("CommandPalette", () => {
   it("pins and opens the selected item with keyboard shortcuts", async () => {
     renderPalette([
       VAULT,
+      pinnedNotes(),
       [atom_fileMetadata, {
         "Roadmap.md": {
           path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
@@ -382,8 +406,9 @@ describe("CommandPalette", () => {
     fireEvent.change(input, { target: { value: "road" } });
 
     fireEvent.keyDown(input, { key: "d", ctrlKey: true });
+    await waitFor(() => expect(updatePinsFile).toHaveBeenCalledWith(notesVault, expect.any(Function)));
     fireEvent.change(input, { target: { value: "" } });
-    expect(screen.getByRole("listbox")).toHaveTextContent("Roadmap.md");
+    await waitFor(() => expect(screen.getByRole("listbox")).toHaveTextContent("Roadmap.md"));
 
     fireEvent.keyDown(input, { key: "Enter", shiftKey: true });
     await waitFor(() => expect(openFile).toHaveBeenCalledWith(expect.anything(), "Roadmap.md"));
@@ -392,6 +417,7 @@ describe("CommandPalette", () => {
   it("offers row pinning through the context menu", async () => {
     renderPalette([
       VAULT,
+      pinnedNotes(),
       [atom_fileMetadata, {
         "Roadmap.md": {
           path: "Roadmap.md", name: "Roadmap.md", handle: { kind: "file", name: "Roadmap.md" },
@@ -406,7 +432,7 @@ describe("CommandPalette", () => {
     fireEvent.click(screen.getByRole("menuitem", { name: /Pin item/ }));
     fireEvent.change(input, { target: { value: "" } });
 
-    expect(screen.getByRole("listbox")).toHaveTextContent("Roadmap.md");
+    await waitFor(() => expect(screen.getByRole("listbox")).toHaveTextContent("Roadmap.md"));
   });
 
   it("asks for a vault before pinning a note", async () => {
@@ -432,6 +458,7 @@ describe("CommandPalette", () => {
       <Provider store={store}>
         <Hydrate values={[
           VAULT,
+          pinnedNotes(),
           [atom_palettePinnedItems, [{ kind: "file", id: "Roadmap.md" }, { kind: "command", id: "test-command" }]],
         ]}>
           <CommandPaletteProvider>
@@ -441,8 +468,9 @@ describe("CommandPalette", () => {
         </Hydrate>
       </Provider>,
     );
-    await waitFor(() => expect(store.get(atom_notePins)).toEqual({ "local:Notes": ["Roadmap.md"] }));
-    expect(store.get(atom_palettePinnedItems)).toEqual([{ kind: "command", id: "test-command" }]);
+    await waitFor(() => expect(store.get(atom_pinsState).pins).toEqual([{ kind: "note", target: "Roadmap.md", icon: null }]));
+    expect(updatePinsFile).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(store.get(atom_palettePinnedItems)).toEqual([{ kind: "command", id: "test-command" }]));
   });
 
   it("keeps Ctrl/Cmd+Enter in the active-pane file-open workflow", async () => {

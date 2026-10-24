@@ -41,7 +41,7 @@ Every /editor route shares one frame, `components/EditorShell`: a plain page wit
 | `/editor?file=notes/plan.md` | The note in front (`hooks/use-active-file-url.ts`: opened, or its tab brought forward, once the vault is readable; then kept in step with the focused tab) |
 | `/editor` | The draft |
 | `/editor/tasks`, `/editor/templates`, `/editor/trash`, `/editor/files` | Tasks, Templates, Trash (Put Back / Delete, `app/hooks/file-system/trash-ops.ts`), All Notes |
-| `/editor/tags?tag=release` | Tags: every tag with its count, and the chosen tag's notes |
+| `/editor/tags?tag=release` | Tags: every tag with its count, and the chosen tag's notes (`tags/page.tsx`, inside `<Suspense>`: the chosen tag follows the URL through `useSearchParams`, so a pinned tag clicked in the sidebar rewrites it in place; `editorTagHref` builds the link). The chosen tag's heading (`tags/TagHeading.tsx`) has a **Pin** button on desktop that pins the tag to the sidebar's Pinned section; pinned, it reads **Pinned** and is disabled |
 | `/editor/settings?section=editor` | A Settings section (the first one has no parameter) |
 
 Query parameters are rewritten in place (`replaceState`), so switching notes adds no history entries; a note opened from a page goes back to the editor at its URL.

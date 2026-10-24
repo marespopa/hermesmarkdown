@@ -66,21 +66,28 @@ export function treeMenuItems(
       if (file) props.renameFile(file.handle, undefined, target.path);
     },
   };
+  // Pin / Unpin: adds the note or folder to the sidebar's Pinned section.
+  const targetPath = target.path;
+  const pinItems = (kind: "file" | "folder", separated: boolean): TreeMenuItem[] =>
+    props.isPinned && props.togglePin
+      ? [{
+          label: props.isPinned(targetPath, kind) ? "Unpin" : "Pin",
+          icon: <TbPinned {...ICON} />,
+          separated,
+          onSelect: () => props.togglePin!(targetPath, kind),
+        }]
+      : [];
+
   if (target.kind === "folder") {
     const create = newItems(target.path);
-    return [...create, { ...rename, separated: create.length > 0 }, trash];
+    const pin = pinItems("folder", create.length > 0);
+    return [...create, ...pin, { ...rename, separated: create.length + pin.length > 0 }, trash];
   }
 
   const entry = actions.entryByPath.get(target.path);
   return [
     { label: "Open", icon: <HiOutlineDocumentText {...ICON} />, onSelect: () => actions.openPath(target.path) },
-    ...(props.isPinned && props.togglePin
-      ? [{
-          label: props.isPinned(target.path) ? "Unpin" : "Pin",
-          icon: <TbPinned {...ICON} />,
-          onSelect: () => props.togglePin!(target.path),
-        }]
-      : []),
+    ...pinItems("file", false),
     { ...rename, separated: true },
     ...(props.duplicateFile && entry
       ? [{ label: "Duplicate", icon: <HiOutlineDuplicate {...ICON} />, onSelect: () => props.duplicateFile!(entry.handle) }]

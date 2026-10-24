@@ -7,7 +7,6 @@ import {
   atom_fileMetadata,
   atom_fileTreeExpansion,
   atom_forgetFileTreePaths,
-  atom_notePins,
   atom_liveHandles,
   atom_openFiles,
   atom_remapVaultPaths,
@@ -19,6 +18,7 @@ import {
   remapPathsInLayout,
 } from "./atoms";
 import type { FileMetadata } from "./metadata";
+import { atom_pinsState } from "./pin-atoms";
 import type { PanelLeaf } from "@/app/types/workspace";
 
 const remapNoteContent = vi.hoisted(() => vi.fn());
@@ -155,10 +155,47 @@ describe("atom_remapVaultPaths", () => {
     expect([...store.get(atom_revealedPrivatePaths)].sort()).toEqual(["archive/deep/plan.md", "notes-old.md"]);
   });
 
-  it("moves Home pins with a folder move", async () => {
-    store.set(atom_notePins, { "local:vault": ["notes/deep/idea.md", "notes-old.md"] });
+  it("moves the vault's pins with a folder move, keeping icons and order", async () => {
+    await vault.writeText(".hermes/pins.yaml", [
+      "version: 1",
+      "pins:",
+      "  - {note: notes/deep/idea.md, icon: 🚀}",
+      "  - {folder: notes}",
+      "  - {note: notes-old.md}",
+      "  - {tag: notes}",
+      "",
+    ].join("\n"));
+    store.set(atom_pinsState, {
+      vault: vault.asHandle(),
+      status: "ok",
+      pins: [
+        { kind: "note", target: "notes/deep/idea.md", icon: "🚀" },
+        { kind: "folder", target: "notes", icon: null },
+        { kind: "note", target: "notes-old.md", icon: null },
+        { kind: "tag", target: "notes", icon: null },
+      ],
+    });
+
     await store.set(atom_remapVaultPaths, { oldPath: "notes", newPath: "archive" });
-    expect(store.get(atom_notePins)["local:vault"]).toEqual(["archive/deep/idea.md", "notes-old.md"]);
+
+    const text = vault.fileAt(".hermes/pins.yaml")!.text();
+    expect(text).toContain("  - {note: archive/deep/idea.md, icon: 🚀}\n  - {folder: archive}\n  - {note: notes-old.md}\n  - {tag: notes}\n");
+    expect(store.get(atom_pinsState).pins.map((pin) => `${pin.kind}:${pin.target}`)).toEqual([
+      "note:archive/deep/idea.md",
+      "folder:archive",
+      "note:notes-old.md",
+      "tag:notes",
+    ]);
+  });
+
+  it("writes no pins file when no pin is affected", async () => {
+    store.set(atom_pinsState, {
+      vault: vault.asHandle(),
+      status: "ok",
+      pins: [{ kind: "note", target: "notes-old.md", icon: null }],
+    });
+    await store.set(atom_remapVaultPaths, { oldPath: "notes", newPath: "archive" });
+    expect(vault.fileAt(".hermes/pins.yaml")).toBeUndefined();
   });
 
   it("moves walked folders, empty ones included, with a folder move", async () => {

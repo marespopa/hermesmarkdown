@@ -43,7 +43,8 @@ const tree = useRef<VaultFileTreeController | null>(null);
 | treeView? | `boolean` | `false` | Tree layout instead of a flat list |
 | columns? | `boolean` | `false` | Tree only: Finder-like list view with a sticky Name / Date Modified / Kind header (Files page) |
 | folderPaths? | `string[]` | `[]` | Folders to include in the tree, so empty ones show (from `useVaultFileSearch`: the indexing walk's folders at every depth plus the latest listing) |
-| isSearchActive? / highlightQuery? | `boolean` / `string` | `false` / `""` | Search mode |
+| isSearchActive? / highlightQuery? | `boolean` / `string` | `false` / `""` | Search mode (`isSearchActive` makes the empty state "No file found") |
+| expandAll? | `boolean` | `false` | Tree only: every folder shown open, the remembered expansion left as it is (the sidebar's Files filter) |
 | resolveFolderHandle? / createNewFile? / createFolder? | callbacks |  | Folder operations; `createNewFile(dir, name)` / `createFolder(dir, name)` with a name don't prompt |
 | moveItem? / moveItems? | callbacks |  | Drop moves: one item through `moveItem`, a dragged selection through `moveItems` (one toast, one Undo) |
 | onClose? | `() => void` |  | Closes the drawer after opening a file |

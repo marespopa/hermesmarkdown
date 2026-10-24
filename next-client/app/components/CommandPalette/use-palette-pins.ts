@@ -1,34 +1,45 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { atom_pinnedNotePaths, atom_toggleNotePin } from "@/app/atoms/note-pin-atoms";
+import { atom_pinnedNotePaths, atom_pinsState, atom_updatePins } from "@/app/atoms/pin-atoms";
 import { atom_palettePinnedItems, type PalettePinnedItem } from "@/app/atoms/ui-atoms";
 import { atom_vaultKey } from "@/app/atoms/vault-atoms";
 import { showErrorToast } from "@/app/components/Toastr";
+import { usePins } from "@/app/hooks/use-pins";
+import { addPins } from "@/app/services/vault-pins-format";
 import { MAX_PINS, pinnedKey, type Row } from "./palette-model";
 
-// The palette's pins. Notes are the app's one set of pinned notes (per vault,
-// note-pin-atoms.ts), the same ones the sidebar lists first in Files, so a
-// note pinned here, from a tab or from the More menu is pinned everywhere.
-// Commands are the palette's own (`atom_palettePinnedItems`, up to MAX_PINS).
-// Notes the palette pinned itself before the two were one move over once a
-// vault is open.
+// The palette's pins. Notes are the vault's pinned notes (`.hermes/pins.yaml`,
+// pin-atoms.ts), in pin order, the same ones the sidebar's Pinned section
+// lists, so a note pinned here, from a tab or from the More menu is pinned
+// everywhere. Commands are the palette's own (`atom_palettePinnedItems`, up
+// to MAX_PINS). Notes the palette pinned itself before are added to the
+// vault's pins once a vault is open, in one write, and dropped from the
+// palette's own list only once that write went through.
 export function usePalettePins() {
   const pinnedNotePaths = useAtomValue(atom_pinnedNotePaths);
-  const toggleNotePin = useSetAtom(atom_toggleNotePin);
+  const { togglePin: togglePinAs } = usePins();
+  const updatePins = useSetAtom(atom_updatePins);
   const [paletteItems, setPaletteItems] = useAtom(atom_palettePinnedItems);
   const vaultKey = useAtomValue(atom_vaultKey);
+  // Once the open vault's pins file has been read (and is valid).
+  const pinsReady = useAtomValue(atom_pinsState).status === "ok";
+  const migrating = useRef(false);
 
   useEffect(() => {
-    if (!vaultKey || !paletteItems.some((item) => item.kind === "file")) return;
-    for (const item of paletteItems) {
-      if (item.kind === "file" && !pinnedNotePaths.includes(item.id)) toggleNotePin(item.id);
-    }
-    setPaletteItems((previous) => previous.filter((item) => item.kind !== "file"));
-  }, [vaultKey, paletteItems, pinnedNotePaths, toggleNotePin, setPaletteItems]);
+    if (!pinsReady || migrating.current) return;
+    const notes = paletteItems.filter((item) => item.kind === "file").map((item) => item.id);
+    if (!notes.length) return;
+    migrating.current = true;
+    void updatePins((doc) => addPins(doc, notes.map((target) => ({ kind: "note" as const, target })))).then((result) => {
+      migrating.current = false;
+      if (result !== "ok" && result !== "unchanged") return;
+      setPaletteItems((previous) => previous.filter((item) => item.kind !== "file" || !notes.includes(item.id)));
+    });
+  }, [pinsReady, paletteItems, updatePins, setPaletteItems]);
 
-  // Notes first (newest pin first), then commands.
+  // Notes first (in pin order), then commands.
   const pinnedItems = useMemo<PalettePinnedItem[]>(() => [
     ...pinnedNotePaths.map((path): PalettePinnedItem => ({ kind: "file", id: path })),
     ...paletteItems.filter((item) => item.kind === "command"),
@@ -46,7 +57,7 @@ export function usePalettePins() {
         showErrorToast("Open a vault to pin notes");
         return;
       }
-      toggleNotePin(row.id);
+      void togglePinAs("note", row.id);
       return;
     }
     if (row.kind !== "command") return;
@@ -61,7 +72,7 @@ export function usePalettePins() {
       }
       return [...previous, item];
     });
-  }, [vaultKey, toggleNotePin, setPaletteItems]);
+  }, [vaultKey, togglePinAs, setPaletteItems]);
 
   return { pinnedItems, isPinned, togglePin };
 }

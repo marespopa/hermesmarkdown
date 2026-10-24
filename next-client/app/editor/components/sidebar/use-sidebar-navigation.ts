@@ -3,7 +3,6 @@
 import { useCallback } from "react";
 import { useStore } from "jotai";
 import { usePathname, useRouter } from "next/navigation";
-import { atom_activeFilePath, atom_activePaneId } from "@/app/atoms/atoms";
 import { atom_newNoteRequested } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { editorFileHref } from "../../utils/editor-url";
@@ -28,17 +27,10 @@ export function useSidebarNavigation() {
     toEditor(path);
   }, [openFile, toEditor]);
 
-  // An open note: brought to the front of its pane.
-  const openOpenNote = useCallback((paneId: string, path: string) => {
-    store.set(atom_activePaneId, paneId);
-    store.set(atom_activeFilePath, path);
-    toEditor(path === "draft" ? null : path);
-  }, [store, toEditor]);
-
   const newNote = useCallback(() => {
     store.set(atom_newNoteRequested, true);
     toEditor();
   }, [store, toEditor]);
 
-  return { pathname, onEditor, openHandle, openOpenNote, newNote };
+  return { pathname, onEditor, openHandle, newNote };
 }

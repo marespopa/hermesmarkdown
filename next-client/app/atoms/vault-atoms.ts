@@ -1,7 +1,8 @@
 import { atom } from "jotai";
 import { atom_openFiles, atom_liveHandles } from "./file-atoms";
 import { atom_workspaceLayout } from "./workspace-atoms";
-import { atom_fileTreeExpansion, atom_filesRevealPath, atom_notePins, atom_showFiles } from "./ui-atoms";
+import { atom_fileTreeExpansion, atom_filesRevealPath, atom_showFiles } from "./ui-atoms";
+import { atom_remapPins } from "./pin-atoms";
 import { atom_fileMetadata } from "./metadata";
 import { atom_revealedPrivatePaths } from "./privacy-atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
@@ -162,8 +163,9 @@ export const atom_rebindHandles = atom(
 
 // Follows a file or folder that was renamed or moved on disk: re-keys open
 // tabs (keeping unsaved edits), pane layouts, indexed metadata, the worker's
-// note-text index, the file tree's remembered expansion and Home pins (and
-// private-note session reveals) from `oldPath` to `newPath`, for the item
+// note-text index, the file tree's remembered expansion, the vault's pins
+// (`.hermes/pins.yaml`, through atom_remapPins) and private-note session
+// reveals from `oldPath` to `newPath`, for the item
 // and everything under it. Handles are path-based, so moving a folder leaves
 // its children's handles stale — each moved tab gets a fresh handle resolved
 // at its new path, so the next save lands in the moved file.
@@ -254,12 +256,10 @@ export const atom_remapVaultPaths = atom(
           [vaultKey]: { expanded: entry.expanded.map(mapPath), collapsed: entry.collapsed.map(mapPath) },
         };
       });
-      set(atom_notePins, (prev) => {
-        const pins = prev[vaultKey];
-        if (!pins?.some((p) => remapPath(p, oldPath, newPath) !== null)) return prev;
-        return { ...prev, [vaultKey]: pins.map(mapPath) };
-      });
     }
+
+    // Last: it writes the vault's pins file, after every state update above.
+    await set(atom_remapPins, { oldPath, newPath });
   },
 );
 

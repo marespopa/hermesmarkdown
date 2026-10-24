@@ -36,6 +36,9 @@ export const atom_showInvisibles = atomWithStorage<boolean>("showInvisibles", fa
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 // The faint word count pill in the editor corner (WordCountPill). Off by default.
 export const atom_showWordCount = atomWithStorage<boolean>("showWordCount", false);
+// The editor's minimap down the pane's right edge (EditorMinimap;
+// Ctrl/Cmd+Shift+M, Settings → Editor → View). Off by default.
+export const atom_showMinimap = atomWithStorage<boolean>("showMinimap", false);
 // Lets the editor's text column fill the sheet instead of stopping at the
 // reading width (--editor-measure, editor-typography.scss). On by default.
 export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
@@ -78,7 +81,7 @@ export const atom_sidebarWidth = atom(
 // sidebar away, so the page has the window to itself. Off by default: the
 // sidebar otherwise closes only when you close it.
 export const atom_closeSidebarWhileWriting = atomWithStorage<boolean>("closeSidebarWhileWriting", false);
-// Sidebar sections the user folded (by title: "Open Notes", "Files"), remembered.
+// Sidebar sections the user folded (by title: "Pinned", "Files"), remembered.
 export const atom_sidebarCollapsed = atomWithStorage<Record<string, boolean>>("sidebarCollapsed", {}, undefined, { getOnInit: true });
 // Each stack falls back to the Apple system face with the same role.
 export const MONO_FONT_STACK =
@@ -262,11 +265,6 @@ export const atom_fileTreeExpansion = atomWithStorage<Record<string, FileTreeExp
   "hermes_file_tree_expansion",
   {},
 );
-// Pinned notes, keyed by vault (see atom_vaultKey), newest pin first: shown
-// first in the command palette and at the top of the sidebar's Files. Read
-// and toggled through note-pin-atoms.ts. The storage key is from when they
-// pinned notes to the old home feed, kept so existing pins carry over.
-export const atom_notePins = atomWithStorage<Record<string, string[]>>("hermes_home_pins", {});
 
 // Vault creation flow — transient, never persisted
 export type VaultCreationSubStep = "name-and-folder" | "installing";
