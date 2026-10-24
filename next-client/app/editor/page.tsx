@@ -126,9 +126,11 @@ export default function LiteEditor() {
     return () => window.removeEventListener("focusin", handleFocus);
   }, []);
 
+  // Mounted: the page shows from its first paint after hydration, with no
+  // veil or fixed wait (a first visit lands straight in the editor).
   useEffect(() => {
-    const timer = setTimeout(() => setIsMounting(false), 200);
-    return () => clearTimeout(timer);
+    const frame = requestAnimationFrame(() => setIsMounting(false));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   const handleSave = useCallback(async () => {
@@ -212,7 +214,7 @@ export default function LiteEditor() {
         onRunAIAction={aiActions.runAIActionById}
       />
       {/* On the feed, its skeleton (gate, then the main area) leads straight into it. */}
-      <LoadingOverlay isVisible={isMounting || !!navigatingLabel} text={navigatingLabel ? `${navigatingLabel}...` : "Loading..."} />
+      <LoadingOverlay isVisible={!!navigatingLabel} text={`${navigatingLabel}...`} />
       {/* Switching files keeps the editor on screen; a slim bar (shown only if
           it takes >150ms) signals the read + re-render instead of a full veil. */}
       <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />

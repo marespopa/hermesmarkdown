@@ -28,6 +28,7 @@ import { singlePaneLayout } from "./vault-scan";
 import { clearNoteContent } from "@/app/services/content-search-client";
 import { atom_browserVaultDialogOpen, atom_showFiles } from "@/app/atoms/ui-atoms";
 import { purgeExpiredTrash } from "./trash-ops";
+import { writeVaultHint } from "@/app/services/vault-hint";
 
 interface UseOpenVaultArgs {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -103,6 +104,8 @@ export function useOpenVault({ scanVault, indexVaultTags, detectCloudVault }: Us
       } else if (persist) {
         await saveBrowserVaultDescriptor(descriptor);
       }
+      // The next load keeps the vault's skeleton up until it's readable.
+      if (persist) writeVaultHint("saved");
       // The open notes first (a few files, read again from disk), then the top
       // folder; the whole vault is indexed last, behind the editor.
       await rebindHandles(handle);
