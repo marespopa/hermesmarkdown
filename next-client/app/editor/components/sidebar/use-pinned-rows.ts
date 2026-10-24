@@ -29,7 +29,7 @@ export interface PinnedRow {
 const lastSegment = (path: string) => path.split("/").pop() || path;
 
 // The Pinned section's rows, in the file's order: each pin resolved against
-// the vault (titles through atom_noteDisplayItems, so Privacy Mode applies;
+// the vault (a note by its file name, Privacy Mode applied through atom_noteDisplayItems;
 // a note hidden from lists is left out), whether it's the current place, and
 // what a click does. A note or folder that isn't in the vault counts as
 // missing only once the index is idle, so nothing flickers while it runs.
@@ -59,7 +59,9 @@ export function usePinnedRows(activePath: string | null): PinnedRow[] {
         const display = displayItems.get(pin.target);
         // Indexed but not listable: hidden by Privacy Mode.
         if (meta && !display) continue;
-        const label = display?.title ?? lastSegment(pin.target).replace(/\.md$/i, "");
+        // The file's name, steady from the first paint (no title to wait
+        // for); a private note keeps Privacy Mode's masked title.
+        const label = display?.isPrivate ? display.title : lastSegment(pin.target).replace(/\.md$/i, "");
         const missing = indexed && !meta;
         const handle = meta?.handle as FileSystemFileHandle | null | undefined;
         rows.push({

@@ -314,6 +314,12 @@ describe("SidebarPinned", () => {
     expect(rowButton("roadmap")).toHaveAttribute("title", "projects/roadmap.md");
   });
 
+  it("labels a note by its file name, not its title", () => {
+    setup({ metadata: { "projects/roadmap.md": meta("projects/roadmap.md", { frontmatter: { title: "Release plan" } }) } });
+    expect(rowButton("roadmap")).toBeInTheDocument();
+    expect(screen.queryByText("Release plan")).not.toBeInTheDocument();
+  });
+
   it("leaves out a private note in Hide from lists", () => {
     const store = createStore();
     store.set(atom_privacyLevel, "hidden");
