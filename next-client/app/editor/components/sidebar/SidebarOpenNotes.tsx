@@ -13,7 +13,9 @@ import { statusDot, type SaveState } from "../save-state";
 import SidebarSection from "./SidebarSection";
 import { sidebarItemClass } from "./sidebar-classes";
 
-// The pane's open notes, for switching with one click: each by name,
+// The pane's open notes, for switching with one click: each by name, set in
+// to line up with the section title (the rows have no leading glyph to sit
+// under its chevron, as the other sections' rows do),
 // the one in front highlighted (on the editor), a small dot while one is
 // unsaved, saving or failed to save, and a close button on hover or focus.
 // On the editor, the first nine also show their Ctrl/Cmd+1–9 shortcut, which
@@ -122,7 +124,7 @@ export default function SidebarOpenNotes({
               aria-label={dot ? `${name} — ${dotTitle}` : name}
               aria-keyshortcuts={shortcut ? `Control+${index + 1} Meta+${index + 1}` : undefined}
               title={path === "draft" ? name : path}
-              className={`${sidebarItemClass(isCurrent)} w-full ${shortcut && !shortcut.startsWith("⌘") ? "pr-12" : "pr-8"}`}
+              className={`${sidebarItemClass(isCurrent)} w-full pl-6 ${shortcut && !shortcut.startsWith("⌘") ? "pr-12" : "pr-8"}`}
             >
               <span className="min-w-0 flex-1 truncate">{name}</span>
               {dot && <span aria-hidden="true" className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot.className}`} />}
