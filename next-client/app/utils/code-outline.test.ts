@@ -83,8 +83,9 @@ describe("extractCodeOutline", () => {
   });
 
   it("names no symbol from a parameter or a value", () => {
+    // The anonymous default export is listed as itself, never as its parameter.
     expect(outline(js.configure({ dialect: "ts" }), "export default function (p) {}\nexport const a = x.y;\n"))
-      .toEqual(["1 a @2"]);
+      .toEqual(["1 export default @1", "1 a @2"]);
     expect(outline(python, "MAX = config.LIMIT\n")).toEqual(["1 MAX @1"]);
   });
 
