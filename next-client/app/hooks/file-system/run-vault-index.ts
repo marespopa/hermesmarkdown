@@ -1,6 +1,6 @@
 import { indexNoteContent, markContentIndexed, needsContentIndex } from "@/app/services/content-search-client";
 import { loadMetadataCache, saveMetadataCache } from "@/app/services/metadata-cache";
-import { collectVaultFiles, readFilesForIndexing } from "./vault-scan";
+import { collectVaultFiles, readFilesForIndexing, type CollectedFile } from "./vault-scan";
 import { parseWithWorker, reportCollectProblems, startVaultIndex, type VaultIndexDeps } from "./vault-index";
 
 interface RunVaultIndexOptions {
@@ -12,6 +12,7 @@ interface RunVaultIndexOptions {
   vaultKey: string | null;
   setMetadata: VaultIndexDeps["setMetadata"];
   setFolderPaths: (folders: string[]) => void;
+  setTextFiles: (files: CollectedFile[]) => void;
   isCurrent: () => boolean;
 }
 
@@ -22,7 +23,7 @@ interface RunVaultIndexOptions {
 // every note is listed and removed ones are gone; null when a newer run took
 // over during the walk.
 export async function runVaultIndex({
-  worker, root, includeHidden, fresh, vaultKey, setMetadata, setFolderPaths, isCurrent,
+  worker, root, includeHidden, fresh, vaultKey, setMetadata, setFolderPaths, setTextFiles, isCurrent,
 }: RunVaultIndexOptions) {
   const indexer = startVaultIndex(fresh, {
     loadCache: () => (vaultKey ? loadMetadataCache(vaultKey) : Promise.resolve(null)),
@@ -38,10 +39,11 @@ export async function runVaultIndex({
     needsContent: needsContentIndex,
     indexContent: indexNoteContent,
   });
-  const { files, folders, failedSubdirs, timedOut } = await collectVaultFiles(root, includeHidden, undefined, indexer.add);
+  const { files, folders, textFiles, failedSubdirs, timedOut } = await collectVaultFiles(root, includeHidden, undefined, indexer.add);
   reportCollectProblems(timedOut, failedSubdirs);
   if (!isCurrent()) return null;
   setFolderPaths(folders);
+  setTextFiles(textFiles);
   const run = indexer.complete(files);
   await run.listed;
   return run;

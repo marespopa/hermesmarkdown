@@ -1,6 +1,6 @@
 import { createStore } from "jotai";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { Pin } from "@/app/services/vault-pins-format";
+import { movePin, pinKey, type Pin } from "@/app/services/vault-pins-format";
 
 const service = vi.hoisted(() => {
   class PinsFileInvalidError extends Error {}
@@ -20,6 +20,7 @@ import {
   atom_updatePins,
   PINS_INVALID_MESSAGE,
   PINS_NEWER_MESSAGE,
+  pinsWritePending,
 } from "./pin-atoms";
 
 const vault = { name: "Notes" } as unknown as FileSystemDirectoryHandle;
@@ -60,7 +61,7 @@ describe("pin atoms", () => {
     service.updatePinsFile.mockRejectedValueOnce(new service.PinsFileInvalidError());
     expect(await store.set(atom_updatePins, noEdit)).toBe("invalid");
     expect(toast.error).toHaveBeenCalledWith(PINS_INVALID_MESSAGE);
-    expect(PINS_INVALID_MESSAGE).toBe("“.hermes/pins.yaml” isn't valid YAML. Fix it, then try again.");
+    expect(PINS_INVALID_MESSAGE).toBe("“.hermesmarkdown/pins.yaml” isn't valid YAML. Fix it, then try again.");
     expect(store.get(atom_pinsState)).toEqual({ vault, status: "invalid", pins: [tag("release")] });
 
     service.updatePinsFile.mockRejectedValueOnce(new service.PinsFileNewerError());
@@ -85,6 +86,30 @@ describe("pin atoms", () => {
     finish({ pins: [tag("release")], changed: true });
     expect(await write).toBe("ok");
     expect(store.get(atom_pinsState)).toEqual({ vault: other, status: "loading", pins: [] });
+  });
+
+  it("shows an edit at once, then the pins the file was written with", async () => {
+    const pins = [note("a.md"), tag("release"), note("b.md", "🚀")];
+    store.set(atom_pinsState, { vault, status: "ok", pins });
+    let finish: (value: unknown) => void = () => {};
+    service.updatePinsFile.mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+    const write = store.set(atom_updatePins, (doc) => movePin(doc, pinKey(pins[2]), 0, pins.map(pinKey)));
+    expect(store.get(atom_pinsState).pins).toEqual([note("b.md", "🚀"), note("a.md"), tag("release")]);
+    expect(pinsWritePending()).toBe(true);
+    finish({ pins: [note("b.md", "🚀"), tag("release"), note("a.md")], changed: true });
+    expect(await write).toBe("ok");
+    expect(pinsWritePending()).toBe(false);
+    expect(store.get(atom_pinsState).pins).toEqual([note("b.md", "🚀"), tag("release"), note("a.md")]);
+  });
+
+  it("puts the pins back when the write fails", async () => {
+    const pins = [note("a.md"), note("b.md")];
+    store.set(atom_pinsState, { vault, status: "ok", pins });
+    service.updatePinsFile.mockRejectedValue(new Error("disk"));
+    const write = store.set(atom_updatePins, (doc) => movePin(doc, "note:b.md", 0, pins.map(pinKey)));
+    expect(store.get(atom_pinsState).pins).toEqual([note("b.md"), note("a.md")]);
+    expect(await write).toBe("error");
+    expect(store.get(atom_pinsState)).toEqual({ vault, status: "ok", pins });
   });
 
   it("lists pinned note paths in file order, the same array while they're unchanged", () => {

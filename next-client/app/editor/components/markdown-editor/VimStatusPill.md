@@ -1,6 +1,6 @@
 # VimStatusPill
 
-Description: Vim mode indicator for the editor, shown when Vim mode is on. A chrome pill (the same recipe as the palette's search pill) floats at the bottom right of the pane with a dot and the mode: Normal or Replace (clay dot), Visual / Visual line / Visual block (moss dot). Keys of an unfinished command (`d2`) follow as a keycap. It fades out in Insert mode. Typing `:`, `/` or `?` turns it into a wider, centred command line; Vim messages ("Not an editor command") show there too.
+Description: Vim mode indicator for the editor, shown when Vim mode is on. A chrome pill (the same recipe as the palette's search pill) floats at the bottom right of the pane (left of the outline when it's on) with a dot and the mode: Normal or Replace (clay dot), Visual / Visual line / Visual block (moss dot). Keys of an unfinished command (`d2`) follow as a keycap. It fades out in Insert mode. Typing `:`, `/` or `?` turns it into a wider, centred command line; Vim messages ("Not an editor command") show there too.
 
 Replaces the library's status panel, a full-width strip under the text.
 
@@ -28,3 +28,4 @@ const { hostRef, status } = useVimStatus(editorView, vimMode);
 |---|---|---|---|
 | status | `VimStatus` (`mode`, `prompting`) | | Current mode and whether a prompt/message is open |
 | hostRef | `RefObject<HTMLDivElement \| null>` | | Element the Vim library renders its prompt and pending keys into |
+| besideOutline | `boolean` | `false` | The outline is on: the pill sits left of it (`md:right-60`) |

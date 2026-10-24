@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
-import { atom_aiBuilderRequest, atom_focusMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_showMinimap, atom_showWordCount, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_aiBuilderRequest, atom_focusMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_vimMode } from "@/app/atoms/ui-atoms";
 import type { TemplateEntry } from "@/app/utils/templates/template-registry";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
@@ -41,7 +41,7 @@ import EditorPills from "./markdown-editor/EditorPills";
 import FoldChevrons from "./markdown-editor/FoldChevrons";
 import LinkInsertDialog from "./markdown-editor/LinkInsertDialog";
 import VimStatusPill from "./markdown-editor/VimStatusPill";
-import EditorMinimap from "./markdown-editor/EditorMinimap";
+import EditorOutline from "./markdown-editor/EditorOutline";
 import WordCountPill from "./markdown-editor/WordCountPill";
 import { useVimStatus } from "../hooks/use-vim-status";
 import TemplateStrip from "./TemplateStrip";
@@ -68,7 +68,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const wordWrap = useAtomValue(atom_wordWrap);
   const lineNumbers = useAtomValue(atom_lineNumbers);
   const showWordCount = useAtomValue(atom_showWordCount);
-  const showMinimap = useAtomValue(atom_showMinimap);
+  const showOutline = useAtomValue(atom_showOutline);
   const showInvisibles = useAtomValue(atom_showInvisibles);
   const vimMode = useAtomValue(atom_vimMode);
   // Paragraph or sentence dimming and typewriter scrolling: the two
@@ -235,6 +235,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     csvConfirmRef,
     pasteImageRef,
     onViewCreated: handleViewCreated,
+    filePath,
   });
   // After useCodeMirrorEditor, so the Vim compartment is live (see the hook).
   const { hostRef: vimStatusHostRef, status: vimStatus } = useVimStatus(editorView, vimMode);
@@ -254,11 +255,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       ref={paneRef}
       // The editor's SearchPill floats over the sheet's top margin
       // (PaneLeaf); nothing else sits above the text.
-      // With the minimap on, the pane keeps room for it on the right.
-      className={`editor-canvas relative w-full h-full overflow-auto cursor-text ${showMinimap ? "sm:pr-20" : ""}`}
+      className="editor-canvas relative w-full h-full overflow-auto cursor-text"
       translate="no"
     >
-      {showMinimap && <EditorMinimap view={editorView} scrollerRef={paneRef} text={editorValue} />}
       <div
         // A page's margins: room above the first line as on a sheet of
         // paper, and room below the last so it can be written in the middle
@@ -357,7 +356,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
           />
         </div>
       </div>
-      {vimMode && <VimStatusPill status={vimStatus} hostRef={vimStatusHostRef} />}
+      {/* After the sheet, so its sticky box holds the pane's bottom corner. */}
+      {showOutline && <EditorOutline view={editorView} scrollerRef={paneRef} text={editorValue} />}
+      {vimMode && <VimStatusPill status={vimStatus} hostRef={vimStatusHostRef} besideOutline={showOutline} />}
       {showWordCount && props.isActivePane !== false && <WordCountPill view={editorView} text={editorValue} />}
     </div>
   );

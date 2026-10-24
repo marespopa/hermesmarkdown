@@ -12,6 +12,7 @@ import { useTemplateSave } from "./use-template-save";
 import { useOpenOrCreateLink } from "./use-open-or-create-link";
 import { useOpenFileLink } from "./use-open-file-link";
 import { useFileUndo } from "./use-file-undo";
+import { useHeldSync } from "./use-held-sync";
 
 interface UseFileCrudProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -82,19 +83,25 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
   const { openFileLink } = useOpenFileLink({ openFile });
   const saveAsTemplate = useTemplateSave({ scanVault });
 
+  // Operations that change the vault's files hold the background sync
+  // (vault-sync-hold.ts) until they're done.
+  const held = {
+    createFile: useHeldSync(createFile),
+    createNewFile: useHeldSync(createNewFile),
+    createFolder: useHeldSync(createFolder),
+    deleteFile: useHeldSync(deleteFile),
+    trashItems: useHeldSync(trashItems),
+    renameFile: useHeldSync(renameFile),
+    duplicateFile: useHeldSync(duplicateFile),
+    moveItem: useHeldSync(moveItem),
+    moveItems: useHeldSync(moveItems),
+    undoFileOperation: useHeldSync(undoFileOperation),
+  };
+
   return {
     chooseTargetDirectory,
-    createFile,
+    ...held,
     createWikiLinkFile,
-    createNewFile,
-    createFolder,
-    deleteFile,
-    trashItems,
-    renameFile,
-    duplicateFile,
-    moveItem,
-    moveItems,
-    undoFileOperation,
     importFile,
     readTemplate,
     instantiate,

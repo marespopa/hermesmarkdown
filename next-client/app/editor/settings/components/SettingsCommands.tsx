@@ -8,7 +8,7 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_focusMode, atom_fullWidth, atom_lineNumbers, atom_showInvisibles, atom_showMinimap, atom_showWordCount, atom_toggleSentenceFocus } from "@/app/atoms/ui-atoms";
+import { atom_focusMode, atom_fullWidth, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_toggleSentenceFocus } from "@/app/atoms/ui-atoms";
 import { useRegisterCommand, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { FOCUS_OPTIONS } from "../focus-options";
 import { FONTS, TEXT_SIZES } from "../font-options";
@@ -26,7 +26,7 @@ export default function SettingsCommands() {
   const [showInvisibles, setShowInvisibles] = useAtom(atom_showInvisibles);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [showWordCount, setShowWordCount] = useAtom(atom_showWordCount);
-  const [showMinimap, setShowMinimap] = useAtom(atom_showMinimap);
+  const [showOutline, setShowOutline] = useAtom(atom_showOutline);
   const [focusMode, setFocusMode] = useAtom(atom_focusMode);
   const toggleSentenceFocus = useSetAtom(atom_toggleSentenceFocus);
   const [, setEditorFontFamily] = useAtom(atom_editorFontFamily);
@@ -39,7 +39,7 @@ export default function SettingsCommands() {
     { id: "toggle-line-numbers", label: "Toggle Line Numbers", category: "Settings", keywords: "editor gutter", action: () => setLineNumbers(!lineNumbers) },
     { id: "toggle-invisibles", label: "Toggle Invisibles", category: "Settings", keywords: "whitespace empty lines blank spaces tabs pilcrow", action: () => setShowInvisibles(!showInvisibles) },
     { id: "toggle-word-count", label: "Toggle Word Count", category: "Settings", keywords: "words stats statistics length counter", action: () => setShowWordCount(!showWordCount) },
-    { id: "toggle-minimap", label: "Toggle Minimap", category: "Settings", keywords: "outline overview map scroll headings view", shortcut: formatShortcut("M", { shift: true }), action: () => setShowMinimap(!showMinimap) },
+    { id: "toggle-outline", label: "Toggle Outline", category: "Settings", keywords: "headings contents overview minimap toc view", shortcut: formatShortcut("M", { shift: true }), action: () => setShowOutline(!showOutline) },
     { id: "toggle-vim-mode", label: "Toggle Vim Mode", category: "Settings", keywords: "editor keybindings modal", action: () => setVimMode(!vimMode) },
     // Focus Mode on (dim other paragraphs) or off: the palette's top-level
     // switch. The levels follow, one command each; the current one is disabled.

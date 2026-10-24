@@ -11,7 +11,7 @@ const targetOf = (kind: PinKind, target: string) => (kind === "tag" ? normalizeT
 
 export const PINS_FULL_MESSAGE = `You can pin up to ${PINS_MAX} items. Unpin one to make room.`;
 
-// The vault's pins (`.hermes/pins.yaml`) for components: what's pinned, and
+// The vault's pins (`.hermesmarkdown/pins.yaml`) for components: what's pinned, and
 // each change, written to the file at once through atom_updatePins (which
 // toasts when it can't). Everything resolves to the write's result. At most
 // PINS_MAX are listed: a pin past that isn't added, and a toast says why.

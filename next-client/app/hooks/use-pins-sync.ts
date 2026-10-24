@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { useAtomValue, useStore } from "jotai";
 import { selectAtom } from "jotai/utils";
 import { atom_openFiles } from "@/app/atoms/file-atoms";
-import { atom_pinsState, atom_updatePins, NO_PINS_STATE } from "@/app/atoms/pin-atoms";
+import { atom_pinsState, atom_updatePins, NO_PINS_STATE, pinsWritePending } from "@/app/atoms/pin-atoms";
 import { atom_fileSystemVersion, atom_vaultHandle, atom_vaultKey } from "@/app/atoms/vault-atoms";
 import { loadYaml, readPinsFile } from "@/app/services/vault-pins";
 import { addPins, parsePins, PINS_PATH, samePins } from "@/app/services/vault-pins-format";
@@ -19,7 +19,7 @@ const OBSERVER_DEBOUNCE_MS = 250;
 // saving it in the editor re-reads it; other tabs don't re-trigger.
 const atom_pinsTabSaved = selectAtom(atom_openFiles, (files) => files[PINS_PATH]?.lastSavedContent);
 
-// Keeps atom_pinsState equal to the open vault's `.hermes/pins.yaml`, and
+// Keeps atom_pinsState equal to the open vault's `.hermesmarkdown/pins.yaml`, and
 // moves the vault's per-device pinned notes (pins-migration.ts) into it once
 // per session. It reads the file when the vault opens, on every
 // atom_fileSystemVersion bump (window focus, the rescan timers, the folder
@@ -63,8 +63,9 @@ export function usePinsSync(enabled: boolean): void {
     try {
       const [{ load }, file] = await Promise.all([loadYaml(), readPinsFile(vault)]);
       const current = store.get(atom_pinsState);
-      // A later read, a vault change or one of the app's own writes landed first.
-      if (run !== runRef.current || current.vault !== vault || current !== before) return;
+      // A later read, a vault change or one of the app's own writes landed
+      // first, or a write is still in flight (its change already shows).
+      if (run !== runRef.current || current.vault !== vault || current !== before || pinsWritePending()) return;
       const parsed = parsePins(file?.text ?? "", load);
       if (!parsed.ok) {
         console.warn(`${PINS_PATH} isn't valid YAML; keeping the pins last read.`);

@@ -47,7 +47,7 @@ export const TEMPLATE_SKILL: ChatSkill = {
   command: "/template",
   trigger: /\btemplates?\b/i,
   builtin: TEMPLATE_SKILL_BUILTIN,
-  overridePath: ".hermes/skills/create-template.md",
+  overridePath: ".hermesmarkdown/skills/create-template.md",
 };
 
 const TASKS_SKILL_BUILTIN = [
@@ -67,7 +67,7 @@ export const TASKS_SKILL: ChatSkill = {
   command: "/tasks",
   trigger: /\b(?:tasks?|to-?dos?|action items?|next actions?)\b/i,
   builtin: TASKS_SKILL_BUILTIN,
-  overridePath: ".hermes/skills/tasks.md",
+  overridePath: ".hermesmarkdown/skills/tasks.md",
 };
 
 export const CHAT_SKILLS: ChatSkill[] = [TEMPLATE_SKILL, TASKS_SKILL];

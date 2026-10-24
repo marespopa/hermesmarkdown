@@ -13,7 +13,7 @@ import ShellPage from "../components/ShellPage";
 const deletedLabel = (date: Date | null) =>
   date ? `Deleted ${date.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : "Deleted";
 
-// The vault's Trash (`.hermes/trash`): what Move to Trash put there, newest
+// The vault's Trash (`.hermesmarkdown/trash`): what Move to Trash put there, newest
 // first, each with where it came from. Put Back moves it there again (its
 // folders made again if need be); Delete, or Empty Trash, removes it for
 // good after asking. Items are emptied on their own after the retention

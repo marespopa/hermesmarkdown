@@ -8,6 +8,8 @@ import Button from "../../components/Button";
 interface DatePickerCalloutProps {
   isOpen: boolean;
   initialDate: Date;
+  /** The time of an ISO datetime, shown read-only; picking a day keeps it. */
+  keptTime?: string;
   onSelectDate: (date: Date) => void;
   onClose: () => void;
 }
@@ -15,6 +17,7 @@ interface DatePickerCalloutProps {
 export default function DatePickerCallout({
   isOpen,
   initialDate,
+  keptTime,
   onSelectDate,
   onClose,
 }: DatePickerCalloutProps) {
@@ -126,9 +129,14 @@ export default function DatePickerCallout({
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-4 px-1">
-          <span className="font-bold text-ui-callout text-ink-light dark:text-ink-dark">
-            {monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}
-          </span>
+          <div className="flex flex-col">
+            <span className="font-bold text-ui-callout text-ink-light dark:text-ink-dark">
+              {monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}
+            </span>
+            {keptTime && (
+              <span className="text-ui-caption text-stone">Keeps time {keptTime}</span>
+            )}
+          </div>
           <div className="flex items-center gap-1">
             <Button
               variant="icon"

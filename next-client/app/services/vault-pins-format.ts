@@ -1,4 +1,4 @@
-// The vault's pins file, `.hermes/pins.yaml`: what the sidebar's Pinned
+// The vault's pins file, `.hermesmarkdown/pins.yaml`: what the sidebar's Pinned
 // section lists (notes, folders, tags and app pages, each with an optional
 // emoji icon), in order. Pure: parsing, the entry rules, serialising and the
 // edits; reading and writing the file is vault-pins.ts. One pin per line (a
@@ -8,8 +8,9 @@
 // write, as do unknown keys.
 import { remapPath } from "@/app/atoms/utils";
 import { normalizeTag } from "@/app/utils/tag-normalize";
+import { VAULT_DATA_DIR } from "./vault-data-dir";
 
-export const PINS_FOLDER = ".hermes";
+export const PINS_FOLDER = VAULT_DATA_DIR;
 export const PINS_FILE = "pins.yaml";
 export const PINS_PATH = `${PINS_FOLDER}/${PINS_FILE}`;
 export const PIN_PAGES = ["files", "tags", "tasks", "templates", "trash", "settings"] as const;

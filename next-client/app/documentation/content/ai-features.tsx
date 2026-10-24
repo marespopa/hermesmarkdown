@@ -110,7 +110,7 @@ export const aiFeaturesGroup: Group = {
           </p>
           <Callout type="tip">
             To change how the chat writes templates, put your own instructions in{" "}
-            <code>.hermes/skills/create-template.md</code> in your vault. When that file exists, its
+            <code>.hermesmarkdown/skills/create-template.md</code> in your vault. When that file exists, its
             text (below any frontmatter) replaces the built-in instructions. The app never writes it.
           </Callout>
           <p>
@@ -138,7 +138,7 @@ export const aiFeaturesGroup: Group = {
           <Callout type="tip">
             Private notes (<code>private: true</code> or a <code>private</code> tag) are never sent. Their tasks are left out and
             only counted. To change how the skill writes, put your own instructions in{" "}
-            <code>.hermes/skills/tasks.md</code>. The app still adds the task list.
+            <code>.hermesmarkdown/skills/tasks.md</code>. The app still adds the task list.
           </Callout>
         </>
       ),

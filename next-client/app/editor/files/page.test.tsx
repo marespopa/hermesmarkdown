@@ -7,7 +7,6 @@ import FilesPage from "./page";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
-vi.mock("@/app/hooks/use-vault-sync", () => ({ useVaultSync: vi.fn() }));
 
 const fileSystem = vi.hoisted(() => ({
   isMounted: true,

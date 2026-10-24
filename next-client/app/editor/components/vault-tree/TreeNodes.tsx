@@ -4,7 +4,7 @@ import { HiFolder, HiOutlineDocumentText } from "react-icons/hi";
 import { FileRow, LIST_INDENT_PX, type RowEditing } from "./FileRow";
 import { FolderRow, type FolderRowProps } from "./FolderRow";
 import { InlineNameField } from "./InlineNameField";
-import { type DraggedEntry, parentFolderPath, type TreeFolderNode, type TreeNode } from "./tree-model";
+import { type DraggedEntry, parentFolderPath, type TreeFolderNode, type VisibleRow } from "./tree-model";
 
 export interface PendingCreate {
   kind: "file" | "folder";
@@ -30,24 +30,30 @@ function PendingRow({ pending, depth }: { pending: PendingCreate; depth: number 
   );
 }
 
-export function TreeNodes({
-  nodes,
-  level,
-  parentPath = "",
-  isFolderCollapsed,
-  isActiveAncestor,
-  onToggleFolder,
-  rowProps,
-  folderProps,
-  pendingCreate,
-  setDraggedEntry,
-  onDragStartFile,
-  touchDrag,
-}: {
-  nodes: TreeNode[];
-  // Tree depth of `nodes` (0 = vault root); rows indent by it.
-  level: number;
-  parentPath?: string;
+// One line of the tree as shown: a folder or file row, or the pending
+// new item. The tree renders this flat list (virtualized when long), so a
+// folder's rows aren't nested in its element.
+export type TreeItem =
+  | { kind: "pending"; key: string; depth: number }
+  | { kind: "row"; key: string; row: VisibleRow };
+
+// The visible rows, with the item being named first in its folder (shown
+// only while that folder is open, as its other rows are).
+export function treeItems(rows: VisibleRow[], pending: PendingCreate | null, isFolderCollapsed: (path: string) => boolean): TreeItem[] {
+  const items: TreeItem[] = rows.map((row) => ({ kind: "row", key: `${row.type}-${row.path}`, row }));
+  if (!pending) return items;
+  const pendingItem = (depth: number): TreeItem => ({ kind: "pending", key: "pending", depth });
+  if (!pending.parentPath) return [pendingItem(0), ...items];
+  const at = items.findIndex((item) => item.kind === "row" && item.row.type === "folder" && item.row.path === pending.parentPath);
+  if (at === -1 || isFolderCollapsed(pending.parentPath)) return items;
+  const parent = items[at] as Extract<TreeItem, { kind: "row" }>;
+  items.splice(at + 1, 0, pendingItem(parent.row.depth + 1));
+  return items;
+}
+
+export interface TreeItemRowProps {
+  item: TreeItem;
+  pendingCreate: PendingCreate | null;
   isFolderCollapsed: (path: string) => boolean;
   isActiveAncestor: (path: string) => boolean;
   onToggleFolder: (path: string) => void;
@@ -57,7 +63,6 @@ export function TreeNodes({
     FolderRowProps,
     "node" | "depth" | "isCollapsed" | "isActiveChain" | "onToggle" | "onTouchDragStart" | "isTouchPressing" | "isTouchDropTarget"
   >;
-  pendingCreate: PendingCreate | null;
   setDraggedEntry: (v: DraggedEntry | null) => void;
   onDragStartFile: (entry: DraggedEntry) => void;
   touchDrag: {
@@ -65,63 +70,56 @@ export function TreeNodes({
     isPressing: () => boolean;
     dropTarget: string | null;
   };
-}) {
-  return (
-    <>
-      {pendingCreate?.parentPath === parentPath && <PendingRow pending={pendingCreate} depth={level} />}
-      {nodes.map((node) => {
-        if (node.type === "folder") {
-          const isCollapsed = isFolderCollapsed(node.path);
-          return (
-            <div key={`folder-${node.path}`} data-path={node.path}>
-              <FolderRow
-                node={node}
-                depth={level}
-                isCollapsed={isCollapsed}
-                isActiveChain={isActiveAncestor(node.path)}
-                onToggle={onToggleFolder}
-                onTouchDragStart={(e) => touchDrag.start(e, { kind: "folder", path: node.path, name: node.name })}
-                isTouchPressing={touchDrag.isPressing}
-                isTouchDropTarget={touchDrag.dropTarget === node.path}
-                {...folderProps(node)}
-              />
-              {!isCollapsed && (
-                <TreeNodes
-                  nodes={node.children}
-                  level={level + 1}
-                  parentPath={node.path}
-                  isFolderCollapsed={isFolderCollapsed}
-                  isActiveAncestor={isActiveAncestor}
-                  onToggleFolder={onToggleFolder}
-                  rowProps={rowProps}
-                  folderProps={folderProps}
-                  pendingCreate={pendingCreate}
-                  setDraggedEntry={setDraggedEntry}
-                  onDragStartFile={onDragStartFile}
-                  touchDrag={touchDrag}
-                />
-              )}
-            </div>
-          );
-        }
+}
 
-        const dragged: DraggedEntry = { kind: "file", path: node.path, name: node.name, handle: node.entry.handle };
-        return (
-          <div key={`file-${node.path}`} data-path={node.path}>
-            <FileRow
-              {...rowProps(node.entry)}
-              hideFolderPath
-              depth={level}
-              draggable
-              onDragStartEntry={() => onDragStartFile(dragged)}
-              onDragEndEntry={() => setDraggedEntry(null)}
-              onTouchDragStart={(e) => touchDrag.start(e, dragged)}
-              isTouchPressing={touchDrag.isPressing}
-              dropFolder={parentFolderPath(node.path)}
-            />
-          </div>
-        );
-      })}
-    </>
+export function TreeItemRow({
+  item,
+  pendingCreate,
+  isFolderCollapsed,
+  isActiveAncestor,
+  onToggleFolder,
+  rowProps,
+  folderProps,
+  setDraggedEntry,
+  onDragStartFile,
+  touchDrag,
+}: TreeItemRowProps) {
+  if (item.kind === "pending") {
+    return pendingCreate ? <PendingRow pending={pendingCreate} depth={item.depth} /> : null;
+  }
+  const { node, depth } = item.row;
+  if (node.type === "folder") {
+    return (
+      <div data-path={node.path}>
+        <FolderRow
+          node={node}
+          depth={depth}
+          isCollapsed={isFolderCollapsed(node.path)}
+          isActiveChain={isActiveAncestor(node.path)}
+          onToggle={onToggleFolder}
+          onTouchDragStart={(e) => touchDrag.start(e, { kind: "folder", path: node.path, name: node.name })}
+          isTouchPressing={touchDrag.isPressing}
+          isTouchDropTarget={touchDrag.dropTarget === node.path}
+          {...folderProps(node)}
+        />
+      </div>
+    );
+  }
+
+  const dragged: DraggedEntry = { kind: "file", path: node.path, name: node.name, handle: node.entry.handle };
+  return (
+    <div data-path={node.path}>
+      <FileRow
+        {...rowProps(node.entry)}
+        hideFolderPath
+        depth={depth}
+        draggable
+        onDragStartEntry={() => onDragStartFile(dragged)}
+        onDragEndEntry={() => setDraggedEntry(null)}
+        onTouchDragStart={(e) => touchDrag.start(e, dragged)}
+        isTouchPressing={touchDrag.isPressing}
+        dropFolder={parentFolderPath(node.path)}
+      />
+    </div>
   );
 }

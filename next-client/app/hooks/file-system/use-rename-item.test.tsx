@@ -14,6 +14,12 @@ vi.mock("../use-dialog", () => ({ useDialog: () => ({ prompt: vi.fn() }) }));
 const rewriteLinks = vi.fn();
 vi.mock("./use-rewrite-links", () => ({ useRewriteLinksAfterMove: () => rewriteLinks }));
 
+function storeWith(vault: MemoryDirectoryHandle) {
+  const store = createStore();
+  store.set(atom_vaultHandle, vault.asHandle());
+  return store;
+}
+
 async function setup() {
   const vault = new MemoryDirectoryHandle("vault");
   await vault.writeText("Old.md", "x");
@@ -32,7 +38,7 @@ async function setup() {
     await act(async () => { path = await result.current.renameFile(handle, "New.md", "Old.md"); });
     return path;
   };
-  return { order, rename };
+  return { order, rename, vault, scanVault };
 }
 
 describe("useRenameItem link updates", () => {
@@ -71,5 +77,41 @@ describe("useRenameItem link updates", () => {
     expect(await rename()).toBe("New.md");
     expect(toast.error).toHaveBeenCalledWith("Couldn't update links");
     expect(order).toContain("scan");
+  });
+
+  it("says plainly when the item is gone from disk, and rescans", async () => {
+    const { vault, scanVault } = await setup();
+    const handle = await vault.asHandle().getFileHandle("Old.md");
+    await vault.asHandle().removeEntry("Old.md");
+    const { result } = renderHook(
+      () => useRenameItem({ scanVault, indexVaultTags: vi.fn().mockResolvedValue(undefined), recordUndo: vi.fn(() => null) }),
+      { wrapper: ({ children }) => <Provider store={storeWith(vault)}>{children}</Provider> },
+    );
+
+    let path: string | undefined;
+    await act(async () => { path = await result.current.renameFile(handle, "New.md", "Old.md"); });
+
+    expect(path).toBeUndefined();
+    expect(toast.error).toHaveBeenCalledWith(`Couldn't rename "Old.md": it's no longer in this folder.`);
+    expect(scanVault).toHaveBeenCalled();
+  });
+
+  it("changes only the letter case through an unused name, leaving no copy", async () => {
+    const vault = new MemoryDirectoryHandle("vault");
+    await vault.writeText("Draft.md", "x");
+    const { result } = renderHook(
+      () => useRenameItem({ scanVault: vi.fn(async () => {}), indexVaultTags: vi.fn().mockResolvedValue(undefined), recordUndo: vi.fn(() => null) }),
+      { wrapper: ({ children }) => <Provider store={storeWith(vault)}>{children}</Provider> },
+    );
+    const handle = await vault.asHandle().getFileHandle("Draft.md");
+
+    let path: string | undefined;
+    await act(async () => { path = await result.current.renameFile(handle, "draft.md", "Draft.md"); });
+
+    expect(path).toBe("draft.md");
+    const names: string[] = [];
+    for await (const entry of (vault.asHandle() as any).values()) names.push(entry.name);
+    expect(names).toEqual(["draft.md"]);
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });

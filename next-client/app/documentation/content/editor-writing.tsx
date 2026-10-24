@@ -448,11 +448,6 @@ graph TD
           <TextLink href="#templates">Templates</TextLink>.
         </p>
         <p>
-          In the library, <strong>Linked from</strong> lists the notes that link to the note you are
-          in; click one to open it at the link. <strong>Unlinked mentions</strong> (folded until you
-          open it) finds notes that name this note in plain text without linking it.
-        </p>
-        <p>
           Renaming or moving a note, or renaming a folder, updates the wikilinks that would
           otherwise break, in open and closed notes alike, and undoing the rename or move puts the
           links back.

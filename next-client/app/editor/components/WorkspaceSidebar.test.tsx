@@ -16,7 +16,7 @@ const fileSystem = vi.hoisted(() => ({
   createFolder: vi.fn(),
   openFile: vi.fn(async () => {}),
   renameFile: vi.fn(),
-  treeController: null as null | { startCreate: () => void; focus: () => void; reveal: (path: string) => void },
+  treeController: null as null | { startCreate: () => void; focus: () => void; reveal: (path: string) => void; openBackgroundMenu?: (x: number, y: number) => boolean },
 }));
 
 const navigation = vi.hoisted(() => ({ push: vi.fn(), pathname: "/editor" }));
@@ -45,6 +45,15 @@ vi.mock("@/app/hooks/use-file-system", () => ({
     createNewFile: fileSystem.createNewFile,
     createFolder: fileSystem.createFolder,
   }),
+}));
+
+const vaultMenu = vi.hoisted(() => ({ openRecent: vi.fn(), open: vi.fn() }));
+vi.mock("../hooks/use-vault-menu-items", () => ({
+  useVaultMenuItems: () => [
+    { label: "Notes", onClick: vaultMenu.openRecent },
+    { label: "Work", onClick: vaultMenu.openRecent },
+    { label: "Open Vault…", icon: "icon", divider: true, onClick: vaultMenu.open },
+  ],
 }));
 
 vi.mock("../hooks/useVaultFileSearch", () => ({
@@ -204,46 +213,22 @@ describe("WorkspaceSidebar", () => {
     for (const name of ["Home", "All Notes", "Tags", "Tasks", "Templates", "Trash", "Export", "Settings", "Documentation"]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
     }
-    for (const name of ["Pinned", "Recent", "Open Notes", "Outline"]) {
+    for (const name of ["Pinned", "Recent", "Open Notes", "Outline", "Linked from"]) {
       expect(screen.queryByRole("region", { name })).not.toBeInTheDocument();
     }
     // Within the sidebar: the test's own atom probes are <output>s (status).
     expect(within(screen.getByRole("navigation")).queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("shows Linked from for a linked vault note on the editor, and not for the draft or without a vault", () => {
-    const note = (path: string, links: string[] = []) => ({ path, name: path, tags: [], links, frontmatter: {}, modifiedAt: 0, wordCount: 0, tasks: [], handle: { path } });
-    const linked = { "a.md": note("a.md"), "b.md": note("b.md", ["a"]) };
-    fileSystem.vaultHandle = { name: "Notes" };
-    const first = renderSidebar(true, null, false, {}, "a.md", linked);
-    expect(screen.getByRole("region", { name: "Linked from" })).toBeInTheDocument();
-    first.unmount();
-
-    // Nothing links to b.md, so the section stays hidden.
-    const unlinked = renderSidebar(true, null, false, {}, "b.md", linked);
-    expect(screen.queryByRole("region", { name: "Linked from" })).not.toBeInTheDocument();
-    unlinked.unmount();
-
-    renderSidebar(true, null, false, { draft: { fileName: "draft", content: "x", lastSavedContent: "" } }, "draft", linked);
-    expect(screen.queryByRole("region", { name: "Linked from" })).not.toBeInTheDocument();
-    cleanup();
-
-    fileSystem.vaultHandle = null;
-    renderSidebar(true, null, false, {}, "a.md", linked);
-    expect(screen.queryByRole("region", { name: "Linked from" })).not.toBeInTheDocument();
-  });
-
-  it("titles its header with the app's name, not a vault switcher", () => {
+  it("switches vaults from its header: the open vault's name opens the vault menu", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar();
-    expect(screen.getByText("HermesMarkdown")).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Switch vault/ })).not.toBeInTheDocument();
-  });
-
-  it("hides from a click on its wordmark", () => {
-    renderSidebar();
-    fireEvent.click(screen.getByRole("button", { name: "HermesMarkdown. Hide sidebar" }));
-    expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
+    expect(screen.queryByText("HermesMarkdown")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Switch vault: Notes" }));
+    const menu = screen.getByRole("menu", { name: "Switch vault" });
+    expect(within(menu).getByRole("menuitemcheckbox", { name: "Notes" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(within(menu).getByText("Open Vault…"));
+    expect(vaultMenu.open).toHaveBeenCalled();
   });
 
   it("hides from its Hide sidebar button", () => {
@@ -280,6 +265,26 @@ describe("WorkspaceSidebar", () => {
       expect.stringMatching(/^Tasks(Ctrl\+2|⌘2)$/),
       expect.stringMatching(/^🚀projects(Ctrl\+3|⌘3)$/),
     ]);
+  });
+
+  it("opens the Files root menu on a right-click in the sidebar, not in Pinned or the Search field", () => {
+    const vault = { name: "Notes" };
+    const openBackgroundMenu = vi.fn(() => true);
+    fileSystem.vaultHandle = vault;
+    fileSystem.treeController = { startCreate: vi.fn(), focus: vi.fn(), reveal: vi.fn(), openBackgroundMenu };
+    const store = createStore();
+    store.set(atom_sidebarOpen, true);
+    store.set(atom_vaultHandle, vault as never);
+    store.set(atom_workspaceLayout, { rootContainer: { ...left } });
+    store.set(atom_pinsState, { vault: vault as never, status: "ok", pins: [{ kind: "page", target: "tasks", icon: null }] });
+    render(<Provider store={store}><WorkspaceSidebar /></Provider>);
+
+    fireEvent.contextMenu(screen.getByRole("region", { name: "Pinned" }));
+    fireEvent.contextMenu(screen.getByRole("textbox", { name: "Search files" }));
+    expect(openBackgroundMenu).not.toHaveBeenCalled();
+
+    fireEvent.contextMenu(screen.getByRole("region", { name: "Files" }), { clientX: 40, clientY: 300 });
+    expect(openBackgroundMenu).toHaveBeenCalledWith(40, 300);
   });
 
   it("has no Pinned section with nothing pinned", () => {

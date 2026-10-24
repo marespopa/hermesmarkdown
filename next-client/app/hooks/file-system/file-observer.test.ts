@@ -108,7 +108,7 @@ describe("changesFileList / observeVault", () => {
     expect(changesFileList(record("unknown", []))).toBe(true);
     expect(changesFileList(record("modified", ["a.md"]))).toBe(false);
     expect(changesFileList(record("errored", ["a.md"]))).toBe(false);
-    expect(changesFileList(record("appeared", [".hermes", "trash", "a.md"]))).toBe(false);
+    expect(changesFileList(record("appeared", [".hermesmarkdown", "trash", "a.md"]))).toBe(false);
   });
 
   it("watches the vault recursively and reports file-list changes only", async () => {

@@ -36,7 +36,8 @@ function isValidDate(value: string, kind: DateKind): boolean {
   } else if (kind === "dotted") {
     [day, month, year] = value.split(".").map(Number);
   } else {
-    [year, month, day] = value.split("-").map(Number);
+    // Only the date part of an ISO datetime is checked.
+    [year, month, day] = value.slice(0, 10).split("-").map(Number);
   }
 
   const parsed = new Date(year, month - 1, day);

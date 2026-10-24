@@ -36,9 +36,9 @@ export const atom_showInvisibles = atomWithStorage<boolean>("showInvisibles", fa
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 // The faint word count pill in the editor corner (WordCountPill). Off by default.
 export const atom_showWordCount = atomWithStorage<boolean>("showWordCount", false);
-// The editor's minimap down the pane's right edge (EditorMinimap;
+// The note's outline in the pane's bottom-right corner (EditorOutline;
 // Ctrl/Cmd+Shift+M, Settings → Editor → View). Off by default.
-export const atom_showMinimap = atomWithStorage<boolean>("showMinimap", false);
+export const atom_showOutline = atomWithStorage<boolean>("showOutline", false);
 // Lets the editor's text column fill the sheet instead of stopping at the
 // reading width (--editor-measure, editor-typography.scss). On by default.
 export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
@@ -65,8 +65,8 @@ export const atom_toggleSentenceFocus = atom(null, (get, set) => {
 // The window's sidebar (desktop): open notes and the vault's file tree, on the
 // leading edge. Hidden by default; toggled from its corner button, Ctrl/Cmd+\\ or Ctrl/Cmd+Alt+S.
 export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
-// The minimum keeps the header's whole "HermesMarkdown" wordmark beside its
-// two buttons, with room to spare.
+// The minimum leaves the header's vault switcher room for a short vault name
+// beside its two buttons (a longer one truncates).
 export const SIDEBAR_MIN_WIDTH = 240;
 export const SIDEBAR_MAX_WIDTH = 420;
 const clampSidebarWidth = (width: number) => Math.round(Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width)));
@@ -244,7 +244,7 @@ export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   "frontmatterHasPrompted",
   false,
 );
-// Shows dotfiles/dotfolders (e.g. .hermes/) and underscore-prefixed skill/meta
+// Shows dotfiles/dotfolders (e.g. .hermesmarkdown/) and underscore-prefixed skill/meta
 // files in the file tree and search. Off by default, so the file tree
 // stays focused on the user's own notes; the settings page and command
 // palette offer a quick opt-in for when someone needs to see those files.

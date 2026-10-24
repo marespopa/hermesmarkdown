@@ -36,7 +36,7 @@ function getShortcutGroups(): ShortcutGroup[] {
         { label: "Show / hide sidebar", keys: `${formatShortcut("\\")}, ${formatShortcut("S", { alt: true })} or ${mac ? "⌃[" : "Ctrl+["}` },
         { label: "Keyboard shortcuts", keys: formatShortcut("?") },
         { label: "Sentence focus on / off", keys: formatShortcut("F", { alt: true }) },
-        { label: "Minimap on / off", keys: formatShortcut("M", { shift: true }) },
+        { label: "Outline on / off", keys: formatShortcut("M", { shift: true }) },
         { label: "Ask or Edit with AI (AI features on)", keys: formatShortcut("J") },
         { label: "AI Chat (with an AI key)", keys: formatShortcut("B", { shift: true }) },
         { label: "Pin / unpin in the command palette", keys: formatShortcut("D") },

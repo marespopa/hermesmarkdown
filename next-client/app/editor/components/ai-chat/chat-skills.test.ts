@@ -9,7 +9,7 @@ import {
 
 const notFound = () => Object.assign(new Error("missing"), { name: "NotFoundError" });
 
-// A vault whose only file is `.hermes/skills/create-template.md` (or none).
+// A vault whose only file is `.hermesmarkdown/skills/create-template.md` (or none).
 function vaultWith(override: string | null, { failRead = false } = {}) {
   const file = {
     getFile: async () => {

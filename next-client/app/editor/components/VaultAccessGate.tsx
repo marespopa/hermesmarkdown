@@ -2,8 +2,9 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useAtomValue } from "jotai";
-import { atom_isVaultRestoring, atom_isVaultUnlocking } from "@/app/atoms/atoms";
+import { atom_isVaultRestoring, atom_isVaultUnlocking, atom_openingVaultName } from "@/app/atoms/atoms";
 import { useVaultManager } from "@/app/hooks/file-system/use-vault-manager";
+import LoadingOverlay from "@/app/components/LoadingOverlay";
 import EditorSkeleton from "./EditorSkeleton";
 import VaultPendingOverlay from "./VaultPendingOverlay";
 
@@ -15,10 +16,13 @@ import VaultPendingOverlay from "./VaultPendingOverlay";
 // the skeleton. Any click or key press then asks the browser for access, so
 // no separate button press is needed. Once access is granted the prompt goes
 // and the skeleton stays until the vault is loaded and "Vault restored" shows.
+// While the user opens another vault, "Opening <name>..." covers the route
+// until its open notes and top folder are read.
 export default function VaultAccessGate({ children }: { children: ReactNode }) {
   const { isVaultPending, restoreVault } = useVaultManager();
   const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
   const isVaultUnlocking = useAtomValue(atom_isVaultUnlocking);
+  const openingVaultName = useAtomValue(atom_openingVaultName);
 
   useEffect(() => {
     if (!isVaultPending || isVaultUnlocking) return;
@@ -47,6 +51,8 @@ export default function VaultAccessGate({ children }: { children: ReactNode }) {
           {!isVaultUnlocking && <VaultPendingOverlay restoreVault={restoreVault} />}
         </>
       )}
+      {/* Switching vaults: covers the old vault until the new one is readable. */}
+      <LoadingOverlay isVisible={openingVaultName !== null} text={`Opening ${openingVaultName}...`} />
     </>
   );
 }

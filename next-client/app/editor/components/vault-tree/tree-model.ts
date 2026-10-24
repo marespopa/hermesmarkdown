@@ -14,6 +14,9 @@ export interface VaultFileTreeController {
   startCreate: (kind: "file" | "folder", parentPath?: string) => void;
   focus: () => void;
   reveal: (path: string) => void;
+  // Opens the root's New Note / New Folder menu at (x, y); false if the tree
+  // has nothing to offer there.
+  openBackgroundMenu: (x: number, y: number) => boolean;
 }
 
 export interface VaultFileTreeProps {

@@ -2,7 +2,7 @@ import { parsePinItem, type Pin } from "@/app/services/vault-pins-format";
 
 // The pins last read for each vault on this device, keyed by vault
 // (atom_vaultKey), so the sidebar shows them the moment a vault opens while
-// usePinsSync reads `.hermes/pins.yaml` (the file always wins). Only a cache:
+// usePinsSync reads `.hermesmarkdown/pins.yaml` (the file always wins). Only a cache:
 // any odd entry is dropped, and blocked storage just means no head start.
 export const PINS_CACHE_KEY = "hermes_pins_cache";
 

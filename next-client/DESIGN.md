@@ -191,6 +191,7 @@ Defined in `tailwind.config.js` as custom `fontSize` entries. Sizes and line hei
 | `text-ui-title-1` | 28px | 34px | Title 1 | Page / modal headings |
 | `text-ui-title-2` | 22px | 28px | Title 2 | Section headings |
 | `text-ui-title-3` | 20px | 25px | Title 3 | Card / panel headings |
+| `text-ui-headline` | 17px | 22px | Headline | Dialog and list-section headings (with `font-semibold`) |
 | `text-ui-body` | 17px | 22px | Body | Body copy |
 | `text-ui-callout` | 16px | 21px | Callout | Callouts, descriptions |
 | `text-ui-subhead` | 15px | 20px | Subheadline | Labels, nav items |

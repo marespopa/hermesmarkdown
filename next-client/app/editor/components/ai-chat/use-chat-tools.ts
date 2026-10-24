@@ -38,7 +38,7 @@ export function useChatTools() {
 
   const skip = useCallback((path: string) => {
     const folder = store.get(atom_templatesFolder).folder;
-    return path.startsWith(".hermes/") || isTemplatePath(path, folder);
+    return path.startsWith(".hermesmarkdown/") || isTemplatePath(path, folder);
   }, [store]);
 
   const runTool = useCallback(async ({ toolName, input: rawInput }: AIToolCall): Promise<{ output: string; activity: string }> => {

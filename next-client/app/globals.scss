@@ -237,13 +237,16 @@ select:focus-visible {
 }
 
 /* iOS Safari zooms the page into any focused field under 16px and leaves it
-   zoomed. On touch screens, text fields are held at 16px or more; desktop
-   keeps the compact sizes. */
-@media (hover: none) and (pointer: coarse) {
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
-  textarea,
-  select {
-    font-size: max(1rem, 1em) !important;
+   zoomed. On iOS touch screens, text fields are held at 16px or more; other
+   browsers don't zoom, so fields keep the compact sizes there (the sidebar's
+   Search reads at the size of the rows and the editor's search pill). */
+@supports (-webkit-touch-callout: none) {
+  @media (hover: none) and (pointer: coarse) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+    textarea,
+    select {
+      font-size: max(1rem, 1em) !important;
+    }
   }
 }
 

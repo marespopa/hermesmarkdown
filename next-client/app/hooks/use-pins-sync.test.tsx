@@ -25,7 +25,7 @@ vi.mock("@/app/services/vault-pins", async () => {
     PinsFileNewerError,
     loadYaml: async () => ({ load: yaml.load, dump: yaml.dump }),
     readPinsFile: vi.fn(async (vault: unknown) => {
-      if (disk.hold?.vault === vault) await disk.hold.promise;
+      if (disk.hold && disk.hold.vault === vault) await disk.hold.promise;
       const text = disk.files.get(vault) ?? null;
       return text === null ? null : { text, handle: { name: "pins.yaml" } };
     }),
@@ -126,10 +126,10 @@ describe("usePinsSync", () => {
 
     disk.files.set(notes, "pins:\n  - {tag: release}\n  - {tag: bug}\n");
     act(() => store.set(atom_openFiles, {
-      ".hermes/pins.yaml": { content: "saved", lastSavedContent: "saved", fileName: "pins.yaml", activeFilePath: ".hermes/pins.yaml" },
+      ".hermesmarkdown/pins.yaml": { content: "saved", lastSavedContent: "saved", fileName: "pins.yaml", activeFilePath: ".hermesmarkdown/pins.yaml" },
     }));
     await waitFor(() => expect(targets(store)).toEqual(["release", "bug"]));
-    expect(observer.sync).toHaveBeenCalledWith(new Map([[".hermes/pins.yaml", { name: "pins.yaml" }]]));
+    expect(observer.sync).toHaveBeenCalledWith(new Map([[".hermesmarkdown/pins.yaml", { name: "pins.yaml" }]]));
   });
 
   it("re-reads 250 ms after the file observer reports a change", async () => {

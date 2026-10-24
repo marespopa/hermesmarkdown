@@ -272,8 +272,8 @@ export const getStartedGroup: Group = {
             <strong>Search</strong> field above it: type part of a path, or a regular expression
             (<code>projects/.*plan</code>), and the tree shows only the files that match, their folders open;{" "}
             <code>Esc</code> clears it. For an overview of a long note, turn on the{" "}
-            <strong>Minimap</strong> (<code>CTRL/CMD+SHIFT+M</code>, or Settings → Editor → View): the note drawn
-            small down the editor&apos;s right edge, with the part on screen marked; click or drag it to scroll. A line sets each section apart, and each has a chevron to fold or unfold it.
+            <strong>Outline</strong> (<code>CTRL/CMD+SHIFT+M</code>, or Settings → Editor → View): the note&apos;s
+            headings in the editor&apos;s bottom-right corner, the section you&apos;re reading marked; click one to jump there. A line sets each section apart, and each has a chevron to fold or unfold it.
             It sits beside the page and pushes it over rather than covering it.
           </p>
           <p>

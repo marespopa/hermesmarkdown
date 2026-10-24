@@ -51,7 +51,7 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "New note", shortcut: "CTRL+ALT+N" },
             { label: "Close the note in front", shortcut: "CTRL/CMD+ALT+W" },
             { label: "Open a pinned item (1–9, in the Pinned order)", shortcut: "CTRL/CMD+1–9" },
-            { label: "Minimap on / off", shortcut: "CTRL/CMD+SHIFT+M" },
+            { label: "Outline on / off", shortcut: "CTRL/CMD+SHIFT+M" },
             { label: "Show / hide sidebar", shortcut: "CTRL/CMD+\\, CTRL/CMD+ALT+S or CTRL+[" },
             { label: "Sentence focus on / off", shortcut: "CTRL/CMD+ALT+F" },
           ],

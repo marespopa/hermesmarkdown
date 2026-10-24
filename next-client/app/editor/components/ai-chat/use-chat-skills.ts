@@ -30,7 +30,7 @@ export function useChatSkills() {
   const skillContext = useCallback(async (skill: ChatSkill): Promise<string> => {
     if (skill.id === "tasks") {
       const templatesFolder = store.get(atom_templatesFolder).folder;
-      const skip = (path: string) => path.startsWith(".hermes/") || isTemplatePath(path, templatesFolder);
+      const skip = (path: string) => path.startsWith(".hermesmarkdown/") || isTemplatePath(path, templatesFolder);
       return openTasksBlock(store.get(atom_fileMetadata), new Date(), skip);
     }
     return "";

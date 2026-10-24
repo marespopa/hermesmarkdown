@@ -34,29 +34,34 @@ export default function EditorPills({ features, languagePicker, image, container
   return (
     <>
       {dateMatch && (
-        <Button
-          variant="pill-icon"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsDateExpanded(!isDateExpanded);
-          }}
-          className={PILL_CONTAINER_CLASSES}
+        <div
           style={{
             top: dateMenuPos.top - 2,
             left: Math.min(dateMenuPos.endLeft + 8, (containerRef.current?.clientWidth || 500) - 30),
           }}
-          title="Toggle calendar (Ctrl/Cmd+Shift+Enter)"
-          aria-label="Toggle calendar (Ctrl/Cmd+Shift+Enter)"
+          className={PILL_CONTAINER_CLASSES}
+          onMouseDown={(e) => e.preventDefault()}
         >
-          <HiOutlineCalendar size={16} />
-        </Button>
+          <Button
+            variant="pill-icon"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDateExpanded(!isDateExpanded);
+            }}
+            title="Toggle calendar (Ctrl/Cmd+Shift+Enter)"
+            aria-label="Toggle calendar (Ctrl/Cmd+Shift+Enter)"
+          >
+            <HiOutlineCalendar size={16} />
+          </Button>
+        </div>
       )}
 
       {dateMatch && (
         <DatePickerCallout
           isOpen={isDateExpanded}
           initialDate={dateMatch.date}
+          keptTime={dateMatch.format === "iso" && dateMatch.rawString[10] === "T" ? dateMatch.rawString.slice(11) : undefined}
           onSelectDate={handleDateSelect}
           onClose={() => setIsDateExpanded(false)}
         />

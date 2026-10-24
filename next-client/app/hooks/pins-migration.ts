@@ -1,6 +1,6 @@
 // Pinned notes from before the vault's pins file: kept per device in
 // localStorage, keyed by vault (atom_vaultKey), newest pin first. usePinsSync
-// moves each vault's list into its `.hermes/pins.yaml` once, then forgets it.
+// moves each vault's list into its `.hermesmarkdown/pins.yaml` once, then forgets it.
 // The key's name is from when notes were pinned to the old home feed.
 export const LEGACY_NOTE_PINS_KEY = "hermes_home_pins";
 

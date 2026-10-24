@@ -3,7 +3,7 @@ import type React from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_aiEnabled } from "@/app/atoms/ai-atoms";
 import { openSearchPanel } from "@codemirror/search";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_keyboardShortcutsOpen, atom_showMinimap, atom_toggleSentenceFocus, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_keyboardShortcutsOpen, atom_showOutline, atom_toggleSentenceFocus, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { useShowFiles } from "@/app/hooks/use-show-files";
 import { isCloseTabShortcut, isNewFileShortcut } from "../utils/tab-shortcuts";
@@ -19,7 +19,7 @@ interface EditorShortcutOptions {
 }
 
 // Window-level editor shortcuts (Show Files, search, new note, close tab,
-// minimap, sentence focus, the AI menu, AI chat, save, undo flush, shortcut help). Show / hide sidebar is
+// outline, sentence focus, the AI menu, AI chat, save, undo flush, shortcut help). Show / hide sidebar is
 // EditorShell's, so it works on every /editor route. Editor-local keys live in CodeMirror's
 // keymaps, which run first — so a key CodeMirror handled arrives here with
 // defaultPrevented set.
@@ -38,7 +38,7 @@ export function useEditorShortcuts({
   const isAiEnabled = useAtomValue(atom_aiEnabled);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const toggleSentenceFocus = useSetAtom(atom_toggleSentenceFocus);
-  const setShowMinimap = useSetAtom(atom_showMinimap);
+  const setShowOutline = useSetAtom(atom_showOutline);
   const setKeyboardShortcutsOpen = useSetAtom(atom_keyboardShortcutsOpen);
   // Desktop shows the sidebar's Files tree; mobile leaves for the Files page
   // through the unsaved-changes guard.
@@ -93,10 +93,10 @@ export function useEditorShortcuts({
         void closeTabWithAutosave(activeTabPath);
       }
 
-      // Minimap on / off (Ctrl/Cmd+Shift+M).
+      // Outline on / off (Ctrl/Cmd+Shift+M).
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && e.code === "KeyM") {
         e.preventDefault();
-        setShowMinimap((on) => !on);
+        setShowOutline((on) => !on);
       }
 
       // Sentence focus on / off (Ctrl/Cmd+Alt+F).
@@ -137,5 +137,5 @@ export function useEditorShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeEditorView, setShowMinimap, toggleSentenceFocus, setKeyboardShortcutsOpen, closeTabWithAutosave, flush, isAiConfigured, isAiEnabled, openCommandMenu, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, showFiles, saveRef, newFileRef]);
+  }, [activeEditorView, setShowOutline, toggleSentenceFocus, setKeyboardShortcutsOpen, closeTabWithAutosave, flush, isAiConfigured, isAiEnabled, openCommandMenu, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, showFiles, saveRef, newFileRef]);
 }

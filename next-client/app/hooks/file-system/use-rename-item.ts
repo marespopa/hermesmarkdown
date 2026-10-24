@@ -11,7 +11,20 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_remapVaultPaths, type FileUndoGroup } from "@/app/atoms/vault-atoms";
 import { useRewriteLinksAfterMove } from "./use-rewrite-links";
 import { useDialog } from "../use-dialog";
-import { moveDirectoryByCopy, moveFileByCopy } from "./directory-ops";
+import { caseStepName, moveDirectoryByCopy, moveFileByCopy } from "./directory-ops";
+
+// Whether `from` is gone from `dir` and `to` is there, by the names as
+// listed: on storage that ignores case (Android, Windows, macOS) a lookup of
+// "draft.md" also finds "Draft.md".
+async function renamedOnDisk(dir: FileSystemDirectoryHandle, from: string, to: string): Promise<boolean> {
+  try {
+    const names = new Set<string>();
+    for await (const entry of (dir as any).values()) names.add(entry.name);
+    return !names.has(from) && names.has(to);
+  } catch {
+    return false;
+  }
+}
 
 interface UseRenameItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -33,6 +46,10 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
     // Resolves to the item's new vault path once renamed.
     async (handle: FileSystemHandle, requestedName?: string, itemPath?: string): Promise<string | undefined> => {
       if (!vaultHandle) return;
+      // The item's name now: from the caller's path, which follows renames,
+      // rather than the handle's, which can be an older handle's (a note in
+      // front renamed before) and then isn't found.
+      const currentName = itemPath?.split("/").filter(Boolean).pop() ?? handle.name;
 
       // Resolve the real parent directory by walking the item's vault path —
       // given by the caller (the Files tree, current file), else looked up with
@@ -62,10 +79,10 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
 
       const newName = String(requestedName ?? await dialog.prompt(
         "Enter new name:",
-        handle.name,
+        currentName,
         "Rename Item",
       ) ?? "").trim();
-      if (!newName || newName === handle.name) return;
+      if (!newName || newName === currentName) return;
       if (/[\\/]/.test(newName)) {
         toast.error(`${handle.kind === "file" ? "File" : "Folder"} names cannot contain slashes.`);
         return;
@@ -78,7 +95,7 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
         const parentParts: string[] = dirParts ?? (parentDir === vaultHandle
           ? []
           : (await (vaultHandle as any).resolve(parentDir)) || []);
-        oldPath = [...parentParts, handle.name].join("/");
+        oldPath = [...parentParts, currentName].join("/");
         newPath = [...parentParts, newName].join("/");
       } catch (err: any) {
         console.error("File System Error:", err?.message || err);
@@ -90,34 +107,35 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
       // written yet: retrying after the fallback created the target left a
       // trail of empty copies (browsers backed by Android storage name each
       // new one "name (1)", "name (2)", …).
-      const attemptRename = async (retryCount = 0): Promise<void> => {
+      const attemptRename = async (from: string, to: string, retryCount = 0): Promise<void> => {
         let sideEffects = false;
         try {
           // 1. Get a FRESH handle from the parent to avoid "state changed" errors
           const freshHandle: FileSystemHandle = handle.kind === "file"
-            ? await (parentDir as any).getFileHandle(handle.name)
-            : await (parentDir as any).getDirectoryHandle(handle.name);
+            ? await (parentDir as any).getFileHandle(from)
+            : await (parentDir as any).getDirectoryHandle(from);
 
           // 2. Attempt Native Move with Fallback
           if ((freshHandle as any).move) {
             try {
               // Use explicit parentDir for maximum compatibility on some browsers/OSs
-              await (freshHandle as any).move(parentDir, newName);
+              await (freshHandle as any).move(parentDir, to);
               return;
             } catch (moveErr) {
+              if (await renamedOnDisk(parentDir, from, to)) return;
               console.warn("Native move failed, falling back to copy/delete:", moveErr);
             }
           }
 
           sideEffects = true;
           if (freshHandle.kind === "file") {
-            await moveFileByCopy(freshHandle as FileSystemFileHandle, parentDir, newName);
+            await moveFileByCopy(freshHandle as FileSystemFileHandle, parentDir, to);
           } else {
             await moveDirectoryByCopy(
               freshHandle as FileSystemDirectoryHandle,
               parentDir,
               parentDir,
-              newName,
+              to,
             );
           }
         } catch (err: any) {
@@ -128,24 +146,53 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
             err.message?.includes("state had changed") ||
             err.message?.includes("locked");
 
-          if (!sideEffects && isRetryable && retryCount < 6) {
+          // A missing item rarely comes back: two quick tries, not a long stall.
+          const maxRetries = err.name === "NotFoundError" ? 2 : 6;
+          if (!sideEffects && isRetryable && retryCount < maxRetries) {
             console.warn(`Rename operation issues, retrying (${retryCount + 1})...`);
             await new Promise((resolve) =>
               setTimeout(resolve, 400 * Math.pow(1.5, retryCount)),
             );
-            return attemptRename(retryCount + 1);
+            return attemptRename(from, to, retryCount + 1);
           }
+          throw err;
+        }
+      };
+
+      // Only the letter case changes ("Draft.md" → "draft.md"): storage that
+      // ignores case sees the new name as taken (the copy fallback then made
+      // "draft (1).md"), so it goes through an unused name first.
+      const caseOnly = newName !== currentName && newName.toLowerCase() === currentName.toLowerCase();
+      const rename = async () => {
+        if (!caseOnly) return attemptRename(currentName, newName);
+        const step = caseStepName(currentName);
+        await attemptRename(currentName, step);
+        try {
+          await attemptRename(step, newName);
+        } catch (err) {
+          await attemptRename(step, currentName).catch(() => {});
           throw err;
         }
       };
 
       const before = store.get(atom_fileMetadata);
       try {
-        await attemptRename();
+        await rename();
       } catch (err: any) {
         console.error("File System Error:", err?.message || err);
-        toast.error(err.message || "Failed to rename");
-        return;
+        // A browser that reports a rename that went through as failed: the
+        // disk has the new name and not the old, so it's done.
+        if (!(await renamedOnDisk(parentDir, currentName, newName))) {
+          if (err?.name === "NotFoundError") {
+            // Gone from disk (removed or renamed elsewhere): say so in plain
+            // words, and bring the Files list back in step.
+            toast.error(`Couldn't rename "${currentName}": it's no longer in this folder.`);
+            void scanVault(vaultHandle);
+          } else {
+            toast.error(err.message || "Failed to rename");
+          }
+          return;
+        }
       }
 
       // 3. Follow the rename in open tabs (keeping unsaved edits, with fresh

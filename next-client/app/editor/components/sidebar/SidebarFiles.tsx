@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useDeferredValue, useMemo, useState } from "react";
 import { HiOutlineSearch } from "react-icons/hi";
 import BareInput from "@/app/components/Input/BareInput";
 import { FIELD_SIDEBAR_CLASS } from "@/app/components/Input/field-styles";
@@ -23,14 +23,18 @@ interface SidebarFilesProps {
 // The vault's files as a tree (drag to move, F2 — Return on macOS — to
 // rename, right-click for actions, arrow keys to move through it). A note's
 // or folder's right-click menu has Pin / Unpin, which adds it to (or removes
-// it from) the vault's pins (usePins, `.hermes/pins.yaml`), listed in the
+// it from) the vault's pins (usePins, `.hermesmarkdown/pins.yaml`), listed in the
 // sidebar's Pinned section. A Search field above the tree narrows it to the
 // files whose vault path matches a regular expression (files-filter.ts), with
 // every folder around them open; Escape clears it, ↓ or Enter moves into the tree.
 export default function SidebarFiles({ treeController, activeFilePath, openHandle, allFiles, folderPaths }: SidebarFilesProps) {
   const { isPinned, togglePin } = usePins();
   const [query, setQuery] = useState("");
-  const filter = useMemo(() => compileFilesFilter(query), [query]);
+  // The field shows each keystroke at once; the tree follows a beat behind
+  // (React renders the filtered tree in the background, dropping stale
+  // passes), so typing stays smooth in a large vault.
+  const deferredQuery = useDeferredValue(query);
+  const filter = useMemo(() => compileFilesFilter(deferredQuery), [deferredQuery]);
   const shown = useMemo(
     () => (filter ? filterVault(allFiles, folderPaths, filter, (file) => getEntryPath(file) ?? file.name) : { files: allFiles, folderPaths }),
     [filter, allFiles, folderPaths],

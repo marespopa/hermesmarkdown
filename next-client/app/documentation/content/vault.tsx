@@ -27,9 +27,11 @@ export const vaultGroup: Group = {
             the folder in any other editor, sync it with Dropbox or Google Drive, or move it to another
             machine — nothing about it depends on HermesMarkdown being installed. The only folders
             HermesMarkdown creates on its own are <code>assets/</code>, for images you paste or drop
-            into a note, the hidden <code>.hermes/trash/</code>, which holds what you delete
-            for 30 days, and <code>.hermes/pins.yaml</code>, the{" "}
+            into a note, the hidden <code>.hermesmarkdown/trash/</code>, which holds what you delete
+            for 30 days, and <code>.hermesmarkdown/pins.yaml</code>, the{" "}
             <TextLink href="#pins-file">sidebar&apos;s pinned items</TextLink>, once you pin something.
+            Vaults from earlier versions kept these in <code>.hermes/</code>; opening one moves them
+            to <code>.hermesmarkdown/</code> and leaves any other files in <code>.hermes/</code> alone.
           </p>
           <KV
             rows={[
@@ -52,12 +54,12 @@ export const vaultGroup: Group = {
     {
       id: "pins-file",
       title: "The pins file",
-      lead: "What you pin to the sidebar is saved in the vault, in .hermes/pins.yaml, so it syncs with it.",
+      lead: "What you pin to the sidebar is saved in the vault, in .hermesmarkdown/pins.yaml, so it syncs with it.",
       keywords: "pins pinned pins.yaml hermes yaml sync github icon emoji order file format",
       body: (
         <>
           <p>
-            The sidebar&apos;s <strong>Pinned</strong> section is kept in <code>.hermes/pins.yaml</code>{" "}
+            The sidebar&apos;s <strong>Pinned</strong> section is kept in <code>.hermesmarkdown/pins.yaml</code>{" "}
             inside the vault, created the first time you pin something. It travels with the vault:
             a synced folder carries it to your other devices, and a GitHub vault commits it on the next
             sync like any note. Each pin is one line, in the order shown, with its optional icon (the
@@ -99,6 +101,13 @@ pins:
             before filling it.
           </p>
           <p>
+            Files shows every file by its full name, extension included. Besides your notes it lists
+            the vault&apos;s other text files (code, JSON, YAML, CSV, plain text…); they open as plain
+            text, highlighted for their language, and stay out of All Notes, tags, tasks and search.
+            A note&apos;s <code>type:</code> in its frontmatter (or a <code>#type/…</code> tag) picks its
+            icon: project, task, meeting or bookmark.
+          </p>
+          <p>
             New notes and folders, and renames, are named right in the list: type, then press{" "}
             <strong>Return</strong> or click away to keep the name, or <strong>Esc</strong> to back out.
           </p>
@@ -120,7 +129,7 @@ pins:
             ]}
           />
           <Callout type="note">
-            Deleting moves notes and folders to the vault&apos;s Trash (<code>.hermes/trash/</code>)
+            Deleting moves notes and folders to the vault&apos;s Trash (<code>.hermesmarkdown/trash/</code>)
             instead of erasing them. The toast&apos;s <strong>Undo</strong> or CMD/CTRL+Z in the file
             tree puts them back; anything in the Trash is removed for good after 30 days. The Trash is
             never indexed, searched, exported or synced to GitHub. If an item can&apos;t be moved to the
@@ -139,13 +148,13 @@ pins:
           <p>
             Choose <strong>Connect GitHub Vault</strong> when opening a vault. You can select a
             repository you can access or create a new private repository. HermesMarkdown imports
-            Markdown files and files under <code>.hermes/</code>; other repository files are left
+            Markdown files and files under <code>.hermesmarkdown/</code>; other repository files are left
             outside the vault workspace.
           </p>
           <KV
             rows={[
               { label: "New repository", value: "Private" },
-              { label: "Imported content", value: "*.md and .hermes/**" },
+              { label: "Imported content", value: "*.md and .hermesmarkdown/**" },
               { label: "Branch", value: "Repository default branch" },
               { label: "Credentials", value: "Encrypted HttpOnly session cookie" },
             ]}

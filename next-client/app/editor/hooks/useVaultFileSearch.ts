@@ -3,7 +3,8 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_vaultFiles, atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
+import { atom_vaultFiles, atom_vaultFolderPaths, atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
+import { isPlainTextPath } from "@/app/utils/file-kinds";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
 // Which view is searching: "files" (the Files page, the sidebar's Files
@@ -21,6 +22,7 @@ export function useVaultFileSearch({ selectedTags, panel }: UseVaultFileSearchPr
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const vaultFiles = useAtomValue(atom_vaultFiles);
   const walkedFolderPaths = useAtomValue(atom_vaultFolderPaths);
+  const textFiles = useAtomValue(atom_vaultTextFiles);
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -53,22 +55,28 @@ export function useVaultFileSearch({ selectedTags, panel }: UseVaultFileSearchPr
   [showHiddenFiles]);
 
   // Non-.md files (index.yaml, schema.yaml, etc.) only ever reach fileMetadata
-  // from .hermes/ while hidden files are shown (see collectVaultFiles), so
+  // from .hermesmarkdown/ while hidden files are shown (see collectVaultFiles), so
   // let those through too rather than assuming every entry is markdown.
   const isVisibleFile = useCallback((path: string) =>
-    path.endsWith(".md") || (showHiddenFiles && path.startsWith(".hermes/")),
+    path.endsWith(".md") || isPlainTextPath(path) || (showHiddenFiles && path.startsWith(".hermesmarkdown/")),
   [showHiddenFiles]);
 
   // Unfiltered — every visible file in the vault, ignoring search/tag filters.
-  // Used by the Files panel, which always shows the full tree.
+  // Used by the file views (Files, the folder popover), which list the notes
+  // and the vault's other text files (never indexed, so from their own walk
+  // list, atom_vaultTextFiles).
   const allFiles = useMemo(() => {
-    const hasMetadata = Object.keys(fileMetadata).length > 0;
+    const hasMetadata = Object.keys(fileMetadata).length > 0 || textFiles.length > 0;
 
     if (hasMetadata) {
-      return Object.values(fileMetadata)
-        .filter((m) => isVisibleFile(m.path) && !isHiddenPath(m.path))
-        .sort((a, b) => a.name.localeCompare(b.name))
+      // Text files come from their own list only, once each.
+      const notes = Object.values(fileMetadata)
+        .filter((m) => isVisibleFile(m.path) && !isPlainTextPath(m.path) && !isHiddenPath(m.path))
         .map((m) => ({ name: m.name, kind: "file" as const, handle: m.handle, path: m.path }));
+      const others = textFiles
+        .filter((f) => !isHiddenPath(f.path))
+        .map((f) => ({ name: f.handle.name, kind: "file" as const, handle: f.handle, path: f.path }));
+      return [...notes, ...others].sort((a, b) => a.name.localeCompare(b.name));
     }
 
     // Fallback: vaultFiles (immediate, from scanVault) — used while indexVaultTags is still running
@@ -76,7 +84,7 @@ export function useVaultFileSearch({ selectedTags, panel }: UseVaultFileSearchPr
       .filter((f: any) => f.kind === "file" && isVisibleFile((f as any).path || f.name) && !isHiddenPath((f as any).path || f.name))
       .sort((a: any, b: any) => a.name.localeCompare(b.name))
       .map((f: any) => ({ name: f.name, kind: "file" as const, handle: f as FileSystemFileHandle, path: (f as any).path || f.name }));
-  }, [fileMetadata, vaultFiles, isHiddenPath, isVisibleFile]);
+  }, [fileMetadata, textFiles, vaultFiles, isHiddenPath, isVisibleFile]);
 
   // Metadata only indexes files, so folders come from the indexing walk
   // (every depth) plus the latest directory listing (a folder created since),

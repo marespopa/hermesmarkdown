@@ -8,6 +8,17 @@ import { outermostItems } from "./use-delete-item";
 const NOW = new Date("2026-10-06T09:43:55.123Z");
 
 describe("relocateEntry", () => {
+  it("changes only the letter case through an unused name, leaving no copy", async () => {
+    const vault = new MemoryDirectoryHandle("vault");
+    await vault.writeText("notes/Draft.md", "x");
+    await relocateEntry(vault.asHandle(), "notes/Draft.md", "notes/draft.md");
+
+    const notes = await vault.asHandle().getDirectoryHandle("notes");
+    const names: string[] = [];
+    for await (const entry of (notes as any).values()) names.push(entry.name);
+    expect(names).toEqual(["draft.md"]);
+  });
+
   it("moves a file to another folder, creating it, and renames it on the way", async () => {
     const vault = new MemoryDirectoryHandle("vault");
     await vault.writeText("notes/a.md", "hello");
@@ -59,13 +70,13 @@ describe("Trash", () => {
     const vault = new MemoryDirectoryHandle("vault");
     await vault.writeText("notes/a.md", "x");
     const trashPath = await moveToTrash(vault.asHandle(), "notes/a.md", NOW);
-    expect(trashPath).toBe(".hermes/trash/2026-10-06T09-43-55-123Z-0/a.md");
-    expect(vault.listPaths().sort()).toEqual([".hermes/trash/2026-10-06T09-43-55-123Z-0/.origin", trashPath]);
+    expect(trashPath).toBe(".hermesmarkdown/trash/2026-10-06T09-43-55-123Z-0/a.md");
+    expect(vault.listPaths().sort()).toEqual([".hermesmarkdown/trash/2026-10-06T09-43-55-123Z-0/.origin", trashPath]);
 
     await relocateEntry(vault.asHandle(), trashPath, "notes/a.md");
     await removeEmptyTrashSlot(vault.asHandle(), trashPath);
     expect(vault.listPaths()).toEqual(["notes/a.md"]);
-    const trash = await (await vault.getDirectoryHandle(".hermes")).getDirectoryHandle("trash");
+    const trash = await (await vault.getDirectoryHandle(".hermesmarkdown")).getDirectoryHandle("trash");
     expect([...trash.children.keys()]).toEqual([]);
   });
 

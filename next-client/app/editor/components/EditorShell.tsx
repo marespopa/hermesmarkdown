@@ -8,6 +8,7 @@ import { atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { atom_isVaultPending, atom_isVaultRestoring } from "@/app/atoms/vault-atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { usePinsSync } from "@/app/hooks/use-pins-sync";
+import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { formatShortcut } from "@/app/utils/platform";
 import BrowserVaultDialog from "./BrowserVaultDialog";
 import GitHubVaultDialog from "./GitHubVaultDialog";
@@ -48,8 +49,9 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
 // remembered. RecoveryBanner floats above the content while notes can't be
 // saved (lost vault access, a missing vault folder, full storage). Once the
 // vault is unlocked it keeps the vault's pins in step with its
-// `.hermes/pins.yaml` (usePinsSync) and offers Pin Page to Sidebar…
-// (PinCommands) on every route.
+// `.hermesmarkdown/pins.yaml` (usePinsSync) and offers Pin Page to Sidebar…
+// (PinCommands) on every route. It keeps the vault's file list in step with
+// the disk on every route too (useVaultSync), since the sidebar shows it.
 export default function EditorShell({ children }: { children: ReactNode }) {
   const isMobileChrome = useIsMobileChrome();
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
@@ -59,6 +61,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   const isVaultLocked = isVaultRestoring || isVaultPending;
   const hasSidebar = !isMobileChrome && !isVaultLocked;
   usePinsSync(!isVaultLocked);
+  useVaultSync();
   const onEditor = usePathname() === "/editor";
 
   useEffect(() => {

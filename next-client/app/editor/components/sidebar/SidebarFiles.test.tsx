@@ -25,7 +25,7 @@ const folders = ["projects", "projects/launch", "notes"];
 
 function setup() {
   const focus = vi.fn();
-  const treeController = { current: { focus, startCreate: vi.fn(), reveal: vi.fn() } } as never;
+  const treeController = { current: { focus, startCreate: vi.fn(), reveal: vi.fn(), openBackgroundMenu: vi.fn() } } as never;
   render(
     <Provider>
       <SidebarFiles treeController={treeController} activeFilePath={null} openHandle={vi.fn()} allFiles={files} folderPaths={folders} />

@@ -21,7 +21,7 @@ const MENU_ICON = { size: 15, "aria-hidden": true } as const;
 // label are two buttons inside it, each padded on its own.
 const SIDEBAR_ROW_CLASS = "flex items-center h-7 rounded-md text-ui-footnote transition-colors";
 
-// The vault's pins (`.hermes/pins.yaml`), the first section of the sidebar:
+// The vault's pins (`.hermesmarkdown/pins.yaml`), the first section of the sidebar:
 // notes, folders, tags and app pages, in the file's order (usePinnedRows).
 // Each row leads with its emoji icon (shown only here) or its kind's glyph;
 // a click on the label opens it, and the current one is highlighted. A click

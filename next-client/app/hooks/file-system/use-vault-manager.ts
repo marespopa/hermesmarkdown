@@ -8,6 +8,7 @@ import {
   atom_currentDirectoryHandle,
   atom_vaultFiles,
   atom_vaultFolderPaths,
+  atom_vaultTextFiles,
   atom_isVaultPending,
   atom_hasLoadedVault,
   atom_isVaultRestoring,
@@ -22,26 +23,15 @@ import {
   atom_indexerState,
   atom_vaultDescriptor,
   atom_vaultKey,
-  type VaultDescriptor,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
-  saveVaultHandle,
   loadVaultHandle,
   clearVaultHandle,
   verifyPermission,
   queryPermission,
-  saveGitHubVaultDescriptor,
-  saveBrowserVaultDescriptor,
-  saveGitHubVaultManifest,
 } from "@/app/services/idb";
-import {
-  materializeGitHubVault,
-  createGitHubVaultManifestFromFiles,
-  type GitHubVaultDescriptor,
-  type GitHubVaultRemoteFile,
-} from "@/app/services/github-vault-workspace";
-import { metadataWorker, withPickerLock, isVaultSupported, isIdbSupported } from "./shared";
+import { metadataWorker, isIdbSupported } from "./shared";
 import {
   collectVaultFiles,
   isCloudFolderName,
@@ -52,10 +42,11 @@ import {
 import { reportCollectProblems } from "./vault-index";
 import { runVaultIndex } from "./run-vault-index";
 import { useVaultNavigation } from "./use-vault-navigation";
+import { useOpenVault } from "./use-open-vault";
 import { clearNoteContent } from "@/app/services/content-search-client";
-import { atom_showHiddenFiles, atom_browserVaultDialogOpen } from "@/app/atoms/ui-atoms";
+import { migrateVaultDataDir } from "@/app/services/vault-data-dir";
+import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { loadStoredWorkspace } from "./stored-workspace";
-import { purgeExpiredTrash } from "./trash-ops";
 
 // Each scan and each indexing run takes a number; an older one drops its
 // results once a newer one starts, or once another vault is open. Module
@@ -69,6 +60,7 @@ export function useVaultManager() {
   const [currentDirectoryHandle, setCurrentDirectoryHandle] = useAtom(atom_currentDirectoryHandle);
   const [, setVaultFiles] = useAtom(atom_vaultFiles);
   const setVaultFolderPaths = useSetAtom(atom_vaultFolderPaths);
+  const setVaultTextFiles = useSetAtom(atom_vaultTextFiles);
   const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
   const [hasLoadedVault, setHasLoadedVault] = useAtom(atom_hasLoadedVault);
   const setIsVaultRestoring = useSetAtom(atom_isVaultRestoring);
@@ -84,7 +76,6 @@ export function useVaultManager() {
   const [showHiddenFiles] = useAtom(atom_showHiddenFiles);
   const rebindHandles = useSetAtom(atom_rebindHandles);
   const setIndexerState = useSetAtom(atom_indexerState);
-  const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
   const store = useStore();
 
   const detectCloudVault = useCallback(
@@ -131,7 +122,9 @@ export function useVaultManager() {
     async (passedHandle?: FileSystemDirectoryHandle, showHiddenOverride?: boolean) => {
       const includeHidden = showHiddenOverride ?? showHiddenFiles;
       try {
-        const handle = passedHandle || vaultHandle;
+        // The store, not this closure: a sync that started just before
+        // another vault opened would otherwise index the old one.
+        const handle = passedHandle || store.get(atom_vaultHandle);
         if (!handle) return;
 
         const run = ++indexRun;
@@ -143,10 +136,11 @@ export function useVaultManager() {
         // walk is over. Fresh vault open replaces metadata entirely; re-index
         // keeps earlier parses, refreshes handles and drops files gone from disk.
         if (!metadataWorker) {
-          const { files: fileHandles, folders, failedSubdirs, timedOut } = await collectVaultFiles(handle, includeHidden);
+          const { files: fileHandles, folders, textFiles, failedSubdirs, timedOut } = await collectVaultFiles(handle, includeHidden);
           reportCollectProblems(timedOut, failedSubdirs);
           if (!isCurrent()) return;
           setVaultFolderPaths(folders);
+          setVaultTextFiles(textFiles);
           setFileMetadata((prev) => metadataForFiles(fileHandles, passedHandle ? undefined : prev));
           setIndexerState("idle");
           return;
@@ -163,6 +157,7 @@ export function useVaultManager() {
           vaultKey: store.get(atom_vaultKey),
           setMetadata: setFileMetadata,
           setFolderPaths: setVaultFolderPaths,
+          setTextFiles: setVaultTextFiles,
           isCurrent,
         });
         if (!indexing) return;
@@ -178,104 +173,10 @@ export function useVaultManager() {
         setIndexerState("idle");
       }
     },
-    [vaultHandle, setIndexerState, setFileMetadata, setVaultFolderPaths, showHiddenFiles, store],
+    [setIndexerState, setFileMetadata, setVaultFolderPaths, setVaultTextFiles, showHiddenFiles, store],
   );
 
-  const initVaultFromHandle = useCallback(async (
-    handle: FileSystemDirectoryHandle,
-    options?: {
-      isNewVault?: boolean;
-      descriptor?: VaultDescriptor;
-      persist?: boolean;
-      announce?: boolean;
-      // Reopening the saved vault on page load: its tabs (persisted with the
-      // workspace layout) stay open instead of starting from an empty pane.
-      keepTabs?: boolean;
-      // Once the open notes are bound and the top folder listed (pre-index).
-      onReadable?: () => void;
-    }
-  ) => {
-    const {
-      isNewVault = false,
-      descriptor = { kind: "local" },
-      persist = true,
-      announce = true,
-      keepTabs = false,
-      onReadable,
-    } = options ?? {};
-
-    setFileMetadata({});
-    setVaultFiles([]);
-    setVaultFolderPaths([]);
-    if (!keepTabs) {
-      clearNoteContent();
-      setOpenFiles({});
-      setWorkspaceLayout(singlePaneLayout([], null));
-    }
-    setVaultHandle(handle);
-    setVaultDescriptor(descriptor);
-    setCurrentDirectoryHandle(handle);
-    setIsVaultPending(false);
-    setIsCloudVault(false);
-    if (descriptor.kind === "local") {
-      detectCloudVault(handle);
-      if (persist) await saveVaultHandle(handle);
-    } else if (persist) {
-      if (descriptor.kind === "browser") await saveBrowserVaultDescriptor(descriptor);
-      else await saveGitHubVaultDescriptor(descriptor);
-    }
-    // The open notes first (a few files, read again from disk), then the top
-    // folder; the whole vault is indexed last, behind the editor.
-    await rebindHandles(handle);
-    await scanVault(handle);
-    onReadable?.();
-    await indexVaultTags(handle);
-    void purgeExpiredTrash(handle);
-
-    if (announce) {
-      const vaultName = descriptor.kind === "local" ? handle.name : descriptor.displayName;
-      toast.success(isNewVault ? `Vault created: ${vaultName}` : `Vault opened: ${vaultName}`);
-    }
-  }, [setVaultHandle, setVaultDescriptor, setCurrentDirectoryHandle, setIsVaultPending, setFileMetadata, setVaultFiles, setVaultFolderPaths, setOpenFiles, setWorkspaceLayout, setIsCloudVault, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
-
-  const initGitHubVault = useCallback(async (
-    descriptor: GitHubVaultDescriptor,
-    files: readonly GitHubVaultRemoteFile[] = [],
-  ) => {
-    // Materialize before opening so scan/index never observes a partial remote vault.
-    const workspace = await materializeGitHubVault(descriptor, files);
-    await saveGitHubVaultManifest(descriptor, createGitHubVaultManifestFromFiles(descriptor.baseHeadSha, files));
-    await initVaultFromHandle(workspace, { descriptor });
-  }, [initVaultFromHandle]);
-
-  const openVault = useCallback(async (): Promise<boolean> => {
-    if (!isVaultSupported) {
-      // No disk folder access here (Safari, Firefox, mobile): offer vaults
-      // kept in browser storage instead.
-      setBrowserVaultDialogOpen(true);
-      return false;
-    }
-
-    const handle = await withPickerLock(async () => {
-      try {
-        return await window.showDirectoryPicker({ mode: "readwrite" });
-      } catch (err: any) {
-        if (err.name === "AbortError" || err.name === "NotAllowedError") return undefined;
-        throw err;
-      }
-    });
-
-    if (!handle) return false;
-
-    try {
-      await initVaultFromHandle(handle);
-      return true;
-    } catch (err: any) {
-      console.error("File System Error:", err?.message || err);
-      toast.error("Failed to open vault");
-      return false;
-    }
-  }, [initVaultFromHandle, setBrowserVaultDialogOpen]);
+  const { initVaultFromHandle, initGitHubVault, openVault } = useOpenVault({ scanVault, indexVaultTags, detectCloudVault });
 
   // A single gesture can reach restoreVault twice (the gate's window listener
   // and the Restore Access button); only the first opens the browser prompt.
@@ -291,6 +192,7 @@ export function useVaultManager() {
         // Pending (route hidden, inert) until the open notes are bound and the
         // top folder listed; the vault is then indexed behind the editor.
         setIsVaultUnlocking(true);
+        await migrateVaultDataDir(vaultHandle);
         setCurrentDirectoryHandle(vaultHandle);
         setIsCloudVault(false);
         detectCloudVault(vaultHandle);
@@ -317,6 +219,7 @@ export function useVaultManager() {
     setCurrentDirectoryHandle(null);
     setVaultFiles([]);
     setVaultFolderPaths([]);
+    setVaultTextFiles([]);
     setFileMetadata({});
     clearNoteContent();
     setActiveFileHandle(null);
@@ -338,7 +241,7 @@ export function useVaultManager() {
 
     clearVaultHandle();
     toast.success("Vault closed");
-  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setVaultFolderPaths, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setVaultFolderPaths, setVaultTextFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor]);
 
   // Load vault on mount
   useEffect(() => {
@@ -357,6 +260,7 @@ export function useVaultManager() {
         // gesture and will throw a SecurityError if called automatically.
         const granted = await queryPermission(savedHandle);
         if (granted) {
+          await migrateVaultDataDir(savedHandle);
           // The editor can show while the vault is read, so reveal it now.
           setIsVaultRestoring(false);
           setCurrentDirectoryHandle(savedHandle);

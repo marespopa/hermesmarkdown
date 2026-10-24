@@ -21,6 +21,9 @@ export const atom_vaultFiles = atom<FileSystemHandle[]>([]);
 // Every folder the indexing walk found (vault-relative paths), so the file
 // tree can show folders at any depth even when they hold no notes.
 export const atom_vaultFolderPaths = atom<string[]>([]);
+// Text files that aren't notes (utils/file-kinds.ts), from the same walk:
+// listed in Files and opened as plain text, never indexed.
+export const atom_vaultTextFiles = atom<{ handle: FileSystemFileHandle; path: string }[]>([]);
 
 // File operations that can be undone (⌘Z in the file tree, or a toast's
 // Undo), newest last. Each group is one user action — a rename, a move or a
@@ -42,6 +45,9 @@ export const atom_isVaultRestoring = atom<boolean>(true);
 // True from the moment access is granted again until the vault is scanned and
 // "Vault restored" shows; the route stays behind the overlay until then.
 export const atom_isVaultUnlocking = atom<boolean>(false);
+// The name of the vault being opened by the user (switched to, created or
+// picked), until its open notes are bound and top folder listed; null otherwise.
+export const atom_openingVaultName = atom<string | null>(null);
 export const atom_isCloudVault = atom<boolean>(false);
 export const atom_fileSystemVersion = atom<number>(0);
 
@@ -164,7 +170,7 @@ export const atom_rebindHandles = atom(
 // Follows a file or folder that was renamed or moved on disk: re-keys open
 // tabs (keeping unsaved edits), pane layouts, indexed metadata, the worker's
 // note-text index, the file tree's remembered expansion, the vault's pins
-// (`.hermes/pins.yaml`, through atom_remapPins) and private-note session
+// (`.hermesmarkdown/pins.yaml`, through atom_remapPins) and private-note session
 // reveals from `oldPath` to `newPath`, for the item
 // and everything under it. Handles are path-based, so moving a folder leaves
 // its children's handles stale — each moved tab gets a fresh handle resolved

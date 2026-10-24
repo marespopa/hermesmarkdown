@@ -38,9 +38,9 @@ function directory(name: string, entries: TestEntry[]): TestDirectory {
 }
 
 describe("GitHub vault workspace paths", () => {
-  it("allows Markdown files and .hermes metadata only", () => {
+  it("allows Markdown files and .hermesmarkdown metadata only", () => {
     expect(isGitHubVaultPathAllowed("notes/today.md")).toBe(true);
-    expect(isGitHubVaultPathAllowed(".hermes/index.json")).toBe(true);
+    expect(isGitHubVaultPathAllowed(".hermesmarkdown/index.json")).toBe(true);
     expect(isGitHubVaultPathAllowed("images/photo.png")).toBe(false);
   });
 
@@ -70,11 +70,11 @@ describe("GitHub vault workspace paths", () => {
       file("note.md", "vault note"),
       directory("node_modules", [ignoredFile]),
       directory("vendor", [file("dependency.md", "should not be read")]),
-      directory(".hermes", [file("metadata.json", "{}")]),
+      directory(".hermesmarkdown", [file("metadata.json", "{}")]),
     ]);
 
     await expect(readGitHubVaultFiles(workspace)).resolves.toEqual([
-      { path: ".hermes/metadata.json", content: "{}" },
+      { path: ".hermesmarkdown/metadata.json", content: "{}" },
       { path: "note.md", content: "vault note" },
     ]);
     expect(ignoredFile.getFile).not.toHaveBeenCalled();

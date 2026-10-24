@@ -31,8 +31,8 @@ describe("sanitizeArchivePath", () => {
     expect(sanitizeArchivePath("")).toBeNull();
   });
 
-  it("keeps hidden vault folders such as .hermes", () => {
-    expect(sanitizeArchivePath(".hermes/index.yaml")).toBe(".hermes/index.yaml");
+  it("keeps hidden vault folders such as .hermesmarkdown", () => {
+    expect(sanitizeArchivePath(".hermesmarkdown/index.yaml")).toBe(".hermesmarkdown/index.yaml");
   });
 });
 
@@ -85,17 +85,17 @@ describe("availableFileName", () => {
 });
 
 describe("collectArchiveFiles", () => {
-  it("walks every file, including .hermes, and skips ignored folders", async () => {
+  it("walks every file, including .hermesmarkdown, and skips ignored folders", async () => {
     const vault = new MemoryDirectoryHandle("vault");
     await vault.writeText("a.md", "A");
     await vault.writeText("sub/b.md", "B");
-    await vault.writeText(".hermes/index.yaml", "x: 1");
+    await vault.writeText(".hermesmarkdown/index.yaml", "x: 1");
     await vault.writeText(".git/HEAD", "ref");
     await vault.writeText("node_modules/pkg/index.js", "");
     await vault.writeText(".DS_Store", "");
 
     const files = await collectArchiveFiles(vault.asHandle());
-    expect(files.map((file) => file.path)).toEqual([".hermes/index.yaml", "a.md", "sub/b.md"]);
+    expect(files.map((file) => file.path)).toEqual([".hermesmarkdown/index.yaml", "a.md", "sub/b.md"]);
   });
 });
 
@@ -104,7 +104,7 @@ describe("zip export and import", () => {
     const source = new MemoryDirectoryHandle("source");
     await source.writeText("a.md", "# A");
     await source.writeText("sub/b.md", "# B");
-    await source.writeText(".hermes/index.yaml", "x: 1");
+    await source.writeText(".hermesmarkdown/index.yaml", "x: 1");
     const bytes = await zipBytes(source);
 
     const target = new MemoryDirectoryHandle("target");
@@ -114,7 +114,7 @@ describe("zip export and import", () => {
     const result = await writeArchiveFiles(target.asHandle(), files);
 
     expect(result).toEqual({ imported: 3, renamed: 1 });
-    expect(target.listPaths()).toEqual([".hermes/index.yaml", "a (1).md", "a.md", "sub/b.md"]);
+    expect(target.listPaths()).toEqual([".hermesmarkdown/index.yaml", "a (1).md", "a.md", "sub/b.md"]);
     expect(target.fileAt("a.md")!.text()).toBe("existing");
     expect(target.fileAt("a (1).md")!.text()).toBe("# A");
     expect(target.fileAt("sub/b.md")!.text()).toBe("# B");

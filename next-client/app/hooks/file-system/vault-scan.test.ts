@@ -9,11 +9,13 @@ async function makeVault() {
     "notes/b.md",
     "notes/deep/c.md",
     "notes/image.png",
+    "notes/app.tsx",
+    "data.json",
     ".env",
     ".env.local",
     "notes/.env.production",
-    ".hermes/index.yaml",
-    ".hermes/.env",
+    ".hermesmarkdown/index.yaml",
+    ".hermesmarkdown/.env",
     ".obsidian/workspace.json",
     ".obsidian/snippets/readme.md",
     ".git/config",
@@ -38,15 +40,21 @@ describe("collectVaultFiles", () => {
     expect(result.timedOut).toBe(false);
   });
 
-  it("with hidden files, adds notes in dotfolders and .hermes data but never secrets or .git", async () => {
+  it("with hidden files, adds notes in dotfolders and .hermesmarkdown data but never secrets or .git", async () => {
     const result = await collectVaultFiles((await makeVault()).asHandle(), true);
     expect(paths(result)).toEqual([
-      ".hermes/index.yaml",
+      ".hermesmarkdown/index.yaml",
       ".obsidian/snippets/readme.md",
       "a.md",
       "notes/b.md",
       "notes/deep/c.md",
     ]);
+  });
+
+  it("lists text files that aren't notes apart, never as notes and never secrets", async () => {
+    const result = await collectVaultFiles((await makeVault()).asHandle(), false);
+    expect(result.textFiles.map((f) => f.path).sort()).toEqual(["data.json", "notes/app.tsx"]);
+    expect(paths(result)).not.toContain("data.json");
   });
 
   it("collects every folder walked, empty ones included", async () => {
@@ -68,11 +76,11 @@ describe("collectVaultFiles", () => {
 
   it("never indexes or lists the Trash, even with hidden files shown", async () => {
     const vault = await makeVault();
-    await vault.writeText(".hermes/trash/2026-10-06T09-43-55-123Z-0/old.md", "x");
+    await vault.writeText(".hermesmarkdown/trash/2026-10-06T09-43-55-123Z-0/old.md", "x");
     const result = await collectVaultFiles(vault.asHandle(), true);
     expect(paths(result).some((path) => path.includes("trash"))).toBe(false);
     expect(result.folders.some((path) => path.includes("trash"))).toBe(false);
-    expect(result.folders).toContain(".hermes");
+    expect(result.folders).toContain(".hermesmarkdown");
   });
 
   it("walks wide trees completely", async () => {

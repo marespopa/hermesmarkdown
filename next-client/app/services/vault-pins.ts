@@ -1,7 +1,7 @@
-// Reads and writes the vault's pins file, `.hermes/pins.yaml` (the format is
+// Reads and writes the vault's pins file, `.hermesmarkdown/pins.yaml` (the format is
 // vault-pins-format.ts). Every backend has the same handle API (a local
 // folder, a browser vault, a GitHub vault's workspace, which commits
-// `.hermes/**` on its next sync). Writes are serialised in one promise chain
+// `.hermesmarkdown/**` on its next sync). Writes are serialised in one promise chain
 // and always start from a fresh read of the file, so two quick actions never
 // lose each other's change, and an invalid (or newer) file is never
 // overwritten. js-yaml loads lazily, from a local chunk.
@@ -40,7 +40,7 @@ export function loadYaml(): Promise<{ load: YamlLoad; dump: YamlDump }> {
   return yaml;
 }
 
-// The file's text and a fresh handle; null without `.hermes/` or the file.
+// The file's text and a fresh handle; null without `.hermesmarkdown/` or the file.
 export async function readPinsFile(
   vault: FileSystemDirectoryHandle,
 ): Promise<{ text: string; handle: FileSystemFileHandle } | null> {

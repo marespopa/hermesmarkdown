@@ -10,7 +10,7 @@ import { usePins } from "@/app/hooks/use-pins";
 import { addPins } from "@/app/services/vault-pins-format";
 import { MAX_PINS, pinnedKey, type Row } from "./palette-model";
 
-// The palette's pins. Notes are the vault's pinned notes (`.hermes/pins.yaml`,
+// The palette's pins. Notes are the vault's pinned notes (`.hermesmarkdown/pins.yaml`,
 // pin-atoms.ts), in pin order, the same ones the sidebar's Pinned section
 // lists, so a note pinned here, from a tab or from the More menu is pinned
 // everywhere. Commands are the palette's own (`atom_palettePinnedItems`, up

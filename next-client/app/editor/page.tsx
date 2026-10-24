@@ -17,7 +17,6 @@ import SelectionToolbar from "./components/SelectionToolbar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileWatcher } from "@/app/hooks/use-file-watcher";
-import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useAutoSave } from "@/app/hooks/use-auto-save";
 import MermaidDialog from "./components/MermaidDialog";
 import RenderedBlockSourceDialog from "./components/RenderedBlockSourceDialog";
@@ -90,7 +89,6 @@ export default function LiteEditor() {
   // Run sync hooks
   const { flush } = useAutoSave(handleDraftAutosave);
   useFileWatcher();
-  useVaultSync();
   useFirstRun(isMobileChrome);
   const chooseFolder = useChooseFolder(materializeDraft);
   useRecentVaultTracker();

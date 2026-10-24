@@ -1,7 +1,8 @@
 "use client";
 
 import Button from "@/app/components/Button";
-import { HiOutlineDocumentText, HiOutlineDotsVertical } from "react-icons/hi";
+import { HiOutlineDotsVertical } from "react-icons/hi";
+import FileIcon from "./FileIcon";
 import { InlineNameField } from "./InlineNameField";
 import { ListColumns, formatModified, kindLabel } from "./list-columns";
 import type { ClickModifiers } from "./use-tree-selection";
@@ -98,7 +99,8 @@ export function FileRow({
   dropFolder,
 }: FileRowProps) {
   const isListRow = depth !== undefined;
-  const displayName = entry.name.replace(/\.md$/, "");
+  // The whole file name, extension included, so notes and other files read alike.
+  const displayName = entry.name;
   const folderPath =
     !hideFolderPath && entryPath && entryPath !== entry.name
       ? entryPath.split("/").slice(0, -1).join("/")
@@ -166,7 +168,7 @@ export function FileRow({
           <>
             {/* Triangle slot, so file names line up with folder names. */}
             <span className="w-3 shrink-0" />
-            <HiOutlineDocumentText size={16} className="shrink-0 text-fg-faint" />
+            <FileIcon path={entryPath ?? entry.name} />
             {editing ? (
               <InlineNameField label="Note name" {...editing} />
             ) : (

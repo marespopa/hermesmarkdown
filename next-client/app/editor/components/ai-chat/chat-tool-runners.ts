@@ -20,7 +20,7 @@ export const noteName = (path: string) => (path.split("/").pop() ?? path).replac
 
 const isPrivate = (file: FileMetadata) => isPrivateFrontmatter(file.frontmatter);
 
-/** The notes a tool may look at: not private, not skipped (templates, .hermes/). */
+/** The notes a tool may look at: not private, not skipped (templates, .hermesmarkdown/). */
 export function searchablePaths(meta: Record<string, FileMetadata>, skip: (path: string) => boolean): string[] {
   return Object.values(meta).filter((file) => !skip(file.path) && !isPrivate(file)).map((file) => file.path);
 }

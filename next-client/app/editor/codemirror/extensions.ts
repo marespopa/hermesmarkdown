@@ -40,8 +40,9 @@ import { findReplace } from "./find-replace";
 import { collapsedCalloutCorners } from "./callout-fold";
 import { syntaxReveal } from "./syntax-reveal";
 import { detailsMarks } from "./details-fold";
+import { buildPlainTextExtensions } from "./plain-text-extensions";
 
-interface BuildExtensionsOptions {
+export interface BuildExtensionsOptions {
   wordWrap: boolean;
   wordWrapCompartment: Compartment;
   lineNumbers: boolean;
@@ -65,9 +66,14 @@ interface BuildExtensionsOptions {
   wikiLinkTriggerRef: { current: WikiLinkTriggerCallback | null };
   csvConfirmRef?: { current: ((preview: string) => Promise<boolean>) | null };
   pasteImageRef?: { current: ((file: File) => Promise<string | null>) | null };
+  /** A text file that isn't a note: edited as plain text (plain-text-extensions.ts). */
+  plainText?: boolean;
+  /** Its language (highlighting only), loaded by the caller from the file name. */
+  codeLanguage?: Extension | null;
 }
 
 export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
+  if (opts.plainText) return buildPlainTextExtensions(opts);
   const extensions: Extension[] = [
     editorTheme(),
     opts.wordWrapCompartment.of(opts.wordWrap ? EditorView.lineWrapping : []),
