@@ -117,7 +117,7 @@ export const vaultGroup: Group = {
             adds its pair, and blocks fold from the gutter. With <strong>Outline</strong> on
             (<code>CTRL/CMD+SHIFT+M</code>), its box lists the file&apos;s namespaces and modules,
             classes, structs and their methods, fields and properties, functions, types, enums and their
-            members, top-level constants and variables (in Python, only <code>ALL_CAPS</code> ones), CSS
+            members, top-level constants and variables (in Python, only <code>ALL_CAPS</code> ones), a JavaScript <code>export default</code>, CSS
             selectors, or JSON and YAML keys, each with a small icon for its kind (C# included); click one
             to jump there. They stay out of All Files, tags and tasks;{" "}
             <code>.env</code> files are never listed.

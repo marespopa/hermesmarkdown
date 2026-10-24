@@ -77,8 +77,30 @@ const variableKind = (node: SyntaxNode): SymbolKind => {
   return node.firstChild?.name === "const" ? "constant" : "variable";
 };
 
+// `export default <value>`: the export itself is the symbol, named after
+// what it exports (`export default tseslint.config`, `export default
+// config`), so a config file without declarations still has an outline. A
+// named function or class (`export default function f`) lists itself.
+const defaultValue = (node: SyntaxNode) => node.getChild("default")?.nextSibling ?? null;
+const exportDefault: Rule = {
+  kind: (node) => {
+    const value = defaultValue(node)?.name ?? "";
+    return FUNCTION_VALUES.has(value) || value === "FunctionDeclaration" ? "function" : value === "ClassDeclaration" ? "class" : "constant";
+  },
+  when: (node) => {
+    const value = defaultValue(node);
+    return !!value && !(/^(Function|Class)Declaration$/.test(value.name) && value.getChild("VariableDefinition"));
+  },
+  label: (node, doc) => {
+    const value = defaultValue(node)!;
+    const head = value.name === "CallExpression" ? value.firstChild : value.name === "VariableName" || value.name === "MemberExpression" ? value : null;
+    return head ? `export default ${doc.sliceString(head.from, head.to)}` : "export default";
+  },
+};
+
 const RULES: Record<string, Rule> = {
   // JavaScript / TypeScript
+  ExportDeclaration: exportDefault,
   FunctionDeclaration: def("function"),
   ClassDeclaration: def("class"),
   MethodDeclaration: def("method"),

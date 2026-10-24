@@ -75,6 +75,13 @@ describe("extractCodeOutline", () => {
     expect(outline(js.configure({ dialect: "ts" }), source)).toEqual(["1 reply @1"]);
   });
 
+  it("lists `export default` by what it exports, so a config file has an outline", () => {
+    expect(outline(js, "import x from 'x';\nexport default x.config({ rules: {} });\n")).toEqual(["1 export default x.config @2"]);
+    expect(kinds(js, "export default config;")).toEqual(["export default config:constant"]);
+    expect(kinds(js, "export default () => 1;")).toEqual(["export default:function"]);
+    expect(kinds(js, "export default class Store { load() {} }")).toEqual(["Store:class", "load:method"]);
+  });
+
   it("names no symbol from a parameter or a value", () => {
     expect(outline(js.configure({ dialect: "ts" }), "export default function (p) {}\nexport const a = x.y;\n"))
       .toEqual(["1 a @2"]);
