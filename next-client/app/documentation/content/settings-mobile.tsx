@@ -18,7 +18,7 @@ export const settingsGroup: Group = {
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically.
             Each mode has its own color theme: Paper (the default), Sepia, Solarized or Plain for light,
-            and Ink (the default), Nord or Graphite for dark. Paper and Ink are paper and blue ink (Ink is
+            and Ink (the default), Nord, Solarized or Graphite for dark. Paper and Ink are paper and blue ink (Ink is
             the dark paper); Sepia is a warm cream page for long reading; Plain and Graphite are neutral, with no tint. Every theme has a faint paper grain. You can also pick them on the
             home page before you start. Each theme has its own accent hue, kept to the
             caret, text selection, focus rings, toggles and selections; icons and buttons stay quiet ink on paper. In code blocks, keywords take that accent, and
@@ -35,7 +35,7 @@ export const settingsGroup: Group = {
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
-              { label: "Light / Dark theme", value: "Paper, Sepia, Solarized, Plain / Nord, Ink, Graphite" },
+              { label: "Light / Dark theme", value: "Paper, Sepia, Solarized, Plain / Ink, Nord, Solarized, Graphite" },
               { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Toggle Sidebar: navigation and the vault's files on the window's left edge, on every editor page (desktop)" },
               { label: "Typeface", value: "Quattro by default, Duospace or Geist Mono" },
               { label: "Code font", value: "Geist Mono by default, JetBrains Mono, Fira Code or your system's monospace" },
