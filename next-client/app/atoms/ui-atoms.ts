@@ -62,9 +62,18 @@ export const atom_toggleSentenceFocus = atom(null, (get, set) => {
 // The window's sidebar (desktop): open notes and the vault's file tree, on the
 // leading edge. Hidden by default; toggled from its corner button, Ctrl/Cmd+\\ or Ctrl/Cmd+Alt+S.
 export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
-export const SIDEBAR_MIN_WIDTH = 200;
+// The minimum keeps the header's whole "HermesMarkdown" wordmark beside its
+// two buttons, with room to spare.
+export const SIDEBAR_MIN_WIDTH = 240;
 export const SIDEBAR_MAX_WIDTH = 420;
-export const atom_sidebarWidth = atomWithStorage<number>("sidebarWidth", 256);
+const clampSidebarWidth = (width: number) => Math.round(Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width)));
+const atom_sidebarWidthStored = atomWithStorage<number>("sidebarWidth", 256);
+// Read and written within the bounds, so a width saved under an older,
+// smaller minimum opens at the current one.
+export const atom_sidebarWidth = atom(
+  (get) => clampSidebarWidth(get(atom_sidebarWidthStored)),
+  (_get, set, width: number) => set(atom_sidebarWidthStored, clampSidebarWidth(width)),
+);
 // Settings → Editor → Close Sidebar While Writing: typing in a note puts the
 // sidebar away, so the page has the window to itself. Off by default: the
 // sidebar otherwise closes only when you close it.
