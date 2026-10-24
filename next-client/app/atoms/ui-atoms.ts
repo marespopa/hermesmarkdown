@@ -371,6 +371,9 @@ export type AiActionStatus =
 export const atom_aiActionStatus = atom<AiActionStatus>({ seq: 0, status: "idle" });
 
 export const atom_isFileLoading = atom<boolean>(false);
+// The file openFile is opening, set before its text is read: the pane shows
+// its title (and a body skeleton) and the sidebar marks it current at once.
+export const atom_openingFilePath = atom<string | null>(null);
 
 // Bumped to request the AI Builder dialog from outside the editor (e.g. the
 // status bar), since the actual handler lives inside useAIEditorActions,

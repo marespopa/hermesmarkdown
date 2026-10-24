@@ -13,7 +13,7 @@ import {
 import { atom_pinsVaultKey } from "@/app/atoms/pin-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
-import { atom_autosaveMode } from "@/app/atoms/ui-atoms";
+import { atom_autosaveMode, atom_openingFilePath } from "@/app/atoms/ui-atoms";
 import { CommandPaletteProvider } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut } from "@/app/utils/platform";
 import React from "react";
@@ -123,6 +123,27 @@ describe("PaneLeaf Tab Indicators", () => {
 
     expect(screen.getByRole("status", { name: "Saving…" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Save$/ })).not.toBeInTheDocument();
+  });
+
+  it("shows a note being opened by its title at once, its body outlined until it's read", () => {
+    const initialValues = [
+      [atom_activePaneId, "pane-1"],
+      [atom_openFiles, {
+        "file1.md": { fileName: "file1.md", content: "dirty", lastSavedContent: "clean" },
+      }],
+      [atom_openingFilePath, "projects/roadmap.md"],
+    ];
+
+    render(
+      <TestProvider initialValues={initialValues}>
+        <PaneLeaf leaf={mockLeaf} />
+      </TestProvider>
+    );
+
+    expect(screen.getByText("roadmap")).toBeInTheDocument();
+    expect(screen.getByText("Opening roadmap…")).toBeInTheDocument();
+    // The previous note's save dot doesn't carry over to the one opening.
+    expect(screen.queryByRole("button", { name: "Unsaved changes. Save" })).not.toBeInTheDocument();
   });
 
   it("shows no save state when the note is saved", () => {

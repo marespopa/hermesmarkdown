@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_pins } from "@/app/atoms/pin-atoms";
 import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
-import { atom_indexerState } from "@/app/atoms/ui-atoms";
+import { atom_indexerState, atom_openingFilePath } from "@/app/atoms/ui-atoms";
 import { atom_showFolderInFiles, atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
 import { showErrorToast } from "@/app/components/Toastr";
 import { pinKey, PINS_MAX, type Pin, type PinPage } from "@/app/services/pins-model";
@@ -23,6 +23,8 @@ export interface PinnedRow {
   /** The note or folder isn't in the vault (judged once indexing is done). */
   missing: boolean;
   current: boolean;
+  /** The note is being opened (atom_openingFilePath): shown current already. */
+  opening: boolean;
   open: () => void;
 }
 
@@ -40,6 +42,7 @@ export function usePinnedRows(activePath: string | null): PinnedRow[] {
   const folderPaths = useAtomValue(atom_vaultFolderPaths);
   const displayItems = useAtomValue(atom_noteDisplayItems);
   const indexed = useAtomValue(atom_indexerState) === "idle";
+  const openingPath = useAtomValue(atom_openingFilePath);
   const showFolderInFiles = useSetAtom(atom_showFolderInFiles);
   const pathname = usePathname() ?? "";
   const urlTag = useSearchParams()?.get(TAG_PARAM) ?? null;
@@ -67,7 +70,9 @@ export function usePinnedRows(activePath: string | null): PinnedRow[] {
         rows.push({
           key, pin, label, missing,
           title: display?.isPrivate ? undefined : pin.target,
-          current: pin.target === activePath,
+          // Optimistic: the note being opened is current already.
+          current: openingPath ? pin.target === openingPath : pin.target === activePath,
+          opening: pin.target === openingPath,
           open: missing ? gone(label) : () => { if (handle) void openHandle(handle, pin.target); },
         });
       } else if (pin.kind === "folder") {
@@ -77,12 +82,14 @@ export function usePinnedRows(activePath: string | null): PinnedRow[] {
           key, pin, label, missing,
           title: pin.target,
           current: false,
+          opening: false,
           open: missing ? gone(label) : () => showFolderInFiles(pin.target),
         });
       } else if (pin.kind === "tag") {
         rows.push({
           key, pin, label: `#${pin.target}`, missing: false,
           current: onTags && urlTag === pin.target,
+          opening: false,
           open: () => {
             if (onTags) replaceUrlParam(TAG_PARAM, pin.target);
             else router.push(editorTagHref(pin.target));
@@ -94,6 +101,7 @@ export function usePinnedRows(activePath: string | null): PinnedRow[] {
         rows.push({
           key, pin, label: page.label, missing: false,
           current: here && (pin.target !== "tags" || !urlTag),
+          opening: false,
           open: () => {
             if (!here) router.push(page.href);
             // Tags with a tag chosen: back to the list of tags.
@@ -103,5 +111,5 @@ export function usePinnedRows(activePath: string | null): PinnedRow[] {
       }
     }
     return rows;
-  }, [pins, metadata, folderPaths, displayItems, indexed, pathname, urlTag, activePath, router, openHandle, showFolderInFiles]);
+  }, [pins, metadata, folderPaths, displayItems, indexed, openingPath, pathname, urlTag, activePath, router, openHandle, showFolderInFiles]);
 }

@@ -6,7 +6,7 @@ import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_pins } from "@/app/atoms/pin-atoms";
 import { seedPins } from "@/app/atoms/pin-atoms.test-utils";
 import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
-import { atom_filesRevealPath, atom_indexerState } from "@/app/atoms/ui-atoms";
+import { atom_filesRevealPath, atom_indexerState, atom_openingFilePath } from "@/app/atoms/ui-atoms";
 import { atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
 import type { Pin } from "@/app/services/pins-model";
 import SidebarPinned from "./SidebarPinned";
@@ -90,6 +90,15 @@ describe("SidebarPinned", () => {
     expect(within(note).getByText("🚀")).toHaveAttribute("aria-hidden", "true");
     expect(folder.querySelector("svg")).not.toBeNull();
     expect(rowButton("roadmap")).toHaveAttribute("title", "projects/roadmap.md");
+  });
+
+  it("marks a note current with a spinner while it opens, before the read is done", () => {
+    const store = setup({ activePath: "other.md" });
+    act(() => { store.set(atom_openingFilePath, "projects/roadmap.md"); });
+    expect(rowButton("roadmap")).toHaveAttribute("aria-current", "page");
+    expect(rowButton("roadmap")).toHaveAttribute("aria-busy", "true");
+    act(() => { store.set(atom_openingFilePath, null); });
+    expect(rowButton("roadmap")).not.toHaveAttribute("aria-busy");
   });
 
   it("opens a note, a folder's list (Show in Files from it) and a page", async () => {

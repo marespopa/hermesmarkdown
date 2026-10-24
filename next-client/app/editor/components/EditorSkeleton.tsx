@@ -38,6 +38,29 @@ export default function EditorSkeleton() {
   );
 }
 
+// MarkdownEditor's sheet, outlined: its margins, page padding and text
+// column (filling the sheet with Full Width on, as the real one does), a
+// title and a few paragraphs of placeholder lines. Also the pane's body while
+// a note is being opened (PaneLeaf), its title already shown.
+export function NoteSheetSkeleton({ fullWidth, className = "" }: { fullWidth: boolean; className?: string }) {
+  return (
+    <div aria-hidden="true" className={`editor-canvas flex-1 min-h-0 overflow-hidden ${className}`}>
+      <div data-full-width={fullWidth ? "" : undefined} className="editor-sheet mx-auto w-full min-h-full pt-8 sm:pt-12 pb-8 pr-5 sm:pr-12 xl:pr-14 [--sheet-pad-left:2.390625rem] sm:[--sheet-pad-left:3rem] xl:[--sheet-pad-left:3.5rem] pl-[var(--sheet-pad-left)]">
+        <div className="editor-measure flex flex-col">
+          <div className={`h-7 w-2/5 rounded-lg mb-10 ${BAR}`} />
+          {PARAGRAPHS.map((lines, p) => (
+            <div key={p} className="flex flex-col gap-3 mb-8">
+              {lines.map((w, i) => (
+                <div key={i} style={{ width: w }} className={`h-3.5 rounded-full ${BAR}`} />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // EditorShell's layout: the panes fill the window past the open sidebar.
 function WorkspaceSkeleton({ sidebarOpen, sidebarWidth, fullWidth }: { sidebarOpen: boolean; sidebarWidth: number; fullWidth: boolean }) {
   return (
@@ -62,22 +85,7 @@ function WorkspaceSkeleton({ sidebarOpen, sidebarWidth, fullWidth }: { sidebarOp
           <SearchPillSkeleton />
         </div>
 
-        <div className="editor-canvas flex-1 min-h-0 overflow-hidden">
-          {/* MarkdownEditor's sheet: its margins, page padding and text column
-              (filling the sheet with Full Width on, as the real one does). */}
-          <div data-full-width={fullWidth ? "" : undefined} className="editor-sheet mx-auto w-full min-h-full pt-8 sm:pt-12 pb-8 pr-5 sm:pr-12 xl:pr-14 [--sheet-pad-left:2.390625rem] sm:[--sheet-pad-left:3rem] xl:[--sheet-pad-left:3.5rem] pl-[var(--sheet-pad-left)]">
-            <div className="editor-measure flex flex-col">
-              <div className={`h-7 w-2/5 rounded-lg mb-10 ${BAR}`} />
-              {PARAGRAPHS.map((lines, p) => (
-                <div key={p} className="flex flex-col gap-3 mb-8">
-                  {lines.map((w, i) => (
-                    <div key={i} style={{ width: w }} className={`h-3.5 rounded-full ${BAR}`} />
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <NoteSheetSkeleton fullWidth={fullWidth} />
       </div>
 
       {sidebarOpen && (

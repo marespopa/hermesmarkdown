@@ -234,14 +234,22 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
                 onContextMenu={openMenuAt(row.key)}
                 onKeyDown={moveByKey(row.key)}
                 aria-current={row.current ? "page" : undefined}
+                aria-busy={row.opening || undefined}
                 aria-keyshortcuts={`Control+${index + 1} Meta+${index + 1}`}
                 title={row.missing ? "Not found in this vault" : row.title}
                 className="flex h-full min-w-0 flex-1 items-center gap-2 pl-1.5 pr-2 text-left"
               >
                 <span className={`min-w-0 flex-1 truncate ${row.missing ? "text-fg-faint" : ""}`}>{row.label}</span>
-                <kbd aria-hidden="true" className="shrink-0 font-mono text-[10px] text-fg-faint [@media(hover:none)]:hidden">
-                  {formatShortcut(String(index + 1))}
-                </kbd>
+                {row.opening ? (
+                  // After a moment (a quick open shows only the highlight).
+                  <span aria-hidden="true" className="loading-bar-appear flex h-3 w-3 shrink-0 items-center justify-center">
+                    <span className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-fg-faint border-t-transparent motion-reduce:animate-none" />
+                  </span>
+                ) : (
+                  <kbd aria-hidden="true" className="shrink-0 font-mono text-[10px] text-fg-faint [@media(hover:none)]:hidden">
+                    {formatShortcut(String(index + 1))}
+                  </kbd>
+                )}
               </Button>
             </div>
           ))}

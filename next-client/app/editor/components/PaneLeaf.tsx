@@ -28,7 +28,8 @@ import { useFolderCreateActions } from "../hooks/use-folder-create-actions";
 import PaneEmptyState from "./PaneEmptyState";
 import { EDITOR_CORNER_WIDTH } from "./CopyContentButton";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
-import { atom_autosaveMode, atom_saveRequested, AUTOSAVE_DELAY, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_autosaveMode, atom_saveRequested, AUTOSAVE_DELAY, atom_sidebarOpen, atom_openingFilePath, atom_fullWidth } from "@/app/atoms/ui-atoms";
+import { NoteSheetSkeleton } from "./EditorSkeleton";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -107,8 +108,16 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const [vaultMenu, setVaultMenu] = React.useState<{ x: number; y: number } | null>(null);
   const vaultButtonRef = React.useRef<HTMLButtonElement>(null);
   // The note in front, as the title shows it, and its folder.
-  const activeTitle = (activeFileState?.fileName || leaf.activeFilePath?.split("/").pop() || "Untitled").replace(/\.md$/i, "");
-  const activeFolder = leaf.activeFilePath && leaf.activeFilePath !== "draft" ? leaf.activeFilePath.split("/").slice(0, -1).join("/") : "";
+  // Optimistic: a note being opened (openFile) takes the title at once, its
+  // body outlined until the text is read.
+  const openingPath = useAtomValue(atom_openingFilePath);
+  const pendingPath = openingPath && openingPath !== leaf.activeFilePath ? openingPath : null;
+  const fullWidth = useAtomValue(atom_fullWidth);
+  const activeTitle = pendingPath
+    ? (pendingPath.split("/").pop() ?? pendingPath).replace(/\.md$/i, "")
+    : (activeFileState?.fileName || leaf.activeFilePath?.split("/").pop() || "Untitled").replace(/\.md$/i, "");
+  const titlePath = pendingPath ?? leaf.activeFilePath;
+  const activeFolder = titlePath && titlePath !== "draft" ? titlePath.split("/").slice(0, -1).join("/") : "";
   // A vault note renames in place from its title; the draft has no file yet.
   const activeHandle = useAtomValue(atom_liveHandles(filePath));
   const canRename = hasVault && filePath !== "draft" && !!activeHandle;
@@ -170,8 +179,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
         >
           <div className="pointer-events-auto min-w-0">
             <PaneTitle
-              title={hasFiles ? activeTitle : null}
-              folder={hasFiles ? activeFolder : ""}
+              title={hasFiles || pendingPath ? activeTitle : null}
+              folder={hasFiles || pendingPath ? activeFolder : ""}
               onOpenFolder={hasVault ? (folder, anchor) => setFolderMenu((open) => (open?.folder === folder ? null : { folder, anchor })) : undefined}
               openFolder={folderMenu?.folder ?? null}
               rootName={hasVault ? vaultName : undefined}
@@ -181,11 +190,11 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               } : undefined}
               vaultMenuOpen={!!vaultMenu}
               vaultButtonRef={vaultButtonRef}
-              saveState={activeSaveState}
+              saveState={pendingPath ? "idle" : activeSaveState}
               saveErrorMessage={saveStatus.message}
-              onRename={hasFiles && canRename ? renameActive : undefined}
+              onRename={hasFiles && canRename && !pendingPath ? renameActive : undefined}
               renameRequest={renameRequest}
-              onSave={hasFiles ? saveActive : undefined}
+              onSave={hasFiles && !pendingPath ? saveActive : undefined}
               onContextMenu={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -193,7 +202,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 setTabMenu({ x: e.clientX, y: e.clientY, path: leaf.activeFilePath || "draft" });
               }}
               // The same menu from a click on the name, under it; a second press closes it.
-              onMenu={hasFiles ? (anchor) => {
+              onMenu={hasFiles && !pendingPath ? (anchor) => {
                 if (tabMenu?.fromButton) return setTabMenu(null);
                 setTabMenu({ x: anchor.left, y: anchor.bottom + 4, path: leaf.activeFilePath || "draft", fromButton: true });
               } : undefined}
@@ -206,7 +215,13 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
       {/* Pane Content */}
       <div className="flex-1 min-h-0 overscroll-none overflow-auto">
-        {leaf.openFilePaths.length === 0 ? (
+        {pendingPath ? (
+          // Fades in after a moment, so a quick open shows only the title.
+          <div role="status" className="flex h-full">
+            <span className="sr-only">Opening {activeTitle}…</span>
+            <NoteSheetSkeleton fullWidth={fullWidth} className="loading-bar-appear" />
+          </div>
+        ) : leaf.openFilePaths.length === 0 ? (
           <PaneEmptyState onLoadDraft={setContent} />
         ) : (
           // The gate carries the editor's key, so its "already shown" latch

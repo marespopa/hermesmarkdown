@@ -21,10 +21,13 @@ export function useSidebarNavigation() {
     if (!onEditor) router.push(editorFileHref(path));
   }, [onEditor, router]);
 
-  // A tree row: its handle is at hand.
+  // A tree row: its handle is at hand. Optimistic: the editor comes up at
+  // once (its pane shows the note's title while the text is read), not
+  // after the read.
   const openHandle = useCallback(async (handle: FileSystemFileHandle, path?: string) => {
-    await openFile(handle, path);
+    const opening = openFile(handle, path);
     toEditor(path);
+    await opening;
   }, [openFile, toEditor]);
 
   const newNote = useCallback(() => {
