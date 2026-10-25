@@ -155,7 +155,7 @@ export const vaultGroup: Group = {
       id: "git",
       title: "Using git",
       lead: "HermesMarkdown doesn't run git: commit, pull and push with the tools you already use. It can show what changed since your last commit.",
-      keywords: "git github gitlab repository commit sync push pull source control version history diff changes inline",
+      keywords: "git github gitlab repository commit sync push pull source control version history diff changes inline status review",
       body: (
         <>
           <p>
@@ -175,6 +175,16 @@ export const vaultGroup: Group = {
             the <code>.git</code> folder is at the root of the vault you opened, and a file that isn't
             committed yet is marked as all added. HermesMarkdown only reads <code>.git</code>; it never
             runs git or writes to it.
+          </p>
+          <p>
+            <strong>Show Changes</strong> (command palette) opens a page that lists every file changed
+            since the last commit, with its diff, like the file list of a pull request: a summary of how
+            many files changed and how many lines were added and removed, then one section per file that
+            you can collapse. Long unchanged stretches are folded; click one to show it. Files matched
+            by <code>.gitignore</code>, tool folders and secret files are left out. Click a file&apos;s
+            name, or a line, to open the file there. It compares the files saved on disk, not unsaved
+            edits, refreshes when you return to the window, and only reads the <code>.git</code> folder at
+            the root of the vault.
           </p>
           <p>
             When a pull changes a file you have open, the editor picks up the new text; if you have

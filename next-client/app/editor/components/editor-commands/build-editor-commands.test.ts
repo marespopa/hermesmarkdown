@@ -181,6 +181,8 @@ describe("buildEditorCommands", () => {
       "find-in-note",
       "fold-current-section",
       "unfold-all-sections",
+      "next-git-change",
+      "previous-git-change",
       "indent-subtree",
       "outdent-subtree",
       "toggle-checkbox",

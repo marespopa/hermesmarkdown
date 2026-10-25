@@ -2,7 +2,7 @@ import { Chunk } from "@codemirror/merge";
 import { EditorState, Text } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it } from "vitest";
-import { gitChanges, gitChangesField, gitDiff, goToNextGitChange, goToPreviousGitChange, MAX_GIT_LINES, setGitBaseline } from "./git-changes";
+import { gitChanges, gitChangesField, gitDiff, gitReplacedBlocks, goToNextGitChange, goToPreviousGitChange, MAX_GIT_LINES, setGitBaseline } from "./git-changes";
 
 const text = (value: string) => Text.of(value.split("\n"));
 const diffOf = (base: string, doc: string) => gitDiff(text(base), text(doc), Chunk.build(text(base), text(doc)));
@@ -124,5 +124,29 @@ describe("gitChanges extension", () => {
     const v = editor("a");
     v.dispatch({ effects: setGitBaseline.of({ text: "a" }) });
     expect(goToNextGitChange(v)).toBe(false);
+  });
+
+  it("keeps runs of added lines for the tint layer", () => {
+    const v = editor("a\nX\nY\nb\nc\nd\ne\nZ");
+    v.dispatch({ effects: setGitBaseline.of({ text: "a\nb\nc\nd\ne" }) });
+    const { doc } = v.state;
+    expect(v.state.field(gitChangesField).addedRuns).toEqual([
+      { from: doc.line(2).from, to: doc.line(3).to },
+      { from: doc.line(8).from, to: doc.line(8).to },
+    ]);
+  });
+
+  it("shows a deletion inside a table (a replaced block) above the table", () => {
+    const doc = "a\nt1\nt3\nb";
+    const tableFrom = 2;
+    const tableTo = doc.indexOf("\nb");
+    view = new EditorView({
+      state: EditorState.create({ doc, extensions: [gitChanges(), gitReplacedBlocks.of(() => [{ from: tableFrom, to: tableTo }])] }),
+      parent: document.body,
+    });
+    view.dispatch({ effects: setGitBaseline.of({ text: "a\nt1\nt2\nt3\nb" }) });
+    const block = view.dom.querySelector(".cm-git-deleted");
+    expect(block?.textContent).toBe("t2");
+    expect(block?.nextElementSibling?.textContent).toBe("t1");
   });
 });

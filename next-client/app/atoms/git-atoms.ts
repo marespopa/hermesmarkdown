@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import type { ChangesResult } from "@/app/services/git/git-changes-types";
 import { atomWithStorage } from "jotai/utils";
 
 // Git Changes (Settings → Editor → View): gutter bars for the lines that
@@ -14,3 +15,7 @@ export const atom_gitAvailable = atom<boolean | null>(null);
 // use-git-baseline.ts until the diff is shown). The corner toggle spins while
 // it's above 0.
 export const atom_gitLoading = atom(0);
+
+// The Changes page's last scan (editor/changes/use-git-changes.ts), shown at
+// once on return while a new scan runs. A plain atom, not persisted.
+export const atom_gitChangesCache = atom<{ vault: FileSystemDirectoryHandle; result: ChangesResult } | null>(null);

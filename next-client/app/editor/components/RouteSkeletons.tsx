@@ -269,6 +269,30 @@ export function TrashSkeleton() {
   );
 }
 
+// The Changes page's body: a summary bar and two file sections. Also the
+// page's own placeholder while the scan has no result yet.
+export function ChangesBodySkeleton() {
+  return (
+    <>
+      <div className={`h-12 rounded-xl ${SKELETON_BAR}`} />
+      <div className={`h-32 rounded-xl ${SKELETON_BAR}`} />
+      <div className={`h-32 rounded-xl ${SKELETON_BAR}`} />
+    </>
+  );
+}
+
+// Changes: its title and body.
+export function ChangesSkeleton() {
+  return (
+    <div className="flex h-full w-full flex-col">
+      <TitleHeader title="Changes" />
+      <div className="mx-auto w-full max-w-5xl space-y-4 overflow-hidden px-4 py-8 sm:px-8">
+        <ChangesBodySkeleton />
+      </div>
+    </div>
+  );
+}
+
 // Tags: the tag list beside the notes column.
 export function TagsSkeleton() {
   return (
@@ -294,5 +318,6 @@ export function routeSkeleton(pathname: string | null): React.ReactNode {
   if (pathname?.startsWith("/editor/settings")) return <SettingsSkeleton />;
   if (pathname?.startsWith("/editor/trash")) return <TrashSkeleton />;
   if (pathname?.startsWith("/editor/tags")) return <TagsSkeleton />;
+  if (pathname?.startsWith("/editor/changes")) return <ChangesSkeleton />;
   return null;
 }

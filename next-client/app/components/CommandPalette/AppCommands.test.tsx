@@ -59,6 +59,19 @@ describe("AppCommands and SettingsCommands", () => {
     expect(command("open-documentation")?.label).toBe("Open Documentation");
   });
 
+  it("opens the Changes page, and is disabled on it", () => {
+    renderCommands();
+    expect(command("show-changes")?.label).toBe("Show Changes");
+    expect(command("show-changes")?.disabledReason).toBeUndefined();
+    act(() => { void command("show-changes")?.action(); });
+    expect(push).toHaveBeenCalledWith("/editor/changes");
+    cleanup();
+
+    pathname = "/editor/changes";
+    renderCommands();
+    expect(command("show-changes")?.disabledReason).toBe("Already in Changes");
+  });
+
   it("toggles Git Changes and explains when the vault isn't a repository", () => {
     const store = createStore();
     renderCommands(store);

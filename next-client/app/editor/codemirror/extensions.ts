@@ -15,8 +15,8 @@ import { horizontalRuleCursorPlugin, markdownHighlightPlugin } from "./highlight
 import { tagPillPlugin } from "./tag-pills";
 import { linkDisplayPlugin } from "./link-display";
 import { annotationDisplayPlugin } from "./annotation-display";
-import { tableDisplayExtension } from "./table-display";
-import { renderedBlockExtension } from "./rendered-block";
+import { tableDisplayExtension, tableDisplayField } from "./table-display";
+import { renderedBlockExtension, renderedBlockField } from "./rendered-block";
 import { noteEmbedsExtension } from "./note-embeds";
 import { embedGhost } from "./embed-ghost";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
@@ -35,7 +35,7 @@ import { markdownProblems } from "./markdown-problems";
 import { flowMode, type FlowLevel } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
 import { invisibles } from "./invisibles";
-import { gitChanges } from "./git-changes";
+import { gitChanges, gitReplacedBlocks } from "./git-changes";
 import { editorLineNumbers } from "./line-numbers";
 import { findReplace } from "./find-replace";
 import { collapsedCalloutCorners } from "./callout-fold";
@@ -115,6 +115,11 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     headingFolding,
     // After the line numbers and fold markers: the bars sit next to the text.
     opts.gitChangesCompartment.of(opts.gitChanges ? gitChanges() : []),
+    // Tables and rendered blocks hide their lines: the diff's deleted blocks go above them.
+    gitReplacedBlocks.of((state) => [
+      ...(state.field(tableDisplayField, false)?.matches ?? []),
+      ...(state.field(renderedBlockField, false)?.matches ?? []),
+    ]),
     frontmatterSpacer,
     // Invalid frontmatter, unclosed code / math blocks: a notice above them.
     markdownProblems,

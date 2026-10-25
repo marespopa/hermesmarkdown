@@ -87,7 +87,7 @@ export interface CollectResult {
 
 // Never walked, even with hidden files shown: version control, dependency
 // and cache folders hold no notes and can be huge.
-const SKIPPED_DIRS = new Set(["node_modules", "vendor", ".git", ".svn", ".hg", "__pycache__", ".venv", ".cache", ".Trash"]);
+export const SKIPPED_DIRS = new Set(["node_modules", "vendor", ".git", ".svn", ".hg", "__pycache__", ".venv", ".cache", ".Trash"]);
 // The one hidden folder whose non-Markdown files are vault data (index.yaml,
 // schema.yaml, …). Other dotfolders (.obsidian, .vscode, …) only add notes.
 // Folders listed at once; the walk is bound by per-folder listing latency.

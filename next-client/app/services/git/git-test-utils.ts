@@ -169,6 +169,11 @@ export interface RepoFiles {
   packedRefs?: string;
   packs?: Record<string, { pack: Uint8Array; idx: Uint8Array }>;
   config?: string;
+  /** `.git/index` bytes (see buildIndex) and its modified time in ms. */
+  index?: Uint8Array;
+  indexMtimeMs?: number;
+  /** `.git/info/exclude`. */
+  exclude?: string;
 }
 
 /** A vault folder with a `.git` laid out from `files`. */
@@ -178,6 +183,12 @@ export async function makeRepoVault(files: RepoFiles): Promise<MemoryDirectoryHa
   if (files.head !== undefined) await git.writeText("HEAD", files.head);
   if (files.config !== undefined) await git.writeText("config", files.config);
   if (files.packedRefs !== undefined) await git.writeText("packed-refs", files.packedRefs);
+  if (files.index) {
+    const index = await git.writeText("index", "");
+    index.bytes = files.index;
+    index.lastModified = files.indexMtimeMs ?? 0;
+  }
+  if (files.exclude !== undefined) await git.writeText("info/exclude", files.exclude);
   for (const [ref, id] of Object.entries(files.refs ?? {})) await git.writeText(ref, id + "\n");
   for (const [id, [type, data]] of Object.entries(files.loose ?? {})) {
     const file = await git.writeText("objects/" + id.slice(0, 2) + "/" + id.slice(2), "");
@@ -188,4 +199,56 @@ export async function makeRepoVault(files: RepoFiles): Promise<MemoryDirectoryHa
     (await git.writeText("objects/pack/" + name + ".idx", "")).bytes = idx;
   }
   return vault;
+}
+
+export interface IndexEntryInput {
+  path: string;
+  id: string;
+  size?: number;
+  mtimeSec?: number;
+  mode?: number;
+  stage?: number;
+  /** Writes the extended-flags word (version 3+). */
+  extended?: boolean;
+}
+
+/** `.git/index` bytes for `entries` (sorted by the caller) in `version` 2, 3 or 4. */
+export function buildIndex(entries: IndexEntryInput[], version: 2 | 3 | 4): Uint8Array {
+  const header = new DataView(new ArrayBuffer(12));
+  header.setUint32(0, 0x44495243);
+  header.setUint32(4, version);
+  header.setUint32(8, entries.length);
+  const parts: Uint8Array[] = [new Uint8Array(header.buffer)];
+  let previous = "";
+  for (const entry of entries) {
+    const fixed = new DataView(new ArrayBuffer(62));
+    fixed.setUint32(8, entry.mtimeSec ?? 0);
+    fixed.setUint32(24, entry.mode ?? 0o100644);
+    fixed.setUint32(36, entry.size ?? 0);
+    const name = encoder.encode(entry.path);
+    const flags = ((entry.stage ?? 0) << 12) | (entry.extended ? 0x4000 : 0) | Math.min(name.length, 0xfff);
+    fixed.setUint16(60, flags);
+    let body = concat(new Uint8Array(fixed.buffer, 0, 40), hexBytes(entry.id), new Uint8Array(fixed.buffer, 60, 2));
+    if (entry.extended) body = concat(body, new Uint8Array(2));
+    if (version === 4) {
+      let common = 0;
+      while (common < previous.length && common < entry.path.length && previous[common] === entry.path[common]) common++;
+      const strip = previous.length - common;
+      // Offset varint, the inverse of the reader's.
+      const varint = [strip & 127];
+      let rest = strip >> 7;
+      while (rest > 0) {
+        rest -= 1;
+        varint.unshift(128 | (rest & 127));
+        rest >>= 7;
+      }
+      parts.push(concat(body, Uint8Array.from(varint), encoder.encode(entry.path.slice(common)), new Uint8Array(1)));
+    } else {
+      const length = body.length + name.length + 1;
+      parts.push(concat(body, name, new Uint8Array(Math.ceil(length / 8) * 8 - body.length - name.length)));
+    }
+    previous = entry.path;
+  }
+  parts.push(new Uint8Array(20));
+  return concat(...parts);
 }

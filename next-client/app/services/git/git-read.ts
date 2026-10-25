@@ -2,9 +2,8 @@
 // client's no-Worker fallback: where HEAD is, and HEAD's text for one file.
 import { openRepo, type GitRepo } from "./git-repo";
 import { resolveHead } from "./git-refs";
+import { classifyBytes } from "./git-classify";
 import { blobAtPath } from "./git-tree";
-
-export const MAX_BLOB_BYTES = 2 * 1024 * 1024;
 
 export interface HeadResult {
   available: boolean;
@@ -49,8 +48,8 @@ export async function readHeadBlob(vault: FileSystemDirectoryHandle, commit: str
     if (!repo) return { status: "error" };
     const bytes = await blobAtPath(repo.gitDir, commit, path);
     if (!bytes) return { status: "missing" };
-    if (bytes.length > MAX_BLOB_BYTES) return { status: "too-large" };
-    if (bytes.subarray(0, 8192).includes(0)) return { status: "binary" };
+    const kind = classifyBytes(bytes);
+    if (kind !== "ok") return { status: kind };
     return { status: "ok", text: new TextDecoder("utf-8", { fatal: false }).decode(bytes) };
   } catch (error) {
     const key = commit + ":" + path;
