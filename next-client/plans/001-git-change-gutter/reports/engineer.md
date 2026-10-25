@@ -1,4 +1,4 @@
-# 005 git change gutter — engineer report
+# 001 git change gutter — engineer report
 
 ## Built
 - Git reader: `app/services/git/` (`git-refs`, `git-repo`, `git-objects`, `git-pack`, `git-tree`, `git-read`, `git-fs`), worker `workers/git-read.worker.ts` + `git-read-protocol.ts`, client `services/git-read-client.ts` (dedupes, inline fallback).

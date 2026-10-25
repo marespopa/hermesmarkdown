@@ -18,7 +18,7 @@ There's no way to gather notes by their metadata inside a note, e.g. a project h
   type: project
   status: in-progress
   ```
-  All lines must match (AND). Values match the shared reader's view of each note (plan 002), so tag fallback works too.
+  All lines must match (AND). Values match the shared reader's view of each note (plan 003), so tag fallback works too.
 - When the caret is outside the block it renders as a live table of matching notes: title, type, status, due date, with the note name opening the note. When the caret enters, the block's text is revealed as typed (same caret-reveal rule as the rest of the editor).
 - The table refreshes after vault scans and when matching notes change, including edits made outside HermesMarkdown.
 - An empty result shows one quiet line ("No matching notes"); an unknown key or bad line shows the raw text with a muted hint.
