@@ -3,6 +3,7 @@ import { act, cleanup, renderHook } from "@testing-library/react";
 import { Provider, createStore } from "jotai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { atom_gitChangesCache } from "@/app/atoms/git-atoms";
+import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import type { ChangesResult } from "@/app/services/git/git-changes-types";
 import { useGitChanges } from "./use-git-changes";
 
@@ -18,6 +19,12 @@ vi.mock("@/app/services/git-changes-client", () => ({
   },
 }));
 
+const saved = vi.hoisted(() => ({ result: null as unknown, save: vi.fn() }));
+vi.mock("@/app/services/changes-cache", () => ({
+  loadChangesCache: async () => saved.result,
+  saveChangesCache: (...args: unknown[]) => saved.save(...args),
+}));
+
 const vaultA = { name: "a" } as FileSystemDirectoryHandle;
 const vaultB = { name: "b" } as FileSystemDirectoryHandle;
 const ok = (commit: string): ChangesResult => ({ status: "ok", commit, files: [] });
@@ -30,6 +37,21 @@ function setup(vault: FileSystemDirectoryHandle | null, store = createStore()) {
 describe("useGitChanges", () => {
   beforeEach(() => {
     scans.length = 0;
+    saved.result = null;
+    saved.save.mockClear();
+  });
+
+  it("shows the result saved for the vault while the first scan runs, then saves the new one", async () => {
+    saved.result = ok("saved");
+    const store = createStore();
+    store.set(atom_vaultHandle, vaultA);
+    store.set(atom_vaultDescriptor, { kind: "local" });
+    const { result } = setup(vaultA, store);
+    await act(async () => {});
+    expect(result.current.result).toEqual(ok("saved"));
+    await act(async () => scans[0].resolve(ok("fresh")));
+    expect(result.current.result).toEqual(ok("fresh"));
+    expect(saved.save).toHaveBeenCalledWith("local:a", ok("fresh"));
   });
   afterEach(cleanup);
 

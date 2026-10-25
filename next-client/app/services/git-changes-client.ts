@@ -8,6 +8,7 @@
 // browser refused access to (NotAllowedError: some browsers don't extend the
 // vault's permission to workers) is run again inline, and so are later scans.
 
+import type { KnownFile } from "@/app/services/git/git-changes-scan";
 import type { ChangedFile, ChangesProgress, ChangesResult } from "@/app/services/git/git-changes-types";
 import type { GitChangesRequest, GitChangesResponse } from "@/app/workers/git-changes-protocol";
 
@@ -81,11 +82,12 @@ export function startChangesScan(
   vault: FileSystemDirectoryHandle,
   onProgress: (progress: ChangesProgress) => void,
   onFiles: (files: ChangedFile[]) => void = () => {},
+  known: KnownFile[] = [],
 ): { result: Promise<ScanResult>; cancel(): void } {
   let cancelled = false;
   const target = getWorker();
   // Loaded on demand: the scan's dependencies stay out of the main bundle.
-  const runInline = async () => (await import("@/app/services/git/git-changes-scan")).scanChanges(vault, { onProgress, onFiles, isCancelled: () => cancelled });
+  const runInline = async () => (await import("@/app/services/git/git-changes-scan")).scanChanges(vault, { onProgress, onFiles, known, isCancelled: () => cancelled });
   if (!target) return { result: runInline(), cancel: () => { cancelled = true; } };
 
   const requestId = ++lastRequestId;
@@ -93,7 +95,7 @@ export function startChangesScan(
     const timer = setTimeout(() => abandonWorker("no answer in " + START_TIMEOUT_MS + "ms"), START_TIMEOUT_MS);
     requests.set(requestId, { onProgress, onFiles, resolve, inline: runInline, timer });
     try {
-      target.postMessage({ type: "changes:scan", requestId, vault } satisfies GitChangesRequest);
+      target.postMessage({ type: "changes:scan", requestId, vault, known } satisfies GitChangesRequest);
     } catch {
       clearTimeout(timer);
       requests.delete(requestId);

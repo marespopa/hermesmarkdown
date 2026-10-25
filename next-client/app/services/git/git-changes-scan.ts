@@ -51,10 +51,21 @@ export function clearScanCache(): void {
   hashed = null;
 }
 
+export interface KnownFile {
+  path: string;
+  handle: FileSystemFileHandle;
+}
+
 export interface ScanOptions {
   onProgress(progress: ChangesProgress): void;
   /** Changed files as they're found, in batches, before the sorted result. */
   onFiles?(files: ChangedFile[]): void;
+  /**
+   * Handles the app's own vault scan already holds (notes and text files):
+   * the tracked ones are compared first, before the walk reaches them, since
+   * listing folders is slow on some devices.
+   */
+  known?: readonly KnownFile[];
   isCancelled(): boolean;
 }
 
@@ -146,9 +157,9 @@ interface Candidate {
   newBytes: Uint8Array | null;
 }
 
-function unchangedByIndex(index: GitIndex | null, path: string, headId: string, file: File): "same" | "differs" | "unknown" {
+function unchangedByIndex(index: GitIndex | null, path: string, baseId: string, file: File): "same" | "differs" | "unknown" {
   const entry = index?.entries.get(path);
-  if (!index || !entry || entry.stage !== 0 || entry.id !== headId) return "unknown";
+  if (!index || !entry || entry.stage !== 0 || entry.id !== baseId) return "unknown";
   if (entry.size !== file.size) return "differs";
   const seconds = Math.floor(file.lastModified / 1000);
   // A file touched in the second the index was written may have changed after (racy git).
@@ -182,7 +193,7 @@ export async function scanChanges(vault: FileSystemDirectoryHandle, options: Sca
     };
 
     // Found files go to the page as they come (a batch per PROGRESS_MS).
-    const files: ChangedFile[] = [];
+    const files = new Map<string, ChangedFile>();
     let unsent: ChangedFile[] = [];
     let lastSent = 0;
     const send = (force = false) => {
@@ -192,61 +203,92 @@ export async function scanChanges(vault: FileSystemDirectoryHandle, options: Sca
       unsent = [];
     };
 
-    // Whether `path` differs from HEAD (null: it doesn't), with its bytes for the diff.
-    const compare = async (path: string, file: File | undefined): Promise<Candidate | ChangedFile | null> => {
-      const head = await headReady;
-      const inHead = head.files.get(path);
+    // Whether `file` (undefined: not in the vault) differs from the blob
+    // `baseId` (undefined: not in the base). Null: it doesn't.
+    const compareTo = async (path: string, file: File | undefined, baseId: string | undefined): Promise<Candidate | ChangedFile | null> => {
       try {
-        const headBytes = async () => (await readObject(gitDir, inHead!.id)).data;
-        if (file && !inHead) return { path, status: "added", oldBytes: null, newBytes: new Uint8Array(await file.arrayBuffer()) };
-        if (!file && inHead) return { path, status: "deleted", oldBytes: await headBytes(), newBytes: null };
-        if (!file || !inHead) return null;
-        const fast = unchangedByIndex(index, path, inHead.id, file);
+        const baseBytes = async () => (await readObject(gitDir, baseId!)).data;
+        if (file && !baseId) return { path, status: "added", oldBytes: null, newBytes: new Uint8Array(await file.arrayBuffer()) };
+        if (!file && baseId) return { path, status: "deleted", oldBytes: await baseBytes(), newBytes: null };
+        if (!file || !baseId) return null;
+        const fast = unchangedByIndex(index, path, baseId, file);
         if (fast === "same") return null;
         const known = ids.get(path);
-        if (fast === "unknown" && known?.size === file.size && known.mtime === file.lastModified && known.id === inHead.id) return null;
+        if (fast === "unknown" && known?.size === file.size && known.mtime === file.lastModified && known.id === baseId) return null;
         const bytes = new Uint8Array(await file.arrayBuffer());
         let before: Uint8Array | null = null;
         if (fast === "unknown") {
           const id = await blobId(bytes);
           if (id === null) {
-            before = await headBytes();
+            before = await baseBytes();
             if (sameBytes(before, bytes)) return null;
           } else {
             ids.set(path, { size: file.size, mtime: file.lastModified, id });
-            if (id === inHead.id) return null;
+            if (id === baseId) return null;
           }
         }
-        return { path, status: "modified", oldBytes: before ?? (await headBytes()), newBytes: bytes };
+        return { path, status: "modified", oldBytes: before ?? (await baseBytes()), newBytes: bytes };
       } catch (error) {
         console.warn("git: could not compare " + path, error);
-        return { path, status: file ? (inHead ? "modified" : "added") : "deleted", added: null, removed: null, diff: { kind: "error" } };
+        return { path, status: file ? (baseId ? "modified" : "added") : "deleted", added: null, removed: null, diff: { kind: "error" } };
       }
     };
 
     // Each file is compared as soon as the walk finds it, several at a time
-    // (reading and hashing dominate). The diff budget goes to files in the
-    // order they're found.
+    // (reading and hashing dominate). A file in the index is compared with
+    // the index's blob at once: that's HEAD's for almost every file, and
+    // HEAD's tree (read from packs) may still be loading. Once it's read, the
+    // few whose index blob isn't HEAD's (staged changes) are compared again.
+    // The diff budget goes to files in the order they're found.
     const budget = new Budget();
     const limit = limiter(COMPARE_CONCURRENCY);
     const tasks: Promise<void>[] = [];
+    const againstIndex = new Map<string, string>();
     let queued = 0;
     let compared = 0;
-    const enqueue = (path: string, file: File | undefined) => {
+    // A path's later comparison (against HEAD) runs after its first, so it has the last word.
+    const byPath = new Map<string, Promise<void>>();
+    const enqueue = (path: string, file: File | undefined | (() => Promise<File | undefined>), base: () => Promise<string | undefined>) => {
       queued++;
-      tasks.push(
+      const task = (byPath.get(path) ?? Promise.resolve()).then(() =>
         limit(async () => {
           if (options.isCancelled()) return;
-          const item = await compare(path, file);
+          const item = await compareTo(path, typeof file === "function" ? await file() : file, await base());
           compared++;
           const entry = item && ("diff" in item ? item : describe(item.path, item.status, item.oldBytes, item.newBytes, budget));
           if (entry) {
-            files.push(entry);
+            files.set(path, entry);
             unsent.push(entry);
             send();
+          } else {
+            files.delete(path);
           }
         }),
       );
+      byPath.set(path, task);
+      tasks.push(task);
+    };
+    const headId = async (path: string) => (await headReady).files.get(path)?.id;
+    // Tracked files the app already has handles for go first; the walk reuses their reads.
+    const early = new Map<string, () => Promise<File | undefined>>();
+    for (const { path, handle } of options.known ?? []) {
+      const entry = index?.entries.get(path);
+      if (!entry || entry.stage !== 0 || early.has(path)) continue;
+      let read: Promise<File | undefined> | null = null;
+      const file = () => (read ??= handle.getFile().then((found) => found, () => undefined));
+      early.set(path, file);
+      againstIndex.set(path, entry.id);
+      enqueue(path, file, async () => entry.id);
+    }
+    const onWalked = (path: string, file: File) => {
+      if (early.has(path)) return; // compared already
+      const entry = index?.entries.get(path);
+      if (entry && entry.stage === 0) {
+        againstIndex.set(path, entry.id);
+        enqueue(path, file, async () => entry.id);
+      } else {
+        enqueue(path, file, () => headId(path));
+      }
     };
 
     let walking = true;
@@ -256,7 +298,8 @@ export async function scanChanges(vault: FileSystemDirectoryHandle, options: Sca
       submodules: index ? gitlinks(index) : (await headReady).submodules,
       exclude,
       isCancelled: options.isCancelled,
-      onFile: (path, file) => enqueue(path, file),
+      onFile: onWalked,
+      fileFor: (path, handle) => early.get(path)?.() ?? handle.getFile(),
       onListed: (count) => walking && report({ phase: "listing", done: count, total: 0 }),
     });
     walking = false;
@@ -265,9 +308,13 @@ export async function scanChanges(vault: FileSystemDirectoryHandle, options: Sca
     // HEAD's paths the walk didn't find are deleted, unless they sit where the walk doesn't look.
     const head = await headReady;
     const hiddenDirs = [...tree.failedDirs, ...tree.nestedDirs, ...head.submodules];
-    for (const path of head.files.keys()) {
+    for (const [path, { id }] of head.files) {
       if (tree.files.has(path) || isExcludedPath(path, hiddenDirs)) continue;
-      enqueue(path, undefined);
+      enqueue(path, undefined, async () => id);
+    }
+    for (const [path, indexId] of againstIndex) {
+      const inHead = head.files.get(path)?.id;
+      if (inHead !== indexId) enqueue(path, tree.files.get(path), async () => inHead);
     }
     // A submodule's folder (known only once HEAD is read) was walked as files: those aren't changes.
     const inSubmodule = (path: string) => [...head.submodules].some((dir) => path === dir || path.startsWith(dir + "/"));
@@ -279,7 +326,7 @@ export async function scanChanges(vault: FileSystemDirectoryHandle, options: Sca
     }
     if (options.isCancelled()) return "cancelled";
     send(true);
-    const result = files.filter((file) => !inSubmodule(file.path)).sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+    const result = [...files.values()].filter((file) => !inSubmodule(file.path)).sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
     return { status: "ok", commit, files: result };
   } catch (error) {
     console.warn("git: could not scan for changes", error);

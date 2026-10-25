@@ -149,6 +149,35 @@ describe("scanChanges", () => {
     expect(result.files.find((file) => file.diff.kind === "skipped")).toMatchObject({ added: 2 });
   });
 
+  it("compares a staged file with HEAD, not with the index", async () => {
+    const { vault } = await setup({ "a.md": "one\n" }, { "a.md": "two\n" }, { index: new Uint8Array() });
+    // The index holds the working text (staged), so only HEAD shows the change.
+    const staged = (await blobId(new TextEncoder().encode("two\n")))!;
+    vault.fileAt(".git/index")!.bytes = buildIndex([{ path: "a.md", id: staged, size: 4, mtimeSec: 1 }], 2);
+    const result = await run(vault);
+    expect(summary(result)).toEqual([["a.md", "modified"]]);
+  });
+
+  it("compares the tracked files the app already knows first, reading each once", async () => {
+    const { vault, ids } = await setup({ "a.md": "one\n", "dir/b.md": "b\n" }, { "a.md": "two\n", "dir/b.md": "b\n" }, { index: new Uint8Array() });
+    vault.fileAt(".git/index")!.bytes = buildIndex([
+      { path: "a.md", id: ids["a.md"], size: 4, mtimeSec: 1 },
+      { path: "dir/b.md", id: ids["dir/b.md"], size: 2, mtimeSec: 1 },
+    ], 2);
+    const handle = vault.fileAt("a.md")!;
+    const getFile = vi.spyOn(handle, "getFile");
+    const batches: string[][] = [];
+    const result = await scanChanges(vault.asHandle(), {
+      onProgress: () => {},
+      onFiles: (files) => batches.push(files.map((file) => file.path)),
+      known: [{ path: "a.md", handle: handle as unknown as FileSystemFileHandle }],
+      isCancelled: () => false,
+    });
+    expect(batches[0]).toEqual(["a.md"]);
+    expect(getFile).toHaveBeenCalledTimes(1);
+    expect(summary(result)).toEqual([["a.md", "modified"]]);
+  });
+
   it("hands over changed files as they're found, before the result", async () => {
     const { vault } = await setup({ "a.md": "one\n", "gone.md": "x\n" }, { "a.md": "two\n", "new.md": "n\n" });
     const batches: string[][] = [];

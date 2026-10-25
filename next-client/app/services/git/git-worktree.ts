@@ -20,6 +20,8 @@ export interface WorktreeOptions {
   onListed(count: number): void;
   /** Each working file as soon as it's read (before the walk ends). */
   onFile?(path: string, file: File): void;
+  /** Reads a file the caller may already be reading (undefined: absent). Default: `handle.getFile()`. */
+  fileFor?(path: string, handle: FileSystemFileHandle): Promise<File | undefined>;
 }
 
 export interface Worktree {
@@ -100,8 +102,9 @@ export async function walkWorktree(vault: FileSystemDirectoryHandle, options: Wo
         if (!options.tracked.has(childPath) && isIgnored(scoped, childPath, false)) continue;
         // A folder's files are read at once: one at a time is most of a large walk.
         reads.push(
-          (entry as FileSystemFileHandle).getFile().then(
+          (options.fileFor?.(childPath, entry as FileSystemFileHandle) ?? (entry as FileSystemFileHandle).getFile()).then(
             (file) => {
+              if (!file) return;
               files.set(childPath, file);
               options.onFile?.(childPath, file);
             },
