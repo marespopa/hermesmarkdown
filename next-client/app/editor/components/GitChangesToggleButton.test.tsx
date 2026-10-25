@@ -6,7 +6,7 @@ import { atom_showGitChanges } from "@/app/atoms/git-atoms";
 import GitChangesToggleButton from "./GitChangesToggleButton";
 
 describe("GitChangesToggleButton", () => {
-  it("shows and hides the git changes gutter, pressed while it's on", () => {
+  it("shows and hides the git changes diff, pressed while it's on", () => {
     const store = createStore();
     store.set(atom_showGitChanges, false);
     render(<Provider store={store}><GitChangesToggleButton /></Provider>);

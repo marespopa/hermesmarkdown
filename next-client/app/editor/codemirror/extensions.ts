@@ -52,7 +52,7 @@ export interface BuildExtensionsOptions {
   lineNumbersCompartment: Compartment;
   showInvisibles: boolean;
   invisiblesCompartment: Compartment;
-  /** Git Changes gutter on (git-changes.ts); its baseline comes from use-git-baseline.ts. */
+  /** Git Changes inline diff on (git-changes.ts); its baseline comes from use-git-baseline.ts. */
   gitChanges: boolean;
   gitChangesCompartment: Compartment;
   /** Vim mode on; the caller has already awaited `loadVim()`. */

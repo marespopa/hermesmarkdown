@@ -21,7 +21,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [BlockTypeMenu](BlockTypeMenu.md) | The selection toolbar's "Turn into" dropdown: shows the line's block type and turns selected lines into text, a heading, a list, a to-do or a quote. |
 | [BrowserVaultDialog](BrowserVaultDialog.md) | Create, reopen, or delete vaults stored in browser storage (Safari, Firefox, mobile). |
 | [RecentVaultsDialog](RecentVaultsDialog.md) | Open, reorder, pin or remove recent vaults; only pinned ones are listed in the Vault menu, and they never age out. |
-| [GitChangesToggleButton](GitChangesToggleButton.md) | The editor corner's pill that shows or hides the Git Changes gutter, left of the outline toggle. |
+| [GitChangesToggleButton](GitChangesToggleButton.md) | The editor corner's pill that shows or hides the Git Changes diff, left of the outline toggle. |
 | [OutlineToggleButton](OutlineToggleButton.md) | The editor corner's pill that shows or hides the note's outline, left of Copy Contents. |
 | [ImageDialog](ImageDialog.md) | Lightbox for note images; resolves vault-relative paths locally. |
 | [LinkPill](LinkPill.md) | Floating pill over a Markdown or wiki link in the editor, offering open and edit (label and URL). |

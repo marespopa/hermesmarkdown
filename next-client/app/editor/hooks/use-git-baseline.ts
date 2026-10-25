@@ -20,7 +20,7 @@ interface UseGitBaselineOptions {
   enabled: boolean;
 }
 
-// Feeds the Git Changes gutter (codemirror/git-changes.ts) its baseline: the
+// Feeds the Git Changes diff (codemirror/git-changes.ts) its baseline: the
 // open file's text at HEAD, read through the git-read worker. HEAD is checked
 // again when the window regains focus or becomes visible and every 5 s while
 // focused; the blob is re-read only when HEAD's stamp changed.

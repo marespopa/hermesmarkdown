@@ -155,7 +155,7 @@ export const vaultGroup: Group = {
       id: "git",
       title: "Using git",
       lead: "HermesMarkdown doesn't run git: commit, pull and push with the tools you already use. It can show what changed since your last commit.",
-      keywords: "git github gitlab repository commit sync push pull source control version history diff changes gutter",
+      keywords: "git github gitlab repository commit sync push pull source control version history diff changes inline",
       body: (
         <>
           <p>
@@ -165,10 +165,12 @@ export const vaultGroup: Group = {
             or indexed.
           </p>
           <p>
-            Turn on <strong>Git Changes</strong> (command palette, or Settings → Editor → View) to mark
-            the lines you have added, changed or deleted since the last commit. A green bar is an added
-            line, a blue bar a changed one, and a small red wedge shows where lines were deleted. The
-            bars update as you type, and again after you commit in another tool. They show only when
+            Turn on <strong>Git Changes</strong> (the button in the editor's top-right corner, the
+            command palette, or Settings → Editor → View) to see what you have changed since the last
+            commit, the way a pull request shows it. Added and changed lines are tinted green, with the
+            changed words stronger; the old lines they replaced, and lines you deleted, show above them
+            on a red tint and can't be edited. The diff updates as you type, and again after you commit
+            in another tool. It shows only when
             the <code>.git</code> folder is at the root of the vault you opened, and a file that isn't
             committed yet is marked as all added. HermesMarkdown only reads <code>.git</code>; it never
             runs git or writes to it.

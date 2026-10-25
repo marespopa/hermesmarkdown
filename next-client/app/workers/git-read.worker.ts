@@ -1,5 +1,5 @@
 // app/workers/git-read.worker.ts — reads a vault's `.git` folder for the
-// editor's Git Changes gutter (see git-read-protocol.ts). Keeps the repo,
+// editor's Git Changes diff (see git-read-protocol.ts). Keeps the repo,
 // pack index and object caches between requests so panes share them.
 import { readHead, readHeadBlob } from "../services/git/git-read";
 import type { GitReadRequest, GitReadResponse } from "./git-read-protocol";

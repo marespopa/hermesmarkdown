@@ -59,7 +59,7 @@ export default function EditorSettings() {
         />
         <SettingItem
           label="Git Changes"
-          description="In a disk vault that's a git repository, mark lines added, changed or deleted since the last commit in the gutter."
+          description="In a disk vault that's a git repository, show what changed since the last commit inline: added lines tinted, and the old lines above them."
           control={<Toggle variant="soft" active={showGitChanges} onChange={setShowGitChanges} label="Git Changes" />}
         />
       </SettingGroup>

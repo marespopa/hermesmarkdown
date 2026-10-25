@@ -8,7 +8,7 @@ import Button from "@/app/components/Button";
 import Tooltip from "@/app/components/Tooltip";
 import { PILL_BUTTON_CLASS } from "./pane-header-classes";
 
-// Shows or hides the Git Changes gutter (atom_showGitChanges, as the palette
+// Shows or hides the Git Changes diff (atom_showGitChanges, as the palette
 // and Settings → Editor → View): left of the outline toggle in the editor's
 // top-right corner (EditorShell), in the pill's look, pressed while it's on.
 export default function GitChangesToggleButton({ className = "" }: { className?: string }) {
