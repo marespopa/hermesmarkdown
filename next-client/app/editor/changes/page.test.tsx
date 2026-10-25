@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { Provider, createStore } from "jotai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom";
-import { atom_isVaultPending, atom_pendingScrollTarget, atom_vaultDescriptor } from "@/app/atoms/atoms";
+import { atom_gitChangesCache, atom_isVaultPending, atom_pendingScrollTarget, atom_vaultDescriptor } from "@/app/atoms/atoms";
 import type { ChangedFile, ChangesResult } from "@/app/services/git/git-changes-types";
 import ChangesPage from "./page";
 
@@ -44,8 +44,9 @@ const deleted: ChangedFile = {
 const binary: ChangedFile = { path: "pic.md", status: "added", added: null, removed: null, diff: { kind: "binary" } };
 const ok = (...files: ChangedFile[]): ChangesResult => ({ status: "ok", commit: "abcdef1234567", files });
 
-function renderPage(kind: "local" | "browser" = "local", pending = false) {
+function renderPage(kind: "local" | "browser" = "local", pending = false, seed?: (store: ReturnType<typeof createStore>) => void) {
   const store = createStore();
+  seed?.(store);
   store.set(atom_isVaultPending, pending);
   store.set(atom_vaultDescriptor, (kind === "local" ? { kind: "local", name: "v" } : { kind: "browser", id: "1", name: "v" }) as never);
   render(
@@ -92,6 +93,23 @@ describe("ChangesPage", () => {
     renderPage();
     expect(await screen.findByText("1 file changed")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Reading the repository…");
+    expect(screen.queryByTestId("changes-skeleton")).toBeNull();
+  });
+
+  it("says the list is up to date once the scan is done", async () => {
+    scan.next = ok(modified);
+    renderPage();
+    await screen.findByText("1 file changed");
+    expect(screen.getByRole("status")).toHaveTextContent("Up to date");
+  });
+
+  it("shows the saved result at once and says it's checking while a rescan runs", async () => {
+    scan.pending = true;
+    renderPage("local", false, (store) => store.set(atom_gitChangesCache, { vault: fileSystem.vaultHandle as FileSystemDirectoryHandle, result: ok(modified, deleted) }));
+    expect(screen.getByText("2 files changed")).toBeInTheDocument();
+    // A quick rescan doesn't flicker: the check stays for the first moment.
+    expect(screen.getByRole("status")).toHaveTextContent("Up to date");
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Reading the repository…"));
     expect(screen.queryByTestId("changes-skeleton")).toBeNull();
   });
 
@@ -145,32 +163,32 @@ describe("ChangesPage", () => {
     expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalled();
   });
 
-  it("opens the file at its first change from the path", async () => {
+  it("opens the file at its first change from Open file", async () => {
     scan.next = ok(modified);
     const store = renderPage();
-    const path = (await screen.findAllByRole("button", { name: "notes/a.md" })).find((button) => button.tagName === "BUTTON" && button.closest("section"))!;
-    fireEvent.click(path);
+    fireEvent.click(await screen.findByRole("button", { name: "Open notes/a.md" }));
     await waitFor(() => expect(push).toHaveBeenCalled());
     expect(fileSystem.openFile).toHaveBeenCalled();
     expect(store.get(atom_pendingScrollTarget)).toEqual({ path: "notes/a.md", line: 15 });
     expect(push).toHaveBeenCalledWith(expect.stringContaining("/editor?"));
   });
 
-  it("opens a removed row at the line where the deletion sits", async () => {
+  it("stays on the page when the path or a diff line is clicked", async () => {
     scan.next = ok(modified);
-    const store = renderPage();
-    fireEvent.click(await screen.findByText("old fifteen"));
-    await waitFor(() => expect(store.get(atom_pendingScrollTarget)).toEqual({ path: "notes/a.md", line: 15 }));
+    renderPage();
+    const section = (await screen.findByText("old fifteen")).closest("section")!;
+    fireEvent.click(within(section).getByText("notes/a.md"));
+    fireEvent.click(within(section).getByText("old fifteen"));
+    expect(push).not.toHaveBeenCalled();
+    expect(fileSystem.openFile).not.toHaveBeenCalled();
   });
 
-  it("gives a deleted file no button for its path", async () => {
+  it("gives a deleted file no Open file button", async () => {
     scan.next = ok(deleted);
     renderPage();
     await screen.findByText("1 file changed");
     const section = screen.getByText("Deleted").closest("section")!;
-    expect(within(section).queryByRole("button", { name: "gone.md" })).toBeNull();
-    fireEvent.click(within(section).getByText("bye"));
-    expect(push).not.toHaveBeenCalled();
+    expect(within(section).queryByRole("button", { name: "Open gone.md" })).toBeNull();
   });
 
   it("reveals the lines of a folded stretch", async () => {

@@ -8,7 +8,7 @@ import { buildIndex, commitData, fakeId, makeRepoVault, treeData } from "./git-t
 type Loose = Record<string, [string, string | Uint8Array]>;
 
 /** HEAD commit with `head` files (flat or nested), real blob ids. Returns the loose objects and the ids by path. */
-async function headObjects(head: Record<string, string>): Promise<{ loose: Loose; ids: Record<string, string> }> {
+async function headObjects(head: Record<string, string>): Promise<{ loose: Loose; ids: Record<string, string>; root: string }> {
   const loose: Loose = {};
   const ids: Record<string, string> = {};
   let counter = 100;
@@ -33,12 +33,12 @@ async function headObjects(head: Record<string, string>): Promise<{ loose: Loose
   }
   const root = await tree("");
   loose[fakeId(1)] = ["commit", commitData(root)];
-  return { loose, ids };
+  return { loose, ids, root };
 }
 
 async function setup(head: Record<string, string> | null, work: Record<string, string>, extra: { index?: Uint8Array; indexMtimeMs?: number } = {}) {
   clearObjectCache();
-  const { loose, ids } = head ? await headObjects(head) : { loose: {}, ids: {} };
+  const { loose, ids, root } = head ? await headObjects(head) : { loose: {}, ids: {}, root: "" };
   const vault = await makeRepoVault({
     head: "ref: refs/heads/main\n",
     refs: head ? { "refs/heads/main": fakeId(1) } : {},
@@ -46,7 +46,7 @@ async function setup(head: Record<string, string> | null, work: Record<string, s
     ...extra,
   });
   for (const [path, text] of Object.entries(work)) await vault.writeText(path, text);
-  return { vault, ids };
+  return { vault, ids, root };
 }
 
 const run = (vault: MemoryDirectoryHandle, isCancelled = () => false) => scanChanges(vault.asHandle(), { onProgress: () => {}, isCancelled });
@@ -156,6 +156,24 @@ describe("scanChanges", () => {
     vault.fileAt(".git/index")!.bytes = buildIndex([{ path: "a.md", id: staged, size: 4, mtimeSec: 1 }], 2);
     const result = await run(vault);
     expect(summary(result)).toEqual([["a.md", "modified"]]);
+  });
+
+  it("takes HEAD's files from the index when its cache tree is HEAD's tree", async () => {
+    const { vault, ids, root } = await setup({ "a.md": "one\n", "dir/b.md": "b\n", "gone.md": "x\n" }, { "a.md": "two\n", "dir/b.md": "b\n" }, { index: new Uint8Array() });
+    const paths = ["a.md", "dir/b.md", "gone.md"];
+    vault.fileAt(".git/index")!.bytes = buildIndex(paths.map((path) => ({ path, id: ids[path] })), 2, root);
+    // No tree object is read: removing the root tree would fail a tree walk.
+    const objects = await (await vault.getDirectoryHandle(".git")).getDirectoryHandle("objects");
+    await (await objects.getDirectoryHandle(root.slice(0, 2))).removeEntry(root.slice(2));
+    expect(summary(await run(vault))).toEqual([["a.md", "modified"], ["gone.md", "deleted"]]);
+  });
+
+  it("walks HEAD's tree when the cache tree is another tree", async () => {
+    const { vault, ids } = await setup({ "a.md": "one\n" }, { "a.md": "two\n" }, { index: new Uint8Array() });
+    const staged = (await blobId(new TextEncoder().encode("two\n")))!;
+    vault.fileAt(".git/index")!.bytes = buildIndex([{ path: "a.md", id: staged, size: 4, mtimeSec: 1 }], 2, fakeId(77));
+    expect(ids["a.md"]).not.toBe(staged);
+    expect(summary(await run(vault))).toEqual([["a.md", "modified"]]);
   });
 
   it("compares the tracked files the app already knows first, reading each once", async () => {

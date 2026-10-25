@@ -4,9 +4,12 @@ import React, { useRef } from "react";
 import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { HiOutlineDocumentText, HiOutlineDotsHorizontal, HiOutlineFolderOpen, HiOutlinePlus } from "react-icons/hi";
 import { atom_activeFilePath, atom_activePaneId, atom_openDraft, atom_vaultHandle } from "@/app/atoms/atoms";
+import { atom_isVaultPending, atom_vaultDescriptor } from "@/app/atoms/vault-atoms";
 import { focusPaneEditorWhenReady } from "../utils/focus-pane-editor";
+import { useVaultHasGit } from "../hooks/use-vault-has-git";
 import Button from "@/app/components/Button";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { formatPageShortcut, PAGE_SHORTCUTS, pageCommand, runPageCommand } from "@/app/components/CommandPalette/page-shortcuts";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
 import VaultActionButtons from "./VaultActionButtons";
@@ -17,16 +20,30 @@ interface PaneEmptyStateProps {
 }
 
 // What a pane shows with no tabs open: new file, open a note (palette) or
-// file (device), vault actions when no vault is open, and a palette hint.
+// file (device), vault actions when no vault is open, the pages with their
+// keys (Tasks, Changes in a git vault, Templates, Settings) with a vault,
+// and a palette hint.
 export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const setActiveFilePath = useSetAtom(atom_activeFilePath);
   const openDraft = useSetAtom(atom_openDraft);
   const store = useStore();
   const { importFile, isVaultSupported, isBrowserVaultSupported } = useFileSystem();
-  const { open: openCommandPalette } = useCommandPalette();
+  const { open: openCommandPalette, commands } = useCommandPalette();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const newFileShortcut = isMacPlatform() ? "⌃⌥N" : "Ctrl+Alt+N";
+  // Changes only for a disk vault with a `.git` folder, as the git menu.
+  const isDiskVault = useAtomValue(atom_vaultDescriptor)?.kind === "local";
+  const isVaultPending = useAtomValue(atom_isVaultPending);
+  const hasGit = useVaultHasGit(isDiskVault && !isVaultPending ? vaultHandle : null);
+  // The pages you can reach from here, so they're seen without the palette
+  // (with a vault: they're the vault's Tasks, Changes and Templates).
+  const pages = vaultHandle
+    ? PAGE_SHORTCUTS.flatMap((shortcut) => {
+        const command = shortcut.needsGit && !hasGit ? undefined : pageCommand(shortcut, commands);
+        return command ? [{ shortcut, command }] : [];
+      })
+    : [];
 
   // A blank draft, no dialogs: in a vault it's saved on its first save.
   const handleNewFile = (e: React.MouseEvent<HTMLElement>) => {
@@ -94,6 +111,16 @@ export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
             </p>
             <VaultActionButtons />
           </div>
+        )}
+        {pages.length > 0 && (
+          <nav aria-label="Pages" className="mt-5 flex w-full flex-wrap justify-center gap-2 border-t border-edge pt-5">
+            {pages.map(({ shortcut, command }) => (
+              <Button key={shortcut.label} variant="outlined" onClick={() => runPageCommand(command)} className="!h-9 gap-2 !px-3 text-ui-footnote">
+                {shortcut.label}
+                <kbd className="rounded border border-edge px-1.5 py-0.5 font-mono text-ui-micro font-medium">{formatPageShortcut(shortcut)}</kbd>
+              </Button>
+            ))}
+          </nav>
         )}
         <Button variant="bare" onClick={() => openCommandPalette(">")} className="mt-5 gap-2 text-fg-muted">
           <HiOutlineDotsHorizontal size={16} />

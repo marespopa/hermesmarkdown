@@ -2,7 +2,7 @@ import { Chunk } from "@codemirror/merge";
 import { EditorState, Text } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it } from "vitest";
-import { gitChanges, gitChangesField, gitDiff, gitReplacedBlocks, goToNextGitChange, goToPreviousGitChange, MAX_GIT_LINES, setGitBaseline } from "./git-changes";
+import { addedRunsIn, gitChanges, gitChangesField, gitDiff, gitReplacedBlocks, goToNextGitChange, goToPreviousGitChange, MAX_GIT_LINES, setGitBaseline } from "./git-changes";
 
 const text = (value: string) => Text.of(value.split("\n"));
 const diffOf = (base: string, doc: string) => gitDiff(text(base), text(doc), Chunk.build(text(base), text(doc)));
@@ -130,10 +130,16 @@ describe("gitChanges extension", () => {
     const v = editor("a\nX\nY\nb\nc\nd\ne\nZ");
     v.dispatch({ effects: setGitBaseline.of({ text: "a\nb\nc\nd\ne" }) });
     const { doc } = v.state;
-    expect(v.state.field(gitChangesField).addedRuns).toEqual([
+    expect(addedRunsIn(v.state.field(gitChangesField).diff.added, doc, 0, doc.length)).toEqual([
       { from: doc.line(2).from, to: doc.line(3).to },
       { from: doc.line(8).from, to: doc.line(8).to },
     ]);
+  });
+
+  it("clips the runs to the lines asked for", () => {
+    const doc = text("a\nb\nc\nd\ne");
+    expect(addedRunsIn([1, 2, 3, 4, 5], doc, doc.line(2).from, doc.line(4).from)).toEqual([{ from: doc.line(2).from, to: doc.line(4).to }]);
+    expect(addedRunsIn([1, 5], doc, doc.line(2).from, doc.line(4).to)).toEqual([]);
   });
 
   it("shows a deletion inside a table (a replaced block) above the table", () => {

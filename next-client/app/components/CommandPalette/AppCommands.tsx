@@ -6,6 +6,7 @@ import { atom_darkTheme, atom_keyboardShortcutsOpen, atom_lightTheme, atom_theme
 import { DARK_THEMES, LIGHT_THEMES, resolveDarkTheme, resolveLightTheme } from "@/app/theme-palettes";
 import RegisteredCommands from "@/app/editor/components/editor-commands/RegisteredCommands";
 import { type Command, useRegisterCommand } from "./CommandPaletteContext";
+import { pageShortcutFor } from "./page-shortcuts";
 
 const THEME_COMMANDS: { value: Theme; label: string }[] = [
   { value: "light", label: "Theme: Light" },
@@ -94,6 +95,7 @@ export default function AppCommands() {
           category: "Navigation",
           opens: "page",
           keywords,
+          shortcut: pageShortcutFor(id),
           disabledReason: pathname.startsWith(href) ? `Already in ${label.replace(/^(Open|Show) /, "")}` : undefined,
           action: () => router.push(href),
         };
@@ -112,6 +114,7 @@ export default function AppCommands() {
     category: "Settings",
     opens: "page",
     keywords: "preferences configuration config",
+    shortcut: pageShortcutFor("open-settings"),
     disabledReason: pathname === "/editor/settings" ? "Already in settings" : undefined,
     action: () => router.push("/editor/settings"),
   });

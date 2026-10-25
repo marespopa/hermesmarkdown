@@ -2,7 +2,7 @@ import { atom } from "jotai";
 import type { ChangesResult } from "@/app/services/git/git-changes-types";
 import { atomWithStorage } from "jotai/utils";
 
-// Git Changes (Settings → Editor → View): gutter bars for the lines that
+// Git Changes (the editor's git menu, the palette): an inline diff of the lines that
 // differ from HEAD in a disk vault whose root has a `.git` folder
 // (codemirror/git-changes.ts). Off by default.
 export const atom_showGitChanges = atomWithStorage<boolean>("showGitChanges", false);

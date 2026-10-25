@@ -51,6 +51,10 @@ export const keyboardShortcutsItem: Subsection = {
           rows: [
             { label: "Show Files", shortcut: "CTRL/CMD+SHIFT+E" },
             { label: "New file", shortcut: "CTRL+ALT+N" },
+            { label: "Open Tasks", shortcut: "CTRL/CMD+ALT+T" },
+            { label: "Show Changes", shortcut: "CTRL/CMD+ALT+G" },
+            { label: "Open Templates", shortcut: "CTRL/CMD+ALT+P" },
+            { label: "Open Settings", shortcut: "CTRL/CMD+," },
             { label: "Close the file in front", shortcut: "CTRL/CMD+ALT+W" },
             { label: "Open a pinned item (1–9, in the Pinned order)", shortcut: "CTRL/CMD+1–9" },
             { label: "Outline on / off", shortcut: "CTRL/CMD+SHIFT+M" },

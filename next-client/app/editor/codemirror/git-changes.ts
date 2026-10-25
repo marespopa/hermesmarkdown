@@ -1,4 +1,4 @@
-// Git Changes (Settings → Editor → View): an inline diff against the file at
+// Git Changes (the editor's git menu, the palette): an inline diff against the file at
 // HEAD, the way a pull request shows it. Added and changed lines get a green
 // tint and a +, and the lines they replaced or that were deleted sit above
 // them, read-only, on a red tint with a −. The baseline (HEAD's text) arrives
@@ -6,10 +6,12 @@
 // @codemirror/merge's `Chunk` (built once, then updated with each edit), and
 // the lines both sides share at a chunk's edges are dropped: a chunk is
 // widened to whole lines, so pressing Enter at the end of a line would
-// otherwise show that line as deleted and added again.
+// otherwise show that line as deleted and added again. Only the deleted
+// blocks are built for the whole file; the added lines' marks and tint are
+// drawn for the viewport, so typing in a long new file stays cheap.
 import { Chunk } from "@codemirror/merge";
 import { EditorSelection, type EditorState, type Extension, Facet, type Range, StateEffect, StateField, Text } from "@codemirror/state";
-import { Decoration, type DecorationSet, Direction, EditorView, keymap, layer, RectangleMarker, WidgetType } from "@codemirror/view";
+import { Decoration, type DecorationSet, Direction, EditorView, keymap, layer, RectangleMarker, ViewPlugin, type ViewUpdate, WidgetType } from "@codemirror/view";
 import { flashLine } from "../utils/flash-line";
 import { gitDiff, type GitDiff, MAX_GIT_LINES } from "@/app/services/git/git-line-diff";
 
@@ -53,10 +55,16 @@ class DeletedLinesWidget extends WidgetType {
 
 const addedLine = Decoration.line({ class: "cm-git-added" });
 
+// Diffs run on the main thread (on a new baseline and on each edit): a large,
+// very different file falls back to a faster, coarser diff instead of stalling.
+const DIFF_CONFIG: Parameters<typeof Chunk.build>[2] = { scanLimit: 500, timeout: 50 };
+
+// The deleted blocks, for the whole file: they change the layout, so they
+// can't be left to the viewport.
 function decorate(diff: GitDiff, state: EditorState): DecorationSet {
   const { doc } = state;
   const blocks = state.facet(gitReplacedBlocks).flatMap((find) => find(state));
-  const ranges: Range<Decoration>[] = diff.added.map((number) => addedLine.range(doc.line(number).from));
+  const ranges: Range<Decoration>[] = [];
   for (const { before, lines } of diff.deleted) {
     let atEnd = before > doc.lines;
     let pos = atEnd ? doc.length : doc.line(before).from;
@@ -78,17 +86,29 @@ interface GitChangesValue {
   diff: GitDiff;
   /** Where each change starts (line starts), for next / previous change. */
   hunks: number[];
-  /** Runs of added lines, from the first line's start to the last line's end: the tint layer's ranges. */
-  addedRuns: { from: number; to: number }[];
 }
 
-const EMPTY: GitChangesValue = { base: null, chunks: [], diff: { added: [], deleted: [], hunks: [] }, hunks: [], addedRuns: [] };
+const EMPTY: GitChangesValue = { base: null, chunks: [], diff: { added: [], deleted: [], hunks: [] }, hunks: [] };
 
-function runsOf(added: number[], doc: Text): { from: number; to: number }[] {
+/**
+ * Runs of added lines (sorted line numbers) between positions `from` and
+ * `to`, from a run's first line start to its last line end, clipped to the
+ * lines there: the tint layer's ranges.
+ */
+export function addedRunsIn(added: readonly number[], doc: Text, from: number, to: number): { from: number; to: number }[] {
+  const first = doc.lineAt(from).number;
+  const last = doc.lineAt(to).number;
+  let low = 0;
+  let high = added.length;
+  while (low < high) {
+    const mid = (low + high) >> 1;
+    if (added[mid] < first) low = mid + 1;
+    else high = mid;
+  }
   const runs: { from: number; to: number }[] = [];
-  for (let i = 0; i < added.length; i++) {
+  for (let i = low; i < added.length && added[i] <= last; i++) {
     const start = added[i];
-    while (i + 1 < added.length && added[i + 1] === added[i] + 1) i++;
+    while (i + 1 < added.length && added[i + 1] === added[i] + 1 && added[i + 1] <= last) i++;
     runs.push({ from: doc.line(start).from, to: doc.line(added[i]).to });
   }
   return runs;
@@ -96,13 +116,13 @@ function runsOf(added: number[], doc: Text): { from: number; to: number }[] {
 
 function withChunks(base: Text, doc: Text, chunks: readonly Chunk[]): GitChangesValue {
   const diff = gitDiff(base, doc, chunks);
-  return { base, chunks, diff, hunks: diff.hunks.map((number) => doc.line(number).from), addedRuns: runsOf(diff.added, doc) };
+  return { base, chunks, diff, hunks: diff.hunks.map((number) => doc.line(number).from) };
 }
 
 function fromBaseline(baseline: GitBaseline, state: EditorState): GitChangesValue {
   if (baseline === "off" || state.doc.lines > MAX_GIT_LINES) return EMPTY;
   const base = baseline.text === null ? Text.empty : Text.of(baseline.text.split(/\r?\n/));
-  return withChunks(base, state.doc, Chunk.build(base, state.doc));
+  return withChunks(base, state.doc, Chunk.build(base, state.doc, DIFF_CONFIG));
 }
 
 export const gitChangesField = StateField.define<GitChangesValue>({
@@ -113,7 +133,7 @@ export const gitChangesField = StateField.define<GitChangesValue>({
     }
     if (!value.base || !transaction.docChanged) return value;
     if (transaction.newDoc.lines > MAX_GIT_LINES) return EMPTY;
-    return withChunks(value.base, transaction.newDoc, Chunk.updateB(value.chunks, value.base, transaction.newDoc, transaction.changes));
+    return withChunks(value.base, transaction.newDoc, Chunk.updateB(value.chunks, value.base, transaction.newDoc, transaction.changes, DIFF_CONFIG));
   },
 });
 
@@ -124,23 +144,44 @@ const gitDecorations = EditorView.decorations.compute([gitChangesField, gitRepla
   decorate(state.field(gitChangesField).diff, state),
 );
 
+const diffChanged = (update: ViewUpdate) => update.startState.field(gitChangesField, false) !== update.state.field(gitChangesField, false);
+
+const visibleRuns = (view: EditorView) =>
+  addedRunsIn(view.state.field(gitChangesField, false)?.diff.added ?? [], view.state.doc, view.viewport.from, view.viewport.to);
+
+// The added lines' `+`, for the lines in the viewport only.
+const addedLines = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet;
+    constructor(view: EditorView) {
+      this.decorations = this.build(view);
+    }
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.viewportChanged || diffChanged(update)) this.decorations = this.build(update.view);
+    }
+    build(view: EditorView): DecorationSet {
+      const { doc } = view.state;
+      const ranges: Range<Decoration>[] = [];
+      for (const run of visibleRuns(view)) {
+        for (let number = doc.lineAt(run.from).number, end = doc.lineAt(run.to).number; number <= end; number++) ranges.push(addedLine.range(doc.line(number).from));
+      }
+      return Decoration.set(ranges);
+    }
+  },
+  { decorations: (plugin) => plugin.decorations },
+);
+
 // The added lines' tint, drawn behind the text like the selection rather
 // than as a line background: code blocks and callouts paint their own line
 // backgrounds over a line's, and a table replaces its lines with a widget.
 const addedTint = layer({
   above: false,
   class: "cm-git-addedLayer",
-  update: (update) =>
-    update.docChanged ||
-    update.viewportChanged ||
-    update.geometryChanged ||
-    update.startState.field(gitChangesField, false) !== update.state.field(gitChangesField, false),
+  update: (update) => update.docChanged || update.viewportChanged || update.geometryChanged || diffChanged(update),
   markers(view) {
-    const runs = view.state.field(gitChangesField, false)?.addedRuns ?? [];
     const { doc } = view.state;
-    const { from: top, to: bottom } = view.viewport;
     const markers: RectangleMarker[] = [];
-    const visible = runs.filter((run) => run.to >= top && run.from <= bottom);
+    const visible = visibleRuns(view);
     for (const run of visible) {
       // Through the line break, so the tint spans the line's full width.
       const end = run.to < doc.length ? run.to + 1 : run.to;
@@ -223,6 +264,7 @@ export function gitChanges(): Extension {
   return [
     gitChangesField,
     gitDecorations,
+    addedLines,
     addedTint,
     gitChangesTheme,
     keymap.of([

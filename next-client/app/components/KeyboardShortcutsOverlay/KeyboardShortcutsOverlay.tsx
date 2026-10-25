@@ -6,6 +6,7 @@ import { HiOutlineX } from "react-icons/hi";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import { atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
 import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
+import { formatPageShortcut, PAGE_SHORTCUTS } from "@/app/components/CommandPalette/page-shortcuts";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import Button from "@/app/components/Button";
 
@@ -33,6 +34,7 @@ function getShortcutGroups(): ShortcutGroup[] {
         { label: "Save", keys: formatShortcut("S") },
         { label: "Show Files", keys: formatShortcut("E", { shift: true }) },
         { label: "Show Files (outside the editor)", keys: formatShortcut("B") },
+        ...PAGE_SHORTCUTS.map((shortcut) => ({ label: `Open ${shortcut.label}`, keys: formatPageShortcut(shortcut) })),
         { label: "Show / hide sidebar", keys: `${formatShortcut("\\")}, ${formatShortcut("S", { alt: true })} or ${mac ? "⌃[" : "Ctrl+["}` },
         { label: "Keyboard shortcuts", keys: formatShortcut("?") },
         { label: "Sentence focus on / off", keys: formatShortcut("F", { alt: true }) },

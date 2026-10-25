@@ -1,29 +1,22 @@
 "use client";
 
 import { useAtomValue } from "jotai";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { atom_isVaultPending, atom_vaultDescriptor } from "@/app/atoms/atoms";
 import Button from "@/app/components/Button";
-import { formatCount } from "@/app/components/CountBadge";
 import LoadingBar from "@/app/components/LoadingBar";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import type { ChangesProgress } from "@/app/services/git/git-changes-types";
 import { isMarkdownPath, isPlainTextPath } from "@/app/utils/file-kinds";
 import { ChangesBodySkeleton } from "../components/RouteSkeletons";
 import ShellPage from "../components/ShellPage";
 import ChangesSummary from "./components/ChangesSummary";
 import FileDiffSection from "./components/FileDiffSection";
+import ScanStatus, { scanStatus } from "./components/ScanStatus";
 import { firstChangeLine, initialCollapsed } from "./diff-layout";
 import { useGitChanges } from "./use-git-changes";
 import { useOpenChange } from "./use-open-change";
 
 const NOTE = "text-ui-footnote text-fg-muted";
-
-function scanStatus(progress: ChangesProgress | null): string {
-  if (!progress) return "Reading the repository…";
-  if (progress.phase === "listing") return `Listing files… ${formatCount(progress.done)} found`;
-  return `Checking ${formatCount(progress.done)} of ${formatCount(progress.total)} files…`;
-}
 
 export default function ChangesPage() {
   const { vaultHandle } = useFileSystem();
@@ -40,13 +33,21 @@ export default function ChangesPage() {
   const partial = !result && scanning && found.length > 0;
   const files = useMemo(() => (result?.status === "ok" ? result.files : partial ? found : []), [result, partial, found]);
   const defaults = useMemo(() => initialCollapsed(files), [files]);
+  // Says whether the files shown are all of them, or a scan is still checking.
+  const status = <ScanStatus scanning={scanning} progress={progress} hasResult={result?.status === "ok"} />;
   const isCollapsed = (path: string) => overrides.get(path) ?? defaults.has(path);
-  const setCollapsed = (paths: string[], collapsed: boolean) =>
-    setOverrides((current) => {
-      const next = new Map(current);
-      for (const path of paths) next.set(path, collapsed);
-      return next;
-    });
+  const setCollapsed = useCallback(
+    (paths: string[], collapsed: boolean) =>
+      setOverrides((current) => {
+        const next = new Map(current);
+        for (const path of paths) next.set(path, collapsed);
+        return next;
+      }),
+    [],
+  );
+  // Stable, so the memoized sections re-render only when their own props change.
+  const collapseOne = useCallback((path: string, collapsed: boolean) => setCollapsed([path], collapsed), [setCollapsed]);
+  const openAt = useCallback((path: string, line: number) => void openChange(path, line), [openChange]);
 
   const jump = (path: string, index: number) => {
     setCollapsed([path], false);
@@ -77,14 +78,19 @@ export default function ChangesPage() {
       </div>
     );
   } else if (result?.status === "ok" && files.length === 0) {
-    body = <p className={NOTE}>No changes since the last commit.{result.commit ? ` ${result.commit.slice(0, 7)}` : ""}</p>;
+    body = (
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <p className={NOTE}>No changes since the last commit.{result.commit ? ` ${result.commit.slice(0, 7)}` : ""}</p>
+        {status}
+      </div>
+    );
   } else if (result?.status === "ok" || partial) {
     body = (
       <>
-        {partial && <p className={NOTE} role="status">{scanStatus(progress)}</p>}
         <ChangesSummary
           files={files}
           commit={result?.status === "ok" ? result.commit : null}
+          status={status}
           onJump={(path) => jump(path, files.findIndex((file) => file.path === path))}
           onCollapseAll={() => setCollapsed(files.map((file) => file.path), true)}
           onExpandAll={() => setCollapsed(files.map((file) => file.path), false)}
@@ -97,8 +103,8 @@ export default function ChangesPage() {
               id={"change-" + index}
               file={file}
               collapsed={isCollapsed(file.path)}
-              onToggle={() => setCollapsed([file.path], !isCollapsed(file.path))}
-              onOpen={canOpen ? (line) => void openChange(file.path, line) : undefined}
+              onCollapse={collapseOne}
+              onOpen={canOpen ? openAt : undefined}
               pathLine={firstChangeLine(file)}
             />
           );

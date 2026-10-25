@@ -7,6 +7,7 @@ import type { KnownFile } from "@/app/services/git/git-changes-scan";
 import { loadChangesCache, saveChangesCache } from "@/app/services/changes-cache";
 import { startChangesScan } from "@/app/services/git-changes-client";
 import type { ChangedFile, ChangesProgress, ChangesResult } from "@/app/services/git/git-changes-types";
+import { reuseUnchanged } from "./reuse-result";
 
 interface Latest {
   vault: FileSystemDirectoryHandle;
@@ -20,13 +21,18 @@ interface Latest {
  * from the cache while the new scan runs (after a reload, from the result
  * saved for the vault's key in IndexedDB, services/changes-cache.ts); without one, `found` holds the
  * changed files the running scan has found so far, sorted by path, so the
- * page can show them before the scan ends. Leaving cancels the scan.
+ * page can show them before the scan ends. A new result keeps the previous
+ * one's objects for the files that didn't change (reuse-result.ts), so a
+ * focus rescan that finds nothing new re-renders nothing. Leaving cancels
+ * the scan.
  */
 export function useGitChanges(vault: FileSystemDirectoryHandle | null, enabled: boolean) {
   const [cache, setCache] = useAtom(atom_gitChangesCache);
   const vaultKey = useAtomValue(atom_vaultKey);
   const store = useStore();
   const [latest, setLatest] = useState<Latest | null>(null);
+  // The same as `latest`, for the scan's callback (which outlives the render it started in).
+  const latestRef = useRef<Latest | null>(null);
   const [scanning, setScanning] = useState(false);
   const [progress, setProgress] = useState<ChangesProgress | null>(null);
   const [found, setFound] = useState<ChangedFile[]>([]);
@@ -72,10 +78,17 @@ export function useGitChanges(vault: FileSystemDirectoryHandle | null, enabled: 
       setProgress(null);
       setFound([]);
       if (result !== "cancelled") {
-        setLatest({ vault, result });
-        if (result.status !== "error") {
-          setCache({ vault, result });
-          if (vaultKey) void saveChangesCache(vaultKey, result);
+        const cached = store.get(atom_gitChangesCache);
+        const shown = latestRef.current?.vault === vault ? latestRef.current : cached?.vault === vault ? cached : null;
+        const next = reuseUnchanged(shown?.result ?? null, result);
+        if (latestRef.current?.vault !== vault || latestRef.current.result !== next) {
+          latestRef.current = { vault, result: next };
+          setLatest(latestRef.current);
+        }
+        // Saved only when it changed: an unchanged result is already in the cache.
+        if (next !== shown?.result && next.status !== "error") {
+          setCache({ vault, result: next });
+          if (vaultKey) void saveChangesCache(vaultKey, next);
         }
       }
       if (rerun.current) {

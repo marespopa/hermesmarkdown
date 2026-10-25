@@ -165,8 +165,8 @@ export const vaultGroup: Group = {
             or indexed.
           </p>
           <p>
-            Turn on <strong>Git Changes</strong> (the button in the editor's top-right corner, the
-            command palette, or Settings → Editor → View) to see what you have changed since the last
+            Turn on <strong>Git Changes in Note</strong> (the git button in the editor's top-right
+            corner, or <strong>Toggle Git Changes</strong> in the command palette) to see what you have changed since the last
             commit, the way a pull request shows it. Added and changed lines are tinted green and marked
             with a +; the old lines they replaced, and lines you deleted, show above them on a red tint,
             marked with a −, and can't be edited. The diff updates as you type, and again after you commit
@@ -177,12 +177,12 @@ export const vaultGroup: Group = {
             runs git or writes to it.
           </p>
           <p>
-            <strong>Show Changes</strong> (command palette) opens a page that lists every file changed
+            <strong>Show Changes</strong> (the git button's menu, the command palette, or Ctrl/Cmd+Alt+G) opens a page that lists every file changed
             since the last commit, with its diff, like the file list of a pull request: a summary of how
             many files changed and how many lines were added and removed, then one section per file that
-            you can collapse. Long unchanged stretches are folded; click one to show it. Files matched
-            by <code>.gitignore</code>, tool folders and secret files are left out. Click a file&apos;s
-            name, or a line, to open the file there. It compares the files saved on disk, not unsaved
+            you can collapse. Next to the summary it says whether the list is complete: <strong>Checking N of M files…</strong> while it looks at the vault, then <strong>Up to date</strong>. The last list shows at once and is checked again each time you come back to the page or the window. Long unchanged stretches are folded; click one to show it. Files matched
+            by <code>.gitignore</code>, tool folders and secret files are left out. A file&apos;s
+            <strong>Open file</strong> button opens it at its first change. It compares the files saved on disk, not unsaved
             edits, refreshes when you return to the window, and only reads the <code>.git</code> folder at
             the root of the vault.
           </p>

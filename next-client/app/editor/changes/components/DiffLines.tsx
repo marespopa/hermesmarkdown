@@ -6,26 +6,16 @@ import type { DiffRow } from "../diff-layout";
 
 interface Props {
   rows: DiffRow[];
-  /** Opens the file at a line; undefined when the file can't be opened. */
-  onOpen?: (line: number) => void;
   onExpandGap: (id: number) => void;
 }
 
 const NUMBER = "min-w-[2.5ch] select-none px-1 text-right text-fg-faint sm:min-w-[4ch] sm:px-2";
 
 // A unified diff, one grid row per line: old number, new number, sign, text.
-// One click handler on the container reads `data-line` from the row, so a
-// thousand rows add no listeners.
-export default function DiffLines({ rows, onOpen, onExpandGap }: Props) {
+// Read only: rows select like text and open nothing.
+export default function DiffLines({ rows, onExpandGap }: Props) {
   return (
-    <div
-      className={`text-ui-footnote ${CODE_FONT}`}
-      onClick={(event) => {
-        if (!onOpen) return;
-        const row = (event.target as HTMLElement).closest<HTMLElement>("[data-line]");
-        if (row) onOpen(Number(row.dataset.line));
-      }}
-    >
+    <div className={`text-ui-footnote ${CODE_FONT}`}>
       {rows.map((row, index) => {
         if (row.kind === "gap") {
           return (
@@ -39,14 +29,9 @@ export default function DiffLines({ rows, onOpen, onExpandGap }: Props) {
             </Button>
           );
         }
-        const line = row.kind === "del" ? row.openLine : row.newNo;
         const tint = row.kind === "add" ? ADD_ROW : row.kind === "del" ? DEL_ROW : "";
         return (
-          <div
-            key={index}
-            data-line={onOpen ? line : undefined}
-            className={`grid grid-cols-[auto_auto_1.25em_1fr] ${tint} ${onOpen ? "cursor-pointer" : "cursor-default"}`}
-          >
+          <div key={index} className={`grid grid-cols-[auto_auto_1.25em_1fr] ${tint}`}>
             <span className={NUMBER}>{row.kind === "add" ? "" : row.oldNo}</span>
             <span className={NUMBER}>{row.kind === "del" ? "" : row.newNo}</span>
             <span aria-hidden className={`select-none text-center ${row.kind === "add" ? ADD_SIGN : row.kind === "del" ? DEL_SIGN : ""}`}>

@@ -1,7 +1,9 @@
 // The Changes page's scan: every file in the vault that differs from HEAD,
 // with its line diff. Compares HEAD's tree with the working files; the index
 // lets a file whose size and mtime still match skip reading, everything else
-// is hashed as a git blob. Runs in workers/git-changes.worker.ts. Read only.
+// is hashed as a git blob. Git keeps no record of working-tree edits, so every
+// working file is looked at (as `git status` does); HEAD's file list comes
+// from the index when its cache tree is HEAD's tree (so no tree is read). Runs in workers/git-changes.worker.ts. Read only.
 import { SKIPPED_DIRS, isSecretFile } from "@/app/hooks/file-system/vault-scan";
 import { isTrashPath } from "@/app/services/vault-trash";
 import type { ChangedFile, ChangesProgress, ChangesResult, FileStatus } from "./git-changes-types";
@@ -14,7 +16,7 @@ import { readObject } from "./git-objects";
 import { resolveHead } from "./git-refs";
 import { openRepo } from "./git-repo";
 import { readTextAt } from "./git-fs";
-import { listTreeFiles } from "./git-tree";
+import { listTreeFiles, treeIdOf, type TreeListing } from "./git-tree";
 import { walkWorktree } from "./git-worktree";
 
 /** Diffs sent past either limit become `skipped` (their counts stay). */
@@ -46,9 +48,40 @@ async function hashCacheFor(vault: FileSystemDirectoryHandle) {
   return hashed.ids;
 }
 
-/** Clears the scan's blob id cache (tests). */
+/** HEAD's file list for the last commit scanned (a commit's tree never changes). */
+let headCache: { commit: string; listing: Promise<TreeListing> } | null = null;
+
+/** Clears the scan's blob id and HEAD caches (tests). */
 export function clearScanCache(): void {
   hashed = null;
+  headCache = null;
+}
+
+/** The index's files as a tree listing (the same paths `listTreeFiles` keeps). */
+function listingFromIndex(index: GitIndex): TreeListing {
+  const listing: TreeListing = { files: new Map(), submodules: new Set() };
+  for (const [path, entry] of index.entries) {
+    if (entry.mode === 0o160000) listing.submodules.add(path);
+    else if (entry.mode === 0o100644 || entry.mode === 0o100755) listing.files.set(path, { id: entry.id, mode: entry.mode.toString(8) });
+  }
+  return listing;
+}
+
+/**
+ * HEAD's files. After a commit, checkout or reset the index's cache tree is
+ * HEAD's tree, so the index already lists HEAD and no tree is read from the
+ * packs; otherwise the tree is walked once per commit.
+ */
+async function headFiles(gitDir: FileSystemDirectoryHandle, commit: string, index: GitIndex | null): Promise<TreeListing> {
+  if (headCache?.commit === commit) return headCache.listing;
+  const conflicted = index ? [...index.entries.values()].some((entry) => entry.stage !== 0) : true;
+  if (index?.rootTree && !conflicted && (await treeIdOf(gitDir, commit)) === index.rootTree) return listingFromIndex(index);
+  const listing = listTreeFiles(gitDir, commit);
+  headCache = { commit, listing };
+  listing.catch(() => {
+    if (headCache?.listing === listing) headCache = null;
+  });
+  return listing;
 }
 
 export interface KnownFile {
@@ -176,7 +209,7 @@ export async function scanChanges(vault: FileSystemDirectoryHandle, options: Sca
     // HEAD's file list loads while the vault is walked. The walk needs the
     // tracked paths only for ignore rules, and like git it takes them from the
     // index; without an index it waits for HEAD.
-    const headReady = commit ? listTreeFiles(gitDir, commit) : Promise.resolve({ files: new Map<string, { id: string; mode: string }>(), submodules: new Set<string>() });
+    const headReady = commit ? headFiles(gitDir, commit, index) : Promise.resolve<TreeListing>({ files: new Map(), submodules: new Set() });
     headReady.catch(() => {}); // awaited below; this only keeps an early failure from going unhandled
     const exclude = await readTextAt(gitDir, "info/exclude");
     const tracked = new Set<string>(index ? index.entries.keys() : (await headReady).files.keys());

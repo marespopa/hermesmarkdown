@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Button from "@/app/components/Button";
 import { formatCount } from "@/app/components/CountBadge";
 import type { ChangedFile } from "@/app/services/git/git-changes-types";
@@ -8,6 +9,8 @@ import { Counts } from "./FileDiffSection";
 interface Props {
   files: ChangedFile[];
   commit: string | null;
+  /** Whether the scan is done (ScanStatus), after the commit. */
+  status?: ReactNode;
   onJump: (path: string) => void;
   onCollapseAll: () => void;
   onExpandAll: () => void;
@@ -20,8 +23,8 @@ const STATUS = {
 } as const;
 
 // The top of the Changes page: how many files changed with the line totals,
-// then a row per file that jumps to its section.
-export default function ChangesSummary({ files, commit, onJump, onCollapseAll, onExpandAll }: Props) {
+// whether the scan is still checking, then a row per file that jumps to its section.
+export default function ChangesSummary({ files, commit, status, onJump, onCollapseAll, onExpandAll }: Props) {
   const added = files.reduce((total, file) => total + (file.added ?? 0), 0);
   const removed = files.reduce((total, file) => total + (file.removed ?? 0), 0);
   return (
@@ -31,6 +34,7 @@ export default function ChangesSummary({ files, commit, onJump, onCollapseAll, o
         <span className="text-ui-footnote font-medium text-task-done">+{formatCount(added)}</span>
         <span className="text-ui-footnote font-medium text-danger">−{formatCount(removed)}</span>
         {commit && <span className="text-ui-caption text-fg-faint [font-family:var(--font-code)]">{commit.slice(0, 7)}</span>}
+        {status}
         <span className="flex-1" />
         <Button variant="small" onClick={onCollapseAll}>Collapse All</Button>
         <Button variant="small" onClick={onExpandAll}>Expand All</Button>

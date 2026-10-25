@@ -75,6 +75,25 @@ describe("useGitChanges", () => {
     expect(scans).toHaveLength(2);
   });
 
+  it("keeps the shown objects when a rescan finds the same files, and doesn't save again", async () => {
+    const file = (text: string) => ({ path: "a.md", status: "modified" as const, added: 1, removed: 0, diff: { kind: "text" as const, changes: [{ oldStart: 1, removed: [], newStart: 1, newCount: 1 }], lines: [text] } });
+    const store = createStore();
+    store.set(atom_vaultHandle, vaultA);
+    store.set(atom_vaultDescriptor, { kind: "local" });
+    const { result } = setup(vaultA, store);
+    await act(async () => scans[0].resolve({ status: "ok", commit: "c", files: [file("x")] }));
+    const first = result.current.result;
+    expect(saved.save).toHaveBeenCalledTimes(1);
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    await act(async () => scans[1].resolve({ status: "ok", commit: "c", files: [file("x")] }));
+    expect(result.current.result).toBe(first);
+    expect(saved.save).toHaveBeenCalledTimes(1);
+    await act(async () => window.dispatchEvent(new Event("focus")));
+    await act(async () => scans[2].resolve({ status: "ok", commit: "c", files: [file("y")] }));
+    expect(result.current.result).not.toBe(first);
+    expect(saved.save).toHaveBeenCalledTimes(2);
+  });
+
   it("cancels the scan on unmount", () => {
     const { unmount } = setup(vaultA);
     unmount();

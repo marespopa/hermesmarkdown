@@ -30,7 +30,8 @@ function findEntry(tree: Uint8Array, name: string): { mode: string; id: string }
   return parseTreeEntries(tree).find((entry) => entry.name === name) ?? null;
 }
 
-async function treeIdOf(gitDir: FileSystemDirectoryHandle, commitId: string): Promise<string | null> {
+/** The commit's root tree id. */
+export async function treeIdOf(gitDir: FileSystemDirectoryHandle, commitId: string): Promise<string | null> {
   const commit = await readObject(gitDir, commitId);
   const match = /^tree ([0-9a-f]{40})/m.exec(new TextDecoder().decode(commit.data));
   return match ? match[1] : null;

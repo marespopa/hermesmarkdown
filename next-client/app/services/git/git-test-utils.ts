@@ -212,8 +212,12 @@ export interface IndexEntryInput {
   extended?: boolean;
 }
 
-/** `.git/index` bytes for `entries` (sorted by the caller) in `version` 2, 3 or 4. */
-export function buildIndex(entries: IndexEntryInput[], version: 2 | 3 | 4): Uint8Array {
+/**
+ * `.git/index` bytes for `entries` (sorted by the caller) in `version` 2, 3 or 4.
+ * `rootTree` adds a `TREE` extension holding only the root: its id, or null for
+ * an invalidated root.
+ */
+export function buildIndex(entries: IndexEntryInput[], version: 2 | 3 | 4, rootTree?: string | null): Uint8Array {
   const header = new DataView(new ArrayBuffer(12));
   header.setUint32(0, 0x44495243);
   header.setUint32(4, version);
@@ -248,6 +252,12 @@ export function buildIndex(entries: IndexEntryInput[], version: 2 | 3 | 4): Uint
       parts.push(concat(body, name, new Uint8Array(Math.ceil(length / 8) * 8 - body.length - name.length)));
     }
     previous = entry.path;
+  }
+  if (rootTree !== undefined) {
+    const data = concat(new Uint8Array(1), encoder.encode((rootTree === null ? "-1" : String(entries.length)) + " 0\n"), rootTree === null ? new Uint8Array() : hexBytes(rootTree));
+    const size = new DataView(new ArrayBuffer(4));
+    size.setUint32(0, data.length);
+    parts.push(encoder.encode("TREE"), new Uint8Array(size.buffer), data);
   }
   parts.push(new Uint8Array(20));
   return concat(...parts);
