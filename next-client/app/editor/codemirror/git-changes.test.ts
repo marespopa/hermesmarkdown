@@ -10,7 +10,7 @@ function marks(base: Text | null, doc: Text): Record<number, string> {
   const found: Record<number, string> = {};
   const cursor = computeGitMarkers(base, doc).iter();
   while (cursor.value) {
-    const dom = cursor.value.toDOM(null as never) as HTMLElement;
+    const dom = cursor.value.toDOM?.(null as never) as HTMLElement;
     found[doc.lineAt(cursor.from).number] = dom.className.replace("cm-git-marker ", "");
     cursor.next();
   }
