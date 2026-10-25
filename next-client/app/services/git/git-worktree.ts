@@ -85,6 +85,7 @@ export async function walkWorktree(vault: FileSystemDirectoryHandle, options: Wo
     }
     const text = await gitignoreOf(entries);
     const scoped = text === null ? levels : [...levels, { base: path ? path + "/" : "", ig: ignore().add(text) }];
+    const reads: Promise<void>[] = [];
     for (const entry of entries) {
       if (options.isCancelled()) return;
       const childPath = path ? path + "/" + entry.name : entry.name;
@@ -95,13 +96,16 @@ export async function walkWorktree(vault: FileSystemDirectoryHandle, options: Wo
       } else {
         if (isSecretFile(entry.name)) continue;
         if (!options.tracked.has(childPath) && isIgnored(scoped, childPath, false)) continue;
-        try {
-          files.set(childPath, await (entry as FileSystemFileHandle).getFile());
-        } catch {
-          // A file that vanished or can't be read: treated as absent.
-        }
+        // A folder's files are read at once: one at a time is most of a large walk.
+        reads.push(
+          (entry as FileSystemFileHandle).getFile().then(
+            (file) => void files.set(childPath, file),
+            () => {}, // A file that vanished or can't be read: treated as absent.
+          ),
+        );
       }
     }
+    await Promise.all(reads);
     options.onListed(files.size);
   }
 

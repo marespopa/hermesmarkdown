@@ -72,7 +72,7 @@ describe("ChangesPage", () => {
 
   it("says there is no repository for a browser vault without scanning", () => {
     renderPage("browser");
-    expect(screen.getByText(/No git repository here/)).toBeInTheDocument();
+    expect(screen.getByText(/This vault is stored in the browser/)).toBeInTheDocument();
     expect(scan.start).not.toHaveBeenCalled();
   });
 
@@ -86,7 +86,7 @@ describe("ChangesPage", () => {
   it("says there is no repository when the vault has no .git", async () => {
     scan.next = { status: "no-repo" };
     renderPage();
-    expect(await screen.findByText(/No git repository here/)).toBeInTheDocument();
+    expect(await screen.findByText(/at the root of/)).toHaveTextContent("No .git folder at the root of vault.");
   });
 
   it("says nothing changed, with the short commit", async () => {

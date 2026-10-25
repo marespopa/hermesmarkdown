@@ -45,8 +45,14 @@ export default function ChangesPage() {
   let body;
   if (!vaultHandle) {
     body = <p className={NOTE}>Open a vault to see its changes.</p>;
-  } else if (!isDisk || result?.status === "no-repo") {
-    body = <p className={NOTE}>No git repository here. Changes reads the <code>.git</code> folder at the root of a vault on disk.</p>;
+  } else if (!isDisk) {
+    body = <p className={NOTE}>This vault is stored in the browser. Changes reads the <code>.git</code> folder of a vault opened from a folder on disk.</p>;
+  } else if (result?.status === "no-repo") {
+    body = (
+      <p className={NOTE}>
+        No <code>.git</code> folder at the root of <strong>{vaultHandle.name}</strong>. Open the repository&apos;s top folder as the vault to see its changes.
+      </p>
+    );
   } else if (result?.status === "error") {
     body = (
       <div className="flex items-center gap-3">

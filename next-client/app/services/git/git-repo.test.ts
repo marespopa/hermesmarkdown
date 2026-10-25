@@ -19,6 +19,14 @@ describe("openRepo", () => {
     expect(await openRepo(vault as unknown as FileSystemDirectoryHandle)).toBeNull();
   });
 
+  it("throws when .git can't be opened, rather than calling it missing", async () => {
+    const vault = new MemoryDirectoryHandle("vault");
+    vault.getDirectoryHandle = async () => {
+      throw new DOMException("denied", "NotAllowedError");
+    };
+    await expect(openRepo(vault as unknown as FileSystemDirectoryHandle)).rejects.toThrow("denied");
+  });
+
   it("returns null for a sha256 repository", async () => {
     const vault = await makeRepoVault({ config: "[extensions]\n\tobjectformat = sha256\n" });
     expect(await openRepo(vault as unknown as FileSystemDirectoryHandle)).toBeNull();

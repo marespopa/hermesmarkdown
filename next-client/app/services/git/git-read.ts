@@ -21,12 +21,18 @@ const repos = new WeakMap<FileSystemDirectoryHandle, Promise<GitRepo | null>>();
 
 function repoFor(vault: FileSystemDirectoryHandle): Promise<GitRepo | null> {
   let repo = repos.get(vault);
-  // A vault that isn't a repo is looked up again each time, so `git init` shows up.
+  // A vault that isn't a repo (or couldn't be opened) is looked up again each time, so `git init` shows up.
   if (!repo) {
-    repo = openRepo(vault).then((found) => {
-      if (!found) repos.delete(vault);
-      return found;
-    });
+    repo = openRepo(vault).then(
+      (found) => {
+        if (!found) repos.delete(vault);
+        return found;
+      },
+      (error: unknown) => {
+        repos.delete(vault);
+        throw error;
+      },
+    );
     repos.set(vault, repo);
   }
   return repo;

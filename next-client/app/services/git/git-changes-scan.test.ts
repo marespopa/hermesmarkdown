@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MemoryDirectoryHandle } from "../memory-file-system.test-utils";
-import { scanChanges } from "./git-changes-scan";
+import { clearScanCache, scanChanges } from "./git-changes-scan";
 import { blobId } from "./git-hash";
 import { clearObjectCache } from "./git-objects";
 import { buildIndex, commitData, fakeId, makeRepoVault, treeData } from "./git-test-utils";
@@ -52,7 +52,10 @@ async function setup(head: Record<string, string> | null, work: Record<string, s
 const run = (vault: MemoryDirectoryHandle, isCancelled = () => false) => scanChanges(vault.asHandle(), { onProgress: () => {}, isCancelled });
 const summary = (result: Awaited<ReturnType<typeof run>>) => (result !== "cancelled" && result.status === "ok" ? result.files.map((file) => [file.path, file.status]) : result);
 
-beforeEach(() => vi.restoreAllMocks());
+beforeEach(() => {
+  vi.restoreAllMocks();
+  clearScanCache();
+});
 
 describe("scanChanges", () => {
   it("classifies added, modified and deleted files, sorted by path", async () => {
@@ -88,6 +91,17 @@ describe("scanChanges", () => {
     vault.fileAt(".git/index")!.lastModified = 50_500;
     vault.fileAt("a.md")!.lastModified = 50_100;
     expect(summary(await run(vault))).toEqual([["a.md", "modified"]]);
+  });
+
+  it("doesn't read an unchanged file again on the next scan", async () => {
+    const { vault } = await setup({ "a.md": "same\n" }, { "a.md": "same\n" });
+    const handle = vault.fileAt("a.md")!;
+    handle.lastModified = 50_000;
+    expect(summary(await run(vault))).toEqual([]);
+    const arrayBuffer = vi.fn(async () => new ArrayBuffer(0));
+    handle.getFile = async () => ({ name: "a.md", size: 5, lastModified: 50_000, arrayBuffer, text: async () => "" }) as unknown as File;
+    expect(summary(await run(vault))).toEqual([]);
+    expect(arrayBuffer).not.toHaveBeenCalled();
   });
 
   it("marks a size mismatch modified without hashing", async () => {

@@ -21,6 +21,35 @@ import { walkWorktree } from "./git-worktree";
 export const MAX_DIFF_FILES = 300;
 export const MAX_DIFF_LINES = 100000;
 const PROGRESS_MS = 100;
+const COMPARE_CONCURRENCY = 8;
+
+/**
+ * Blob ids of working files hashed by earlier scans, by path, with the size
+ * and mtime they had. The page rescans on every window focus; a file that
+ * hasn't changed since is then neither read nor hashed again, even when the
+ * index's stat doesn't match it (files edited since the last `git add`).
+ * Kept for one vault (the last scanned).
+ */
+let hashed: { vault: FileSystemDirectoryHandle; ids: Map<string, { size: number; mtime: number; id: string }> } | null = null;
+
+async function sameVault(a: FileSystemDirectoryHandle, b: FileSystemDirectoryHandle): Promise<boolean> {
+  if (a === b) return true;
+  try {
+    return await a.isSameEntry(b); // each scan gets its own copy of the handle
+  } catch {
+    return false;
+  }
+}
+
+async function hashCacheFor(vault: FileSystemDirectoryHandle) {
+  if (!hashed || !(await sameVault(hashed.vault, vault))) hashed = { vault, ids: new Map() };
+  return hashed.ids;
+}
+
+/** Clears the scan's blob id cache (tests). */
+export function clearScanCache(): void {
+  hashed = null;
+}
 
 export interface ScanOptions {
   onProgress(progress: ChangesProgress): void;
@@ -79,6 +108,14 @@ function describe(path: string, status: FileStatus, oldBytes: Uint8Array | null,
   return { path, status, added, removed, diff: fits ? diff : { kind: "skipped" } };
 }
 
+/** A path found to differ, with its bytes, waiting for its diff. */
+interface Candidate {
+  path: string;
+  status: FileStatus;
+  oldBytes: Uint8Array | null;
+  newBytes: Uint8Array | null;
+}
+
 function unchangedByIndex(index: GitIndex | null, path: string, headId: string, file: File): "same" | "differs" | "unknown" {
   const entry = index?.entries.get(path);
   if (!index || !entry || entry.stage !== 0 || entry.id !== headId) return "unknown";
@@ -121,41 +158,60 @@ export async function scanChanges(vault: FileSystemDirectoryHandle, options: Sca
 
     const hiddenDirs = [...tree.failedDirs, ...tree.nestedDirs, ...head.submodules];
     const paths = [...new Set([...head.files.keys(), ...tree.files.keys()])].filter((path) => tree.files.has(path) || !isExcludedPath(path, hiddenDirs)).sort();
-    const budget = new Budget();
-    const files: ChangedFile[] = [];
+    const ids = await hashCacheFor(vault);
+
+    // Which paths differ, several at a time: reading and hashing dominate.
+    const found: (Candidate | ChangedFile | null)[] = new Array(paths.length).fill(null);
     let done = 0;
-    for (const path of paths) {
-      if (options.isCancelled()) return "cancelled";
-      report({ phase: "comparing", done, total: paths.length });
-      done++;
+    const compare = async (path: string): Promise<Candidate | ChangedFile | null> => {
       try {
         const file = tree.files.get(path);
         const inHead = head.files.get(path);
         const headBytes = async () => (await readObject(gitDir, inHead!.id)).data;
-        let entry: ChangedFile | null = null;
-        if (file && !inHead) {
-          entry = describe(path, "added", null, new Uint8Array(await file.arrayBuffer()), budget);
-        } else if (!file && inHead) {
-          entry = describe(path, "deleted", await headBytes(), null, budget);
-        } else if (file && inHead) {
-          const fast = unchangedByIndex(index, path, inHead.id, file);
-          if (fast === "same") continue;
-          const bytes = new Uint8Array(await file.arrayBuffer());
-          let before: Uint8Array | null = null;
-          if (fast === "unknown") {
-            const id = await blobId(bytes);
-            if (id === null) {
-              before = await headBytes();
-              if (sameBytes(before, bytes)) continue;
-            } else if (id === inHead.id) continue;
+        if (file && !inHead) return { path, status: "added", oldBytes: null, newBytes: new Uint8Array(await file.arrayBuffer()) };
+        if (!file && inHead) return { path, status: "deleted", oldBytes: await headBytes(), newBytes: null };
+        if (!file || !inHead) return null;
+        const fast = unchangedByIndex(index, path, inHead.id, file);
+        if (fast === "same") return null;
+        const known = ids.get(path);
+        if (fast === "unknown" && known?.size === file.size && known.mtime === file.lastModified && known.id === inHead.id) return null;
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        let before: Uint8Array | null = null;
+        if (fast === "unknown") {
+          const id = await blobId(bytes);
+          if (id === null) {
+            before = await headBytes();
+            if (sameBytes(before, bytes)) return null;
+          } else {
+            ids.set(path, { size: file.size, mtime: file.lastModified, id });
+            if (id === inHead.id) return null;
           }
-          entry = describe(path, "modified", before ?? (await headBytes()), bytes, budget);
         }
-        if (entry) files.push(entry);
+        return { path, status: "modified", oldBytes: before ?? (await headBytes()), newBytes: bytes };
       } catch (error) {
         console.warn("git: could not compare " + path, error);
-        files.push({ path, status: tree.files.has(path) ? (head.files.has(path) ? "modified" : "added") : "deleted", added: null, removed: null, diff: { kind: "error" } });
+        return { path, status: tree.files.has(path) ? (head.files.has(path) ? "modified" : "added") : "deleted", added: null, removed: null, diff: { kind: "error" } };
       }
+    };
+    let next = 0;
+    const worker = async () => {
+      while (next < paths.length && !options.isCancelled()) {
+        const i = next++;
+        report({ phase: "comparing", done, total: paths.length });
+        found[i] = await compare(paths[i]);
+        done++;
+      }
+    };
+    await Promise.all(Array.from({ length: COMPARE_CONCURRENCY }, worker));
+    if (options.isCancelled()) return "cancelled";
+
+    // Diffs in path order, so the budget keeps the first files' diffs.
+    const budget = new Budget();
+    const files: ChangedFile[] = [];
+    for (const item of found) {
+      if (!item) continue;
+      const entry = "diff" in item ? item : describe(item.path, item.status, item.oldBytes, item.newBytes, budget);
+      if (entry) files.push(entry);
     }
     return { status: "ok", commit, files };
   } catch (error) {
