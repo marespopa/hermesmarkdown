@@ -60,6 +60,12 @@ describe("HTML to Markdown", () => {
     expect(html('<p><img src="data:image/png;base64,AAAA" alt="Chart"></p>')).toBe("Chart\n");
   });
 
+  it("keeps a typed list number as copied, not escaped", () => {
+    expect(html("<p>2. Title</p>")).toBe("2. Title\n");
+    expect(html("<p>2. <strong>Title</strong></p>")).toBe("2. **Title**\n");
+    expect(html("<p>1. A</p><p>2. Title</p>")).toBe("1. A\n\n2. Title\n");
+  });
+
   it("doesn't keep script links", () => {
     expect(html('<p><a href="javascript:alert(1)">click</a></p>')).toBe("click\n");
   });

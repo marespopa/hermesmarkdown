@@ -1,0 +1,1 @@
+- engineer: removed numeric escape in html-to-markdown.ts + test; 55 related tests pass; no other test asserted the escape.
