@@ -4,7 +4,7 @@ This folder holds engineering plans. There are two kinds:
 
 - **Flat plans** (`<feature-slug>.md`) and their reports in `reports/` (the old ones are in `archive/` and `archive/reports/`). These are written when the `hermes-*` agents are used directly.
 - **Factory plans** (`NNN-<slug>/`). These are driven by `scripts/factory`, which moves each plan through architect → engineer → review. Numbers count up from the active plans; after a cleanup they may restart from 001.
-- **Archived plans** (`archive/`). Shipped plans of either kind move here. They are history: they record why the code is the way it is, but the code may have changed since, so they are not the current spec. `scripts/factory` ignores them (`factory stats` still reads them). Archived plans may share a number with a later active plan. When archiving a factory plan, delete its `.run.json` and `.run.log` first.
+- **Archived plans** (`archive/`). Shipped plans of either kind move here. They are history: they record why the code is the way it is, but the code may have changed since, so they are not the current spec. `scripts/factory` ignores them (`factory stats` still reads them). Archived plans may share a number with a later active plan. After a plan is merged, archive it: delete its `.run.json` and `.run.log`, move the folder to `archive/`, then renumber the remaining active plans from 001 with no gaps and update the "plan NNN" references between them.
 
 ## Factory folder contract
 
