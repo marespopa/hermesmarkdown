@@ -1,8 +1,43 @@
-import { getChunks, getOriginalDoc } from "@codemirror/merge";
-import { EditorState } from "@codemirror/state";
+import { Chunk } from "@codemirror/merge";
+import { EditorState, Text } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it } from "vitest";
-import { gitChanges, gitChangesField, MAX_GIT_LINES, setGitBaseline } from "./git-changes";
+import { gitChanges, gitChangesField, gitDiff, MAX_GIT_LINES, setGitBaseline } from "./git-changes";
+
+const text = (value: string) => Text.of(value.split("\n"));
+const diffOf = (base: string, doc: string) => gitDiff(text(base), text(doc), Chunk.build(text(base), text(doc)));
+
+describe("gitDiff", () => {
+  it("marks an added line, with nothing deleted", () => {
+    expect(diffOf("a\nb\nc", "a\nb\nnew\nc")).toEqual({ added: [3], deleted: [] });
+  });
+
+  it("shows a changed line's old text above it", () => {
+    expect(diffOf("a\nb\nc", "a\nB\nc")).toEqual({ added: [2], deleted: [{ before: 2, lines: ["b"] }] });
+  });
+
+  it("shows a deletion in the middle above the next line", () => {
+    expect(diffOf("a\nb\nc", "a\nc")).toEqual({ added: [], deleted: [{ before: 2, lines: ["b"] }] });
+  });
+
+  it("shows a deletion at the end of the file after the last line", () => {
+    expect(diffOf("a\nb\nc", "a\nb")).toEqual({ added: [], deleted: [{ before: 3, lines: ["c"] }] });
+  });
+
+  it("doesn't show the line before as deleted when Enter adds a line after it", () => {
+    expect(diffOf("a\nb", "a\nb\n")).toEqual({ added: [3], deleted: [] });
+    expect(diffOf("a\nb\nc", "a\nb\n\nc")).toEqual({ added: [3], deleted: [] });
+  });
+
+  it("doesn't show HEAD's trailing empty line as deleted when lines are added at the end", () => {
+    expect(diffOf("a\nb\n", "a\nb\n\nnew\nmore")).toEqual({ added: [4, 5], deleted: [] });
+  });
+
+  it("marks every line as added for a file not in HEAD", () => {
+    expect(diffOf("", "a\n\nb")).toEqual({ added: [1, 2, 3], deleted: [] });
+    expect(diffOf("", "")).toEqual({ added: [], deleted: [] });
+  });
+});
 
 let view: EditorView | null = null;
 afterEach(() => {
@@ -15,71 +50,59 @@ function editor(doc: string) {
   return view;
 }
 
-const chunks = (editorView: EditorView) => getChunks(editorView.state)?.chunks ?? null;
+const added = (v: EditorView) => [...v.dom.querySelectorAll(".cm-git-added")].map((line) => line.textContent);
+const deleted = (v: EditorView) => [...v.dom.querySelectorAll(".cm-git-deletedLine")].map((line) => line.textContent);
 
-describe("gitChanges", () => {
-  it("shows no diff until a baseline arrives", () => {
-    expect(chunks(editor("a\nb"))).toBeNull();
+describe("gitChanges extension", () => {
+  it("shows nothing until a baseline arrives", () => {
+    const v = editor("a\nb");
+    expect(added(v)).toEqual([]);
+    expect(v.state.field(gitChangesField).base).toBeNull();
   });
 
-  it("shows no chunks for text equal to HEAD, CRLF baseline included", () => {
-    const v = editor("a\nb\n");
-    v.dispatch({ effects: setGitBaseline.of({ text: "a\r\nb\r\n" }) });
-    expect(chunks(v)).toEqual([]);
-  });
-
-  it("marks an added line as an insertion", () => {
-    const v = editor("a\nb\nnew\nc");
-    v.dispatch({ effects: setGitBaseline.of({ text: "a\nb\nc" }) });
-    const [chunk] = chunks(v)!;
-    expect(v.state.sliceDoc(chunk.fromB, chunk.endB)).toBe("new");
-    expect(chunk.fromA).toBe(chunk.toA);
-  });
-
-  it("shows the old line of a changed line without accept or reject buttons", () => {
+  it("tints added lines and shows deleted ones above them", () => {
     const v = editor("a\nB\nc");
     v.dispatch({ effects: setGitBaseline.of({ text: "a\nb\nc" }) });
-    expect(chunks(v)).toHaveLength(1);
-    expect(v.dom.querySelector(".cm-deletedChunk")?.textContent).toContain("b");
-    expect(v.dom.querySelector(".cm-chunkButtons")).toBeNull();
+    expect(added(v)).toEqual(["B"]);
+    expect(deleted(v)).toEqual(["b"]);
   });
 
-  it("updates the diff as you type", () => {
+  it("treats a CRLF baseline as equal to the LF document", () => {
+    const v = editor("a\nb\n");
+    v.dispatch({ effects: setGitBaseline.of({ text: "a\r\nb\r\n" }) });
+    expect(added(v)).toEqual([]);
+    expect(deleted(v)).toEqual([]);
+  });
+
+  it("updates as you type", () => {
     const v = editor("a\nb");
     v.dispatch({ effects: setGitBaseline.of({ text: "a\nb" }) });
     v.dispatch({ changes: { from: 3, insert: "\nc" } });
-    expect(chunks(v)).toHaveLength(1);
+    expect(added(v)).toEqual(["c"]);
+    expect(deleted(v)).toEqual([]);
     v.dispatch({ changes: { from: 3, to: 5 } });
-    expect(chunks(v)).toEqual([]);
+    expect(added(v)).toEqual([]);
   });
 
   it("compares with a new HEAD when the baseline changes", () => {
     const v = editor("a\nb");
     v.dispatch({ effects: setGitBaseline.of({ text: "a" }) });
-    expect(chunks(v)).toHaveLength(1);
+    expect(added(v)).toEqual(["b"]);
     v.dispatch({ effects: setGitBaseline.of({ text: "a\nb" }) });
-    expect(getOriginalDoc(v.state).toString()).toBe("a\nb");
-    expect(chunks(v)).toEqual([]);
-  });
-
-  it("treats a file with no HEAD version as all added", () => {
-    const v = editor("a\nb");
-    v.dispatch({ effects: setGitBaseline.of({ text: null }) });
-    const [chunk] = chunks(v)!;
-    expect(v.state.sliceDoc(chunk.fromB, chunk.endB)).toBe("a\nb");
+    expect(added(v)).toEqual([]);
   });
 
   it("removes the diff when the baseline turns off", () => {
     const v = editor("a\nB");
     v.dispatch({ effects: setGitBaseline.of({ text: "a\nb" }) });
     v.dispatch({ effects: setGitBaseline.of("off") });
-    expect(chunks(v)).toBeNull();
-    expect(v.state.field(gitChangesField).active).toBe(false);
+    expect(added(v)).toEqual([]);
+    expect(deleted(v)).toEqual([]);
   });
 
   it("shows no diff over the line limit", () => {
     const v = editor(Array.from({ length: MAX_GIT_LINES + 1 }, () => "x").join("\n"));
     v.dispatch({ effects: setGitBaseline.of({ text: "" }) });
-    expect(chunks(v)).toBeNull();
+    expect(v.state.field(gitChangesField).base).toBeNull();
   });
 });

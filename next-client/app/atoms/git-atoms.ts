@@ -9,3 +9,8 @@ export const atom_showGitChanges = atomWithStorage<boolean>("showGitChanges", fa
 // Whether the open vault has a readable `.git` at its root. null until
 // checked; false makes the palette command say why nothing shows.
 export const atom_gitAvailable = atom<boolean | null>(null);
+
+// How many editors are still reading HEAD's text for Git Changes (read in
+// use-git-baseline.ts until the diff is shown). The corner toggle spins while
+// it's above 0.
+export const atom_gitLoading = atom(0);

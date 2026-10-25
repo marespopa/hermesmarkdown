@@ -2,7 +2,7 @@ import React from "react";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { Provider, createStore } from "jotai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { atom_gitAvailable } from "@/app/atoms/git-atoms";
+import { atom_gitAvailable, atom_gitLoading } from "@/app/atoms/git-atoms";
 import { useGitBaseline } from "./use-git-baseline";
 
 const getHead = vi.fn();
@@ -45,6 +45,28 @@ describe("useGitBaseline", () => {
     await flush();
     expect(getHeadBlob).toHaveBeenCalledWith(vault, "c1", "a.md");
     expect(baselines()).toEqual([{ text: "head text" }]);
+  });
+
+  it("counts itself loading until the baseline reaches the editor", async () => {
+    let resolveBlob: (value: unknown) => void = () => {};
+    getHeadBlob.mockReturnValue(new Promise((resolve) => (resolveBlob = resolve)));
+    const { store } = setup({ enabled: true, filePath: "a.md" });
+    await flush();
+    expect(store.get(atom_gitLoading)).toBe(1);
+
+    resolveBlob({ status: "ok", text: "head text" });
+    await flush();
+    expect(baselines()).toEqual([{ text: "head text" }]);
+    expect(store.get(atom_gitLoading)).toBe(0);
+  });
+
+  it("stops counting when it's turned off mid-read", async () => {
+    getHeadBlob.mockReturnValue(new Promise(() => {}));
+    const { store, rerender } = setup({ enabled: true, filePath: "a.md" });
+    await flush();
+    expect(store.get(atom_gitLoading)).toBe(1);
+    rerender({ enabled: false, filePath: "a.md" });
+    expect(store.get(atom_gitLoading)).toBe(0);
   });
 
   it("uses a null baseline for a file missing from HEAD or a repo without commits", async () => {
