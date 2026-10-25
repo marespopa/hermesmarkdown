@@ -31,12 +31,14 @@ export default function ChangesPage() {
   const isDisk = !!vaultHandle && descriptor?.kind === "local";
   // A restored vault waits for the user to allow access; scanning before that is refused.
   const isPending = useAtomValue(atom_isVaultPending);
-  const { result, scanning, progress, rescan } = useGitChanges(vaultHandle ?? null, isDisk && !isPending);
+  const { result, found, scanning, progress, rescan } = useGitChanges(vaultHandle ?? null, isDisk && !isPending);
   const openChange = useOpenChange();
   // What the user toggled, by path; everything else follows the initial layout.
   const [overrides, setOverrides] = useState<Map<string, boolean>>(new Map());
 
-  const files = useMemo(() => (result?.status === "ok" ? result.files : []), [result]);
+  // The finished (or cached) result, else the files the running scan found so far.
+  const partial = !result && scanning && found.length > 0;
+  const files = useMemo(() => (result?.status === "ok" ? result.files : partial ? found : []), [result, partial, found]);
   const defaults = useMemo(() => initialCollapsed(files), [files]);
   const isCollapsed = (path: string) => overrides.get(path) ?? defaults.has(path);
   const setCollapsed = (paths: string[], collapsed: boolean) =>
@@ -76,12 +78,13 @@ export default function ChangesPage() {
     );
   } else if (result?.status === "ok" && files.length === 0) {
     body = <p className={NOTE}>No changes since the last commit.{result.commit ? ` ${result.commit.slice(0, 7)}` : ""}</p>;
-  } else if (result?.status === "ok") {
+  } else if (result?.status === "ok" || partial) {
     body = (
       <>
+        {partial && <p className={NOTE} role="status">{scanStatus(progress)}</p>}
         <ChangesSummary
           files={files}
-          commit={result.commit}
+          commit={result?.status === "ok" ? result.commit : null}
           onJump={(path) => jump(path, files.findIndex((file) => file.path === path))}
           onCollapseAll={() => setCollapsed(files.map((file) => file.path), true)}
           onExpandAll={() => setCollapsed(files.map((file) => file.path), false)}

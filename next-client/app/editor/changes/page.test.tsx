@@ -9,7 +9,7 @@ import ChangesPage from "./page";
 
 const push = vi.fn();
 const fileSystem = vi.hoisted(() => ({ vaultHandle: null as unknown, openFile: vi.fn(async () => {}) }));
-const scan = vi.hoisted(() => ({ next: null as unknown, pending: false, start: vi.fn() }));
+const scan = vi.hoisted(() => ({ next: null as unknown, pending: false, found: [] as unknown[], start: vi.fn() }));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }), usePathname: () => "/editor/changes" }));
 vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => fileSystem }));
@@ -21,6 +21,7 @@ vi.mock("react-hot-toast", () => ({ default: { error: vi.fn(), success: vi.fn() 
 vi.mock("@/app/services/git-changes-client", () => ({
   startChangesScan: (...args: unknown[]) => {
     scan.start(...args);
+    if (scan.found.length) (args[2] as (files: unknown[]) => void)(scan.found);
     return { result: scan.pending ? new Promise(() => {}) : Promise.resolve(scan.next), cancel: vi.fn() };
   },
 }));
@@ -59,6 +60,7 @@ describe("ChangesPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     scan.pending = false;
+    scan.found = [];
     fileSystem.vaultHandle = { name: "vault" };
     HTMLElement.prototype.scrollIntoView = vi.fn();
   });
@@ -82,6 +84,15 @@ describe("ChangesPage", () => {
     renderPage();
     expect(screen.getByTestId("changes-skeleton")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("Reading the repository…");
+  });
+
+  it("shows the files found so far while the scan runs", async () => {
+    scan.pending = true;
+    scan.found = [modified];
+    renderPage();
+    expect(await screen.findByText("1 file changed")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Reading the repository…");
+    expect(screen.queryByTestId("changes-skeleton")).toBeNull();
   });
 
   it("waits for access to a restored vault before scanning", async () => {

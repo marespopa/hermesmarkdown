@@ -53,6 +53,8 @@ export function clearScanCache(): void {
 
 export interface ScanOptions {
   onProgress(progress: ChangesProgress): void;
+  /** Changed files as they're found, in batches, before the sorted result. */
+  onFiles?(files: ChangedFile[]): void;
   isCancelled(): boolean;
 }
 
@@ -108,6 +110,34 @@ function describe(path: string, status: FileStatus, oldBytes: Uint8Array | null,
   return { path, status, added, removed, diff: fits ? diff : { kind: "skipped" } };
 }
 
+/** The index's submodule paths (gitlink entries). */
+function gitlinks(index: GitIndex): Set<string> {
+  const paths = new Set<string>();
+  for (const [path, entry] of index.entries) if (entry.mode === 0o160000) paths.add(path);
+  return paths;
+}
+
+/** Runs at most `n` of the functions given to it at once. */
+function limiter(n: number) {
+  let active = 0;
+  const waiting: (() => void)[] = [];
+  return (run: () => Promise<void>): Promise<void> =>
+    new Promise((resolve) => {
+      const start = () => {
+        active++;
+        run()
+          .catch((error) => console.warn("git: could not compare a file", error))
+          .finally(() => {
+            active--;
+            waiting.shift()?.();
+            resolve();
+          });
+      };
+      if (active < n) start();
+      else waiting.push(start);
+    });
+}
+
 /** A path found to differ, with its bytes, waiting for its diff. */
 interface Candidate {
   path: string;
@@ -131,13 +161,17 @@ export async function scanChanges(vault: FileSystemDirectoryHandle, options: Sca
     if (!repo) return { status: "no-repo" };
     const { gitDir } = repo;
     const { commit } = await resolveHead(gitDir);
-    const head = commit ? await listTreeFiles(gitDir, commit) : { files: new Map<string, { id: string; mode: string }>(), submodules: new Set<string>() };
     const index = await readIndex(gitDir).catch(() => null);
+    // HEAD's file list loads while the vault is walked. The walk needs the
+    // tracked paths only for ignore rules, and like git it takes them from the
+    // index; without an index it waits for HEAD.
+    const headReady = commit ? listTreeFiles(gitDir, commit) : Promise.resolve({ files: new Map<string, { id: string; mode: string }>(), submodules: new Set<string>() });
+    headReady.catch(() => {}); // awaited below; this only keeps an early failure from going unhandled
     const exclude = await readTextAt(gitDir, "info/exclude");
-    const tracked = new Set<string>(head.files.keys());
-    if (index) for (const path of index.entries.keys()) tracked.add(path);
+    const tracked = new Set<string>(index ? index.entries.keys() : (await headReady).files.keys());
     const trackedDirs = new Set<string>();
     for (const path of tracked) for (const dir of ancestors(path)) trackedDirs.add(dir);
+    const ids = await hashCacheFor(vault);
 
     let lastReport = 0;
     const report = (progress: ChangesProgress, force = false) => {
@@ -146,27 +180,23 @@ export async function scanChanges(vault: FileSystemDirectoryHandle, options: Sca
       lastReport = now;
       options.onProgress(progress);
     };
-    const tree = await walkWorktree(vault, {
-      tracked,
-      trackedDirs,
-      submodules: head.submodules,
-      exclude,
-      isCancelled: options.isCancelled,
-      onListed: (count) => report({ phase: "listing", done: count, total: 0 }),
-    });
-    if (options.isCancelled()) return "cancelled";
 
-    const hiddenDirs = [...tree.failedDirs, ...tree.nestedDirs, ...head.submodules];
-    const paths = [...new Set([...head.files.keys(), ...tree.files.keys()])].filter((path) => tree.files.has(path) || !isExcludedPath(path, hiddenDirs)).sort();
-    const ids = await hashCacheFor(vault);
+    // Found files go to the page as they come (a batch per PROGRESS_MS).
+    const files: ChangedFile[] = [];
+    let unsent: ChangedFile[] = [];
+    let lastSent = 0;
+    const send = (force = false) => {
+      if (unsent.length === 0 || (!force && Date.now() - lastSent < PROGRESS_MS)) return;
+      lastSent = Date.now();
+      options.onFiles?.(unsent);
+      unsent = [];
+    };
 
-    // Which paths differ, several at a time: reading and hashing dominate.
-    const found: (Candidate | ChangedFile | null)[] = new Array(paths.length).fill(null);
-    let done = 0;
-    const compare = async (path: string): Promise<Candidate | ChangedFile | null> => {
+    // Whether `path` differs from HEAD (null: it doesn't), with its bytes for the diff.
+    const compare = async (path: string, file: File | undefined): Promise<Candidate | ChangedFile | null> => {
+      const head = await headReady;
+      const inHead = head.files.get(path);
       try {
-        const file = tree.files.get(path);
-        const inHead = head.files.get(path);
         const headBytes = async () => (await readObject(gitDir, inHead!.id)).data;
         if (file && !inHead) return { path, status: "added", oldBytes: null, newBytes: new Uint8Array(await file.arrayBuffer()) };
         if (!file && inHead) return { path, status: "deleted", oldBytes: await headBytes(), newBytes: null };
@@ -190,30 +220,67 @@ export async function scanChanges(vault: FileSystemDirectoryHandle, options: Sca
         return { path, status: "modified", oldBytes: before ?? (await headBytes()), newBytes: bytes };
       } catch (error) {
         console.warn("git: could not compare " + path, error);
-        return { path, status: tree.files.has(path) ? (head.files.has(path) ? "modified" : "added") : "deleted", added: null, removed: null, diff: { kind: "error" } };
+        return { path, status: file ? (inHead ? "modified" : "added") : "deleted", added: null, removed: null, diff: { kind: "error" } };
       }
     };
-    let next = 0;
-    const worker = async () => {
-      while (next < paths.length && !options.isCancelled()) {
-        const i = next++;
-        report({ phase: "comparing", done, total: paths.length });
-        found[i] = await compare(paths[i]);
-        done++;
-      }
+
+    // Each file is compared as soon as the walk finds it, several at a time
+    // (reading and hashing dominate). The diff budget goes to files in the
+    // order they're found.
+    const budget = new Budget();
+    const limit = limiter(COMPARE_CONCURRENCY);
+    const tasks: Promise<void>[] = [];
+    let queued = 0;
+    let compared = 0;
+    const enqueue = (path: string, file: File | undefined) => {
+      queued++;
+      tasks.push(
+        limit(async () => {
+          if (options.isCancelled()) return;
+          const item = await compare(path, file);
+          compared++;
+          const entry = item && ("diff" in item ? item : describe(item.path, item.status, item.oldBytes, item.newBytes, budget));
+          if (entry) {
+            files.push(entry);
+            unsent.push(entry);
+            send();
+          }
+        }),
+      );
     };
-    await Promise.all(Array.from({ length: COMPARE_CONCURRENCY }, worker));
+
+    let walking = true;
+    const tree = await walkWorktree(vault, {
+      tracked,
+      trackedDirs,
+      submodules: index ? gitlinks(index) : (await headReady).submodules,
+      exclude,
+      isCancelled: options.isCancelled,
+      onFile: (path, file) => enqueue(path, file),
+      onListed: (count) => walking && report({ phase: "listing", done: count, total: 0 }),
+    });
+    walking = false;
     if (options.isCancelled()) return "cancelled";
 
-    // Diffs in path order, so the budget keeps the first files' diffs.
-    const budget = new Budget();
-    const files: ChangedFile[] = [];
-    for (const item of found) {
-      if (!item) continue;
-      const entry = "diff" in item ? item : describe(item.path, item.status, item.oldBytes, item.newBytes, budget);
-      if (entry) files.push(entry);
+    // HEAD's paths the walk didn't find are deleted, unless they sit where the walk doesn't look.
+    const head = await headReady;
+    const hiddenDirs = [...tree.failedDirs, ...tree.nestedDirs, ...head.submodules];
+    for (const path of head.files.keys()) {
+      if (tree.files.has(path) || isExcludedPath(path, hiddenDirs)) continue;
+      enqueue(path, undefined);
     }
-    return { status: "ok", commit, files };
+    // A submodule's folder (known only once HEAD is read) was walked as files: those aren't changes.
+    const inSubmodule = (path: string) => [...head.submodules].some((dir) => path === dir || path.startsWith(dir + "/"));
+    const progress = setInterval(() => report({ phase: "comparing", done: compared, total: queued }), PROGRESS_MS);
+    try {
+      for (let i = 0; i < tasks.length; i++) await tasks[i];
+    } finally {
+      clearInterval(progress);
+    }
+    if (options.isCancelled()) return "cancelled";
+    send(true);
+    const result = files.filter((file) => !inSubmodule(file.path)).sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+    return { status: "ok", commit, files: result };
   } catch (error) {
     console.warn("git: could not scan for changes", error);
     const { name, message } = error instanceof Error || error instanceof DOMException ? error : { name: "Error", message: String(error) };

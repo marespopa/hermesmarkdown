@@ -17,6 +17,7 @@ self.onmessage = async (event: MessageEvent<GitChangesRequest>) => {
     const result = await scanChanges(vault, {
       isCancelled: () => cancelled.has(requestId),
       onProgress: (progress) => self.postMessage({ type: "changes:progress", requestId, progress } satisfies GitChangesResponse),
+      onFiles: (files) => self.postMessage({ type: "changes:files", requestId, files } satisfies GitChangesResponse),
     });
     cancelled.delete(requestId);
     self.postMessage({ type: "changes:result", requestId, result } satisfies GitChangesResponse);

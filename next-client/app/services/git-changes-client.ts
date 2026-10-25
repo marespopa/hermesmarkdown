@@ -8,7 +8,7 @@
 // browser refused access to (NotAllowedError: some browsers don't extend the
 // vault's permission to workers) is run again inline, and so are later scans.
 
-import type { ChangesProgress, ChangesResult } from "@/app/services/git/git-changes-types";
+import type { ChangedFile, ChangesProgress, ChangesResult } from "@/app/services/git/git-changes-types";
 import type { GitChangesRequest, GitChangesResponse } from "@/app/workers/git-changes-protocol";
 
 type ScanResult = ChangesResult | "cancelled";
@@ -17,6 +17,7 @@ export const START_TIMEOUT_MS = 4000;
 
 interface Request {
   onProgress(progress: ChangesProgress): void;
+  onFiles(files: ChangedFile[]): void;
   resolve(result: ScanResult | Promise<ScanResult>): void;
   /** The same scan on this thread. */
   inline(): Promise<ScanResult>;
@@ -53,6 +54,8 @@ function getWorker(): Worker | null {
         clearTimeout(request.timer);
       } else if (message.type === "changes:progress") {
         request.onProgress(message.progress);
+      } else if (message.type === "changes:files") {
+        request.onFiles(message.files);
       } else {
         clearTimeout(request.timer);
         requests.delete(message.requestId);
@@ -69,21 +72,26 @@ function getWorker(): Worker | null {
   return worker;
 }
 
-/** Scans `vault` for files that differ from HEAD. `cancel()` makes the result `"cancelled"`. */
+/**
+ * Scans `vault` for files that differ from HEAD. `onFiles` gets changed files
+ * in batches as they're found (an inline rerun after a failed worker starts
+ * over, so a batch may repeat a path). `cancel()` makes the result `"cancelled"`.
+ */
 export function startChangesScan(
   vault: FileSystemDirectoryHandle,
   onProgress: (progress: ChangesProgress) => void,
+  onFiles: (files: ChangedFile[]) => void = () => {},
 ): { result: Promise<ScanResult>; cancel(): void } {
   let cancelled = false;
   const target = getWorker();
   // Loaded on demand: the scan's dependencies stay out of the main bundle.
-  const runInline = async () => (await import("@/app/services/git/git-changes-scan")).scanChanges(vault, { onProgress, isCancelled: () => cancelled });
+  const runInline = async () => (await import("@/app/services/git/git-changes-scan")).scanChanges(vault, { onProgress, onFiles, isCancelled: () => cancelled });
   if (!target) return { result: runInline(), cancel: () => { cancelled = true; } };
 
   const requestId = ++lastRequestId;
   const result = new Promise<ScanResult>((resolve) => {
     const timer = setTimeout(() => abandonWorker("no answer in " + START_TIMEOUT_MS + "ms"), START_TIMEOUT_MS);
-    requests.set(requestId, { onProgress, resolve, inline: runInline, timer });
+    requests.set(requestId, { onProgress, onFiles, resolve, inline: runInline, timer });
     try {
       target.postMessage({ type: "changes:scan", requestId, vault } satisfies GitChangesRequest);
     } catch {

@@ -145,7 +145,20 @@ describe("scanChanges", () => {
     if (result === "cancelled" || result.status !== "ok") throw new Error("expected ok");
     expect(result.files).toHaveLength(305);
     expect(result.files.filter((file) => file.diff.kind === "skipped")).toHaveLength(5);
-    expect(result.files[304]).toMatchObject({ added: 2, diff: { kind: "skipped" } });
+    // The budget goes in the order files are found, so which five is not fixed.
+    expect(result.files.find((file) => file.diff.kind === "skipped")).toMatchObject({ added: 2 });
+  });
+
+  it("hands over changed files as they're found, before the result", async () => {
+    const { vault } = await setup({ "a.md": "one\n", "gone.md": "x\n" }, { "a.md": "two\n", "new.md": "n\n" });
+    const batches: string[][] = [];
+    const result = await scanChanges(vault.asHandle(), {
+      onProgress: () => {},
+      onFiles: (files) => batches.push(files.map((file) => file.path)),
+      isCancelled: () => false,
+    });
+    expect(batches.flat().sort()).toEqual(["a.md", "gone.md", "new.md"]);
+    expect(summary(result)).toEqual([["a.md", "modified"], ["gone.md", "deleted"], ["new.md", "added"]]);
   });
 
   it("returns cancelled when asked to stop", async () => {

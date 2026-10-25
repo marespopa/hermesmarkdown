@@ -18,6 +18,8 @@ export interface WorktreeOptions {
   exclude: string | null;
   isCancelled(): boolean;
   onListed(count: number): void;
+  /** Each working file as soon as it's read (before the walk ends). */
+  onFile?(path: string, file: File): void;
 }
 
 export interface Worktree {
@@ -99,7 +101,10 @@ export async function walkWorktree(vault: FileSystemDirectoryHandle, options: Wo
         // A folder's files are read at once: one at a time is most of a large walk.
         reads.push(
           (entry as FileSystemFileHandle).getFile().then(
-            (file) => void files.set(childPath, file),
+            (file) => {
+              files.set(childPath, file);
+              options.onFile?.(childPath, file);
+            },
             () => {}, // A file that vanished or can't be read: treated as absent.
           ),
         );
