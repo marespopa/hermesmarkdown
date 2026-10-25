@@ -100,7 +100,7 @@ export const aiFeaturesGroup: Group = {
             an owner&rdquo;, or start a message with <code>/template</code>. From then on, the chat
             knows the{" "}
             <TextLink href="#templates">template tokens</TextLink>. Each
-            template in a reply shows a card with its path (for example <code>templates/rfc.md</code>) and any problems
+            template in a reply shows a card with its path (for example <code>_templates/rfc.md</code>) and any problems
             it spotted, like an unknown token.
           </p>
           <p>

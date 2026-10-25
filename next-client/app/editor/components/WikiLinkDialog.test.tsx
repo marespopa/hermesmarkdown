@@ -10,7 +10,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 const meta = (path: string) => ({ path, name: path.split("/").pop()! }) as FileMetadata;
 
-function renderDialog(props: Partial<React.ComponentProps<typeof WikiLinkDialog>> = {}, paths = ["templates/Meeting notes.md", "templates/Spec.md", "notes/a.md"]) {
+function renderDialog(props: Partial<React.ComponentProps<typeof WikiLinkDialog>> = {}, paths = ["_templates/Meeting notes.md", "_templates/Spec.md", "notes/a.md"]) {
   const store = createStore();
   store.set(atom_fileMetadata, Object.fromEntries(paths.map((p) => [p, meta(p)])));
   const onConfirm = vi.fn();
@@ -48,7 +48,7 @@ describe("WikiLinkDialog, From template", () => {
     fireEvent.click(screen.getByRole("radio", { name: /Spec/ }));
     fireEvent.click(screen.getByRole("button", { name: "Create from template and link" }));
     await waitFor(() => expect(onConfirm).toHaveBeenCalledWith("meetings/Meeting notes 2026-10-05"));
-    expect(onCreateFromTemplate).toHaveBeenCalledWith("Login", { name: "Spec", path: "templates/Spec.md" });
+    expect(onCreateFromTemplate).toHaveBeenCalledWith("Login", { name: "Spec", path: "_templates/Spec.md" });
   });
 
   it("has no From template tab without templates", () => {

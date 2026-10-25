@@ -96,7 +96,7 @@ describe("Finance pack", () => {
 describe("packTemplatesInVault", () => {
   it("finds the pack's templates already in the vault, ignoring case", () => {
     const meetings = BUILTIN_PACKS.find((pack) => pack.name === "Meetings")!;
-    const paths = ["templates/meetings/standup.md", "templates/Meetings/Meeting notes.md", "templates/One-on-one.md"];
-    expect([...packTemplatesInVault(meetings, "templates", paths)].sort()).toEqual(["Meeting notes", "Standup"]);
+    const paths = ["_templates/meetings/standup.md", "_templates/Meetings/Meeting notes.md", "_templates/One-on-one.md"];
+    expect([...packTemplatesInVault(meetings, "_templates", paths)].sort()).toEqual(["Meeting notes", "Standup"]);
   });
 });

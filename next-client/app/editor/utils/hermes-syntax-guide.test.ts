@@ -22,7 +22,7 @@ describe("HermesMarkdown syntax guide", () => {
 
   it("gives dated notes no special meaning", () => {
     expect(HERMES_SYNTAX_GUIDE).not.toMatch(/sheet/i);
-    expect(HERMES_SYNTAX_GUIDE).toContain("templates");
+    expect(HERMES_SYNTAX_GUIDE).toContain("_templates");
   });
 
   it("lists the real callout types", () => {

@@ -6,11 +6,11 @@ import {
   type TemplateEntry,
 } from "@/app/utils/templates/template-registry";
 
-// The templates folder: always `templates/` at the vault root, and whether it
+// The templates folder: always `_templates/` at the vault root, and whether it
 // holds any file yet (it's created on first use).
 export const atom_templatesFolder = atom((get) => resolveTemplatesFolder(Object.keys(get(atom_fileMetadata))));
 
-// Every template: a `.md` file directly in `templates/`, or one folder down
+// Every template: a `.md` file directly in `_templates/`, or one folder down
 // (a pack); loose ones first, then by pack and name. Derived from the
 // metadata index, so it follows every rescan; bodies are read on use.
 export const atom_templates = atom<TemplateEntry[]>((get) =>

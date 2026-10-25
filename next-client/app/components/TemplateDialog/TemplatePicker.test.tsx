@@ -8,8 +8,8 @@ import TemplatePicker from "./TemplatePicker";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 const templates = [
-  { name: "meeting", path: "templates/meeting.md" },
-  { name: "rfc", path: "templates/rfc.md" },
+  { name: "meeting", path: "_templates/meeting.md" },
+  { name: "rfc", path: "_templates/rfc.md" },
 ];
 
 function renderPicker(props: Partial<React.ComponentProps<typeof TemplatePicker>> = {}) {
@@ -21,7 +21,7 @@ function renderPicker(props: Partial<React.ComponentProps<typeof TemplatePicker>
         isOpen
         title="Insert template"
         templates={templates}
-        folder="templates"
+        folder="_templates"
         includeBlank={false}
         onPick={onPick}
         onCancel={onCancel}
@@ -61,7 +61,7 @@ describe("TemplatePicker", () => {
   });
 
   it("lists a preselected template first, before Blank note, highlighted", () => {
-    const { onPick } = renderPicker({ includeBlank: true, preselect: "templates/rfc.md" });
+    const { onPick } = renderPicker({ includeBlank: true, preselect: "_templates/rfc.md" });
     expect(rowNames()).toEqual(["rfctemplates/rfc.md", "Blank note", "Board", "meetingtemplates/meeting.md"]);
     expect(screen.getAllByRole("option")[0]).toHaveAttribute("aria-selected", "true");
     fireEvent.keyDown(screen.getByLabelText("Search templates"), { key: "Enter" });
@@ -69,7 +69,7 @@ describe("TemplatePicker", () => {
   });
 
   it("still offers Blank note and every template with a preselection", () => {
-    const { onPick } = renderPicker({ includeBlank: true, preselect: "templates/rfc.md" });
+    const { onPick } = renderPicker({ includeBlank: true, preselect: "_templates/rfc.md" });
     fireEvent.click(screen.getByText("Blank note"));
     expect(onPick).toHaveBeenCalledWith("blank");
   });
@@ -89,8 +89,8 @@ describe("TemplatePicker", () => {
   it("summarizes each template from its text and previews the highlighted one", () => {
     renderPicker({
       bodies: {
-        "templates/meeting.md": "# {{title}}\n## Agenda\n- [ ] \n## Notes\nOwner: {{prompt:Owner}}\n",
-        "templates/rfc.md": null,
+        "_templates/meeting.md": "# {{title}}\n## Agenda\n- [ ] \n## Notes\nOwner: {{prompt:Owner}}\n",
+        "_templates/rfc.md": null,
       },
     });
     expect(rowNames()[0]).toBe("meeting2 sections • Action items • Asks Owner");
@@ -112,7 +112,7 @@ describe("TemplatePicker", () => {
   });
 
   it("with a preview, a click selects and previews; Use template or a double-click uses it", () => {
-    const bodies = { "templates/meeting.md": "# Meeting", "templates/rfc.md": "# RFC body" };
+    const bodies = { "_templates/meeting.md": "# Meeting", "_templates/rfc.md": "# RFC body" };
     const { onPick } = renderPicker({ bodies });
     fireEvent.click(screen.getByText("rfc"));
     expect(onPick).not.toHaveBeenCalled();

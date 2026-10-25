@@ -79,8 +79,8 @@ describe("ChatMessageItem template save card", () => {
   afterEach(() => cleanup());
 
   it("shows a card per template block with its path and lint warnings", () => {
-    renderItem({ templateBlocks: [block], templatesFolder: "templates", onSaveTemplate: vi.fn() });
-    expect(screen.getByText("templates/rfc.md")).toBeTruthy();
+    renderItem({ templateBlocks: [block], templatesFolder: "_templates", onSaveTemplate: vi.fn() });
+    expect(screen.getByText("_templates/rfc.md")).toBeTruthy();
     expect(screen.getByText(/\{\{dat\}\} looks like \{\{date\}\}/)).toBeTruthy();
     expect(screen.getByText("Save template")).toBeTruthy();
   });

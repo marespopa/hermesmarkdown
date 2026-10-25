@@ -14,7 +14,7 @@ With `bodies`, the dialog widens and a read-only [preview](TemplatePreview.md) o
 
 ## Quick Usage
 ```tsx
-<TemplatePicker isOpen title="Insert template" templates={templates} folder="templates"
+<TemplatePicker isOpen title="Insert template" templates={templates} folder="_templates"
   includeBlank={false} bodies={bodies} onPick={(entry) => …} onCancel={() => …} />
 ```
 
@@ -24,7 +24,7 @@ With `bodies`, the dialog widens and a read-only [preview](TemplatePreview.md) o
 | isOpen | `boolean` | | Visibility |
 | title | `string` | | Dialog heading |
 | templates | `T[]` (`TemplatePickerEntry`) | | Sorted templates (`atom_templates`) |
-| folder | `string` | | The templates folder (`templates`), for the empty state |
+| folder | `string` | | The templates folder (`_templates`), for the empty state |
 | includeBlank | `boolean` | | Show "Blank note" and "Board" first |
 | preselect? | `string` | | Path of a template to list first and highlight |
 | bodies? | `Record<string, string \| null>` | | Raw text per entry (`pickerEntryKey`: path, else name; null while loading). Turns on summaries and the preview pane |

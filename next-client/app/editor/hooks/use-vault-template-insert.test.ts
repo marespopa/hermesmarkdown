@@ -20,7 +20,7 @@ vi.mock("@/app/hooks/file-system/use-template-notes", () => ({
   useTemplateNotes: () => ({ readTemplate, instantiate }),
 }));
 
-const RFC = { name: "rfc", path: "templates/rfc.md" };
+const RFC = { name: "rfc", path: "_templates/rfc.md" };
 const EXPANDED = { text: "---\nstatus: draft\n---\n# Auth\nOwner: Ana\n", cursor: "---\nstatus: draft\n---\n# Auth\n".length };
 
 function setup(doc: string, filePath = "notes/auth.md") {

@@ -65,7 +65,7 @@ export function useChatSkills() {
     [folder, templates],
   );
 
-  // Writes `templates/<fileName>` (creating `templates/` when no
+  // Writes `_templates/<fileName>` (creating `_templates/` when no
   // folder exists yet), overwriting an existing template. True on success.
   const saveTemplate = useCallback(async (block: TemplateBlock): Promise<boolean> => {
     const vault = store.get(atom_vaultHandle);

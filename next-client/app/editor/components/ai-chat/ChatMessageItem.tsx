@@ -7,6 +7,7 @@ import { FIELD_SURFACE } from "@/app/components/Input";
 import type { ChatMessage } from "./chat-helpers";
 import type { TemplateBlock } from "./chat-skills";
 import TemplateSaveCard from "./TemplateSaveCard";
+import { TEMPLATES_FOLDER } from "@/app/utils/templates/template-registry";
 
 export type ApplyMode = "insert" | "replace-all";
 
@@ -51,7 +52,7 @@ export default function ChatMessageItem({
   onApply,
   hasSelection,
   templateBlocks = [],
-  templatesFolder = "templates",
+  templatesFolder = TEMPLATES_FOLDER,
   templateExists,
   onSaveTemplate,
 }: ChatMessageItemProps) {

@@ -68,7 +68,7 @@ export const settingsGroup: Group = {
             doesn&apos;t exist yet is created the first time a note is saved there.
           </p>
           <p>
-            Templates are always in <code>templates/</code> at the root of your vault, made the
+            Templates are in <code>_templates/</code> at the root of your vault, made the
             first time you need it: every <code>.md</code> file directly in it, or one folder down
             (a <TextLink href="#template-packs">template pack</TextLink>), is a{" "}
             <TextLink href="#templates">template</TextLink>.

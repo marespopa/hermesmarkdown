@@ -35,11 +35,11 @@ vi.mock("@/app/atoms/vault-atoms", async (importOriginal) => ({
 
 const meta = (path: string) => ({ path, name: path.split("/").pop()! }) as FileMetadata;
 
-function renderPage({ vault = true, paths = ["templates/Meeting.md", "templates/Journal/Daily.md", "notes/a.md"] } = {}) {
+function renderPage({ vault = true, paths = ["_templates/Meeting.md", "_templates/Journal/Daily.md", "notes/a.md"] } = {}) {
   const store = createStore();
   if (vault) store.set(atom_vaultHandle, { name: "Notes" } as unknown as FileSystemDirectoryHandle);
   store.set(atom_fileMetadata, Object.fromEntries(paths.map((path) => [path, meta(path)])));
-  store.set(atom_vaultFolderPaths, ["templates", "templates/Journal", "templates/Empty", "notes"]);
+  store.set(atom_vaultFolderPaths, ["_templates", "_templates/Journal", "_templates/Empty", "notes"]);
   render(<Provider store={store}><TemplatesPage /></Provider>);
 }
 
@@ -58,9 +58,9 @@ describe("TemplatesPage", () => {
   it("deletes one template, in a pack or not", () => {
     renderPage();
     fireEvent.click(screen.getByRole("button", { name: "Delete template Meeting" }));
-    expect(packs.deleteTemplate).toHaveBeenCalledWith(expect.objectContaining({ path: "templates/Meeting.md" }));
+    expect(packs.deleteTemplate).toHaveBeenCalledWith(expect.objectContaining({ path: "_templates/Meeting.md" }));
     fireEvent.click(screen.getByRole("button", { name: "Delete template Daily" }));
-    expect(packs.deleteTemplate).toHaveBeenCalledWith(expect.objectContaining({ path: "templates/Journal/Daily.md" }));
+    expect(packs.deleteTemplate).toHaveBeenCalledWith(expect.objectContaining({ path: "_templates/Journal/Daily.md" }));
     expect(packs.deletePack).not.toHaveBeenCalled();
   });
 
@@ -73,7 +73,7 @@ describe("TemplatesPage", () => {
     renderPage();
     fireEvent.click(screen.getByRole("button", { name: "Edit Daily" }));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/editor?file=templates/Journal/Daily.md"));
-    expect(fileSystem.openFile).toHaveBeenCalledWith({ name: "templates/Journal/Daily.md" }, "templates/Journal/Daily.md", true);
+    expect(fileSystem.openFile).toHaveBeenCalledWith({ name: "_templates/Journal/Daily.md" }, "_templates/Journal/Daily.md", true);
   });
 
   it("runs the pack actions on the pack", async () => {
@@ -83,7 +83,7 @@ describe("TemplatesPage", () => {
     await waitFor(() => expect(fileSystem.createTemplate).toHaveBeenCalledWith("Journal"));
     fireEvent.click(within(journal).getByRole("button", { name: "Duplicate Journal" }));
     fireEvent.click(within(journal).getByRole("button", { name: "Delete Journal" }));
-    expect(packs.duplicatePack).toHaveBeenCalledWith(expect.objectContaining({ name: "Journal", folder: "templates/Journal" }));
+    expect(packs.duplicatePack).toHaveBeenCalledWith(expect.objectContaining({ name: "Journal", folder: "_templates/Journal" }));
     expect(packs.deletePack).toHaveBeenCalledWith(expect.objectContaining({ name: "Journal" }));
     fireEvent.click(screen.getByRole("button", { name: "New pack" }));
     expect(packs.createPack).toHaveBeenCalled();

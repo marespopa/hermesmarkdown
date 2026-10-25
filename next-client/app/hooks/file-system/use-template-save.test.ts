@@ -48,13 +48,13 @@ const meta = (path: string) => ({ path, name: path.split("/").pop()! }) as FileM
 
 function setup(existing: Record<string, string> = {}) {
   const root = new FakeDir("vault");
-  const templates = new FakeDir("templates");
-  root.dirs.set("templates", templates);
+  const templates = new FakeDir("_templates");
+  root.dirs.set("_templates", templates);
   for (const [name, content] of Object.entries(existing)) templates.files.set(name, new FakeFile(name, content));
   const store = createStore();
   store.set(atom_vaultHandle, root as unknown as FileSystemDirectoryHandle);
   store.set(atom_fileMetadata, Object.fromEntries(
-    ["notes/a.md", ...Object.keys(existing).map((n) => `templates/${n}`)].map((p) => [p, meta(p)]),
+    ["notes/a.md", ...Object.keys(existing).map((n) => `_templates/${n}`)].map((p) => [p, meta(p)]),
   ));
   const scanVault = vi.fn(async () => {});
   const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(Provider, { store }, children);

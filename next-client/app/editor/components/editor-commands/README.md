@@ -20,7 +20,7 @@ without changing the public props contract or command behavior.
   draft; it never saves), `Open File from Disk…` (a file from the device opens
   as a draft; distinct from `Import files into vault…`), Duplicate / Move /
   Rename / Delete File, and `New template…` (with a vault open: name prompt, then
-  `templates/<name>.md` with a minimal body, or the existing template of that
+  `_templates/<name>.md` with a minimal body, or the existing template of that
   name opened unchanged).
 - `editor-ai-commands.ts` defines editor formatting, templates and AI
   commands. The `Insert: …` commands skip the slash menu's vault
