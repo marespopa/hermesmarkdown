@@ -1,4 +1,0 @@
-- engineer: 021 done, state review. Likely CI failures: the new #-scope case in CommandPalette.test, and the hoisted search mock in files/page.test.
-- orchestrator: CI failed twice after approval (checks are deferred to CI in factory mode, so review never ran them).
-  1. Type-check: `app/editor/codemirror/tag-pills.ts(149,15): error TS2304: Cannot find name 'WORKFLOW_TAGS'`. The engineer removed the import and replaced one of two uses with `tagKind()`, leaving the second use. Fixed in 901c13d7.
-  2. Unit test: `CommandPalette.test.tsx:578` "intersects space- and comma-separated tag searches" expected `#planning #work`; tags now render as separate TagPill elements, so text content is `#planning#work`. An existing test asserting the old joined-string rendering wasn't updated. Fixed in 33bd6ad3.

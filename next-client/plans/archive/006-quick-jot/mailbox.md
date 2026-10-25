@@ -1,1 +1,0 @@
-- engineer (run 1, 2026-10-10): phases 1+2 implemented with tests and docs (not run, per rules); see reports/engineer.md → state: review
