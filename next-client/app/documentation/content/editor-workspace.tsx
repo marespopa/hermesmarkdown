@@ -277,7 +277,7 @@ tags: []
             { label: "Toggle Hidden Files / Toggle Sidebar", value: "—" },
             { label: "Theme: Light / Dark / System", value: "—" },
             { label: "Light Theme: … / Dark Theme: …", value: "The palette each mode uses" },
-            { label: "Toggle Full Width / Word Wrap / Line Numbers / Invisibles / Word Count / Vim Mode", value: "—" },
+            { label: "Toggle Full Width / Word Wrap / Line Numbers / Invisibles / Git Changes / Word Count / Vim Mode", value: "—" },
             { label: "Toggle Focus Mode", value: "Dim other paragraphs, or turn Focus off" },
             { label: "Focus: …", value: "Off, or dim other paragraphs or sentences" },
             { label: "Settings", value: "Editor Font, Text Size, Autosave, Open Settings" },

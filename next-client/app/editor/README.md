@@ -48,6 +48,8 @@ Query parameters are rewritten in place (`replaceState`), so switching notes add
 
 ## Editor page hooks (`app/editor/hooks`)
 
+- `use-git-baseline.ts` — `useGitBaseline({ viewRef, vaultHandle, filePath, enabled })`: reads HEAD's text for the open file through `services/git-read-client.ts` and sends it to the Git Changes gutter; re-checks HEAD's stamp on focus, when the page becomes visible and every 5 s while focused, re-reading the blob only when it changed; sets `atom_gitAvailable` (false → the palette command says there's no `.git` at the vault's root); ignores responses for an old path.
+
 The editor route (`page.tsx`) composes these:
 
 | Hook | Purpose |
@@ -79,6 +81,8 @@ The editor route (`page.tsx`) composes these:
 ## Flow mode (Focus: dim, sentence)
 
 `codemirror/flow-mode.ts` is the two strongest levels of the Focus setting (**Dim other paragraphs** / **Dim other sentences**, Settings → Editor or **Focus: …** in the command palette), read from `atom_focusMode` (`"dim"` → `flowMode("paragraph")`, `"sentence"` → `flowMode("sentence")`) and toggled through a CodeMirror compartment.
+
+`codemirror/git-changes.ts` is the Git Changes gutter (Settings → Editor → View, **Toggle Git Changes**; `atom_showGitChanges`, off by default), in its own compartment. A `StateField` holds HEAD's text (set with the `setGitBaseline` effect, fed by `hooks/use-git-baseline.ts`) and the markers `computeGitMarkers` builds from `Chunk.build` (`@codemirror/merge`): a 3px `--moss` bar per added line, a `--link` bar per changed line, a `--danger` wedge where lines were deleted. Markers map through edits and are recomputed 150 ms after the last one; over 20,000 lines there are none. The gutter sits after the line numbers and fold markers (right of them, next to the text) and takes no width while the baseline is `"off"` (no repository, a binary or huge blob, a read error). The app only reads `.git` (`services/git/`, in the git-read worker), at the vault root of a disk vault.
 
 Typing is never rewritten: Enter is a plain line break (no list or quote continuation, no indent), Backspace deletes one character, a `-` stays a `-`, and a pasted URL or multi-line block lands as it is. Lists and quotes are written by hand, or with Tab / Shift+Tab and the block-type shortcuts.
 

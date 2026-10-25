@@ -35,6 +35,7 @@ import { markdownProblems } from "./markdown-problems";
 import { flowMode, type FlowLevel } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
 import { invisibles } from "./invisibles";
+import { gitChanges } from "./git-changes";
 import { editorLineNumbers } from "./line-numbers";
 import { findReplace } from "./find-replace";
 import { collapsedCalloutCorners } from "./callout-fold";
@@ -51,6 +52,9 @@ export interface BuildExtensionsOptions {
   lineNumbersCompartment: Compartment;
   showInvisibles: boolean;
   invisiblesCompartment: Compartment;
+  /** Git Changes gutter on (git-changes.ts); its baseline comes from use-git-baseline.ts. */
+  gitChanges: boolean;
+  gitChangesCompartment: Compartment;
   /** Vim mode on; the caller has already awaited `loadVim()`. */
   vimMode: boolean;
   vimModeCompartment: Compartment;
@@ -109,6 +113,8 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     markdown({ base: markdownLanguage, codeLanguages: languages, addKeymap: false }),
     // Folding (callouts, `<details>`, heading sections) with heading chevrons.
     headingFolding,
+    // After the line numbers and fold markers: the bars sit next to the text.
+    opts.gitChangesCompartment.of(opts.gitChanges ? gitChanges() : []),
     frontmatterSpacer,
     // Invalid frontmatter, unclosed code / math blocks: a notice above them.
     markdownProblems,

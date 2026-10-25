@@ -9,6 +9,7 @@ import { CODE_FONT } from "./live-markers-theme";
 import { codeEditing, codeGutters } from "./code-editing";
 import { editorFilePath, formatCodeKeymap } from "./format-code-command";
 import { invisibles } from "./invisibles";
+import { gitChanges } from "./git-changes";
 import { findReplace } from "./find-replace";
 import type { BuildExtensionsOptions } from "./extensions";
 
@@ -35,6 +36,7 @@ export function buildPlainTextExtensions(opts: BuildExtensionsOptions): Extensio
     editorFilePath.of(opts.filePath ?? ""),
     opts.wordWrapCompartment.of(opts.wordWrap ? EditorView.lineWrapping : []),
     opts.lineNumbersCompartment.of(codeGutters(!!opts.codeLanguage)),
+    opts.gitChangesCompartment.of(opts.gitChanges ? gitChanges() : []),
     opts.invisiblesCompartment.of(opts.showInvisibles ? invisibles() : []),
     opts.flowModeCompartment.of([]),
     EditorView.scrollMargins.of((view) => ({

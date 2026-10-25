@@ -17,13 +17,14 @@ async function toBytes(content: Content): Promise<Uint8Array> {
   return new Uint8Array(await (content as { arrayBuffer(): Promise<ArrayBuffer> }).arrayBuffer());
 }
 
-export function fakeFile(name: string, content: string | Uint8Array, webkitRelativePath = ""): File {
+export function fakeFile(name: string, content: string | Uint8Array, webkitRelativePath = "", lastModified = 0): File {
   const bytes = typeof content === "string" ? new TextEncoder().encode(content) : content;
   return {
     name,
     webkitRelativePath,
     size: bytes.byteLength,
-    lastModified: 0,
+    lastModified,
+    slice: (start?: number, end?: number) => fakeFile(name, bytes.slice(start, end)),
     arrayBuffer: async () => bytes.slice().buffer,
     text: async () => new TextDecoder().decode(bytes),
   } as unknown as File;
@@ -31,10 +32,10 @@ export function fakeFile(name: string, content: string | Uint8Array, webkitRelat
 
 export class MemoryFileHandle {
   readonly kind = "file";
-  constructor(public name: string, public bytes: Uint8Array = new Uint8Array()) {}
+  constructor(public name: string, public bytes: Uint8Array = new Uint8Array(), public lastModified = 0) {}
 
   async getFile() {
-    return fakeFile(this.name, this.bytes);
+    return fakeFile(this.name, this.bytes, "", this.lastModified);
   }
 
   async createWritable() {

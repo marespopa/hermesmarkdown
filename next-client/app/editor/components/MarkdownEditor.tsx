@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
+import { atom_showGitChanges } from "@/app/atoms/git-atoms";
+import { atom_vaultDescriptor } from "@/app/atoms/vault-atoms";
 import { atom_aiBuilderRequest, atom_focusMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_vimMode } from "@/app/atoms/ui-atoms";
 import type { TemplateEntry } from "@/app/utils/templates/template-registry";
 import { useAtom } from "jotai";
@@ -17,6 +19,7 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useEditorAppearance } from "../hooks/use-editor-appearance";
 import { useActiveEditorView } from "../hooks/use-active-editor-view";
 import { useCodeMirrorEditor } from "../hooks/use-codemirror-editor";
+import { useGitBaseline } from "../hooks/use-git-baseline";
 import { useCodeMirrorFeatures } from "../hooks/use-codemirror-features";
 import { useCodeMirrorTemplates } from "../hooks/use-codemirror-templates";
 import { useVaultTemplateInsert } from "../hooks/use-vault-template-insert";
@@ -71,6 +74,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const showWordCount = useAtomValue(atom_showWordCount);
   const showOutline = useAtomValue(atom_showOutline);
   const showInvisibles = useAtomValue(atom_showInvisibles);
+  const showGitChanges = useAtomValue(atom_showGitChanges);
+  const isDiskVault = useAtomValue(atom_vaultDescriptor)?.kind === "local";
   const vimMode = useAtomValue(atom_vimMode);
   // Paragraph or sentence dimming and typewriter scrolling: the two
   // strongest Focus levels.
@@ -81,6 +86,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
+  const gitEnabled = showGitChanges && isDiskVault && filePath !== "draft";
   const [editorView, setEditorView] = useState<EditorView | null>(null);
 
   const editorValue = props.value;
@@ -222,6 +228,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     wordWrap,
     lineNumbers,
     showInvisibles,
+    gitChanges: gitEnabled,
     vimMode,
     flowMode,
     onOpenActiveHelperRef: openActiveHelperRef,
@@ -238,6 +245,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onViewCreated: handleViewCreated,
     filePath,
   });
+  useGitBaseline({ viewRef, vaultHandle, filePath, enabled: gitEnabled });
   // After useCodeMirrorEditor, so the Vim compartment is live (see the hook).
   const { hostRef: vimStatusHostRef, status: vimStatus } = useVimStatus(editorView, vimMode);
 
