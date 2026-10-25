@@ -18,6 +18,7 @@ import Button from "@/app/components/Button";
 import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 import PaneToolbarButton from "./PaneToolbarButton";
 import CopyContentButton from "./CopyContentButton";
+import GitChangesToggleButton from "./GitChangesToggleButton";
 import OutlineToggleButton from "./OutlineToggleButton";
 import SearchPill from "./SearchPill";
 import WorkspaceSidebar from "./WorkspaceSidebar";
@@ -109,8 +110,10 @@ export default function EditorShell({ children }: { children: ReactNode }) {
         // The way into the command palette, the center of the app: every
         // note and command (as Ctrl/Cmd+K). Placed as in ShellPage's title
         // bar, so it stays put moving between the editor and the pages.
-        // Copy Contents sits just left of it, the outline toggle left of that.
+        // Copy Contents sits just left of it, the outline toggle left of that,
+        // and the Git Changes toggle left of the outline toggle.
         <div className="fixed top-1.5 right-8 z-30 flex items-center gap-1.5">
+          <GitChangesToggleButton />
           <OutlineToggleButton />
           <CopyContentButton />
           <SearchPill />
