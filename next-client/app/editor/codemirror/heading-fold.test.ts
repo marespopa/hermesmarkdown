@@ -174,10 +174,17 @@ describe("frontmatter folding", () => {
     expect(folds(view)).toEqual([]);
   });
 
-  it("folds from the shortcut with the caret inside, parking it at the top of the note", () => {
+  it("folds from the shortcut with the caret inside, parking it at the body start", () => {
     const view = makeView(DOC, DOC.indexOf("Note"));
     foldCurrentSection(view);
     expect(folds(view)).toEqual(["---\ntitle: Note\ntags: [a]\n---"]);
+    expect(view.state.selection.main.head).toBe(DOC.indexOf("---\n\n") + 4);
+  });
+
+  it("parks the caret at the top of the note when nothing follows the block", () => {
+    const doc = "---\ntitle: Note\n---";
+    const view = makeView(doc, doc.indexOf("Note"));
+    foldCurrentSection(view);
     expect(view.state.selection.main.head).toBe(0);
   });
 

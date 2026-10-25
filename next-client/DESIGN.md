@@ -47,7 +47,8 @@ CSS-only variables (no Tailwind token):
 | `--link` / `--link-hover` | `#2C66D1` / `#1764D8` | `#64A8FF` / `#8DBEFF` | Links in the editor |
 | `--caret` | `#3B82F6` | `#3B82F6` | Editor caret, and Vim's block cursor (tinted) |
 | `--selection` | `rgba(59,130,246,0.22)` | `rgba(59,130,246,0.32)` | Text selection, in the editor and app-wide `::selection` |
-| `--frontmatter-bg` / `--frontmatter-bg-hover` | `rgba(60,56,50,0.035)` / `0.055` | `rgba(214,207,198,0.04)` / `0.065` | Frontmatter block background |
+| `--frontmatter-bg` / `--frontmatter-bg-hover` | `rgba(60,56,50,0.035)` / `0.055` | `rgba(214,207,198,0.04)` / `0.065` | Frontmatter block and header background |
+| `--frontmatter-bg-active` | `rgba(45,58,90,0.085)` | `rgba(214,207,198,0.1)` | Frontmatter block background on hover or focus |
 | `--frontmatter-label-opacity` | `0.4` | `0.5` | Frontmatter key labels |
 
 **Source:** `app/globals.scss` `:root` and `html.dark` blocks.

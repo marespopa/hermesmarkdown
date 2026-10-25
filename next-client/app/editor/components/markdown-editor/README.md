@@ -6,6 +6,7 @@ Render pieces of [`MarkdownEditor`](../MarkdownEditor.md). The editing behaviour
 |---|---|
 | [EditorPills](EditorPills.md) | Floating helpers next to the caret: date picker, link pill, workflow/task pills, Mermaid and image viewer buttons, code-language picker. |
 | [LinkInsertDialog](LinkInsertDialog.md) | The "Add Link" dialog opened by `/link`. |
+| [FrontmatterHeaderMenus](FrontmatterHeaderMenus.md) | The status menu and date picker opened by the frontmatter header's chips. |
 | [FoldChevrons](FoldChevrons.md) | Collapse/expand chevrons for foldable callouts and frontmatter. |
 | [VimStatusPill](VimStatusPill.md) | Vim mode, pending keys and the `:` / `/` prompt, floating at the bottom of the pane. |
 | [EditorOutline](EditorOutline.md) | The note's H1–H3 headings in a box fixed in the pane's bottom-right corner, the section being read marked; click one to jump there. Off unless Outline is on (Ctrl/Cmd+Shift+M, Settings → Editor → View). In a code file, its symbols with kind icons. |

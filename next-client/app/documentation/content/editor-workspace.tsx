@@ -100,7 +100,7 @@ export const editorWorkspaceItems: Subsection[] = [
     id: "frontmatter",
     title: "Frontmatter",
     lead: "The YAML block at the top of a file — edited as plain text, with a shortcut to add one.",
-    keywords: "yaml frontmatter metadata title tags properties collapse fold",
+    keywords: "yaml frontmatter metadata title tags properties collapse fold status date chips header",
     body: (
       <>
         <p>
@@ -113,7 +113,13 @@ title:
 tags: []
 ---`}</Code>
         <p>
-          The editor shows frontmatter exactly as typed, on a subtle tinted panel. Hover it for a
+          Outside the block, frontmatter shows as one quiet line of chips: the <code>type</code>,
+          your tags, the <code>status</code>, dates (like <em>Due Nov 15</em>), then its other
+          keys. Click the <code>status</code> chip to pick todo, in-progress, done, draft, review,
+          active or archived, or a date chip to pick a day; only that value changes, and one undo
+          restores it. Click any other chip, or move the caret into the block, and the YAML shows
+          exactly as typed on a subtle tinted panel. YAML the line can&apos;t summarize (nested
+          keys, lists of objects, template fields) always shows as typed. Hover the block for a
           chevron in the margin by the opening <code>---</code>: it folds the whole block into one
           line showing its <code>title</code> and first few <code>tags</code> (for example{" "}
           <em>Frontmatter · Release plan · #work #ideas</em>); click that line to unfold it. With the caret inside,

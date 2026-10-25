@@ -282,23 +282,6 @@ export const baseTheme = EditorView.theme({
     backgroundColor: "color-mix(in srgb, var(--clay) 9%, transparent)",
     color: "var(--clay)",
   },
-  ".cm-frontmatter-tag-list": {
-    display: "inline-flex",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: "0.28em",
-    paddingInline: "0.1em",
-    verticalAlign: "middle",
-  },
-  // The list's pills are boxes, not text in a line being edited.
-  ".cm-frontmatter-tag-list .cm-tag-pill": {
-    display: "inline-flex",
-    margin: 0,
-  },
-  ".cm-frontmatter-tag-list-empty": {
-    color: "var(--fg-muted)",
-    fontStyle: "italic",
-  },
   ".cm-link-display": {
     display: "inline-flex",
     alignItems: "baseline",

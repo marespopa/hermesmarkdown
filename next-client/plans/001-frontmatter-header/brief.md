@@ -1,9 +1,9 @@
 ---
-state: new
+state: approved
 size: normal
 kind: feature
 blocked_from:
-rejections: 0
+rejections: 1
 created: 2026-10-24T15:14:54Z
 ---
 

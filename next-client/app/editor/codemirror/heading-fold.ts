@@ -2,7 +2,7 @@ import type { EditorState, Extension, Range } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, type KeyBinding, ViewPlugin, type ViewUpdate, WidgetType } from "@codemirror/view";
 import { codeFolding, ensureSyntaxTree, foldEffect, foldedRanges, syntaxTree, unfoldEffect } from "@codemirror/language";
 import type { SyntaxNode, Tree } from "@lezer/common";
-import { frontmatterRangeOf, frontmatterSummary } from "./frontmatter-block";
+import { bodyStart, frontmatterRangeOf, frontmatterSummary } from "./frontmatter-block";
 
 // Heading sections fold like an outline: a `#`–`######` heading at the top
 // level of the note (not in a quote, callout or list) hides everything under
@@ -121,12 +121,14 @@ export function foldedSectionAt(state: EditorState, foldFrom: number): { from: n
 
 function foldSection(view: EditorView, section: HeadingSection) {
   // The caret inside a fold would unfold it, so it parks at the heading's
-  // end (the top of the note for the frontmatter).
+  // end (for the frontmatter, the start of the body, so unfolding shows the
+  // header rather than the raw YAML; the top of the note without a body).
   const head = view.state.selection.main.head;
   const inside = head > section.from && head <= section.to;
+  const park = section.level === 0 ? bodyStart(view.state.doc) ?? section.from : section.from;
   view.dispatch({
     effects: foldEffect.of({ from: section.from, to: section.to }),
-    ...(inside ? { selection: { anchor: section.from } } : {}),
+    ...(inside ? { selection: { anchor: park } } : {}),
   });
 }
 

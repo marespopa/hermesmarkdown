@@ -9,6 +9,7 @@ Description: Calendar dialog for picking or replacing a date in the editor, with
 
 ## Dependencies
 - Core: `DialogModal`, `Button`, `react-icons`.
+- Callers: `EditorPills` (date under the caret), the template date field, and `markdown-editor/FrontmatterHeaderMenus` (a frontmatter header date chip, writing `YYYY-MM-DD` and keeping a datetime's time).
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { frontmatterRangeOf, frontmatterSpacer, insertOrRevealFrontmatter } from "./frontmatter-block";
+import { bodyStart, frontmatterRangeOf, frontmatterSpacer, insertOrRevealFrontmatter, withBodyCaret } from "./frontmatter-block";
 
 function makeView(doc: string) {
   return new EditorView({
@@ -21,6 +21,28 @@ describe("frontmatterRangeOf", () => {
     expect(rangeOf("Body\n---\ntitle: Note\n---")).toBeNull();
     expect(rangeOf("---\ntitle: Note")).toBeNull();
     expect(rangeOf("")).toBeNull();
+  });
+});
+
+describe("bodyStart and withBodyCaret", () => {
+  const stateOf = (doc: string) => EditorState.create({ doc });
+
+  it("is the start of the line after the closing fence", () => {
+    const doc = "---\ntitle: Note\n---\nBody";
+    expect(bodyStart(stateOf(doc).doc)).toBe(doc.indexOf("Body"));
+    expect(withBodyCaret(stateOf(doc)).selection.main.head).toBe(doc.indexOf("Body"));
+  });
+
+  it("is null without frontmatter or when the document ends at the fence", () => {
+    expect(bodyStart(stateOf("Body").doc)).toBeNull();
+    expect(bodyStart(stateOf("---\ntitle: Note\n---").doc)).toBeNull();
+  });
+
+  it("leaves a note without a body below the block unchanged", () => {
+    const plain = stateOf("Body");
+    expect(withBodyCaret(plain)).toBe(plain);
+    const atFence = stateOf("---\ntitle: Note\n---");
+    expect(withBodyCaret(atFence)).toBe(atFence);
   });
 });
 

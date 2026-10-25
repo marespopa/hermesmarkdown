@@ -39,7 +39,7 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "Indent / outdent list item (4 spaces a level)", shortcut: "TAB / SHIFT+TAB" },
             { label: "Line break (lists and quotes are not continued)", shortcut: "ENTER" },
             { label: "Cycle task status", shortcut: "CTRL/CMD+ENTER" },
-            { label: "Open helper at cursor (link, date, diagram, image)", shortcut: "CTRL/CMD+SHIFT+ENTER" },
+            { label: "Open helper at cursor (link, date, status, diagram, image)", shortcut: "CTRL/CMD+SHIFT+ENTER" },
             { label: "Ask or Edit with AI…", shortcut: "CTRL/CMD+J" },
             { label: "AI Chat", shortcut: "CTRL+SHIFT+B" },
             { label: "Keyboard shortcuts", shortcut: "CTRL/CMD+?" },

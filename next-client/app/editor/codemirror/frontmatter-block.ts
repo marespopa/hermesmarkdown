@@ -2,9 +2,11 @@ import { EditorState, StateField, Text } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, WidgetType } from "@codemirror/view";
 import { parseFmFields } from "@/app/utils/frontmatter-utils";
 
-// The frontmatter is shown as typed: its YAML lines on a tinted panel
-// (`.cm-frontmatter-line`, highlight.ts / theme.ts). It folds like a heading
-// section, from a chevron by its opening `---` (heading-fold.ts).
+// The frontmatter shows as a header of chips while the caret is outside it
+// (frontmatter-header.ts), and as typed — its YAML lines on a tinted panel
+// (`.cm-frontmatter-line`, highlight.ts / theme.ts) — while the caret is in it
+// or the YAML is too complex for chips. It folds like a heading section, from
+// a chevron by its opening `---` (heading-fold.ts).
 
 export interface FrontmatterRange {
   // End of the closing `---` delimiter.
@@ -32,6 +34,21 @@ export function frontmatterRangeOf(doc: Text): FrontmatterRange | null {
   }
   rangeByDoc.set(doc, range);
   return range;
+}
+
+// Start of the line after the closing `---`, or null when the note has no
+// frontmatter or ends at the fence (nowhere outside the block for a caret).
+export function bodyStart(doc: Text): number | null {
+  const range = frontmatterRangeOf(doc);
+  if (!range || range.closeTo >= doc.length) return null;
+  return range.closeTo + 1;
+}
+
+// The state with the caret at the body start, so a note opens with its
+// header showing instead of its YAML revealed. Unchanged without a body.
+export function withBodyCaret(state: EditorState): EditorState {
+  const anchor = bodyStart(state.doc);
+  return anchor === null ? state : state.update({ selection: { anchor } }).state;
 }
 
 const SUMMARY_TAG_LIMIT = 3;
