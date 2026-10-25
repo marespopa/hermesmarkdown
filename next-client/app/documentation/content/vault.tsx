@@ -167,9 +167,9 @@ export const vaultGroup: Group = {
           <p>
             Turn on <strong>Git Changes</strong> (the button in the editor's top-right corner, the
             command palette, or Settings → Editor → View) to see what you have changed since the last
-            commit, the way a pull request shows it. Added and changed lines are tinted green, with the
-            changed words stronger; the old lines they replaced, and lines you deleted, show above them
-            on a red tint and can't be edited. The diff updates as you type, and again after you commit
+            commit, the way a pull request shows it. Added and changed lines are tinted green and marked
+            with a +; the old lines they replaced, and lines you deleted, show above them on a red tint,
+            marked with a −, and can't be edited. The diff updates as you type, and again after you commit
             in another tool. It shows only when
             the <code>.git</code> folder is at the root of the vault you opened, and a file that isn't
             committed yet is marked as all added. HermesMarkdown only reads <code>.git</code>; it never
