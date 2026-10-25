@@ -170,7 +170,8 @@ export const vaultGroup: Group = {
             commit, the way a pull request shows it. Added and changed lines are tinted green and marked
             with a +; the old lines they replaced, and lines you deleted, show above them on a red tint,
             marked with a −, and can't be edited. The diff updates as you type, and again after you commit
-            in another tool. It shows only when
+            in another tool. <strong>Next Git change</strong> (Alt+F5) and <strong>Previous Git
+            change</strong> (Shift+Alt+F5), also in the palette, jump between the changes. It shows only when
             the <code>.git</code> folder is at the root of the vault you opened, and a file that isn't
             committed yet is marked as all added. HermesMarkdown only reads <code>.git</code>; it never
             runs git or writes to it.

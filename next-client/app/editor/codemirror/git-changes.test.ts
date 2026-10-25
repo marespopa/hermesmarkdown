@@ -2,40 +2,40 @@ import { Chunk } from "@codemirror/merge";
 import { EditorState, Text } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it } from "vitest";
-import { gitChanges, gitChangesField, gitDiff, MAX_GIT_LINES, setGitBaseline } from "./git-changes";
+import { gitChanges, gitChangesField, gitDiff, goToNextGitChange, goToPreviousGitChange, MAX_GIT_LINES, setGitBaseline } from "./git-changes";
 
 const text = (value: string) => Text.of(value.split("\n"));
 const diffOf = (base: string, doc: string) => gitDiff(text(base), text(doc), Chunk.build(text(base), text(doc)));
 
 describe("gitDiff", () => {
   it("marks an added line, with nothing deleted", () => {
-    expect(diffOf("a\nb\nc", "a\nb\nnew\nc")).toEqual({ added: [3], deleted: [] });
+    expect(diffOf("a\nb\nc", "a\nb\nnew\nc")).toEqual({ added: [3], deleted: [], hunks: [3] });
   });
 
   it("shows a changed line's old text above it", () => {
-    expect(diffOf("a\nb\nc", "a\nB\nc")).toEqual({ added: [2], deleted: [{ before: 2, lines: ["b"] }] });
+    expect(diffOf("a\nb\nc", "a\nB\nc")).toEqual({ added: [2], deleted: [{ before: 2, lines: ["b"] }], hunks: [2] });
   });
 
   it("shows a deletion in the middle above the next line", () => {
-    expect(diffOf("a\nb\nc", "a\nc")).toEqual({ added: [], deleted: [{ before: 2, lines: ["b"] }] });
+    expect(diffOf("a\nb\nc", "a\nc")).toEqual({ added: [], deleted: [{ before: 2, lines: ["b"] }], hunks: [2] });
   });
 
   it("shows a deletion at the end of the file after the last line", () => {
-    expect(diffOf("a\nb\nc", "a\nb")).toEqual({ added: [], deleted: [{ before: 3, lines: ["c"] }] });
+    expect(diffOf("a\nb\nc", "a\nb")).toEqual({ added: [], deleted: [{ before: 3, lines: ["c"] }], hunks: [2] });
   });
 
   it("doesn't show the line before as deleted when Enter adds a line after it", () => {
-    expect(diffOf("a\nb", "a\nb\n")).toEqual({ added: [3], deleted: [] });
-    expect(diffOf("a\nb\nc", "a\nb\n\nc")).toEqual({ added: [3], deleted: [] });
+    expect(diffOf("a\nb", "a\nb\n")).toEqual({ added: [3], deleted: [], hunks: [3] });
+    expect(diffOf("a\nb\nc", "a\nb\n\nc")).toEqual({ added: [3], deleted: [], hunks: [3] });
   });
 
   it("doesn't show HEAD's trailing empty line as deleted when lines are added at the end", () => {
-    expect(diffOf("a\nb\n", "a\nb\n\nnew\nmore")).toEqual({ added: [4, 5], deleted: [] });
+    expect(diffOf("a\nb\n", "a\nb\n\nnew\nmore")).toEqual({ added: [4, 5], deleted: [], hunks: [4] });
   });
 
   it("marks every line as added for a file not in HEAD", () => {
-    expect(diffOf("", "a\n\nb")).toEqual({ added: [1, 2, 3], deleted: [] });
-    expect(diffOf("", "")).toEqual({ added: [], deleted: [] });
+    expect(diffOf("", "a\n\nb")).toEqual({ added: [1, 2, 3], deleted: [], hunks: [1] });
+    expect(diffOf("", "")).toEqual({ added: [], deleted: [], hunks: [] });
   });
 });
 
@@ -104,5 +104,25 @@ describe("gitChanges extension", () => {
     const v = editor(Array.from({ length: MAX_GIT_LINES + 1 }, () => "x").join("\n"));
     v.dispatch({ effects: setGitBaseline.of({ text: "" }) });
     expect(v.state.field(gitChangesField).base).toBeNull();
+  });
+
+  it("moves to the next and previous change, wrapping around", () => {
+    const v = editor("a\nB\nc\nd\nE");
+    v.dispatch({ effects: setGitBaseline.of({ text: "a\nb\nc\nd\ne" }) });
+    const line = () => v.state.doc.lineAt(v.state.selection.main.head).number;
+    expect(goToNextGitChange(v)).toBe(true);
+    expect(line()).toBe(2);
+    goToNextGitChange(v);
+    expect(line()).toBe(5);
+    goToNextGitChange(v);
+    expect(line()).toBe(2);
+    goToPreviousGitChange(v);
+    expect(line()).toBe(5);
+  });
+
+  it("does nothing without changes", () => {
+    const v = editor("a");
+    v.dispatch({ effects: setGitBaseline.of({ text: "a" }) });
+    expect(goToNextGitChange(v)).toBe(false);
   });
 });
