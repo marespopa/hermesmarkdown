@@ -53,7 +53,7 @@ describe("AIChatDialog template skill", () => {
     expect(callAIChat.mock.calls[1][0]).toContain("~~~~hermes-template");
 
     // The reply's block gets a save card; without a vault it can't save.
-    expect(await screen.findByText("templates/rfc.md")).toBeInTheDocument();
+    expect(await screen.findByText("_templates/rfc.md")).toBeInTheDocument();
     expect(screen.getByText("Open a vault to save")).toBeInTheDocument();
   });
 });

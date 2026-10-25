@@ -30,4 +30,4 @@ Links and tags:
 Frontmatter: optional YAML between --- lines at the very top (title, tags, status, …). Keep any that exists.
 Callouts: > [!type] Title on the first line, then > before every line of the body. Types: ${CALLOUT_TYPE_NAMES.join(", ")}. Add - after the type (> [!tip]- Title) to fold it.
 Diagrams and math: \`\`\`mermaid fences render as diagrams; $$ … $$ blocks render as display math (KaTeX).
-Templates: notes are often made from the user's templates (in templates/ at the vault root, grouped into packs by subfolder). A dated note such as 2026-10-12.md is just a note a template named; the app gives it no special meaning.`;
+Templates: notes are often made from the user's templates (in _templates/ at the vault root, grouped into packs by subfolder). A dated note such as 2026-10-12.md is just a note a template named; the app gives it no special meaning.`;

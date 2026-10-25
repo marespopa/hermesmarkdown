@@ -84,12 +84,12 @@ describe("useTemplatePacks", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("adds a built-in pack into the templates folder, keeping files you already have", async () => {
-    const { root, packs } = await setup({ "templates/Journal/Daily.md": "mine\n" });
+    const { root, packs } = await setup({ "_templates/Journal/Daily.md": "mine\n" });
     let written = 0;
     await act(async () => { written = await packs.addBuiltinPack(journal); });
     expect(written).toBe(journal.templates.length - 1);
-    expect(root.at("templates/Journal/Daily.md")?.content).toBe("mine\n");
-    expect(root.at("templates/Journal/Weekly.md")?.content).toBe(journal.templates.find((t) => t.name === "Weekly")!.body);
+    expect(root.at("_templates/Journal/Daily.md")?.content).toBe("mine\n");
+    expect(root.at("_templates/Journal/Weekly.md")?.content).toBe(journal.templates.find((t) => t.name === "Weekly")!.body);
     expect(fileSystem.scanVault).toHaveBeenCalled();
     expect(toast.success).toHaveBeenCalledWith(expect.stringContaining("Added Journal"));
   });
@@ -109,10 +109,10 @@ describe("useTemplatePacks", () => {
   });
 
   it("creates an empty pack folder, refusing a name that's taken", async () => {
-    const { root, packs } = await setup({ "templates/Work/a.md": "a\n" });
+    const { root, packs } = await setup({ "_templates/Work/a.md": "a\n" });
     dialog.prompt.mockResolvedValueOnce("Writing");
     await act(async () => { await packs.createPack(); });
-    expect(root.dirs.get("templates")!.dirs.has("Writing")).toBe(true);
+    expect(root.dirs.get("_templates")!.dirs.has("Writing")).toBe(true);
 
     dialog.prompt.mockResolvedValueOnce("Work");
     let name: string | null = "x";
@@ -122,29 +122,29 @@ describe("useTemplatePacks", () => {
   });
 
   it("duplicates a pack's templates as saved", async () => {
-    const { root, packs } = await setup({ "templates/Journal/Daily.md": "# {{date}}\n" });
+    const { root, packs } = await setup({ "_templates/Journal/Daily.md": "# {{date}}\n" });
     dialog.prompt.mockResolvedValueOnce("Diary");
-    const pack = { name: "Journal", folder: "templates/Journal", templates: [{ name: "Daily", path: "templates/Journal/Daily.md", pack: "Journal" }] };
+    const pack = { name: "Journal", folder: "_templates/Journal", templates: [{ name: "Daily", path: "_templates/Journal/Daily.md", pack: "Journal" }] };
     await act(async () => { await packs.duplicatePack(pack); });
     expect(dialog.prompt).toHaveBeenCalledWith("Pack name:", "Journal copy", "Duplicate pack");
-    expect(root.at("templates/Diary/Daily.md")?.content).toBe("# {{date}}\n");
+    expect(root.at("_templates/Diary/Daily.md")?.content).toBe("# {{date}}\n");
   });
 
   it("moves a pack to the Trash only after asking", async () => {
-    const { packs } = await setup({ "templates/Journal/Daily.md": "x\n" });
-    const pack = { name: "Journal", folder: "templates/Journal", templates: [] };
+    const { packs } = await setup({ "_templates/Journal/Daily.md": "x\n" });
+    const pack = { name: "Journal", folder: "_templates/Journal", templates: [] };
     dialog.confirm.mockResolvedValueOnce(false);
     await act(async () => { await packs.deletePack(pack); });
     expect(fileSystem.trashItems).not.toHaveBeenCalled();
 
     dialog.confirm.mockResolvedValueOnce(true);
     await act(async () => { await packs.deletePack(pack); });
-    expect(fileSystem.trashItems).toHaveBeenCalledWith([expect.objectContaining({ path: "templates/Journal" })]);
+    expect(fileSystem.trashItems).toHaveBeenCalledWith([expect.objectContaining({ path: "_templates/Journal" })]);
   });
 
   it("moves one template to the Trash only after asking", async () => {
-    const { packs } = await setup({ "templates/Meeting.md": "x\n" });
-    const template = { name: "Meeting", path: "templates/Meeting.md" };
+    const { packs } = await setup({ "_templates/Meeting.md": "x\n" });
+    const template = { name: "Meeting", path: "_templates/Meeting.md" };
     dialog.confirm.mockResolvedValueOnce(false);
     await act(async () => { await packs.deleteTemplate(template); });
     expect(fileSystem.trashItems).not.toHaveBeenCalled();
@@ -152,6 +152,6 @@ describe("useTemplatePacks", () => {
     dialog.confirm.mockResolvedValueOnce(true);
     await act(async () => { await packs.deleteTemplate(template); });
     expect(dialog.confirm).toHaveBeenCalledWith("Move the Meeting template to the Trash?", "Delete template", "Delete", "Cancel");
-    expect(fileSystem.trashItems).toHaveBeenCalledWith([expect.objectContaining({ path: "templates/Meeting.md" })]);
+    expect(fileSystem.trashItems).toHaveBeenCalledWith([expect.objectContaining({ path: "_templates/Meeting.md" })]);
   });
 });

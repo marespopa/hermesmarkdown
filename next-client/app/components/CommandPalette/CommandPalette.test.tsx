@@ -786,7 +786,7 @@ describe("CommandPalette", () => {
   });
 
   describe("~ templates", () => {
-    const templateFiles = Object.fromEntries(["templates/Meeting.md", "templates/Journal/Daily.md", "Notes/Plan.md"].map((path) => [path, {
+    const templateFiles = Object.fromEntries(["_templates/Meeting.md", "_templates/Journal/Daily.md", "Notes/Plan.md"].map((path) => [path, {
       path, name: path.split("/").at(-1)!, handle: { kind: "file", name: path.split("/").at(-1)! },
       tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
     }]));
@@ -805,7 +805,7 @@ describe("CommandPalette", () => {
       fireEvent.change(screen.getByRole("combobox"), { target: { value: "~meet" } });
       fireEvent.keyDown(screen.getByRole("combobox"), { key: "Enter" });
       await waitFor(() => expect(inserted).toHaveBeenCalledOnce());
-      expect((inserted.mock.calls[0][0] as CustomEvent).detail.entry).toMatchObject({ name: "Meeting", path: "templates/Meeting.md" });
+      expect((inserted.mock.calls[0][0] as CustomEvent).detail.entry).toMatchObject({ name: "Meeting", path: "_templates/Meeting.md" });
       document.removeEventListener("hermes:insert-vault-template", inserted);
     });
 

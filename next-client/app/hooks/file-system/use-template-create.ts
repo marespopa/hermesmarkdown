@@ -167,7 +167,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     await writeNewNote(folder, parsed.baseName, expanded);
   }, [store, newNotesFolder, pickTemplate, linkedNoteText, writeNewNote, scanVault, openFile]);
 
-  // "New template…": asks the name, then `templates/<name>.md` (in
+  // "New template…": asks the name, then `_templates/<name>.md` (in
   // `<pack>/` when given) with a minimal body. A template with the same name
   // (any case) in the same place is opened unchanged instead. True once a
   // template is open.

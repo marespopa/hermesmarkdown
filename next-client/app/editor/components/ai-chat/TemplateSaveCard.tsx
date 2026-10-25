@@ -8,7 +8,7 @@ import type { TemplateBlock } from "./chat-skills";
 
 interface TemplateSaveCardProps {
   block: TemplateBlock;
-  /** Where the template would be written (`templates/<name>.md`). */
+  /** Where the template would be written (`_templates/<name>.md`). */
   path: string;
   /** A template with this name already exists (the button replaces it). */
   exists: boolean;

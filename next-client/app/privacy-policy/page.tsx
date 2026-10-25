@@ -75,7 +75,7 @@ export default function PrivacyPolicy() {
             </p>
             <ul>
               <li>
-                <strong>LiteAnalytics</strong>: We use LiteAnalytics to track basic page views and referrers. LiteAnalytics is designed to be privacy-friendly; it does not use cookies, does not track unique users across sessions, and does not collect personally identifiable information (PII).
+                <strong>LiteAnalytics</strong>: We use LiteAnalytics to count basic page views and referrers. We send only the page&apos;s path (for example, <code>/editor</code>) and the referring site&apos;s address, never the query string, so the names of your notes, folders and tags are never sent. LiteAnalytics is designed to be privacy-friendly; it does not use cookies, does not track unique users across sessions, and does not collect personally identifiable information (PII).
               </li>
             </ul>
           </div>

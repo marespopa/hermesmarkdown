@@ -11,58 +11,58 @@ import {
   type TemplateEntry,
 } from "./template-registry";
 
-const entry = (name: string, folder = "templates"): TemplateEntry => ({ name, path: `${folder}/${name}.md` });
+const entry = (name: string, folder = "_templates"): TemplateEntry => ({ name, path: `${folder}/${name}.md` });
 
 describe("resolveTemplatesFolder", () => {
-  it("is always templates/ at the vault root, whatever else exists", () => {
-    expect(resolveTemplatesFolder(["Templates/a.md", "_templates/b.md", "templates/c.md"])).toEqual({ folder: "templates", exists: true });
-    expect(resolveTemplatesFolder(["Templates/a.md", "_templates/b.md"])).toEqual({ folder: "templates", exists: false });
+  it("is always _templates/ at the vault root, whatever else exists", () => {
+    expect(resolveTemplatesFolder(["Templates/a.md", "_templates/b.md", "templates/c.md"])).toEqual({ folder: "_templates", exists: true });
+    expect(resolveTemplatesFolder(["Templates/a.md", "templates/b.md"])).toEqual({ folder: "_templates", exists: false });
   });
 
   it("counts files directly in it or in a pack, not deeper", () => {
-    expect(resolveTemplatesFolder(["templates/Journal/Daily.md"]).exists).toBe(true);
-    expect(resolveTemplatesFolder(["notes/x.md", "templates/sub/deeper/y.md"]).exists).toBe(false);
+    expect(resolveTemplatesFolder(["_templates/Journal/Daily.md"]).exists).toBe(true);
+    expect(resolveTemplatesFolder(["notes/x.md", "_templates/sub/deeper/y.md"]).exists).toBe(false);
   });
 });
 
 describe("listTemplates / isTemplatePath", () => {
   it("lists loose templates, then each pack's, sorted by name", () => {
     const paths = [
-      "templates/rfc.md", "templates/Meeting.md", "templates/Journal/Weekly.md", "templates/Journal/Daily.md",
-      "templates/Areas/Work/deep.md", "templates/img.png", "templates/.hidden/x.md", "rfc.md",
+      "_templates/rfc.md", "_templates/Meeting.md", "_templates/Journal/Weekly.md", "_templates/Journal/Daily.md",
+      "_templates/Areas/Work/deep.md", "_templates/img.png", "_templates/.hidden/x.md", "rfc.md",
     ];
-    expect(listTemplates("templates", paths)).toEqual([
-      { name: "Meeting", path: "templates/Meeting.md" },
-      { name: "rfc", path: "templates/rfc.md" },
-      { name: "Daily", path: "templates/Journal/Daily.md", pack: "Journal" },
-      { name: "Weekly", path: "templates/Journal/Weekly.md", pack: "Journal" },
+    expect(listTemplates("_templates", paths)).toEqual([
+      { name: "Meeting", path: "_templates/Meeting.md" },
+      { name: "rfc", path: "_templates/rfc.md" },
+      { name: "Daily", path: "_templates/Journal/Daily.md", pack: "Journal" },
+      { name: "Weekly", path: "_templates/Journal/Weekly.md", pack: "Journal" },
     ]);
   });
 
   it("matches the folder's direct children and its packs' children only", () => {
-    expect(isTemplatePath("templates/rfc.md", "templates")).toBe(true);
-    expect(isTemplatePath("templates/Journal/Daily.md", "templates")).toBe(true);
-    expect(isTemplatePath("templates/a/b/rfc.md", "templates")).toBe(false);
-    expect(isTemplatePath("templates-old/rfc.md", "templates")).toBe(false);
-    expect(isTemplatePath("notes/rfc.md", "templates")).toBe(false);
+    expect(isTemplatePath("_templates/rfc.md", "_templates")).toBe(true);
+    expect(isTemplatePath("_templates/Journal/Daily.md", "_templates")).toBe(true);
+    expect(isTemplatePath("_templates/a/b/rfc.md", "_templates")).toBe(false);
+    expect(isTemplatePath("templates-old/rfc.md", "_templates")).toBe(false);
+    expect(isTemplatePath("notes/rfc.md", "_templates")).toBe(false);
     expect(isTemplatePath("rfc.md", "")).toBe(false);
   });
 });
 
 describe("groupTemplatePacks", () => {
   it("groups loose templates first, then packs, keeping empty pack folders", () => {
-    const templates = listTemplates("templates", ["templates/rfc.md", "templates/Journal/Daily.md"]);
-    const packs = groupTemplatePacks("templates", templates, ["templates", "templates/Journal", "templates/Empty", "notes"]);
+    const templates = listTemplates("_templates", ["_templates/rfc.md", "_templates/Journal/Daily.md"]);
+    const packs = groupTemplatePacks("_templates", templates, ["_templates", "_templates/Journal", "_templates/Empty", "notes"]);
     expect(packs.map((pack) => [pack.name, pack.folder, pack.templates.map((t) => t.name)])).toEqual([
-      ["", "templates", ["rfc"]],
-      ["Empty", "templates/Empty", []],
-      ["Journal", "templates/Journal", ["Daily"]],
+      ["", "_templates", ["rfc"]],
+      ["Empty", "_templates/Empty", []],
+      ["Journal", "_templates/Journal", ["Daily"]],
     ]);
   });
 
   it("leaves out the loose group when it's empty", () => {
-    const templates = listTemplates("templates", ["templates/Journal/Daily.md"]);
-    expect(groupTemplatePacks("templates", templates).map((pack) => pack.name)).toEqual(["Journal"]);
+    const templates = listTemplates("_templates", ["_templates/Journal/Daily.md"]);
+    expect(groupTemplatePacks("_templates", templates).map((pack) => pack.name)).toEqual(["Journal"]);
   });
 
 });
@@ -142,7 +142,7 @@ describe("suggestTemplateName", () => {
 });
 
 describe("matchTemplateForName", () => {
-  const t = (name: string) => ({ name, path: `templates/${name}.md` });
+  const t = (name: string) => ({ name, path: `_templates/${name}.md` });
   const templates = [t("Meeting notes"), t("Meeting"), t("rfc"), t("Journal"), t("Spec")];
   const match = (name: string) => matchTemplateForName(name, templates)?.name ?? null;
 

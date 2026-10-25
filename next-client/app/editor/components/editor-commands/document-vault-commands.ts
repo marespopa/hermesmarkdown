@@ -74,7 +74,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           category: "Vault" as const,
           keywords: "template save create from note preset",
           closeFirst: true,
-          // The active note's text becomes templates/<name>.md.
+          // The active note's text becomes _templates/<name>.md.
           action: () => { document.dispatchEvent(new CustomEvent("hermes:save-as-template")); },
         },
         {
@@ -82,7 +82,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           label: "New template…",
           category: "Vault" as const,
           keywords: "create template add template new template",
-          // Name prompt; creates templates/<name>.md with a minimal body, or
+          // Name prompt; creates _templates/<name>.md with a minimal body, or
           // opens the existing template of that name.
           action: () => { void createTemplate(); },
         }]

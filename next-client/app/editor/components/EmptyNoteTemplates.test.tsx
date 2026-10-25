@@ -52,7 +52,7 @@ describe("EmptyNoteTemplates", () => {
 
   it("offers a Board pill that starts a drawing board", () => {
     const onBoard = vi.fn();
-    renderPills({ onBoard }, ["templates/standup.md"]);
+    renderPills({ onBoard }, ["_templates/standup.md"]);
     expect(pillNames()).toEqual(["standup", "Board"]);
     fireEvent.click(screen.getByText("Board"));
     expect(onBoard).toHaveBeenCalled();
@@ -85,7 +85,7 @@ describe("EmptyNoteTemplates", () => {
   });
 
   it("offers vault templates, at most four, with More… for the rest", () => {
-    const paths = ["a", "b", "c", "d", "e"].map((n) => `templates/${n}.md`);
+    const paths = ["a", "b", "c", "d", "e"].map((n) => `_templates/${n}.md`);
     const onMore = vi.fn();
     renderPills({ onMore }, paths);
     expect(pillNames()).toEqual(["a", "b", "c", "d", "More…"]);
@@ -94,9 +94,9 @@ describe("EmptyNoteTemplates", () => {
   });
 
   it("fills the note from the clicked template", () => {
-    const { onPick } = renderPills({}, ["templates/standup.md"]);
+    const { onPick } = renderPills({}, ["_templates/standup.md"]);
     fireEvent.click(screen.getByText("standup"));
-    expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ name: "standup", path: "templates/standup.md" }));
+    expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ name: "standup", path: "_templates/standup.md" }));
   });
 
   it("fades out, then goes away, once the note has text", () => {

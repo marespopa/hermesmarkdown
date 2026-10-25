@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import Script from "next/script";
 import { Toaster } from "react-hot-toast";
 import CustomProviders from "./CustomProviders";
 import Footer from "./Footer/Footer.component";
@@ -13,6 +12,7 @@ import { CommandPaletteProvider, useCommandPalette } from "./CommandPalette/Comm
 import AppCommands from "./CommandPalette/AppCommands";
 import SettingsCommands from "../editor/settings/components/SettingsCommands";
 import useTapRefocus from "../hooks/use-tap-refocus";
+import usePageViews from "../hooks/use-page-views";
 import { atom_keyboardShortcutsOpen } from "../atoms/ui-atoms";
 
 const GlobalDialog = dynamic(() => import("./DialogModal/GlobalDialog"));
@@ -73,6 +73,7 @@ type Props = {
 const MainPage = ({ children }: Props) => {
   const pathname = usePathname();
   useTapRefocus();
+  usePageViews();
   const isEditor = pathname?.startsWith("/editor");
   const hideNav = isEditor;
   
@@ -132,14 +133,6 @@ const MainPage = ({ children }: Props) => {
         <GlobalDialog />
         <TemplateDialogHost />
       </div>
-      {process.env.NODE_ENV === "production" && (
-        <Script
-          defer
-          async
-          data-host="hermesmarkdown.com"
-          src="https://liteanalytics.com/lite.js"
-        ></Script>
-      )}
       </CommandPaletteProvider>
     </CustomProviders>
   );

@@ -25,6 +25,6 @@ Description: One turn of the AI Chat thread. User messages render as a bubble wi
 | onApply | `(mode: ApplyMode) => void` | | `"insert"` or `"replace-all"` |
 | hasSelection | `boolean` | | Switches the insert label to "Replace selection" |
 | templateBlocks? | `TemplateBlock[]` | `[]` | Template blocks parsed from the reply; one save card each |
-| templatesFolder? | `string` | `"templates"` | Folder shown in the card's path |
+| templatesFolder? | `string` | `"_templates"` | Folder shown in the card's path |
 | templateExists? | `(fileName) => boolean` | | Labels the button "Replace template" |
 | onSaveTemplate? | `(block) => Promise<boolean>` | | Saves a block; absent without a vault (button disabled) |

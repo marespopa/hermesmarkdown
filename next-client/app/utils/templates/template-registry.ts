@@ -2,11 +2,11 @@ import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
 
 // Where templates live and which files count as one. Pure: every input is a
 // list of indexed vault-relative paths (the keys of atom_fileMetadata).
-// Templates live in `templates/` at the vault root (created on first use). A
+// Templates live in `_templates/` at the vault root (created on first use). A
 // template is a `.md` file directly in it, or one folder down: a template
-// pack (`templates/Journal/Daily.md`).
+// pack (`_templates/Journal/Daily.md`).
 
-export const TEMPLATES_FOLDER = "templates";
+export const TEMPLATES_FOLDER = "_templates";
 
 export interface TemplateEntry {
   /** File name without `.md`. */
@@ -30,7 +30,7 @@ export interface TemplatePack {
 const folderOf = (path: string) => path.split("/").slice(0, -1).join("/");
 const isMarkdown = (path: string) => path.toLowerCase().endsWith(".md");
 
-// Always `templates/` at the vault root; `exists` when it holds at least one
+// Always `_templates/` at the vault root; `exists` when it holds at least one
 // indexed file, directly or in a pack.
 export function resolveTemplatesFolder(paths: string[]): { folder: string; exists: boolean } {
   const exists = paths.some((path) => folderOf(path) === TEMPLATES_FOLDER || folderOf(folderOf(path)) === TEMPLATES_FOLDER);

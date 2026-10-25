@@ -48,13 +48,13 @@ const meta = (path: string) => ({ path, name: path.split("/").pop()! }) as FileM
 
 function setup(existing: Record<string, string> = {}) {
   const root = new FakeDir("vault");
-  const templates = new FakeDir("templates");
-  root.dirs.set("templates", templates);
+  const templates = new FakeDir("_templates");
+  root.dirs.set("_templates", templates);
   for (const [name, content] of Object.entries(existing)) templates.files.set(name, new FakeFile(name, content));
   const store = createStore();
   store.set(atom_vaultHandle, root as unknown as FileSystemDirectoryHandle);
   store.set(atom_fileMetadata, Object.fromEntries(
-    ["notes/a.md", ...Object.keys(existing).map((n) => `templates/${n}`)].map((p) => [p, meta(p)]),
+    ["notes/a.md", ...Object.keys(existing).map((n) => `_templates/${n}`)].map((p) => [p, meta(p)]),
   ));
   const scanVault = vi.fn(async () => {});
   const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(Provider, { store }, children);
@@ -65,14 +65,14 @@ function setup(existing: Record<string, string> = {}) {
 describe("useTemplateSave", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("saves the note's text as templates/<name>.md, name prefilled", async () => {
+  it("saves the note's text as _templates/<name>.md, name prefilled", async () => {
     dialog.prompt.mockResolvedValue("Weekly sync");
     const { templates, scanVault, save } = setup();
     await act(async () => { expect(await save("# Sync\n{{date}}\n", "Sync")).toBe(true); });
     expect(dialog.prompt).toHaveBeenCalledWith("Template name:", "Sync", "Save as template");
     expect(templates.files.get("Weekly sync.md")?.content).toBe("# Sync\n{{date}}\n");
     expect(scanVault).toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalledWith("Saved template: templates/Weekly sync.md");
+    expect(toast.success).toHaveBeenCalledWith("Saved template: _templates/Weekly sync.md");
   });
 
   it("looks the templates folder up once, retrying only the file when Drive's state changes", async () => {

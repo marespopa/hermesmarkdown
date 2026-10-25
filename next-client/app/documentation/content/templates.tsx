@@ -25,7 +25,7 @@ export const templatesItems: Subsection[] = [
           Or turn a note you already like into one: run <strong>Save as template…</strong> from the
           command palette, or type <code>/save-template</code> in the note. Only a name is asked,
           prefilled from the note&apos;s first heading. The note is copied into{" "}
-          <code>templates/</code> as a plain <code>.md</code> file.
+          <code>_templates/</code> as a plain <code>.md</code> file.
         </p>
         <p>
           Edit a template like any note: open it from Files, or hover it in the template
@@ -104,7 +104,7 @@ export const templatesItems: Subsection[] = [
         </ul>
         <h4 className={h4}>Under the hood</h4>
         <p>
-          Templates are the <code>.md</code> files in <code>templates/</code> at the root of your
+          Templates are the <code>.md</code> files in <code>_templates/</code> at the root of your
           vault, directly or one folder down in a pack. The folder is made the first time you need it.
           They stay plain text: a field is written{" "}
           <code>{"{{date}}"}</code> and a question <code>{"{{prompt:Owner}}"}</code>. You can also type these by hand.
