@@ -85,7 +85,7 @@ export default function LandingPage() {
               Read the docs <span aria-hidden="true">→</span>
             </Link>
           </div>
-          <p className="text-ui-footnote text-neutral-500 dark:text-neutral-500">
+          <p className="text-ui-footnote text-fg-faint">
             Private by default. Your work stays in files you control.
           </p>
         </div>

@@ -27,8 +27,7 @@ const NavigationLink = ({ label, href, action }: Props) => {
   `;
 
   const inactiveLink = `
-    text-neutral-500 hover:text-neutral-900 
-    dark:text-neutral-400 dark:hover:text-white
+    text-fg-muted hover:text-fg
     hover:bg-neutral-100 dark:hover:bg-neutral-800
   `;
 
