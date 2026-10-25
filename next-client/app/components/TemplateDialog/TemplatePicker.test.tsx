@@ -40,7 +40,7 @@ describe("TemplatePicker", () => {
   it("filters by a case-insensitive substring of the name", () => {
     renderPicker();
     fireEvent.change(screen.getByLabelText("Search templates"), { target: { value: "RF" } });
-    expect(rowNames()).toEqual(["rfctemplates/rfc.md"]);
+    expect(rowNames()).toEqual(["rfc_templates/rfc.md"]);
   });
 
   it("moves with the arrow keys and picks with Enter", () => {
@@ -62,7 +62,7 @@ describe("TemplatePicker", () => {
 
   it("lists a preselected template first, before Blank note, highlighted", () => {
     const { onPick } = renderPicker({ includeBlank: true, preselect: "_templates/rfc.md" });
-    expect(rowNames()).toEqual(["rfctemplates/rfc.md", "Blank note", "Board", "meetingtemplates/meeting.md"]);
+    expect(rowNames()).toEqual(["rfc_templates/rfc.md", "Blank note", "Board", "meeting_templates/meeting.md"]);
     expect(screen.getAllByRole("option")[0]).toHaveAttribute("aria-selected", "true");
     fireEvent.keyDown(screen.getByLabelText("Search templates"), { key: "Enter" });
     expect(onPick).toHaveBeenCalledWith(templates[1]);

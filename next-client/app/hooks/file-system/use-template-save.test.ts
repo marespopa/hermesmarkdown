@@ -65,14 +65,14 @@ function setup(existing: Record<string, string> = {}) {
 describe("useTemplateSave", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("saves the note's text as templates/<name>.md, name prefilled", async () => {
+  it("saves the note's text as _templates/<name>.md, name prefilled", async () => {
     dialog.prompt.mockResolvedValue("Weekly sync");
     const { templates, scanVault, save } = setup();
     await act(async () => { expect(await save("# Sync\n{{date}}\n", "Sync")).toBe(true); });
     expect(dialog.prompt).toHaveBeenCalledWith("Template name:", "Sync", "Save as template");
     expect(templates.files.get("Weekly sync.md")?.content).toBe("# Sync\n{{date}}\n");
     expect(scanVault).toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalledWith("Saved template: templates/Weekly sync.md");
+    expect(toast.success).toHaveBeenCalledWith("Saved template: _templates/Weekly sync.md");
   });
 
   it("looks the templates folder up once, retrying only the file when Drive's state changes", async () => {

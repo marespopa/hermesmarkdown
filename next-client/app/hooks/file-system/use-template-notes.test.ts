@@ -195,7 +195,7 @@ describe("createTemplate", () => {
     dialog.prompt.mockResolvedValue("Meeting");
   });
 
-  it("asks the name, then creates templates/<name>.md with a minimal body and opens it", async () => {
+  it("asks the name, then creates _templates/<name>.md with a minimal body and opens it", async () => {
     const { root, props, flows } = await setup({ templates: {} });
     await act(() => flows.createTemplate());
     expect(dialog.prompt).toHaveBeenCalledWith("Template name:", "", "New template");
@@ -204,7 +204,7 @@ describe("createTemplate", () => {
     expect(NEW_TEMPLATE_BODY).toBe("# {{title}}\n\n{{cursor}}\n");
     expect(props.scanVault).toHaveBeenCalled();
     expect(props.openFile).toHaveBeenCalledWith(created, "_templates/Meeting.md", true);
-    expect(toast.success).toHaveBeenCalledWith("Created: templates/Meeting.md");
+    expect(toast.success).toHaveBeenCalledWith("Created: _templates/Meeting.md");
   });
 
   it("creates it inside a pack when given one, apart from a loose template of the same name", async () => {
@@ -214,11 +214,11 @@ describe("createTemplate", () => {
     expect(root.at("_templates/Meeting.md")?.content).toBe("loose\n");
   });
 
-  it("always uses templates/ at the vault root, even when _templates exists", async () => {
-    const { root, flows } = await setup({ templates: { "_templates/x.md": "x\n" } });
+  it("always uses _templates/ at the vault root, even when templates/ exists", async () => {
+    const { root, flows } = await setup({ templates: { "templates/x.md": "x\n" } });
     await act(() => flows.createTemplate());
     expect(root.at("_templates/Meeting.md")?.content).toBe(NEW_TEMPLATE_BODY);
-    expect(root.at("_templates/Meeting.md")).toBeUndefined();
+    expect(root.at("templates/Meeting.md")).toBeUndefined();
   });
 
   it("keeps the base name only and never writes a dot-file", async () => {
@@ -236,7 +236,7 @@ describe("createTemplate", () => {
     expect(writeFileContent).not.toHaveBeenCalled();
     expect(root.at("_templates/rfc.md")?.content).toBe(RFC_TEMPLATE);
     expect(props.openFile).toHaveBeenCalledWith(root.at("_templates/rfc.md"), "_templates/rfc.md", true);
-    expect(toast.success).toHaveBeenCalledWith("Opened existing template: templates/rfc.md");
+    expect(toast.success).toHaveBeenCalledWith("Opened existing template: _templates/rfc.md");
   });
 
   it("opens a not-yet-indexed file on disk unchanged", async () => {
@@ -246,7 +246,7 @@ describe("createTemplate", () => {
     await act(() => flows.createTemplate());
     expect(writeFileContent).not.toHaveBeenCalled();
     expect(props.openFile).toHaveBeenCalledWith(root.at("_templates/draft.md"), "_templates/draft.md", true);
-    expect(toast.success).toHaveBeenCalledWith("Opened existing template: templates/draft.md");
+    expect(toast.success).toHaveBeenCalledWith("Opened existing template: _templates/draft.md");
   });
 
   it("matches an indexed template case-insensitively", async () => {
