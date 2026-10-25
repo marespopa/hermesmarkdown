@@ -5,7 +5,6 @@ import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterAll, test } from "vitest";
 import { frontmatterSpacer } from "./frontmatter-block";
-import { frontmatterHeader } from "./frontmatter-header";
 import { computeMarkdownDecorations, markdownHighlightPlugin, type ScanCheckpoint } from "./highlight";
 import { linkDisplayPlugin } from "./link-display";
 import { buildLiveMarkerDecorations, liveMarkers } from "./live-markers";
@@ -68,7 +67,6 @@ const extensions = [
   history(),
   markdown({ base: markdownLanguage }),
   frontmatterSpacer,
-  frontmatterHeader,
   markdownHighlightPlugin,
   tagPillPlugin,
   linkDisplayPlugin,

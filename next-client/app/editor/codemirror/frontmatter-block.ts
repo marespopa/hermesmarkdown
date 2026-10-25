@@ -2,11 +2,9 @@ import { EditorState, StateField, Text } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, WidgetType } from "@codemirror/view";
 import { parseFmFields } from "@/app/utils/frontmatter-utils";
 
-// The frontmatter shows as a header of chips while the caret is outside it
-// (frontmatter-header.ts), and as typed — its YAML lines on a tinted panel
-// (`.cm-frontmatter-line`, highlight.ts / theme.ts) — while the caret is in it
-// or the YAML is too complex for chips. It folds like a heading section, from
-// a chevron by its opening `---` (heading-fold.ts).
+// The frontmatter is shown as typed: its YAML lines on a tinted panel
+// (`.cm-frontmatter-line`, highlight.ts / theme.ts). It folds like a heading
+// section, from a chevron by its opening `---` (heading-fold.ts).
 
 export interface FrontmatterRange {
   // End of the closing `---` delimiter.
@@ -36,36 +34,22 @@ export function frontmatterRangeOf(doc: Text): FrontmatterRange | null {
   return range;
 }
 
-// Start of the line after the closing `---`, or null when the note has no
-// frontmatter or ends at the fence (nowhere outside the block for a caret).
-export function bodyStart(doc: Text): number | null {
-  const range = frontmatterRangeOf(doc);
-  if (!range || range.closeTo >= doc.length) return null;
-  return range.closeTo + 1;
-}
-
-// The state with the caret at the body start, so a note opens with its
-// header showing instead of its YAML revealed. Unchanged without a body.
-export function withBodyCaret(state: EditorState): EditorState {
-  const anchor = bodyStart(state.doc);
-  return anchor === null ? state : state.update({ selection: { anchor } }).state;
-}
-
-const SUMMARY_TAG_LIMIT = 3;
 const unquote = (value: string) => value.trim().replace(/^['"]|['"]$/g, "").trim();
 
-// What folded frontmatter shows after its name (heading-fold.ts): the
-// `title`'s value, then the first few tags ("#work #ideas +1"); either is
-// left out when empty.
-export function frontmatterSummary(state: EditorState): string[] {
+export interface FrontmatterSummary {
+  title: string;
+  tags: string[];
+}
+
+// What folded frontmatter shows (heading-fold.ts): the `title`'s value and
+// every tag, without its `#`; either is empty when the block has none.
+export function frontmatterSummary(state: EditorState): FrontmatterSummary {
   const range = frontmatterRangeOf(state.doc);
-  if (!range) return [];
+  if (!range) return { title: "", tags: [] };
   const fields = parseFmFields(state.doc.sliceString(0, range.closeTo));
   const title = unquote(fields.title ?? "");
   const tags = (fields.tags ?? "").split(",").map((tag) => unquote(tag).replace(/^#/, "")).filter(Boolean);
-  const shown = tags.slice(0, SUMMARY_TAG_LIMIT).map((tag) => `#${tag}`);
-  if (tags.length > SUMMARY_TAG_LIMIT) shown.push(`+${tags.length - SUMMARY_TAG_LIMIT}`);
-  return [title, shown.join(" ")].filter(Boolean);
+  return { title, tags };
 }
 
 // Room between the frontmatter and text that follows its closing `---`

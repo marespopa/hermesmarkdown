@@ -3,6 +3,7 @@ import { EditorView } from "@codemirror/view";
 import { describe, expect, it } from "vitest";
 import {
   buildTagPillDecorations,
+  collectFrontmatterTagLists,
   collectTagMatches,
   selectionTouchesTag,
   tagPillClassName,
@@ -20,6 +21,47 @@ describe("collectTagMatches", () => {
     expect(tags.map((tag) => tag.text)).toEqual(["#tag1", "#project/subtag", "#draft", "#tag1"]);
   });
 
+  it("groups an inline frontmatter list without its YAML punctuation", () => {
+    const doc = "---\ntags: [tag1, project/subtag, draft]\n---\nBody";
+    const view = new EditorView({
+      state: EditorState.create({
+        doc,
+        selection: EditorSelection.cursor(doc.indexOf("Body")),
+        extensions: [tagPillPlugin],
+      }),
+      parent: document.body,
+    });
+
+    const group = view.dom.querySelector(".cm-frontmatter-tag-list");
+    expect(group).toHaveTextContent("#tag1#project/subtag#draft");
+    expect(group?.textContent).not.toContain("[");
+    expect(group?.textContent).not.toContain("]");
+    expect(group?.textContent).not.toContain(",");
+    expect(group?.querySelectorAll(".cm-tag-pill")).toHaveLength(3);
+
+    view.dispatch({ selection: EditorSelection.cursor(doc.indexOf("tag1")) });
+    expect(view.dom.querySelector(".cm-frontmatter-tag-list")).toBeNull();
+    expect(view.contentDOM).toHaveTextContent("[tag1, project/subtag, draft]");
+    view.destroy();
+  });
+
+  it("renders an empty frontmatter array as a quiet empty state", () => {
+    const doc = "---\ntags: []\n---\nBody";
+    const lists = collectFrontmatterTagLists(doc);
+    expect(lists).toEqual([expect.objectContaining({ tags: [] })]);
+
+    const view = new EditorView({
+      state: EditorState.create({
+        doc,
+        selection: EditorSelection.cursor(doc.indexOf("Body")),
+        extensions: [tagPillPlugin],
+      }),
+      parent: document.body,
+    });
+    expect(view.dom.querySelector(".cm-frontmatter-tag-list-empty")).toHaveTextContent("No tags");
+    view.destroy();
+  });
+
   it("rejects headings and malformed boundaries", () => {
     const tags = collectTagMatches("# Heading\n#project/subtag and #tag #not#this #mismatch");
     expect(tags.map((tag) => tag.text)).toEqual(["#project/subtag", "#tag", "#mismatch"]);
@@ -27,22 +69,6 @@ describe("collectTagMatches", () => {
 });
 
 describe("tagPillPlugin", () => {
-  it("renders no pill inside a revealed frontmatter block, while body tags still render", () => {
-    const doc = "---\ntags: [work, draft]\n---\nBody #later";
-    const view = new EditorView({
-      state: EditorState.create({
-        doc,
-        selection: EditorSelection.cursor(doc.indexOf("work")),
-        extensions: [tagPillPlugin],
-      }),
-      parent: document.body,
-    });
-    expect(view.contentDOM).toHaveTextContent("tags: [work, draft]");
-    const pills = Array.from(view.contentDOM.querySelectorAll(".cm-tag-pill")).map((node) => node.textContent);
-    expect(pills).toEqual(["#later"]);
-    view.destroy();
-  });
-
   it("renders pills outside the active selection and keeps the pill's look around the raw text being edited", () => {
     const doc = "before #project/subtag after";
     const state = EditorState.create({

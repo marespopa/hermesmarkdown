@@ -30,10 +30,6 @@ import { templateBlanks } from "./template-blanks";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
 import { tableKeyBindings } from "./table-keymap";
 import { frontmatterSpacer } from "./frontmatter-block";
-import { frontmatterHeader } from "./frontmatter-header";
-
-// The hook loads this module dynamically; the caret helper rides along.
-export { withBodyCaret } from "./frontmatter-block";
 import { headingFoldKeymap, headingFolding } from "./heading-fold";
 import { markdownProblems } from "./markdown-problems";
 import { flowMode, type FlowLevel } from "./flow-mode";
@@ -125,7 +121,6 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
       ...(state.field(renderedBlockField, false)?.matches ?? []),
     ]),
     frontmatterSpacer,
-    frontmatterHeader,
     // Invalid frontmatter, unclosed code / math blocks: a notice above them.
     markdownProblems,
     markdownHighlightPlugin,

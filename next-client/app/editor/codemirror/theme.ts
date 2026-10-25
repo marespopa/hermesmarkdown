@@ -221,16 +221,18 @@ export const baseTheme = EditorView.theme({
     backgroundColor: "var(--frontmatter-bg-hover)",
     cursor: "pointer",
   },
-  // Folded frontmatter: one line on its panel naming it, then its title and
-  // tags a step stronger.
+  // Folded frontmatter: one line on its panel, the title then a cloud of
+  // tag pills.
   ".cm-frontmatterFoldPlaceholder": {
-    color: "var(--fg-faint)",
     cursor: "pointer",
   },
-  ".cm-frontmatterFoldValue": {
+  ".cm-frontmatterFoldTitle": {
     color: "var(--fg-muted)",
   },
-  ".cm-frontmatterFoldPlaceholder:hover, .cm-frontmatterFoldPlaceholder:hover .cm-frontmatterFoldValue": {
+  ".cm-frontmatterFoldName": {
+    color: "var(--fg-faint)",
+  },
+  ".cm-frontmatterFoldPlaceholder:hover .cm-frontmatterFoldTitle, .cm-frontmatterFoldPlaceholder:hover .cm-frontmatterFoldName": {
     color: "var(--fg)",
   },
   ".cm-headingFoldPlaceholder:hover": {
@@ -281,6 +283,23 @@ export const baseTheme = EditorView.theme({
     borderColor: "color-mix(in srgb, var(--clay) 55%, transparent)",
     backgroundColor: "color-mix(in srgb, var(--clay) 9%, transparent)",
     color: "var(--clay)",
+  },
+  ".cm-frontmatter-tag-list": {
+    display: "inline-flex",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: "0.28em",
+    paddingInline: "0.1em",
+    verticalAlign: "middle",
+  },
+  // The list's pills are boxes, not text in a line being edited.
+  ".cm-frontmatter-tag-list .cm-tag-pill": {
+    display: "inline-flex",
+    margin: 0,
+  },
+  ".cm-frontmatter-tag-list-empty": {
+    color: "var(--fg-muted)",
+    fontStyle: "italic",
   },
   ".cm-link-display": {
     display: "inline-flex",

@@ -12,7 +12,6 @@ import {
 } from "@/app/atoms/ui-atoms";
 import { atom_pendingScrollTarget, atom_wordWrap } from "@/app/atoms/atoms";
 import { frontmatterRangeOf } from "../codemirror/frontmatter-block";
-import { setHeaderFocus } from "../codemirror/frontmatter-header";
 import "@testing-library/jest-dom";
 
 // MarkdownEditor now runs on CodeMirror 6, which renders a contenteditable
@@ -205,24 +204,16 @@ describe("MarkdownEditor", () => {
     expect(codeTemplate?.content).toContain("\n\n```");
   });
 
-  it("shows frontmatter as a header, and as typed once the caret is inside", async () => {
+  it("shows frontmatter as typed in the editable CM6 document", async () => {
     const value = "---\ntitle: Test\n---\nBody content";
     const { container } = renderEditor(value);
     await waitForEditor(container);
     const view = getView(container);
-    const cmText = () => container.querySelector(".cm-content")?.textContent ?? "";
+    const cmText = container.querySelector(".cm-content")?.textContent ?? "";
 
+    expect(cmText).toContain("title: Test");
+    expect(cmText).toContain("Body content");
     expect(frontmatterRangeOf(view.state.doc)).not.toBeNull();
-    expect(container.querySelector(".cm-frontmatter-header")).not.toBeNull();
-    expect(cmText()).toContain("Body content");
-    expect(view.state.selection.main.head).toBe(value.indexOf("Body"));
-
-    act(() => {
-      view.dispatch({ selection: { anchor: value.indexOf("Test") } });
-      view.dispatch({ effects: setHeaderFocus.of(true) });
-    });
-    expect(container.querySelector(".cm-frontmatter-header")).toBeNull();
-    expect(cmText()).toContain("title: Test");
   });
 
   it("inserts frontmatter from the quick command when metadata is absent", async () => {

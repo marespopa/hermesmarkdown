@@ -157,9 +157,7 @@ export function useCodeMirrorEditor({
       });
 
       const view = new CMView({
-        // A note opens with its caret below the frontmatter, so the header
-        // shows instead of the raw YAML.
-        state: plainText ? state : extensionsModule.withBodyCaret(state),
+        state,
         parent: containerRef.current as HTMLElement,
         dispatchTransactions: (trs: any) => {
           view.update(trs);

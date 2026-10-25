@@ -11,8 +11,6 @@ import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
 import DatePickerCallout from "./DatePickerCallout";
 import CalloutTypeMenu from "./CalloutTypeMenu";
-import FrontmatterHeaderMenus from "./markdown-editor/FrontmatterHeaderMenus";
-import { requestFrontmatterChipAtCaret } from "../codemirror/frontmatter-header";
 import WikiLinkDialog from "./WikiLinkDialog";
 import TaskDialog from "./TaskDialog";
 import { TEMPLATES } from "./constants";
@@ -184,7 +182,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const openActiveHelperRef = useRef<() => boolean>(() => false);
   openActiveHelperRef.current = () => {
     if (openPillLink()) return true;
-    if (viewRef.current && requestFrontmatterChipAtCaret(viewRef.current)) return true;
     if (dateMatch) {
       setIsDateExpanded(true);
       return true;
@@ -356,8 +353,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
               onClose={calloutType.close}
             />
           )}
-
-          <FrontmatterHeaderMenus viewRef={viewRef} containerRef={containerRef} />
 
           <TaskDialog
             isOpen={taskDialogOpen}

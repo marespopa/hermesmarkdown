@@ -1,9 +1,8 @@
-import { EditorSelection, Range } from "@codemirror/state";
+import { EditorSelection, Range, type Text } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import { REGEX_HASHTAG } from "../components/regex";
 import { tagKind, tagPillClass } from "@/app/components/TagPill";
 import { collectInVisibleLines } from "./visible-lines";
-import { frontmatterRangeOf } from "./frontmatter-block";
 
 export interface TagMatch {
   from: number;
@@ -11,6 +10,12 @@ export interface TagMatch {
   text: string;
   tagName: string;
   kind: "workflow" | "custom";
+}
+
+export interface FrontmatterTagList {
+  from: number;
+  to: number;
+  tags: TagMatch[];
 }
 
 function parseTagName(value: string): string | null {
@@ -59,6 +64,47 @@ function collectFrontmatterTagMatchesForLine(line: string, lineStart: number): T
   }
 
   return matches;
+}
+
+function frontmatterTagListForLine(line: string, lineStart: number): FrontmatterTagList | null {
+  const tagsLine = line.match(/^\s*tags\s*:\s*(.*)$/);
+  if (!tagsLine) return null;
+
+  const value = tagsLine[1];
+  const valueStart = lineStart + tagsLine[0].indexOf(value);
+  const listText = value.trim();
+  if (!listText) return null;
+  const tags = collectFrontmatterTagMatchesForLine(line, lineStart);
+  if (listText !== "[]" && !tags.length) return null;
+
+  const from = valueStart + value.indexOf(listText);
+  return {
+    from,
+    to: from + listText.length,
+    tags,
+  };
+}
+
+export function collectFrontmatterTagLists(doc: string): FrontmatterTagList[] {
+  const lists: FrontmatterTagList[] = [];
+  const lines = doc.split("\n");
+  let lineStart = 0;
+  let inFrontmatter = false;
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    if (i === 0 && /^---\s*$/.test(line)) {
+      inFrontmatter = true;
+    } else if (inFrontmatter && /^---\s*$/.test(line)) {
+      inFrontmatter = false;
+    } else if (inFrontmatter) {
+      const list = frontmatterTagListForLine(line, lineStart);
+      if (list) lists.push(list);
+    }
+    lineStart += line.length + 1;
+  }
+
+  return lists;
 }
 
 // `detectFrontmatter`: whether a `---` first line opens frontmatter, as at the
@@ -145,17 +191,80 @@ class TagPillWidget extends WidgetType {
   }
 }
 
-// Only what's on screen is matched, as tags never cross a line: the visible
-// lines below the frontmatter block. The block gets no pills: the frontmatter
-// header shows its tags and the revealed YAML stays as typed. Runs on every
-// keystroke and caret move.
+class FrontmatterTagListWidget extends WidgetType {
+  constructor(private readonly list: FrontmatterTagList) {
+    super();
+  }
+
+  eq(other: FrontmatterTagListWidget) {
+    return other.list.from === this.list.from
+      && other.list.to === this.list.to
+      && other.list.tags.map((tag) => tag.text).join("\0") === this.list.tags.map((tag) => tag.text).join("\0");
+  }
+
+  toDOM() {
+    const node = document.createElement("span");
+    node.className = "cm-frontmatter-tag-list";
+
+    if (!this.list.tags.length) {
+      const empty = document.createElement("span");
+      empty.className = "cm-frontmatter-tag-list-empty";
+      empty.textContent = "No tags";
+      node.appendChild(empty);
+      node.setAttribute("aria-label", "No tags");
+      return node;
+    }
+
+    for (const tag of this.list.tags) {
+      const pill = document.createElement("span");
+      pill.textContent = tag.text;
+      pill.className = tagPillClassName(tag.kind);
+      node.appendChild(pill);
+    }
+    node.setAttribute("aria-label", `Tags: ${this.list.tags.map((tag) => tag.text).join(", ")}`);
+    return node;
+  }
+
+  ignoreEvent() {
+    return false;
+  }
+}
+
+// Where the frontmatter block ends (its closing `---`), or 0 without one;
+// read from the top only as far as the block goes.
+function frontmatterEnd(doc: Text): number {
+  if (doc.lines < 3 || !/^---\s*$/.test(doc.line(1).text)) return 0;
+  for (let n = 2; n <= doc.lines; n++) {
+    if (/^---\s*$/.test(doc.line(n).text)) return doc.line(n).to;
+  }
+  return 0;
+}
+
+// Only what's on screen is matched, as tags never cross a line: the
+// frontmatter block (which needs its fences) when it shows, and the visible
+// lines below it. Runs on every keystroke and caret move.
 export function buildTagPillDecorations(view: EditorView): DecorationSet {
   const ranges: Range<Decoration>[] = [];
   const selection = view.state.selection;
-  const fmEnd = frontmatterRangeOf(view.state.doc)?.closeTo ?? 0;
-  const tagMatches = collectInVisibleLines(view, (text) => collectTagMatches(text, false)).filter((match) => match.from > fmEnd);
+  const fmEnd = frontmatterEnd(view.state.doc);
+  const fmText = fmEnd > 0 && view.visibleRanges.some((range) => range.from <= fmEnd) ? view.state.doc.sliceString(0, fmEnd) : "";
+  const frontmatterLists = fmText ? collectFrontmatterTagLists(fmText) : [];
+  const tagMatches = [
+    ...(fmText ? collectTagMatches(fmText) : []),
+    ...collectInVisibleLines(view, (text) => collectTagMatches(text, false)).filter((match) => match.from > fmEnd),
+  ];
+
+  for (const list of frontmatterLists) {
+    const visible = view.visibleRanges.some((range) => range.from <= list.from && list.to <= range.to);
+    if (!visible || selectionTouchesTag(selection, list.from, list.to)) continue;
+    ranges.push(Decoration.replace({
+      widget: new FrontmatterTagListWidget(list),
+      side: 1,
+    }).range(list.from, list.to));
+  }
 
   for (const match of tagMatches) {
+    if (frontmatterLists.some((list) => list.from <= match.from && match.to <= list.to)) continue;
     const visible = view.visibleRanges.some((range) => range.from <= match.from && match.to <= range.to);
     if (!visible) continue;
     // Being edited: the same pill, laid out as text, so the line doesn't shift.

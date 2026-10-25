@@ -3,9 +3,6 @@ export const SUBTLE =
 // Document lifecycle states — mirrors the `status:` frontmatter field so inline tags
 // carry the same semantic weight as structured metadata.
 export const WORKFLOW_TAGS = ["draft", "review", "active", "archived"];
-// What the frontmatter header's status menu offers (FrontmatterStatusMenu):
-// the task states, then WORKFLOW_TAGS; the menu groups them as two lists.
-export const FRONTMATTER_STATUSES = ["todo", "in-progress", "done", ...WORKFLOW_TAGS];
 
 // Emoji shortcodes by name: `{fire}` expands to 🔥 (SHORTCODES), and typing
 // `{` offers them as a menu (codemirror/emoji-completion.ts).

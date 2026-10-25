@@ -2,7 +2,9 @@ import type { EditorState, Extension, Range } from "@codemirror/state";
 import { Decoration, type DecorationSet, EditorView, type KeyBinding, ViewPlugin, type ViewUpdate, WidgetType } from "@codemirror/view";
 import { codeFolding, ensureSyntaxTree, foldEffect, foldedRanges, syntaxTree, unfoldEffect } from "@codemirror/language";
 import type { SyntaxNode, Tree } from "@lezer/common";
-import { bodyStart, frontmatterRangeOf, frontmatterSummary } from "./frontmatter-block";
+import { type FrontmatterSummary, frontmatterRangeOf, frontmatterSummary } from "./frontmatter-block";
+import { tagKind } from "@/app/components/TagPill";
+import { tagPillClassName } from "./tag-pills";
 
 // Heading sections fold like an outline: a `#`–`######` heading at the top
 // level of the note (not in a quote, callout or list) hides everything under
@@ -13,8 +15,7 @@ import { bodyStart, frontmatterRangeOf, frontmatterSummary } from "./frontmatter
 // `#`s would, shown while the pointer is over the heading and always while
 // it's folded; the `…` after a folded heading; and the keyboard commands.
 // The frontmatter folds the same way, as a section of its own (level 0):
-// the whole block folds into one line that names it ("Frontmatter · title ·
-// #tags").
+// the whole block folds into one line: its title, then its tags as pills.
 
 const ATX = /^ATXHeading(\d)$/;
 const HEADING_LINE = /^ {0,3}#{1,6}(?:[ \t]|$)/;
@@ -121,14 +122,12 @@ export function foldedSectionAt(state: EditorState, foldFrom: number): { from: n
 
 function foldSection(view: EditorView, section: HeadingSection) {
   // The caret inside a fold would unfold it, so it parks at the heading's
-  // end (for the frontmatter, the start of the body, so unfolding shows the
-  // header rather than the raw YAML; the top of the note without a body).
+  // end (the top of the note for the frontmatter).
   const head = view.state.selection.main.head;
   const inside = head > section.from && head <= section.to;
-  const park = section.level === 0 ? bodyStart(view.state.doc) ?? section.from : section.from;
   view.dispatch({
     effects: foldEffect.of({ from: section.from, to: section.to }),
-    ...(inside ? { selection: { anchor: park } } : {}),
+    ...(inside ? { selection: { anchor: section.from } } : {}),
   });
 }
 
@@ -306,7 +305,7 @@ const headingFoldChevrons = ViewPlugin.fromClass(
   { decorations: (value) => value.decorations },
 );
 
-type Prepared = "heading" | { frontmatter: string[] } | null;
+type Prepared = "heading" | { frontmatter: FrontmatterSummary } | null;
 
 // The fold's placeholder: a quiet `…` after a folded heading, and folded
 // frontmatter's summary in place of the block, each unfolding it on click;
@@ -317,13 +316,17 @@ function placeholderDOM(view: EditorView, onclick: (event: Event) => void, prepa
   if (prepared && typeof prepared === "object") {
     element.className = "cm-frontmatterFoldPlaceholder";
     element.title = "Unfold frontmatter";
-    const [label, ...rest] = prepared.frontmatter;
-    element.append(label);
-    for (const part of rest) {
-      const value = document.createElement("span");
-      value.className = "cm-frontmatterFoldValue";
-      value.textContent = part;
-      element.append(" · ", value);
+    const { title, tags } = prepared.frontmatter;
+    // Without a title or tags, the line still needs something to click.
+    const name = document.createElement("span");
+    name.className = title ? "cm-frontmatterFoldTitle" : "cm-frontmatterFoldName";
+    name.textContent = title || (tags.length ? "" : "Frontmatter");
+    if (name.textContent) element.append(name);
+    for (const tag of tags) {
+      const pill = document.createElement("span");
+      pill.className = tagPillClassName(tagKind(tag));
+      pill.textContent = `#${tag}`;
+      element.append(...(element.childNodes.length ? [" "] : []), pill);
     }
     element.onclick = onclick;
     return element;
@@ -339,7 +342,7 @@ function placeholderDOM(view: EditorView, onclick: (event: Event) => void, prepa
 export const headingFolding: Extension = [
   codeFolding({
     preparePlaceholder: (state, range): Prepared => {
-      if (isFrontmatterFoldAt(state, range.from)) return { frontmatter: ["Frontmatter", ...frontmatterSummary(state)] };
+      if (isFrontmatterFoldAt(state, range.from)) return { frontmatter: frontmatterSummary(state) };
       return isHeadingFoldAt(state, range.from) ? "heading" : null;
     },
     placeholderDOM,
