@@ -26,3 +26,7 @@ next-env.d.ts
 .vscode/*
 # Local Netlify folder
 .netlify
+
+# Claude Code: personal settings and worktrees
+.claude/settings.local.json
+.claude/worktrees/

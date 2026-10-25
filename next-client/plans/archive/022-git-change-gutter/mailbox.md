@@ -1,1 +1,0 @@
-engineer: 005 built all phases + tests + docs, nothing run. Likeliest CI failures: git-pack.test (fflate Unzlib with trailing bytes after the stream), use-git-baseline.test (fake timers), types in git-changes.ts (GutterMarker / updateSpacer).

@@ -1,1 +1,0 @@
-- engineer (run 1, 2026-10-02): all 3 phases implemented with tests and docs; typecheck/tests not run (factory rule). Report: reports/engineer.md. Ready for review.

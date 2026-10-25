@@ -115,8 +115,8 @@ tags: []
         <p>
           The editor shows frontmatter exactly as typed, on a subtle tinted panel. Hover it for a
           chevron in the margin by the opening <code>---</code>: it folds the whole block into one
-          line showing its <code>title</code> and first few <code>tags</code> (for example{" "}
-          <em>Frontmatter · Release plan · #work #ideas</em>); click that line to unfold it. With the caret inside,
+          line showing just its <code>title</code> and its <code>tags</code> as pills; click that
+          line to unfold it. With the caret inside,
           Ctrl/Cmd+Shift+. folds or unfolds it too. The note keeps it folded while you switch away
           and back during the visit.
         </p>

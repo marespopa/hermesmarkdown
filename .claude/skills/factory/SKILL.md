@@ -70,6 +70,7 @@ scripts/factory set NNN merged          # human-only states
 4. **After `approved` (without `ship`).** The change is uncommitted in the working tree. Committing, the PR and `set NNN merged` are the user's call; `ship NNN --commit` does the commit and PR when they want it.
 5. **Learning from a plan.** When an approved plan needed fix rounds, failed runs or orchestrator notes, offer `learn NNN` (a dry run first). It only writes `reports/lessons.md`. Show the user each proposal and apply only the ones they accept, to the file the proposal names.
 6. **Metrics.** When the user asks how the factory is doing, run `stats`. It reads every `usage.tsv`, archived plans included.
+7. **Finishing a plan.** Once a plan is merged, move its folder to `next-client/plans/archive/` (delete `.run.json` and `.run.log` first). Then renumber the remaining active plans so they count up from 001 with no gaps, and update every "plan NNN" reference in their briefs, PRDs and mailboxes to the new numbers.
 
 ## Rails (don't work around them)
 

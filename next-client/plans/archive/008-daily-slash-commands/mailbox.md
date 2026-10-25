@@ -1,2 +1,0 @@
-
-Built directly in the 6.8.0 release PR, outside the factory (no architect PRD or reviewer pass). Decisions: `/jot` copies the line (it stays in the note, only the trigger is removed), so a failed jot never loses text; an empty-line `/jot` opens Quick jot. The multi-line selection idea was dropped: typing `/` replaces a selection, so the slash menu can't send one. `/week` and `/month` were not added. Set `merged` after the PR merges.

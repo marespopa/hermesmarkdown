@@ -221,16 +221,18 @@ export const baseTheme = EditorView.theme({
     backgroundColor: "var(--frontmatter-bg-hover)",
     cursor: "pointer",
   },
-  // Folded frontmatter: one line on its panel naming it, then its title and
-  // tags a step stronger.
+  // Folded frontmatter: one line on its panel, the title then a cloud of
+  // tag pills.
   ".cm-frontmatterFoldPlaceholder": {
-    color: "var(--fg-faint)",
     cursor: "pointer",
   },
-  ".cm-frontmatterFoldValue": {
+  ".cm-frontmatterFoldTitle": {
     color: "var(--fg-muted)",
   },
-  ".cm-frontmatterFoldPlaceholder:hover, .cm-frontmatterFoldPlaceholder:hover .cm-frontmatterFoldValue": {
+  ".cm-frontmatterFoldName": {
+    color: "var(--fg-faint)",
+  },
+  ".cm-frontmatterFoldPlaceholder:hover .cm-frontmatterFoldTitle, .cm-frontmatterFoldPlaceholder:hover .cm-frontmatterFoldName": {
     color: "var(--fg)",
   },
   ".cm-headingFoldPlaceholder:hover": {

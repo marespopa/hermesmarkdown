@@ -181,12 +181,17 @@ describe("frontmatter folding", () => {
     expect(view.state.selection.main.head).toBe(0);
   });
 
-  it("shows a summary line in place of the block", () => {
+  it("shows the title and a tag cloud in place of the block", () => {
     const doc = "---\ntitle: \"Release plan\"\nstatus: draft\ntags: [work, ideas, x, y]\n---\nBody";
     const view = makeView(doc);
     toggleHeadingFold(view, 0);
-    expect(view.contentDOM.querySelector(".cm-frontmatterFoldPlaceholder")!.textContent)
-      .toBe("Frontmatter · Release plan · #work #ideas #x +1");
+    const placeholder = view.contentDOM.querySelector(".cm-frontmatterFoldPlaceholder")!;
+    expect(placeholder.textContent).toBe("Release plan #work #ideas #x #y");
+    expect(placeholder.querySelectorAll(".cm-tag-pill")).toHaveLength(4);
+
+    const tagsOnly = makeView("---\ntags: [work]\n---\nBody");
+    toggleHeadingFold(tagsOnly, 0);
+    expect(tagsOnly.contentDOM.querySelector(".cm-frontmatterFoldPlaceholder")!.textContent).toBe("#work");
 
     const bare = makeView("---\nstatus: draft\n---\nBody");
     toggleHeadingFold(bare, 0);

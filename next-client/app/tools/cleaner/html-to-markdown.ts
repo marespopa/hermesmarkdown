@@ -11,7 +11,8 @@ import { tidyPastedHtml } from "./html-tidy";
 
 export { hasMarkdownStructure } from "./html-structure";
 
-// Turndown's escapes, except `_` only at word edges: GFM ignores an
+// Turndown's escapes, except a typed list number (`2. Title`) stays as
+// copied, and `_` only at word edges: GFM ignores an
 // intraword underscore, so snake_case stays readable.
 const ESCAPES: [RegExp, string][] = [
   [/\\/g, "\\\\"],
@@ -26,7 +27,6 @@ const ESCAPES: [RegExp, string][] = [
   [/\]/g, "\\]"],
   [/^>/g, "\\>"],
   [/(?<![\p{L}\p{N}])_|_(?![\p{L}\p{N}])/gu, "\\_"],
-  [/^(\d+)\. /g, "$1\\. "],
 ];
 
 const escapeMarkdown = (text: string) => ESCAPES.reduce((acc, [pattern, replacement]) => acc.replace(pattern, replacement), text);

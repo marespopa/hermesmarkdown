@@ -34,21 +34,22 @@ export function frontmatterRangeOf(doc: Text): FrontmatterRange | null {
   return range;
 }
 
-const SUMMARY_TAG_LIMIT = 3;
 const unquote = (value: string) => value.trim().replace(/^['"]|['"]$/g, "").trim();
 
-// What folded frontmatter shows after its name (heading-fold.ts): the
-// `title`'s value, then the first few tags ("#work #ideas +1"); either is
-// left out when empty.
-export function frontmatterSummary(state: EditorState): string[] {
+export interface FrontmatterSummary {
+  title: string;
+  tags: string[];
+}
+
+// What folded frontmatter shows (heading-fold.ts): the `title`'s value and
+// every tag, without its `#`; either is empty when the block has none.
+export function frontmatterSummary(state: EditorState): FrontmatterSummary {
   const range = frontmatterRangeOf(state.doc);
-  if (!range) return [];
+  if (!range) return { title: "", tags: [] };
   const fields = parseFmFields(state.doc.sliceString(0, range.closeTo));
   const title = unquote(fields.title ?? "");
   const tags = (fields.tags ?? "").split(",").map((tag) => unquote(tag).replace(/^#/, "")).filter(Boolean);
-  const shown = tags.slice(0, SUMMARY_TAG_LIMIT).map((tag) => `#${tag}`);
-  if (tags.length > SUMMARY_TAG_LIMIT) shown.push(`+${tags.length - SUMMARY_TAG_LIMIT}`);
-  return [title, shown.join(" ")].filter(Boolean);
+  return { title, tags };
 }
 
 // Room between the frontmatter and text that follows its closing `---`
