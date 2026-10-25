@@ -4,7 +4,7 @@ import React from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { TbGitCompare } from "react-icons/tb";
 import { atom_gitAvailable, atom_gitLoading, atom_showGitChanges } from "@/app/atoms/git-atoms";
-import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import { atom_isVaultPending, atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import Button from "@/app/components/Button";
 import Tooltip from "@/app/components/Tooltip";
 import { useVaultHasGit } from "../hooks/use-vault-has-git";
@@ -23,7 +23,9 @@ export default function GitChangesToggleButton({ className = "" }: { className?:
   const loading = showGitChanges && loadingCount > 0;
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const isDiskVault = useAtomValue(atom_vaultDescriptor)?.kind === "local";
-  const hasGit = useVaultHasGit(isDiskVault ? vaultHandle : null);
+  // Checked once access is allowed: before that the folder can't be read.
+  const isPending = useAtomValue(atom_isVaultPending);
+  const hasGit = useVaultHasGit(isDiskVault && !isPending ? vaultHandle : null);
   const label = showGitChanges && gitAvailable === false ? "No .git folder at the vault's root" : showGitChanges ? "Hide Git Changes" : "Show Git Changes";
 
   if (!hasGit) return null;

@@ -6,5 +6,6 @@ export type GitChangesRequest =
   | { type: "changes:cancel"; requestId: number };
 
 export type GitChangesResponse =
+  | { type: "changes:started"; requestId: number }
   | { type: "changes:progress"; requestId: number; progress: ChangesProgress }
   | { type: "changes:result"; requestId: number; result: ChangesResult | "cancelled" };

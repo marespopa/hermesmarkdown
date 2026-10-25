@@ -12,6 +12,8 @@ self.onmessage = async (event: MessageEvent<GitChangesRequest>) => {
     cancelled.add(message.requestId);
   } else if (message?.type === "changes:scan") {
     const { requestId, vault } = message;
+    // Tells the page this worker runs; without it the page scans on its own.
+    self.postMessage({ type: "changes:started", requestId } satisfies GitChangesResponse);
     const result = await scanChanges(vault, {
       isCancelled: () => cancelled.has(requestId),
       onProgress: (progress) => self.postMessage({ type: "changes:progress", requestId, progress } satisfies GitChangesResponse),

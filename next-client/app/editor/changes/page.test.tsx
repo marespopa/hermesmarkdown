@@ -1,9 +1,9 @@
 import React from "react";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Provider, createStore } from "jotai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import "@testing-library/jest-dom";
-import { atom_pendingScrollTarget, atom_vaultDescriptor } from "@/app/atoms/atoms";
+import { atom_isVaultPending, atom_pendingScrollTarget, atom_vaultDescriptor } from "@/app/atoms/atoms";
 import type { ChangedFile, ChangesResult } from "@/app/services/git/git-changes-types";
 import ChangesPage from "./page";
 
@@ -43,8 +43,9 @@ const deleted: ChangedFile = {
 const binary: ChangedFile = { path: "pic.md", status: "added", added: null, removed: null, diff: { kind: "binary" } };
 const ok = (...files: ChangedFile[]): ChangesResult => ({ status: "ok", commit: "abcdef1234567", files });
 
-function renderPage(kind: "local" | "browser" = "local") {
+function renderPage(kind: "local" | "browser" = "local", pending = false) {
   const store = createStore();
+  store.set(atom_isVaultPending, pending);
   store.set(atom_vaultDescriptor, (kind === "local" ? { kind: "local", name: "v" } : { kind: "browser", id: "1", name: "v" }) as never);
   render(
     <Provider store={store}>
@@ -80,7 +81,17 @@ describe("ChangesPage", () => {
     scan.pending = true;
     renderPage();
     expect(screen.getByTestId("changes-skeleton")).toBeInTheDocument();
-    expect(screen.queryByText(/Listing files/)).toBeNull();
+    expect(screen.getByRole("status")).toHaveTextContent("Reading the repository…");
+  });
+
+  it("waits for access to a restored vault before scanning", async () => {
+    scan.next = ok();
+    const store = renderPage("local", true);
+    expect(screen.getByText(/Allow access to the vault/)).toBeInTheDocument();
+    expect(scan.start).not.toHaveBeenCalled();
+    act(() => store.set(atom_isVaultPending, false));
+    expect(await screen.findByText(/No changes since the last commit/)).toBeInTheDocument();
+    expect(scan.start).toHaveBeenCalledTimes(1);
   });
 
   it("says there is no repository when the vault has no .git", async () => {
@@ -96,8 +107,9 @@ describe("ChangesPage", () => {
   });
 
   it("offers Try Again after a read error", async () => {
-    scan.next = { status: "error" };
+    scan.next = { status: "error", detail: "NotFound: git: not found: abc" };
     renderPage();
+    expect(await screen.findByText("NotFound: git: not found: abc")).toBeInTheDocument();
     fireEvent.click(await screen.findByRole("button", { name: "Try Again" }));
     expect(scan.start).toHaveBeenCalledTimes(2);
   });

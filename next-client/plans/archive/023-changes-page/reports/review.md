@@ -60,7 +60,7 @@ All three are done and their tests pass: the index placeholder in `git-changes-s
 2. `app/editor/codemirror/git-changes.test.ts:128-137`: "keeps runs of added lines for the tint layer" fails. Base `a\nb` and doc `a\nX\nY\nb\nZ` give one added run, `{from: 2, to: 9}`, instead of two. `Chunk.build` merges the two inserts into a single chunk that spans the shared `b` line, so `b` also counts as added. The test fixture is wrong, not `runsOf`. Fix: use a fixture where the two inserts are separated by several unchanged lines, such as base `a\nb\nc\nd\ne` and doc `a\nX\nY\nb\nc\nd\ne\nZ`. Confirm two runs. Also assert that adjacent added lines join into one run.
 
 ### PRD coverage
-Unchanged from Review 1: done. The follow-ups to plan 001 are consistent:
+Unchanged from Review 1: done. The follow-ups to plan 022 are consistent:
 - `use-vault-has-git` shows the toggle only for a disk vault with a root `.git`.
 - The `gitReplacedBlocks` facet is registered in `extensions.ts`.
 - The tint layer is wired.

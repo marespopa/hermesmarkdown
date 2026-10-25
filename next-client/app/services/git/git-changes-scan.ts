@@ -216,6 +216,7 @@ export async function scanChanges(vault: FileSystemDirectoryHandle, options: Sca
     return { status: "ok", commit, files };
   } catch (error) {
     console.warn("git: could not scan for changes", error);
-    return { status: "error" };
+    const { name, message } = error instanceof Error || error instanceof DOMException ? error : { name: "Error", message: String(error) };
+    return { status: "error", detail: `${name}: ${message}` };
   }
 }

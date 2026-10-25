@@ -23,7 +23,8 @@ export interface ChangedFile {
   diff: FileDiff;
 }
 
-export type ChangesResult = { status: "no-repo" } | { status: "error" } | { status: "ok"; commit: string | null; files: ChangedFile[] };
+/** `error.detail`: the failure, as "Name: message", shown under the page's notice. */
+export type ChangesResult = { status: "no-repo" } | { status: "error"; detail?: string } | { status: "ok"; commit: string | null; files: ChangedFile[] };
 
 export interface ChangesProgress {
   phase: "listing" | "comparing";

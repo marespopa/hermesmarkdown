@@ -2,17 +2,44 @@
 
 // Main-thread side of the Changes scan (app/workers/git-changes.worker.ts).
 // The worker starts on the first scan. Without Worker (tests, old browsers),
-// or when posting fails, the same scan runs inline.
+// when posting fails, when the worker errors, or when it doesn't answer
+// `changes:started` within START_TIMEOUT_MS, the same scan runs inline, so
+// the page never waits on a worker that isn't running. A worker scan the
+// browser refused access to (NotAllowedError: some browsers don't extend the
+// vault's permission to workers) is run again inline, and so are later scans.
 
 import type { ChangesProgress, ChangesResult } from "@/app/services/git/git-changes-types";
 import type { GitChangesRequest, GitChangesResponse } from "@/app/workers/git-changes-protocol";
 
 type ScanResult = ChangesResult | "cancelled";
 
+export const START_TIMEOUT_MS = 4000;
+
+interface Request {
+  onProgress(progress: ChangesProgress): void;
+  resolve(result: ScanResult | Promise<ScanResult>): void;
+  /** The same scan on this thread. */
+  inline(): Promise<ScanResult>;
+  timer: ReturnType<typeof setTimeout>;
+}
+
 let worker: Worker | null | undefined;
 let lastRequestId = 0;
-const pending = new Map<number, (result: ScanResult) => void>();
-const progressHandlers = new Map<number, (progress: ChangesProgress) => void>();
+const requests = new Map<number, Request>();
+
+// The worker can't be relied on: drop it and finish every waiting scan inline.
+function abandonWorker(reason: unknown): void {
+  if (worker) {
+    console.warn("git: the Changes worker failed; scanning on the page instead", reason);
+    worker.terminate?.();
+  }
+  worker = null;
+  for (const [id, request] of requests) {
+    clearTimeout(request.timer);
+    requests.delete(id);
+    request.resolve(request.inline());
+  }
+}
 
 function getWorker(): Worker | null {
   if (worker !== undefined) return worker;
@@ -20,14 +47,22 @@ function getWorker(): Worker | null {
     worker = typeof Worker === "undefined" ? null : new Worker(new URL("../workers/git-changes.worker.ts", import.meta.url));
     worker?.addEventListener("message", (event: MessageEvent<GitChangesResponse>) => {
       const message = event.data;
-      if (message.type === "changes:progress") {
-        progressHandlers.get(message.requestId)?.(message.progress);
+      const request = requests.get(message.requestId);
+      if (!request) return;
+      if (message.type === "changes:started") {
+        clearTimeout(request.timer);
+      } else if (message.type === "changes:progress") {
+        request.onProgress(message.progress);
       } else {
-        pending.get(message.requestId)?.(message.result);
-        pending.delete(message.requestId);
-        progressHandlers.delete(message.requestId);
+        clearTimeout(request.timer);
+        requests.delete(message.requestId);
+        const refused = message.result !== "cancelled" && message.result.status === "error" && message.result.detail?.startsWith("NotAllowedError");
+        if (refused) abandonWorker(message.result);
+        request.resolve(refused ? request.inline() : message.result);
       }
     });
+    worker?.addEventListener("error", abandonWorker);
+    worker?.addEventListener("messageerror", abandonWorker);
   } catch {
     worker = null;
   }
@@ -47,13 +82,13 @@ export function startChangesScan(
 
   const requestId = ++lastRequestId;
   const result = new Promise<ScanResult>((resolve) => {
-    pending.set(requestId, resolve);
-    progressHandlers.set(requestId, onProgress);
+    const timer = setTimeout(() => abandonWorker("no answer in " + START_TIMEOUT_MS + "ms"), START_TIMEOUT_MS);
+    requests.set(requestId, { onProgress, resolve, inline: runInline, timer });
     try {
       target.postMessage({ type: "changes:scan", requestId, vault } satisfies GitChangesRequest);
     } catch {
-      pending.delete(requestId);
-      progressHandlers.delete(requestId);
+      clearTimeout(timer);
+      requests.delete(requestId);
       resolve(runInline());
     }
   });

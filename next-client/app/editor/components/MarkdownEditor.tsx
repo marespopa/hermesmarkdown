@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
 import { atom_showGitChanges } from "@/app/atoms/git-atoms";
-import { atom_vaultDescriptor } from "@/app/atoms/vault-atoms";
+import { atom_isVaultPending, atom_vaultDescriptor } from "@/app/atoms/vault-atoms";
 import { atom_aiBuilderRequest, atom_focusMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_vimMode } from "@/app/atoms/ui-atoms";
 import type { TemplateEntry } from "@/app/utils/templates/template-registry";
 import { useAtom } from "jotai";
@@ -86,7 +86,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
-  const gitEnabled = showGitChanges && isDiskVault && filePath !== "draft";
+  // Not before the user allows access to a restored vault: HEAD can't be read until then.
+  const isVaultPending = useAtomValue(atom_isVaultPending);
+  const gitEnabled = showGitChanges && isDiskVault && !isVaultPending && filePath !== "draft";
   const [editorView, setEditorView] = useState<EditorView | null>(null);
 
   const editorValue = props.value;

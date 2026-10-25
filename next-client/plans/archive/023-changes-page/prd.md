@@ -2,11 +2,11 @@
 
 ## Context
 
-Source: [brief.md](brief.md). Add a **Changes** page that works like the "Files changed" tab of a GitHub pull request. It lists every file in a disk vault that differs from HEAD, each with its unified diff, and clicking a file or line opens it in the editor. The page is read-only: like Git Changes (plan 001), it reads `.git` and never runs or writes git.
+Source: [brief.md](brief.md). Add a **Changes** page that works like the "Files changed" tab of a GitHub pull request. It lists every file in a disk vault that differs from HEAD, each with its unified diff, and clicking a file or line opens it in the editor. The page is read-only: like Git Changes (plan 022), it reads `.git` and never runs or writes git.
 
 What exists (paths under `next-client/app/`):
 
-1. **Git reader** (plan 001, `services/git/`, pure TypeScript over `FileSystemDirectoryHandle`, safe to run in a worker):
+1. **Git reader** (plan 022, `services/git/`, pure TypeScript over `FileSystemDirectoryHandle`, safe to run in a worker):
    - `git-repo.ts#openRepo(vault)` returns `{ gitDir }`. It returns null for no `.git` directory at the root, a `.git` file, or a sha256 repo.
    - `git-refs.ts#resolveHead(gitDir)` returns `{ commit | null, stamp }`.
    - `git-objects.ts#readObject(gitDir, id)` reads loose or packed objects. It keeps an LRU cache of 64 objects / 16 MB.

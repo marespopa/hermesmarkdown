@@ -30,4 +30,4 @@ A note's YAML frontmatter is shown as typed on a tinted panel (codemirror/frontm
 ## Out of scope
 - A raw-mode toggle, Cmd/Ctrl+Shift+Y, a `---` icon, or a setting with three rendering modes (the caret reveal replaces them).
 - Fading the chips while typing.
-- Document types and the `/type` picker (plan 003).
+- Document types and the `/type` picker (plan 002).

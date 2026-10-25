@@ -2,11 +2,12 @@
 
 import { useAtomValue } from "jotai";
 import { useMemo, useState } from "react";
-import { atom_vaultDescriptor } from "@/app/atoms/atoms";
+import { atom_isVaultPending, atom_vaultDescriptor } from "@/app/atoms/atoms";
 import Button from "@/app/components/Button";
 import { formatCount } from "@/app/components/CountBadge";
 import LoadingBar from "@/app/components/LoadingBar";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import type { ChangesProgress } from "@/app/services/git/git-changes-types";
 import { isMarkdownPath, isPlainTextPath } from "@/app/utils/file-kinds";
 import { ChangesBodySkeleton } from "../components/RouteSkeletons";
 import ShellPage from "../components/ShellPage";
@@ -18,11 +19,19 @@ import { useOpenChange } from "./use-open-change";
 
 const NOTE = "text-ui-footnote text-fg-muted";
 
+function scanStatus(progress: ChangesProgress | null): string {
+  if (!progress) return "Reading the repository…";
+  if (progress.phase === "listing") return `Listing files… ${formatCount(progress.done)} found`;
+  return `Checking ${formatCount(progress.done)} of ${formatCount(progress.total)} files…`;
+}
+
 export default function ChangesPage() {
   const { vaultHandle } = useFileSystem();
   const descriptor = useAtomValue(atom_vaultDescriptor);
   const isDisk = !!vaultHandle && descriptor?.kind === "local";
-  const { result, scanning, progress, rescan } = useGitChanges(vaultHandle ?? null, isDisk);
+  // A restored vault waits for the user to allow access; scanning before that is refused.
+  const isPending = useAtomValue(atom_isVaultPending);
+  const { result, scanning, progress, rescan } = useGitChanges(vaultHandle ?? null, isDisk && !isPending);
   const openChange = useOpenChange();
   // What the user toggled, by path; everything else follows the initial layout.
   const [overrides, setOverrides] = useState<Map<string, boolean>>(new Map());
@@ -45,6 +54,8 @@ export default function ChangesPage() {
   let body;
   if (!vaultHandle) {
     body = <p className={NOTE}>Open a vault to see its changes.</p>;
+  } else if (isDisk && isPending) {
+    body = <p className={NOTE}>Allow access to the vault&apos;s folder to see its changes.</p>;
   } else if (!isDisk) {
     body = <p className={NOTE}>This vault is stored in the browser. Changes reads the <code>.git</code> folder of a vault opened from a folder on disk.</p>;
   } else if (result?.status === "no-repo") {
@@ -55,9 +66,12 @@ export default function ChangesPage() {
     );
   } else if (result?.status === "error") {
     body = (
-      <div className="flex items-center gap-3">
-        <p className={NOTE}>Couldn&apos;t read the repository.</p>
-        <Button variant="small" onClick={rescan}>Try Again</Button>
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <p className={NOTE}>Couldn&apos;t read the repository.</p>
+          <Button variant="small" onClick={rescan}>Try Again</Button>
+        </div>
+        {result.detail && <p className={`${NOTE} font-mono break-all`}>{result.detail}</p>}
       </div>
     );
   } else if (result?.status === "ok" && files.length === 0) {
@@ -89,13 +103,13 @@ export default function ChangesPage() {
       </>
     );
   } else if (scanning) {
-    // The page's shape while the scan runs; a large vault also counts the files compared.
+    // The page's shape while the scan runs, under a line saying how far it got.
     body = (
-      <div className="loading-bar-appear space-y-4" aria-hidden="true" data-testid="changes-skeleton">
-        {progress?.phase === "comparing" && (
-          <p className={NOTE}>Checking {formatCount(progress.done)} of {formatCount(progress.total)} files…</p>
-        )}
-        <ChangesBodySkeleton />
+      <div className="loading-bar-appear space-y-4" data-testid="changes-skeleton">
+        <p className={NOTE} role="status">{scanStatus(progress)}</p>
+        <div className="space-y-4" aria-hidden="true">
+          <ChangesBodySkeleton />
+        </div>
       </div>
     );
   }

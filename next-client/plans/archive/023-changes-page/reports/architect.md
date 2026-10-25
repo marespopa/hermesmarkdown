@@ -2,7 +2,7 @@
 
 ## Run 1
 
-**PRD:** `next-client/plans/006-changes-page/prd.md`
+**PRD:** `next-client/plans/archive/023-changes-page/prd.md`
 
 **Summary** (3 phases):
 - A new `git-changes.worker.ts` scans the vault against HEAD. It walks HEAD's tree, reads `.git/index` (v2–4) for a fast stat check, hashes the remaining files as git blob ids (SHA-1), walks the vault with `.gitignore` support (the `ignore` package) and builds unified-diff data per file.
@@ -15,7 +15,7 @@
 - The palette gets **Show Changes**, plus a route skeleton and docs (in-app `vault.tsx` git section, editor workspace Navigate list, READMEs).
 
 **Already exists:**
-- The read-only git reader from plan 001: repo, HEAD, objects, packs and tree path lookup.
+- The read-only git reader from plan 022: repo, HEAD, objects, packs and tree path lookup.
 - The worker/client pattern.
 - `@codemirror/merge` with chunk trimming.
 - `atom_pendingScrollTarget` plus `resolveFileHandleAtPath` for opening at a line (Tasks page pattern).
@@ -31,4 +31,4 @@
 
 **Open questions (non-blocking):** should Changes be pinnable, and should the editor's Git Changes button link to the page?
 
-**Handoff:** Implement next-client/plans/006-changes-page/prd.md, all phases (Factory mode).
+**Handoff:** Implement next-client/plans/archive/023-changes-page/prd.md, all phases (Factory mode).

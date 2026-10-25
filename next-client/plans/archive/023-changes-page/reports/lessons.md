@@ -44,7 +44,7 @@ Also change the factory bullet "Because nothing is run, name in the handoff…" 
 
 > Likewise when you add a palette command, route, setting or other registry entry, grep the tests for a literal list of the existing entries (for example `build-editor-commands.test.ts` lists command IDs) and add the new ones.
 
-**Evidence:** Orchestrator note in the mailbox: "(4) build-editor-commands.test.ts lists the next-git-change / previous-git-change command IDs (CI failed without them)." Plan 006 also added a palette command and needed `AppCommands.test.tsx` and `RouteSkeletons.test.tsx` updates, which the engineer found only because the PRD named them.
+**Evidence:** Orchestrator note in the mailbox: "(4) build-editor-commands.test.ts lists the next-git-change / previous-git-change command IDs (CI failed without them)." Plan 023 also added a palette command and needed `AppCommands.test.tsx` and `RouteSkeletons.test.tsx` updates, which the engineer found only because the PRD named them.
 
 **Why it applies beyond this plan:** command, route and skeleton lists are checked by snapshot-style tests in this repo. The existing grep rule covers hooks and mocks, but not "tests that enumerate the thing I extended". It is a CI failure the reviewer's identifier grep misses, because nothing is removed.
 
@@ -62,7 +62,7 @@ Also change the factory bullet "Because nothing is run, name in the handoff…" 
 
 - **`SKIPPED_DIRS =new Set` and `page("open-trash","Open Trash"` formatting typos:** the orchestrator fixed them by hand. A formatter or lint rule catches these in CI. It is not a rule gap.
 - **`git-changes-scan.test.ts` `setup()` helper without an index:** a mistake in this feature's own fixture helper. Proposal 1 would have caught it, so no separate rule is needed.
-- **Mixed follow-ups to plan 001 (tint layer, `use-vault-has-git`, `gitReplacedBlocks`) reviewed together with 006:** the user asked for them in the same working tree and the orchestrator told the reviewer to treat them as in scope. The reviewer handled it correctly. That was a human request, not a process failure.
+- **Mixed follow-ups to plan 022 (tint layer, `use-vault-has-git`, `gitReplacedBlocks`) reviewed together with 006:** the user asked for them in the same working tree and the orchestrator told the reviewer to treat them as in scope. The reviewer handled it correctly. That was a human request, not a process failure.
 - **`initialCollapsed` after a collapsed large file, over-20,000-line counts, symlink edge case:** review minors that were judged acceptable. They are product trade-offs.
 - **Worker-start timeouts in wider vitest runs:** environmental (Termux/proot), noted by the reviewer in two reviews. Proposal 1 includes a one-line handling.
 - **Review 1's heading says "Review 1" while the file holds three reviews:** cosmetic. The reviewer added a pointer line and appended later reviews as the prompt says.
