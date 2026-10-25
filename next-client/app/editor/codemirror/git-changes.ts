@@ -66,9 +66,28 @@ export function computeGitMarkers(base: Text | null, doc: Text): Markers {
         ranges.push({ from: line.from, value: atEnd ? deletedEnd : deleted });
         continue;
       }
-      const marker = chunk.fromA === chunk.toA ? added : changed;
-      const first = doc.lineAt(chunk.fromB).number;
-      const last = doc.lineAt(Math.min(chunk.endB, doc.length)).number;
+      // Chunks are widened to whole lines, so an addition or deletion at the
+      // end of the file arrives as a "change" to the last line ("b" → "b\nc").
+      // Drop the lines both sides share before classifying the chunk.
+      let firstA = base.lineAt(chunk.fromA).number;
+      let lastA = chunk.fromA === chunk.toA ? firstA - 1 : base.lineAt(chunk.endA).number;
+      let first = doc.lineAt(chunk.fromB).number;
+      let last = doc.lineAt(chunk.endB).number;
+      while (firstA <= lastA && first <= last && base.line(firstA).text === doc.line(first).text) {
+        firstA++;
+        first++;
+      }
+      while (firstA <= lastA && first <= last && base.line(lastA).text === doc.line(last).text) {
+        lastA--;
+        last--;
+      }
+      if (first > last) {
+        if (firstA > lastA) continue;
+        const atEnd = first > doc.lines;
+        ranges.push({ from: doc.line(atEnd ? doc.lines : first).from, value: atEnd ? deletedEnd : deleted });
+        continue;
+      }
+      const marker = firstA > lastA ? added : changed;
       for (let number = first; number <= last; number++) ranges.push({ from: doc.line(number).from, value: marker });
     }
   }

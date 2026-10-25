@@ -25,7 +25,11 @@ interface PackIndex {
   bytes: Uint8Array;
 }
 
-const idxCache = new Map<string, { modified: number; index: PackIndex | null }>();
+const idxCache = new Map<string, { modified: number; size: number; index: PackIndex | null }>();
+
+export function clearPackIndexCache(): void {
+  idxCache.clear();
+}
 
 function parseIdx(bytes: Uint8Array): PackIndex | null {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -73,9 +77,9 @@ async function loadIndex(packDir: FileSystemDirectoryHandle, name: string): Prom
   const file = await getFileAt(packDir, name);
   if (!file) return null;
   const cached = idxCache.get(name);
-  if (cached && cached.modified === file.lastModified) return cached.index;
+  if (cached && cached.modified === file.lastModified && cached.size === file.size) return cached.index;
   const index = parseIdx(await readBytes(file));
-  idxCache.set(name, { modified: file.lastModified, index });
+  idxCache.set(name, { modified: file.lastModified, size: file.size, index });
   return index;
 }
 

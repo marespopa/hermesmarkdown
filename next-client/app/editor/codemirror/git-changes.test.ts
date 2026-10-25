@@ -34,6 +34,10 @@ describe("computeGitMarkers", () => {
     expect(marks(text("a\nb\nc"), text("a\nb"))).toEqual({ 2: "cm-git-deleted cm-git-deleted-end" });
   });
 
+  it("marks lines added at the end of the file as added, not the line before them", () => {
+    expect(marks(text("a\nb"), text("a\nb\nc"))).toEqual({ 3: "cm-git-added" });
+  });
+
   it("marks every non-empty line as added without a baseline", () => {
     expect(marks(null, text("a\n\nb"))).toEqual({ 1: "cm-git-added", 3: "cm-git-added" });
   });

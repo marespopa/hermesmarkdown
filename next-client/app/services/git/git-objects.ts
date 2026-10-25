@@ -2,7 +2,7 @@
 // from a pack. Objects are immutable, so they are kept in a small LRU cache.
 import { unzlibSync } from "fflate";
 import { getFileAt, readBytes, GitNotFoundError } from "./git-fs";
-import { findInPacks, readPackEntry, type GitObject, type GitObjectType } from "./git-pack";
+import { clearPackIndexCache, findInPacks, readPackEntry, type GitObject, type GitObjectType } from "./git-pack";
 
 export type { GitObject, GitObjectType };
 
@@ -26,6 +26,7 @@ function remember(id: string, object: GitObject): void {
 export function clearObjectCache(): void {
   cache.clear();
   cachedBytes = 0;
+  clearPackIndexCache();
 }
 
 async function readLoose(gitDir: FileSystemDirectoryHandle, id: string): Promise<GitObject | null> {
