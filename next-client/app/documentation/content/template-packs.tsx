@@ -9,7 +9,7 @@ export const templatePacksItem: Subsection = {
   title: "Template packs",
   lead: "Keep your templates in packs, add the ones HermesMarkdown ships, and keep a journal with them.",
   keywords:
-    "template packs templates page manage edit duplicate delete pack folder journal daily weekly monthly yearly diary dated note today week month year meetings writing book note projects prd requirements engineering readme adr decision record finance budget expenses savings subscriptions money table formulas add to vault reuse",
+    "template packs templates page manage edit duplicate delete pack folder journal daily weekly monthly yearly diary dated note today week month year meetings writing book note projects prd requirements engineering readme adr decision record design doc bug report pull request changelog finance budget expenses savings subscriptions money table formulas add to vault reuse",
   body: (
     <>
       <p>
@@ -18,8 +18,8 @@ export const templatePacksItem: Subsection = {
       </p>
       <h4 className={h4}>Your templates</h4>
       <p>
-        Templates live in <code>templates/</code> at the root of your vault. A pack is a folder inside
-        it, like <code>templates/Journal/</code>; templates directly in <code>templates/</code> are listed
+        Templates live in <code>_templates/</code> at the root of your vault. A pack is a folder inside
+        it, like <code>_templates/Journal/</code>; templates directly in <code>_templates/</code> are listed
         first, under <strong>Not in a pack</strong>. <strong>Edit</strong> opens a template itself; changes
         apply the next time you use it. <strong>Delete</strong> moves one template to the Trash, with
         Undo. To use a template, type <code>/template</code> in a note, pick one from an
@@ -39,12 +39,12 @@ export const templatePacksItem: Subsection = {
           { label: "Meetings", value: "Meeting notes, One-on-one, Standup" },
           { label: "Writing", value: "Draft, Outline, Book note" },
           { label: "Projects", value: "Project brief, PRD, Spec, Report" },
-          { label: "Engineering", value: "README, Decision record" },
+          { label: "Engineering", value: "README, Decision record, Design doc, Bug report, Pull request, Changelog" },
           { label: "Finance", value: "Monthly budget, Expense log, Savings goals, Subscriptions" },
         ]}
       />
       <p>
-        <strong>Add to vault</strong> copies a pack&apos;s templates into <code>templates/</code> as files
+        <strong>Add to vault</strong> copies a pack&apos;s templates into <code>_templates/</code> as files
         you own. A file you already have is never replaced: the button says how many are missing, and{" "}
         <strong>Added</strong> once you have them all.
       </p>

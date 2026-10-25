@@ -1,5 +1,5 @@
 // The template packs the app ships. "Add to vault" copies a pack's templates
-// into `templates/<pack name>/` as plain files the user then owns:
+// into `_templates/<pack name>/` as plain files the user then owns:
 // edit them, rename them, delete them. Nothing here is read again once added.
 // Raw bodies: never expanded on write.
 
@@ -257,7 +257,11 @@ const README = lines([
   "## Features",
   "- **{{feature}}**: {{what_it_does}}",
   "",
-  "## Installation",
+  "## Getting started",
+  "### Prerequisites",
+  "- {{prerequisite}}",
+  "",
+  "### Installation",
   "```sh",
   "{{install_command}}",
   "```",
@@ -266,6 +270,9 @@ const README = lines([
   "```",
   "{{usage_example}}",
   "```",
+  "",
+  "## Contributing",
+  "Pull requests are welcome. For a larger change, open an issue first to discuss it.",
   "",
   "## License",
   "{{license}}",
@@ -279,6 +286,9 @@ const ADR = lines([
   "## Context",
   "{{cursor}}",
   "",
+  "## Decision drivers",
+  "- {{driver}}",
+  "",
   "## Options considered",
   "1. {{option_a}}",
   "2. {{option_b}}",
@@ -289,6 +299,99 @@ const ADR = lines([
   "## Consequences",
   "- Good: {{upside}}",
   "- Bad: {{downside}}",
+]);
+
+// A bug report: what happens, how to make it happen, and where.
+const BUG_REPORT = lines([
+  ...frontmatter(["status: Open", "date: {{date}}"]),
+  "# {{title}}",
+  "",
+  "## Description",
+  "{{cursor}}",
+  "",
+  "## Steps to reproduce",
+  "1. ",
+  "2. ",
+  "3. ",
+  "",
+  "## Expected behavior",
+  "",
+  "## Actual behavior",
+  "",
+  "## Environment",
+  "- OS: {{os}}",
+  "- Browser or app version: {{version}}",
+]);
+
+// A design doc: the plan for a larger feature, before the code.
+const DESIGN_DOC = lines([
+  ...frontmatter(["author: {{prompt:Author}}", "status: Draft", "date: {{date}}"]),
+  "# {{title}}",
+  "",
+  "## Overview",
+  "{{cursor}}",
+  "",
+  "## Goals",
+  "- ",
+  "",
+  "## Non-goals",
+  "- ",
+  "",
+  "## Proposed solution",
+  "### Architecture",
+  "",
+  "### Data model and schema changes",
+  "",
+  "## Operational concerns",
+  "- **Security**: ",
+  "- **Performance**: ",
+  "- **Monitoring**: ",
+  "",
+  "## Open questions",
+  "- ",
+]);
+
+// A changelog in the Keep a Changelog shape: newest release first.
+const CHANGELOG = lines([
+  "# Changelog",
+  "",
+  "All notable changes to this project are documented in this file.",
+  "",
+  "## [Unreleased]",
+  "### Added",
+  "- {{cursor}}",
+  "",
+  "### Changed",
+  "- ",
+  "",
+  "### Fixed",
+  "- ",
+  "",
+  "## [{{version}}] - {{date}}",
+  "### Added",
+  "- ",
+]);
+
+// A pull request description: what changed, what kind of change, a checklist.
+const PULL_REQUEST = lines([
+  "# {{title}}",
+  "",
+  "## Description",
+  "{{cursor}}",
+  "",
+  "Fixes {{issue}}",
+  "",
+  "## Type of change",
+  "- [ ] Bug fix",
+  "- [ ] New feature",
+  "- [ ] Breaking change",
+  "- [ ] Documentation",
+  "",
+  "## Checklist",
+  "- [ ] Follows the project's code style",
+  "- [ ] Self-reviewed",
+  "- [ ] Tests added for the change",
+  "- [ ] Existing tests pass",
 ]);
 
 export const BUILTIN_PACKS: BuiltinPack[] = [
@@ -338,10 +441,14 @@ export const BUILTIN_PACKS: BuiltinPack[] = [
   {
     id: "engineering",
     name: "Engineering",
-    description: "A README and decision records for code and systems.",
+    description: "READMEs, decision records, design docs and the rest of a code project's writing.",
     templates: [
-      { name: "README", description: "What it does, features, installation, usage", body: README },
-      { name: "Decision record", description: "Context, options, decision, consequences", body: ADR },
+      { name: "README", description: "What it does, features, getting started, usage", body: README },
+      { name: "Decision record", description: "Context, drivers, options, decision, consequences", body: ADR },
+      { name: "Design doc", description: "Overview, goals, proposed solution, operational concerns, asks for the author", body: DESIGN_DOC },
+      { name: "Bug report", description: "Description, steps to reproduce, expected and actual behavior", body: BUG_REPORT },
+      { name: "Pull request", description: "Description, type of change, checklist", body: PULL_REQUEST },
+      { name: "Changelog", description: "Added, changed, fixed, newest release first", body: CHANGELOG },
     ],
   },
   FINANCE_PACK,
@@ -362,7 +469,7 @@ export const STARTER_TEMPLATES: TemplateEntry[] = STARTERS.map(([packId, name]) 
   return { name, path: `builtin:${packId}/${name}`, pack: pack.name, body: template.body };
 });
 
-// Which of a pack's templates already exist in `templates/<pack>/`
+// Which of a pack's templates already exist in `_templates/<pack>/`
 // (by file name, ignoring case), from the vault's indexed paths.
 export function packTemplatesInVault(pack: BuiltinPack, templatesFolder: string, paths: string[]): Set<string> {
   const existing = new Set(paths.map((path) => path.toLowerCase()));
