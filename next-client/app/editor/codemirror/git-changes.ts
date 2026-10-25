@@ -1,5 +1,5 @@
 // Git Changes (Settings → Editor → View): an inline diff against the file at
-// HEAD, the way a pull request shows it. Added and changed lines get a moss
+// HEAD, the way a pull request shows it. Added and changed lines get a green
 // tint (changed words a stronger one), and the lines they replaced or that
 // were deleted sit above them, read-only, on a danger tint. The baseline
 // (HEAD's text) arrives through `setGitBaseline` from use-git-baseline.ts;
@@ -41,8 +41,8 @@ function originalText(baseline: { text: string | null }): Text {
 
 const gitChangesTheme = EditorView.theme({
   // Selectors one step more specific than the merge view's own base theme.
-  "&.cm-merge-b .cm-content .cm-changedLine": { backgroundColor: "color-mix(in srgb, var(--moss) 14%, transparent)" },
-  "&.cm-merge-b .cm-content .cm-line .cm-changedText": { background: "color-mix(in srgb, var(--moss) 32%, transparent)" },
+  "&.cm-merge-b .cm-content .cm-changedLine": { backgroundColor: "color-mix(in srgb, var(--task-done) 16%, transparent)" },
+  "&.cm-merge-b .cm-content .cm-line .cm-changedText": { background: "color-mix(in srgb, var(--task-done) 34%, transparent)" },
   "&.cm-merge-b .cm-content .cm-deletedChunk": { backgroundColor: "color-mix(in srgb, var(--danger) 10%, transparent)" },
   "&.cm-merge-b .cm-content .cm-deletedChunk .cm-deletedText": { background: "color-mix(in srgb, var(--danger) 28%, transparent)" },
   ".cm-deletedChunk": { userSelect: "none" },

@@ -13,7 +13,9 @@ export interface GitObject {
 const TYPE_NAMES: Record<number, GitObjectType> = { 1: "commit", 2: "tree", 3: "blob", 4: "tag" };
 const OFS_DELTA = 6;
 const REF_DELTA = 7;
-const FIRST_WINDOW = 64 * 1024;
+// Most entries (deltas above all) inflate from a few hundred bytes, so the
+// first read is small and grows ×4 when an entry needs more.
+const FIRST_WINDOW = 4 * 1024;
 const MAX_DELTA_DEPTH = 50;
 
 /** Reads a base object by id (used for REF_DELTA). */
@@ -27,8 +29,32 @@ interface PackIndex {
 
 const idxCache = new Map<string, { modified: number; size: number; index: PackIndex | null }>();
 
+// The `.idx` names in each repository's `objects/pack`, listed once and again
+// only when an id isn't found (a fetch or gc may have added packs).
+const packLists = new WeakMap<FileSystemDirectoryHandle, string[]>();
+
+// Decoded pack entries by pack and offset: a delta chain's bases are shared
+// by the objects built on them, so each is inflated once.
+const MAX_ENTRIES = 256;
+const MAX_ENTRY_BYTES = 8 * 1024 * 1024;
+const entryCache = new Map<string, GitObject>();
+let entryBytes = 0;
+
+function rememberEntry(key: string, object: GitObject): void {
+  if (object.data.length > MAX_ENTRY_BYTES / 4) return;
+  entryCache.set(key, object);
+  entryBytes += object.data.length;
+  for (const [oldest, old] of entryCache) {
+    if (entryCache.size <= MAX_ENTRIES && entryBytes <= MAX_ENTRY_BYTES) break;
+    entryCache.delete(oldest);
+    entryBytes -= old.data.length;
+  }
+}
+
 export function clearPackIndexCache(): void {
   idxCache.clear();
+  entryCache.clear();
+  entryBytes = 0;
 }
 
 function parseIdx(bytes: Uint8Array): PackIndex | null {
@@ -83,6 +109,25 @@ async function loadIndex(packDir: FileSystemDirectoryHandle, name: string): Prom
   return index;
 }
 
+async function listIdx(packDir: FileSystemDirectoryHandle): Promise<string[]> {
+  const names: string[] = [];
+  for await (const entry of (packDir as any).values() as AsyncIterable<FileSystemHandle>) {
+    if (entry.kind === "file" && entry.name.endsWith(".idx")) names.push(entry.name);
+  }
+  return names;
+}
+
+async function findInList(packDir: FileSystemDirectoryHandle, names: string[], id: string): Promise<{ pack: File; offset: number } | null> {
+  for (const name of names) {
+    const index = await loadIndex(packDir, name);
+    const offset = index ? offsetInIndex(index, id) : null;
+    if (offset === null) continue;
+    const pack = await getFileAt(packDir, name.slice(0, -4) + ".pack");
+    if (pack) return { pack, offset };
+  }
+  return null;
+}
+
 /** Finds `id` in the repository's packs: the pack file and the entry's offset. */
 export async function findInPacks(gitDir: FileSystemDirectoryHandle, id: string): Promise<{ pack: File; offset: number } | null> {
   let packDir: FileSystemDirectoryHandle;
@@ -91,15 +136,15 @@ export async function findInPacks(gitDir: FileSystemDirectoryHandle, id: string)
   } catch {
     return null;
   }
-  for await (const entry of (packDir as any).values() as AsyncIterable<FileSystemHandle>) {
-    if (entry.kind !== "file" || !entry.name.endsWith(".idx")) continue;
-    const index = await loadIndex(packDir, entry.name);
-    const offset = index ? offsetInIndex(index, id) : null;
-    if (offset === null) continue;
-    const pack = await getFileAt(packDir, entry.name.slice(0, -4) + ".pack");
-    if (pack) return { pack, offset };
+  const cached = packLists.get(gitDir);
+  if (cached) {
+    const found = await findInList(packDir, cached, id);
+    if (found) return found;
   }
-  return null;
+  const names = await listIdx(packDir);
+  packLists.set(gitDir, names);
+  if (cached && names.length === cached.length && names.every((name, i) => name === cached[i])) return null;
+  return findInList(packDir, names, id);
 }
 
 /** Applies a git delta to `base`. */
@@ -164,7 +209,16 @@ function inflateWindow(chunk: Uint8Array, size: number): Uint8Array | null {
 /** Reads the object at `offset` in `pack`, resolving delta chains. */
 export async function readPackEntry(pack: File, offset: number, resolve: ObjectResolver, depth = 0): Promise<GitObject> {
   if (depth > MAX_DELTA_DEPTH) throw new Error("git: delta chain too deep");
-  for (let window = FIRST_WINDOW; ; window *= 2) {
+  const key = pack.name + ":" + pack.size + ":" + pack.lastModified + ":" + offset;
+  const hit = entryCache.get(key);
+  if (hit) return hit;
+  const object = await inflateEntry(pack, offset, resolve, depth);
+  rememberEntry(key, object);
+  return object;
+}
+
+async function inflateEntry(pack: File, offset: number, resolve: ObjectResolver, depth: number): Promise<GitObject> {
+  for (let window = FIRST_WINDOW; ; window *= 4) {
     const end = Math.min(offset + window, pack.size);
     const bytes = await readBytes(pack.slice(offset, end));
     let pos = 0;

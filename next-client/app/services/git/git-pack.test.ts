@@ -77,6 +77,19 @@ describe("pack reading", () => {
     expect(object.data.subarray(-64)).toEqual(noisy.subarray(-64));
   });
 
+  it("finds an object in a pack added after the first read", async () => {
+    const one = buildPack([{ id: fakeId(0x70), type: "blob", data: "first\n" }]);
+    const vault = await makeRepoVault({ packs: { "pack-a": one } });
+    const git = await vault.getDirectoryHandle(".git");
+    const dir = git as unknown as FileSystemDirectoryHandle;
+    expect(dec.decode((await readObject(dir, fakeId(0x70))).data)).toBe("first\n");
+
+    const two = buildPack([{ id: fakeId(0x71), type: "blob", data: "fetched\n" }]);
+    (await git.writeText("objects/pack/pack-b.pack", "")).bytes = two.pack;
+    (await git.writeText("objects/pack/pack-b.idx", "")).bytes = two.idx;
+    expect(dec.decode((await readObject(dir, fakeId(0x71))).data)).toBe("fetched\n");
+  });
+
   it("throws NotFound for an id in no pack", async () => {
     const { pack, idx } = buildPack([{ id: fakeId(0x60), type: "blob", data: "x" }]);
     const dir = await gitDir({ "pack-a": { pack, idx } });
