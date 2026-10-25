@@ -1,4 +1,5 @@
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { pageShortcutFor } from "@/app/components/CommandPalette/page-shortcuts";
 import { formatShortcut } from "@/app/utils/platform";
 import { openTokenCostDialog } from "../../utils/open-helper-dialogs";
 import type { EditorCommandContext } from "./use-editor-command-context";
@@ -32,6 +33,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       label: "Open Tasks",
       opens: "page",
       keywords: "tasks todos checklist",
+      shortcut: pageShortcutFor("open-tasks-panel"),
       action: onOpenTasks,
     },
     {
@@ -39,6 +41,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       label: "Open Templates",
       opens: "page",
       keywords: "templates template packs journal daily weekly meeting manage",
+      shortcut: pageShortcutFor("open-templates"),
       action: onOpenTemplates,
     },
   ];

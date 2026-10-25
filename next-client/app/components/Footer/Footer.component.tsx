@@ -23,7 +23,7 @@ export default function Footer() {
                   A local-first workspace for focused writing and deep work. No cloud, no tracking, total privacy.
                 </p>
               </div>
-              <div className="text-ui-footnote uppercase tracking-[0.2em] font-bold opacity-50">
+              <div className="text-ui-footnote uppercase tracking-[0.2em] font-bold text-neutral-400">
                 Made with <span className="text-red-500">🧡</span> by{" "}
                 <TextLink
                   href="https://www.marespopa.com/"
@@ -37,7 +37,7 @@ export default function Footer() {
             
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 md:gap-24">
                <div className="flex flex-col gap-4">
-                  <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold opacity-50">Product</h3>
+                  <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold text-neutral-400">Product</h3>
                   <ul className="flex flex-col gap-2 text-ui-subhead font-medium">
                     <li><TextLink href="/" variant="quiet">Editor</TextLink></li>
                     <li><TextLink href="/documentation" variant="quiet">Documentation</TextLink></li>
@@ -59,7 +59,7 @@ export default function Footer() {
                </div>
 
                <div className="flex flex-col gap-4">
-                  <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold opacity-50">Legal</h3>
+                  <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold text-neutral-400">Legal</h3>
                   <ul className="flex flex-col gap-2 text-ui-subhead font-medium">
                     <li><TextLink href="/privacy-policy" variant="quiet">Privacy</TextLink></li>
                     <li><TextLink href="/terms" variant="quiet">Terms</TextLink></li>
@@ -67,7 +67,7 @@ export default function Footer() {
                </div>
 
                <div className="flex flex-col gap-4 col-span-2 sm:col-span-1">
-                  <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold opacity-50">Social</h3>
+                  <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold text-neutral-400">Social</h3>
                   <div className="flex flex-col gap-4">
                     <ProductHuntBadge />
                     <ToolsCafeBadge />
@@ -84,8 +84,8 @@ export default function Footer() {
           </div>
           
           <div className="mt-16 pt-8 border-t border-white/5 flex flex-row flex-wrap justify-between items-baseline gap-x-6 gap-y-2">
-             <span className="text-ui-footnote uppercase tracking-[0.2em] font-bold opacity-50">© {new Date().getFullYear()} HermesMarkdown. All rights reserved.</span>
-             <span className="text-ui-caption uppercase tracking-[0.15em] font-bold opacity-25 shrink-0">v{packageJson.version}</span>
+             <span className="text-ui-footnote uppercase tracking-[0.2em] font-bold text-neutral-400">© {new Date().getFullYear()} HermesMarkdown. All rights reserved.</span>
+             <span className="text-ui-caption uppercase tracking-[0.15em] font-bold text-neutral-400 shrink-0">v{packageJson.version}</span>
           </div>
         </div>
       </footer>

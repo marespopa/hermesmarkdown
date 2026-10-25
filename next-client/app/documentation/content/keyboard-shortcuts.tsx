@@ -29,6 +29,7 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "Find and replace in file", shortcut: "CTRL/CMD+F" },
             { label: "Fold / unfold current section", shortcut: "CTRL/CMD+SHIFT+." },
             { label: "Unfold all sections", shortcut: "CTRL/CMD+SHIFT+," },
+            { label: "Next / previous Git change (Git Changes on)", shortcut: "ALT+F5 / SHIFT+ALT+F5" },
             { label: "Add next match to the selection", shortcut: "CTRL/CMD+D" },
             { label: "Select all matches", shortcut: "CTRL/CMD+SHIFT+L" },
             { label: "Add a cursor (not on a link or task)", shortcut: "CTRL/CMD+CLICK" },
@@ -50,6 +51,10 @@ export const keyboardShortcutsItem: Subsection = {
           rows: [
             { label: "Show Files", shortcut: "CTRL/CMD+SHIFT+E" },
             { label: "New file", shortcut: "CTRL+ALT+N" },
+            { label: "Open Tasks", shortcut: "CTRL/CMD+ALT+T" },
+            { label: "Show Changes", shortcut: "CTRL/CMD+ALT+G" },
+            { label: "Open Templates", shortcut: "CTRL/CMD+ALT+P" },
+            { label: "Open Settings", shortcut: "CTRL/CMD+," },
             { label: "Close the file in front", shortcut: "CTRL/CMD+ALT+W" },
             { label: "Open a pinned item (1–9, in the Pinned order)", shortcut: "CTRL/CMD+1–9" },
             { label: "Outline on / off", shortcut: "CTRL/CMD+SHIFT+M" },

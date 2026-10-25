@@ -10,10 +10,10 @@ import { copyContentToClipboard } from "../hooks/use-pane-file-actions";
 import { PILL_BUTTON_CLASS } from "./pane-header-classes";
 import { SEARCH_PILL_WIDTH } from "./SearchPill";
 
-// The editor corner's width: the outline toggle and this button (2rem each),
+// The editor corner's width: the Git Changes and outline toggles and this button (2rem each),
 // their gaps (0.375rem each) and the SearchPill, so the pane's floating
 // title keeps clear of them.
-export const EDITOR_CORNER_WIDTH = `calc(${SEARCH_PILL_WIDTH} + 4.75rem)`;
+export const EDITOR_CORNER_WIDTH = `calc(${SEARCH_PILL_WIDTH} + 7.125rem)`;
 
 // Copies the active pane's file as it is (a note's Markdown, a code file's
 // source) to the clipboard: the palette's

@@ -15,6 +15,7 @@ import { useVaultManager } from "@/app/hooks/file-system/use-vault-manager";
 import { useSaveFile } from "@/app/hooks/file-system/use-save-file";
 import { checkVaultHealth } from "@/app/hooks/file-system/vault-health";
 import { getStorageStatus } from "@/app/services/opfs";
+import { clearAllChangesCaches } from "@/app/services/changes-cache";
 import { clearAllMetadataCaches } from "@/app/services/metadata-cache";
 import { downloadMarkdown } from "@/app/utils/download-markdown";
 
@@ -71,9 +72,10 @@ export function useRecoveryActions() {
   }, [openVault]);
 
   // Frees the one thing Hermes keeps that it can rebuild: the vault metadata
-  // caches (each vault is indexed again on its next open).
+  // caches (each vault is indexed again on its next open) and the Changes
+  // page's saved results (scanned again on the next visit).
   const freeUpSpace = useCallback(async () => {
-    await clearAllMetadataCaches();
+    await Promise.all([clearAllMetadataCaches(), clearAllChangesCaches()]);
     const low = await readStorageLow();
     if (low) {
       reportRecoveryIssue({ kind: "storage-low", ...low });

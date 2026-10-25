@@ -3,6 +3,7 @@ import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider, createStore } from "jotai";
 import { atom_darkTheme, atom_focusMode, atom_lightTheme, atom_theme, atom_wordWrap } from "@/app/atoms/ui-atoms";
+import { atom_gitAvailable, atom_showGitChanges } from "@/app/atoms/git-atoms";
 import SettingsCommands from "@/app/editor/settings/components/SettingsCommands";
 import AppCommands from "./AppCommands";
 import { CommandPaletteProvider, type Command, useCommandPalette } from "./CommandPaletteContext";
@@ -56,6 +57,29 @@ describe("AppCommands and SettingsCommands", () => {
     renderCommands();
     expect(command("open-website")).toBeUndefined();
     expect(command("open-documentation")?.label).toBe("Open Documentation");
+  });
+
+  it("opens the Changes page, and is disabled on it", () => {
+    renderCommands();
+    expect(command("show-changes")?.label).toBe("Show Changes");
+    expect(command("show-changes")?.disabledReason).toBeUndefined();
+    act(() => { void command("show-changes")?.action(); });
+    expect(push).toHaveBeenCalledWith("/editor/changes");
+    cleanup();
+
+    pathname = "/editor/changes";
+    renderCommands();
+    expect(command("show-changes")?.disabledReason).toBe("Already in Changes");
+  });
+
+  it("toggles Git Changes and explains when the vault isn't a repository", () => {
+    const store = createStore();
+    renderCommands(store);
+    expect(command("toggle-git-changes")?.description).toBeUndefined();
+    act(() => { void command("toggle-git-changes")?.action(); });
+    expect(store.get(atom_showGitChanges)).toBe(true);
+    act(() => { store.set(atom_gitAvailable, false); });
+    expect(command("toggle-git-changes")?.description).toBe("No .git folder at the vault's root");
   });
 
   it("opens Documentation in a new tab and marks the commands that leave the note", () => {

@@ -6,6 +6,7 @@ import { atom_darkTheme, atom_keyboardShortcutsOpen, atom_lightTheme, atom_theme
 import { DARK_THEMES, LIGHT_THEMES, resolveDarkTheme, resolveLightTheme } from "@/app/theme-palettes";
 import RegisteredCommands from "@/app/editor/components/editor-commands/RegisteredCommands";
 import { type Command, useRegisterCommand } from "./CommandPaletteContext";
+import { pageShortcutFor } from "./page-shortcuts";
 
 const THEME_COMMANDS: { value: Theme; label: string }[] = [
   { value: "light", label: "Theme: Light" },
@@ -94,12 +95,14 @@ export default function AppCommands() {
           category: "Navigation",
           opens: "page",
           keywords,
-          disabledReason: pathname.startsWith(href) ? `Already in ${label.replace("Open ", "")}` : undefined,
+          shortcut: pageShortcutFor(id),
+          disabledReason: pathname.startsWith(href) ? `Already in ${label.replace(/^(Open|Show) /, "")}` : undefined,
           action: () => router.push(href),
         };
   const pageCommands = [
     page("open-all-notes", "Open All Files", "/editor/files", "files notes list library browse vault"),
     page("open-tags", "Open Tags", "/editor/tags", "tags hashtags labels topics browse"),
+    page("show-changes", "Show Changes", "/editor/changes", "git changes diff modified added deleted commit head status review files changed pull request"),
     page("open-trash", "Open Trash", "/editor/trash", "trash deleted restore put back recover bin"),
     page("go-tasks", "Open Tasks", "/editor/tasks", "tasks todos checklist", false),
     page("go-templates", "Open Templates", "/editor/templates", "templates template packs manage", false),
@@ -111,6 +114,7 @@ export default function AppCommands() {
     category: "Settings",
     opens: "page",
     keywords: "preferences configuration config",
+    shortcut: pageShortcutFor("open-settings"),
     disabledReason: pathname === "/editor/settings" ? "Already in settings" : undefined,
     action: () => router.push("/editor/settings"),
   });

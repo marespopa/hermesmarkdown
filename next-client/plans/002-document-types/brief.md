@@ -17,7 +17,7 @@ Notes have no notion of what kind of thing they are (project, task, meeting), so
 - `/type` in the slash menu, and a palette command "Set Type…", open a picker of types. Choosing one inserts the frontmatter block if missing, or updates `type:` in place, and adds that type's default keys only when absent (e.g. project/task: `status`, `due_date`). The body is never touched. One undoable change.
 - Tag fallback: `#type/project` or `#status/active` in `tags:` or inline in the body is read as the same `type`/`status` by everything that reads types (header, board, queries). The file text is not rewritten.
 - The frontmatter header (plan 001) shows the type as its first chip; clicking it opens the same picker.
-- One shared reader (in app/utils, beside frontmatter-utils) gives each note's type, status and dates, from YAML first, then tags; plans 003 and 004 use it.
+- One shared reader (in app/utils, beside frontmatter-utils) gives each note's type, status and dates, from YAML first, then tags; plans 003 (typed-notes board) and 004 (query blocks) use it.
 - Notes edited outside HermesMarkdown are re-read when the vault is next scanned or the file is focused again.
 - Tests for the reader (YAML, tags, both, conflicting values) and the picker's text edits.
 
