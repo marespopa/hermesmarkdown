@@ -14,6 +14,7 @@ React hooks organized by concern: UI primitives, sync orchestration, and the fil
 | `use-keyboard-inset.tsx` | On-screen keyboard height via `visualViewport`, so fixed elements can stay clear of it |
 | `use-visible-viewport.ts` | While an overlaying keyboard is open (iOS Safari), a style pinning a full-window fixed layer to the visible area; the editor page uses it so the top bar stays put and the editor ends at the keyboard |
 | `use-tap-refocus.ts` | Android Chrome: the first touch tap on a field that script focused (dialog, palette, autoFocus) refocuses it silently so the on-screen keyboard types into it. Mounted once by `MainPage` |
+| `use-page-views.ts` | In production, sends one page view per path change (`sendPageView` in `utils/page-view.ts`: path only, no query or hash, referrer origin only, so note paths in `?file=` never leave the app). Mounted once by `MainPage` |
 | `use-back-button-close.ts` | Makes the device/browser back action close the open overlay instead of leaving the editor |
 | `use-resolved-theme.ts` | Resolves `"system"` theme to `"light"` / `"dark"`, live with OS changes |
 | `use-interval.tsx` | setInterval with null-delay pause support |
