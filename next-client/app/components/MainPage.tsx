@@ -7,15 +7,64 @@ import CustomProviders from "./CustomProviders";
 import Footer from "./Footer/Footer.component";
 import Header from "./Header";
 import { usePathname } from "next/navigation";
-import CommandPalette from "./CommandPalette/CommandPalette";
-import { CommandPaletteProvider } from "./CommandPalette/CommandPaletteContext";
+import { useEffect, useState } from "react";
+import { useAtomValue } from "jotai";
+import { CommandPaletteProvider, useCommandPalette } from "./CommandPalette/CommandPaletteContext";
 import AppCommands from "./CommandPalette/AppCommands";
-import KeyboardShortcutsOverlay from "./KeyboardShortcutsOverlay/KeyboardShortcutsOverlay";
 import SettingsCommands from "../editor/settings/components/SettingsCommands";
 import useTapRefocus from "../hooks/use-tap-refocus";
+import { atom_keyboardShortcutsOpen } from "../atoms/ui-atoms";
 
 const GlobalDialog = dynamic(() => import("./DialogModal/GlobalDialog"));
 const TemplateDialogHost = dynamic(() => import("./TemplateDialog/TemplateDialogHost"));
+
+// The palette (CodeMirror, file system, content search) and the shortcuts
+// overlay are split out of the shared bundle so marketing pages don't ship
+// them. The editor mounts them at once (the palette keeps the content index
+// in sync there); elsewhere they mount on first open, and their chunks are
+// fetched when the browser goes idle so that first open is still instant.
+const importCommandPalette = () => import("./CommandPalette/CommandPalette");
+const importShortcutsOverlay = () => import("./KeyboardShortcutsOverlay/KeyboardShortcutsOverlay");
+const CommandPalette = dynamic(importCommandPalette, { ssr: false });
+const KeyboardShortcutsOverlay = dynamic(importShortcutsOverlay, { ssr: false });
+
+function usePreloadOnIdle() {
+  useEffect(() => {
+    const preload = () => {
+      void importCommandPalette();
+      void importShortcutsOverlay();
+    };
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(preload, { timeout: 4000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(preload, 2000);
+    return () => window.clearTimeout(id);
+  }, []);
+}
+
+// True from the first time `open` is set, so the closing animation still plays.
+function useOpenedOnce(open: boolean) {
+  const [opened, setOpened] = useState(open);
+  useEffect(() => {
+    if (open) setOpened(true);
+  }, [open]);
+  return opened || open;
+}
+
+function GlobalOverlays({ eager }: { eager: boolean }) {
+  usePreloadOnIdle();
+  const { isOpen } = useCommandPalette();
+  const shortcutsOpen = useAtomValue(atom_keyboardShortcutsOpen);
+  const paletteOpened = useOpenedOnce(isOpen);
+  const shortcutsOpened = useOpenedOnce(shortcutsOpen);
+  return (
+    <>
+      {(eager || paletteOpened) && <CommandPalette />}
+      {(eager || shortcutsOpened) && <KeyboardShortcutsOverlay />}
+    </>
+  );
+}
 
 type Props = {
   children: React.ReactNode;
@@ -35,8 +84,7 @@ const MainPage = ({ children }: Props) => {
       <CommandPaletteProvider>
       <AppCommands />
       <SettingsCommands />
-      <CommandPalette />
-      <KeyboardShortcutsOverlay />
+      <GlobalOverlays eager={!!isEditor} />
       <Toaster
         position="bottom-right"
         reverseOrder={false}
