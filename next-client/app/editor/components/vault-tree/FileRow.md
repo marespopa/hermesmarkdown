@@ -1,6 +1,6 @@
 # FileRow
 
-Description: A single file row — file name with search highlighting, and either a list-view tree row (fixed height from `--list-row`, indented by `depth`, its full name (extension included) and `FileIcon` (the note's type icon, a code glyph for other text files, else the document glyph), optional Date Modified / Kind columns, `role="treeitem"`) or a two-line flat search row with the parent folder. Shows selection (accent while the tree is focused, gray otherwise), the keyboard cursor outline, and an `InlineNameField` while being renamed. Its ⋯ button and right-click open the tree's shared menu. Drag source. Also exports `LIST_INDENT_PX`, `selectionClass()` and the `RowEditing` type.
+Description: A single file row — file name with search highlighting, and either a list-view tree row (fixed height from `--list-row`, indented by `depth`, its full name (extension included) and `FileIcon` (the note's type icon, a code glyph for other text files, else the document glyph), optional Date Modified / Kind columns, `role="treeitem"`) or a two-line flat search row with the parent folder. Shows selection (accent while the tree is focused, gray otherwise), the keyboard cursor outline, and an `InlineNameField` while being renamed. Its ⋯ button and right-click open the tree's shared menu. Drag source. Resting the pointer on the row for ~100ms reads the note ahead (`useHoverPrefetch`), so its open finds the text in memory. While `busy` (a rename, move, move to Trash or undo is working on it, see `atoms/busy-path-atoms.ts`) it shows `pendingName` (a rename's new name) at once, muted, a spinner in place of its ⋯ button after ~150ms (`.loading-bar-appear`), and takes no clicks, drags, menus or renames (`aria-busy`, `aria-disabled`). Also exports `LIST_INDENT_PX`, `selectionClass()`, `RowBusySpinner` (shared with `FolderRow`) and the `RowEditing` type.
 
 ## Local State & Storage
 - State: None; selection, editing and the menu are owned by `VaultFileTree`.
@@ -35,5 +35,6 @@ import { FileRow } from "./vault-tree/FileRow";
 | editing? | `RowEditing` | | Shows the inline name field |
 | draggable? / onDragStartEntry? / onDragEndEntry? | | | Drag-to-move |
 | onTouchDragStart? / isTouchPressing? / dropFolder? | | | Touch drag (`useTouchTreeDrag`); `dropFolder` is the folder a touch drop on this row goes into (its parent) |
+| busy? / pendingName? | `boolean` / `string` | `false` | A file operation is working on it: spinner, the new name, no actions |
 
 A single file row can also be dropped on a pane (edge: open in a new pane; center: open there). See `TreeNodes.md`.

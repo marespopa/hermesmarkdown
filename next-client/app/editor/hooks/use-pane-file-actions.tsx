@@ -1,8 +1,7 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useStore } from "jotai";
 import { useCallback } from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import {
-  atom_fileContent,
   atom_openFiles,
   atom_closeTab,
   atom_liveHandles,
@@ -31,11 +30,13 @@ export async function copyContentToClipboard(content: string) {
 
 // Shared between the desktop pane toolbar and the mobile control rail so
 // Save/Copy/Close behavior stays a single source of truth even though the
-// two surfaces render completely different UI around it.
+// two surfaces render completely different UI around it. The note's text is
+// read when an action runs, not subscribed: a subscription would re-render
+// every caller (the editor page, its commands) on each keystroke.
 export function usePaneFileActions(leaf: PanelLeaf | null) {
   const filePath = leaf?.activeFilePath || "draft";
-  const [content] = useAtom(atom_fileContent(filePath));
-  const [openFiles] = useAtom(atom_openFiles);
+  const store = useStore();
+  const textOf = useCallback(() => store.get(atom_openFiles)[filePath]?.content ?? "", [store, filePath]);
   const [, closeTab] = useAtom(atom_closeTab);
   const vaultHandle = useAtomValue(atom_vaultHandle);
   const liveHandle = useAtomValue(atom_liveHandles(filePath));
@@ -43,20 +44,21 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
   const materializeDraft = useMaterializeDraft({ scanVault, indexVaultTags });
 
   const handleExport = useCallback(async () => {
+    const content = textOf();
     if (!content.trim()) return;
-    const fileState = openFiles[filePath];
+    const fileState = store.get(atom_openFiles)[filePath];
     const fileName = fileState?.fileName || "Untitled";
     if (liveHandle) {
       const success = await saveFile(content, liveHandle, 0, false, filePath);
       if (success) return;
     }
     await exportFile(content, fileName);
-  }, [content, openFiles, filePath, liveHandle, saveFile, exportFile]);
+  }, [textOf, store, filePath, liveHandle, saveFile, exportFile]);
 
   const handleSave = useCallback(async () => {
     // A board's pending stroke goes into the store first; read from there.
     flushBoardWrite(filePath);
-    const saved = contentStore.get(atom_openFiles)[filePath]?.content ?? content;
+    const saved = textOf();
     if (!saved.trim()) return;
 
     // Save in place if we already have a live handle.
@@ -90,9 +92,9 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
 
     // No vault → download.
     await handleExport();
-  }, [content, liveHandle, filePath, vaultHandle, saveFile, materializeDraft, leaf?.id, handleExport]);
+  }, [textOf, liveHandle, filePath, vaultHandle, saveFile, materializeDraft, leaf?.id, handleExport]);
 
-  const handleCopy = useCallback(() => copyContentToClipboard(content), [content]);
+  const handleCopy = useCallback(() => copyContentToClipboard(textOf()), [textOf]);
 
   const closeTabWithAutosave = useCallback(async (path: string) => {
     if (!leaf) return;
@@ -122,5 +124,5 @@ export function usePaneFileActions(leaf: PanelLeaf | null) {
     ];
   }, [leaf, closeTabWithAutosave]);
 
-  return { filePath, content, handleSave, handleExport, handleCopy, closeTabWithAutosave, buildTabMenuItems };
+  return { filePath, handleSave, handleExport, handleCopy, closeTabWithAutosave, buildTabMenuItems };
 }

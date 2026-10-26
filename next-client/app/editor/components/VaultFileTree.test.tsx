@@ -3,10 +3,16 @@ import { createStore, Provider } from "jotai";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import VaultFileTree from "./VaultFileTree";
 
-vi.mock("jotai", async (importOriginal) => ({
-  ...await importOriginal<typeof import("jotai")>(),
-  useAtomValue: vi.fn(() => "idle"),
-}));
+// Busy rows read the real store; every other atom reads "idle".
+vi.mock("jotai", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("jotai")>();
+  const { atom_busyPaths } = await import("@/app/atoms/busy-path-atoms");
+  return {
+    ...actual,
+    useAtomValue: vi.fn((anAtom: any, options?: any) =>
+      anAtom === atom_busyPaths ? actual.useAtomValue(anAtom, options) : "idle"),
+  };
+});
 
 const fileHandle = { kind: "file", name: "note.md" } as FileSystemFileHandle;
 
@@ -294,6 +300,33 @@ describe("VaultFileTree tree interactions", () => {
     await waitFor(() => expect(props.renameFile).toHaveBeenCalledWith(fileHandle, "plan.md", "note.md"));
   });
 
+  it("shows the new name and a spinner, and takes no actions, while a rename runs", async () => {
+    let finish!: () => void;
+    const renameFile = vi.fn(() => new Promise<void>((resolve) => { finish = resolve; }));
+    const { props } = renderFiles({ treeView: true, renameFile });
+
+    fireEvent.click(screen.getByLabelText("File options"));
+    fireEvent.click(screen.getByRole("menuitem", { name: /^Rename/ }));
+    const field = screen.getByLabelText("File name");
+    fireEvent.change(field, { target: { value: "plan" } });
+    fireEvent.keyDown(field, { key: "Enter" });
+
+    expect(screen.getByText("plan.md")).toBeTruthy();
+    expect(screen.getByRole("status", { name: "Working…" })).toBeTruthy();
+    expect(screen.queryByLabelText("File options")).toBeNull();
+    fireEvent.doubleClick(screen.getByText("plan.md"));
+    expect(props.openFile).not.toHaveBeenCalled();
+    fireEvent.keyDown(screen.getByRole("tree"), { key: "F2" });
+    expect(screen.queryByLabelText("File name")).toBeNull();
+
+    await waitFor(() => expect(renameFile).toHaveBeenCalledTimes(1));
+    await act(async () => finish());
+    expect(screen.queryByRole("status", { name: "Working…" })).toBeNull();
+    // The rename resolved without a new path: the row is back as it was.
+    expect(screen.getByText("note.md")).toBeTruthy();
+    expect(screen.getByLabelText("File options")).toBeTruthy();
+  });
+
   it("renames a note to a text file name without adding .md", async () => {
     const { props } = renderFiles({ treeView: true });
 
@@ -429,6 +462,23 @@ describe("VaultFileTree selection, keyboard and menus", () => {
       { handle: files[0].handle, path: "a.md" },
       { handle: files[1].handle, path: "b.md" },
     ]));
+  });
+
+  it("doesn't move a row to the Trash again while it's on its way", async () => {
+    let finish!: () => void;
+    const trashItems = vi.fn(() => new Promise<void>((resolve) => { finish = resolve; }));
+    renderFiles({ treeView: true, processedFiles: files, trashItems });
+
+    fireEvent.click(screen.getByText("a.md"));
+    fireEvent.keyDown(screen.getByRole("tree"), { key: "Delete" });
+    expect(screen.getByRole("status", { name: "Working…" })).toBeTruthy();
+    await waitFor(() => expect(trashItems).toHaveBeenCalledTimes(1));
+
+    fireEvent.keyDown(screen.getByRole("tree"), { key: "Delete" });
+    expect(trashItems).toHaveBeenCalledTimes(1);
+
+    await act(async () => finish());
+    expect(screen.queryByRole("status", { name: "Working…" })).toBeNull();
   });
 
   it("undoes with Ctrl/⌘+Z and selects everything with Ctrl/⌘+A", () => {

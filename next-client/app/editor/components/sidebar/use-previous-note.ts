@@ -1,56 +1,42 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useStore } from "jotai";
-import { useRouter } from "next/navigation";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { showErrorToast } from "@/app/components/Toastr";
 import { useSidebarNavigation } from "./use-sidebar-navigation";
 
-// A place to come back to: the note in front, or the route (Tasks, a tag…).
-type Place = { kind: "note"; path: string } | { kind: "route"; href: string };
-
-const samePlace = (a: Place, b: Place) =>
-  a.kind === "note" ? b.kind === "note" && a.path === b.path : b.kind === "route" && a.href === b.href;
-
-// Ctrl/Cmd+0, the way back from a Ctrl/Cmd+1–9 jump: `remember` keeps the
-// place in front just before the jump, `goBack` returns to it and keeps the
-// place it left, so pressing it again goes back to the pin (a toggle
-// between the two). `activePath` is the note in front on the editor (null
-// elsewhere). Kept in memory only, for this window.
-export function usePinReturn(activePath: string | null) {
+// Ctrl/Cmd+0, back to the note opened before this one, however either was
+// opened (a pin, Files, the palette, a link…). Pressing it again returns, so
+// it toggles between the last two notes. Off the editor (`activePath` null),
+// it brings back the last note in front. Kept in memory only, for this window.
+export function usePreviousNote(activePath: string | null) {
   const store = useStore();
-  const router = useRouter();
   const { openHandle } = useSidebarNavigation();
-  const back = useRef<Place | null>(null);
+  // The last note in front, and the one before it.
+  const last = useRef<string | null>(null);
+  const previous = useRef<string | null>(null);
 
-  const here = useCallback((): Place => (
-    activePath ? { kind: "note", path: activePath } : { kind: "route", href: window.location.pathname + window.location.search }
-  ), [activePath]);
+  useEffect(() => {
+    if (!activePath || activePath === last.current) return;
+    previous.current = last.current;
+    last.current = activePath;
+  }, [activePath]);
 
-  const remember = useCallback(() => { back.current = here(); }, [here]);
-
-  // False when there's nowhere to go back to (the key is left alone).
+  // False when there's no note to go back to (the key is left alone).
   const goBack = useCallback((): boolean => {
-    const place = back.current;
-    if (!place) return false;
-    const from = here();
-    if (samePlace(place, from)) return true;
-    if (place.kind === "route") {
-      back.current = from;
-      router.push(place.href);
-      return true;
-    }
-    const handle = store.get(atom_fileMetadata)[place.path]?.handle as FileSystemFileHandle | null | undefined;
+    const path = activePath ? previous.current : last.current;
+    if (!path) return false;
+    const handle = store.get(atom_fileMetadata)[path]?.handle as FileSystemFileHandle | null | undefined;
     if (!handle) {
-      back.current = null;
-      showErrorToast(`“${place.path.split("/").pop()}” isn't in this vault any more.`);
+      if (path === previous.current) previous.current = null;
+      else last.current = null;
+      showErrorToast(`“${path.split("/").pop()}” isn't in this vault any more.`);
       return true;
     }
-    back.current = from;
-    void openHandle(handle, place.path);
+    void openHandle(handle, path);
     return true;
-  }, [here, router, store, openHandle]);
+  }, [activePath, store, openHandle]);
 
-  return { remember, goBack };
+  return goBack;
 }

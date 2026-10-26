@@ -20,6 +20,7 @@ import { useTreeReveal } from "./vault-tree/use-tree-reveal";
 import { useTreeActions } from "./vault-tree/use-tree-actions";
 import { useTreeSelection } from "./vault-tree/use-tree-selection";
 import { useVirtualTree } from "./vault-tree/use-virtual-tree";
+import { recordSidebarTreePainted } from "@/app/utils/perf/perf-metrics";
 
 export default function VaultFileTree(props: VaultFileTreeProps) {
   const {
@@ -59,6 +60,11 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
   const isFolderCollapsed = useMemo(() => (expandAll ? () => false : expansion.isFolderCollapsed), [expandAll, expansion.isFolderCollapsed]);
 
   const rows = useMemo(() => flattenVisible(tree, isFolderCollapsed), [tree, isFolderCollapsed]);
+  // Dev only (PerfReadout): app start → the first rows painted.
+  const hasRows = processedFiles.length > 0;
+  useEffect(() => {
+    if (hasRows) recordSidebarTreePainted();
+  }, [hasRows]);
   const selection = useTreeSelection(rows);
   const [treeFocused, setTreeFocused] = useState(false);
 
@@ -196,6 +202,8 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
       isActive,
       showColumns,
       modifiedAt: entryPath ? fileMetadata?.[entryPath]?.modifiedAt : undefined,
+      busy: !!actions.busyFor(path),
+      pendingName: actions.busyFor(path)?.newName,
       highlightQuery,
       openFile,
       onClose,
@@ -225,6 +233,8 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     treeFocused,
     onSelectClick: (mods: Parameters<typeof selection.click>[1]) => selection.click(node.path, mods),
     editing: actions.renameEditing(node.path),
+    busy: !!actions.busyFor(node.path),
+    pendingName: actions.busyFor(node.path)?.newName,
   });
 
   const treeRowProps = {

@@ -374,6 +374,10 @@ export const atom_isFileLoading = atom<boolean>(false);
 // The file openFile is opening, set before its text is read: the pane shows
 // its title (and a body skeleton) and the sidebar marks it current at once.
 export const atom_openingFilePath = atom<string | null>(null);
+// A note shown at once from memory while openFile checks the disk behind it
+// (use-open-file.ts): its editor takes no typing until the check is done,
+// so a newer disk text can replace it without losing a keystroke.
+export const atom_verifyingNotePath = atom<string | null>(null);
 
 // Bumped to request the AI Builder dialog from outside the editor (e.g. the
 // status bar), since the actual handler lives inside useAIEditorActions,

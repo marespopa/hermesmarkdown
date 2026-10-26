@@ -131,16 +131,21 @@ function foldSection(view: EditorView, section: HeadingSection) {
   });
 }
 
-// Folds or unfolds the section of the heading on the line at `lineFrom`.
+// Folds or unfolds the section of the heading on the line at `lineFrom`
+// (its chevron). The caret moves to where the fold starts (the heading's
+// end, the top of the note for the frontmatter), the place just clicked: a
+// caret left elsewhere would have the page jump to keep it in view.
 export function toggleHeadingFold(view: EditorView, lineFrom: number): boolean {
   const folded = foldedSectionAt(view.state, foldStartOn(view.state, lineFrom));
   if (folded) {
-    view.dispatch({ effects: unfoldEffect.of(folded) });
+    view.dispatch({ effects: unfoldEffect.of(folded), selection: { anchor: folded.from } });
+    view.focus();
     return true;
   }
   const section = headingSectionAt(view.state, lineFrom);
   if (!section) return false;
-  foldSection(view, section);
+  view.dispatch({ effects: foldEffect.of({ from: section.from, to: section.to }), selection: { anchor: section.from } });
+  view.focus();
   return true;
 }
 
@@ -328,15 +333,26 @@ function placeholderDOM(view: EditorView, onclick: (event: Event) => void, prepa
       pill.textContent = `#${tag}`;
       element.append(...(element.childNodes.length ? [" "] : []), pill);
     }
-    element.onclick = onclick;
+    element.onclick = unfoldHere(view, element, onclick);
     return element;
   }
   element.textContent = "…";
   element.className = prepared === "heading" ? "cm-headingFoldPlaceholder" : "cm-foldPlaceholder";
   element.title = prepared === "heading" ? "Unfold section" : view.state.phrase("unfold");
   element.setAttribute("aria-label", prepared === "heading" ? "Folded section" : view.state.phrase("folded code"));
-  element.onclick = onclick;
+  element.onclick = prepared === "heading" ? unfoldHere(view, element, onclick) : onclick;
   return element;
+}
+
+// A click on a folded heading's or frontmatter's placeholder unfolds it with
+// the caret where the fold starts, as its chevron does (toggleHeadingFold).
+function unfoldHere(view: EditorView, element: HTMLElement, onclick: (event: Event) => void) {
+  return (event: Event) => {
+    const pos = view.posAtDOM(element);
+    onclick(event);
+    view.dispatch({ selection: { anchor: pos } });
+    view.focus();
+  };
 }
 
 export const headingFolding: Extension = [

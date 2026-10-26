@@ -41,13 +41,14 @@ export interface FrontmatterSummary {
   tags: string[];
 }
 
-// What folded frontmatter shows (heading-fold.ts): the `title`'s value and
-// every tag, without its `#`; either is empty when the block has none.
+// What folded frontmatter shows (heading-fold.ts): the `title`'s value (the
+// `name`'s when there's no title) and every tag, without its `#`; either is
+// empty when the block has none.
 export function frontmatterSummary(state: EditorState): FrontmatterSummary {
   const range = frontmatterRangeOf(state.doc);
   if (!range) return { title: "", tags: [] };
   const fields = parseFmFields(state.doc.sliceString(0, range.closeTo));
-  const title = unquote(fields.title ?? "");
+  const title = unquote(fields.title ?? "") || unquote(fields.name ?? "");
   const tags = (fields.tags ?? "").split(",").map((tag) => unquote(tag).replace(/^#/, "")).filter(Boolean);
   return { title, tags };
 }

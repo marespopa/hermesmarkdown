@@ -41,7 +41,7 @@ export default function WorkspaceSidebar() {
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const navigation = useSidebarNavigation();
   const treeController = useRef<VaultFileTreeController | null>(null);
-  const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files" });
+  const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files", rememberedTree: true });
 
   // "Show Files" (atom_showFiles): once the sidebar is open, its Files tree
   // takes keyboard focus, on the folder "Show in Files" asked for if any.

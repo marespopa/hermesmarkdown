@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { atom_openFiles, atom_liveHandles } from "./file-atoms";
+import { atom_openFiles, atom_liveHandles, isOpenNotesHydrated, whenOpenNotesHydrated } from "./file-atoms";
 import { atom_workspaceLayout } from "./workspace-atoms";
 import { atom_fileTreeExpansion, atom_filesRevealPath, atom_showFiles } from "./ui-atoms";
 import { atom_remapPins } from "./pin-atoms";
@@ -10,6 +10,7 @@ import { remapNoteContent } from "@/app/services/content-search-client";
 import { remapPath, remapPathsInLayout, removePathsFromLayout } from "./utils";
 import type { BrowserVaultDescriptor } from "@/app/services/opfs";
 import type { RecentVault } from "@/app/services/recent-vaults";
+import { moveNoteViewState } from "@/app/editor/utils/note-view-states";
 
 // Vault / Local File System
 export const atom_vaultHandle = atom<FileSystemDirectoryHandle | null>(null);
@@ -100,6 +101,9 @@ export async function resolveFileHandleAtPath(
 export const atom_rebindHandles = atom(
   null,
   async (get, set, vaultHandle: FileSystemDirectoryHandle) => {
+    // Reconciling a note whose stored text hasn't arrived would take disk
+    // over unsaved edits it holds.
+    if (!isOpenNotesHydrated()) await whenOpenNotesHydrated();
     const openFiles = get(atom_openFiles);
     const paths = Object.keys(openFiles);
     const missingPaths: string[] = [];
@@ -223,6 +227,8 @@ export const atom_remapVaultPaths = atom(
     for (const [p, handle] of freshHandles) {
       set(atom_liveHandles(mapPath(p)), handle ?? get(atom_liveHandles(p)));
       set(atom_liveHandles(p), null);
+      // The note's caret and scroll place follow it.
+      moveNoteViewState(p, mapPath(p));
     }
 
     // Before the metadata update: the content-index sync then sees the old

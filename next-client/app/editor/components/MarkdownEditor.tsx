@@ -36,6 +36,8 @@ import { useCodeMirrorCalloutType } from "../hooks/use-codemirror-callout-type";
 import { useCodeMirrorImage } from "../hooks/use-codemirror-image";
 import { useCodeMirrorCalloutFold } from "../hooks/use-codemirror-callout-fold";
 import { useCodeMirrorHeadingFold } from "../hooks/use-codemirror-heading-fold";
+import { useCodeMirrorViewState } from "../hooks/use-codemirror-view-state";
+import { useVerifyingReadOnly } from "../hooks/use-verifying-read-only";
 import { insertOrRevealFrontmatter } from "../codemirror/frontmatter-block";
 import { useEditorPasteHandlers } from "../hooks/use-editor-paste-handlers";
 import { useScrollToPendingTarget } from "../hooks/use-scroll-to-pending-target";
@@ -198,6 +200,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     useCodeMirrorCalloutFold({ containerRef });
   const { onViewCreated: onHeadingFoldViewCreated, onCursorActivity: onHeadingFoldCursorActivity } =
     useCodeMirrorHeadingFold(filePath);
+  const { onViewCreated: onViewStateViewCreated, onCursorActivity: onViewStateCursorActivity } = useCodeMirrorViewState(filePath);
 
   const registerActiveView = useActiveEditorView(viewRef, {
     isActivePane: props.isActivePane !== false,
@@ -206,9 +209,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const handleViewCreated = useCallback((view: EditorView) => {
     onViewCreated(view);
     onHeadingFoldViewCreated(view);
+    // After the folds, so the saved scroll position lands on the folded layout.
+    onViewStateViewCreated(view);
     setEditorView(view);
     registerActiveView(view);
-  }, [onHeadingFoldViewCreated, onViewCreated, registerActiveView]);
+  }, [onHeadingFoldViewCreated, onViewCreated, onViewStateViewCreated, registerActiveView]);
 
   const onCombinedCursorActivity = useCallback((view: EditorView) => {
     onCursorActivity(view);
@@ -217,7 +222,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onImageCursorActivity(view);
     onFoldCursorActivity(view);
     onHeadingFoldCursorActivity(view);
-  }, [onCursorActivity, onTableCursorActivity,onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity, onHeadingFoldCursorActivity]);
+    onViewStateCursorActivity(view);
+  }, [onCursorActivity, onTableCursorActivity,onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity, onHeadingFoldCursorActivity, onViewStateCursorActivity]);
 
   // Fold chevrons follow scrolling: callouts get one as they're rendered.
   const onViewportChange = useCallback((view: EditorView) => {
@@ -248,6 +254,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     filePath,
   });
   useGitBaseline({ viewRef, vaultHandle, filePath, enabled: gitEnabled });
+  useVerifyingReadOnly(editorView, filePath);
   // After useCodeMirrorEditor, so the Vim compartment is live (see the hook).
   const { hostRef: vimStatusHostRef, status: vimStatus } = useVimStatus(editorView, vimMode);
 

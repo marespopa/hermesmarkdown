@@ -1,10 +1,9 @@
-import { atom } from "jotai";
-import { atomWithStorage, createJSONStorage } from "jotai/utils";
+import { atom, type SetStateAction } from "jotai";
 import { atomFamily } from "jotai-family";
 import { atom_workspaceLayout, atom_activePaneId } from "./workspace-atoms";
 import { findLeaf, updateLeaf } from "./utils";
 import { forgetClosedFiles, tabsToEvict, touchRecent } from "./tab-limit";
-import { clearRecoveryIssue, isQuotaError, reportRecoveryIssue } from "./recovery-atoms";
+import { openNotesPersister } from "./open-notes/open-notes-persister";
 import { PanelLeaf } from "../types/workspace";
 
 // File contents & metadata
@@ -24,71 +23,89 @@ export interface FileState {
   snapshots?: Snapshot[];
 }
 
-// Typing changes the open notes on every keystroke, and writing them all to
-// localStorage each time (a JSON copy of every open note and its snapshots)
-// cost the editor a frame per key. Writes wait for a pause in typing and go
-// out at once when the page is hidden or closed; reads see the pending value.
-const PERSIST_DELAY_MS = 400;
+export { debouncedJSONStorage } from "./open-notes/legacy-storage";
 
-type SyncStorage<T> = ReturnType<typeof createJSONStorage<T>>;
+type OpenFiles = Record<string, FileState>;
 
-export function debouncedJSONStorage<T>(delay = PERSIST_DELAY_MS): SyncStorage<T> {
-  const storage = createJSONStorage<T>(() => localStorage);
-  let pending: { key: string; value: T } | null = null;
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const flush = () => {
-    clearTimeout(timer);
-    if (!pending) return;
-    const { key, value } = pending;
-    pending = null;
-    // A full localStorage throws; the notes stay in memory, so say so
-    // instead of losing the write silently.
-    try {
-      storage.setItem(key, value);
-      clearRecoveryIssue("storage-full");
-    } catch (err) {
-      if (!isQuotaError(err)) throw err;
-      reportRecoveryIssue({ kind: "storage-full" });
-    }
-  };
-  if (typeof window !== "undefined") {
-    window.addEventListener("pagehide", flush);
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "hidden") flush();
-    });
-  }
-  return {
-    ...storage,
-    getItem: (key, initialValue) => (pending?.key === key ? pending.value : storage.getItem(key, initialValue)),
-    setItem: (key, value) => {
-      if (pending && pending.key !== key) flush();
-      pending = { key, value };
-      clearTimeout(timer);
-      timer = setTimeout(flush, delay);
-    },
-    removeItem: (key) => {
-      if (pending?.key === key) pending = null;
-      storage.removeItem(key);
-    },
-  };
-}
-
-export const atom_openFiles = atomWithStorage<Record<string, FileState>>(
-  "openFiles",
-  {
-    draft: {
-      content: "",
-      lastSavedContent: "",
-      fileName: "untitled",
-      activeFilePath: null,
-    },
+const DEFAULT_OPEN_FILES: OpenFiles = {
+  draft: {
+    content: "",
+    lastSavedContent: "",
+    fileName: "untitled",
+    activeFilePath: null,
   },
-  debouncedJSONStorage(),
+};
+
+// The open notes and whether their stored text has arrived. Kept in
+// browser storage by openNotesPersister (open-notes/): the text in
+// IndexedDB, one record per note, written when the browser is idle.
+const atom_openFilesState = atom<{ files: OpenFiles; hydrated: boolean }>({ files: DEFAULT_OPEN_FILES, hydrated: false });
+
+// On first use in a store, the stored notes come in. Notes set before that
+// (a test seeding the store) are kept. When only the notes' names are
+// stored at once, their text follows from IndexedDB: notes changed in
+// between keep their change, the others take the stored text.
+atom_openFilesState.onMount = (setState) => {
+  const { files, load } = openNotesPersister.start();
+  let placeholders: OpenFiles | null = null;
+  setState((prev) => {
+    if (prev.files !== DEFAULT_OPEN_FILES || !files) return { files: prev.files, hydrated: prev.hydrated || !load };
+    placeholders = files;
+    return { files, hydrated: !load };
+  });
+  if (!load) return;
+  void load.then((loaded) => {
+    setState((prev) => {
+      const touched: string[] = [];
+      const next: OpenFiles = { ...prev.files };
+      if (loaded && placeholders) {
+        for (const [path, state] of Object.entries(loaded)) {
+          if (prev.files[path] === placeholders[path]) next[path] = state;
+          else touched.push(path);
+        }
+      }
+      openNotesPersister.hydrated(next, touched);
+      return { files: next, hydrated: true };
+    });
+  });
+};
+
+export const atom_openFiles = atom(
+  (get) => get(atom_openFilesState).files,
+  (get, set, update: SetStateAction<OpenFiles>) => {
+    const prev = get(atom_openFilesState);
+    const files = typeof update === "function" ? update(prev.files) : update;
+    if (files === prev.files) return;
+    set(atom_openFilesState, { files, hydrated: prev.hydrated });
+    openNotesPersister.change(files);
+  },
 );
+
+// Whether the open notes' stored text has arrived (PaneLeaf shows the
+// delayed skeleton until then, not an empty note).
+export const atom_openNotesHydrated = atom((get) => get(atom_openFilesState).hydrated);
+
+/** Resolves once the open notes' stored text is in the atom; code comparing them with disk waits for it. */
+export const whenOpenNotesHydrated = () => openNotesPersister.whenReady();
+export const isOpenNotesHydrated = () => openNotesPersister.isReady();
 
 export const atom_hasOpenFileContent = atom((get) =>
   Object.values(get(atom_openFiles)).some((file) => file.content.trim().length > 0),
 );
+
+// One note's name, and whether it has unsaved changes, apart from its text:
+// what reads these re-renders when they change, not on every keystroke.
+export const atom_openNoteFileName = atomFamily((path: string) =>
+  atom((get) => get(atom_openFiles)[path]?.fileName),
+);
+export const atom_openNoteDirty = atomFamily((path: string) =>
+  atom((get) => {
+    const state = get(atom_openFiles)[path];
+    return !!state && state.content !== state.lastSavedContent;
+  }),
+);
+// Whether the draft holds any text.
+export const atom_draftHasText = atom((get) => !!get(atom_openFiles).draft?.content.trim());
 
 // Non-persisted file handles (indexed by path)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

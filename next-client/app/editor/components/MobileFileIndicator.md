@@ -4,7 +4,7 @@ Description: Compact mobile header chip showing the active file name and its sav
 
 ## Local State & Storage
 - State: `atom_workspaceLayout`, `atom_openFiles`, `atom_saveStatus`, `atom_vaultHandle`, `useCommandPalette`.
-- Persistence: None itself. It reads `localStorage["workspaceLayout"]` and `localStorage["openFiles"]` through the atoms.
+- Persistence: None itself. It reads `localStorage["workspaceLayout"]` and the open notes (`atom_openFiles`, IndexedDB with `localStorage["openNotes"]`) through the atoms.
 
 ## Dependencies
 - Core: `save-state.tsx` (`statusMeta`, `SaveStateIcon`), `CommandPaletteContext`, `react-icons`.

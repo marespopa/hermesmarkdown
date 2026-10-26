@@ -22,6 +22,12 @@ const NONE: OutlineHeading[] = [];
 
 const isCSharpPath = (path?: string | null) => !!path && /\.csx?$/i.test(path);
 
+// The same rows as before: kept as they were, so typing that doesn't touch
+// a heading doesn't re-render the outline.
+const sameRows = (a: OutlineHeading[], b: OutlineHeading[]) =>
+  a.length === b.length && a.every((row, i) => row.line === b[i].line && row.level === b[i].level && row.text === b[i].text && row.kind === b[i].kind);
+const keepIfSame = (next: OutlineHeading[]) => (prev: OutlineHeading[]) => (sameRows(prev, next) ? prev : next);
+
 // The outline rows: a note's H1–H3 headings (extractOutline, from its
 // text), or a code file's symbols (extractCodeOutline, from the editor's
 // syntax tree; extractCSharpOutline, from a C# file's text, which has no
@@ -40,14 +46,14 @@ export function useOutlineHeadings(view: EditorView | null, text: string, isCode
       setNoteHeadings(extractOutline(text));
       return;
     }
-    const timer = setTimeout(() => setNoteHeadings(extractOutline(text)), NOTE_DELAY_MS);
+    const timer = setTimeout(() => setNoteHeadings(keepIfSame(extractOutline(text))), NOTE_DELAY_MS);
     return () => clearTimeout(timer);
   }, [isCode, text, filePath]);
   const [codeHeadings, setCodeHeadings] = useState<OutlineHeading[]>(NONE);
 
   useEffect(() => {
     if (!isCSharp) return;
-    const timer = setTimeout(() => setCodeHeadings(extractCSharpOutline(text)), CODE_DELAY_MS);
+    const timer = setTimeout(() => setCodeHeadings(keepIfSame(extractCSharpOutline(text))), CODE_DELAY_MS);
     return () => clearTimeout(timer);
   }, [isCSharp, text]);
 
@@ -58,7 +64,7 @@ export function useOutlineHeadings(view: EditorView | null, text: string, isCode
     const read = () => {
       const state = view.state;
       const tree = ensureSyntaxTree(state, state.doc.length, PARSE_BUDGET_MS) ?? syntaxTree(state);
-      setCodeHeadings(extractCodeOutline(tree, state.doc));
+      setCodeHeadings(keepIfSame(extractCodeOutline(tree, state.doc)));
       if (!syntaxTreeAvailable(state, state.doc.length) && retries++ < MAX_RETRIES) timer = setTimeout(read, RETRY_MS);
     };
     timer = setTimeout(read, CODE_DELAY_MS);

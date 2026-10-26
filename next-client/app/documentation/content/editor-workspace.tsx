@@ -115,8 +115,9 @@ tags: []
         <p>
           The editor shows frontmatter exactly as typed, on a subtle tinted panel. Hover it for a
           chevron in the margin by the opening <code>---</code>: it folds the whole block into one
-          line showing just its <code>title</code> and its <code>tags</code> as pills; click that
-          line to unfold it. With the caret inside,
+          line showing just its <code>title</code> (its <code>name</code> when there is no title)
+          and its <code>tags</code> as pills; click that line to unfold it. Folding or unfolding
+          moves the cursor to the top of the note, so the page stays where it is. With the caret inside,
           Ctrl/Cmd+Shift+. folds or unfolds it too. The note keeps it folded while you switch away
           and back during the visit.
         </p>

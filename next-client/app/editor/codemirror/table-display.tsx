@@ -11,6 +11,8 @@ import { type ComputedCell, computeTableFormulas, formulaFileTablesField, setFor
 import { tableSourceBlock, tableSourceField } from "./table-source";
 import { maskQuotedRows, quotedRowPrefix } from "../utils/quoted-table";
 import { quoteFrameClass } from "./table-quote-frame";
+import { addRange, coversAll, mapRanges, type Range as Stretch, revealTablesIn, STAGED_REVEAL_LINES } from "./table-stages";
+import { stagedTableReveal } from "./table-stage-reveal";
 
 // Tables are always shown as a rendered grid whose cells are edited in
 // place — the pipe syntax is never visible. The document stays the single
@@ -227,9 +229,11 @@ interface TableDisplayState {
   tables: FoundTable[];
   matches: TableDisplayMatch[];
   decorations: DecorationSet;
+  /** A large note's stretches searched for tables so far (table-stages.ts); null once it's all of it. */
+  covered: Stretch[] | null;
 }
 
-function buildTableDisplayState(state: EditorState, tables: FoundTable[] = findTables(state)): TableDisplayState {
+function buildTableDisplayState(state: EditorState, tables: FoundTable[] = findTables(state), covered: Stretch[] | null = null): TableDisplayState {
   // A table opened with "Edit as Markdown" stays plain text (table-source.ts).
   const source = tableSourceBlock(state);
   const matches = withFormulas(state, tables).filter((match) =>
@@ -241,21 +245,39 @@ function buildTableDisplayState(state: EditorState, tables: FoundTable[] = findT
       inclusive: true,
     }).range(match.from, match.to),
   );
-  return { tables, matches, decorations: Decoration.set(ranges, true) };
+  return { tables, matches, decorations: Decoration.set(ranges, true), covered };
 }
 
+// The tables in a large note's `covered` stretches, or in the whole note.
+const tablesIn = (state: EditorState, covered: Stretch[] | null) => (covered ? findTables(state, covered) : findTables(state));
+
 export const tableDisplayField = StateField.define<TableDisplayState>({
-  create: (state) => buildTableDisplayState(state),
+  // A large note starts with no tables found: the text shows first, and
+  // stagedTableReveal finds them, the screen's first (table-stages.ts).
+  create: (state) => (state.doc.lines > STAGED_REVEAL_LINES ? buildTableDisplayState(state, [], []) : buildTableDisplayState(state)),
   update(value, transaction) {
     // Selection-only changes no longer matter (tables never switch back to
     // raw text), but the syntax tree can grow without a doc change as the
     // background parser catches up: then every table is found again.
     const treeChanged = syntaxTree(transaction.startState) !== syntaxTree(transaction.state);
+    const { state } = transaction;
     if (transaction.docChanged) {
+      const covered = value.covered && mapRanges(value.covered, transaction.changes);
       const tables = updateTables(value.tables, transaction);
-      return buildTableDisplayState(transaction.state, tables ?? undefined);
+      return buildTableDisplayState(state, tables ?? tablesIn(state, covered), covered);
     }
-    if (treeChanged) return buildTableDisplayState(transaction.state);
+    const reveals = transaction.effects.filter((effect) => effect.is(revealTablesIn));
+    if (value.covered && reveals.length > 0) {
+      let covered: Stretch[] | null = value.covered;
+      const tables = [...value.tables];
+      for (const { value: range } of reveals) {
+        covered = addRange(covered, range);
+        for (const table of findTables(state, [range])) if (!tables.some((other) => other.from === table.from)) tables.push(table);
+      }
+      if (coversAll(covered, state.doc.length)) covered = null;
+      return buildTableDisplayState(state, tables.sort((a, b) => a.from - b.from), covered);
+    }
+    if (treeChanged) return buildTableDisplayState(state, tablesIn(state, value.covered), value.covered);
     if (
       transaction.effects.some((effect) => effect.is(setFormulaFileTables))
       || transaction.startState.field(tableSourceField, false) !== transaction.state.field(tableSourceField, false)
@@ -264,6 +286,7 @@ export const tableDisplayField = StateField.define<TableDisplayState>({
       return buildTableDisplayState(
         transaction.state,
         fileTables ? value.tables.map(withoutResults) : value.tables,
+        value.covered,
       );
     }
     return value;
@@ -354,6 +377,7 @@ export const tableDisplayExtension: Extension = [
   formulaFileTablesField,
   tableSourceField,
   tableDisplayField,
+  stagedTableReveal((state) => state.field(tableDisplayField, false)?.covered ?? null),
   tableCaretEntry,
   tableVerticalEntry,
 ];

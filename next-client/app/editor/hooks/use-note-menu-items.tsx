@@ -7,6 +7,7 @@ import { TbPinned, TbPinnedFilled } from "react-icons/tb";
 import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
 import { atom_liveHandles, atom_openFiles } from "@/app/atoms/atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import { atom_busyPaths, busyEntry } from "@/app/atoms/busy-path-atoms";
 import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { usePins } from "@/app/hooks/use-pins";
@@ -20,7 +21,6 @@ import { usePaneFileActions } from "./use-pane-file-actions";
 // a vault note; then Close, Close Others and Close All (of `leaf`).
 export function useNoteMenuItems(leaf: PanelLeaf | null) {
   const store = useStore();
-  const openFiles = useAtomValue(atom_openFiles);
   const hasVault = !!useAtomValue(atom_vaultHandle);
   const { isPinned: isPinnedAs, togglePin } = usePins();
   const boardMarkdownPaths = useAtomValue(atom_boardMarkdownPaths);
@@ -31,7 +31,8 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
   // `onRename` (the pane title, for its own note) renames in place instead of
   // through a prompt.
   return useCallback((path: string, options: { onRename?: () => void } = {}): TabContextMenuItem[] => {
-    const content = openFiles[path]?.content ?? "";
+    // Read when the menu opens: a subscription would re-render the pane's title on every keystroke.
+    const content = store.get(atom_openFiles)[path]?.content ?? "";
     const items: TabContextMenuItem[] = [
       {
         label: "Copy Contents",
@@ -62,14 +63,16 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
         onClick: () => void togglePin("note", path),
       });
       const handle = store.get(atom_liveHandles(path));
+      // Not while a rename, move or move to Trash is working on it.
+      const unavailable = !handle || !!busyEntry(store.get(atom_busyPaths), path);
       items.push(
         {
           label: options.onRename ? "Rename" : "Rename…",
           icon: <HiOutlinePencil size={15} />,
-          disabled: !handle,
+          disabled: unavailable,
           divider: true,
           onClick: () => {
-            if (!handle) return;
+            if (!handle || unavailable) return;
             if (options.onRename) options.onRename();
             else void renameFile(handle, undefined, path);
           },
@@ -77,13 +80,13 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
         {
           label: "Move to Trash",
           icon: <HiOutlineTrash size={15} />,
-          disabled: !handle,
-          onClick: () => { if (handle) void deleteFile(handle, path); },
+          disabled: unavailable,
+          onClick: () => { if (handle && !unavailable) void deleteFile(handle, path); },
         },
       );
     }
     const closeItems = buildTabMenuItems(path);
     closeItems[0] = { ...closeItems[0], divider: true };
     return [...items, ...closeItems];
-  }, [store, openFiles, hasVault, isPinnedAs, togglePin, boardMarkdownPaths, toggleBoardMarkdown, renameFile, deleteFile, buildTabMenuItems]);
+  }, [store, hasVault, isPinnedAs, togglePin, boardMarkdownPaths, toggleBoardMarkdown, renameFile, deleteFile, buildTabMenuItems]);
 }

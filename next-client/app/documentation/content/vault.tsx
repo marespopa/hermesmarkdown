@@ -72,6 +72,9 @@ export const vaultGroup: Group = {
           <p>
             New files and folders, and renames, are named right in the list: type, then press{" "}
             <strong>Return</strong> or click away to keep the name, or <strong>Esc</strong> to back out.
+            The new name shows at once. While a rename, move or move to Trash is still working on a large
+            folder or a slow disk, its row shows a spinner and can&apos;t be opened, renamed, moved or
+            deleted again until it&apos;s done.
           </p>
           <p>
             The folder path above a file is clickable: click a folder in it to see that folder&apos;s

@@ -1,6 +1,9 @@
 "use client";
 
+import { useAtomValue, useStore } from "jotai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { atom_busyPaths, busyEntry, type BusyPath } from "@/app/atoms/busy-path-atoms";
+import { withBusyPaths } from "@/app/hooks/file-system/busy-paths";
 import type { RowEditing } from "./FileRow";
 import type { PendingCreate } from "./TreeNodes";
 import {
@@ -60,6 +63,10 @@ export function useTreeActions({
   const [creating, setCreating] = useState<{ kind: "file" | "folder"; parentPath: string } | null>(null);
   const [menu, setMenu] = useState<{ x: number; y: number; target: MenuTarget } | null>(null);
   const pendingReveal = useRef<string[] | null>(null);
+  // Rows a rename, move or move to Trash is working on take no actions.
+  const store = useStore();
+  const busyPaths = useAtomValue(atom_busyPaths);
+  const busyFor = useCallback((path: string) => busyEntry(busyPaths, path), [busyPaths]);
 
   const entryByPath = useMemo(
     () => new Map(processedFiles.map((entry) => [getEntryId(entry), entry])),
@@ -72,7 +79,12 @@ export function useTreeActions({
 
   const handleFor = useCallback(async (path: string) => {
     const entry = entryByPath.get(path);
-    if (entry) return entry.handle as FileSystemHandle;
+    if (entry?.handle) return entry.handle as FileSystemHandle;
+    if (entry) {
+      // A row only the startup snapshot lists so far: found by its path.
+      const folder = await resolveFolderHandle?.(parentFolderPath(path));
+      return (await folder?.getFileHandle(path.split("/").pop()!).catch(() => null)) ?? null;
+    }
     return (await resolveFolderHandle?.(path)) ?? null;
   }, [entryByPath, resolveFolderHandle]);
 
@@ -98,10 +110,10 @@ export function useTreeActions({
 
   const openPath = useCallback((path: string) => {
     const entry = entryByPath.get(path);
-    if (!entry) return;
+    if (!entry || busyFor(path)) return;
     openFile(entry.handle as FileSystemFileHandle, path);
     if (onClose && window.innerWidth < 1024) onClose();
-  }, [entryByPath, openFile, onClose]);
+  }, [entryByPath, openFile, onClose, busyFor]);
 
   const openRow = useCallback((row: VisibleRow) => {
     if (row.type === "folder") toggleFolder(row.path);
@@ -115,23 +127,28 @@ export function useTreeActions({
   ), [selection.selected]);
 
   const trashPaths = useCallback(async (paths: string[]) => {
-    const items = (await Promise.all(paths.map(async (path) => ({ handle: await handleFor(path), path }))))
-      .filter((item): item is { handle: FileSystemHandle; path: string } => !!item.handle);
-    if (items.length === 0) return;
-    if (trashItems) await trashItems(items);
-    else for (const item of items) await deleteFile(item.handle, item.path);
-  }, [handleFor, trashItems, deleteFile]);
+    const free = paths.filter((path) => !busyFor(path));
+    // Busy from this frame on, not only once the handles are found.
+    await withBusyPaths(store, free.map((path): [string, BusyPath] => [path, { op: "trash" }]), async () => {
+      const items = (await Promise.all(free.map(async (path) => ({ handle: await handleFor(path), path }))))
+        .filter((item): item is { handle: FileSystemHandle; path: string } => !!item.handle);
+      if (items.length === 0) return;
+      if (trashItems) await trashItems(items);
+      else for (const item of items) await deleteFile(item.handle, item.path);
+    });
+  }, [handleFor, trashItems, deleteFile, busyFor, store]);
 
   const trashSelection = useCallback(() => {
     if (selection.selected.size > 0) void trashPaths([...selection.selected]);
   }, [selection.selected, trashPaths]);
 
   const startRename = useCallback((path: string) => {
+    if (busyFor(path)) return;
     setMenu(null);
     setCreating(null);
     selection.selectOnly(path);
     setRenamingPath(path);
-  }, [selection]);
+  }, [selection, busyFor]);
 
   const renameEditing = useCallback((path: string): RowEditing | undefined => {
     if (renamingPath !== path) return undefined;
@@ -152,15 +169,16 @@ export function useTreeActions({
         // A note keeps .md unless it's renamed to a text file name (`plan.ts`).
         const keepsNote = isFile && name.endsWith(".md") && !typed.endsWith(".md") && !isPlainTextPath(typed);
         const newName = keepsNote ? `${typed}.md` : typed;
-        void (async () => {
+        // The new name shows, with a spinner, from this frame on.
+        void withBusyPaths(store, [[path, { op: "rename", newName }]], async () => {
           const handle = await handleFor(path);
           if (!handle) return;
           const newPath = await renameFile(handle, newName, path);
           if (typeof newPath === "string") reveal([newPath]);
-        })();
+        });
       },
     };
-  }, [renamingPath, kindOf, focusTree, handleFor, renameFile, reveal]);
+  }, [renamingPath, kindOf, focusTree, handleFor, renameFile, reveal, store]);
 
   // Without `parentPath`: in the focused folder, or the focused item's
   // folder, else the vault root.
@@ -225,32 +243,40 @@ export function useTreeActions({
   // `draggedEntry`.
   const dropInto = useCallback(async (targetPath: string, entry: DraggedEntry | null = draggedEntry) => {
     if (!entry || !resolveFolderHandle || (!moveItem && !moveItems)) return;
+    if (busyFor(targetPath)) return;
     const items = (entry.group ?? [entry]).filter((item) =>
+      !busyFor(item.path) &&
       parentFolderPath(item.path) !== targetPath &&
       !(item.kind === "folder" && isDescendantOrSelf(item.path, targetPath)),
     );
-    const targetHandle = await resolveFolderHandle(targetPath);
-    const handles = await Promise.all(items.map((item) =>
-      item.kind === "file" ? item.handle : resolveFolderHandle(item.path),
-    ));
-    const moving = items.filter((_, i) => handles[i]);
-    if (!targetHandle || moving.length === 0) return;
-    if (!entry.group && moveItem) await moveItem(handles[0], targetHandle);
-    else if (moveItems) await moveItems(handles.filter(Boolean), targetHandle);
-    else for (const handle of handles.filter(Boolean)) await moveItem!(handle, targetHandle);
-    reveal(moving.map((item) => joinPath(targetPath, item.name)));
-  }, [draggedEntry, resolveFolderHandle, moveItem, moveItems, reveal]);
+    if (items.length === 0) return;
+    // The dropped rows are busy from this frame on (moveItems marks them
+    // too, once their handles are found).
+    await withBusyPaths(store, items.map((item): [string, BusyPath] => [item.path, { op: "move" }]), async () => {
+      const targetHandle = await resolveFolderHandle(targetPath);
+      const handles = await Promise.all(items.map((item) =>
+        item.kind === "file" ? item.handle : resolveFolderHandle(item.path),
+      ));
+      const moving = items.filter((_, i) => handles[i]);
+      if (!targetHandle || moving.length === 0) return;
+      if (!entry.group && moveItem) await moveItem(handles[0], targetHandle);
+      else if (moveItems) await moveItems(handles.filter(Boolean), targetHandle);
+      else for (const handle of handles.filter(Boolean)) await moveItem!(handle, targetHandle);
+      reveal(moving.map((item) => joinPath(targetPath, item.name)));
+    });
+  }, [draggedEntry, resolveFolderHandle, moveItem, moveItems, reveal, busyFor, store]);
 
   const openMenu = useCallback((target: MenuTarget, x: number, y: number) => {
+    if (target.type === "row" && busyFor(target.path)) return;
     if (target.type === "row" && !selection.selected.has(target.path)) selection.selectOnly(target.path);
     setMenu({ x, y, target });
-  }, [selection]);
+  }, [selection, busyFor]);
 
   return {
     renamingPath, startRename, renameEditing,
     pendingCreate, startCreate,
     menu, openMenu, closeMenu: () => setMenu(null),
     trashPaths, trashSelection, targetPaths,
-    openPath, openRow, handleFor, startDrag, dropInto, kindOf, entryByPath, isFolderCollapsed,
+    openPath, openRow, handleFor, startDrag, dropInto, kindOf, entryByPath, isFolderCollapsed, busyFor,
   };
 }

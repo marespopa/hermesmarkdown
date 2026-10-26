@@ -5,11 +5,12 @@ import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterAll, test } from "vitest";
 import { frontmatterSpacer } from "./frontmatter-block";
+import { gitChanges, gitReplacedBlocks, setGitBaseline } from "./git-changes";
 import { computeMarkdownDecorations, markdownHighlightPlugin, type ScanCheckpoint } from "./highlight";
 import { linkDisplayPlugin } from "./link-display";
 import { buildLiveMarkerDecorations, liveMarkers } from "./live-markers";
 import { buildSyntaxRevealDecorations, revealAt, syntaxReveal } from "./syntax-reveal";
-import { collectTableDisplayMatches, tableDisplayExtension } from "./table-display";
+import { collectTableDisplayMatches, tableDisplayExtension, tableDisplayField } from "./table-display";
 import { tagPillPlugin } from "./tag-pills";
 
 // How the editor's per-edit work grows with the note: `corepack yarn bench`
@@ -18,7 +19,8 @@ import { tagPillPlugin } from "./tag-pills";
 // tasks, a table, a callout holding a list and a table, and a code block.
 // The state-level benches decorate a 60-line window at the end of the note
 // (the slowest place for highlight.ts without its saved checkpoints); the view benches
-// type and move the caret in a real EditorView (jsdom, so no layout).
+// type and move the caret in a real EditorView (jsdom, so no layout), once
+// more with Git Changes on against a HEAD that differs all through the note.
 
 function section(n: number): string {
   return [
@@ -88,12 +90,28 @@ function parsedState(doc: string): EditorState {
   return state.update({}).state;
 }
 
-function openView(doc: string): EditorView {
+// As the note editor adds it (extensions.ts): tables hide their lines, so
+// the deleted blocks go above them.
+const gitExtensions = [
+  ...extensions,
+  gitChanges(),
+  gitReplacedBlocks.of((state) => state.field(tableDisplayField, false)?.matches ?? []),
+];
+
+// HEAD's text for the Git Changes bench: one line in every 250 edited
+// since, so the diff has changed lines and deleted blocks all through the
+// note. (The 20,000-line note is just past MAX_GIT_LINES, so there it times
+// the cost of Git Changes being on with no diff to show.)
+function headVersion(doc: string): string {
+  return doc.split("\n").map((line, i) => (i % 250 === 10 ? `${line} (old)` : line)).join("\n");
+}
+
+function openView(doc: string, withExtensions = extensions): EditorView {
   const parent = document.createElement("div");
   document.body.appendChild(parent);
   const view = new EditorView({
     parent,
-    state: EditorState.create({ doc, selection: EditorSelection.cursor(doc.length), extensions }),
+    state: EditorState.create({ doc, selection: EditorSelection.cursor(doc.length), extensions: withExtensions }),
   });
   ensureSyntaxTree(view.state, view.state.doc.length, 60_000);
   view.dispatch({});
@@ -113,6 +131,8 @@ for (const lines of [2_000, 20_000]) {
     computeMarkdownDecorations(state, lastScreen[0], checkpoints);
     // One view per size: every iteration types into the same note, as you would.
     const view = openView(doc);
+    const gitView = openView(doc, gitExtensions);
+    gitView.dispatch({ effects: setGitBaseline.of({ text: headVersion(doc) }) });
 
     await bench.compare(
       bench("open: parse the whole note", () => {
@@ -136,6 +156,10 @@ for (const lines of [2_000, 20_000]) {
       bench("view: type one character at the end", () => {
         const end = view.state.doc.length;
         view.dispatch({ changes: { from: end, insert: "a" }, selection: EditorSelection.cursor(end + 1), userEvent: "input.type" });
+      }),
+      bench("view: type one character at the end, Git Changes on", () => {
+        const end = gitView.state.doc.length;
+        gitView.dispatch({ changes: { from: end, insert: "a" }, selection: EditorSelection.cursor(end + 1), userEvent: "input.type" });
       }),
       bench("view: move the caret one line up and back", () => {
         const head = view.state.selection.main.head;

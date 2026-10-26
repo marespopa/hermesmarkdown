@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { atom_busyPaths, busyEntry } from "@/app/atoms/busy-path-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_pins } from "@/app/atoms/pin-atoms";
 import { atom_noteDisplayItems } from "@/app/atoms/privacy-atoms";
@@ -25,7 +26,12 @@ export interface PinnedRow {
   current: boolean;
   /** The note is being opened (atom_openingFilePath): shown current already. */
   opening: boolean;
+  /** A rename, move or move to Trash is working on the note or folder
+   * (atom_busyPaths): a spinner, and a click does nothing until it's done. */
+  busy: boolean;
   open: () => void;
+  /** A note's file, read ahead while the pointer rests on its row. */
+  prefetch?: { path: string; handle: FileSystemFileHandle };
 }
 
 const lastSegment = (path: string) => path.split("/").pop() || path;
@@ -43,6 +49,7 @@ export function usePinnedRows(activePath: string | null): PinnedRow[] {
   const displayItems = useAtomValue(atom_noteDisplayItems);
   const indexed = useAtomValue(atom_indexerState) === "idle";
   const openingPath = useAtomValue(atom_openingFilePath);
+  const busyPaths = useAtomValue(atom_busyPaths);
   const showFolderInFiles = useSetAtom(atom_showFolderInFiles);
   const pathname = usePathname() ?? "";
   const urlTag = useSearchParams()?.get(TAG_PARAM) ?? null;
@@ -63,8 +70,12 @@ export function usePinnedRows(activePath: string | null): PinnedRow[] {
         // Indexed but not listable: hidden by Privacy Mode.
         if (meta && !display) continue;
         // The file's name, steady from the first paint (no title to wait
-        // for); a private note keeps Privacy Mode's masked title.
-        const label = display?.isPrivate ? display.title : lastSegment(pin.target).replace(/\.md$/i, "");
+        // for), a rename's new name at once; a private note keeps Privacy
+        // Mode's masked title.
+        const busy = busyEntry(busyPaths, pin.target);
+        const label = display?.isPrivate
+          ? display.title
+          : (busy?.newName ?? lastSegment(pin.target)).replace(/\.md$/i, "");
         const missing = indexed && !meta;
         const handle = meta?.handle as FileSystemFileHandle | null | undefined;
         rows.push({
@@ -73,16 +84,20 @@ export function usePinnedRows(activePath: string | null): PinnedRow[] {
           // Optimistic: the note being opened is current already.
           current: openingPath ? pin.target === openingPath : pin.target === activePath,
           opening: pin.target === openingPath,
+          busy: !!busy,
           open: missing ? gone(label) : () => { if (handle) void openHandle(handle, pin.target); },
+          ...(handle && !missing ? { prefetch: { path: pin.target, handle } } : {}),
         });
       } else if (pin.kind === "folder") {
-        const label = lastSegment(pin.target);
+        const busy = busyEntry(busyPaths, pin.target);
+        const label = busy?.newName ?? lastSegment(pin.target);
         const missing = indexed && !folders.has(pin.target);
         rows.push({
           key, pin, label, missing,
           title: pin.target,
           current: false,
           opening: false,
+          busy: !!busy,
           open: missing ? gone(label) : () => showFolderInFiles(pin.target),
         });
       } else if (pin.kind === "tag") {
@@ -90,6 +105,7 @@ export function usePinnedRows(activePath: string | null): PinnedRow[] {
           key, pin, label: `#${pin.target}`, missing: false,
           current: onTags && urlTag === pin.target,
           opening: false,
+          busy: false,
           open: () => {
             if (onTags) replaceUrlParam(TAG_PARAM, pin.target);
             else router.push(editorTagHref(pin.target));
@@ -102,6 +118,7 @@ export function usePinnedRows(activePath: string | null): PinnedRow[] {
           key, pin, label: page.label, missing: false,
           current: here && (pin.target !== "tags" || !urlTag),
           opening: false,
+          busy: false,
           open: () => {
             if (!here) router.push(page.href);
             // Tags with a tag chosen: back to the list of tags.
@@ -111,5 +128,5 @@ export function usePinnedRows(activePath: string | null): PinnedRow[] {
       }
     }
     return rows;
-  }, [pins, metadata, folderPaths, displayItems, indexed, openingPath, pathname, urlTag, activePath, router, openHandle, showFolderInFiles]);
+  }, [pins, metadata, folderPaths, displayItems, indexed, openingPath, busyPaths, pathname, urlTag, activePath, router, openHandle, showFolderInFiles]);
 }

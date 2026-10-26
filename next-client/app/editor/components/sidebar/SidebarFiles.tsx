@@ -6,6 +6,7 @@ import BareInput from "@/app/components/Input/BareInput";
 import { FIELD_SIDEBAR_CLASS } from "@/app/components/Input/field-styles";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { usePins } from "@/app/hooks/use-pins";
+import { useOpenSnapshotRow } from "@/app/hooks/use-vault-tree-snapshot";
 import VaultFileTree from "../VaultFileTree";
 import { fileCreateActions } from "../vault-tree/file-create-actions";
 import { getEntryPath, type VaultFileTreeController } from "../vault-tree/tree-model";
@@ -29,6 +30,8 @@ interface SidebarFilesProps {
 // every folder around them open; Escape clears it, ↓ or Enter moves into the tree.
 export default function SidebarFiles({ treeController, activeFilePath, openHandle, allFiles, folderPaths }: SidebarFilesProps) {
   const { isPinned, togglePin } = usePins();
+  // A row only the startup snapshot lists so far has no handle: by path.
+  const openSnapshotRow = useOpenSnapshotRow(openHandle);
   const [query, setQuery] = useState("");
   // The field shows each keystroke at once; the tree follows a beat behind
   // (React renders the filtered tree in the background, dropping stale
@@ -104,7 +107,7 @@ export default function SidebarFiles({ treeController, activeFilePath, openHandl
       <VaultFileTree
         processedFiles={shown.files}
         activeFilePath={activeFilePath}
-        openFile={(handle, path) => void openHandle(handle, path)}
+        openFile={(handle, path) => void (handle ? openHandle(handle, path) : path && openSnapshotRow(path))}
         renameFile={renameFile}
         deleteFile={deleteFile}
         trashItems={trashItems}

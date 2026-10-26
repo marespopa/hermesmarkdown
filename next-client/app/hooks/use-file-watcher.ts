@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom, useStore, useSetAtom } from "jotai";
-import { atom_openFiles, atom_liveHandles, atom_isVaultPending } from "@/app/atoms/atoms";
+import { atom_openFiles, atom_liveHandles, atom_isVaultPending, isOpenNotesHydrated, whenOpenNotesHydrated } from "@/app/atoms/atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
 import { createFileObserver } from "@/app/hooks/file-system/file-observer";
 import { indexNoteContent } from "@/app/services/content-search-client";
@@ -32,6 +32,8 @@ export function useFileWatcher() {
 
   const checkFiles = useCallback(async () => {
     if (isVaultPendingRef.current || isCheckingRef.current) return;
+    // Disk is compared with the notes' stored text, so that comes first.
+    if (!isOpenNotesHydrated()) await whenOpenNotesHydrated();
 
     isCheckingRef.current = true;
     setIsChecking(true);

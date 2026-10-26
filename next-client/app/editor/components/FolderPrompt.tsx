@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useAtom, useAtomValue } from "jotai";
-import { atom_openFiles } from "@/app/atoms/atoms";
+import { atom_draftHasText } from "@/app/atoms/atoms";
 import { atom_folderPromptDismissed } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -30,7 +30,7 @@ const barPlacement = {
 // can show (no vault, not locked).
 export default function FolderPrompt({ onChooseFolder, onDownload, placement = "bottom" }: FolderPromptProps) {
   const bar = `${barBase} ${barPlacement[placement]}`;
-  const hasText = !!useAtomValue(atom_openFiles).draft?.content.trim();
+  const hasText = useAtomValue(atom_draftHasText);
   const [dismissed, setDismissed] = useAtom(atom_folderPromptDismissed);
   const { isVaultSupported, isBrowserVaultSupported } = useFileSystem();
   if (!hasText) return null;

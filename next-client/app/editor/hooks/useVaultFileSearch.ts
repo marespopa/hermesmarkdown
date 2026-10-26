@@ -3,7 +3,8 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_vaultFiles, atom_vaultFolderPaths, atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
+import { atom_vaultFiles, atom_vaultFolderPaths, atom_vaultKey, atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
+import { atom_vaultTreeListedKey, atom_vaultTreeSnapshot } from "@/app/atoms/tree-snapshot-atoms";
 import { isPlainTextPath } from "@/app/utils/file-kinds";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
@@ -14,11 +15,13 @@ export type FileSearchView = "files" | "search";
 interface UseVaultFileSearchProps {
   selectedTags: string[];
   panel: FileSearchView;
+  /** The sidebar's tree: fill in the rows not found yet from the tree as last seen. */
+  rememberedTree?: boolean;
 }
 
 const MAX_SEARCH_RESULTS = 6;
 
-export function useVaultFileSearch({ selectedTags, panel }: UseVaultFileSearchProps) {
+export function useVaultFileSearch({ selectedTags, panel, rememberedTree = false }: UseVaultFileSearchProps) {
   const fileMetadata = useAtomValue(atom_fileMetadata);
   const vaultFiles = useAtomValue(atom_vaultFiles);
   const walkedFolderPaths = useAtomValue(atom_vaultFolderPaths);
@@ -65,7 +68,7 @@ export function useVaultFileSearch({ selectedTags, panel }: UseVaultFileSearchPr
   // Used by the file views (Files, the folder popover), which list the notes
   // and the vault's other text files (never indexed, so from their own walk
   // list, atom_vaultTextFiles).
-  const allFiles = useMemo(() => {
+  const foundFiles = useMemo(() => {
     const hasMetadata = Object.keys(fileMetadata).length > 0 || textFiles.length > 0;
 
     if (hasMetadata) {
@@ -86,6 +89,23 @@ export function useVaultFileSearch({ selectedTags, panel }: UseVaultFileSearchPr
       .map((f: any) => ({ name: f.name, kind: "file" as const, handle: f as FileSystemFileHandle, path: (f as any).path || f.name }));
   }, [fileMetadata, textFiles, vaultFiles, isHiddenPath, isVisibleFile]);
 
+  // On startup, until the vault's walk has listed every file, the tree as
+  // last seen fills in the rows not found yet (tree-snapshot-atoms.ts). Its
+  // rows have no handle (opened by path), sit where the found ones will,
+  // and the ones gone from the vault drop out when the walk is over.
+  const vaultKey = useAtomValue(atom_vaultKey);
+  const snapshot = useAtomValue(atom_vaultTreeSnapshot);
+  const listedKey = useAtomValue(atom_vaultTreeListedKey);
+  const treeSnapshot = rememberedTree && snapshot && snapshot.vaultKey === vaultKey && listedKey !== vaultKey ? snapshot : null;
+  const allFiles = useMemo(() => {
+    if (!treeSnapshot) return foundFiles;
+    const found = new Set(foundFiles.map((file) => file.path));
+    const remembered = treeSnapshot.files
+      .filter((path) => !found.has(path) && isVisibleFile(path) && !isHiddenPath(path))
+      .map((path) => ({ name: path.split("/").pop() || path, kind: "file" as const, handle: null as FileSystemFileHandle | null, path }));
+    return [...foundFiles, ...remembered].sort((a, b) => a.name.localeCompare(b.name));
+  }, [foundFiles, treeSnapshot, isVisibleFile, isHiddenPath]);
+
   // Metadata only indexes files, so folders come from the indexing walk
   // (every depth) plus the latest directory listing (a folder created since),
   // which lets empty folders remain visible in the Files tree.
@@ -93,11 +113,11 @@ export function useVaultFileSearch({ selectedTags, panel }: UseVaultFileSearchPr
     const listed = (Array.isArray(vaultFiles) ? vaultFiles : [])
       .filter((entry: any) => entry.kind === "directory")
       .map((entry: any) => (entry.path || entry.name) as string);
-    return [...new Set([...walkedFolderPaths, ...listed])].filter((path) =>
+    return [...new Set([...walkedFolderPaths, ...listed, ...(treeSnapshot?.folders ?? [])])].filter((path) =>
       (showHiddenFiles || !path.split("/").some((segment) => segment.startsWith("."))) &&
       !isHiddenPath(path),
     );
-  }, [vaultFiles, walkedFolderPaths, showHiddenFiles, isHiddenPath]);
+  }, [vaultFiles, walkedFolderPaths, treeSnapshot, showHiddenFiles, isHiddenPath]);
 
   const [showAllResults, setShowAllResults] = useState(false);
 

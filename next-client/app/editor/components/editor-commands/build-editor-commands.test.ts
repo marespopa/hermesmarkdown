@@ -50,7 +50,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     setAiBuilderRequest: vi.fn(),
     isAiEnabled: true,
     isAiConfigured: true,
-    content: "Note content",
+    activeIsBoard: false,
     workspaceLayout: { rootContainer: activeLeaf },
     activePaneId: activeLeaf.id,
     setActiveFilePath: vi.fn(),
@@ -104,9 +104,8 @@ describe("buildEditorCommands", () => {
   it("offers the board toggle only for a board, flipping its label", () => {
     expect(buildEditorCommands(createContext()).some((c) => c.id === "toggle-board-markdown")).toBe(false);
 
-    const boardContent = "---\nhermes: board\n---\n";
     const asBoard = createContext({
-      content: boardContent,
+      activeIsBoard: true,
       boardMarkdownPaths: new Set<string>(),
       toggleBoardMarkdown: vi.fn(),
     } as unknown as Partial<EditorCommandContext>);
@@ -116,7 +115,7 @@ describe("buildEditorCommands", () => {
     expect(asBoard.toggleBoardMarkdown).toHaveBeenCalledWith("Note.md");
 
     const asMarkdown = createContext({
-      content: boardContent,
+      activeIsBoard: true,
       boardMarkdownPaths: new Set(["Note.md"]),
     } as unknown as Partial<EditorCommandContext>);
     expect(buildEditorCommands(asMarkdown).find((c) => c.id === "toggle-board-markdown")?.label).toBe("Open as Board");

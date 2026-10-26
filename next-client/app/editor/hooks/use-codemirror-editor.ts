@@ -12,6 +12,7 @@ import { invisibles } from "../codemirror/invisibles";
 import { gitChanges } from "../codemirror/git-changes";
 import { changedRange } from "@/app/utils/text-diff";
 import { isPlainTextPath } from "@/app/utils/file-kinds";
+import { noteTyped } from "@/app/hooks/file-system/note-prefetch";
 
 interface UseCodeMirrorEditorOptions {
   value: string;
@@ -162,6 +163,7 @@ export function useCodeMirrorEditor({
         dispatchTransactions: (trs: any) => {
           view.update(trs);
           if (trs.some((tr: any) => tr.docChanged)) {
+            noteTyped();
             const text = view.state.doc.toString();
             lastEmittedRef.current = text;
             onChangeRef.current(text);

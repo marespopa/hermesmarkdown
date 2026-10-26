@@ -28,7 +28,6 @@ interface UseDraftFlowOptions {
 export function useDraftFlow({ vaultHandle, scanVault, indexVaultTags }: UseDraftFlowOptions) {
   const store = useStore();
   const activeFileHandle = useAtomValue(atom_activeFileHandle);
-  const content = useAtomValue(atom_content);
   const openDraft = useSetAtom(atom_openDraft);
   const setContent = useSetAtom(atom_content);
   const setFileName = useSetAtom(atom_fileName);
@@ -38,10 +37,11 @@ export function useDraftFlow({ vaultHandle, scanVault, indexVaultTags }: UseDraf
   // Passed to useAutoSave: waits for the first line so the file isn't named
   // after a half-typed title.
   const handleDraftAutosave = useCallback(() => {
-    if (!activeFileHandle && vaultHandle && isDraftTitleSettled(content)) {
+    // Read now, not subscribed: the editor page would re-render on every keystroke.
+    if (!activeFileHandle && vaultHandle && isDraftTitleSettled(store.get(atom_content))) {
       void materializeDraft();
     }
-  }, [activeFileHandle, vaultHandle, content, materializeDraft]);
+  }, [activeFileHandle, vaultHandle, store, materializeDraft]);
 
   const resetEditor = useCallback(() => {
     // Switch to the draft tab first: content/name/handle setters write to

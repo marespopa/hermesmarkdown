@@ -6,14 +6,16 @@
 // @codemirror/merge's `Chunk` (built once, then updated with each edit), and
 // the lines both sides share at a chunk's edges are dropped: a chunk is
 // widened to whole lines, so pressing Enter at the end of a line would
-// otherwise show that line as deleted and added again. Only the deleted
-// blocks are built for the whole file; the added lines' marks and tint are
-// drawn for the viewport, so typing in a long new file stays cheap.
+// otherwise show that line as deleted and added again. The added lines'
+// marks and tint are read from the chunks for the viewport on every edit.
+// The whole-file parts (the diff summary, the deleted blocks, the change
+// list) follow the text while typing and are rebuilt after a pause
+// (REFRESH_DELAY_MS), so a keystroke never redoes them.
 import { Chunk } from "@codemirror/merge";
 import { EditorSelection, type EditorState, type Extension, Facet, type Range, StateEffect, StateField, Text } from "@codemirror/state";
 import { Decoration, type DecorationSet, Direction, EditorView, keymap, layer, RectangleMarker, ViewPlugin, type ViewUpdate, WidgetType } from "@codemirror/view";
 import { flashLine } from "../utils/flash-line";
-import { gitDiff, type GitDiff, MAX_GIT_LINES } from "@/app/services/git/git-line-diff";
+import { gitDiff, lineChanges, type GitDiff, MAX_GIT_LINES } from "@/app/services/git/git-line-diff";
 
 export { gitDiff, MAX_GIT_LINES, type GitDiff } from "@/app/services/git/git-line-diff";
 
@@ -55,6 +57,10 @@ class DeletedLinesWidget extends WidgetType {
 
 const addedLine = Decoration.line({ class: "cm-git-added" });
 
+// After typing stops, before the whole-file diff is rebuilt (ms).
+export const REFRESH_DELAY_MS = 300;
+const refreshGitDiff = StateEffect.define<null>();
+
 // Diffs run on the main thread (on a new baseline and on each edit): a large,
 // very different file falls back to a faster, coarser diff instead of stalling.
 const DIFF_CONFIG: Parameters<typeof Chunk.build>[2] = { scanLimit: 500, timeout: 50 };
@@ -82,13 +88,18 @@ function decorate(diff: GitDiff, state: EditorState): DecorationSet {
 interface GitChangesValue {
   /** HEAD's text, or null while there's no diff to show. */
   base: Text | null;
+  /** Kept current with every edit. */
   chunks: readonly Chunk[];
+  /** As of the last rebuild (`stale` while typing since). */
   diff: GitDiff;
-  /** Where each change starts (line starts), for next / previous change. */
+  /** Where each change starts (line starts), for next / previous change; as of the last rebuild. */
   hunks: number[];
+  /** HEAD's deleted lines as block widgets; mapped through edits until the next rebuild. */
+  deleted: DecorationSet;
+  stale: boolean;
 }
 
-const EMPTY: GitChangesValue = { base: null, chunks: [], diff: { added: [], deleted: [], hunks: [] }, hunks: [] };
+const EMPTY: GitChangesValue = { base: null, chunks: [], diff: { added: [], deleted: [], hunks: [] }, hunks: [], deleted: Decoration.none, stale: false };
 
 /**
  * Runs of added lines (sorted line numbers) between positions `from` and
@@ -114,15 +125,45 @@ export function addedRunsIn(added: readonly number[], doc: Text, from: number, t
   return runs;
 }
 
-function withChunks(base: Text, doc: Text, chunks: readonly Chunk[]): GitChangesValue {
+function withChunks(base: Text, state: EditorState, chunks: readonly Chunk[]): GitChangesValue {
+  const { doc } = state;
   const diff = gitDiff(base, doc, chunks);
-  return { base, chunks, diff, hunks: diff.hunks.map((number) => doc.line(number).from) };
+  return { base, chunks, diff, hunks: diff.hunks.map((number) => doc.line(number).from), deleted: decorate(diff, state), stale: false };
 }
 
 function fromBaseline(baseline: GitBaseline, state: EditorState): GitChangesValue {
   if (baseline === "off" || state.doc.lines > MAX_GIT_LINES) return EMPTY;
   const base = baseline.text === null ? Text.empty : Text.of(baseline.text.split(/\r?\n/));
-  return withChunks(base, state.doc, Chunk.build(base, state.doc, DIFF_CONFIG));
+  return withChunks(base, state, Chunk.build(base, state.doc, DIFF_CONFIG));
+}
+
+/**
+ * The added or changed lines (line numbers) from `firstLine` to `lastLine`,
+ * read from the chunks around them only: the `+` marks and the tint for the
+ * viewport, current with every edit.
+ */
+export function addedLinesBetween(base: Text, doc: Text, chunks: readonly Chunk[], firstLine: number, lastLine: number): number[] {
+  const lines: number[] = [];
+  if (base.length === 0) {
+    if (doc.length > 0) for (let number = firstLine; number <= lastLine; number++) lines.push(number);
+    return lines;
+  }
+  const from = doc.line(firstLine).from;
+  const to = doc.line(lastLine).to;
+  // The first chunk that ends at or after `from` (chunks are in order).
+  let low = 0;
+  let high = chunks.length;
+  while (low < high) {
+    const mid = (low + high) >> 1;
+    if (chunks[mid].endB < from) low = mid + 1;
+    else high = mid;
+  }
+  for (let i = low; i < chunks.length && chunks[i].fromB <= to; i++) {
+    for (const change of lineChanges(base, doc, [chunks[i]])) {
+      for (let number = Math.max(change.firstB, firstLine); number <= Math.min(change.lastB, lastLine); number++) lines.push(number);
+    }
+  }
+  return lines;
 }
 
 export const gitChangesField = StateField.define<GitChangesValue>({
@@ -131,23 +172,47 @@ export const gitChangesField = StateField.define<GitChangesValue>({
     for (const effect of transaction.effects) {
       if (effect.is(setGitBaseline)) return fromBaseline(effect.value, transaction.state);
     }
-    if (!value.base || !transaction.docChanged) return value;
-    if (transaction.newDoc.lines > MAX_GIT_LINES) return EMPTY;
-    return withChunks(value.base, transaction.newDoc, Chunk.updateB(value.chunks, value.base, transaction.newDoc, transaction.changes, DIFF_CONFIG));
+    if (!value.base) return value;
+    if (transaction.docChanged) {
+      if (transaction.newDoc.lines > MAX_GIT_LINES) return EMPTY;
+      const chunks = Chunk.updateB(value.chunks, value.base, transaction.newDoc, transaction.changes, DIFF_CONFIG);
+      return { ...value, chunks, deleted: value.deleted.map(transaction.changes), hunks: value.hunks.map((pos) => transaction.changes.mapPos(pos)), stale: true };
+    }
+    if (value.stale && transaction.effects.some((effect) => effect.is(refreshGitDiff))) {
+      return withChunks(value.base, transaction.state, value.chunks);
+    }
+    return value;
   },
+  // Provided directly (not from a plugin), so the deleted blocks may change the layout.
+  provide: (field) => EditorView.decorations.from(field, (value) => value.deleted),
 });
 
-// Computed after the fields `gitReplacedBlocks` reads (tables come later in
-// the note editor's extensions), and provided directly, so the deleted
-// blocks may change the layout.
-const gitDecorations = EditorView.decorations.compute([gitChangesField, gitReplacedBlocks], (state) =>
-  decorate(state.field(gitChangesField).diff, state),
+// Rebuilds the whole-file diff once typing has paused.
+const refreshAfterPause = ViewPlugin.fromClass(
+  class {
+    timer: ReturnType<typeof setTimeout> | undefined;
+    constructor(readonly view: EditorView) {}
+    update(update: ViewUpdate) {
+      if (!update.docChanged || !update.state.field(gitChangesField, false)?.stale) return;
+      clearTimeout(this.timer);
+      this.timer = setTimeout(() => this.view.dispatch({ effects: refreshGitDiff.of(null) }), REFRESH_DELAY_MS);
+    }
+    destroy() {
+      clearTimeout(this.timer);
+    }
+  },
 );
 
 const diffChanged = (update: ViewUpdate) => update.startState.field(gitChangesField, false) !== update.state.field(gitChangesField, false);
 
-const visibleRuns = (view: EditorView) =>
-  addedRunsIn(view.state.field(gitChangesField, false)?.diff.added ?? [], view.state.doc, view.viewport.from, view.viewport.to);
+const visibleRuns = (view: EditorView) => {
+  const value = view.state.field(gitChangesField, false);
+  if (!value?.base) return [];
+  const { doc } = view.state;
+  const firstLine = doc.lineAt(view.viewport.from).number;
+  const lastLine = doc.lineAt(view.viewport.to).number;
+  return addedRunsIn(addedLinesBetween(value.base, doc, value.chunks, firstLine, lastLine), doc, view.viewport.from, view.viewport.to);
+};
 
 // The added lines' `+`, for the lines in the viewport only.
 const addedLines = ViewPlugin.fromClass(
@@ -230,7 +295,9 @@ function blockMarkers(view: EditorView, runs: readonly { from: number; to: numbe
 // Moves the caret to the start of the next (or previous) change, wrapping
 // around the file, and flashes that line. False when there are no changes.
 function goToChange(view: EditorView, direction: 1 | -1): boolean {
-  const hunks = view.state.field(gitChangesField, false)?.hunks ?? [];
+  const value = view.state.field(gitChangesField, false);
+  // Typed since the last rebuild: read the changes as they are now.
+  const hunks = value?.base && value.stale ? withChunks(value.base, view.state, value.chunks).hunks : (value?.hunks ?? []);
   if (hunks.length === 0) return false;
   const line = view.state.doc.lineAt(view.state.selection.main.head);
   const target =
@@ -263,7 +330,7 @@ const gitChangesTheme = EditorView.baseTheme({
 export function gitChanges(): Extension {
   return [
     gitChangesField,
-    gitDecorations,
+    refreshAfterPause,
     addedLines,
     addedTint,
     gitChangesTheme,

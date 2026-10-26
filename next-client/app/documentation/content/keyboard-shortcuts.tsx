@@ -57,7 +57,7 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "Open Settings", shortcut: "CTRL/CMD+," },
             { label: "Close the file in front", shortcut: "CTRL/CMD+ALT+W" },
             { label: "Open a pinned item (1–9, in the Pinned order)", shortcut: "CTRL/CMD+1–9" },
-            { label: "Back to where you were before a pinned item (again to return)", shortcut: "CTRL/CMD+0" },
+            { label: "Back to the previous note (again to return)", shortcut: "CTRL/CMD+0" },
             { label: "Outline on / off", shortcut: "CTRL/CMD+SHIFT+M" },
             { label: "Show / hide sidebar", shortcut: "CTRL/CMD+\\, CTRL/CMD+ALT+S or CTRL+[" },
             { label: "Sentence focus on / off", shortcut: "CTRL/CMD+ALT+F" },

@@ -29,7 +29,7 @@ function getShortcutGroups(): ShortcutGroup[] {
         { label: "Command palette", keys: `${formatShortcut("K", { shift: true })} / ${formatShortcut("P", { shift: true })}` },
         { label: "Search file text", keys: formatShortcut("F", { shift: true }) },
         { label: "Open pinned item 1–9", keys: `${formatShortcut("1")}–9` },
-        { label: "Back to where you were before a pinned item", keys: formatShortcut("0") },
+        { label: "Back to the previous note", keys: formatShortcut("0") },
         { label: "New file", keys: mac ? "⌃⌥N" : "Ctrl+Alt+N" },
         { label: "Close current tab", keys: formatShortcut("W", { alt: true }) },
         { label: "Save", keys: formatShortcut("S") },
