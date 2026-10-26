@@ -218,6 +218,19 @@ describe("SidebarPinned", () => {
     expect(navigation.push).not.toHaveBeenCalled();
   });
 
+  it("goes back to where a Ctrl/Cmd+1–9 jump left from with Ctrl/Cmd+0", () => {
+    setup({ activePath: "projects/notes.md", metadata: { "projects/roadmap.md": meta("projects/roadmap.md"), "projects/notes.md": meta("projects/notes.md") } });
+    // Nothing to go back to yet: the key is left alone.
+    const untouched = new KeyboardEvent("keydown", { key: "0", ctrlKey: true, cancelable: true });
+    window.dispatchEvent(untouched);
+    expect(untouched.defaultPrevented).toBe(false);
+
+    fireEvent.keyDown(window, { key: "4", ctrlKey: true });
+    expect(navigation.push).toHaveBeenLastCalledWith("/editor/tasks");
+    fireEvent.keyDown(window, { key: "0", metaKey: true });
+    expect(openFile).toHaveBeenLastCalledWith(handle, "projects/notes.md");
+  });
+
   it("lists at most nine pins", () => {
     const many: Pin[] = Array.from({ length: 11 }, (_, i) => ({ kind: "tag", target: `tag${i + 1}`, icon: null }));
     setup({ pinned: many });

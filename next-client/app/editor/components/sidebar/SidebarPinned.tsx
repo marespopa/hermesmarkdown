@@ -17,6 +17,7 @@ import { pinGlyph } from "./pinned-pages";
 import SidebarSection from "./SidebarSection";
 import { SIDEBAR_ITEM_CURRENT_CLASS, SIDEBAR_ITEM_IDLE_CLASS } from "./sidebar-classes";
 import { usePinnedRows, type PinnedRow } from "./use-pinned-rows";
+import { usePinReturn } from "./use-pin-return";
 import { useSidebarNavigation } from "./use-sidebar-navigation";
 
 const MENU_ICON = { size: 15, "aria-hidden": true } as const;
@@ -36,7 +37,8 @@ const SIDEBAR_ROW_CLASS = "flex items-center h-7 rounded-md text-ui-footnote tra
 // (FolderPopover) under its row, a click or its Ctrl/Cmd+number again
 // closing it; the list's Show in Files reveals it in the tree. Dragging a row (or
 // Alt+↑/↓ on it) reorders the pins. At most nine are listed (PINS_MAX), each
-// opened by Ctrl/Cmd+1–9 from anywhere, its key shown at the row's end.
+// opened by Ctrl/Cmd+1–9 from anywhere, its key shown at the row's end;
+// Ctrl/Cmd+0 goes back to where that jump left from (usePinReturn).
 // Pinning itself is done elsewhere (the Files and note menus, the palette,
 // the Tags page, Pin Page to Sidebar…). Each change is saved at once, on
 // this device (pin-atoms.ts). A pin whose note or folder is gone shows
@@ -66,6 +68,7 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
   const sidebarOpen = useAtomValue(atom_sidebarOpen);
   const { openHandle, toEditor } = useSidebarNavigation();
   const { newNoteIn, newFolderIn } = useFolderCreateActions();
+  const { remember, goBack } = usePinReturn(activePath);
 
   // A click (or Ctrl/Cmd+number): a folder toggles its list, the rest open.
   const activate = useCallback((row: PinnedRow) => {
@@ -88,19 +91,26 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
   };
 
   // Ctrl/Cmd+1–9 opens the pin in that place (at most nine are listed),
-  // from anywhere in the window, the editor included.
+  // from anywhere in the window, the editor included; Ctrl/Cmd+0 goes back
+  // to where the last jump left from (a folder's list opens in place, so
+  // it's no jump).
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       // A dialog or picker that numbers its own rows (TemplatePicker) handled it first.
-      if (event.defaultPrevented || !(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || !/^[1-9]$/.test(event.key)) return;
+      if (event.defaultPrevented || !(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || !/^[0-9]$/.test(event.key)) return;
+      if (event.key === "0") {
+        if (goBack()) event.preventDefault();
+        return;
+      }
       const row = rows[Number(event.key) - 1];
       if (!row) return;
       event.preventDefault();
+      if (!row.current && !row.missing && row.pin.kind !== "folder") remember();
       activate(row);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [rows, activate]);
+  }, [rows, activate, remember, goBack]);
 
   if (!rows.length) return null;
 
