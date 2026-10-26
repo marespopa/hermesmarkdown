@@ -1,0 +1,4 @@
+finished	from	agent	model	attempt	exit	cost_usd	turns	duration_ms	input	cache_write	cache_read	output
+2026-10-26T13:13:20Z	new	hermes-architect	opus	1	0	2.4238120000000003	39	424749	60	143703	2365640	40041
+2026-10-26T13:25:47Z	specced	hermes-engineer	sonnet	1	0	2.7843617000000003	117	741272	142	210125	9133477	103023
+2026-10-26T13:27:38Z	review	hermes-review	sonnet	1	0	0.41896829999999996	29	105675	32	67214	632083	8684

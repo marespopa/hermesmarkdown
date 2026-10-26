@@ -75,6 +75,19 @@ describe("AppCommands and SettingsCommands", () => {
     expect(command("show-changes")?.disabledReason).toBe("Already in Changes");
   });
 
+  it("opens Replace in Files, and is disabled on it", () => {
+    renderCommands();
+    expect(command("replace-in-files")?.label).toBe("Replace in Files…");
+    expect(command("replace-in-files")?.disabledReason).toBeUndefined();
+    act(() => { void command("replace-in-files")?.action(); });
+    expect(push).toHaveBeenCalledWith("/editor/replace");
+    cleanup();
+
+    pathname = "/editor/replace";
+    renderCommands();
+    expect(command("replace-in-files")?.disabledReason).toBe("Already in Replace in Files");
+  });
+
   it("toggles Git Changes and explains when the vault isn't a repository", () => {
     const store = createStore();
     renderCommands(store);

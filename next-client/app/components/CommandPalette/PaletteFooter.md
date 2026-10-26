@@ -7,6 +7,8 @@ Description: The command palette's foot and its legend: one chip per search mode
 |---|---|---|
 | `scope` | `Scope \| null` | The mode in use (null: notes, or a menu is open) |
 | `onScope` | `(scope) => void` | A chip was clicked; the palette toggles that mode, clears the query and any open menu, and refocuses the field |
+| `regex` | `{ on, onToggle }?` | The `/` scope's Regex chip (Alt+R); left out elsewhere |
+| `replace` | `{ onReplace }?` | The `/` scope's **Replace…** chip (`⇄` key cap, `aria-label="Replace in files"`), passed once a query is typed: the palette closes and opens Replace in Files with that query (and Regex when on) |
 
 ## Accessibility
 - The chips are a `role="group"` named "Search modes"; each chip's name is its mode ("Tags"), its title adds the prefix.

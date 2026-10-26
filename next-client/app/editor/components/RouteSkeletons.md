@@ -7,6 +7,7 @@ Description: Loading outlines of the /editor sub-pages, so a refresh on one show
 - `SettingsSkeleton`: the section list (top strip below `lg`) and the open section's title over setting rows.
 - `TrashSkeleton`: the Trash title and note, and the item list.
 - `ChangesSkeleton`: the Changes title over `ChangesBodySkeleton` (a summary bar and two file section blocks), which the Changes page also shows while its scan has no result yet.
+- `ReplaceSkeleton`: the Replace in Files title, two field bars and three row bars.
 - `TagsSkeleton`: the tag list beside the notes column.
 
 Text that needs no vault is real; the rest are bars in a line box set in the real text's type (a non-breaking space gives it that height), so the page lands without a shift. Also exports `SKELETON_BAR` (the placeholder fill, static black / white so its opacity works, pulsing only when motion is allowed; EditorSkeleton uses it too).

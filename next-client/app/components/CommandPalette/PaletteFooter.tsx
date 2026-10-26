@@ -12,14 +12,17 @@ interface PaletteFooterProps {
   onScope: (scope: Scope) => void;
   /** The `/` scope's Regex toggle (Alt+R); left out elsewhere. */
   regex?: { on: boolean; onToggle: () => void };
+  /** The `/` scope's Replace… chip, shown once a query is typed: opens Replace in Files with it. */
+  replace?: { onReplace: () => void };
 }
 
 // The palette's foot is its legend: one chip per search mode, its prefix
 // in a key cap. Clicking a chip is the same as typing its prefix; the one
 // in use is lit, and clicking it again goes back to notes. Settings and the
 // theme are commands in the list, not buttons here. In the `/` scope a
-// Regex chip, lit while on, reads the query as a regular expression.
-export default function PaletteFooter({ scope, onScope, regex }: PaletteFooterProps) {
+// Regex chip, lit while on, reads the query as a regular expression, and a
+// Replace… chip opens Replace in Files with the query.
+export default function PaletteFooter({ scope, onScope, regex, replace }: PaletteFooterProps) {
   return (
     <footer className="flex shrink-0 items-center gap-2 border-t border-edge-subtle py-1.5 pl-2 pr-3 font-sans text-ui-caption text-fg-muted">
       <div
@@ -64,6 +67,18 @@ export default function PaletteFooter({ scope, onScope, regex }: PaletteFooterPr
             .*
           </kbd>
           Regex
+        </Button>
+      )}
+      {replace && (
+        <Button
+          variant="unstyled"
+          aria-label="Replace in files"
+          title="Replace this search across files"
+          onClick={replace.onReplace}
+          className="flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-1.5 transition-colors hover:bg-fill hover:text-fg"
+        >
+          <kbd className="flex h-[18px] min-w-[18px] items-center justify-center rounded border border-edge-subtle px-0.5 font-mono text-[11px]">⇄</kbd>
+          Replace…
         </Button>
       )}
       <span className="shrink-0 text-fg-faint">v{version}</span>

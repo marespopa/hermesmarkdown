@@ -41,6 +41,7 @@ Every /editor route shares one frame, `components/EditorShell`: a plain page wit
 | `/editor?file=notes/plan.md` | The note in front (`hooks/use-active-file-url.ts`: opened, or its tab brought forward, once the vault is readable; then kept in step with the focused tab) |
 | `/editor` | The draft |
 | `/editor/tasks`, `/editor/templates`, `/editor/trash`, `/editor/files` | Tasks, Templates, Trash (Put Back / Delete, `app/hooks/file-system/trash-ops.ts`), All Files |
+| `/editor/replace?find=…&regex=1` | Replace in Files: find and replace text across the vault's notes with a preview of every match, per-match opt-out and Undo (`replace/`, see its README; `editorReplaceHref` builds the link, the palette's `/` scope Replace… chip uses it; `find` stays in the URL as you type) |
 | `/editor/changes` | Changes: a read-only diff of every file changed since HEAD, like a pull request's file list (`changes/`, see its README); the scan runs in `workers/git-changes.worker.ts` |
 | `/editor/tags?tag=release` | Tags: every tag with its count, and the chosen tag's notes (`tags/page.tsx`, inside `<Suspense>`: the chosen tag follows the URL through `useSearchParams`, so a pinned tag clicked in the sidebar rewrites it in place; `editorTagHref` builds the link). The chosen tag's heading (`tags/TagHeading.tsx`) has a **Pin** button on desktop that pins the tag to the sidebar's Pinned section; pinned, it reads **Pinned** and is disabled |
 | `/editor/settings?section=editor` | A Settings section (the first one has no parameter) |

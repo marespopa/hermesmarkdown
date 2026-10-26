@@ -1,0 +1,1 @@
+- engineer: implemented all 3 phases + tests + docs (nothing run). Likeliest CI failures: page.test.tsx (fake timers + mocked hooks, row ordering), use-apply-replace.test.tsx (mock of useNoteBuffer/useFileSystem), CommandPalette tests now render the Replace… chip via editor-url import.
