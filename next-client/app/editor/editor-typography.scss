@@ -71,8 +71,8 @@
    in Apple's headline styles. No room above or below: only real blank lines space a heading from its
    neighbours, so a missing blank line shows here rather than only after
    the Markdown is pasted elsewhere. That includes H1 under the frontmatter
-   block: the blank line or spacer after it already matches the sheet's
-   padding above it. */
+   block: the blank line or spacer after it gives a short, fixed gap
+   (`--frontmatter-gap`, frontmatter-block.ts). */
 .editor-sheet.editor-container .cm-line.cm-heading {
   color: var(--fg);
   line-height: 1.3;

@@ -52,8 +52,12 @@ export function frontmatterSummary(state: EditorState): FrontmatterSummary {
   return { title, tags };
 }
 
-// Room between the frontmatter and text that follows its closing `---`
-// directly (see `.cm-frontmatter-spacer` in theme.ts).
+// Room between the frontmatter and the text under it, the same either way
+// (`--frontmatter-gap`, theme.ts): text right after the closing `---` gets
+// a spacer block, and the one blank line most notes have there is drawn at
+// that height (`.cm-frontmatter-gap`) instead of a full line. Only a single
+// blank line: two or more add room as anywhere else, and a blank last line
+// keeps its full height to type on.
 class FrontmatterSpacerWidget extends WidgetType {
   eq() {
     return true;
@@ -67,19 +71,23 @@ class FrontmatterSpacerWidget extends WidgetType {
   }
 
   get estimatedHeight() {
-    return 24;
+    return 16;
   }
 }
 
 const spacer = Decoration.widget({ block: true, side: 1, widget: new FrontmatterSpacerWidget() });
+const gapLine = Decoration.line({ class: "cm-frontmatter-gap" });
 
 // Rebuilt on every edit, so it reads only the block itself, never the whole note.
 function spacerDecorations(state: EditorState): DecorationSet {
   const range = frontmatterRangeOf(state.doc);
   if (!range) return Decoration.none;
   const next = state.doc.lineAt(range.closeTo).number + 1;
-  if (next > state.doc.lines || state.doc.line(next).text.trim() === "") return Decoration.none;
-  return Decoration.set([spacer.range(range.closeTo)]);
+  if (next > state.doc.lines) return Decoration.none;
+  const nextLine = state.doc.line(next);
+  if (nextLine.text.trim() !== "") return Decoration.set([spacer.range(range.closeTo)]);
+  if (next + 1 > state.doc.lines || state.doc.line(next + 1).text.trim() === "") return Decoration.none;
+  return Decoration.set([gapLine.range(nextLine.from)]);
 }
 
 export const frontmatterSpacer = StateField.define<DecorationSet>({

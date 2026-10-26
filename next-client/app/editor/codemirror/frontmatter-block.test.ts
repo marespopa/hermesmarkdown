@@ -35,6 +35,15 @@ describe("frontmatter block", () => {
     expect(tight.contentDOM.querySelectorAll(".cm-frontmatter-spacer")).toHaveLength(1);
     expect(makeView("---\ntitle: Note\n---\n\nBody").contentDOM.querySelector(".cm-frontmatter-spacer")).toBeNull();
   });
+
+  it("draws a single blank line under the block as the short gap", () => {
+    const gaps = (doc: string) => makeView(doc).contentDOM.querySelectorAll(".cm-frontmatter-gap").length;
+    expect(gaps("---\ntitle: Note\n---\n\n# Heading")).toBe(1);
+    // More blank lines add room as anywhere else; a blank last line keeps its height to type on.
+    expect(gaps("---\ntitle: Note\n---\n\n\n# Heading")).toBe(0);
+    expect(gaps("---\ntitle: Note\n---\n")).toBe(0);
+    expect(gaps("---\ntitle: Note\n---\nBody")).toBe(0);
+  });
 });
 
 describe("insertOrRevealFrontmatter", () => {
