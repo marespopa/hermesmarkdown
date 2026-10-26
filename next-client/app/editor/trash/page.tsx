@@ -17,11 +17,22 @@ const deletedLabel = (date: Date | null) =>
 // first, each with where it came from. Put Back moves it there again (its
 // folders made again if need be); Delete, or Empty Trash, removes it for
 // good after asking. Items are emptied on their own after the retention
-// period.
+// period. While one is being put back or deleted its buttons are disabled
+// and it shows a spinner.
 export default function TrashPage() {
   const { vaultHandle, scanVault, indexVaultTags } = useFileSystem();
   const dialog = useDialog();
   const [items, setItems] = useState<TrashedItem[] | null>(null);
+  // Trash paths being put back or deleted.
+  const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
+  const markBusy = (targets: TrashedItem[], on: boolean) => setBusy((prev) => {
+    const next = new Set(prev);
+    for (const item of targets) {
+      if (on) next.add(item.trashPath);
+      else next.delete(item.trashPath);
+    }
+    return next;
+  });
 
   const reload = useCallback(async () => {
     setItems(vaultHandle ? await listTrash(vaultHandle) : []);
@@ -32,7 +43,8 @@ export default function TrashPage() {
   }, [reload]);
 
   const putBack = async (item: TrashedItem) => {
-    if (!vaultHandle) return;
+    if (!vaultHandle || busy.has(item.trashPath)) return;
+    markBusy([item], true);
     try {
       const path = await restoreFromTrash(vaultHandle, item);
       await scanVault(vaultHandle);
@@ -42,11 +54,13 @@ export default function TrashPage() {
       toast.error(err?.message || `Couldn't put “${item.name}” back`);
     }
     await reload();
+    markBusy([item], false);
   };
 
   const remove = async (targets: TrashedItem[], message: string) => {
     if (!vaultHandle || targets.length === 0) return;
     if (!(await dialog.confirm(message, "Delete Permanently", "Delete"))) return;
+    markBusy(targets, true);
     for (const slot of new Set(targets.map((item) => item.slot))) {
       try {
         await deleteTrashSlot(vaultHandle, slot);
@@ -56,6 +70,7 @@ export default function TrashPage() {
       }
     }
     await reload();
+    markBusy(targets, false);
   };
 
   return (
@@ -72,6 +87,7 @@ export default function TrashPage() {
             {!!items?.length && (
               <Button
                 variant="small"
+                isDisabled={busy.size > 0}
                 onClick={() => void remove(items, `Delete all ${items.length} items in the Trash? This cannot be undone.`)}
               >
                 <HiOutlineTrash size={14} aria-hidden /> Empty Trash
@@ -89,8 +105,9 @@ export default function TrashPage() {
             <ul aria-label="Trashed items" className="divide-y divide-edge-subtle overflow-hidden rounded-xl border border-edge-subtle bg-surface">
               {items.map((item) => {
                 const from = item.originalPath?.split("/").slice(0, -1).join("/");
+                const isBusy = busy.has(item.trashPath);
                 return (
-                  <li key={item.trashPath} className="flex items-center gap-3 px-4 py-2.5">
+                  <li key={item.trashPath} aria-busy={isBusy || undefined} className="flex items-center gap-3 px-4 py-2.5">
                     {item.kind === "directory"
                       ? <HiOutlineFolder size={16} aria-hidden className="shrink-0 text-fg-faint" />
                       : <HiOutlineDocumentText size={16} aria-hidden className="shrink-0 text-fg-faint" />}
@@ -100,11 +117,18 @@ export default function TrashPage() {
                         {deletedLabel(item.deletedAt)}{from ? ` from ${from}` : ""}
                       </p>
                     </div>
-                    <Button variant="small" onClick={() => void putBack(item)} aria-label={`Put back ${item.name}`}>
+                    {isBusy && (
+                      // After a moment (a quick one shows nothing).
+                      <span role="status" aria-label="Working…" className="loading-bar-appear flex h-3 w-3 shrink-0 items-center justify-center">
+                        <span className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-fg-faint border-t-transparent motion-reduce:animate-none" />
+                      </span>
+                    )}
+                    <Button variant="small" isDisabled={isBusy} onClick={() => void putBack(item)} aria-label={`Put back ${item.name}`}>
                       <HiOutlineReply size={14} aria-hidden /> Put Back
                     </Button>
                     <Button
                       variant="small"
+                      isDisabled={isBusy}
                       onClick={() => void remove([item], `Delete “${item.name}” permanently? This cannot be undone.`)}
                       aria-label={`Delete ${item.name} permanently`}
                     >

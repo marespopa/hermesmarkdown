@@ -11,6 +11,7 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_remapVaultPaths, type FileUndoGroup } from "@/app/atoms/vault-atoms";
 import { useRewriteLinksAfterMove } from "./use-rewrite-links";
 import { useDialog } from "../use-dialog";
+import { withBusyPaths } from "./busy-paths";
 import { caseStepName, moveDirectoryByCopy, moveFileByCopy } from "./directory-ops";
 
 // Whether `from` is gone from `dir` and `to` is there, by the names as
@@ -175,51 +176,54 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
         }
       };
 
-      const before = store.get(atom_fileMetadata);
-      try {
-        await rename();
-      } catch (err: any) {
-        console.error("File System Error:", err?.message || err);
-        // A browser that reports a rename that went through as failed: the
-        // disk has the new name and not the old, so it's done.
-        if (!(await renamedOnDisk(parentDir, currentName, newName))) {
-          if (err?.name === "NotFoundError") {
-            // Gone from disk (removed or renamed elsewhere): say so in plain
-            // words, and bring the Files list back in step.
-            toast.error(`Couldn't rename "${currentName}": it's no longer in this folder.`);
-            void scanVault(vaultHandle);
-          } else {
-            toast.error(err.message || "Failed to rename");
-          }
-          return;
-        }
-      }
-
-      // 3. Follow the rename in open tabs (keeping unsaved edits, with fresh
-      // handles), pane layouts, metadata and the file tree — for a folder,
-      // that includes everything inside it.
-      try {
-        await remapVaultPaths({ oldPath, newPath });
-        recordUndo("Rename", [{ from: oldPath, to: newPath }]);
-        // Links to the renamed note(s) follow it; a failure here never
-        // undoes the rename or skips the rescan.
+      // The row shows the new name and a spinner until it's all done.
+      return withBusyPaths(store, [[oldPath, { op: "rename", newName }], [newPath, { op: "rename" }]], async () => {
+        const before = store.get(atom_fileMetadata);
         try {
-          const { updated, failed } = await rewriteLinks(before, [{ from: oldPath, to: newPath }]);
-          if (updated > 0) toast.success(`Updated links in ${updated} note${updated === 1 ? "" : "s"}`);
-          if (failed > 0) toast.error(`Couldn't update links in ${failed} note${failed === 1 ? "" : "s"}`);
+          await rename();
         } catch (err: any) {
-          console.error("Link update failed:", err?.message || err);
-          toast.error("Couldn't update links");
+          console.error("File System Error:", err?.message || err);
+          // A browser that reports a rename that went through as failed: the
+          // disk has the new name and not the old, so it's done.
+          if (!(await renamedOnDisk(parentDir, currentName, newName))) {
+            if (err?.name === "NotFoundError") {
+              // Gone from disk (removed or renamed elsewhere): say so in plain
+              // words, and bring the Files list back in step.
+              toast.error(`Couldn't rename "${currentName}": it's no longer in this folder.`);
+              void scanVault(vaultHandle);
+            } else {
+              toast.error(err.message || "Failed to rename");
+            }
+            return;
+          }
         }
-        // The whole vault: listing just the parent would replace the root
-        // listing the file tree reads its top-level folders from.
-        await scanVault(vaultHandle);
-        indexVaultTags();
-      } catch (err: any) {
-        console.error("Rename follow-up failed:", err?.message || err);
-        toast.error("Renamed, but the workspace could not be refreshed");
-      }
-      return newPath;
+
+        // 3. Follow the rename in open tabs (keeping unsaved edits, with fresh
+        // handles), pane layouts, metadata and the file tree — for a folder,
+        // that includes everything inside it.
+        try {
+          await remapVaultPaths({ oldPath, newPath });
+          recordUndo("Rename", [{ from: oldPath, to: newPath }]);
+          // Links to the renamed note(s) follow it; a failure here never
+          // undoes the rename or skips the rescan.
+          try {
+            const { updated, failed } = await rewriteLinks(before, [{ from: oldPath, to: newPath }]);
+            if (updated > 0) toast.success(`Updated links in ${updated} note${updated === 1 ? "" : "s"}`);
+            if (failed > 0) toast.error(`Couldn't update links in ${failed} note${failed === 1 ? "" : "s"}`);
+          } catch (err: any) {
+            console.error("Link update failed:", err?.message || err);
+            toast.error("Couldn't update links");
+          }
+          // The whole vault: listing just the parent would replace the root
+          // listing the file tree reads its top-level folders from.
+          await scanVault(vaultHandle);
+          indexVaultTags();
+        } catch (err: any) {
+          console.error("Rename follow-up failed:", err?.message || err);
+          toast.error("Renamed, but the workspace could not be refreshed");
+        }
+        return newPath;
+      });
     },
     [
       vaultHandle,

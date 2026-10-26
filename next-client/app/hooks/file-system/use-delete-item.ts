@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useSetAtom, useStore } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
 import {
@@ -20,6 +20,8 @@ import { emptyDirectory } from "./directory-ops";
 import { moveToTrash } from "./trash-ops";
 import { TRASH_DIR } from "@/app/services/vault-trash";
 import { showUndoToast } from "./undo-toast";
+import { withBusyPaths } from "./busy-paths";
+import type { BusyPath } from "@/app/atoms/busy-path-atoms";
 
 interface UseDeleteItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -56,6 +58,7 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
   const forgetFileTreePaths = useSetAtom(atom_forgetFileTreePaths);
   const forgetPins = useSetAtom(atom_forgetPins);
   const dialog = useDialog();
+  const store = useStore();
 
   // Clears a removed item (and, for a folder, everything in it) from the
   // tabs, metadata and file tree right away, without waiting for a re-index.
@@ -211,13 +214,13 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
       };
 
       try {
-        await attemptDelete();
+        await withBusyPaths(store, path ? [[path, { op: "delete" }]] : [], () => attemptDelete());
       } catch (err: any) {
         console.error("File System Error:", err?.message || err);
         toast.error("Failed to delete");
       }
     },
-    [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, forgetItem, dialog],
+    [vaultHandle, currentDirectoryHandle, scanVault, indexVaultTags, forgetItem, dialog, store],
   );
 
   const trashItems = useCallback(
@@ -242,31 +245,35 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
       const failed: typeof located = [];
       // The vault's data folder holds the Trash, so it can't go in it.
       const holdsTrash: typeof located = [];
-      for (const [index, item] of outermostItems(located).entries()) {
-        if (TRASH_DIR.startsWith(`${item.path}/`)) {
-          holdsTrash.push(item);
-          continue;
+      const outermost = outermostItems(located);
+      // Rows show a spinner until the move and the rescan are done.
+      await withBusyPaths(store, outermost.map((item): [string, BusyPath] => [item.path, { op: "trash" }]), async () => {
+        for (const [index, item] of outermost.entries()) {
+          if (TRASH_DIR.startsWith(`${item.path}/`)) {
+            holdsTrash.push(item);
+            continue;
+          }
+          try {
+            moves.push({ from: item.path, to: await moveToTrash(vaultHandle, item.path, now, index) });
+            const isTrashed = (p: string) => p === item.path || (item.handle.kind === "directory" && p.startsWith(`${item.path}/`));
+            forgetItem(item.handle, isTrashed, item.path);
+          } catch (err) {
+            console.error(`Failed to move ${item.path} to the Trash:`, err);
+            failed.push(item);
+          }
         }
-        try {
-          moves.push({ from: item.path, to: await moveToTrash(vaultHandle, item.path, now, index) });
-          const isTrashed = (p: string) => p === item.path || (item.handle.kind === "directory" && p.startsWith(`${item.path}/`));
-          forgetItem(item.handle, isTrashed, item.path);
-        } catch (err) {
-          console.error(`Failed to move ${item.path} to the Trash:`, err);
-          failed.push(item);
-        }
-      }
 
-      if (moves.length > 0) {
-        await scanVault(vaultHandle);
-        void indexVaultTags();
-        const group = recordUndo("Move to Trash", moves);
-        const name = moves[0].from.split("/").pop();
-        showUndoToast(
-          moves.length === 1 ? `Moved “${name}” to Trash` : `Moved ${moves.length} items to Trash`,
-          () => void undoFileOperation(group ?? undefined),
-        );
-      }
+        if (moves.length > 0) {
+          await scanVault(vaultHandle);
+          void indexVaultTags();
+          const group = recordUndo("Move to Trash", moves);
+          const name = moves[0].from.split("/").pop();
+          showUndoToast(
+            moves.length === 1 ? `Moved “${name}” to Trash` : `Moved ${moves.length} items to Trash`,
+            () => void undoFileOperation(group ?? undefined),
+          );
+        }
+      });
       for (const item of holdsTrash) {
         await deleteForever(
           item.handle,
@@ -282,7 +289,7 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
         );
       }
     },
-    [vaultHandle, scanVault, indexVaultTags, forgetItem, deleteForever, recordUndo, undoFileOperation],
+    [vaultHandle, scanVault, indexVaultTags, forgetItem, deleteForever, recordUndo, undoFileOperation, store],
   );
 
   const deleteFile = useCallback(
