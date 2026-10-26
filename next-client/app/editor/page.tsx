@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import ConflictDialog from "./components/ConflictDialog";
-import { useAtom, useAtomValue } from "jotai";
+import { atom, useAtom, useAtomValue } from "jotai";
 import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_isFileLoading, atom_isVaultRestoring, contentStore } from "@/app/atoms/atoms";
 import { flushAllBoardWrites } from "@/app/utils/board/board-flush";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
@@ -17,7 +17,7 @@ import SelectionToolbar from "./components/SelectionToolbar";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useFileWatcher } from "@/app/hooks/use-file-watcher";
-import { useAutoSave } from "@/app/hooks/use-auto-save";
+import AutoSave from "./components/AutoSave";
 import MermaidDialog from "./components/MermaidDialog";
 import RenderedBlockSourceDialog from "./components/RenderedBlockSourceDialog";
 import ImageDialog from "./components/ImageDialog";
@@ -44,10 +44,11 @@ import { useChooseFolder } from "./hooks/use-choose-folder";
 import { showSuccessToast } from "@/app/components/Toastr";
 import { downloadMarkdown } from "@/app/utils/download-markdown";
 
+const NO_TEXT = atom("");
+
 export default function LiteEditor() {
   const router = useRouter();
   const [isMounting, setIsMounting] = useState(true);
-  const content = useAtomValue(atom_content);
   const fileName = useAtomValue(atom_fileName);
   const activeFilePath = useAtomValue(atom_activeFilePath);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
@@ -85,7 +86,10 @@ export default function LiteEditor() {
   const { materializeDraft, handleDraftAutosave, handleNewFile } = useDraftFlow({ vaultHandle, scanVault, indexVaultTags });
 
   // Run sync hooks
-  const { flush } = useAutoSave(handleDraftAutosave);
+  // Autosave follows the note's text in its own component (AutoSave), so
+  // typing doesn't re-render this page.
+  const autoSaveFlushRef = useRef<() => Promise<void>>(async () => {});
+  const flush = useCallback(() => autoSaveFlushRef.current(), []);
   useFileWatcher();
   useFirstRun(isMobileChrome);
   const chooseFolder = useChooseFolder(materializeDraft);
@@ -132,6 +136,9 @@ export default function LiteEditor() {
     const frame = requestAnimationFrame(() => setIsMounting(false));
     return () => cancelAnimationFrame(frame);
   }, []);
+
+  // The note's text for AI Chat, followed only while it's open.
+  const chatContent = useAtomValue(aiActions.isChatOpen ? atom_content : NO_TEXT);
 
   const handleSave = useCallback(async () => {
     // A board's pending stroke goes into the store first; read from there.
@@ -195,6 +202,7 @@ export default function LiteEditor() {
   // Export as Markdown: always a .md download of the note, vault note or
   // draft alike. It never saves; Save stays its own command.
   const handleExport = () => {
+    const content = contentStore.get(atom_content);
     if (!content.trim()) return;
     downloadMarkdown(content, fileName);
     showSuccessToast("Download started");
@@ -202,6 +210,7 @@ export default function LiteEditor() {
 
   return (
     <ErrorBoundary onGoHome={() => router.push("/")}>
+      <AutoSave onDraftChange={handleDraftAutosave} flushRef={autoSaveFlushRef} />
       <EditorCommands
         onNewFile={handleNewFile}
         onExport={handleExport}
@@ -291,7 +300,7 @@ export default function LiteEditor() {
         <AIChatDialog
           isOpen={aiActions.isChatOpen}
           onClose={aiActions.closeChat}
-          documentContent={content}
+          documentContent={chatContent}
           selectedText={aiActions.chatSelectedText}
           currentFilePath={activeFilePath ?? undefined}
           onApply={aiActions.applyFromChat}

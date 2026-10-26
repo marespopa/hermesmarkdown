@@ -155,3 +155,57 @@ describe("useOpenFile prefers saved content on disk", () => {
     expect(next.snapshots).toEqual([expect.objectContaining({ type: "local", content: "browser edit" })]);
   });
 });
+
+describe("useOpenFile with the note already open", () => {
+  const setOpenFiles = vi.fn();
+  const text = vi.fn(async () => "on disk");
+  const getFile = vi.fn();
+  const handle = { name: "note.md", getFile };
+  const prev = { "note.md": { content: "browser edit", lastSavedContent: "saved", fileName: "note.md", activeFilePath: "note.md", lastModified: 1 } };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (useAtom as any).mockImplementation((atom: any) => {
+      if (atom === atom_openFiles) return [{}, setOpenFiles];
+      if (atom === atom_activeFilePath) return ["other.md", vi.fn()];
+      if (atom === atom_content) return ["", vi.fn()];
+      if (atom === atom_lastSavedContent) return ["", vi.fn()];
+      if (atom === atom_fileMetadata) return [{}, vi.fn()];
+      return [null, vi.fn()];
+    });
+    contentStore.set(atom_openFiles, prev);
+  });
+
+  it("shows it from memory and reads no text when the file is unchanged", async () => {
+    getFile.mockResolvedValue({ text, lastModified: 1 });
+    const { result } = renderHook(() => useOpenFile());
+
+    await result.current.openFile(handle as any, "note.md");
+
+    expect(text).not.toHaveBeenCalled();
+    expect(setOpenFiles).not.toHaveBeenCalled();
+    // Unsaved edits stay; autosave writes them as usual.
+    expect(contentStore.get(atom_openFiles)["note.md"].content).toBe("browser edit");
+  });
+
+  it("takes the disk text when the file changed, keeping browser edits as a snapshot", async () => {
+    getFile.mockResolvedValue({ text, lastModified: 2 });
+    const { result } = renderHook(() => useOpenFile());
+
+    await result.current.openFile(handle as any, "note.md");
+
+    const next = contentStore.get(atom_openFiles)["note.md"];
+    expect(next).toMatchObject({ content: "on disk", lastSavedContent: "on disk", lastModified: 2 });
+    expect(next.snapshots).toEqual([expect.objectContaining({ type: "local", content: "browser edit" })]);
+  });
+
+  it("falls back to a full open when the file can't be checked", async () => {
+    getFile.mockRejectedValueOnce(new Error("busy")).mockResolvedValue({ text, lastModified: 2 });
+    const { result } = renderHook(() => useOpenFile());
+
+    await result.current.openFile(handle as any, "note.md");
+
+    expect(setOpenFiles).toHaveBeenCalled();
+    expect(setOpenFiles.mock.calls[0][0](prev)["note.md"].content).toBe("on disk");
+  });
+});

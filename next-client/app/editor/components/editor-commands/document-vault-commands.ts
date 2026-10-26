@@ -1,17 +1,17 @@
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { vaultDisplayName } from "@/app/atoms/vault-atoms";
 import { formatShortcut } from "@/app/utils/platform";
-import { isBoard } from "@/app/utils/board/is-board";
 import type { EditorCommandContext } from "./use-editor-command-context";
 
 export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
   const {
     activeFileHandle,
+    activeFileBusy,
     activeFilePath,
     activeLeaf,
     boardMarkdownPaths,
     closeVault,
-    content,
+    activeIsBoard,
     createBoard,
     createFolder,
     createTemplate,
@@ -105,7 +105,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
   ];
 
   const fileOperations: Command[] = [
-    ...(activeFilePath && isBoard(activeFilePath, content)
+    ...(activeFilePath && activeIsBoard
       ? [{
           id: "toggle-board-markdown",
           label: boardMarkdownPaths.has(activeFilePath) ? "Open as Board" : "Edit Board as Markdown",
@@ -192,6 +192,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           id: "rename-current-file",
           label: "Rename File",
           keywords: "rename move note file current title",
+          disabledReason: activeFileBusy ? "The file is being changed" : undefined,
           action: () => renameFile(activeFileHandle, undefined, activeFilePath ?? undefined),
         }]
       : []),
@@ -200,6 +201,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           id: "delete-current-file",
           label: "Delete File",
           keywords: "delete remove trash note file current",
+          disabledReason: activeFileBusy ? "The file is being changed" : undefined,
           action: () => deleteFile(activeFileHandle, activeFilePath),
         }]
       : []),

@@ -7,6 +7,7 @@ import { atom_pins } from "@/app/atoms/pin-atoms";
 import { seedPins } from "@/app/atoms/pin-atoms.test-utils";
 import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
 import { atom_filesRevealPath, atom_indexerState, atom_openingFilePath } from "@/app/atoms/ui-atoms";
+import { atom_busyPaths } from "@/app/atoms/busy-path-atoms";
 import { atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
 import type { Pin } from "@/app/services/pins-model";
 import SidebarPinned from "./SidebarPinned";
@@ -98,6 +99,16 @@ describe("SidebarPinned", () => {
     expect(rowButton("roadmap")).toHaveAttribute("aria-current", "page");
     expect(rowButton("roadmap")).toHaveAttribute("aria-busy", "true");
     act(() => { store.set(atom_openingFilePath, null); });
+    expect(rowButton("roadmap")).not.toHaveAttribute("aria-busy");
+  });
+
+  it("shows a spinner and the new name, and doesn't open, while a rename works on a pinned note", () => {
+    const store = setup();
+    act(() => { store.set(atom_busyPaths, new Map([["projects/roadmap.md", { op: "rename" as const, newName: "plan.md" }]])); });
+    expect(rowButton("plan")).toHaveAttribute("aria-busy", "true");
+    fireEvent.click(rowButton("plan"));
+    expect(openFile).not.toHaveBeenCalled();
+    act(() => { store.set(atom_busyPaths, new Map()); });
     expect(rowButton("roadmap")).not.toHaveAttribute("aria-busy");
   });
 
@@ -218,7 +229,7 @@ describe("SidebarPinned", () => {
     expect(navigation.push).not.toHaveBeenCalled();
   });
 
-  it("goes back to where a Ctrl/Cmd+1–9 jump left from with Ctrl/Cmd+0, and to the pin again", () => {
+  it("goes back to the previous note with Ctrl/Cmd+0, pinned or not, and returns again", () => {
     const store = createStore();
     seedPins(store, pins);
     store.set(atom_fileMetadata, { "projects/roadmap.md": meta("projects/roadmap.md"), "projects/notes.md": meta("projects/notes.md") });
@@ -229,16 +240,19 @@ describe("SidebarPinned", () => {
     window.dispatchEvent(untouched);
     expect(untouched.defaultPrevented).toBe(false);
 
-    // To the pinned note, then back to the note in front before the jump.
-    fireEvent.keyDown(window, { key: "1", ctrlKey: true });
-    expect(openFile).toHaveBeenLastCalledWith(handle, "projects/roadmap.md");
+    // Another note comes to the front (opened any way, not by a pin):
+    // Ctrl/Cmd+0 goes back to the one before it.
     rerender(view("projects/roadmap.md"));
     fireEvent.keyDown(window, { key: "0", metaKey: true });
     expect(openFile).toHaveBeenLastCalledWith(handle, "projects/notes.md");
-    // Again: back to the pin.
+    // Again: back to the other one.
     rerender(view("projects/notes.md"));
     fireEvent.keyDown(window, { key: "0", ctrlKey: true });
     expect(openFile).toHaveBeenLastCalledWith(handle, "projects/roadmap.md");
+    // Off the editor: the last note in front.
+    rerender(view(null));
+    fireEvent.keyDown(window, { key: "0", ctrlKey: true });
+    expect(openFile).toHaveBeenLastCalledWith(handle, "projects/notes.md");
   });
 
   it("lists at most nine pins", () => {

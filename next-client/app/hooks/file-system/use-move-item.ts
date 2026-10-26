@@ -14,6 +14,8 @@ import { useRewriteLinksAfterMove } from "./use-rewrite-links";
 import { writeFileContent } from "@/app/services/file-writer";
 import { moveDirectoryByCopy } from "./directory-ops";
 import { showUndoToast } from "./undo-toast";
+import { withBusyPaths } from "./busy-paths";
+import type { BusyPath } from "@/app/atoms/busy-path-atoms";
 
 interface UseMoveItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -23,6 +25,28 @@ interface UseMoveItemProps {
 }
 
 type MoveOutcome = { oldPath: string | null; newPath: string | null } | null;
+
+// Vault paths of the moved items before and after the move; items whose
+// path can't be resolved are left out.
+async function busyEntries(
+  vault: FileSystemDirectoryHandle,
+  handles: FileSystemHandle[],
+  targetDir: FileSystemDirectoryHandle,
+): Promise<[string, BusyPath][]> {
+  const resolve = async (handle: FileSystemHandle): Promise<string[] | null> => {
+    try {
+      return await (vault as any).resolve(handle);
+    } catch {
+      return null;
+    }
+  };
+  const target = await resolve(targetDir);
+  const paths = (await Promise.all(handles.map(resolve))).flatMap((parts, i) => [
+    parts?.length ? parts.join("/") : "",
+    target ? [...target, handles[i].name].join("/") : "",
+  ]);
+  return paths.filter(Boolean).map((path): [string, BusyPath] => [path, { op: "move" }]);
+}
 
 export function useMoveItem({ scanVault, indexVaultTags, recordUndo, undoFileOperation }: UseMoveItemProps) {
   const [vaultHandle] = useAtom(atom_vaultHandle);
@@ -179,45 +203,50 @@ export function useMoveItem({ scanVault, indexVaultTags, recordUndo, undoFileOpe
   const moveItems = useCallback(
     async (handles: FileSystemHandle[], targetDir: FileSystemDirectoryHandle) => {
       if (!vaultHandle || !targetDir || handles.length === 0) return;
-      const moves: FileUndoGroup["moves"] = [];
-      const before = store.get(atom_fileMetadata);
-      let movedCount = 0;
-      for (const handle of handles) {
+      // The rows, where they are now and where they go, show a spinner
+      // until the move and the rescan are done.
+      const busy = await busyEntries(vaultHandle, handles, targetDir);
+      return withBusyPaths(store, busy, async () => {
+        const moves: FileUndoGroup["moves"] = [];
+        const before = store.get(atom_fileMetadata);
+        let movedCount = 0;
+        for (const handle of handles) {
+          try {
+            const outcome = await moveOne(handle, targetDir);
+            if (!outcome) continue;
+            movedCount++;
+            if (outcome.oldPath && outcome.newPath) moves.push({ from: outcome.oldPath, to: outcome.newPath });
+          } catch (err: any) {
+            console.error("File System Error:", err?.message || err);
+            toast.error(err.message || `Failed to move ${handle.name}`);
+          }
+        }
+        if (movedCount === 0) return;
+
+        // Links that would stop resolving follow the move; a failure here
+        // never undoes it or skips the rescan.
+        let updated = 0;
         try {
-          const outcome = await moveOne(handle, targetDir);
-          if (!outcome) continue;
-          movedCount++;
-          if (outcome.oldPath && outcome.newPath) moves.push({ from: outcome.oldPath, to: outcome.newPath });
+          const outcome = await rewriteLinks(before, moves);
+          updated = outcome.updated;
+          if (outcome.failed > 0) {
+            toast.error(`Couldn't update links in ${outcome.failed} note${outcome.failed === 1 ? "" : "s"}`);
+          }
         } catch (err: any) {
-          console.error("File System Error:", err?.message || err);
-          toast.error(err.message || `Failed to move ${handle.name}`);
+          console.error("Link update failed:", err?.message || err);
+          toast.error("Couldn't update links");
         }
-      }
-      if (movedCount === 0) return;
 
-      // Links that would stop resolving follow the move; a failure here
-      // never undoes it or skips the rescan.
-      let updated = 0;
-      try {
-        const outcome = await rewriteLinks(before, moves);
-        updated = outcome.updated;
-        if (outcome.failed > 0) {
-          toast.error(`Couldn't update links in ${outcome.failed} note${outcome.failed === 1 ? "" : "s"}`);
-        }
-      } catch (err: any) {
-        console.error("Link update failed:", err?.message || err);
-        toast.error("Couldn't update links");
-      }
-
-      await scanVault(vaultHandle);
-      indexVaultTags();
-      const group = recordUndo("Move", moves);
-      const base = movedCount === 1
-        ? `Moved ${handles.length === 1 ? handles[0].name : "1 item"} to ${targetDir.name}`
-        : `Moved ${movedCount} items to ${targetDir.name}`;
-      const message = updated > 0 ? `${base} · updated links in ${updated} note${updated === 1 ? "" : "s"}` : base;
-      if (group) showUndoToast(message, () => void undoFileOperation(group));
-      else toast.success(message);
+        await scanVault(vaultHandle);
+        indexVaultTags();
+        const group = recordUndo("Move", moves);
+        const base = movedCount === 1
+          ? `Moved ${handles.length === 1 ? handles[0].name : "1 item"} to ${targetDir.name}`
+          : `Moved ${movedCount} items to ${targetDir.name}`;
+        const message = updated > 0 ? `${base} · updated links in ${updated} note${updated === 1 ? "" : "s"}` : base;
+        if (group) showUndoToast(message, () => void undoFileOperation(group));
+        else toast.success(message);
+      });
     },
     [vaultHandle, store, moveOne, rewriteLinks, scanVault, indexVaultTags, recordUndo, undoFileOperation],
   );

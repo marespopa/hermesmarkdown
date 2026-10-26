@@ -6,7 +6,7 @@
 
 export const TOOL_HANDOFF_KEY = "hermes_tool_handoff";
 // Markdown length. Far inside sessionStorage's ~5 MB, and leaves room in
-// `openFiles` (localStorage), where the draft is kept afterwards.
+// the open notes' browser storage, where the draft is kept afterwards.
 export const MAX_HANDOFF_CHARS = 200_000;
 export const HANDOFF_TTL_MS = 15 * 60_000;
 const MAX_TITLE_CHARS = 60;

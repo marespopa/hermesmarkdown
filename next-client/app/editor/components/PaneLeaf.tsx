@@ -6,9 +6,9 @@ import MarkdownEditor from "./MarkdownEditor";
 import PrivateNoteGate from "./PrivateNoteGate";
 import TabContextMenu from "./TabContextMenu";
 import { useAtom } from "jotai";
-import { atom_fileContent, atom_openFiles, atom_saveStatus } from "@/app/atoms/atoms";
+import { atom_fileContent, atom_openNoteDirty, atom_openNoteFileName, atom_saveStatus } from "@/app/atoms/atoms";
 import { atom_showFolderInFiles, atom_vaultHandle, atom_vaultName } from "@/app/atoms/vault-atoms";
-import { atom_materializedDraftPath } from "@/app/atoms/file-atoms";
+import { atom_materializedDraftPath, atom_openNotesHydrated } from "@/app/atoms/file-atoms";
 import { HiOutlineSave } from "react-icons/hi";
 import { formatShortcut } from "@/app/utils/platform";
 import BoardViewLoader from "./board/BoardViewLoader";
@@ -20,7 +20,9 @@ import { PANE_TOP_ROOM } from "./pane-header-classes";
 import type { SaveState } from "./save-state";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useDialog } from "@/app/hooks/use-dialog";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom, useStore } from "jotai";
+import { atom_busyPaths, busyEntry } from "@/app/atoms/busy-path-atoms";
+import { withBusyPaths } from "@/app/hooks/file-system/busy-paths";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useNoteMenuItems } from "../hooks/use-note-menu-items";
 import { useVaultMenuItems } from "../hooks/use-vault-menu-items";
@@ -39,7 +41,6 @@ interface PaneLeafProps {
 const AUTOSAVE_GRACE = 1000;
 
 export default function PaneLeaf({ leaf }: PaneLeafProps) {
-  const [openFiles] = useAtom(atom_openFiles);
   const saveStatus = useAtomValue(atom_saveStatus);
   const isMobileChrome = useIsMobileChrome();
 
@@ -75,8 +76,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   const { newNoteIn, newFolderIn } = useFolderCreateActions();
 
   // Drives the title's save dot.
-  const activeFileState = leaf.activeFilePath ? openFiles[leaf.activeFilePath] : undefined;
-  const activeIsDirty = !!activeFileState && activeFileState.content !== activeFileState.lastSavedContent;
+  const activeIsDirty = useAtomValue(atom_openNoteDirty(filePath)) && !!leaf.activeFilePath;
+  const activeFileName = useAtomValue(atom_openNoteFileName(filePath));
   const savedState: SaveState =
     saveStatus.path === leaf.activeFilePath && saveStatus.state === "error"
       ? "error"
@@ -97,7 +98,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
     if (!autosave || !activeIsDirty) return;
     const timer = setTimeout(() => setSaveLate(true), AUTOSAVE_DELAY + AUTOSAVE_GRACE);
     return () => clearTimeout(timer);
-  }, [autosave, activeIsDirty, activeFileState?.content, leaf.activeFilePath]);
+  }, [autosave, activeIsDirty, content, leaf.activeFilePath]);
   const activeSaveState: SaveState =
     autosave && !saveLate && (savedState === "dirty" || savedState === "saving") ? "idle" : savedState;
 
@@ -112,21 +113,30 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
   // body outlined until the text is read.
   const openingPath = useAtomValue(atom_openingFilePath);
   const pendingPath = openingPath && openingPath !== leaf.activeFilePath ? openingPath : null;
+  // On startup the notes' text arrives from browser storage a moment after
+  // their names: the same delayed skeleton until then, never an empty note.
+  const textPending = !useAtomValue(atom_openNotesHydrated) && leaf.openFilePaths.length > 0;
   const fullWidth = useAtomValue(atom_fullWidth);
-  const activeTitle = pendingPath
+  // A rename working on the note in front: its new name shows at once, and
+  // the title can't be renamed again until it is done.
+  const busy = busyEntry(useAtomValue(atom_busyPaths), filePath);
+  const store = useStore();
+  const activeTitle = busy?.newName
+    ? busy.newName.replace(/\.md$/i, "")
+    : pendingPath
     ? (pendingPath.split("/").pop() ?? pendingPath).replace(/\.md$/i, "")
-    : (activeFileState?.fileName || leaf.activeFilePath?.split("/").pop() || "Untitled").replace(/\.md$/i, "");
+    : ((leaf.activeFilePath ? activeFileName : undefined) || leaf.activeFilePath?.split("/").pop() || "Untitled").replace(/\.md$/i, "");
   const titlePath = pendingPath ?? leaf.activeFilePath;
   const activeFolder = titlePath && titlePath !== "draft" ? titlePath.split("/").slice(0, -1).join("/") : "";
   // A vault note renames in place from its title; the draft has no file yet.
   const activeHandle = useAtomValue(atom_liveHandles(filePath));
-  const canRename = hasVault && filePath !== "draft" && !!activeHandle;
+  const canRename = hasVault && filePath !== "draft" && !!activeHandle && !busy;
   // The title menu's Rename: bumped to turn the name into a field in place.
   const [renameRequest, setRenameRequest] = React.useState(0);
   const renameActive = (typed: string) => {
     if (!activeHandle) return;
     const name = /\.md$/i.test(filePath) && !/\.md$/i.test(typed) ? `${typed}.md` : typed;
-    void renameFile(activeHandle, name, filePath);
+    void withBusyPaths(store, [[filePath, { op: "rename", newName: name }]], () => renameFile(activeHandle, name, filePath));
   };
   const sidebarOpen = useAtomValue(atom_sidebarOpen);
   const requestSave = useSetAtom(atom_saveRequested);
@@ -215,7 +225,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
 
       {/* Pane Content */}
       <div className="flex-1 min-h-0 overscroll-none overflow-auto">
-        {pendingPath ? (
+        {pendingPath || textPending ? (
           // Fades in after a moment, so a quick open shows only the title.
           <div role="status" className="flex h-full">
             <span className="sr-only">Opening {activeTitle}…</span>

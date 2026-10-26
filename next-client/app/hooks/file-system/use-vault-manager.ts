@@ -41,6 +41,7 @@ import {
 } from "./vault-scan";
 import { reportCollectProblems } from "./vault-index";
 import { runVaultIndex } from "./run-vault-index";
+import { markVaultTreeListed } from "./tree-listed";
 import { useVaultNavigation } from "./use-vault-navigation";
 import { useOpenVault } from "./use-open-vault";
 import { clearNoteContent } from "@/app/services/content-search-client";
@@ -144,6 +145,7 @@ export function useVaultManager() {
           setVaultTextFiles(textFiles);
           setFileMetadata((prev) => metadataForFiles(fileHandles, passedHandle ? undefined : prev));
           setIndexerState("idle");
+          markVaultTreeListed(store, store.get(atom_vaultKey));
           return;
         }
 
@@ -162,6 +164,7 @@ export function useVaultManager() {
           isCurrent,
         });
         if (!indexing) return;
+        markVaultTreeListed(store, store.get(atom_vaultKey));
         const { done, contentDone } = indexing;
         void contentDone.catch((err) => console.error("Failed to index note text:", err));
         void done

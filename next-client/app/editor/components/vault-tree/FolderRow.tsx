@@ -4,7 +4,7 @@ import Button from "@/app/components/Button";
 import { useEffect, useRef, useState } from "react";
 import { HiFolder, HiOutlineDotsVertical } from "react-icons/hi";
 import { IoCaretForward } from "react-icons/io5";
-import { LIST_INDENT_PX, type RowEditing, selectionClass } from "./FileRow";
+import { LIST_INDENT_PX, RowBusySpinner, type RowEditing, selectionClass } from "./FileRow";
 import { InlineNameField } from "./InlineNameField";
 import { ListColumns } from "./list-columns";
 import { canDropInto, type DraggedEntry, type TreeFolderNode } from "./tree-model";
@@ -39,6 +39,9 @@ export interface FolderRowProps {
   treeFocused?: boolean;
   onSelectClick?: (mods: ClickModifiers) => boolean;
   editing?: RowEditing;
+  // A rename, move or move to Trash is working on it (see FileRow).
+  busy?: boolean;
+  pendingName?: string;
 }
 
 export function FolderRow({
@@ -61,11 +64,14 @@ export function FolderRow({
   treeFocused = false,
   onSelectClick,
   editing,
+  busy = false,
+  pendingName,
 }: FolderRowProps) {
   const [dragOver, setDragOver] = useState(false);
   const autoExpandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const canAcceptDrop = canDropInto(draggedEntry, node.path);
+  const canAcceptDrop = !busy && canDropInto(draggedEntry, node.path);
+  const name = pendingName ?? node.name;
   const isHighlighted = dragOver || isTouchDropTarget;
 
   const cancelAutoExpand = () => {
@@ -84,8 +90,11 @@ export function FolderRow({
         aria-selected={isSelected}
         aria-expanded={!isCollapsed}
         aria-level={depth + 1}
+        aria-busy={busy || undefined}
+        aria-disabled={busy || undefined}
         onClick={(e) => {
           e.stopPropagation();
+          if (busy) return;
           const plain = onSelectClick ? onSelectClick(e) : true;
           if (plain) onToggle(node.path);
         }}
@@ -93,13 +102,13 @@ export function FolderRow({
           e.preventDefault();
           e.stopPropagation();
           // A touch long-press picks the row up to drag (touch uses ⋯).
-          if (!isTouchPressing?.()) onOpenMenu(e.clientX, e.clientY);
+          if (!busy && !isTouchPressing?.()) onOpenMenu(e.clientX, e.clientY);
         }}
-        draggable={!editing}
-        data-drop-folder={node.path}
-        onTouchStart={onTouchDragStart}
+        draggable={!editing && !busy}
+        data-drop-folder={busy ? undefined : node.path}
+        onTouchStart={busy ? undefined : onTouchDragStart}
         onDragStart={(e) => {
-          if (isTouchPressing?.()) {
+          if (busy || isTouchPressing?.()) {
             e.preventDefault();
             return;
           }
@@ -161,12 +170,12 @@ export function FolderRow({
         {editing ? (
           <InlineNameField label="Folder name" {...editing} />
         ) : (
-          <span title={node.name} className="min-w-0 flex-1 truncate">{node.name}</span>
+          <span title={name} className={`min-w-0 flex-1 truncate ${busy ? "text-fg-muted" : ""}`}>{name}</span>
         )}
         {showColumns && <ListColumns modified="--" kind="Folder" />}
       </div>
 
-      {!editing && (
+      {busy ? <RowBusySpinner /> : !editing && (
         <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity z-10">
           <Button
             variant="icon"

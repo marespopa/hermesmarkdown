@@ -12,7 +12,8 @@ import {
   atom_workspaceLayout,
   findLeaf,
 } from "@/app/atoms/atoms";
-import { atom_content, atom_activeFileHandle } from "@/app/atoms/file-atoms";
+import { atom_activeFileHandle } from "@/app/atoms/file-atoms";
+import { atom_busyPaths, busyEntry } from "@/app/atoms/busy-path-atoms";
 import {
   atom_privacyLevel,
   atom_revealAllPrivate,
@@ -39,7 +40,7 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { supportsDirectoryInput } from "@/app/services/vault-archive";
 import { usePaneFileActions } from "../../hooks/use-pane-file-actions";
 import { useCreateBoard } from "../../hooks/use-create-board";
-import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
+import { atom_activeIsBoard, atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
 
 export type EditorCommandsProps = {
   onNewFile: () => void;
@@ -87,7 +88,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
   const isAiEnabled = useAtomValue(atom_aiEnabled);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const content = useAtomValue(atom_content);
+  const activeIsBoard = useAtomValue(atom_activeIsBoard);
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
   const activePaneId = useAtomValue(atom_activePaneId);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
@@ -108,6 +109,9 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
   const { filePath: activeFilePath, handleCopy, closeTabWithAutosave } = usePaneFileActions(activeLeaf);
+  // A rename, move or move to Trash is working on the open note.
+  const busyPaths = useAtomValue(atom_busyPaths);
+  const activeFileBusy = !!activeFilePath && !!busyEntry(busyPaths, activeFilePath);
   const runEditorCommand = (command: (view: NonNullable<typeof activeEditorView>) => unknown) => {
     if (activeEditorView) command(activeEditorView);
   };
@@ -127,6 +131,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     toggleNotePin,
     renameFile,
     deleteFile,
+    activeFileBusy,
     duplicateFile,
     moveItem,
     createFolder,
@@ -147,7 +152,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setAiBuilderRequest,
     isAiEnabled,
     isAiConfigured,
-    content,
+    activeIsBoard,
     workspaceLayout,
     activePaneId,
     setActiveFilePath,

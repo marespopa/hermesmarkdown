@@ -11,6 +11,7 @@ import {
   tableDisplayExtension,
   tableDisplayField,
 } from "./table-display";
+import { STAGED_REVEAL_LINES } from "./table-stages";
 
 const views: EditorView[] = [];
 
@@ -443,5 +444,26 @@ describe("tableDisplayExtension", () => {
 
     expect(view.dom.querySelector(".cm-table-preview")).toBeNull();
     expect(view.state.doc.toString()).toBe(doc);
+  });
+});
+
+describe("large notes reveal their tables in stages", () => {
+  const TABLE = "| A | B |\n| --- | --- |\n| 1 | 2 |";
+  const filler = Array.from({ length: STAGED_REVEAL_LINES }, (_, n) => `line ${n}`).join("\n");
+
+  it("shows the text first, then finds every table, the rest in idle chunks", async () => {
+    const view = makeView(`${TABLE}\n\n${filler}\n\n${TABLE}`);
+    expect(view.state.field(tableDisplayField).matches).toEqual([]);
+    expect(view.state.field(tableDisplayField).covered).toEqual([]);
+    await waitFor(() => {
+      expect(view.state.field(tableDisplayField).covered).toBeNull();
+      expect(view.state.field(tableDisplayField).matches).toHaveLength(2);
+    }, { timeout: 5000 });
+  });
+
+  it("finds a small note's tables at once, as before", () => {
+    const view = makeView(`${TABLE}\n\ntext`);
+    expect(view.state.field(tableDisplayField).matches).toHaveLength(1);
+    expect(view.state.field(tableDisplayField).covered).toBeNull();
   });
 });

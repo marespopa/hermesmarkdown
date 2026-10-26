@@ -27,6 +27,8 @@ import { usePaletteContentSearch } from "./use-palette-content-search";
 import { usePaletteFiles } from "./use-palette-files";
 import { usePalettePins } from "./use-palette-pins";
 import { buildCreateRow, buildMenuRows, buildTagRows, buildTaskRows, buildTemplateRows, commandRow, SEARCH_OR_CREATE_PLACEHOLDER, MAX_VISIBLE_ROWS, pinnedKey, rowGroup, type Row, type Scope, scopeFromPrefix, scopePrefix, TOP_LEVEL_MENU } from "./palette-model";
+import { finishPerfAfterPaint } from "@/app/utils/perf/perf-metrics";
+import { usePalettePrefetch } from "./use-palette-prefetch";
 
 
 export default function CommandPalette() {
@@ -101,6 +103,7 @@ export default function CommandPalette() {
     setMenuPath(initialMenuId ? [initialMenuId] : []);
     setSelectedIndex(0);
     requestAnimationFrame(() => inputRef.current?.focus());
+    finishPerfAfterPaint("palette-open");
   }, [initialMenuId, initialQuery, isOpen]);
 
   const { files, filesByTag, existingFiles } = usePaletteFiles(showHiddenFiles);
@@ -197,6 +200,7 @@ export default function CommandPalette() {
 
   useEffect(() => setSelectedIndex(0), [menuPath, query, scope]);
   useEffect(() => setSelectedIndex((index) => Math.min(index, Math.max(0, rows.length - 1))), [rows.length]);
+  usePalettePrefetch(isOpen, rows[selectedIndex]);
 
   // `newNote`: Ctrl/Cmd+Enter, which makes a template row start a new note.
   const execute = async (row: Row | undefined, newNote = false) => {

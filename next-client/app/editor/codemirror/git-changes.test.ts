@@ -1,8 +1,8 @@
 import { Chunk } from "@codemirror/merge";
 import { EditorState, Text } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { afterEach, describe, expect, it } from "vitest";
-import { addedRunsIn, gitChanges, gitChangesField, gitDiff, gitReplacedBlocks, goToNextGitChange, goToPreviousGitChange, MAX_GIT_LINES, setGitBaseline } from "./git-changes";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { addedLinesBetween, addedRunsIn, gitChanges, gitChangesField, gitDiff, gitReplacedBlocks, goToNextGitChange, goToPreviousGitChange, MAX_GIT_LINES, REFRESH_DELAY_MS, setGitBaseline } from "./git-changes";
 
 const text = (value: string) => Text.of(value.split("\n"));
 const diffOf = (base: string, doc: string) => gitDiff(text(base), text(doc), Chunk.build(text(base), text(doc)));
@@ -120,6 +120,31 @@ describe("gitChanges extension", () => {
     expect(line()).toBe(5);
   });
 
+  it("rebuilds the deleted blocks after a pause in typing, not on each key", () => {
+    vi.useFakeTimers();
+    try {
+      const v = editor("a\nb\nc");
+      v.dispatch({ effects: setGitBaseline.of({ text: "a\nb\nc" }) });
+      v.dispatch({ changes: { from: 2, to: 4 } });
+      // The `+` marks follow at once; the deleted line waits for the pause.
+      expect(deleted(v)).toEqual([]);
+      expect(v.state.field(gitChangesField).stale).toBe(true);
+      vi.advanceTimersByTime(REFRESH_DELAY_MS);
+      expect(deleted(v)).toEqual(["b"]);
+      expect(v.state.field(gitChangesField).stale).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("goes to changes typed since the last rebuild", () => {
+    const v = editor("a\nb\nc");
+    v.dispatch({ effects: setGitBaseline.of({ text: "a\nb\nc" }) });
+    v.dispatch({ changes: { from: 4, insert: "new\n" } });
+    expect(goToNextGitChange(v)).toBe(true);
+    expect(v.state.doc.lineAt(v.state.selection.main.head).number).toBe(3);
+  });
+
   it("does nothing without changes", () => {
     const v = editor("a");
     v.dispatch({ effects: setGitBaseline.of({ text: "a" }) });
@@ -154,5 +179,20 @@ describe("gitChanges extension", () => {
     const block = view.dom.querySelector(".cm-git-deleted");
     expect(block?.textContent).toBe("t2");
     expect(block?.nextElementSibling?.textContent).toBe("t1");
+  });
+});
+
+describe("addedLinesBetween", () => {
+  it("reads the added lines in a range from the chunks around it", () => {
+    const base = text("a\nb\nc\nd\ne\nf");
+    const doc = text("a\nB\nc\nd\nE\nf");
+    const chunks = Chunk.build(base, doc);
+    expect(addedLinesBetween(base, doc, chunks, 1, 6)).toEqual([2, 5]);
+    expect(addedLinesBetween(base, doc, chunks, 3, 6)).toEqual([5]);
+    expect(addedLinesBetween(base, doc, chunks, 3, 4)).toEqual([]);
+  });
+
+  it("counts every line in range as added for a file not in HEAD", () => {
+    expect(addedLinesBetween(Text.empty, text("a\nb\nc"), [], 2, 3)).toEqual([2, 3]);
   });
 });

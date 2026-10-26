@@ -1,6 +1,8 @@
 import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage } from "jotai/utils";
 import { tabSessionStorage } from "./session-storage";
+import { atom_activeFile } from "./file-atoms";
+import { isBoard } from "@/app/utils/board/is-board";
 
 // Board state that never goes into the file. Import this file directly, not
 // through the `atoms.ts` barrel.
@@ -26,4 +28,11 @@ export const atom_toggleBoardMarkdown = atom(null, (get, set, path: string) => {
   const next = new Set(get(atom_boardMarkdownPaths));
   if (!next.delete(path)) next.add(path);
   set(atom_boardMarkdownPaths, next);
+});
+
+// Whether the note in front is a board. A boolean, so what reads it (the
+// palette's commands) re-renders when that changes, not on every keystroke.
+export const atom_activeIsBoard = atom((get) => {
+  const file = get(atom_activeFile);
+  return !!file?.activeFilePath && isBoard(file.activeFilePath, file.content);
 });

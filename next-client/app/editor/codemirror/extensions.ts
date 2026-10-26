@@ -44,6 +44,7 @@ import { detailsMarks } from "./details-fold";
 import { buildPlainTextExtensions } from "./plain-text-extensions";
 import { codeGutters } from "./code-editing";
 import { editorFilePath, formatCodeKeymap } from "./format-code-command";
+import { keystrokeLatency } from "./keystroke-latency";
 
 export interface BuildExtensionsOptions {
   wordWrap: boolean;
@@ -90,6 +91,7 @@ export function lineNumberGutters(plainText: boolean, hasLanguage: boolean, on: 
 export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
   if (opts.plainText) return buildPlainTextExtensions(opts);
   const extensions: Extension[] = [
+    keystrokeLatency,
     editorTheme(),
     opts.wordWrapCompartment.of(opts.wordWrap ? EditorView.lineWrapping : []),
     opts.lineNumbersCompartment.of(opts.lineNumbers ? editorLineNumbers() : []),

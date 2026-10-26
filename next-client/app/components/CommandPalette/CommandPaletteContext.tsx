@@ -4,6 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { flushSync } from "react-dom";
 import { useAtom } from "jotai";
 import { atom_commandUseCounts, atom_recentCommandIds } from "@/app/atoms/ui-atoms";
+import { startPerf } from "@/app/utils/perf/perf-metrics";
 
 export type Command = {
   id: string;
@@ -142,6 +143,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   }, []);
 
   const open = useCallback((query: string = "") => {
+    startPerf("palette-open");
     morphWithAnchor(() => {
       setInitialQuery(query);
       setInitialMenuId(null);
@@ -149,6 +151,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
     }, true);
   }, [morphWithAnchor]);
   const openMenu = useCallback((id: string) => {
+    startPerf("palette-open");
     morphWithAnchor(() => {
       setInitialQuery("");
       setInitialMenuId(id);

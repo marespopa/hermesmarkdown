@@ -4,7 +4,8 @@ import React from "react";
 import { useAtomValue } from "jotai";
 import {
   atom_workspaceLayout,
-  atom_openFiles,
+  atom_openNoteDirty,
+  atom_openNoteFileName,
   atom_saveStatus,
 } from "@/app/atoms/atoms";
 import { HiOutlineChevronDown, HiOutlineChatAlt2 } from "react-icons/hi";
@@ -24,25 +25,25 @@ interface MobileFileIndicatorProps {
 // happens by picking the file again in the palette.
 export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFileIndicatorProps) {
   const workspaceLayout = useAtomValue(atom_workspaceLayout);
-  const openFiles = useAtomValue(atom_openFiles);
   const saveStatus = useAtomValue(atom_saveStatus);
   const { open: openCommandPalette } = useCommandPalette();
 
   const leaf = workspaceLayout.rootContainer;
   const hasOpenFiles = !!leaf && leaf.openFilePaths.length > 0;
   const activePath = leaf?.activeFilePath;
+  // The name and the unsaved mark only, not the text: no render per keystroke.
+  const activeFileName = useAtomValue(atom_openNoteFileName(activePath ?? "draft"));
+  const isDirty = useAtomValue(atom_openNoteDirty(activePath ?? "draft")) && !!activePath;
   // Stays mounted (as "Search files…") even with nothing open — mobile has
   // no keyboard shortcut, and since MobileControlRail was retired this is
   // the only always-present entry point to the palette.
   const label = hasOpenFiles
-    ? (activePath ? (openFiles[activePath]?.fileName || activePath.split("/").pop()) : "untitled")
+    ? (activePath ? (activeFileName || activePath.split("/").pop()) : "untitled")
     : "Search files…";
 
   // This bar stays fixed at the top while the editor content scrolls, so
   // it's the one place on mobile where save status is always visible —
   // the in-content frontmatter summary bar scrolls away with the rest.
-  const fileState = activePath ? openFiles[activePath] : undefined;
-  const isDirty = !!fileState && fileState.content !== fileState.lastSavedContent;
   const saveState: SaveState =
     saveStatus.path === activePath && saveStatus.state === "error"
       ? "error"

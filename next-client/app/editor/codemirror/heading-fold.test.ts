@@ -149,6 +149,25 @@ describe("folding", () => {
     expect(folds(view)).toEqual([]);
   });
 
+  it("moves the caret to the toggled heading, so the page doesn't jump to a caret elsewhere", () => {
+    const view = makeView(NOTE, NOTE.length);
+    toggleHeadingFold(view, lineFrom(NOTE, "## Goals"));
+    expect(view.state.selection.main.head).toBe(lineFrom(NOTE, "## Goals") + "## Goals".length);
+    view.dispatch({ selection: { anchor: NOTE.length } });
+    toggleHeadingFold(view, lineFrom(NOTE, "## Goals"));
+    expect(folds(view)).toEqual([]);
+    expect(view.state.selection.main.head).toBe(lineFrom(NOTE, "## Goals") + "## Goals".length);
+  });
+
+  it("unfolds from a click on the `…` with the caret on the heading", () => {
+    const view = makeView(NOTE, NOTE.length);
+    toggleHeadingFold(view, lineFrom(NOTE, "## Goals"));
+    view.dispatch({ selection: { anchor: NOTE.length } });
+    view.contentDOM.querySelector<HTMLElement>(".cm-headingFoldPlaceholder")!.click();
+    expect(folds(view)).toEqual([]);
+    expect(view.state.selection.main.head).toBe(lineFrom(NOTE, "## Goals") + "## Goals".length);
+  });
+
   it("unfolds every heading but leaves a folded callout folded", () => {
     const doc = "# A\none\n\n> [!note] Title\n> body\n\n# B\ntwo";
     const view = makeView(doc);
@@ -174,6 +193,16 @@ describe("frontmatter folding", () => {
     expect(folds(view)).toEqual([]);
   });
 
+  it("moves the caret to the top of the note when toggled with the caret further down", () => {
+    const view = makeView(DOC, DOC.length);
+    toggleHeadingFold(view, 0);
+    expect(view.state.selection.main.head).toBe(0);
+    view.dispatch({ selection: { anchor: DOC.length } });
+    view.contentDOM.querySelector<HTMLElement>(".cm-frontmatterFoldPlaceholder")!.click();
+    expect(folds(view)).toEqual([]);
+    expect(view.state.selection.main.head).toBe(0);
+  });
+
   it("folds from the shortcut with the caret inside, parking it at the top of the note", () => {
     const view = makeView(DOC, DOC.indexOf("Note"));
     foldCurrentSection(view);
@@ -192,6 +221,10 @@ describe("frontmatter folding", () => {
     const tagsOnly = makeView("---\ntags: [work]\n---\nBody");
     toggleHeadingFold(tagsOnly, 0);
     expect(tagsOnly.contentDOM.querySelector(".cm-frontmatterFoldPlaceholder")!.textContent).toBe("#work");
+
+    const named = makeView("---\nname: Release plan\ntags: [work]\n---\nBody");
+    toggleHeadingFold(named, 0);
+    expect(named.contentDOM.querySelector(".cm-frontmatterFoldPlaceholder")!.textContent).toBe("Release plan #work");
 
     const bare = makeView("---\nstatus: draft\n---\nBody");
     toggleHeadingFold(bare, 0);

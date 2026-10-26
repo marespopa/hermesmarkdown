@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useStore } from "jotai";
-import { atom_openFiles } from "@/app/atoms/file-atoms";
+import { atom_openFiles, isOpenNotesHydrated, whenOpenNotesHydrated } from "@/app/atoms/file-atoms";
 import { atom_workspaceLayout } from "@/app/atoms/workspace-atoms";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
 import { isPathInLayout } from "@/app/atoms/utils";
@@ -31,6 +31,8 @@ export function useNoteBuffer() {
   }, [store]);
 
   const readDisk = useCallback(async (path: string, handle?: FileSystemFileHandle) => {
+    // The open note's stored text must be in before it's reconciled.
+    if (!isOpenNotesHydrated()) await whenOpenNotesHydrated();
     let fileHandle = handle;
     if (!fileHandle) {
       const vaultHandle = store.get(atom_vaultHandle);

@@ -26,6 +26,7 @@ Shared, app-agnostic UI primitives. Each component has a sibling `<Name>.md` (st
 | [LoadingOverlay](LoadingOverlay/LoadingOverlay.md) | Full-screen loading veil with optional text, set in the user's rendered font. |
 | [MainPage](MainPage.md) | Root layout shell that mounts providers, the palette, toasts, `GlobalDialog`, and the header/footer. |
 | [OverlayLayer](OverlayLayer/OverlayLayer.md) | `OverlayPanel`/`OverlayBackdrop`: portal, dismissal, focus trap, and scroll lock. |
+| [PerfReadout](PerfReadout/PerfReadout.md) | Dev-only readout of open, typing, storage, sidebar and palette timings (last and p75) and long tasks; toggled from the palette or `?perf=1`. |
 | [Portal](Portal/Portal.md) | Renders children into `document.body` via `createPortal` once the component has mounted on the client. |
 | [TagPill](TagPill/TagPill.md) | The one tag look (editor pill): rounded, hairline border, sage for workflow tags, muted otherwise; `tag`, `label`, `trailing`. |
 | [CountBadge](CountBadge/CountBadge.md) | The one look for a count (tags, task groups, the Tasks header and tabs, the word count): small, tabular, faint, `1,204`; `floating` puts it on a flat chip. |

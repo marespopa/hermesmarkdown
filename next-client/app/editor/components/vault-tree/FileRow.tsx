@@ -6,6 +6,7 @@ import FileIcon from "./FileIcon";
 import { InlineNameField } from "./InlineNameField";
 import { ListColumns, formatModified, kindLabel } from "./list-columns";
 import type { ClickModifiers } from "./use-tree-selection";
+import { useHoverPrefetch } from "@/app/hooks/file-system/use-hover-prefetch";
 
 function HighlightedName({ name, query }: { name: string; query: string }) {
   const q = query.trim();
@@ -28,6 +29,20 @@ export const LIST_INDENT_PX = 16;
 export function selectionClass(isSelected: boolean, treeFocused: boolean): string {
   if (!isSelected) return "";
   return treeFocused ? "bg-accent/25 text-fg" : "bg-black/[0.08] dark:bg-white/10 text-fg";
+}
+
+// In place of a busy row's ⋯ button, after a moment (a quick rename or
+// move shows only its result).
+export function RowBusySpinner() {
+  return (
+    <span
+      role="status"
+      aria-label="Working…"
+      className="loading-bar-appear absolute right-2 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center"
+    >
+      <span className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-fg-faint border-t-transparent motion-reduce:animate-none" />
+    </span>
+  );
 }
 
 export interface RowEditing {
@@ -71,6 +86,10 @@ interface FileRowProps {
   isTouchPressing?: () => boolean;
   // Folder a touch-dragged entry dropped on this row goes into.
   dropFolder?: string;
+  // A rename, move or move to Trash is working on it: a spinner, the new
+  // name (`pendingName`, for a rename) and no actions until it is done.
+  busy?: boolean;
+  pendingName?: string;
 }
 
 export function FileRow({
@@ -97,32 +116,39 @@ export function FileRow({
   onTouchDragStart,
   isTouchPressing,
   dropFolder,
+  busy = false,
+  pendingName,
 }: FileRowProps) {
   const isListRow = depth !== undefined;
   // The whole file name, extension included, so notes and other files read alike.
-  const displayName = entry.name;
+  const displayName = pendingName ?? entry.name;
   const folderPath =
     !hideFolderPath && entryPath && entryPath !== entry.name
       ? entryPath.split("/").slice(0, -1).join("/")
       : null;
 
   const open = () => {
+    if (busy) return;
     openFile(entry.handle as FileSystemFileHandle, entryPath);
     if (onClose && window.innerWidth < 1024) onClose();
   };
+  // Resting on the row reads the note ahead, so the open finds it in memory.
+  const prefetch = useHoverPrefetch(entryPath ? { path: entryPath, handle: entry.handle as FileSystemFileHandle } : null);
 
   return (
-    <div className="group relative">
+    <div className="group relative" onPointerEnter={prefetch.onPointerEnter} onPointerLeave={prefetch.onPointerLeave}>
       <div
         role={isListRow ? "treeitem" : undefined}
         aria-selected={isListRow ? isSelected : undefined}
         aria-level={isListRow ? depth + 1 : undefined}
         aria-current={isActive ? "page" : undefined}
-        draggable={draggable && !editing}
+        aria-busy={busy || undefined}
+        aria-disabled={busy || undefined}
+        draggable={draggable && !editing && !busy}
         data-drop-folder={dropFolder}
-        onTouchStart={onTouchDragStart}
+        onTouchStart={busy ? undefined : onTouchDragStart}
         onDragStart={(e) => {
-          if (!draggable) return;
+          if (!draggable || busy) return;
           if (isTouchPressing?.()) {
             e.preventDefault();
             return;
@@ -133,6 +159,7 @@ export function FileRow({
         onDragEnd={() => onDragEndEntry?.()}
         onClick={(e) => {
           e.stopPropagation();
+          if (busy) return;
           const plain = onSelectClick ? onSelectClick(e) : true;
           if (plain && singleClickOpen) open();
         }}
@@ -144,7 +171,7 @@ export function FileRow({
           e.preventDefault();
           e.stopPropagation();
           // A touch long-press picks the row up to drag (touch uses ⋯).
-          if (!isTouchPressing?.()) onOpenMenu(e.clientX, e.clientY);
+          if (!busy && !isTouchPressing?.()) onOpenMenu(e.clientX, e.clientY);
         }}
         tabIndex={-1}
         style={isListRow ? { paddingLeft: 12 + depth * LIST_INDENT_PX } : undefined}
@@ -172,7 +199,7 @@ export function FileRow({
             {editing ? (
               <InlineNameField label="File name" {...editing} />
             ) : (
-              <span title={displayName} className="min-w-0 flex-1 truncate">
+              <span title={displayName} className={`min-w-0 flex-1 truncate ${busy ? "text-fg-muted" : ""}`}>
                 <HighlightedName name={displayName} query={highlightQuery} />
               </span>
             )}
@@ -201,7 +228,7 @@ export function FileRow({
         )}
       </div>
 
-      {!editing && (
+      {busy ? <RowBusySpinner /> : !editing && (
         <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity z-10">
           <Button
             variant="icon"

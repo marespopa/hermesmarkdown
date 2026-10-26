@@ -9,6 +9,7 @@ import { atom_isVaultPending, atom_isVaultRestoring } from "@/app/atoms/vault-at
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useVaultPins } from "@/app/hooks/use-vault-pins";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
+import { useVaultTreeSnapshot } from "@/app/hooks/use-vault-tree-snapshot";
 import { PageShortcuts } from "@/app/components/CommandPalette/use-page-shortcuts";
 import { formatShortcut } from "@/app/utils/platform";
 import { useRecentVaultTracker } from "../hooks/use-recent-vaults";
@@ -26,6 +27,7 @@ import WorkspaceSidebar from "./WorkspaceSidebar";
 import ActiveFileIndexer from "./ActiveFileIndexer";
 import RecoveryBanner from "./RecoveryBanner";
 import PinCommands from "./editor-commands/PinCommands";
+import PerfReadout from "@/app/components/PerfReadout/PerfReadout";
 
 // Show / hide the sidebar: Ctrl/Cmd+\, Ctrl/Cmd+Alt+S (`code`, since Alt
 // changes `key` on macOS), or Ctrl+[ — Ctrl on macOS too, where Cmd+[ is the
@@ -66,6 +68,8 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   const hasSidebar = !isMobileChrome && !isVaultLocked;
   useVaultPins(!isVaultLocked);
   useVaultSync();
+  // The tree as last seen, until the vault's walk lists it again.
+  useVaultTreeSnapshot();
   // On every route, so the Vault menu lists the recents from Settings too.
   useRecentVaultTracker();
   const onEditor = usePathname() === "/editor";
@@ -128,6 +132,8 @@ export default function EditorShell({ children }: { children: ReactNode }) {
       <ActiveFileIndexer />
       <BrowserVaultDialog />
       <RecentVaultsDialog />
+      {/* Dev builds only: timings for opens, typing and storage. */}
+      <PerfReadout />
     </div>
   );
 }

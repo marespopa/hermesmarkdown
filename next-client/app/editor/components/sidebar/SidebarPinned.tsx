@@ -17,7 +17,8 @@ import { pinGlyph } from "./pinned-pages";
 import SidebarSection from "./SidebarSection";
 import { SIDEBAR_ITEM_CURRENT_CLASS, SIDEBAR_ITEM_IDLE_CLASS } from "./sidebar-classes";
 import { usePinnedRows, type PinnedRow } from "./use-pinned-rows";
-import { usePinReturn } from "./use-pin-return";
+import { useHoverPrefetchHandlers } from "@/app/hooks/file-system/use-hover-prefetch";
+import { usePreviousNote } from "./use-previous-note";
 import { useSidebarNavigation } from "./use-sidebar-navigation";
 
 const MENU_ICON = { size: 15, "aria-hidden": true } as const;
@@ -38,7 +39,8 @@ const SIDEBAR_ROW_CLASS = "flex items-center h-7 rounded-md text-ui-footnote tra
 // closing it; the list's Show in Files reveals it in the tree. Dragging a row (or
 // Alt+↑/↓ on it) reorders the pins. At most nine are listed (PINS_MAX), each
 // opened by Ctrl/Cmd+1–9 from anywhere, its key shown at the row's end;
-// Ctrl/Cmd+0 goes back to where that jump left from (usePinReturn).
+// Ctrl/Cmd+0 goes back to the note opened before this one, pinned or
+// not (usePreviousNote).
 // Pinning itself is done elsewhere (the Files and note menus, the palette,
 // the Tags page, Pin Page to Sidebar…). Each change is saved at once, on
 // this device (pin-atoms.ts). A pin whose note or folder is gone shows
@@ -49,6 +51,8 @@ const DRAG_TYPE = "application/x-hermes-pin";
 
 export default function SidebarPinned({ activePath }: { activePath: string | null }) {
   const rows = usePinnedRows(activePath);
+  // Resting on a note's row reads it ahead (useHoverPrefetchHandlers).
+  const hoverPrefetch = useHoverPrefetchHandlers();
   const { unpin, setIcon, move } = usePins();
   const [menu, setMenu] = useState<{ x: number; y: number; key: string; align: "start" | "end" } | null>(null);
   const [picker, setPicker] = useState<{ key: string; anchor: DOMRect } | null>(null);
@@ -68,10 +72,11 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
   const sidebarOpen = useAtomValue(atom_sidebarOpen);
   const { openHandle, toEditor } = useSidebarNavigation();
   const { newNoteIn, newFolderIn } = useFolderCreateActions();
-  const { remember, goBack } = usePinReturn(activePath);
+  const goBack = usePreviousNote(activePath);
 
   // A click (or Ctrl/Cmd+number): a folder toggles its list, the rest open.
   const activate = useCallback((row: PinnedRow) => {
+    if (row.busy) return;
     const rect = rowRefs.current.get(row.key)?.getBoundingClientRect();
     if (row.pin.kind !== "folder" || row.missing || !rect) return row.open();
     const folder = row.pin.target;
@@ -92,8 +97,7 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
 
   // Ctrl/Cmd+1–9 opens the pin in that place (at most nine are listed),
   // from anywhere in the window, the editor included; Ctrl/Cmd+0 goes back
-  // to where the last jump left from (a folder's list opens in place, so
-  // it's no jump).
+  // to the previous note.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       // A dialog or picker that numbers its own rows (TemplatePicker) handled it first.
@@ -105,12 +109,11 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
       const row = rows[Number(event.key) - 1];
       if (!row) return;
       event.preventDefault();
-      if (!row.current && !row.missing && row.pin.kind !== "folder") remember();
       activate(row);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [rows, activate, remember, goBack]);
+  }, [rows, activate, goBack]);
 
   if (!rows.length) return null;
 
@@ -188,6 +191,7 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
           {rows.map((row, index) => (
             <div
               key={row.key}
+              {...hoverPrefetch(row.prefetch ?? null)}
               role="listitem"
               ref={(element) => {
                 if (element) rowRefs.current.set(row.key, element);
@@ -247,14 +251,16 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
                 onContextMenu={openMenuAt(row.key)}
                 onKeyDown={moveByKey(row.key)}
                 aria-current={row.current ? "page" : undefined}
-                aria-busy={row.opening || undefined}
+                aria-busy={row.opening || row.busy || undefined}
+                aria-disabled={row.busy || undefined}
                 aria-keyshortcuts={`Control+${index + 1} Meta+${index + 1}`}
                 title={row.missing ? "Not found in this vault" : row.title}
                 className="flex h-full min-w-0 flex-1 items-center gap-2 pl-1.5 pr-2 text-left"
               >
-                <span className={`min-w-0 flex-1 truncate ${row.missing ? "text-fg-faint" : ""}`}>{row.label}</span>
-                {row.opening ? (
-                  // After a moment (a quick open shows only the highlight).
+                <span className={`min-w-0 flex-1 truncate ${row.missing ? "text-fg-faint" : row.busy ? "text-fg-muted" : ""}`}>{row.label}</span>
+                {row.opening || row.busy ? (
+                  // After a moment (a quick open, rename or move shows only
+                  // its result).
                   <span aria-hidden="true" className="loading-bar-appear flex h-3 w-3 shrink-0 items-center justify-center">
                     <span className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-fg-faint border-t-transparent motion-reduce:animate-none" />
                   </span>

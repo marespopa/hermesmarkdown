@@ -8,6 +8,7 @@ import {
   atom_workspaceLayout,
   atom_fileName,
   atom_lastSavedContent,
+  atom_openNotesHydrated,
   clearLegacyPaneModePreference,
   contentStore,
   migrateLegacyWorkspaceLayout,
@@ -25,6 +26,15 @@ describe("file-atoms", () => {
     expect(openFiles).toHaveProperty("draft");
     expect(openFiles.draft.fileName).toBe("untitled");
     expect(openFiles.draft.content).toBe("");
+  });
+
+  it("counts as loaded once mounted, keeping notes set in the store before", () => {
+    store.set(atom_fileContent("seeded.md"), "Seeded");
+    expect(store.get(atom_openNotesHydrated)).toBe(false);
+    const unsubscribe = store.sub(atom_openFiles, () => {});
+    expect(store.get(atom_openNotesHydrated)).toBe(true);
+    expect(store.get(atom_openFiles)["seeded.md"].content).toBe("Seeded");
+    unsubscribe();
   });
 
   it("detects content in any persisted open file", () => {
