@@ -15,6 +15,9 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
+const sendFeedback = vi.hoisted(() => vi.fn());
+vi.mock("@/app/utils/send-feedback", () => ({ sendFeedback }));
+
 let commands: Command[] = [];
 function Probe() {
   const registered = useCommandPalette().commands;
@@ -80,6 +83,15 @@ describe("AppCommands and SettingsCommands", () => {
     expect(store.get(atom_showGitChanges)).toBe(true);
     act(() => { store.set(atom_gitAvailable, false); });
     expect(command("toggle-git-changes")?.description).toBe("No .git folder at the vault's root");
+  });
+
+  it("offers Send Feedback… on every route, in the user's own mail app", () => {
+    pathname = "/editor";
+    renderCommands();
+    expect(command("send-feedback")?.label).toBe("Send Feedback…");
+    command("send-feedback")?.action();
+    expect(sendFeedback).toHaveBeenCalledTimes(1);
+    expect(push).not.toHaveBeenCalled();
   });
 
   it("opens Documentation in a new tab and marks the commands that leave the note", () => {
