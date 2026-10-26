@@ -10,6 +10,7 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useContentIndexSync } from "@/app/hooks/file-system/use-content-index-sync";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useShowFiles } from "@/app/hooks/use-show-files";
+import { editorReplaceHref } from "@/app/editor/utils/editor-url";
 import { nextPaint } from "@/app/utils/next-paint";
 import { formatShortcut } from "@/app/utils/platform";
 import { EditorView } from "@codemirror/view";
@@ -377,6 +378,7 @@ export default function CommandPalette() {
     </div>
     <PaletteFooter scope={menu ? null : scope}
       regex={!menu && scope === "content" ? { on: contentSearch.regex, onToggle: () => { setSearchRegex((on) => !on); inputRef.current?.focus(); } } : undefined}
+      replace={!menu && scope === "content" && query.trim() ? { onReplace: async () => { close(); await nextPaint(); router.push(editorReplaceHref(query, contentSearch.regex)); } } : undefined}
       onScope={(next) => { setMenuPath([]); setScope((current) => (current === next ? null : next)); setQuery(""); inputRef.current?.focus(); }} />
     {contextRow && <div role="menu" aria-label="Palette item actions" className="absolute right-3 top-28 z-10 animate-in fade-in zoom-in-95 slide-in-from-top-1 rounded-lg glass-panel p-1 duration-150 motion-reduce:animate-none"><Button variant="menu-item" role="menuitem" onClick={() => togglePin(contextRow)}>{isPinned(contextRow) ? "Unpin item" : "Pin item"} <span className="ml-auto text-fg-faint">Ctrl+D</span></Button></div>}
     </div>

@@ -15,12 +15,12 @@ export function useOpenChange() {
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
 
   return useCallback(
-    async (path: string, line: number) => {
+    async (path: string, line: number, column?: number) => {
       if (!vaultHandle) return;
       try {
         const handle = await resolveFileHandleAtPath(vaultHandle, path);
         await openFile(handle, path);
-        setPendingScrollTarget({ path, line });
+        setPendingScrollTarget(column === undefined ? { path, line } : { path, line, column });
         router.push(editorFileHref(path));
       } catch {
         toast.error(`Couldn't open ${path.split("/").pop()}`);

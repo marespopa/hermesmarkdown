@@ -97,6 +97,22 @@ export function stripBoardFence(markdown: string): string {
   return lines.join("\n");
 }
 
+/** Character ranges [from, to) of every hermes-board fence, opening line start to closing line end. */
+export function boardFenceRanges(text: string): [number, number][] {
+  if (!text.includes("```hermes-board")) return [];
+  const lines = text.split("\n");
+  const starts: number[] = [];
+  let offset = 0;
+  for (const line of lines) {
+    starts.push(offset);
+    offset += line.length + 1;
+  }
+  return findFences(lines).map(({ open, close }) => {
+    const last = Math.min(close, lines.length - 1);
+    return [starts[open], starts[last] + lines[last].length] as [number, number];
+  });
+}
+
 /** Prose plus a one-line summary, for AI reading. */
 export function boardTextForReading(markdown: string): string {
   if (!markdown.includes("```hermes-board")) return markdown;

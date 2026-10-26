@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import {
+  boardFenceRanges,
   boardTextForReading,
   hasConflictMarkers,
   NEW_BOARD_MARKDOWN,
@@ -155,5 +156,24 @@ describe("boardTextForReading", () => {
 
   it("returns a note without a fence unchanged", () => {
     expect(boardTextForReading("plain")).toBe("plain");
+  });
+});
+
+describe("boardFenceRanges", () => {
+  it("finds none in a note without a board", () => {
+    expect(boardFenceRanges("plain\ntext")).toEqual([]);
+  });
+
+  it("covers exactly the fence, opening line start to closing line end", () => {
+    const text = `Intro\n${fence("{}")}\nOutro`;
+    const [range] = boardFenceRanges(text);
+    expect(boardFenceRanges(text)).toHaveLength(1);
+    expect(text.slice(range[0], range[1])).toBe(fence("{}"));
+  });
+
+  it("runs an unclosed fence to the end of the text", () => {
+    const text = `Intro\n${FENCE}hermes-board\n{"a":1}`;
+    const [range] = boardFenceRanges(text);
+    expect(text.slice(range[0], range[1])).toBe(`${FENCE}hermes-board\n{"a":1}`);
   });
 });

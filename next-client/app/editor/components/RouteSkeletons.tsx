@@ -293,6 +293,24 @@ export function ChangesSkeleton() {
   );
 }
 
+// Replace in Files: its title, two fields and a few match rows.
+export function ReplaceSkeleton() {
+  return (
+    <div className="flex h-full w-full flex-col">
+      <TitleHeader title="Replace in Files" />
+      <div className="mx-auto w-full max-w-5xl space-y-4 overflow-hidden px-4 py-8 sm:px-8">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className={`h-11 rounded-[10px] ${SKELETON_BAR}`} />
+          <div className={`h-11 rounded-[10px] ${SKELETON_BAR}`} />
+        </div>
+        {[0, 1, 2].map((index) => (
+          <div key={index} className={`h-8 rounded-lg ${SKELETON_BAR}`} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Tags: the tag list beside the notes column.
 export function TagsSkeleton() {
   return (
@@ -319,5 +337,6 @@ export function routeSkeleton(pathname: string | null): React.ReactNode {
   if (pathname?.startsWith("/editor/trash")) return <TrashSkeleton />;
   if (pathname?.startsWith("/editor/tags")) return <TagsSkeleton />;
   if (pathname?.startsWith("/editor/changes")) return <ChangesSkeleton />;
+  if (pathname?.startsWith("/editor/replace")) return <ReplaceSkeleton />;
   return null;
 }

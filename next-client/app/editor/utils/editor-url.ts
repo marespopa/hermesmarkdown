@@ -4,6 +4,7 @@
 //   /editor                     the draft
 //   /editor/tasks, /editor/templates, /editor/trash, /editor/files
 //   /editor/tags?tag=<tag>      (editorTagHref; the page follows changes to it)
+//   /editor/replace?find=<text>&regex=1   (editorReplaceHref; Replace in Files)
 //   /editor/settings?section=<id>
 // Query parameters inside a page are rewritten in place (replaceUrlParam),
 // which the App Router keeps in sync with useSearchParams.
@@ -11,6 +12,8 @@
 export const FILE_PARAM = "file";
 export const SECTION_PARAM = "section";
 export const TAG_PARAM = "tag";
+export const FIND_PARAM = "find";
+export const REGEX_PARAM = "regex";
 
 // Query strings keep a path's slashes readable (`?file=notes/plan.md`):
 // they're valid there, and the params read back the same.
@@ -27,6 +30,15 @@ export function editorFileHref(path?: string | null): string {
 // The Tags page on `tag` (a pinned tag's link).
 export function editorTagHref(tag: string): string {
   return `/editor/tags?${serialize(new URLSearchParams({ [TAG_PARAM]: tag }))}`;
+}
+
+// Replace in Files, optionally prefilled with a Find text (and Regex on).
+export function editorReplaceHref(find?: string, regex?: boolean): string {
+  const params = new URLSearchParams();
+  if (find) params.set(FIND_PARAM, find);
+  if (find && regex) params.set(REGEX_PARAM, "1");
+  const query = serialize(params);
+  return query ? "/editor/replace?" + query : "/editor/replace";
 }
 
 export function readUrlParam(name: string): string | null {

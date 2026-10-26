@@ -33,7 +33,7 @@ export function isTextGrepAvailable(): boolean {
 }
 
 // Browsers that can't send file handles to a worker get the text instead.
-async function withContent(files: GrepFile[]): Promise<GrepFile[]> {
+export async function withContent(files: GrepFile[]): Promise<GrepFile[]> {
   return Promise.all(files.map(async (file) => {
     try {
       return { path: file.path, name: file.name, isNote: file.isNote, content: await file.handle!.getFile().then((blob) => blob.text()) };

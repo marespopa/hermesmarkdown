@@ -264,4 +264,28 @@ describe("CommandPalette / note text scope", () => {
       expect(screen.queryByRole("button", { name: "Regex" })).not.toBeInTheDocument();
     });
   });
+
+  describe("Replace… chip", () => {
+    it("opens Replace in Files with the query", async () => {
+      renderPalette();
+      await type("/needle");
+      fireEvent.click(await screen.findByRole("button", { name: "Replace in files" }));
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/editor/replace?find=needle"));
+    });
+
+    it("passes Regex along when it is on", async () => {
+      renderPalette([[atom_searchRegex, true]]);
+      await type("/ne+dle");
+      fireEvent.click(await screen.findByRole("button", { name: "Replace in files" }));
+      await waitFor(() => expect(push).toHaveBeenCalledWith("/editor/replace?find=ne%2Bdle&regex=1"));
+    });
+
+    it("is absent with an empty query and outside the scope", async () => {
+      renderPalette();
+      const input = await type("/");
+      expect(screen.queryByRole("button", { name: "Replace in files" })).not.toBeInTheDocument();
+      fireEvent.change(input, { target: { value: "needle" } });
+      expect(screen.queryByRole("button", { name: "Replace in files" })).not.toBeInTheDocument();
+    });
+  });
 });

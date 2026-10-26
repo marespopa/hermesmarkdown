@@ -7,7 +7,8 @@
 // again: a file is re-read only when its modified time or size changed, and
 // isn't even checked again within 2 s of the last check (one burst of
 // typing). The cache is bounded like the note-text index.
-import { foldCase, MAX_NOTE_CHARS, MAX_TOTAL_CHARS, REGEX_FRONTMATTER } from "./content-index";
+import { foldCase, MAX_TOTAL_CHARS, REGEX_FRONTMATTER } from "./content-index";
+import { TextCache, readFileText, type CachedFile } from "./text-cache";
 import { parseContentQuery, rankText, type RankedNote } from "./content-search";
 import { parseRegexQuery, rankRegex } from "./regex-search";
 import type { ContentHit } from "./content-search-protocol";
@@ -16,7 +17,6 @@ import { stripBoardFence } from "@/app/utils/board/board-format";
 
 const READ_CONCURRENCY = 8;
 const REPORT_EVERY_MS = 120;
-const RECHECK_MS = 2000;
 // Cached files are searched without any real await; yield this often so a
 // newer search (or a cancel) gets through at once.
 const SLICE_MS = 8;
@@ -32,64 +32,24 @@ export interface GrepProgress {
   stalled?: boolean;
 }
 
-interface CachedText {
-  modified: number;
-  size: number;
-  checkedAt: number;
-  text: string;
+interface CachedText extends CachedFile {
   folded?: string;
   bodyStart: number;
 }
 
-const cache = new Map<string, CachedText>();
-let cachedChars = 0;
+const cache = new TextCache<CachedText>(MAX_TOTAL_CHARS);
 
 export function clearGrepCache(): void {
   cache.clear();
-  cachedChars = 0;
 }
 
-function remember(path: string, entry: CachedText) {
-  const previous = cache.get(path);
-  if (previous) {
-    cachedChars -= previous.text.length;
-    cache.delete(path);
-  }
-  if (entry.text.length > MAX_TOTAL_CHARS) return;
-  // Oldest first (Map order) until it fits.
-  for (const [oldPath, old] of cache) {
-    if (cachedChars + entry.text.length <= MAX_TOTAL_CHARS) break;
-    cachedChars -= old.text.length;
-    cache.delete(oldPath);
-  }
-  cache.set(path, entry);
-  cachedChars += entry.text.length;
-}
-
-function toEntry(file: GrepFile, text: string, modified: number, size: number): CachedText {
-  // Notes search their body only, with board JSON blanked (as indexed).
-  const body = file.isNote ? stripBoardFence(text) : text;
-  const frontmatter = file.isNote ? REGEX_FRONTMATTER.exec(body) : null;
-  return { modified, size, checkedAt: Date.now(), text: body, bodyStart: frontmatter ? frontmatter[0].length : 0 };
-}
-
-async function readText(file: GrepFile): Promise<CachedText | null> {
-  if (file.content !== undefined) return toEntry(file, file.content, 0, file.content.length);
-  if (!file.handle) return null;
-  const cached = cache.get(file.path);
-  if (cached && Date.now() - cached.checkedAt < RECHECK_MS) return cached;
-  const blob = await file.handle.getFile();
-  if (cached && cached.modified === blob.lastModified && cached.size === blob.size) {
-    cached.checkedAt = Date.now();
-    return cached;
-  }
-  if (blob.size > MAX_NOTE_CHARS) return null;
-  const text = await blob.text();
-  // A NUL in the first 8 KB: a binary file with a text-like name.
-  if (text.slice(0, 8192).includes("\u0000")) return null;
-  const entry = toEntry(file, text, blob.lastModified, blob.size);
-  remember(file.path, entry);
-  return entry;
+function readText(file: GrepFile): Promise<CachedText | null> {
+  return readFileText(file, cache, (text, modified, size) => {
+    // Notes search their body only, with board JSON blanked (as indexed).
+    const body = file.isNote ? stripBoardFence(text) : text;
+    const frontmatter = file.isNote ? REGEX_FRONTMATTER.exec(body) : null;
+    return { modified, size, checkedAt: Date.now(), text: body, bodyStart: frontmatter ? frontmatter[0].length : 0 };
+  });
 }
 
 function topHits(ranked: RankedNote[], limit: number): ContentHit[] {

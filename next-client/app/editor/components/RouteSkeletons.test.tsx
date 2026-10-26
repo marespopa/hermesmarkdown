@@ -11,6 +11,11 @@ describe("routeSkeleton", () => {
     expect(screen.getByText("Changes")).toBeInTheDocument();
   });
 
+  it("returns the Replace in Files skeleton for /editor/replace", () => {
+    render(<>{routeSkeleton("/editor/replace")}</>);
+    expect(screen.getByText("Replace in Files")).toBeInTheDocument();
+  });
+
   it("returns null for the editor itself", () => {
     expect(routeSkeleton("/editor")).toBeNull();
   });

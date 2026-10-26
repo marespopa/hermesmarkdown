@@ -240,6 +240,21 @@ tags: []
           too long is stopped, and the palette says so.
         </p>
         <p>
+          <strong>Replace in Files</strong> changes a text across many notes at once. Open it from the
+          palette (<strong>Replace in Files…</strong>), or click the <strong>Replace…</strong> chip at
+          the foot of the palette while searching with <code>/</code>: it opens the page with your
+          search filled in. Type what to find and what to replace it with; <strong>Match case</strong>,{" "}
+          <strong>Whole word</strong> and <strong>Regex</strong> narrow or widen the search, and with
+          Regex on <code>$1</code>, <code>$&lt;name&gt;</code> and <code>$&amp;</code> in the
+          replacement stand for what the pattern captured. Notes are searched whole, frontmatter
+          included; turn on <strong>Include code files</strong> to change code and text files too.
+          The page lists every match as before and after. Uncheck a match, or a whole file, to leave
+          it as it is, then press <strong>Replace</strong>. A file you edited since the preview is
+          skipped and reported rather than overwritten. Afterwards <strong>Undo</strong> (in the
+          message, and on the page) puts back every file that still holds the replaced text. Private
+          notes, the Trash and board drawings are never changed.
+        </p>
+        <p>
           The palette&apos;s footer lists these modes as chips (Tags, Tasks, Headings, Text, Templates,
           Commands): click one instead of typing its prefix, and click it again to go back to files.
         </p>

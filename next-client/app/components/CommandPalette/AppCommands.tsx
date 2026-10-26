@@ -107,13 +107,14 @@ export default function AppCommands() {
           opens: "page",
           keywords,
           shortcut: pageShortcutFor(id),
-          disabledReason: pathname.startsWith(href) ? `Already in ${label.replace(/^(Open|Show) /, "")}` : undefined,
+          disabledReason: pathname.startsWith(href) ? `Already in ${label.replace(/^(Open|Show) /, "").replace(/…$/, "")}` : undefined,
           action: () => router.push(href),
         };
   const pageCommands = [
     page("open-all-notes", "Open All Files", "/editor/files", "files notes list library browse vault"),
     page("open-tags", "Open Tags", "/editor/tags", "tags hashtags labels topics browse"),
     page("show-changes", "Show Changes", "/editor/changes", "git changes diff modified added deleted commit head status review files changed pull request"),
+    page("replace-in-files", "Replace in Files…", "/editor/replace", "replace find rename substitute all files vault regex bulk"),
     page("open-trash", "Open Trash", "/editor/trash", "trash deleted restore put back recover bin"),
     page("go-tasks", "Open Tasks", "/editor/tasks", "tasks todos checklist", false),
     page("go-templates", "Open Templates", "/editor/templates", "templates template packs manage", false),
