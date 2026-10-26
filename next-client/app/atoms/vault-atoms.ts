@@ -122,12 +122,14 @@ export const atom_rebindHandles = atom(
           }
         }
       } catch (err: any) {
-        console.warn(`Failed to rebind handle for ${path}:`, err);
         // The file is gone (deleted outside the app, on another device,
         // etc.) rather than just transiently unreachable — close its tab
-        // instead of leaving it open and pointing at nothing.
+        // instead of leaving it open and pointing at nothing. Expected, so
+        // only other failures are logged.
         if (err?.name === "NotFoundError") {
           missingPaths.push(path);
+        } else {
+          console.warn(`Failed to rebind handle for ${path}:`, err);
         }
       }
     }

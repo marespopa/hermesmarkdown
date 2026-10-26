@@ -291,7 +291,7 @@ tags: []
             { label: "New Folder", value: "Choose a vault folder, then enter a name" },
             { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },
             { label: "Ask or Edit with AI…", value: "CTRL/CMD+J · when AI features are on" },
-            { label: "Navigate", value: "Open All Files, Open Tags, Open Tasks, Open Templates, Show Changes, Open Trash, Open Settings, Open Documentation, Show Keyboard Shortcuts" },
+            { label: "Navigate", value: "Open All Files, Open Tags, Open Tasks, Open Templates, Show Changes, Open Trash, Open Settings, Open Documentation, Send Feedback…, Show Keyboard Shortcuts" },
           ]}
         />
         <p>

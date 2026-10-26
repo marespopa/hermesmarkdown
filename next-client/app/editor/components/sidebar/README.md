@@ -13,4 +13,5 @@ The parts of `WorkspaceSidebar` (one level up), top to bottom, and what they sha
 | `files-filter.ts` | The Files filter: `compileFilesFilter(query)` (a case-insensitive regular expression, or the text as typed when it isn't valid) and `filterVault(files, folderPaths, filter, pathOf)` (matching files and the folders around them). |
 | `use-pinned-rows.ts` | `usePinnedRows(activePath)`: the Pinned section's rows — label, tooltip, missing (only once the index is idle), current, and what a click does — with Privacy Mode applied. |
 | `pinned-pages.tsx` | `PINNED_PAGES` (the pinnable app pages: label, href, glyph) and `pinGlyph(pin)`, a row's default glyph. |
+| `use-pin-return.ts` | `usePinReturn(activePath)`: Ctrl/Cmd+0, back to where the last Ctrl/Cmd+1–9 jump left from (again to return to the pin). |
 | `use-sidebar-navigation.ts` | Opening a tree row or an open note, and New note, from any /editor route: in place on the editor, else back to it at the note's URL. |

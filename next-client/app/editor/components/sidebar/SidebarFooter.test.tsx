@@ -12,6 +12,15 @@ vi.mock("next/navigation", () => ({
   usePathname: () => navigation.pathname,
 }));
 
+const mail = vi.hoisted(() => ({ open: vi.fn() }));
+vi.mock("@/app/utils/feedback-mail", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/app/utils/feedback-mail")>()),
+  openMailLink: mail.open,
+}));
+
+const showCopyToast = vi.hoisted(() => vi.fn());
+vi.mock("@/app/components/Toastr", () => ({ showCopyToast }));
+
 const renderFooter = () => {
   const store = createStore();
   render(
@@ -57,5 +66,20 @@ describe("SidebarFooter", () => {
     fireEvent.click(screen.getByRole("button", { name: "Help" }));
     fireEvent.click(screen.getByRole("menuitem", { name: /Keyboard Shortcuts/ }));
     expect(store.get(atom_keyboardShortcutsOpen)).toBe(true);
+  });
+
+  it("sends feedback from the Help menu in the user's own mail app, copying the address", () => {
+    const writeText = vi.fn(async () => {});
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    renderFooter();
+    fireEvent.click(screen.getByRole("button", { name: "Help" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Send Feedback…" }));
+
+    const href = mail.open.mock.calls[0][0] as string;
+    expect(href).toMatch(/^mailto:office@marespopa\.com\?subject=HermesMarkdown%20feedback&body=/);
+    expect(decodeURIComponent(href.split("body=")[1])).toContain(navigator.userAgent);
+    expect(writeText).toHaveBeenCalledWith("office@marespopa.com");
+    expect(showCopyToast).toHaveBeenCalledWith(expect.stringContaining("office@marespopa.com"));
+    expect(screen.queryByRole("menu", { name: "Help" })).not.toBeInTheDocument();
   });
 });

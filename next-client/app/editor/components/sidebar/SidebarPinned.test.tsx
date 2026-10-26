@@ -218,6 +218,29 @@ describe("SidebarPinned", () => {
     expect(navigation.push).not.toHaveBeenCalled();
   });
 
+  it("goes back to where a Ctrl/Cmd+1–9 jump left from with Ctrl/Cmd+0, and to the pin again", () => {
+    const store = createStore();
+    seedPins(store, pins);
+    store.set(atom_fileMetadata, { "projects/roadmap.md": meta("projects/roadmap.md"), "projects/notes.md": meta("projects/notes.md") });
+    const view = (activePath: string | null) => <Provider store={store}><SidebarPinned activePath={activePath} /></Provider>;
+    const { rerender } = render(view("projects/notes.md"));
+    // Nothing to go back to yet: the key is left alone.
+    const untouched = new KeyboardEvent("keydown", { key: "0", ctrlKey: true, cancelable: true });
+    window.dispatchEvent(untouched);
+    expect(untouched.defaultPrevented).toBe(false);
+
+    // To the pinned note, then back to the note in front before the jump.
+    fireEvent.keyDown(window, { key: "1", ctrlKey: true });
+    expect(openFile).toHaveBeenLastCalledWith(handle, "projects/roadmap.md");
+    rerender(view("projects/roadmap.md"));
+    fireEvent.keyDown(window, { key: "0", metaKey: true });
+    expect(openFile).toHaveBeenLastCalledWith(handle, "projects/notes.md");
+    // Again: back to the pin.
+    rerender(view("projects/notes.md"));
+    fireEvent.keyDown(window, { key: "0", ctrlKey: true });
+    expect(openFile).toHaveBeenLastCalledWith(handle, "projects/roadmap.md");
+  });
+
   it("lists at most nine pins", () => {
     const many: Pin[] = Array.from({ length: 11 }, (_, i) => ({ kind: "tag", target: `tag${i + 1}`, icon: null }));
     setup({ pinned: many });

@@ -70,12 +70,15 @@ export const baseTheme = EditorView.theme({
     borderRadius: "0 0 0.55rem 0.55rem",
     paddingBottom: "0.15rem",
   },
-  // The room below the frontmatter matches the sheet's padding above it
-  // (`--sheet-pad-top`, set on the sheet). A blank line after the closing
-  // `---` already gives about that; text right after it gets this spacer
-  // block instead — a block of its own, not padding on the text's line.
+  // The room below the frontmatter, kept tight so the title sits close
+  // under it (frontmatter-block.ts): text right after the closing `---`
+  // gets this spacer block — a block of its own, not padding on the text's
+  // line — and the blank line usually there is drawn at the same height.
   ".cm-frontmatter-spacer": {
-    height: "var(--sheet-pad-top, 1.5rem)",
+    height: "var(--frontmatter-gap, 1rem)",
+  },
+  ".cm-line.cm-frontmatter-gap": {
+    lineHeight: "var(--frontmatter-gap, 1rem)",
   },
   ".cm-frontmatter-line:hover, .cm-frontmatter-line:focus-within": {
     backgroundColor: "var(--frontmatter-bg-active)",

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { atom_darkTheme, atom_keyboardShortcutsOpen, atom_lightTheme, atom_theme, type Theme } from "@/app/atoms/ui-atoms";
 import { DARK_THEMES, LIGHT_THEMES, resolveDarkTheme, resolveLightTheme } from "@/app/theme-palettes";
 import RegisteredCommands from "@/app/editor/components/editor-commands/RegisteredCommands";
+import { sendFeedback } from "@/app/utils/send-feedback";
 import { type Command, useRegisterCommand } from "./CommandPaletteContext";
 import { pageShortcutFor } from "./page-shortcuts";
 
@@ -63,6 +64,16 @@ export default function AppCommands() {
     keywords: "docs help guide manual",
     disabledReason: pathname === "/documentation" ? "Already viewing documentation" : undefined,
     action: () => { window.open("/documentation", "_blank", "noopener"); },
+  });
+
+  // The user's own mail app, as the sidebar's Help menu does.
+  useRegisterCommand({
+    id: "send-feedback",
+    label: "Send Feedback…",
+    description: "Email office@marespopa.com from your mail app",
+    category: "Help",
+    keywords: "feedback contact email mail bug report idea suggestion support",
+    action: sendFeedback,
   });
 
   // The free tools are their own site area, not part of writing: offered

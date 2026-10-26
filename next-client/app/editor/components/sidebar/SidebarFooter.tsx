@@ -3,10 +3,11 @@
 import React, { useRef, useState } from "react";
 import { useSetAtom } from "jotai";
 import { usePathname, useRouter } from "next/navigation";
-import { HiOutlineBookOpen, HiOutlineCog, HiOutlineQuestionMarkCircle } from "react-icons/hi";
+import { HiOutlineBookOpen, HiOutlineCog, HiOutlineMail, HiOutlineQuestionMarkCircle } from "react-icons/hi";
 import { TbKeyboard } from "react-icons/tb";
 import { atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
+import { sendFeedback } from "@/app/utils/send-feedback";
 import { formatShortcut } from "@/app/utils/platform";
 import TabContextMenu from "../TabContextMenu";
 import { SIDEBAR_ICON_CLASS, sidebarItemClass } from "./sidebar-classes";
@@ -16,7 +17,8 @@ const ICON = { size: 15, "aria-hidden": true, className: SIDEBAR_ICON_CLASS } as
 // The sidebar's foot, below the scrolling library and set apart by a
 // hairline: Settings (current while on a Settings page) and Help, whose menu
 // opens the Documentation in a new tab (the note stays put, as the palette's
-// Open Documentation does) or the Keyboard Shortcuts overlay.
+// Open Documentation does), the Keyboard Shortcuts overlay, or Send
+// Feedback… (the user's own mail app; send-feedback.ts).
 export default function SidebarFooter() {
   const router = useRouter();
   const pathname = usePathname() ?? "";
@@ -70,6 +72,11 @@ export default function SidebarFooter() {
               icon: <TbKeyboard size={14} aria-hidden="true" />,
               shortcut: formatShortcut("?"),
               onClick: () => setShortcutsOpen(true),
+            },
+            {
+              label: "Send Feedback…",
+              icon: <HiOutlineMail size={14} aria-hidden="true" />,
+              onClick: sendFeedback,
             },
           ]}
         />
