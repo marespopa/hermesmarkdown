@@ -4,9 +4,10 @@ import { TEMPLATE_SYNTAX_GUIDE } from "@/app/utils/templates/template-lint";
 // keyword or a slash command in the thread turns them on. The template skill
 // has the companion save templates with its create_template tool (checked
 // first, undone with the turn); the tasks skill also sends data the app
-// gathers (use-chat-skills.ts).
+// gathers (use-chat-skills.ts); the code skill steers reading and editing code
+// files and fenced blocks.
 
-export type ChatSkillId = "create-template" | "tasks";
+export type ChatSkillId = "create-template" | "tasks" | "code";
 
 export interface ChatSkill {
   id: ChatSkillId;
@@ -62,7 +63,32 @@ export const TASKS_SKILL: ChatSkill = {
   builtin: TASKS_SKILL_BUILTIN,
 };
 
-export const CHAT_SKILLS: ChatSkill[] = [TEMPLATE_SKILL, TASKS_SKILL];
+const CODE_SKILL_BUILTIN = [
+  "Skill: help with code in the user's vault (code files and fenced code blocks in notes).",
+  "When the user says \"this code\", \"this function\" or \"here\", call get_active_note first: it gives the open file, the selection and the code block at the cursor.",
+  "Before changing code:",
+  "- Read the whole file (read_file) or the note with the block, never just a guess at its contents.",
+  "- Keep the file's language, style, naming, indentation and comment density; change only what the request needs.",
+  "Changing code:",
+  "- A code file: edit_file, quoting the exact lines to replace; prefer several small edits to rewriting the file.",
+  "- A fenced block in a note: edit_code_block with the block's index or its language and first line.",
+  "- Code isn't run here, so reason about it carefully: check names, imports and types against what you read, and say what you couldn't verify.",
+  "Answering:",
+  "- To explain code, walk through what it does in order, then anything surprising (edge cases, bugs, slow parts).",
+  "- To review, list concrete problems first, most serious first, each with the line and a fix; skip style nits unless asked.",
+  "- To fix an error the user pasted, find the line it points to, say the cause in one sentence, then fix it.",
+  "- To write tests, match the test framework and file naming the vault already uses.",
+  "- After an edit, say in a line or two what changed and why.",
+].join("\n");
+
+export const CODE_SKILL: ChatSkill = {
+  id: "code",
+  command: "/code",
+  trigger: /\b(?:code|refactor(?:ing)?|stack ?trace|unit tests?)\b/i,
+  builtin: CODE_SKILL_BUILTIN,
+};
+
+export const CHAT_SKILLS: ChatSkill[] = [TEMPLATE_SKILL, TASKS_SKILL, CODE_SKILL];
 
 export function isSkillActive(skill: ChatSkill, userTexts: string[]): boolean {
   return userTexts.some((text) => text.trimStart().toLowerCase().startsWith(skill.command) || skill.trigger.test(text));
