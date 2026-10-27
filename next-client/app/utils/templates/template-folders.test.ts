@@ -29,7 +29,7 @@ describe("BUILTIN_FOLDER_TEMPLATES", () => {
   });
 
   it("counts the files already in the vault, nested ones included", () => {
-    const dir = "_templates/{{prompt:Project name}}";
+    const dir = "_templates/{{Project name}}";
     expect([...packTemplatesInVault(project, "_templates", [`${dir}/Tasks.md`, `${dir}/Meetings/Kickoff.md`])].sort())
       .toEqual(["Meetings/Kickoff", "Tasks"]);
   });

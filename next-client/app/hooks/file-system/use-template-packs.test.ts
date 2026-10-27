@@ -97,7 +97,7 @@ describe("useTemplatePacks", () => {
 
   it("adds the Project folder template with nested files, never over existing ones, bodies raw", async () => {
     const project = BUILTIN_FOLDER_TEMPLATES[0];
-    const dir = "_templates/{{prompt:Project name}}";
+    const dir = "_templates/{{Project name}}";
     const { root, packs } = await setup({ [`${dir}/Tasks.md`]: "mine\n" });
     let written = 0;
     await act(async () => { written = await packs.addBuiltinPack(project); });

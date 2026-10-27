@@ -62,7 +62,7 @@ const PROJECT_KICKOFF = [
 export const BUILTIN_FOLDER_TEMPLATES: BuiltinPack[] = [
   {
     id: "project-folder",
-    name: "{{prompt:Project name}}",
+    name: "{{Project name}}",
     displayName: "Project folder",
     description: "A project to start from: asks for its name, then makes the notes below inside a folder of that name.",
     templates: [

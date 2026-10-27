@@ -4,7 +4,6 @@ import {
   isValidToken,
   LEGACY_TEMPLATE_TOKENS,
   parseTemplateToken,
-  templateTokenRegex,
   usesToken,
   type TemplateContext,
 } from "./template-tokens";
@@ -12,7 +11,7 @@ import { templateContent } from "./template-frontmatter";
 
 // Folder templates (scaffolding), pure: expands a folder template that was
 // read from disk into the list of folders and files to create. No React, no I/O.
-// Names expand prompts and date/time tokens only; `.md` bodies expand every
+// Names expand prompts and date/time tokens only (see nameTokenRegex); `.md` bodies expand every
 // token; other files pass through as bytes.
 
 export interface ScaffoldSourceEntry {
@@ -56,20 +55,47 @@ const isReadme = (path: string) => lastSegment(path).toLowerCase() === "readme.m
 
 type NameContext = Pick<TemplateContext, "now" | "prompts">;
 
+// `{{…}}` in a file or folder name. Windows and macOS refuse `:` in names, so
+// a prompt there is written `{{Project name}}`: any text that isn't a name
+// token asks for it, like `{{prompt:Project name}}` (which still works where
+// the disk allows it). A format (`{{date:YYYY}}`) can't be used in a name.
+const nameTokenRegex = () => /\{\{\s*([^{}]+?)\s*\}\}/g;
+
+type NamePart = { kind: "prompt"; label: string } | { kind: "token" } | { kind: "literal" };
+
+function nameTokenKind(inner: string): NamePart {
+  if (inner.startsWith("prompt:")) {
+    const label = inner.slice("prompt:".length).trim();
+    return label ? { kind: "prompt", label } : { kind: "literal" };
+  }
+  if (isValidToken(inner)) {
+    return NAME_TOKENS.includes(parseTemplateToken(inner)?.name ?? "") ? { kind: "token" } : { kind: "literal" };
+  }
+  return { kind: "prompt", label: inner };
+}
+
+// Each `{{…}}` in `segment` replaced by `replace(match, part)`.
+function mapNameTokens(segment: string, replace: (token: string, part: NamePart) => string): string {
+  return segment.replace(nameTokenRegex(), (token, inner: string) => replace(token, nameTokenKind(inner.trim())));
+}
+
+// The prompt labels a name asks for, in order, each once.
+export function namePromptLabels(segment: string): string[] {
+  const labels: string[] = [];
+  mapNameTokens(segment, (token, part) => {
+    if (part.kind === "prompt" && !labels.includes(part.label)) labels.push(part.label);
+    return token;
+  });
+  return labels;
+}
+
 function expandNameTokens(segment: string, ctx: NameContext): string {
   const full: TemplateContext = { ...ctx, title: "", clipboard: "" };
-  let out = "";
-  let last = 0;
-  for (const match of segment.matchAll(templateTokenRegex())) {
-    const index = match.index ?? 0;
-    out += segment.slice(last, index);
-    last = index + match[0].length;
-    const inner = match[1];
-    const allowed = inner.startsWith("prompt:") ||
-      (isValidToken(inner) && NAME_TOKENS.includes(parseTemplateToken(inner)?.name ?? ""));
-    out += allowed ? expandTemplate(match[0], full).text : match[0];
-  }
-  return out + segment.slice(last);
+  return mapNameTokens(segment, (token, part) => {
+    if (part.kind === "prompt") return ctx.prompts?.[part.label] ?? "";
+    if (part.kind === "token") return expandTemplate(token, full).text;
+    return token;
+  });
 }
 
 // A name's tokens filled in, then made safe as a file name: forbidden
@@ -85,15 +111,11 @@ export function expandNameSegment(segment: string, ctx: NameContext): string {
 // tokens are filled in for now.
 export function folderTemplateDisplayName(name: string, now: Date): string {
   const ctx: TemplateContext = { now, title: "", clipboard: "", prompts: {} };
-  let out = "";
-  let last = 0;
-  for (const match of name.matchAll(templateTokenRegex())) {
-    const index = match.index ?? 0;
-    out += name.slice(last, index);
-    last = index + match[0].length;
-    out += match[1].startsWith("prompt:") ? match[1].slice("prompt:".length).trim() : expandTemplate(match[0], ctx).text;
-  }
-  return out + name.slice(last);
+  return mapNameTokens(name, (token, part) => {
+    if (part.kind === "prompt") return part.label;
+    if (part.kind === "token") return expandTemplate(token, ctx).text;
+    return token;
+  });
 }
 
 const bodyOf = (entry: ScaffoldSourceEntry) =>
@@ -106,8 +128,11 @@ export function scaffoldPromptLabels(source: ScaffoldSource): string[] {
   const add = (text: string) => {
     for (const label of extractPromptLabels(text)) if (!labels.includes(label)) labels.push(label);
   };
-  add(source.name);
-  for (const entry of source.entries) add(lastSegment(entry.path));
+  const addName = (name: string) => {
+    for (const label of namePromptLabels(name)) if (!labels.includes(label)) labels.push(label);
+  };
+  addName(source.name);
+  for (const entry of source.entries) addName(lastSegment(entry.path));
   for (const entry of source.entries) {
     const body = bodyOf(entry);
     if (body !== null) add(body);

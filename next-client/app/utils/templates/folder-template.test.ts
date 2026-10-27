@@ -31,6 +31,11 @@ describe("scaffoldPromptLabels", () => {
     expect(labels).toEqual(["Client", "Phase", "Owner team", "Budget", "Goal"]);
   });
 
+  it("asks once when a name's {{Label}} and a body's {{prompt:Label}} match", () => {
+    const labels = scaffoldPromptLabels(source("{{Project name}}", [file("README.md", "# {{prompt:Project name}} {{prompt:Goal}}")]));
+    expect(labels).toEqual(["Project name", "Goal"]);
+  });
+
   it("reads the clipboard only when a body uses it", () => {
     expect(scaffoldUsesClipboard(source("A", [file("a.md", "{{clipboard}}")]))).toBe(true);
     expect(scaffoldUsesClipboard(source("A", [file("{{clipboard}}.md", "x")]))).toBe(false);
@@ -43,8 +48,12 @@ describe("expandNameSegment", () => {
     expect(expandNameSegment("{{date+1d}}", ctx())).toBe("2026-10-28");
   });
 
-  it("leaves other tokens and blanks as typed", () => {
-    expect(expandNameSegment("{{title}} {{task_1}}", ctx())).toBe("{{title}} {{task_1}}");
+  it("asks for any other text in braces, so names need no colon", () => {
+    expect(expandNameSegment("{{Project name}} {{year}}", ctx({ "Project name": "Acme launch" }))).toBe("Acme launch 2026");
+  });
+
+  it("leaves tokens that don't belong in a name as typed", () => {
+    expect(expandNameSegment("{{title}} {{cursor}}", ctx())).toBe("{{title}} {{cursor}}");
   });
 
   it("makes forbidden characters safe and strips leading dots", () => {
@@ -57,6 +66,7 @@ describe("expandNameSegment", () => {
 describe("folderTemplateDisplayName", () => {
   it("shows prompt labels and fills in the other tokens", () => {
     expect(folderTemplateDisplayName("{{date:YYYY}} {{prompt:Client}} engagement", NOW)).toBe("2026 Client engagement");
+    expect(folderTemplateDisplayName("{{Project name}}", NOW)).toBe("Project name");
   });
 });
 

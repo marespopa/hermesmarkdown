@@ -107,7 +107,7 @@ describe("TemplatesPage", () => {
   });
 
   it("shows the Project folder as Added when every file is in the vault", () => {
-    const dir = "_templates/{{prompt:Project name}}";
+    const dir = "_templates/{{Project name}}";
     renderPage({ paths: [`${dir}/README.md`, `${dir}/Tasks.md`, `${dir}/Decisions.md`, `${dir}/Meetings/Kickoff.md`] });
     expect(screen.getByRole("button", { name: "Added: Project folder" })).toBeDisabled();
   });
