@@ -35,6 +35,7 @@ import {
   atom_tasksGroupBy,
   atom_taskView,
 } from "@/app/atoms/ui-atoms";
+import { atom_requestCompanionAction } from "@/app/atoms/companion-atoms";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { supportsDirectoryInput } from "@/app/services/vault-archive";
@@ -86,6 +87,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const dialog = useDialog();
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
+  const requestCompanionAction = useSetAtom(atom_requestCompanionAction);
   const isAiEnabled = useAtomValue(atom_aiEnabled);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const activeIsBoard = useAtomValue(atom_activeIsBoard);
@@ -151,6 +153,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     showHiddenFiles,
     setShowHiddenFiles,
     setAiBuilderRequest,
+    requestCompanionAction,
     isAiEnabled,
     isAiConfigured,
     activeIsBoard,

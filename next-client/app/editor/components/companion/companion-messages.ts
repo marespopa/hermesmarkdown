@@ -10,8 +10,11 @@ import type { Attachment, VaultRef } from "../ai-chat/chat-helpers";
 export const MAX_TOOL_ROUNDS = 12;
 
 // Shown under a sent message: the labels of the context it carried.
+// `summary` marks the message a compacted thread starts with
+// (companion-commands.ts).
 export interface CompanionMetadata {
   context?: string[];
+  summary?: boolean;
 }
 export type CompanionMessage = UIMessage<CompanionMetadata>;
 

@@ -9,6 +9,7 @@ import { isTemplatePath } from "@/app/utils/templates/template-registry";
 import { CHAT_SKILLS, skillCommand, startsWithCommand, type ChatSkill } from "./chat-skills";
 import { openTasksBlock } from "./skill-context";
 import { readUserSkill, userSkillsFrom } from "./user-skills";
+import { COMPANION_COMMANDS } from "../companion/companion-commands";
 
 // A skill in the companion's system prompt list: its command and when to load it.
 export interface SkillListing {
@@ -34,9 +35,10 @@ export function useChatSkills() {
     return "";
   }, [store]);
 
-  // The user's skill notes (none without a vault); built-in commands win.
+  // The user's skill notes (none without a vault); built-in skills and the
+  // companion's own commands (/new, /compact…) win.
   const userSkills = useCallback(() => (store.get(atom_vaultHandle)
-    ? userSkillsFrom(store.get(atom_fileMetadata), CHAT_SKILLS.map((skill) => skill.command))
+    ? userSkillsFrom(store.get(atom_fileMetadata), [...CHAT_SKILLS.map((skill) => skill.command), ...COMPANION_COMMANDS])
     : []), [store]);
 
   const skillList = useCallback((): SkillListing[] => [

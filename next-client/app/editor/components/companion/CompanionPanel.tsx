@@ -52,13 +52,16 @@ export default function CompanionPanel({ sheet = false }: { sheet?: boolean }) {
       <CompanionHeader
         open={open}
         onNewChat={chat.newChat}
+        onCompact={() => void chat.compact()}
         onClose={() => setOpen(false)}
         canStartOver={chat.messages.length > 0 || !!chat.errorText}
+        canCompact={chat.messages.length > 0 && !chat.isBusy}
       />
       <CompanionThread
         messages={chat.messages}
         activities={chat.activities}
         status={chat.status}
+        compacting={chat.compacting}
         errorText={chat.errorText}
         onUndoTurn={chat.undoTurn}
       />

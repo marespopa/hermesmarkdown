@@ -9,21 +9,23 @@ interface CompanionThreadProps {
   messages: Message[];
   activities: Record<string, string>;
   status: "submitted" | "streaming" | "ready" | "error";
+  compacting?: boolean;
   errorText: string | null;
   onUndoTurn: (turnId: string) => Promise<unknown>;
 }
 
 // The companion's conversation, scrolled to the newest turn: each message,
 // a turn's summary (files changed, Undo) under its reply once it settled,
-// three dots while the model hasn't started its reply, a note when a turn
-// stopped at the tool-round cap, and the error that ended a turn.
-export default function CompanionThread({ messages, activities, status, errorText, onUndoTurn }: CompanionThreadProps) {
+// three dots while the model hasn't started its reply or a summary is being
+// written (/compact), a note when a turn stopped at the tool-round cap, and
+// the error that ended a turn.
+export default function CompanionThread({ messages, activities, status, compacting = false, errorText, onUndoTurn }: CompanionThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     bottomRef.current?.scrollIntoView?.({ block: "end" });
-  }, [messages, status, errorText]);
+  }, [messages, status, compacting, errorText]);
 
-  const waiting = status === "submitted";
+  const waiting = status === "submitted" || compacting;
   const capped = status === "ready" && stoppedAtCap(messages);
   const lastReply = messages.findLastIndex((message) => message.role === "assistant");
 
@@ -49,10 +51,11 @@ export default function CompanionThread({ messages, activities, status, errorTex
             );
           })}
           {waiting && (
-            <div className="flex items-center gap-1 py-1" aria-label="Thinking">
+            <div className="flex items-center gap-1 py-1" aria-label={compacting ? "Summarizing" : "Thinking"}>
               <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-fg-faint [animation-delay:0ms]" />
               <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-fg-faint [animation-delay:150ms]" />
               <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-fg-faint [animation-delay:300ms]" />
+              {compacting && <span className="ml-1 text-ui-caption text-fg-muted">Summarizing the conversation…</span>}
             </div>
           )}
           {capped && (

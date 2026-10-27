@@ -44,7 +44,7 @@ export const aiFeaturesGroup: Group = {
       id: "ai-companion",
       title: "The AI companion",
       lead: "One AI, in a panel beside your note. Ask it about your notes, or ask it to change them.",
-      keywords: "ask ai companion panel chat selection toolbar ctrl cmd j attachments @file @folder @vault model new chat",
+      keywords: "ask ai companion panel chat selection toolbar ctrl cmd j attachments @file @folder @vault model new chat clear compact summarize conversation",
       body: (
         <>
           <p>
@@ -57,8 +57,12 @@ export const aiFeaturesGroup: Group = {
           <p>
             Type <code>@</code> to add another note, a folder or the whole vault. Attach images or files.
             Replies stream in as they&apos;re written, in Markdown. Pick the model from the panel&apos;s
-            header, and start over with <strong>New chat</strong>. The conversation stays when you close
-            the panel or reload the page.
+            header. Start over with <strong>New chat</strong> (the chat bubble in the header, or type{" "}
+            <code>/new</code> or <code>/clear</code>). When a conversation grows long,{" "}
+            <strong>Summarize chat</strong> (or <code>/compact</code>, optionally followed by what to keep)
+            replaces it with a short summary the companion goes on from. Both are also in the command
+            palette as <em>New AI chat</em> and <em>Summarize AI chat</em>. The conversation stays when you
+            close the panel or reload the page.
           </p>
           <p>
             Each thing the companion does shows as a quiet line in its reply, like{" "}
