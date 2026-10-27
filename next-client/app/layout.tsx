@@ -60,10 +60,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#FDFCFA" },
-    { media: "(prefers-color-scheme: dark)", color: "#2C2C2C" },
-  ],
+  // The default Paper surface; the pre-paint script and ThemeProvider
+  // repaint it with the page's own --surface, so the installed app's status
+  // and navigation bars follow the picked mode and palette.
+  themeColor: "#F1F0EB",
   width: "device-width",
   initialScale: 1,
   // Without this, Android Chrome overlays the on-screen keyboard instead of
@@ -109,6 +109,18 @@ const THEME_INIT_SCRIPT = `
     // The code font, when one of the offered ones (atom_codeFontFamily).
     var codeFont = JSON.parse(localStorage.getItem("codeFontFamily") || "null");
     if (${JSON.stringify(CODE_FONT_STACKS)}.indexOf(codeFont) >= 0) document.documentElement.style.setProperty("--font-code", codeFont);
+    // The browser and installed-app bars in the page's color (syncThemeColor).
+    var surface = getComputedStyle(document.documentElement).getPropertyValue("--surface").trim();
+    if (surface) {
+      var metas = document.querySelectorAll('meta[name="theme-color"]');
+      if (!metas.length) {
+        var meta = document.createElement("meta");
+        meta.name = "theme-color";
+        document.head.appendChild(meta);
+        metas = [meta];
+      }
+      for (var i = 0; i < metas.length; i++) metas[i].setAttribute("content", surface);
+    }
   } catch (e) {}
 })();
 `;
