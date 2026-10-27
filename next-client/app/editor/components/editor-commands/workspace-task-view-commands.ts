@@ -1,6 +1,5 @@
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { pageShortcutFor } from "@/app/components/CommandPalette/page-shortcuts";
-import { formatShortcut } from "@/app/utils/platform";
 import { openTokenCostDialog } from "../../utils/open-helper-dialogs";
 import type { EditorCommandContext } from "./use-editor-command-context";
 
@@ -15,14 +14,12 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
     onOpenTemplates,
     scanVault,
     setActiveFilePath,
-    setSidebarOpen,
     setShowHiddenFiles,
     setTaskSearchQuery,
     setTasksGroupBy,
     setTaskTagFilter,
     setTaskView,
     showHiddenFiles,
-    sidebarOpen,
     vaultHandle,
   } = context;
 
@@ -81,13 +78,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       label: "Show Token Cost",
       keywords: "tokens count price cost ai gpt claude gemini llm calculator note",
       action: openTokenCostDialog,
-    },
-    {
-      id: "toggle-sidebar",
-      label: "Toggle Sidebar",
-      keywords: "sidebar open notes files tree navigation panel show hide",
-      shortcut: formatShortcut("\\"),
-      action: () => setSidebarOpen(!sidebarOpen),
     },
   ];
 

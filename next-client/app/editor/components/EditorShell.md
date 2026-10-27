@@ -24,3 +24,6 @@ Description: The one frame around every /editor route (`app/editor/layout.tsx`, 
 
 ## AI companion
 Once AI is set up (`atom_isAiConfigured`) and the vault is unlocked, the shell mounts [CompanionPanel](companion/CompanionPanel.md) on the trailing edge (a sheet on mobile) and sets `--content-right` to its width while it's open, so the editor page, every ShellPage, the corner buttons and RecoveryBanner stop short of it.
+
+## Settings and shell commands
+Settings (`/editor/settings`) is a page of its own: the shell mounts neither the sidebar nor the AI companion there (`--content-left` and `--content-right` are 0, ShellPage takes the plain edge room). On every other route [ShellCommands](ShellCommands.md) registers **Show / Hide Sidebar** and, once AI is set up, **Show / Hide AI Companion**, so they work with no note open. Ctrl/Cmd+K is the palette provider's own document listener and works on every route.

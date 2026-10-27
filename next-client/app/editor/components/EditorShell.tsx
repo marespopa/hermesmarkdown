@@ -31,6 +31,7 @@ import RecoveryBanner from "./RecoveryBanner";
 import PinCommands from "./editor-commands/PinCommands";
 import PerfReadout from "@/app/components/PerfReadout/PerfReadout";
 import CompanionPanel from "./companion/CompanionPanel";
+import ShellCommands from "./ShellCommands";
 
 // Show / hide the sidebar: Ctrl/Cmd+\, Ctrl/Cmd+Alt+S (`code`, since Alt
 // changes `key` on macOS), or Ctrl+[ — Ctrl on macOS too, where Cmd+[ is the
@@ -68,7 +69,9 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
   const isVaultPending = useAtomValue(atom_isVaultPending);
   const isVaultLocked = isVaultRestoring || isVaultPending;
-  const hasSidebar = !isMobileChrome && !isVaultLocked;
+  // Settings is a page of its own: neither the sidebar nor the companion.
+  const onSettings = usePathname() === "/editor/settings";
+  const hasSidebar = !isMobileChrome && !isVaultLocked && !onSettings;
   useVaultPins(!isVaultLocked);
   useVaultSync();
   // The tree as last seen, until the vault's walk lists it again.
@@ -79,7 +82,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   useWebMcpTools(!isVaultLocked);
   const onEditor = usePathname() === "/editor";
   // The AI companion, on the trailing edge, once AI is set up.
-  const hasCompanion = useAtomValue(atom_isAiConfigured) && !isVaultLocked;
+  const hasCompanion = useAtomValue(atom_isAiConfigured) && !isVaultLocked && !onSettings;
   const companionOpen = useAtomValue(atom_companionOpen);
   const companionWidth = useAtomValue(atom_companionWidth);
 
@@ -150,6 +153,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
       )}
       {!isVaultLocked && <RecoveryBanner />}
       {!isVaultLocked && <PinCommands />}
+      {!isVaultLocked && !onSettings && <ShellCommands hasCompanion={hasCompanion} />}
       {/* Tasks, Changes, Templates and Settings by key, from every route. */}
       {!isVaultLocked && <PageShortcuts />}
       <NewVaultDialog />

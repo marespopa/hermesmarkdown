@@ -312,7 +312,7 @@ tags: []
             { label: "Open Templates", value: "Your templates, New template and examples" },
             { label: "Open files", value: "Next/previous, close current/other/all" },
             { label: "Tasks", value: "Grouping, due-date filters, and clear filters" },
-            { label: "Toggle Hidden Files / Toggle Sidebar", value: "—" },
+            { label: "Toggle Hidden Files", value: "—" },
             { label: "Theme: Light / Dark / System", value: "—" },
             { label: "Light Theme: … / Dark Theme: …", value: "The palette each mode uses" },
             { label: "Toggle Full Width / Word Wrap / Line Numbers / Invisibles / Git Changes / Word Count / Vim Mode", value: "—" },
