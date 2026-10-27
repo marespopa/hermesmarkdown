@@ -13,7 +13,7 @@ import {
 import { setHeading, toggleCodeBlock, wrapAsLink } from "../../codemirror/format-shortcuts";
 import { foldCurrentSection, unfoldAllSections } from "../../codemirror/heading-fold";
 import { goToNextGitChange, goToPreviousGitChange } from "../../codemirror/git-changes";
-import { openSearchPanel } from "@codemirror/search";
+import { gotoLine, openSearchPanel } from "@codemirror/search";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
 import { isPlainTextPath } from "@/app/utils/file-kinds";
@@ -68,6 +68,7 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     { id: "format-code-block", label: "Format: Code block", category: "Editor" as const, shortcut: formatShortcut("C", { alt: true }), keywords: "fence snippet markdown", action: () => runEditorCommand(toggleCodeBlock) },
     { id: "format-code", label: "Format Code", category: "Editor" as const, shortcut: isMacPlatform() ? "⇧⌥F" : "Shift+Alt+F", keywords: "prettier beautify pretty print code block fence json typescript javascript css html yaml", action: () => runEditorCommand((view) => runFormatCode(view, !isPlainTextPath(activeFilePath ?? ""))) },
     { id: "find-in-note", label: "Find and replace in file", category: "Editor" as const, shortcut: formatShortcut("F"), keywords: "search replace regex", action: () => runEditorCommand(openSearchPanel) },
+    { id: "go-to-line", label: "Go to Line…", category: "Editor" as const, shortcut: formatShortcut("G", { alt: true }), keywords: "jump line number goto", action: () => runEditorCommand(gotoLine) },
     { id: "fold-current-section", label: "Fold current section", category: "Editor" as const, shortcut: formatShortcut(".", { shift: true }), keywords: "collapse heading outline hide", action: () => runEditorCommand(foldCurrentSection) },
     { id: "unfold-all-sections", label: "Unfold all sections", category: "Editor" as const, shortcut: formatShortcut(",", { shift: true }), keywords: "expand headings sections show", action: () => runEditorCommand(unfoldAllSections) },
     { id: "next-git-change", label: "Next Git change", category: "Editor" as const, shortcut: isMacPlatform() ? "⌥F5" : "Alt+F5", keywords: "diff changes git head commit jump hunk", action: () => runEditorCommand(goToNextGitChange) },
