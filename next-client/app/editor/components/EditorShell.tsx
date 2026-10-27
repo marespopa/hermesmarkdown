@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useEffect, type CSSProperties, type ReactNode } from "react";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { usePathname } from "next/navigation";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import { atom_isAiConfigured, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { atom_companionOpen, atom_companionWidth } from "@/app/atoms/companion-atoms";
 import { atom_isVaultPending, atom_isVaultRestoring } from "@/app/atoms/vault-atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
+import { useBackgroundGitScan } from "@/app/hooks/use-background-git-scan";
 import { useVaultPins } from "@/app/hooks/use-vault-pins";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useVaultTreeSnapshot } from "@/app/hooks/use-vault-tree-snapshot";
@@ -74,6 +75,8 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   const hasSidebar = !isMobileChrome && !isVaultLocked && !onSettings;
   useVaultPins(!isVaultLocked);
   useVaultSync();
+  // The Changes scan, warmed up early so that page opens with a result.
+  useBackgroundGitScan(!isVaultLocked);
   // The tree as last seen, until the vault's walk lists it again.
   useVaultTreeSnapshot();
   // On every route, so the Vault menu lists the recents from Settings too.
@@ -85,6 +88,20 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   const hasCompanion = useAtomValue(atom_isAiConfigured) && !isVaultLocked && !onSettings;
   const companionOpen = useAtomValue(atom_companionOpen);
   const companionWidth = useAtomValue(atom_companionWidth);
+  const setCompanionOpen = useSetAtom(atom_companionOpen);
+
+  // Ask AI (Ctrl/Cmd+J) on the pages: the editor's own handler (it also
+  // brings the note and selection) covers the editor.
+  useEffect(() => {
+    if (!hasCompanion || onEditor) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || event.key.toLowerCase() !== "j" || event.defaultPrevented) return;
+      event.preventDefault();
+      setCompanionOpen((open) => !open);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [hasCompanion, onEditor, setCompanionOpen]);
 
   useEffect(() => {
     if (!hasSidebar) return;
