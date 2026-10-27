@@ -12,6 +12,16 @@ describe("beautifyAIError", () => {
   });
 });
 
+describe("beautifyAIError for Ollama", () => {
+  it("explains a model outside the plan, keeps Ollama's suggestion and drops the ref", () => {
+    const raw = "this model is not included in your free usage, add usage credits to pay as you go: https://ollama.com/settings or upgrade for included usage: https://ollama.com/upgrade. Try gemma4:31b-cloud, which is in the Free plan. (ref: dde41ccf)";
+    const message = beautifyAIError(raw);
+    expect(message).toMatch(/isn't included in your Ollama plan/);
+    expect(message).toContain("Try gemma4:31b-cloud instead");
+    expect(message).not.toContain("ref:");
+  });
+});
+
 describe("callAI errors", () => {
   afterEach(() => {
     vi.useRealTimers();

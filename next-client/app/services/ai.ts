@@ -86,6 +86,12 @@ export const beautifyAIError = (error: string) => {
     return "Invalid API Key. Update your key in Settings → AI and try again.";
   }
 
+  if (lowerError.includes("usage credits") || lowerError.includes("free usage") || lowerError.includes("upgrade for included usage")) {
+    // Ollama names a model the plan does include ("Try gemma4:31b-cloud, ..."); keep that hint.
+    const suggestion = error.match(/Try ([\w.:-]+)/i)?.[1];
+    return `This model isn't included in your Ollama plan.${suggestion ? ` Try ${suggestion} instead,` : " Pick another model,"} or add usage credits at ollama.com/settings.`;
+  }
+
   if (lowerError.includes("base url") && lowerError.includes("not allowed")) {
     return "Base URL restricted for security reasons.";
   }
@@ -226,6 +232,13 @@ export async function callAI(system: string, prompt: string, signal?: AbortSigna
 
   try {
     const config = getAIConfig();
+    // A local Ollama instance is asked straight from the browser.
+    if (config.provider === 'ollama' && isLocalBaseUrl(config.baseUrl)) {
+      const { localOllamaText } = await import("./ollama-direct");
+      const text = await localOllamaText({ apiKey: config.apiKey, baseUrl: config.baseUrl, modelKey: config.modelKey, system, prompt }, signal);
+      finishAiActionSuccess(seq, "Done");
+      return text;
+    }
     const data = await postAI({ action: 'text', ...config, system, prompt }, "Failed to generate text", signal);
 
     finishAiActionSuccess(seq, "Done");
@@ -270,7 +283,6 @@ export async function testAIConnection(provider: AIProvider, apiKey: string, bas
 
     return { success: true };
   } catch (error: any) {
-    console.error(`AI connection test failed for ${provider}:`, error);
     return { 
       success: false, 
       error: beautifyAIError(error.message || "An unexpected error occurred during the connection test.")

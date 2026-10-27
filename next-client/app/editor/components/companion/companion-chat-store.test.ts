@@ -5,6 +5,7 @@ import { companionHandlers, createCompanionChat, withReadableErrors } from "./co
 vi.mock("@/app/services/ai", () => ({
   getAIConfig: () => ({ provider: "claude", apiKey: "claude-key", modelKey: "sonnet-5" }),
   isWebSearchEnabled: () => false,
+  isLocalBaseUrl: () => false,
 }));
 
 // One reply from /api/ai/companion as the route streams it: a UI message

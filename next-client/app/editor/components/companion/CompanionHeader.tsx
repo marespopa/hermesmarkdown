@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { HiChevronDown, HiOutlineChat } from "react-icons/hi";
+import { HiChevronDown, HiOutlinePencilAlt } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
 import Button from "@/app/components/Button";
 import { PANE_HEADER_HEIGHT } from "../pane-header-classes";
@@ -46,7 +46,7 @@ export default function CompanionHeader({ open, onNewChat, onClose, canStartOver
         <HiChevronDown size={12} aria-hidden="true" className="shrink-0" />
       </Button>
       <Button variant="icon-small" onClick={onNewChat} disabled={!canStartOver} title="New chat (/new)" aria-label="New chat">
-        <HiOutlineChat size={16} />
+        <HiOutlinePencilAlt size={16} />
       </Button>
       <Button variant="close" onClick={onClose} title="Close" aria-label="Close AI panel" className="ml-1">
         <IoClose size={18} aria-hidden="true" />

@@ -1,6 +1,7 @@
 import { Chat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { getAIConfig, isWebSearchEnabled } from "@/app/services/ai";
+import { getAIConfig, isLocalBaseUrl, isWebSearchEnabled } from "@/app/services/ai";
+import { withLocalOllama } from "@/app/services/ollama-direct";
 import { forModel, shouldContinue, WEB_TOOL_NAMES, type CompanionMessage } from "./companion-messages";
 
 // The companion's one conversation, outside React: the Chat instance lives
@@ -89,7 +90,7 @@ export function createCompanionChat({ messages = [], fetch }: { messages?: Compa
     messages,
     transport: new DefaultChatTransport<CompanionMessage>({
       api: "/api/ai/companion",
-      fetch: withReadableErrors(fetch),
+      fetch: withLocalOllama(withReadableErrors(fetch), isLocalBaseUrl),
       // Read fresh for each request: the key, provider and model never leave
       // the browser except to this route.
       body: () => ({ ...getAIConfig(), system: companionHandlers.system, webSearch: isWebSearchEnabled() }),

@@ -14,7 +14,7 @@ Description: The Settings → AI Features section. One group holds the **AI feat
 
 ## Dependencies
 - Core: `SettingControls` (`SettingGroup`, `SettingItem`, `SettingNote`, `SegmentedControl`, `SelectControl`), `Toggle`, `Input`, `Button`, `Toastr`, `app/services/ai` (`fetchClaudeModels`, `fetchGeminiModels`, `fetchOllamaModels`, `testAIConnection`).
-- Network: Only with the switch on and a key: model listing and the connection test (Claude via `/api/ai`, Gemini model listing directly from Google, Ollama via `/api/ai`, whose base URL is checked by `app/api/ai/base-url.ts`; a local Ollama URL is called straight from the browser).
+- Network: Only with the switch on and a key: model listing and the connection test (Claude via `/api/ai`, Gemini model listing directly from Google, Ollama via `/api/ai`, whose base URL is checked by `app/api/ai/base-url.ts`; a local Ollama URL — localhost or a private address — is called straight from the browser by `app/services/ollama-direct.ts`: model list, connection test, one-shot actions and companion chat).
 
 ## Quick Usage
 ```tsx

@@ -1,3 +1,9 @@
+---
+title: Ollama as a BYOK AI Provider Architecture & Implementation Plan
+tags: [architecture, plan, ollama]
+status: completed
+---
+
 # Ollama as a BYOK AI Provider Architecture & Implementation Plan
 
 ## Context
@@ -82,8 +88,8 @@ The provider requires a **base URL** (default `https://ollama.com`) and an **opt
 
 - [x] **Phase 1 (Cloud & Proxied Hosted)**: Route requests through application API routes with SSRF validation using default URL `https://ollama.com`.
 - [x] **Phase 2 (Browser-Direct Local Execution)**:
-  - [ ] Bypass server API routes for local loopback/private IP configurations. — done for the model list and connection test (`app/services/ai.ts`); companion chat and one-shot actions still go through the server, so local instances are not yet usable for them.
-  - [ ] Execute directly from the browser using `createOpenAICompatible` and custom client-side `useChat` transport.
+  - [x] Bypass server API routes for local loopback/private IP configurations. — model list and connection test in `app/services/ai.ts`; one-shot actions and companion chat in `app/services/ollama-direct.ts` (the companion's `fetch` is wrapped so local requests are answered in the browser).
+  - [x] Execute directly from the browser using `createOpenAICompatible` and custom client-side `useChat` transport.
   - [x] Display notice regarding `OLLAMA_ORIGINS` setup requirements for local CORS handling.
 
 ### 7. Settings UI & Error UX
@@ -124,7 +130,7 @@ The provider requires a **base URL** (default `https://ollama.com`) and an **opt
 ### Manual Verification
 
 - [x] Execute `typecheck` across the workspace.
-- [ ] Test Ollama Cloud connection with key in Settings → AI.
-- [ ] Verify dynamic model list fetching and selection.
-- [ ] Test streaming companion chat and tool calls with an active Ollama model.
-- [ ] Validate error display on invalid key, restricted SSRF URL, or missing model.
+- [x] Test Ollama Cloud connection with key in Settings → AI.
+- [x] Verify dynamic model list fetching and selection.
+- [x] Test streaming companion chat and tool calls with an active Ollama model.
+- [x] Validate error display on invalid key, restricted SSRF URL, or missing model.
