@@ -1,6 +1,6 @@
 {
   "name": "hermesmarkdown",
-  "version": "6.49.1",
+  "version": "6.50.0",
   "private": true,
   "scripts": {
     "dev": "node scripts/copy-excalidraw-assets.mjs && next dev --port 3000",

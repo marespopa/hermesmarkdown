@@ -77,6 +77,33 @@ export const settingsGroup: Group = {
       ),
     },
     {
+      id: "terminal",
+      title: "Terminal",
+      lead: "Open your system terminal over SSH from the command palette.",
+      keywords: "terminal shell ssh console command line remote login",
+      body: (
+        <>
+          <KV
+            rows={[
+              { label: "Where", value: "Settings → General → Terminal" },
+              { label: "Fields", value: "User (optional) and Host" },
+              { label: "Command", value: "Open Terminal" },
+            ]}
+          />
+          <p>
+            Run <strong>Open Terminal</strong> from the palette and your system&apos;s SSH
+            handler opens <code>ssh://user@host</code> in its terminal app. The target machine
+            needs SSH enabled (Remote Login on macOS, the OpenSSH server elsewhere). The command
+            stays disabled until the host is valid.
+          </p>
+          <Callout>
+            Your browser asks before opening the terminal app, and nothing opens on a system
+            with no <code>ssh://</code> handler, such as most phones (Android/Termux included).
+          </Callout>
+        </>
+      ),
+    },
+    {
       id: "keybindings",
       title: "Keybindings",
       lead: "Shortcuts are fixed — there's no remapping screen yet.",
