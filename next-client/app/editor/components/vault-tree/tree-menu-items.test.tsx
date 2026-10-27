@@ -35,7 +35,7 @@ describe("treeMenuItems folder templates", () => {
   const withTemplates = (resolved: string | null = "projects/Acme launch") => {
     const newFromFolderTemplate = vi.fn(async () => resolved);
     const reveal = vi.fn();
-    return { newFromFolderTemplate, reveal, actions: { ...actions, reveal } as never, props: { ...props().props, newFromFolderTemplate } };
+    return { newFromFolderTemplate, reveal, actions: { ...(actions as object), reveal } as never, props: { ...props().props, newFromFolderTemplate } };
   };
 
   it("lists it on a folder row between New Folder and Pin", () => {
