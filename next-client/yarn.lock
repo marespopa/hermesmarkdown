@@ -62,6 +62,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ai-sdk/openai-compatible@npm:^2.0.87":
+  version: 2.0.87
+  resolution: "@ai-sdk/openai-compatible@npm:2.0.87"
+  dependencies:
+    "@ai-sdk/provider": "npm:3.0.19"
+    "@ai-sdk/provider-utils": "npm:4.0.62"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10c0/7a4637388b58b5bb39aac59c2c068daf5eccea8f4d57ae2de29bfcde922fac09da81f6333c497c07f9862aea17daa51afea5e044bc1403f9d8848b90e9f99707
+  languageName: node
+  linkType: hard
+
 "@ai-sdk/provider-utils@npm:4.0.61":
   version: 4.0.61
   resolution: "@ai-sdk/provider-utils@npm:4.0.61"
@@ -6035,6 +6047,7 @@ __metadata:
   dependencies:
     "@ai-sdk/anthropic": "npm:^3.0.133"
     "@ai-sdk/google": "npm:^3.0.135"
+    "@ai-sdk/openai-compatible": "npm:^2.0.87"
     "@ai-sdk/react": "npm:^3"
     "@codemirror/autocomplete": "npm:^6.20.3"
     "@codemirror/commands": "npm:^6.11.1"

@@ -16,6 +16,8 @@ export const FALLBACK_GEMINI_MODELS = [
   { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro (Preview)" },
   { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash-Lite" },
 ];
+// Ollama has no fixed list: only the models the instance reports are offered.
+export const FALLBACK_OLLAMA_MODELS: { id: string; name: string }[] = [];
 
 export const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 export const MAX_SIZE = 5_000_000;

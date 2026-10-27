@@ -1,10 +1,26 @@
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 
 // The model for a request, from the provider, the user's key and the picked
 // model. Shared by the one-shot route (app/api/ai/route.ts) and the
 // companion's streaming route (app/api/ai/companion/route.ts).
-export const createAIModel = (provider: string, apiKey: string, modelKey: string) => {
+export interface AIModelOptions {
+  provider: string;
+  apiKey: string;
+  baseUrl?: string;
+  modelKey: string;
+}
+
+export const createAIModel = ({ provider, apiKey, baseUrl, modelKey }: AIModelOptions) => {
+  if (provider === 'ollama') {
+    // Ollama's OpenAI-compatible endpoint. The key is optional (none locally).
+    return createOpenAICompatible({
+      name: 'ollama',
+      baseURL: `${(baseUrl ?? '').replace(/\/+$/, '')}/v1`,
+      headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : {},
+    })(modelKey);
+  }
   if (provider === 'claude') {
     // Short tier keys (from the static fallback list) map to a known model ID.
     // Anything else is assumed to already be a real Anthropic model ID, as

@@ -19,6 +19,18 @@ vi.mock('@ai-sdk/anthropic', () => ({
   },
 }));
 
+vi.mock('@ai-sdk/openai-compatible', () => ({
+  createOpenAICompatible: vi.fn(() => (modelId: string) => ({ modelId, provider: 'ollama' })),
+}));
+
+vi.mock('../base-url', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../base-url')>();
+  return { ...original, validateBaseUrl: vi.fn(async (url: string) => {
+    if (url.includes('localhost')) throw new original.BaseUrlError('it points at a local or internal host.');
+    return url;
+  }) };
+});
+
 vi.mock('ai', () => ({
   streamText: (...args: unknown[]) => streamTextMock(...args),
   convertToModelMessages: (...args: unknown[]) => convertMock(...args),
@@ -105,5 +117,24 @@ describe('AI companion route', () => {
 
     expect(response.status).toBe(429);
     expect(await response.text()).toBe('rate limit reached');
+  });
+
+  it('streams Ollama without a key, with the system prompt folded in and no web search or prompt cache', async () => {
+    const response = await post({ provider: 'ollama', baseUrl: 'https://ollama.com', modelKey: 'qwen3:8b', system: 'Be brief', webSearch: true, messages: uiMessages });
+
+    expect(response.status).toBe(200);
+    const options = streamTextMock.mock.calls[0][0];
+    expect(options.model).toEqual({ modelId: 'qwen3:8b', provider: 'ollama' });
+    expect(options.tools).not.toHaveProperty('web_search');
+    expect(options.messages[0].content[0]).toEqual({ type: 'text', text: 'Be brief' });
+    expect(JSON.stringify(options.messages)).not.toContain('cacheControl');
+  });
+
+  it('rejects a restricted Ollama base URL', async () => {
+    const response = await post({ provider: 'ollama', baseUrl: 'https://localhost:11434', modelKey: 'qwen3:8b', messages: uiMessages });
+
+    expect(response.status).toBe(400);
+    expect(await response.text()).toMatch(/Base URL not allowed/);
+    expect(streamTextMock).not.toHaveBeenCalled();
   });
 });

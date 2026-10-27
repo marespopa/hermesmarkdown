@@ -365,6 +365,12 @@ export interface ClaudeModelInfo {
 }
 export const atom_availableClaudeModels = atom<ClaudeModelInfo[]>([]);
 
+export interface OllamaModelInfo {
+  id: string;
+  name: string;
+}
+export const atom_availableOllamaModels = atom<OllamaModelInfo[]>([]);
+
 // Ambient AI action status, surfaced as the status bar's center pill.
 // `seq` lets a delayed "auto-clear to idle" timeout (see app/services/ai-status.ts)
 // confirm it's not clobbering a newer action that started during its delay.
