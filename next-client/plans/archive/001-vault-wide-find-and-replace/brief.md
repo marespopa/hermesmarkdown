@@ -1,8 +1,8 @@
 ---
-state: approved
+state: merged
 size: normal
 kind: feature
-blocked_from:
+blocked_from: 
 rejections: 0
 created: 2026-10-26T13:06:05Z
 ---
