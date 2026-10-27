@@ -7,7 +7,7 @@ const push = vi.fn();
 const openFile = vi.fn();
 const setPendingScrollTarget = vi.fn();
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }), usePathname: () => "/editor" }));
 vi.mock("jotai", async (importOriginal) => ({
   ...(await importOriginal<typeof import("jotai")>()),
   useSetAtom: () => setPendingScrollTarget,
