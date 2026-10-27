@@ -17,7 +17,8 @@ export class ScaffoldClashError extends Error {
   }
 }
 
-const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name);
+// Code-point order, so the walk is the same in every locale.
+const byName = (a: { name: string }, b: { name: string }) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
 
 // Walks the folder template with fresh handles: dot entries skipped, folders
 // before their contents, siblings by name. `.md` files as text, the rest as bytes.

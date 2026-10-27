@@ -135,6 +135,7 @@ describe("buildEditorCommands", () => {
       "insert-template",
       "save-as-template",
       "new-template",
+      "new-from-folder-template",
       "export-file",
       "import-file",
       "open-tasks-panel",
