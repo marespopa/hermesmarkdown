@@ -82,19 +82,21 @@ export function useTemplatePacks() {
     try {
       const dir = await ensureVaultFolder(vaultHandle, folder);
       for (const template of pack.templates) {
-        const fileName = `${template.name}.md`;
-        if (await findExisting(vaultHandle, `${folder}/${fileName}`)) continue;
-        const handle = await withRetry(() => dir.getFileHandle(fileName, { create: true }));
+        const segments = `${template.name}.md`.split("/");
+        const fileName = segments.pop()!;
+        if (await findExisting(vaultHandle, `${folder}/${[...segments, fileName].join("/")}`)) continue;
+        const parent = segments.length ? await ensureVaultFolder(vaultHandle, `${folder}/${segments.join("/")}`) : dir;
+        const handle = await withRetry(() => parent.getFileHandle(fileName, { create: true }));
         await withRetry(() => writeFileContent(handle, template.body));
         written++;
       }
     } catch (err) {
       console.warn("Couldn't add template pack:", err);
-      toast.error(`Couldn't add the ${pack.name} pack`);
+      toast.error(`Couldn't add the ${pack.displayName ?? pack.name} pack`);
     }
     if (written > 0) {
       await refresh(vaultHandle);
-      toast.success(`Added ${pack.name}: ${written} template${written === 1 ? "" : "s"} in ${folder}`);
+      toast.success(`Added ${pack.displayName ?? pack.name}: ${written} template${written === 1 ? "" : "s"} in ${folder}`);
     }
     return written;
   }, [store, refresh]);

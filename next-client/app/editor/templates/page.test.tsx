@@ -97,6 +97,21 @@ describe("TemplatesPage", () => {
     expect(within(screen.getByRole("region", { name: "Meetings pack" })).getByRole("button", { name: "Add to vault: Meetings" })).toBeEnabled();
   });
 
+  it("offers the Project folder template under Folder templates", () => {
+    renderPage();
+    expect(screen.getByRole("heading", { name: "Folder templates" })).toBeInTheDocument();
+    const card = screen.getByRole("region", { name: "Project folder folder template" });
+    expect(within(card).getByText(/Meetings\/Kickoff/)).toBeInTheDocument();
+    fireEvent.click(within(card).getByRole("button", { name: "Add to vault: Project folder" }));
+    expect(packs.addBuiltinPack).toHaveBeenCalledWith(expect.objectContaining({ id: "project-folder" }));
+  });
+
+  it("shows the Project folder as Added when every file is in the vault", () => {
+    const dir = "_templates/{{prompt:Project name}}";
+    renderPage({ paths: [`${dir}/README.md`, `${dir}/Tasks.md`, `${dir}/Decisions.md`, `${dir}/Meetings/Kickoff.md`] });
+    expect(screen.getByRole("button", { name: "Added: Project folder" })).toBeDisabled();
+  });
+
   it("disables a pack's button and spins from the first click until the pack is added", async () => {
     let finish!: (written: number) => void;
     packs.addBuiltinPack.mockImplementationOnce(() => new Promise<number>((resolve) => { finish = resolve; }));

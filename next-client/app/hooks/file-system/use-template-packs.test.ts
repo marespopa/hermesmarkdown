@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore, Provider } from "jotai";
 import toast from "react-hot-toast";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import { BUILTIN_FOLDER_TEMPLATES } from "@/app/utils/templates/template-folders";
 import { BUILTIN_PACKS } from "@/app/utils/templates/template-packs";
 import { sanitizePackName, useTemplatePacks } from "./use-template-packs";
 
@@ -92,6 +93,20 @@ describe("useTemplatePacks", () => {
     expect(root.at("_templates/Journal/Weekly.md")?.content).toBe(journal.templates.find((t) => t.name === "Weekly")!.body);
     expect(fileSystem.scanVault).toHaveBeenCalled();
     expect(toast.success).toHaveBeenCalledWith(expect.stringContaining("Added Journal"));
+  });
+
+  it("adds the Project folder template with nested files, never over existing ones, bodies raw", async () => {
+    const project = BUILTIN_FOLDER_TEMPLATES[0];
+    const dir = "_templates/{{prompt:Project name}}";
+    const { root, packs } = await setup({ [`${dir}/Tasks.md`]: "mine\n" });
+    let written = 0;
+    await act(async () => { written = await packs.addBuiltinPack(project); });
+    expect(written).toBe(project.templates.length - 1);
+    expect(root.at(`${dir}/Tasks.md`)?.content).toBe("mine\n");
+    expect(root.at(`${dir}/README.md`)?.content).toContain("scaffold: true");
+    expect(root.at(`${dir}/Decisions.md`)?.content).toContain("{{date}}");
+    expect(root.at(`${dir}/Meetings/Kickoff.md`)?.content).toContain("## Action items");
+    expect(toast.success).toHaveBeenCalledWith(expect.stringContaining("Added Project folder"));
   });
 
   it("joins an add already in progress for the same pack instead of writing it twice", async () => {

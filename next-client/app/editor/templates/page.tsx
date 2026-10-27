@@ -10,6 +10,7 @@ import { atom_vaultFolderPaths, atom_vaultHandle, resolveFileHandleAtPath } from
 import Button from "@/app/components/Button";
 import { useTemplatePacks } from "@/app/hooks/file-system/use-template-packs";
 import { useFileSystem } from "@/app/hooks/use-file-system";
+import { BUILTIN_FOLDER_TEMPLATES } from "@/app/utils/templates/template-folders";
 import { BUILTIN_PACKS, packTemplatesInVault, type BuiltinPack } from "@/app/utils/templates/template-packs";
 import { groupTemplatePacks, type TemplateEntry, type TemplatePack } from "@/app/utils/templates/template-registry";
 import BuiltinPackCard from "./components/BuiltinPackCard";
@@ -116,6 +117,27 @@ export default function TemplatesPage() {
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {BUILTIN_PACKS.map((pack: BuiltinPack) => (
+                <BuiltinPackCard
+                  key={pack.id}
+                  pack={pack}
+                  inVault={packTemplatesInVault(pack, folder, paths)}
+                  onAdd={addBuiltinPack}
+                  disabled={!vaultHandle}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section aria-labelledby="folder-templates" className="space-y-3">
+            <div>
+              <h2 id="folder-templates" className="text-ui-headline font-semibold">Folder templates</h2>
+              <p className="mt-1 text-ui-footnote text-fg-muted">
+                A folder template makes a whole folder of notes at once. Adding one copies it into <code>{folder}/</code>;
+                use it from the command palette with New from folder template. Files you already have are never replaced.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {BUILTIN_FOLDER_TEMPLATES.map((pack) => (
                 <BuiltinPackCard
                   key={pack.id}
                   pack={pack}

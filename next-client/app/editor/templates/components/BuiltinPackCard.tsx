@@ -24,6 +24,7 @@ export default function BuiltinPackCard({ pack, inVault, onAdd, disabled = false
   const [adding, setAdding] = useState(false);
   // Blocks a second click before the disabled state has rendered.
   const addingRef = useRef(false);
+  const title = pack.displayName ?? pack.name;
   const missing = pack.templates.length - inVault.size;
   const added = missing === 0;
   const label = adding ? "Adding…" : added ? "Added" : inVault.size > 0 ? `Add ${missing} missing` : "Add to vault";
@@ -40,10 +41,10 @@ export default function BuiltinPackCard({ pack, inVault, onAdd, disabled = false
     }
   };
   return (
-    <section aria-label={`${pack.name} pack`} className="flex flex-col rounded-xl border border-edge-subtle bg-surface p-4">
+    <section aria-label={`${title} ${pack.displayName ? "folder template" : "pack"}`} className="flex flex-col rounded-xl border border-edge-subtle bg-surface p-4">
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="text-ui-subhead font-semibold text-fg">{pack.name}</h3>
+          <h3 className="text-ui-subhead font-semibold text-fg">{title}</h3>
           <p className="mt-0.5 text-ui-footnote text-fg-muted">{pack.description}</p>
         </div>
         <Button
@@ -51,7 +52,7 @@ export default function BuiltinPackCard({ pack, inVault, onAdd, disabled = false
           onClick={() => void add()}
           isDisabled={added || disabled || adding}
           className={added ? "" : "bg-fill text-fg hover:bg-fill-hover"}
-          aria-label={`${label}: ${pack.name}`}
+          aria-label={`${label}: ${title}`}
           aria-busy={adding || undefined}
         >
           {adding ? (

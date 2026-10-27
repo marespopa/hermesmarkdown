@@ -7,7 +7,7 @@ import { FINANCE_PACK } from "./template-packs-finance";
 import type { TemplateEntry } from "./template-registry";
 
 export interface BuiltinTemplate {
-  /** File name without `.md`. */
+  /** File name without `.md`; may hold folders ("Meetings/Kickoff"). */
   name: string;
   description: string;
   body: string;
@@ -17,6 +17,8 @@ export interface BuiltinPack {
   id: string;
   /** The folder name it's added under. */
   name: string;
+  /** What the card shows when the folder name isn't readable (a folder template's prompt name). */
+  displayName?: string;
   description: string;
   templates: BuiltinTemplate[];
 }

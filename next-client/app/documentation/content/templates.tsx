@@ -128,6 +128,12 @@ export const templatesItems: Subsection[] = [
             same, nothing is created and you are told why. If a write fails halfway, what was made is
             removed again.
           </li>
+          <li>
+            Want one to start from? On the Templates page, <strong>Folder templates</strong> offers a{" "}
+            <strong>Project folder</strong> (README, Tasks, Decisions and a Kickoff meeting). Press{" "}
+            <strong>Add to vault</strong> to copy it into <code>_templates/</code>; it asks for the project
+            name when you use it. Files you already have are never replaced.
+          </li>
         </ul>
         <h4 className={h4}>Under the hood</h4>
         <p>

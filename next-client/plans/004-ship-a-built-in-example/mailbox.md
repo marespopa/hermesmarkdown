@@ -1,0 +1,1 @@
+engineer: Project folder template done; likeliest CI failures: page.test.tsx (new card region and paths), use-template-packs.test.ts (nested FakeDir writes). The on-disk folder name contains a colon (Windows risk).
