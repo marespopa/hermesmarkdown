@@ -15,7 +15,7 @@ const trash = vi.hoisted(() => ({
 }));
 const confirm = vi.fn(async () => true);
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => "/editor/trash" }));
 vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => fileSystem }));
 vi.mock("@/app/hooks/use-dialog", () => ({ useDialog: () => ({ confirm }) }));
 vi.mock("@/app/hooks/file-system/trash-ops", () => trash);

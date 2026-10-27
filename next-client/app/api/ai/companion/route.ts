@@ -15,6 +15,9 @@ import { withKeepAlive } from './keep-alive';
 // during it are sanitized into the stream. While the model thinks, keep-alive
 // pings hold the connection open (keep-alive.ts). Claude's requests mark the
 // prompt and thread for its prompt cache (withPromptCache).
+// Long replies (thinking, web search) outlast a host's default function limit.
+export const maxDuration = 300;
+
 export async function POST(req: Request) {
   try {
     const { provider, apiKey = '', baseUrl: rawBaseUrl, modelKey, system = '', messages, webSearch = false } = await req.json() as {

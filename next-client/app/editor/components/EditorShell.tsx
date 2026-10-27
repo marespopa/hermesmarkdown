@@ -1,13 +1,14 @@
 "use client";
 
 import React, { useEffect, type CSSProperties, type ReactNode } from "react";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { usePathname } from "next/navigation";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import { atom_isAiConfigured, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { atom_companionOpen, atom_companionWidth } from "@/app/atoms/companion-atoms";
 import { atom_isVaultPending, atom_isVaultRestoring } from "@/app/atoms/vault-atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
+import { useBackgroundGitScan } from "@/app/hooks/use-background-git-scan";
 import { useVaultPins } from "@/app/hooks/use-vault-pins";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useVaultTreeSnapshot } from "@/app/hooks/use-vault-tree-snapshot";
@@ -31,6 +32,7 @@ import RecoveryBanner from "./RecoveryBanner";
 import PinCommands from "./editor-commands/PinCommands";
 import PerfReadout from "@/app/components/PerfReadout/PerfReadout";
 import CompanionPanel from "./companion/CompanionPanel";
+import ShellCommands from "./ShellCommands";
 
 // Show / hide the sidebar: Ctrl/Cmd+\, Ctrl/Cmd+Alt+S (`code`, since Alt
 // changes `key` on macOS), or Ctrl+[ — Ctrl on macOS too, where Cmd+[ is the
@@ -68,9 +70,13 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
   const isVaultPending = useAtomValue(atom_isVaultPending);
   const isVaultLocked = isVaultRestoring || isVaultPending;
-  const hasSidebar = !isMobileChrome && !isVaultLocked;
+  // Settings is a page of its own: neither the sidebar nor the companion.
+  const onSettings = usePathname() === "/editor/settings";
+  const hasSidebar = !isMobileChrome && !isVaultLocked && !onSettings;
   useVaultPins(!isVaultLocked);
   useVaultSync();
+  // The Changes scan, warmed up early so that page opens with a result.
+  useBackgroundGitScan(!isVaultLocked);
   // The tree as last seen, until the vault's walk lists it again.
   useVaultTreeSnapshot();
   // On every route, so the Vault menu lists the recents from Settings too.
@@ -79,9 +85,23 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   useWebMcpTools(!isVaultLocked);
   const onEditor = usePathname() === "/editor";
   // The AI companion, on the trailing edge, once AI is set up.
-  const hasCompanion = useAtomValue(atom_isAiConfigured) && !isVaultLocked;
+  const hasCompanion = useAtomValue(atom_isAiConfigured) && !isVaultLocked && !onSettings;
   const companionOpen = useAtomValue(atom_companionOpen);
   const companionWidth = useAtomValue(atom_companionWidth);
+  const setCompanionOpen = useSetAtom(atom_companionOpen);
+
+  // Ask AI (Ctrl/Cmd+J) on the pages: the editor's own handler (it also
+  // brings the note and selection) covers the editor.
+  useEffect(() => {
+    if (!hasCompanion || onEditor) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || event.key.toLowerCase() !== "j" || event.defaultPrevented) return;
+      event.preventDefault();
+      setCompanionOpen((open) => !open);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [hasCompanion, onEditor, setCompanionOpen]);
 
   useEffect(() => {
     if (!hasSidebar) return;
@@ -150,6 +170,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
       )}
       {!isVaultLocked && <RecoveryBanner />}
       {!isVaultLocked && <PinCommands />}
+      {!isVaultLocked && !onSettings && <ShellCommands hasCompanion={hasCompanion} />}
       {/* Tasks, Changes, Templates and Settings by key, from every route. */}
       {!isVaultLocked && <PageShortcuts />}
       <NewVaultDialog />

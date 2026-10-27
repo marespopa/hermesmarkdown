@@ -15,6 +15,7 @@ const fileSystem = vi.hoisted(() => ({ vaultHandle: { name: "Notes" } as unknown
 // from the URL on each render.
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
+  usePathname: () => "/editor/tags",
   useSearchParams: () => new URLSearchParams(window.location.search),
 }));
 vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => fileSystem }));

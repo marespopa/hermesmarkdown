@@ -25,6 +25,8 @@ describe('withKeepAlive', () => {
 
     const response = withKeepAlive(new Response(silent, { headers: { 'content-type': 'text/event-stream' } }), 1000);
     expect(response.headers.get('content-type')).toBe('text/event-stream');
+    expect(response.headers.get('x-accel-buffering')).toBe('no');
+    expect(response.headers.get('cache-control')).toContain('no-transform');
 
     const reader = response.body!.getReader();
     const decoder = new TextDecoder();

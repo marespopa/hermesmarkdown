@@ -27,7 +27,6 @@ import {
   atom_activeEditorView,
   atom_aiBuilderRequest,
   atom_browserVaultDialogOpen,
-  atom_sidebarOpen,
   atom_aiEnabled,
   atom_isAiConfigured,
   atom_newVaultFlowOpen,
@@ -96,7 +95,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
   const [, closeTab] = useAtom(atom_closeTab);
   const [, setNewVaultFlowOpen] = useAtom(atom_newVaultFlowOpen);
-  const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
   const [, setTasksGroupBy] = useAtom(atom_tasksGroupBy);
   const [, setTaskSearchQuery] = useAtom(atom_taskSearchQuery);
   const [, setTaskTagFilter] = useAtom(atom_taskTagFilter);
@@ -162,8 +160,6 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setActiveFilePath,
     closeTab,
     setNewVaultFlowOpen,
-    sidebarOpen,
-    setSidebarOpen,
     setTasksGroupBy,
     setTaskSearchQuery,
     setTaskTagFilter,

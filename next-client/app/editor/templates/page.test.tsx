@@ -8,7 +8,7 @@ import { atom_vaultFolderPaths, atom_vaultHandle } from "@/app/atoms/vault-atoms
 import TemplatesPage from "./page";
 
 const push = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }), usePathname: () => "/editor" }));
 
 const fileSystem = {
   openFile: vi.fn(async () => {}),

@@ -2,7 +2,7 @@
 
 import React, { type ReactNode } from "react";
 import { useAtomValue } from "jotai";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { HiOutlineArrowLeft } from "react-icons/hi";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
@@ -27,7 +27,8 @@ export default function ShellPage({ title, help, children }: { title: string; he
   const router = useRouter();
   const isMobileChrome = useIsMobileChrome();
   const sidebarOpen = useAtomValue(atom_sidebarOpen);
-  const leading = isMobileChrome || sidebarOpen ? EDGE_ROOM : TOGGLE_ROOM;
+  const hasSidebar = usePathname() !== "/editor/settings";
+  const leading = isMobileChrome || !hasSidebar || sidebarOpen ? EDGE_ROOM : TOGGLE_ROOM;
   const activeFilePath = useAtomValue(atom_activeFilePath);
   const editorHref = editorFileHref(activeFilePath);
 

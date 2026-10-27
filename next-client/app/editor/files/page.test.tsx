@@ -6,7 +6,7 @@ import { Provider } from "jotai";
 import FilesPage from "./page";
 
 const push = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }), usePathname: () => "/editor" }));
 
 const fileSystem = vi.hoisted(() => ({
   isMounted: true,

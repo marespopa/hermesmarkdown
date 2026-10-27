@@ -280,7 +280,7 @@ export const getStartedGroup: Group = {
           <p>
             Show it with the Sidebar button at the top left and hide it with the button in its own header, Escape
             inside it, or toggle it with <code>CTRL/CMD+\</code>, <code>CTRL/CMD+ALT+S</code> or the{" "}
-            <strong>Toggle Sidebar</strong> command, and drag its edge to resize it (double-click the edge to
+            <strong>Show Sidebar</strong> command, and drag its edge to resize it (double-click the edge to
             reset; with the edge focused, the arrow keys resize it too). Folded sections stay folded.
           </p>
           <p>

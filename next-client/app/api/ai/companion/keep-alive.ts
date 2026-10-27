@@ -47,5 +47,9 @@ export function withKeepAlive(response: Response, intervalMs = KEEP_ALIVE_MS): R
       return reader.cancel(reason);
     },
   });
-  return new Response(body, { status: response.status, statusText: response.statusText, headers: response.headers });
+  // Proxies must pass the stream through as it comes, not buffer it.
+  const headers = new Headers(response.headers);
+  headers.set('Cache-Control', 'no-cache, no-transform');
+  headers.set('X-Accel-Buffering', 'no');
+  return new Response(body, { status: response.status, statusText: response.statusText, headers });
 }

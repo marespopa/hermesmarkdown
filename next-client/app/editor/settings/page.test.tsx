@@ -22,6 +22,7 @@ vi.mock("@/app/services/ai", () => ({
 }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock }),
+  usePathname: () => "/editor/settings",
 }));
 
 // Mock atoms

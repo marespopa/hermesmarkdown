@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { HiChevronDown, HiOutlinePencilAlt } from "react-icons/hi";
-import { IoClose } from "react-icons/io5";
+import { HiChevronDown, HiOutlinePencilAlt, HiOutlineX } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import { PANE_HEADER_HEIGHT } from "../pane-header-classes";
 import TabContextMenu from "../TabContextMenu";
@@ -49,7 +48,7 @@ export default function CompanionHeader({ open, onNewChat, onClose, canStartOver
         <HiOutlinePencilAlt size={16} />
       </Button>
       <Button variant="close" onClick={onClose} title="Close" aria-label="Close AI panel" className="ml-1">
-        <IoClose size={18} aria-hidden="true" />
+        <HiOutlineX size={14} aria-hidden="true" />
       </Button>
       {menu && (
         <TabContextMenu

@@ -36,7 +36,7 @@ export const settingsGroup: Group = {
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
               { label: "Light / Dark theme", value: "Paper, Sepia, Solarized, Plain / Ink, Nord, Solarized, Graphite" },
-              { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Toggle Sidebar: navigation and the vault's files on the window's left edge, on every editor page (desktop)" },
+              { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Show/Hide Sidebar: navigation and the vault's files on the window's left edge, on every editor page (desktop)" },
               { label: "Typeface", value: "Quattro by default, Duospace or Geist Mono" },
               { label: "Code font", value: "Geist Mono by default, JetBrains Mono, Fira Code or your system's monospace" },
             ]}
