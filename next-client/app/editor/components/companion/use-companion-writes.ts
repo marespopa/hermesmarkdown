@@ -13,7 +13,7 @@ import { isMarkdownPath } from "@/app/utils/file-kinds";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { lintTemplate } from "@/app/utils/templates/template-lint";
 import { sanitizeTemplateFileName } from "@/app/utils/templates/template-registry";
-import { applyEdits, replaceCodeBlock, type CodeBlockTarget, type EditResult, type FindReplace } from "./tools/edit-tools";
+import { applyEdits, replaceCodeBlock, withNewNoteFrontmatter, type CodeBlockTarget, type EditResult, type FindReplace } from "./tools/edit-tools";
 import { guardFilePath, guardFolderPath } from "./tools/path-guard";
 import { PRIVATE_HIDDEN } from "./tools/read-tools";
 import { recordContent, recordCreate } from "./turn-journal";
@@ -41,7 +41,14 @@ const splitPath = (path: string) => {
 export function useCompanionWrites() {
   const store = useStore();
   const { writeThrough } = useNoteBuffer();
-  const { scanVault, recordSteps, undoFileOperation } = useFileSystem();
+  const { scanVault, indexVaultTags, recordSteps, undoFileOperation } = useFileSystem();
+
+  // The file tree is built from the vault index, not the root listing, so
+  // a new file or folder shows only once the vault is indexed again (as the
+  // app's own New File does).
+  const refreshTree = useCallback((vault: FileSystemDirectoryHandle) => {
+    void scanVault(vault).then(() => indexVaultTags());
+  }, [scanVault, indexVaultTags]);
 
   const record = useCallback((turnId: string, update: (steps: FileUndoStep[]) => FileUndoStep[]) => {
     recordSteps(turnUndoGroup(turnId), update);
@@ -117,7 +124,9 @@ export function useCompanionWrites() {
   const editCodeBlock = useCallback((turnId: string, path: string, target: CodeBlockTarget, code: string) =>
     transformFile(turnId, path, (text) => replaceCodeBlock(text, target, code)), [transformFile]);
 
-  const createFile = useCallback(async (turnId: string, rawPath: string, content: string): Promise<WriteResult> => {
+  // A new note gets a frontmatter block (withNewNoteFrontmatter); a template
+  // (`asIs`) is written exactly as given.
+  const createFile = useCallback(async (turnId: string, rawPath: string, content: string, asIs = false): Promise<WriteResult> => {
     const vault = store.get(atom_vaultHandle);
     if (!vault) return { output: "No vault is open, so nothing can be created.", detail: "no vault" };
     const guarded = guardFilePath(rawPath);
@@ -130,15 +139,16 @@ export function useCompanionWrites() {
       const { dir } = await ensureFolder(turnId, vault, folder);
       const handle = await withRetry(() => dir.getFileHandle(name, { create: true }));
       // Never a 0-byte file: Google Drive hangs syncing those.
-      await withRetry(() => writeFileContent(handle, content || "\n"));
-      record(turnId, (steps) => recordCreate(steps, path, content || "\n"));
-      void scanVault(vault);
+      const text = !asIs && isMarkdownPath(path) ? withNewNoteFrontmatter(path, content) : content || "\n";
+      await withRetry(() => writeFileContent(handle, text));
+      record(turnId, (steps) => recordCreate(steps, path, text));
+      refreshTree(vault);
       return { output: `Created ${path}.`, detail: "" };
     } catch (err) {
       console.warn("Companion: couldn't create", path, err);
       return { output: `Couldn't create ${path}.`, detail: "failed" };
     }
-  }, [store, ensureFolder, record, scanVault]);
+  }, [store, ensureFolder, record, refreshTree]);
 
   const createFolder = useCallback(async (turnId: string, rawPath: string): Promise<WriteResult> => {
     const vault = store.get(atom_vaultHandle);
@@ -150,13 +160,13 @@ export function useCompanionWrites() {
     try {
       const { made } = await ensureFolder(turnId, vault, path);
       if (!made) return { output: `${path} already exists.`, detail: "exists" };
-      void scanVault(vault);
+      refreshTree(vault);
       return { output: `Created the folder ${path}.`, detail: "" };
     } catch (err) {
       console.warn("Companion: couldn't create the folder", path, err);
       return { output: `Couldn't create the folder ${path}.`, detail: "failed" };
     }
-  }, [store, ensureFolder, scanVault]);
+  }, [store, ensureFolder, refreshTree]);
 
   // A new template in the templates folder, only once it passes the
   // template checks: their findings go back to the model and nothing is
@@ -172,7 +182,7 @@ export function useCompanionWrites() {
     const folder = store.get(atom_templatesFolder).folder;
     const fileName = sanitizeTemplateFileName(name);
     const path = folder ? `${folder}/${fileName}` : fileName;
-    const result = await createFile(turnId, path, body);
+    const result = await createFile(turnId, path, body, true);
     if (result.detail === "exists") {
       return { output: `A template ${path} already exists. Read it and use edit_file to change it, or pick another name.`, detail: "exists" };
     }
