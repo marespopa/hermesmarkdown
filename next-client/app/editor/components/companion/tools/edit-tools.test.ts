@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applyEdits, replaceCodeBlock, withNewNoteFrontmatter } from "./edit-tools";
+import { load } from "js-yaml";
+import { applyEdits, repairFrontmatter, replaceCodeBlock, withNewNoteFrontmatter } from "./edit-tools";
 
 describe("applyEdits", () => {
   const text = "# Roadmap\n- Ship the beta in Q3\n- Price review\n";
@@ -78,3 +79,27 @@ describe("withNewNoteFrontmatter", () => {
     expect(withNewNoteFrontmatter("Inbox.md", "", "2026-10-27")).toBe('---\ntitle: Inbox\ncreated: 2026-10-27\n---\n\n');
   });
 });
+
+describe("repairFrontmatter", () => {
+  const yaml = (source: string) => load(source);
+
+  it("quotes a value YAML misreads, keeping it as written", () => {
+    const text = "---\ntitle: Frontmatter editing: richer summaries, safer parsing\ntags: [plan, frontmatter]\nstatus: in-progress\n---\nBody\n";
+    expect(repairFrontmatter(text, yaml)).toBe('---\ntitle: "Frontmatter editing: richer summaries, safer parsing"\ntags: [plan, frontmatter]\nstatus: in-progress\n---\nBody\n');
+  });
+
+  it("quotes a value that starts with a quoted word", () => {
+    const repaired = repairFrontmatter('---\ntitle: "Q4" plan\n---\n', yaml);
+    expect(load(repaired.split("---\n")[1])).toEqual({ title: '"Q4" plan' });
+  });
+
+  it("leaves valid frontmatter, template fields and what quoting can't fix alone", () => {
+    const valid = "---\ntitle: Roadmap\ntags: [plan]\n---\nBody\n";
+    expect(repairFrontmatter(valid, yaml)).toBe(valid);
+    const template = "---\ntitle: {{title}}\n---\n";
+    expect(repairFrontmatter(template, yaml)).toBe(template);
+    const broken = "---\ntitle: A\n\tcreated: x\n---\n";
+    expect(repairFrontmatter(broken, yaml)).toBe(broken);
+  });
+});
+

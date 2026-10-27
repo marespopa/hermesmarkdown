@@ -1,6 +1,7 @@
 import { ensureSyntaxTree, syntaxTree } from "@codemirror/language";
 import { StateEffect, StateField, type EditorState, type Extension, type Text } from "@codemirror/state";
 import { Decoration, EditorView, ViewPlugin, WidgetType, type DecorationSet, type ViewUpdate } from "@codemirror/view";
+import { loadYaml, type YamlLoad } from "@/app/utils/load-yaml";
 
 // Problems that change how much of a note renders: frontmatter that isn't
 // valid YAML, and a code fence or `$$` block that is never closed (the rest
@@ -16,7 +17,6 @@ export interface MarkdownProblem {
   message: string;
 }
 
-type YamlLoad = (source: string) => unknown;
 
 export const PROBLEM_CHECK_DELAY_MS = 1200;
 
@@ -133,12 +133,6 @@ const problemField = StateField.define<DecorationSet>({
   },
   provide: (field) => EditorView.decorations.from(field),
 });
-
-let yamlLoad: Promise<YamlLoad> | null = null;
-function loadYaml(): Promise<YamlLoad> {
-  yamlLoad ??= import("js-yaml").then((module) => module.load as YamlLoad);
-  return yamlLoad;
-}
 
 const problemChecker = ViewPlugin.fromClass(
   class {

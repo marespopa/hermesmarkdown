@@ -1,4 +1,5 @@
 import { FM_REGEX, parseFmFields } from "@/app/utils/frontmatter-utils";
+import type { YamlLoad } from "@/app/utils/load-yaml";
 import { localISODate } from "@/app/utils/task-line";
 import { codeBlocks } from "./read-tools";
 
@@ -95,4 +96,37 @@ export function withNewNoteFrontmatter(path: string, content: string, today = lo
   const block = FM_REGEX.exec(content);
   if (!block) return `---\n${lines.join("\n")}\n---\n\n${content.trim() ? `${content.trim()}\n` : ""}`;
   return `---\n${block[1]}\n${lines.join("\n")}\n---\n${content.slice(block[0].length)}`;
+}
+
+const FRONTMATTER = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
+// Template fields (`{{date}}`) are filled in later and aren't YAML yet.
+const TEMPLATE_FIELD = /\{\{[^{}\n]*\}\}/g;
+// A top-level `key: value` line with a value on it.
+const FIELD = /^([A-Za-z_][\w-]*):[ \t]+(\S.*?)[ \t]*$/;
+
+const parses = (load: YamlLoad, source: string) => {
+  try {
+    load(source.replace(TEMPLATE_FIELD, "x"));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// Frontmatter the model wrote that isn't valid YAML, made valid where a
+// field's value only needed quotes: `title: Plan: phase two` (a second
+// ": "), `title: "Q4" plan`. Each top-level line YAML can't read on its own
+// gets its whole value quoted, as written. Valid frontmatter, or one that
+// quoting doesn't fix, is left as it is.
+export function repairFrontmatter(content: string, load: YamlLoad): string {
+  const block = FRONTMATTER.exec(content);
+  if (!block || parses(load, block[1])) return content;
+  const lines = block[1].split(/\r?\n/).map((line) => {
+    const field = FIELD.exec(line);
+    if (!field || line.includes("{{") || parses(load, line)) return line;
+    return `${field[1]}: ${JSON.stringify(field[2])}`;
+  });
+  const repaired = lines.join("\n");
+  if (!parses(load, repaired)) return content;
+  return `---\n${repaired}\n---\n${content.slice(block[0].length)}`;
 }

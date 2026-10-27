@@ -10,10 +10,12 @@ import { useNoteBuffer } from "@/app/hooks/file-system/use-note-buffer";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { writeFileContent } from "@/app/services/file-writer";
 import { isMarkdownPath } from "@/app/utils/file-kinds";
+import { FM_REGEX } from "@/app/utils/frontmatter-utils";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { lintTemplate } from "@/app/utils/templates/template-lint";
 import { sanitizeTemplateFileName } from "@/app/utils/templates/template-registry";
-import { applyEdits, replaceCodeBlock, withNewNoteFrontmatter, type CodeBlockTarget, type EditResult, type FindReplace } from "./tools/edit-tools";
+import { loadYaml } from "@/app/utils/load-yaml";
+import { applyEdits, repairFrontmatter, replaceCodeBlock, withNewNoteFrontmatter, type CodeBlockTarget, type EditResult, type FindReplace } from "./tools/edit-tools";
 import { guardFilePath, guardFolderPath } from "./tools/path-guard";
 import { PRIVATE_HIDDEN } from "./tools/read-tools";
 import { recordContent, recordCreate } from "./turn-journal";
@@ -24,6 +26,8 @@ export type WriteResult = { output: string; detail: string };
 // user message that started it.
 export const TURN_UNDO_LABEL = "AI changes";
 export const turnUndoGroup = (turnId: string) => ({ id: turnId, label: TURN_UNDO_LABEL });
+
+const frontmatterOf = (text: string) => FM_REGEX.exec(text)?.[0] ?? "";
 
 const splitPath = (path: string) => {
   const at = path.lastIndexOf("/");
@@ -82,6 +86,7 @@ export function useCompanionWrites() {
   ): Promise<WriteResult> => {
     const vault = store.get(atom_vaultHandle);
     if (!vault) return { output: "No vault is open, so nothing can be changed.", detail: "no vault" };
+    const load = await loadYaml();
     const guarded = guardFilePath(rawPath);
     if (!guarded.ok) return { output: guarded.reason, detail: "refused" };
     const { path } = guarded;
@@ -106,8 +111,13 @@ export function useCompanionWrites() {
         slot.failure = edit.reason;
         return null;
       }
-      slot.applied = { before: text, after: edit.text, summary: edit.summary };
-      return edit.text;
+      // Frontmatter the change touched is kept valid YAML (repairFrontmatter);
+      // a block it left alone stays as the user wrote it.
+      const after = isMarkdownPath(path) && frontmatterOf(edit.text) !== frontmatterOf(text)
+        ? repairFrontmatter(edit.text, load)
+        : edit.text;
+      slot.applied = { before: text, after, summary: edit.summary };
+      return after;
     });
     if (!slot.applied) return { output: slot.failure || `${path} wasn't changed.`, detail: "not changed" };
     const { before, after, summary } = slot.applied;
@@ -124,7 +134,8 @@ export function useCompanionWrites() {
   const editCodeBlock = useCallback((turnId: string, path: string, target: CodeBlockTarget, code: string) =>
     transformFile(turnId, path, (text) => replaceCodeBlock(text, target, code)), [transformFile]);
 
-  // A new note gets a frontmatter block (withNewNoteFrontmatter); a template
+  // A new note gets a frontmatter block (withNewNoteFrontmatter), kept valid
+  // YAML (repairFrontmatter); a template
   // (`asIs`) is written exactly as given.
   const createFile = useCallback(async (turnId: string, rawPath: string, content: string, asIs = false): Promise<WriteResult> => {
     const vault = store.get(atom_vaultHandle);
@@ -139,7 +150,9 @@ export function useCompanionWrites() {
       const { dir } = await ensureFolder(turnId, vault, folder);
       const handle = await withRetry(() => dir.getFileHandle(name, { create: true }));
       // Never a 0-byte file: Google Drive hangs syncing those.
-      const text = !asIs && isMarkdownPath(path) ? withNewNoteFrontmatter(path, content) : content || "\n";
+      const text = !asIs && isMarkdownPath(path)
+        ? repairFrontmatter(withNewNoteFrontmatter(path, content), await loadYaml())
+        : content || "\n";
       await withRetry(() => writeFileContent(handle, text));
       record(turnId, (steps) => recordCreate(steps, path, text));
       refreshTree(vault);
