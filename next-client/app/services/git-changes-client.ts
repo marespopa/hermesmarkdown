@@ -77,17 +77,22 @@ function getWorker(): Worker | null {
  * Scans `vault` for files that differ from HEAD. `onFiles` gets changed files
  * in batches as they're found (an inline rerun after a failed worker starts
  * over, so a batch may repeat a path). `cancel()` makes the result `"cancelled"`.
+ * With `workerOnly`, a scan that would run on this thread (no worker, a failed
+ * or refused worker) ends as `"cancelled"` instead: for background work that
+ * must never block the page.
  */
 export function startChangesScan(
   vault: FileSystemDirectoryHandle,
   onProgress: (progress: ChangesProgress) => void,
   onFiles: (files: ChangedFile[]) => void = () => {},
   known: KnownFile[] = [],
+  { workerOnly = false }: { workerOnly?: boolean } = {},
 ): { result: Promise<ScanResult>; cancel(): void } {
   let cancelled = false;
   const target = getWorker();
   // Loaded on demand: the scan's dependencies stay out of the main bundle.
-  const runInline = async () => (await import("@/app/services/git/git-changes-scan")).scanChanges(vault, { onProgress, onFiles, known, isCancelled: () => cancelled });
+  const scanInline = async () => (await import("@/app/services/git/git-changes-scan")).scanChanges(vault, { onProgress, onFiles, known, isCancelled: () => cancelled });
+  const runInline = workerOnly ? async (): Promise<ScanResult> => "cancelled" : scanInline;
   if (!target) return { result: runInline(), cancel: () => { cancelled = true; } };
 
   const requestId = ++lastRequestId;

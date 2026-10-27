@@ -40,6 +40,7 @@ describe("useBackgroundGitScan", () => {
     expect(startChangesScan).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(5000);
     expect(startChangesScan).toHaveBeenCalledTimes(1);
+    expect(startChangesScan.mock.calls[0][4]).toEqual({ workerOnly: true });
     expect(store.get(atom_gitChangesCache)?.vault).toBe(vault);
   });
 
