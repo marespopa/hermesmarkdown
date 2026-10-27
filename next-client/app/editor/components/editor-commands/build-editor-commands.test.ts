@@ -48,6 +48,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     showHiddenFiles: false,
     setShowHiddenFiles: vi.fn(),
     setAiBuilderRequest: vi.fn(),
+    requestCompanionAction: vi.fn(),
     isAiEnabled: true,
     isAiConfigured: true,
     activeIsBoard: false,
@@ -160,6 +161,8 @@ describe("buildEditorCommands", () => {
       "export-vault-zip",
       "import-into-vault",
       "ai-menu",
+      "ai-new-chat",
+      "ai-compact-chat",
       "focus-editor",
       "undo-edit",
       "redo-edit",
@@ -236,15 +239,19 @@ describe("buildEditorCommands", () => {
     expect(commands.some((command) => command.id.startsWith("ai-"))).toBe(false);
   });
 
-  it("offers one Ask AI command that opens the companion", () => {
+  it("offers Ask AI, New AI chat and Summarize AI chat for the companion", () => {
     const context = createContext();
     const commands = buildEditorCommands(context);
     const ask = commands.find((command) => command.id === "ai-menu");
     expect(ask?.label).toBe("Ask AI");
     expect(ask?.subcommands).toBeUndefined();
-    expect(commands.filter((command) => command.category === "AI").map((command) => command.id)).toEqual(["ai-menu"]);
+    expect(commands.filter((command) => command.category === "AI").map((command) => command.id)).toEqual(["ai-menu", "ai-new-chat", "ai-compact-chat"]);
     ask?.action();
     expect(context.setAiBuilderRequest).toHaveBeenCalledOnce();
+    commands.find((command) => command.id === "ai-new-chat")?.action();
+    expect(context.requestCompanionAction).toHaveBeenCalledWith("new");
+    commands.find((command) => command.id === "ai-compact-chat")?.action();
+    expect(context.requestCompanionAction).toHaveBeenCalledWith("compact");
   });
 
   it("preserves availability reasons and action callbacks", () => {

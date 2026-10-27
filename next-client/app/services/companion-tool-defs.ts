@@ -66,7 +66,7 @@ export const COMPANION_TOOL_DEFS = {
   create_file: {
     title: 'Create file',
     description:
-      "Create a new note (.md) or code file at a vault-relative path, with its folders. Never overwrites: if the path is taken, it says so. The user can undo the whole turn.",
+      "Create a new note (.md) or code file at a vault-relative path, with its folders. Never overwrites: if the path is taken, it says so. A note gets frontmatter with its title and created date unless its content already sets them; add any other fields (tags, status) in a frontmatter block at the top. The user can undo the whole turn.",
     inputSchema: z.object({
       path: z.string().min(1).describe('Vault-relative path, e.g. "Projects/Launch plan.md"'),
       content: z.string().describe("The file's text"),

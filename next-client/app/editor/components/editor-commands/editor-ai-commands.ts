@@ -29,6 +29,7 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     isAiConfigured,
     runEditorCommand,
     setAiBuilderRequest,
+    requestCompanionAction,
   } = context;
 
   const focusAndHistory: Command[] = [
@@ -104,8 +105,10 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
       },
     }));
 
-  // One AI entry, Ask AI (Ctrl/Cmd+J): opens the AI companion with the note
-  // in front and its selection. With AI Features off, there is none.
+  // Ask AI (Ctrl/Cmd+J) opens the AI companion with the note in front and
+  // its selection; New AI chat and Summarize AI chat open it and start over
+  // or replace the thread with its summary (as /new and /compact). With AI
+  // Features off, there are none.
   const noKey = isAiConfigured ? undefined : "Add an API key in Settings → AI Features";
   const aiMenu: Command[] = !isAiEnabled ? [] : [{
     id: "ai-menu",
@@ -116,6 +119,22 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     keywords: "ai assistant chat prompt ask companion rewrite improve summarize edit",
     disabledReason: noKey,
     action: () => setAiBuilderRequest((value) => value + 1),
+  }, {
+    id: "ai-new-chat",
+    label: "New AI chat",
+    description: "Clear the AI conversation and start over",
+    category: "AI",
+    keywords: "ai companion chat clear reset start over new conversation /new /clear",
+    disabledReason: noKey,
+    action: () => requestCompanionAction("new"),
+  }, {
+    id: "ai-compact-chat",
+    label: "Summarize AI chat",
+    description: "Replace the AI conversation with a summary of it",
+    category: "AI",
+    keywords: "ai companion chat compact summarize condense shorten conversation context /compact",
+    disabledReason: noKey,
+    action: () => requestCompanionAction("compact"),
   }];
 
   return { aiMenu, focusAndHistory, editor, templates };

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { HiChevronDown, HiOutlinePencilAlt } from "react-icons/hi";
+import { HiChevronDown, HiOutlineChat, HiOutlineDocumentText } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
 import Button from "@/app/components/Button";
 import { PANE_HEADER_HEIGHT } from "../pane-header-classes";
@@ -11,14 +11,16 @@ import { useChatModels } from "../ai-chat/use-chat-models";
 interface CompanionHeaderProps {
   open: boolean;
   onNewChat: () => void;
+  onCompact: () => void;
   onClose: () => void;
   canStartOver: boolean;
+  canCompact: boolean;
 }
 
 // The companion's title bar, level with the pages' and the sidebar's: its
 // name, the model (shared with Settings) as a button that opens the app's
-// own pop-up menu, New chat and Close.
-export default function CompanionHeader({ open, onNewChat, onClose, canStartOver }: CompanionHeaderProps) {
+// own pop-up menu, Summarize chat, New chat and Close.
+export default function CompanionHeader({ open, onNewChat, onCompact, onClose, canStartOver, canCompact }: CompanionHeaderProps) {
   const { modelOptions, selectedAiModel, setSelectedAiModel, isFetchingModels } = useChatModels(open);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const modelRef = useRef<HTMLButtonElement>(null);
@@ -44,8 +46,11 @@ export default function CompanionHeader({ open, onNewChat, onClose, canStartOver
         <span className="min-w-0 truncate">{modelName}</span>
         <HiChevronDown size={12} aria-hidden="true" className="shrink-0" />
       </Button>
-      <Button variant="icon-small" onClick={onNewChat} disabled={!canStartOver} title="New chat" aria-label="New chat">
-        <HiOutlinePencilAlt size={16} />
+      <Button variant="icon-small" onClick={onCompact} disabled={!canCompact} title="Summarize chat (/compact)" aria-label="Summarize chat">
+        <HiOutlineDocumentText size={16} />
+      </Button>
+      <Button variant="icon-small" onClick={onNewChat} disabled={!canStartOver} title="New chat (/new)" aria-label="New chat">
+        <HiOutlineChat size={16} />
       </Button>
       <Button variant="close" onClick={onClose} title="Close" aria-label="Close AI panel" className="ml-1">
         <IoClose size={18} aria-hidden="true" />

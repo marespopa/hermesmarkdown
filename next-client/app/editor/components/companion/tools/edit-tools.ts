@@ -1,3 +1,6 @@
+import { FM_REGEX, parseFmFields } from "@/app/utils/frontmatter-utils";
+import type { YamlLoad } from "@/app/utils/load-yaml";
+import { localISODate } from "@/app/utils/task-line";
 import { codeBlocks } from "./read-tools";
 
 // The pure half of the companion's edit tools (edit_file, edit_code_block):
@@ -71,4 +74,59 @@ export function replaceCodeBlock(doc: string, target: CodeBlockTarget, code: str
   const next = doc.slice(0, block.from) + replaced + doc.slice(block.to);
   if (next === doc) return { ok: false, reason: "The code is already that. Nothing was changed." };
   return { ok: true, text: next, summary: `code block ${block.index}` };
+}
+
+// A YAML scalar as people write it: bare unless YAML would read it as
+// something else (a key, a comment, a list, a flag or a number).
+const yamlScalar = (value: string) =>
+  /^[\s[\]{}\-?:,&*!|>'"%@`#]|: | #|\s$|^(?:true|false|yes|no|on|off|null|~|[-+.\d][\d._:eE+-]*)$/i.test(value) || !value
+    ? JSON.stringify(value)
+    : value;
+
+// A new note's text (create_file) with a frontmatter block: the title (from
+// the file name) and the day it was made, written as standard YAML (the
+// date bare, the title quoted only when it has to be). A block the model
+// wrote keeps its fields; only the missing ones are added, before its end.
+export function withNewNoteFrontmatter(path: string, content: string, today = localISODate()): string {
+  const fields = parseFmFields(content);
+  const lines: string[] = [];
+  if (!fields.title) lines.push(`title: ${yamlScalar(path.slice(path.lastIndexOf("/") + 1).replace(/\.md$/i, ""))}`);
+  if (!fields.created) lines.push(`created: ${today}`);
+  if (!lines.length) return content;
+  const block = FM_REGEX.exec(content);
+  if (!block) return `---\n${lines.join("\n")}\n---\n\n${content.trim() ? `${content.trim()}\n` : ""}`;
+  return `---\n${block[1]}\n${lines.join("\n")}\n---\n${content.slice(block[0].length)}`;
+}
+
+const FRONTMATTER = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
+// Template fields (`{{date}}`) are filled in later and aren't YAML yet.
+const TEMPLATE_FIELD = /\{\{[^{}\n]*\}\}/g;
+// A top-level `key: value` line with a value on it.
+const FIELD = /^([A-Za-z_][\w-]*):[ \t]+(\S.*?)[ \t]*$/;
+
+const parses = (load: YamlLoad, source: string) => {
+  try {
+    load(source.replace(TEMPLATE_FIELD, "x"));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// Frontmatter the model wrote that isn't valid YAML, made valid where a
+// field's value only needed quotes: `title: Plan: phase two` (a second
+// ": "), `title: "Q4" plan`. Each top-level line YAML can't read on its own
+// gets its whole value quoted, as written. Valid frontmatter, or one that
+// quoting doesn't fix, is left as it is.
+export function repairFrontmatter(content: string, load: YamlLoad): string {
+  const block = FRONTMATTER.exec(content);
+  if (!block || parses(load, block[1])) return content;
+  const lines = block[1].split(/\r?\n/).map((line) => {
+    const field = FIELD.exec(line);
+    if (!field || line.includes("{{") || parses(load, line)) return line;
+    return `${field[1]}: ${JSON.stringify(field[2])}`;
+  });
+  const repaired = lines.join("\n");
+  if (!parses(load, repaired)) return content;
+  return `---\n${repaired}\n---\n${content.slice(block[0].length)}`;
 }

@@ -1,6 +1,6 @@
 # CompanionThread
 
-Description: The conversation, scrolled to the newest turn. Each message (`CompanionMessage`); under a reply, once its turn settled, a `TurnSummary`; three dots while the model hasn't started; a note when a turn stopped at `MAX_TOOL_ROUNDS`; the error that ended a turn (`role="alert"`). Empty, it says what to ask.
+Description: The conversation, scrolled to the newest turn. Each message (`CompanionMessage`); under a reply, once its turn settled, a `TurnSummary`; three dots while the model hasn't started, or with "Summarizing the conversation…" while a summary is written; a note when a turn stopped at `MAX_TOOL_ROUNDS`; the error that ended a turn (`role="alert"`). Empty, it says what to ask.
 
 ## Props
 | Prop | Type | Description |
@@ -8,5 +8,6 @@ Description: The conversation, scrolled to the newest turn. Each message (`Compa
 | messages | `CompanionMessage[]` | The thread |
 | activities | `Record<string, string>` | Each tool call's label once it ran |
 | status | useChat status | |
+| compacting | `boolean` | A summary is being written |
 | errorText | `string \| null` | |
 | onUndoTurn | `(turnId) => Promise` | Undo for a turn's summary |

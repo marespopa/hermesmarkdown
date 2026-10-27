@@ -12,7 +12,9 @@ import { atom_trashRequests } from "./trash-confirm";
 import { replyToHtml } from "./reply-html";
 
 // One turn of the companion thread (adapted from ai-chat/ChatMessageItem).
-// A user turn shows what they typed and the labels of the context it carried.
+// A user turn shows what they typed and the labels of the context it carried;
+// the summary a compacted thread starts with (/compact) shows as a quiet
+// card.
 // An assistant turn shows its parts in order: text rendered as Markdown
 // (reply-html.ts; web links open in a new tab), and a chip for each tool
 // call (a trash call waiting for the user's answer shows its
@@ -26,6 +28,15 @@ export default function CompanionMessage({ message, activities, latest = false }
     const timer = setTimeout(() => setCopied(false), 1500);
     return () => clearTimeout(timer);
   }, [copied]);
+
+  if (message.metadata?.summary) {
+    return (
+      <div className="flex flex-col gap-1 rounded-xl border border-edge-subtle px-3 py-2">
+        <p className="text-ui-caption text-fg-faint">Earlier conversation, summarized</p>
+        <ReplyText markdown={typedText(message)} />
+      </div>
+    );
+  }
 
   if (message.role === "user") {
     const context = message.metadata?.context ?? [];

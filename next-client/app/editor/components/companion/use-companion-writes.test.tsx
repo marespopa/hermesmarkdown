@@ -1,5 +1,5 @@
 import React from "react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { atom_vaultHandle, type FileUndoStep } from "@/app/atoms/vault-atoms";
@@ -21,8 +21,10 @@ const recordSteps = vi.fn((_ref: { id: string }, update: (s: FileUndoStep[]) => 
   steps = update(steps);
   return null;
 });
+const scanVault = vi.fn(async () => {});
+const indexVaultTags = vi.fn(async () => {});
 vi.mock("@/app/hooks/use-file-system", () => ({
-  useFileSystem: () => ({ scanVault: vi.fn(), recordSteps, undoFileOperation: vi.fn() }),
+  useFileSystem: () => ({ scanVault, indexVaultTags, recordSteps, undoFileOperation: vi.fn() }),
 }));
 
 async function setup() {
@@ -38,7 +40,33 @@ async function setup() {
 describe("useCompanionWrites", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 27, 9));
     steps = [];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("creates a note with frontmatter and re-indexes the vault so the file tree shows it", async () => {
+    const { vault, writes } = await setup();
+
+    let result = { output: "", detail: "" };
+    await act(async () => { result = await writes.createFile("turn-1", "Projects/Launch plan.md", "# Launch\n"); });
+
+    expect(result.output).toBe("Created Projects/Launch plan.md.");
+    expect(vault.fileAt("Projects/Launch plan.md")!.text()).toBe('---\ntitle: Launch plan\ncreated: 2026-10-27\n---\n\n# Launch\n');
+    expect(scanVault).toHaveBeenCalled();
+    expect(indexVaultTags).toHaveBeenCalled();
+  });
+
+  it("writes a code file as given", async () => {
+    const { vault, writes } = await setup();
+
+    await act(async () => { await writes.createFile("turn-1", "scripts/run.py", "print('hi')\n"); });
+
+    expect(vault.fileAt("scripts/run.py")!.text()).toBe("print('hi')\n");
   });
 
   it("sends a template's problems back to the model and writes nothing", async () => {

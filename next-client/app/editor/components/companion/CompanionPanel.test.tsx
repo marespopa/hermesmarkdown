@@ -14,6 +14,7 @@ import CompanionPanel from "./CompanionPanel";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 const send = vi.fn();
 const newChat = vi.fn();
+const compact = vi.fn();
 const setModel = vi.fn();
 let messages: unknown[] = [];
 vi.mock("./use-companion-chat", () => ({
@@ -26,6 +27,8 @@ vi.mock("./use-companion-chat", () => ({
     send,
     stop: vi.fn(),
     newChat,
+    compact,
+    compacting: false,
     undoTurn: vi.fn(),
   }),
 }));
@@ -132,8 +135,25 @@ describe("CompanionPanel", () => {
     expect(latest.parentElement).not.toHaveClass("opacity-0");
   });
 
-  it("offers New chat only once there is a thread", () => {
+  it("offers New chat and Summarize chat only once there is a thread", () => {
     setup();
     expect(screen.getByRole("button", { name: "New chat" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Summarize chat" })).toBeDisabled();
+  });
+
+  it("starts over and summarizes from the header", () => {
+    messages = [{ id: "u1", role: "user", parts: [{ type: "text", text: "Hi" }] }];
+    setup();
+    fireEvent.click(screen.getByRole("button", { name: "Summarize chat" }));
+    expect(compact).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole("button", { name: "New chat" }));
+    expect(newChat).toHaveBeenCalledOnce();
+  });
+
+  it("shows a compacted thread's summary as the earlier conversation", () => {
+    messages = [{ id: "summary-1", role: "user", parts: [{ type: "text", text: "- Planned the launch note" }], metadata: { summary: true } }];
+    setup();
+    expect(screen.getByText("Earlier conversation, summarized")).toBeInTheDocument();
+    expect(screen.getByText("Planned the launch note")).toBeInTheDocument();
   });
 });

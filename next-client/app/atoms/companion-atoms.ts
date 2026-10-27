@@ -42,3 +42,16 @@ export const atom_openCompanion = atom(
     set(atom_companionOpen, true);
   },
 );
+
+// A companion action asked for from outside the panel (the palette's New AI
+// chat and Summarize AI chat); the panel's chat runs it. `seq` tells one
+// request from the next.
+export interface CompanionAction {
+  seq: number;
+  kind: "new" | "compact";
+}
+export const atom_companionAction = atom<CompanionAction | null>(null);
+export const atom_requestCompanionAction = atom(null, (get, set, kind: CompanionAction["kind"]) => {
+  set(atom_companionAction, { seq: (get(atom_companionAction)?.seq ?? 0) + 1, kind });
+  set(atom_companionOpen, true);
+});
