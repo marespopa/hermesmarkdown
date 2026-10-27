@@ -40,4 +40,15 @@ describe("callAI errors", () => {
     await vi.advanceTimersByTimeAsync(120_001);
     await assertion;
   });
+
+  it("rejects with an AbortError, not an error message, when the caller cancels", async () => {
+    localStorage.setItem("hermes_claude_key", "k");
+    vi.stubGlobal("fetch", vi.fn((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
+      init.signal?.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })));
+    })));
+    const controller = new AbortController();
+    const result = callAI("s", "hi", controller.signal);
+    controller.abort();
+    await expect(result).rejects.toMatchObject({ name: "AbortError" });
+  });
 });

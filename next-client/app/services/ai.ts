@@ -1,4 +1,4 @@
-import { beginAiAction, finishAiActionSuccess, finishAiActionError } from "./ai-status";
+import { beginAiAction, dismissAiActionStatus, finishAiActionSuccess, finishAiActionError } from "./ai-status";
 
 export type AIProvider = 'claude' | 'gemini';
 
@@ -69,9 +69,12 @@ const AI_TIMEOUT_MS = 120_000;
 // POSTs to the AI proxy and returns its JSON. Times out after AI_TIMEOUT_MS,
 // and a reply that isn't JSON (a platform error page, a cut-off response)
 // becomes an error naming its status instead of a parse error.
-async function postAI(body: Record<string, unknown>, fallbackError: string) {
+// `signal` lets the caller cancel; a cancelled request throws an AbortError.
+async function postAI(body: Record<string, unknown>, fallbackError: string, signal?: AbortSignal) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+  const cancel = () => controller.abort();
+  signal?.addEventListener('abort', cancel);
   try {
     const response = await fetch('/api/ai', {
       method: 'POST',
@@ -85,12 +88,14 @@ async function postAI(body: Record<string, unknown>, fallbackError: string) {
     }
     return data;
   } catch (error: any) {
+    if (signal?.aborted) throw new DOMException('The AI request was cancelled.', 'AbortError');
     if (error?.name === 'AbortError') {
       throw new Error("The AI didn't answer within 2 minutes. Try again or pick a faster model.");
     }
     throw error;
   } finally {
     clearTimeout(timer);
+    signal?.removeEventListener('abort', cancel);
   }
 }
 
@@ -143,18 +148,23 @@ export async function fetchGeminiModels(apiKey: string) {
 }
 
 /**
- * Simple text generation for Summarize, Expand, Improve features.
+ * Simple text generation for Summarize, Expand, Improve features. Cancelled
+ * through `signal`, it clears the AI status quietly and throws an AbortError.
  */
-export async function callAI(system: string, prompt: string) {
+export async function callAI(system: string, prompt: string, signal?: AbortSignal) {
   const seq = beginAiAction("Thinking…");
 
   try {
     const config = getAIConfig();
-    const data = await postAI({ action: 'text', ...config, system, prompt }, "Failed to generate text");
+    const data = await postAI({ action: 'text', ...config, system, prompt }, "Failed to generate text", signal);
 
     finishAiActionSuccess(seq, "Done");
     return data.text;
   } catch (error: any) {
+    if (signal?.aborted) {
+      dismissAiActionStatus(seq);
+      throw error;
+    }
     console.error("AI Generation Error:", error);
     const message = beautifyAIError(error.message || "An unexpected error occurred during AI generation.");
     finishAiActionError(seq, message);

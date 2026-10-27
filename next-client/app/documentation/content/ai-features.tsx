@@ -60,7 +60,7 @@ export const aiFeaturesGroup: Group = {
             header. Start over with <strong>New chat</strong> (the chat bubble in the header, or type{" "}
             <code>/new</code> or <code>/clear</code>). When a conversation grows long,{" "}
             <strong>Summarize chat</strong> (or <code>/compact</code>, optionally followed by what to keep)
-            replaces it with a short summary the companion goes on from. Both are also in the command
+            replaces it with a short summary the companion goes on from; Stop cancels a summary and keeps the conversation. Both are also in the command
             palette as <em>New AI chat</em> and <em>Summarize AI chat</em>. The conversation stays when you
             close the panel or reload the page.
           </p>

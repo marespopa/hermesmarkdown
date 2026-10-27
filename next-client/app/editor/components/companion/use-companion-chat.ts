@@ -59,9 +59,18 @@ export function useCompanionChat() {
     if (!isBusy) saveThread(messages);
   }, [turnRunning, isBusy, messages]);
 
-  // Stopping keeps any files a waiting trash call would move.
+  // The running summary's request, so Stop and New chat cancel it.
+  const compactAbort = useRef<AbortController | null>(null);
+
+  // Stopping keeps any files a waiting trash call would move, and cancels a
+  // summary being written (the thread stays as it was).
   const stopTurn = useCallback(() => {
     declineAllTrash(store);
+    if (compactAbort.current) {
+      compactAbort.current.abort();
+      compactAbort.current = null;
+      setCompacting(false);
+    }
     void stop();
   }, [store, stop]);
 
@@ -74,24 +83,32 @@ export function useCompanionChat() {
   }, [stopTurn, setMessages, setActivities, clearError]);
 
   // Replaces the thread with a summary of it. The thread stays as it is
-  // while the summary is written (the thread shows that it is) and if it
-  // fails (the AI status says why).
+  // while the summary is written (the thread shows that it is), if it fails
+  // (the AI status says why) and if it's cancelled (Stop, New chat).
   const compact = useCallback(async (focus = "") => {
     const thread = companionChat().messages;
     if (!thread.length || compacting) return;
     stopTurn();
     clearError();
     setCompacting(true);
+    const controller = new AbortController();
+    compactAbort.current = controller;
     try {
-      const summary = await callAI(SUMMARY_SYSTEM, summaryPrompt(thread, focus));
+      const summary = await callAI(SUMMARY_SYSTEM, summaryPrompt(thread, focus), controller.signal);
+      if (controller.signal.aborted) return;
       const next = [summaryMessage(summary)];
       setMessages(next);
       setActivities({});
       saveThread(next);
     } catch {
-      // callAI already shows the error in the AI status; the thread is kept.
+      // callAI already shows the error in the AI status (none when
+      // cancelled); the thread is kept.
     } finally {
-      setCompacting(false);
+      // A cancelled summary already stood down; a newer one may be running.
+      if (compactAbort.current === controller) {
+        compactAbort.current = null;
+        setCompacting(false);
+      }
     }
   }, [compacting, stopTurn, clearError, setMessages, setActivities]);
 
