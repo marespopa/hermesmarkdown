@@ -1,0 +1,132 @@
+import React from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { renderHook } from "@testing-library/react";
+import { createStore, Provider } from "jotai";
+import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
+import { atom_vaultFolderPaths, atom_vaultHandle, atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
+import { useCompanionTools } from "./use-companion-tools";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+const runNoteTool = vi.fn();
+vi.mock("../ai-chat/use-note-tools", () => ({ useNoteTools: () => ({ runTool: runNoteTool }) }));
+const readCurrentText = vi.fn();
+vi.mock("@/app/hooks/file-system/use-note-buffer", () => ({ useNoteBuffer: () => ({ readCurrentText }) }));
+const editFile = vi.fn();
+const createTemplate = vi.fn();
+vi.mock("./use-companion-writes", () => ({
+  useCompanionWrites: () => ({ editFile, editCodeBlock: vi.fn(), createFile: vi.fn(), createFolder: vi.fn(), createTemplate, undoTurn: vi.fn() }),
+}));
+const move = vi.fn();
+const trash = vi.fn();
+vi.mock("./use-companion-organise", () => ({ useCompanionOrganise: () => ({ rename: vi.fn(), move, trash }) }));
+
+const note = (path: string, frontmatter: Record<string, unknown> = {}): FileMetadata => ({
+  path, name: path.split("/").pop()!, tags: [], links: [], frontmatter, modifiedAt: 0, wordCount: 0, tasks: [], handle: null,
+});
+
+function setup({ vault = true } = {}) {
+  const store = createStore();
+  if (vault) store.set(atom_vaultHandle, {} as FileSystemDirectoryHandle);
+  store.set(atom_fileMetadata, {
+    "Projects/Roadmap.md": note("Projects/Roadmap.md"),
+    "Projects/Budget.md": note("Projects/Budget.md", { private: true }),
+  });
+  store.set(atom_vaultTextFiles, [{ path: "Projects/build.py", handle: {} as FileSystemFileHandle }]);
+  store.set(atom_vaultFolderPaths, ["Projects"]);
+  const wrapper = ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
+  const { result } = renderHook(() => useCompanionTools(), { wrapper });
+  return result.current;
+}
+
+describe("useCompanionTools", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    runNoteTool.mockResolvedValue({ output: "1 note matches", activity: "Searched notes" });
+    readCurrentText.mockResolvedValue("print('ok')");
+  });
+
+  it("hands the note tools to useNoteTools", async () => {
+    const tools = setup();
+
+    const result = await tools.runTool({ toolName: "search_notes", input: { query: "roadmap" } });
+
+    expect(runNoteTool).toHaveBeenCalledWith({ toolName: "search_notes", input: { query: "roadmap" } });
+    expect(result.output).toBe("1 note matches");
+  });
+
+  it("lists a folder from the vault's lists", async () => {
+    const result = await setup().runTool({ toolName: "list_folder", input: { path: "Projects" } });
+
+    expect(result.output).toContain("- Projects/build.py");
+    expect(result.output).toContain("- Projects/Budget.md (private (hidden))");
+    expect(result.activity).toBe("Listed Projects");
+  });
+
+  it("reads a code file through the note buffer", async () => {
+    const result = await setup().runTool({ toolName: "read_file", input: { path: "./Projects/build.py" } });
+
+    expect(readCurrentText).toHaveBeenCalledWith("Projects/build.py");
+    expect(result.output).toContain("print('ok')");
+  });
+
+  it("never reads a private note", async () => {
+    const result = await setup().runTool({ toolName: "read_file", input: { path: "Projects/Budget.md" } });
+
+    expect(readCurrentText).not.toHaveBeenCalled();
+    expect(result.output).toContain("private (hidden)");
+  });
+
+  it("refuses the app's data folder", async () => {
+    const result = await setup().runTool({ toolName: "read_file", input: { path: ".hermesmarkdown/trash/Old.md" } });
+
+    expect(readCurrentText).not.toHaveBeenCalled();
+    expect(result.activity).toContain("refused");
+  });
+
+  it("answers without a vault instead of failing", async () => {
+    const result = await setup({ vault: false }).runTool({ toolName: "read_file", input: { path: "Projects/Roadmap.md" } });
+
+    expect(result.output).toMatch(/No vault is open/);
+  });
+
+  it("hands edits to the writes under the turn", async () => {
+    editFile.mockResolvedValue({ output: "Saved Projects/Roadmap.md (1 edit).", detail: "1 edit" });
+    const edits = [{ find: "Q3", replace: "Q4" }];
+
+    const result = await setup().runTool({ toolName: "edit_file", input: { path: "Projects/Roadmap.md", edits } }, "turn-1");
+
+    expect(editFile).toHaveBeenCalledWith("turn-1", "Projects/Roadmap.md", edits);
+    expect(result.activity).toBe("Edited Projects/Roadmap.md · 1 edit");
+  });
+
+  it("answers a read error as the tool's result", async () => {
+    readCurrentText.mockRejectedValue(new Error("gone"));
+
+    const result = await setup().runTool({ toolName: "read_file", input: { path: "Projects/Roadmap.md" } });
+
+    expect(result.output).toMatch(/couldn't be read/);
+  });
+
+  it("hands the organising tools their turn, and trash its call's id for the card", async () => {
+    move.mockResolvedValue({ output: "Moved", detail: "" });
+    trash.mockResolvedValue({ output: "The user kept the files", detail: "kept" });
+    const tools = setup();
+
+    const moved = await tools.runTool({ toolName: "move", input: { paths: ["Projects/Roadmap.md", "Ideas.md"], folder: "Archive" } }, "turn-1");
+    const trashed = await tools.runTool({ toolName: "trash", input: { paths: ["Old.md"] }, toolCallId: "call-7" }, "turn-1");
+
+    expect(move).toHaveBeenCalledWith("turn-1", ["Projects/Roadmap.md", "Ideas.md"], "Archive");
+    expect(moved.activity).toBe("Moved 2 items to Archive");
+    expect(trash).toHaveBeenCalledWith("turn-1", "call-7", ["Old.md"]);
+    expect(trashed.activity).toBe("Moved Old.md to Trash · kept");
+  });
+
+  it("hands create_template its name and body", async () => {
+    createTemplate.mockResolvedValue({ output: "The template wasn't saved. Fix these…", detail: "needs fixes" });
+
+    const result = await setup().runTool({ toolName: "create_template", input: { name: "RFC", body: "# {{titel}}" } }, "turn-1");
+
+    expect(createTemplate).toHaveBeenCalledWith("turn-1", "RFC", "# {{titel}}");
+    expect(result.output).toMatch(/wasn't saved/);
+  });
+});

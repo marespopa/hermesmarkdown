@@ -194,7 +194,7 @@ describe("createSlashMenuSource", () => {
   });
 
   it("opens configured AI Chat and removes the quick command", () => {
-    const { callbacks, view } = applyOption("/AI", "AI Chat");
+    const { callbacks, view } = applyOption("/AI", "Ask AI");
 
     expect(view.state.doc.toString()).toBe("");
     expect(callbacks.onOpenAIChat).toHaveBeenCalledOnce();
@@ -228,7 +228,7 @@ describe("createSlashMenuSource", () => {
     const callbacks = makeCallbacks();
     callbacks.onOpenAIChat = undefined;
 
-    expect(getResult("/AI", callbacks).result?.options.map(({ label }) => label)).not.toContain("AI Chat");
+    expect(getResult("/AI", callbacks).result?.options.map(({ label }) => label)).not.toContain("Ask AI");
   });
 
   it("finds the one privacy entry by /privacy, /private, /public or a hyphenated label", () => {

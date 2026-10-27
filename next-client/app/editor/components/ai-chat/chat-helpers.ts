@@ -1,15 +1,11 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { showErrorToast } from "@/app/components/Toastr";
-import type { ApiPart } from "@/app/services/ai";
 import { frontmatterList } from "@/app/utils/frontmatter-utils";
 import { isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { noteDescription } from "./chat-tool-runners";
-import { FORMULA_PRESERVATION_RULE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "../../utils/formula-ai-guide";
-import { HERMES_SYNTAX_GUIDE, SYNTAX_PRESERVATION_RULE } from "../../utils/hermes-syntax-guide";
 
-// AI Chat building blocks: model fallbacks, attachment limits, @mention
-// resolution (single note, folder index, vault index), the system prompt,
-// and request-content assembly.
+// The AI companion's composer helpers: model fallbacks, attachment limits,
+// and @mention resolution (single note, folder index, vault index).
 export const FALLBACK_CLAUDE_MODELS = [
   { id: "sonnet-5", name: "Claude Sonnet 5" },
   { id: "haiku-4-5", name: "Claude 4.5 Haiku" },
@@ -23,16 +19,7 @@ export const FALLBACK_GEMINI_MODELS = [
 
 export const IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"]);
 export const MAX_SIZE = 5_000_000;
-export const ACCEPT_IMAGES = "image/png,image/jpeg,image/gif,image/webp";
 export const ACCEPT_FILES = "*/*";
-
-export interface ChatMessage {
-  role: "user" | "assistant";
-  displayContent: string;
-  apiContent: string | ApiPart[];
-  /** "activity": a tool the AI ran (shown as a quiet line, never sent back). */
-  kind?: "activity" | "error";
-}
 
 export interface Attachment {
   name: string;
@@ -115,69 +102,6 @@ export async function resolveMentionRefs(
   return resolved;
 }
 
-export const SYSTEM_PROMPT = `You are an AI writing assistant for HermesMarkdown, a markdown note-taking app.
-You help users write, edit, and improve their markdown documents through conversation.
-
-${FORMULA_PRESERVATION_RULE}
-${SYNTAX_PRESERVATION_RULE}
-
-When the user asks you to create or modify content:
-- Output only the content itself — no preamble, meta-commentary, or surrounding quotes.
-- Preserve all existing Markdown formatting unless explicitly asked to change it.
-- Use proper Markdown syntax (headings, lists, bold, etc.) as appropriate.
-- When revising a section, return the complete revised section ready to apply.
-- When the user asks for totals, averages, counts or other calculations in a table, write them as formulas (see below), not as precomputed numbers. Outside tables, use inline calculator lines (see below). When they ask what a formula does or why it shows an error, explain it using the rules below.
-
-${HERMES_SYNTAX_GUIDE}
-
-${TABLE_FORMULA_GUIDE}
-
-${NOTE_CALC_GUIDE}`;
-
-// Cap on how much of the active file goes into every request — enough for
-// typical notes while keeping very long documents from eating the context.
-export const ACTIVE_FILE_CHAR_LIMIT = 20_000;
-
-/**
- * System prompt for a chat turn: the base instructions, the active file
- * (name + content, always included so the model knows what the user is
- * working on), when present the selection as the edit target, and the
- * instructions of any active chat skill (see chat-skills.ts).
- */
-// Added to the system prompt when the chat's tools are on (a vault is open).
-export const TOOLS_GUIDE = `You have tools for the user's vault. Use them instead of guessing:
-- search_notes to find notes about something, then read_note to read one (by its name).
-- list_open_tasks for questions about tasks: what's due, overdue, in progress, or tagged.
-Private notes aren't shared with you; if a tool says a note is private, tell the user. Link notes you mention as [[Note name]]. Keep tool use to what the question needs.`;
-
-export function buildChatSystemPrompt(
-  documentContent: string,
-  selectedText: string,
-  currentFilePath?: string,
-  skillInstructions: string[] = [],
-  tools = false,
-): string {
-  const parts = tools ? [SYSTEM_PROMPT, `\n${TOOLS_GUIDE}`] : [SYSTEM_PROMPT];
-  const fileName = currentFilePath?.split("/").pop() || "Untitled";
-  if (documentContent.trim()) {
-    const body =
-      documentContent.length > ACTIVE_FILE_CHAR_LIMIT
-        ? documentContent.slice(0, ACTIVE_FILE_CHAR_LIMIT) + "\n\n[document continues…]"
-        : documentContent;
-    const location = currentFilePath ? ` (${currentFilePath})` : "";
-    parts.push(
-      `\n--- ACTIVE FILE: ${fileName}${location} — the note the user is working on; for context only, output only the requested content, not the full document ---\n${body}\n--- END ACTIVE FILE ---`,
-    );
-  }
-  if (selectedText.trim()) {
-    parts.push(`\n--- SELECTED TEXT (target for edits) ---\n${selectedText}\n--- END SELECTED TEXT ---`);
-  }
-  for (const instructions of skillInstructions) {
-    if (instructions.trim()) parts.push(`\n--- SKILL ---\n${instructions}\n--- END SKILL ---`);
-  }
-  return parts.join("\n");
-}
-
 export function readAsDataURL(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -185,28 +109,6 @@ export function readAsDataURL(file: File): Promise<string> {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
-}
-
-export function buildApiContent(text: string, atts: Attachment[]): string | ApiPart[] {
-  const hasImages = atts.some((a) => a.isImage);
-  if (!atts.length) return text;
-  if (!hasImages) {
-    const blocks = atts
-      .map((a) => `--- File: ${a.name} ---\n${a.data}\n--- End: ${a.name} ---`)
-      .join("\n\n");
-    return text ? `${text}\n\n${blocks}` : blocks;
-  }
-  const parts: ApiPart[] = [];
-  if (text) parts.push({ type: "text", text });
-  for (const att of atts) {
-    if (att.isImage) {
-      const base64 = att.data.split(",")[1] ?? att.data;
-      parts.push({ type: "image", image: base64, mimeType: att.mimeType });
-    } else {
-      parts.push({ type: "text", text: `--- File: ${att.name} ---\n${att.data}\n--- End: ${att.name} ---` });
-    }
-  }
-  return parts;
 }
 
 export async function readVaultFile(
@@ -226,7 +128,7 @@ export async function readVaultFile(
   throw new Error("No vault available");
 }
 
-// Reads user-picked files for AI Chat: images as data URLs, everything else
+// Reads user-picked files for the companion: images as data URLs, everything else
 // as text. Files over MAX_SIZE or that can't be read are skipped with a toast.
 export async function readAttachments(files: FileList): Promise<Attachment[]> {
   const next: Attachment[] = [];

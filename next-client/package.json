@@ -18,6 +18,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.133",
     "@ai-sdk/google": "^3.0.135",
+    "@ai-sdk/react": "^3",
     "@codemirror/autocomplete": "^6.20.3",
     "@codemirror/commands": "^6.11.1",
     "@codemirror/lang-markdown": "^6.5.2",

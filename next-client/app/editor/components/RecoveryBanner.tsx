@@ -66,7 +66,7 @@ export default function RecoveryBanner() {
   }
 
   return (
-    <div className="fixed top-12 right-0 left-[var(--content-left,0px)] z-30 flex justify-center px-4 pointer-events-none">
+    <div className="fixed top-12 right-[var(--content-right,0px)] left-[var(--content-left,0px)] z-30 flex justify-center px-4 pointer-events-none">
       <div
         role="status"
         className="pointer-events-auto flex flex-wrap items-center gap-x-3 gap-y-1 max-w-xl rounded-xl border border-edge bg-surface-raised px-3 py-2 shadow-sm font-sans text-ui-footnote text-fg"

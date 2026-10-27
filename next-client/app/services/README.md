@@ -30,10 +30,11 @@ Atom persistence uses Jotai `atomWithStorage` (`localStorage`) directly in `app/
 
 ## AI (client)
 
-- `note-tool-defs.ts` — `NOTE_TOOL_DEFS`: the read-only note tools' titles, descriptions and zod input schemas (`search_notes`, `read_note`, `list_open_tasks`), shared by AI Chat (`app/api/ai/chat-tools.ts`) and WebMCP.
+- `note-tool-defs.ts` — `NOTE_TOOL_DEFS`: the read-only note tools' titles, descriptions and zod input schemas (`search_notes`, `read_note`, `list_open_tasks`), shared by the AI companion and WebMCP.
+- `companion-tool-defs.ts` — `COMPANION_TOOL_DEFS`: the note tools plus `list_folder`, `read_file`, `get_active_note`, `edit_file`, `edit_code_block`, `create_file`; sent to the model by `app/api/ai/companion/` and run in the browser.
 - `webmcp-context.ts` — WebMCP's browser side, typed for what's used: `getModelContext()` (`document.modelContext`, or an early preview's `navigator.modelContext`; null without `registerTool`), `isWebMcpSupported()`. No schemas, so checking support stays light.
-- `webmcp.ts` — `registerNoteTools(context, run, signal)`: registers each note tool (JSON Schema input from `z.toJSONSchema`, `readOnlyHint` and `untrustedContentHint` set) with the registration `signal`, and also unregisters by name on abort for early previews; a refused tool is logged and the rest still offered. Loaded on demand by `hooks/use-webmcp-tools.ts`.
-- `ai.ts` — Calls `/api/ai` for Claude and Gemini: chat (`callAIChat`), one-shot actions (`callAI`), note generation (`generateFileFromPrompt`), frontmatter suggestions, document fixes, model listing, and `testAIConnection`. The user's API key is sent with each request and never stored server-side. Gemini model listing calls Google directly from the browser.
+- `webmcp.ts` — `registerNoteTools(context, run, signal, { writes })`: registers each note tool (JSON Schema input from `z.toJSONSchema`, `readOnlyHint` and `untrustedContentHint` set), and with `writes` also the companion's file reads and `COMPANION_WRITE_TOOL_NAMES` (`readOnlyHint: false`; never `trash`), with the registration `signal`, and also unregisters by name on abort for early previews; a refused tool is logged and the rest still offered. Loaded on demand by `hooks/use-webmcp-tools.ts`.
+- `ai.ts` — Calls `/api/ai` for Claude and Gemini: one-shot text (`callAI`), model listing, and `testAIConnection`; `getAIConfig` gives the AI companion's stream (`/api/ai/companion`) the provider, key and model. The user's API key is sent with each request and never stored server-side. Gemini model listing calls Google directly from the browser.
 - `ai-status.ts` — Reports AI action progress / success / error to the UI from non-React code.
 
 ## Legacy GitHub vaults

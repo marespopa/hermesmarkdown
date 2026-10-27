@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 import type React from "react";
-import { useAtomValue, useSetAtom } from "jotai";
-import { atom_aiEnabled } from "@/app/atoms/ai-atoms";
+import { useAtomValue, useSetAtom, useStore } from "jotai";
+import { atom_companionOpen } from "@/app/atoms/companion-atoms";
 import { openSearchPanel } from "@codemirror/search";
 import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_keyboardShortcutsOpen, atom_showOutline, atom_toggleSentenceFocus, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
@@ -31,11 +31,11 @@ export function useEditorShortcuts({
   closeTabWithAutosave,
   flush,
 }: EditorShortcutOptions) {
-  const { open: openCommandPalette, openMenu: openCommandMenu } = useCommandPalette();
+  const { open: openCommandPalette } = useCommandPalette();
+  const store = useStore();
   const vimMode = useAtomValue(atom_vimMode);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
-  const isAiEnabled = useAtomValue(atom_aiEnabled);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const toggleSentenceFocus = useSetAtom(atom_toggleSentenceFocus);
   const setShowOutline = useSetAtom(atom_showOutline);
@@ -105,16 +105,12 @@ export function useEditorShortcuts({
         toggleSentenceFocus();
       }
 
-      // Ask or Edit with AI… (Ctrl/Cmd+J): the palette's AI menu.
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "j" && !e.defaultPrevented && isAiEnabled) {
+      // Ask AI (Ctrl/Cmd+J): opens the AI companion with the note in front
+      // and its selection, or closes it when it's open.
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "j" && !e.defaultPrevented && isAiConfigured) {
         e.preventDefault();
-        openCommandMenu("ai-menu");
-      }
-
-      // AI Chat — on-demand, not a status bar button
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "b" && isAiConfigured) {
-        e.preventDefault();
-        setAiBuilderRequest((v) => v + 1);
+        if (store.get(atom_companionOpen)) store.set(atom_companionOpen, false);
+        else setAiBuilderRequest((v) => v + 1);
       }
 
       // Keyboard shortcuts help (Ctrl/Cmd+?).
@@ -137,5 +133,5 @@ export function useEditorShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeEditorView, setShowOutline, toggleSentenceFocus, setKeyboardShortcutsOpen, closeTabWithAutosave, flush, isAiConfigured, isAiEnabled, openCommandMenu, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, showFiles, saveRef, newFileRef]);
+  }, [activeEditorView, setShowOutline, toggleSentenceFocus, setKeyboardShortcutsOpen, closeTabWithAutosave, flush, isAiConfigured, store, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, showFiles, saveRef, newFileRef]);
 }

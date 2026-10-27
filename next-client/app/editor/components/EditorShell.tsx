@@ -4,7 +4,8 @@ import React, { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { usePathname } from "next/navigation";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
-import { atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
+import { atom_isAiConfigured, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
+import { atom_companionOpen, atom_companionWidth } from "@/app/atoms/companion-atoms";
 import { atom_isVaultPending, atom_isVaultRestoring } from "@/app/atoms/vault-atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useVaultPins } from "@/app/hooks/use-vault-pins";
@@ -29,6 +30,7 @@ import ActiveFileIndexer from "./ActiveFileIndexer";
 import RecoveryBanner from "./RecoveryBanner";
 import PinCommands from "./editor-commands/PinCommands";
 import PerfReadout from "@/app/components/PerfReadout/PerfReadout";
+import CompanionPanel from "./companion/CompanionPanel";
 
 // Show / hide the sidebar: Ctrl/Cmd+\, Ctrl/Cmd+Alt+S (`code`, since Alt
 // changes `key` on macOS), or Ctrl+[ — Ctrl on macOS too, where Cmd+[ is the
@@ -76,6 +78,10 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   // Browser agents (WebMCP), when turned on in Settings.
   useWebMcpTools(!isVaultLocked);
   const onEditor = usePathname() === "/editor";
+  // The AI companion, on the trailing edge, once AI is set up.
+  const hasCompanion = useAtomValue(atom_isAiConfigured) && !isVaultLocked;
+  const companionOpen = useAtomValue(atom_companionOpen);
+  const companionWidth = useAtomValue(atom_companionWidth);
 
   useEffect(() => {
     if (!hasSidebar) return;
@@ -88,7 +94,11 @@ export default function EditorShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [hasSidebar, setSidebarOpen]);
 
-  const frame = { "--content-left": `${hasSidebar && sidebarOpen ? sidebarWidth : 0}px` } as CSSProperties;
+  const frame = {
+    "--content-left": `${hasSidebar && sidebarOpen ? sidebarWidth : 0}px`,
+    // The open companion's room; on mobile it is a sheet over the page.
+    "--content-right": `${hasCompanion && !isMobileChrome && companionOpen ? companionWidth : 0}px`,
+  } as CSSProperties;
 
   return (
     <div className="contents" style={frame}>
@@ -120,12 +130,23 @@ export default function EditorShell({ children }: { children: ReactNode }) {
         // bar, so it stays put moving between the editor and the pages.
         // Copy Contents sits just left of it, the outline toggle left of that,
         // and the Git Changes toggle left of the outline toggle.
-        <div className="fixed top-1.5 right-8 z-30 flex items-center gap-1.5">
+        <div
+          style={{ right: "calc(var(--content-right, 0px) + 2rem)" }}
+          className="fixed top-1.5 z-30 flex items-center gap-1.5 transition-[right] duration-layout ease-layout motion-reduce:transition-none"
+        >
           <GitChangesToggleButton />
           <OutlineToggleButton />
           <CopyContentButton />
           <SearchPill />
         </div>
+      )}
+      {hasCompanion && (
+        isMobileChrome ? <CompanionPanel sheet /> : (
+          // Slides in and out of this zero-width wrapper; its room is --content-right.
+          <div className="fixed inset-y-0 right-0 w-0 z-30">
+            <CompanionPanel />
+          </div>
+        )
       )}
       {!isVaultLocked && <RecoveryBanner />}
       {!isVaultLocked && <PinCommands />}

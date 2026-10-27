@@ -430,6 +430,38 @@ html.dark .app-sheet .editor-sheet {
   hr { margin: 0.8em 0; border: 0; border-top: 1px solid var(--border-subtle); }
 }
 
+/* An AI companion reply (companion/reply-html.ts), at the panel's small
+   size: headings stay close to the text, blocks are spaced like a message. */
+.companion-reply {
+  color: var(--fg);
+  overflow-wrap: anywhere;
+
+  > :first-child { margin-top: 0; }
+  > :last-child { margin-bottom: 0; }
+  h1, h2, h3, h4, h5, h6 { margin: 0.9em 0 0.3em; font-weight: 600; line-height: 1.35; }
+  h1 { font-size: 1.2em; }
+  h2 { font-size: 1.1em; }
+  h3, h4, h5, h6 { font-size: 1em; }
+  p, ul, ol, blockquote, pre, table, details { margin: 0.5em 0; }
+  ul, ol { padding-left: 1.3em; }
+  ul { list-style: disc; }
+  ol { list-style: decimal; }
+  li + li { margin-top: 0.15em; }
+  li > p { margin: 0; }
+  li.task { list-style: none; }
+  strong { font-weight: 600; }
+  blockquote { padding-left: 0.8em; border-left: 2px solid var(--border-subtle); color: var(--fg-muted); }
+  code, pre { font-family: var(--font-code); font-size: 0.95em; }
+  :not(pre) > code { padding: 0.05em 0.3em; border-radius: 0.3em; background-color: color-mix(in srgb, var(--fg) 6%, transparent); }
+  pre { padding: 0.6em 0.75em; border-radius: 0.5em; background-color: color-mix(in srgb, var(--fg) 5%, transparent); overflow-x: auto; white-space: pre; }
+  table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
+  th, td { padding: 0.25em 0.6em; border: 1px solid var(--border-subtle); text-align: left; }
+  th { font-weight: 600; }
+  a { text-decoration: underline; text-underline-offset: 2px; }
+  .wikilink { font-weight: 500; }
+  hr { margin: 0.8em 0; border: 0; border-top: 1px solid var(--border-subtle); }
+}
+
 .rendered-block-dialog-preview svg {
   height: auto;
   max-width: 100%;

@@ -2,14 +2,19 @@ import React from "react";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore, Provider } from "jotai";
-import { atom_webMcpEnabled } from "@/app/atoms/ai-atoms";
-import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import { atom_webMcpEnabled, atom_webMcpWritesEnabled } from "@/app/atoms/ai-atoms";
+import { atom_fileUndoStack, atom_vaultHandle, type FileUndoGroup } from "@/app/atoms/vault-atoms";
 import { useWebMcpTools } from "./use-webmcp-tools";
 
 const runTool = vi.hoisted(() => vi.fn());
 vi.mock("@/app/editor/components/ai-chat/use-note-tools", () => ({ useNoteTools: () => ({ runTool }) }));
 const getModelContext = vi.hoisted(() => vi.fn());
 vi.mock("@/app/services/webmcp-context", () => ({ getModelContext }));
+const runCompanionTool = vi.hoisted(() => vi.fn());
+const undoTurn = vi.hoisted(() => vi.fn());
+vi.mock("@/app/editor/components/companion/use-companion-tools", () => ({ useCompanionTools: () => ({ runTool: runCompanionTool, undoTurn }) }));
+const showUndoToast = vi.hoisted(() => vi.fn());
+vi.mock("./file-system/undo-toast", () => ({ showUndoToast }));
 const registerNoteTools = vi.hoisted(() => vi.fn());
 vi.mock("@/app/services/webmcp", () => ({ registerNoteTools }));
 
@@ -65,5 +70,32 @@ describe("useWebMcpTools", () => {
     await waitFor(() => expect(registerNoteTools).toHaveBeenCalledTimes(2));
     rerender({ unlocked: false });
     expect((registerNoteTools.mock.calls[1][2] as AbortSignal).aborted).toBe(true);
+  });
+
+  it("offers the write tools only with their own switch on", async () => {
+    const { store } = setup();
+    await waitFor(() => expect(registerNoteTools).toHaveBeenCalledTimes(1));
+    expect(registerNoteTools.mock.calls[0][3]).toEqual({ writes: false });
+
+    act(() => store.set(atom_webMcpWritesEnabled, true));
+    await waitFor(() => expect(registerNoteTools).toHaveBeenCalledTimes(2));
+    expect(registerNoteTools.mock.calls[1][3]).toEqual({ writes: true });
+  });
+
+  it("runs an agent's write as the companion does, in its own undo group, with an Undo toast", async () => {
+    const { store } = setup();
+    runCompanionTool.mockImplementation(async (_call: unknown, groupId: string) => {
+      store.set(atom_fileUndoStack, [{ id: groupId, label: "AI changes", moves: [], steps: [{ kind: "folder", path: "Archive" }] } as unknown as FileUndoGroup]);
+      return { output: "Created the folder Archive.", activity: "Created the folder Archive" };
+    });
+    await waitFor(() => expect(registerNoteTools).toHaveBeenCalledTimes(1));
+    const run = registerNoteTools.mock.calls[0][1];
+
+    await expect(run("create_folder", { path: "Archive" })).resolves.toBe("Created the folder Archive.");
+    const [call, groupId] = runCompanionTool.mock.calls[0];
+    expect(call).toMatchObject({ toolName: "create_folder", input: { path: "Archive" } });
+    expect(showUndoToast).toHaveBeenCalledWith("Browser agent: Created the folder Archive", expect.any(Function));
+    showUndoToast.mock.calls[0][1]();
+    expect(undoTurn).toHaveBeenCalledWith(groupId);
   });
 });

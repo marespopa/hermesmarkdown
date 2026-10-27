@@ -23,9 +23,8 @@ export const aiFeaturesGroup: Group = {
             AI is optional and off until you turn it on. Settings → AI Features → switch on{" "}
             <strong>AI features</strong>, pick a Provider (Claude or Gemini) and paste your API key. Then
             pick a Model (the refresh button reloads the list) and, if you like, <strong>Test connection</strong>.
-            With a key set, AI Chat, the Ask AI toolbar and the AI items in the slash menu appear; the
-            palette lists <strong>Ask or Edit with AI…</strong> while the switch is on and runs its actions
-            once a key is set. With the switch off, none of them show.
+            With a key set, the AI companion opens from <strong>Ask AI</strong> in the palette, the slash menu
+            and the selection toolbar. With the switch off, none of them show.
           </p>
           <p>
             Nothing is sent until you use an AI feature. The key is stored in your browser. Each AI
@@ -42,93 +41,106 @@ export const aiFeaturesGroup: Group = {
       ),
     },
     {
-      id: "ai-commands",
-      title: "AI commands",
-      lead: "One place to talk to the AI — AI Chat — plus one-click rewrite actions, all once a key is configured.",
-      keywords: "ask ai selection toolbar chat improve summarize tone attachments @file @vault",
+      id: "ai-companion",
+      title: "The AI companion",
+      lead: "One AI, in a panel beside your note. Ask it about your notes, or ask it to change them.",
+      keywords: "ask ai companion panel chat selection toolbar ctrl cmd j attachments @file @folder @vault model new chat",
       body: (
         <>
-          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-0">AI Chat</h4>
           <p>
-            Open it with <code>CTRL+SHIFT+B</code>, <strong>Freeform Prompt</strong> in the palette&apos;s AI menu, or the{" "}
-            <strong>💬 Ask AI</strong> button in the toolbar that appears on a text selection.
-            The chat sees the current note and your selection. Type <code>@</code> to reference
-            another note by name, or use <code>@folder:path</code> / <code>@vault</code> to share an
-            index (paths, titles, tags, aliases and descriptions) of a folder or the whole vault. Attach images or files, ask
-            follow-ups, and switch models per chat.
+            Press <code>CTRL/CMD+J</code>, or choose <strong>Ask AI</strong> in the command palette, the
+            slash menu or the toolbar that appears on a selection. On a phone, tap the AI button in the
+            file bar. The panel opens on the right and the page moves over; drag its edge to make it
+            wider. The note in front and your selection come along as chips above the message field.
+            Remove a chip to leave it out.
           </p>
           <p>
-            Nothing changes your note until you choose: each reply can be edited, then used to
-            replace the selection (or insert at the cursor) or replace the whole note.
-          </p>
-          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">One-click actions</h4>
-          <p>
-            Common rewrites skip the conversation. Press <code>CTRL/CMD+J</code> (or choose{" "}
-            <strong>Ask or Edit with AI…</strong> in the command palette) for one menu of four modes:{" "}
-            <strong>Freeform Prompt</strong> opens AI Chat, and <strong>Improve Writing</strong>,{" "}
-            <strong>Summarize / Structure</strong> and <strong>Insert Element</strong> each list their
-            actions. Type to search every action at once (&ldquo;grammar&rdquo;, &ldquo;table&rdquo;). They work
-            on the selection, or on the note where that makes sense. Each result opens in a diff review — red for removed, green for added —
-            with Replace, Insert Below, or Cancel.
+            Type <code>@</code> to add another note, a folder or the whole vault. Attach images or files.
+            Replies stream in as they&apos;re written, in Markdown. Pick the model from the panel&apos;s
+            header, and start over with <strong>New chat</strong>. The conversation stays when you close
+            the panel or reload the page.
           </p>
           <p>
-            <strong>Suggest properties</strong> reads the note and fills in the frontmatter keys it
-            doesn&rsquo;t have yet: a <code>title</code>, a one-sentence <code>description</code> and{" "}
-            <code>tags</code>, reusing tags your vault already has. Keys you&rsquo;ve set are never
-            changed, and the rest of the YAML stays exactly as you wrote it. You review the
-            frontmatter as a diff and choose Apply Properties or Cancel.
+            Each thing the companion does shows as a quiet line in its reply, like{" "}
+            <em>Read Projects/Roadmap.md</em> or <em>Edited Projects/Roadmap.md · 2 edits</em>.
           </p>
-          <KV
-            rows={[
-              { label: "Improve Writing", value: "Improve writing · Fix spelling and grammar · Shorten · Expand · Continue writing · Change tone (formal, casual, direct, polished)" },
-              { label: "Summarize / Structure", value: "Summarize · Extract tasks · Create outline · Generate title · Suggest properties · Explain selection" },
-              { label: "Insert Element", value: "Generate table · Generate Mermaid diagram · Generate formula" },
-            ]}
-          />
+        </>
+      ),
+    },
+    {
+      id: "ai-companion-changes",
+      title: "What the companion can change",
+      lead: "It edits notes and code, makes files and folders, renames and moves them, and every change in a reply undoes together.",
+      keywords: "ai edit change write code block file create folder rename move trash undo turn private",
+      body: (
+        <>
+          <p>
+            Ask for a change and the companion makes it: it reads the file first, then edits the exact
+            text. It works on notes, on code and text files in your vault (<code>.py</code>,{" "}
+            <code>.ts</code>, <code>.json</code>, …) and on a single code block in a note. It can create
+            notes, files and folders, rename an item (links to it follow the new name) and move items
+            into a folder (their links follow too). Changes save at once, and an open note shows them
+            straight away.
+          </p>
+          <p>
+            To move something to the Trash it asks first, in the thread: <strong>Keep</strong> leaves
+            everything as it is, <strong>Move to Trash</strong> goes ahead. Items stay in the Trash for
+            30 days.
+          </p>
+          <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Undo</h4>
+          <p>
+            Under a reply that changed files you&apos;ll see what changed and <strong>Undo</strong>.
+            It takes back everything that reply did at once, newest first: edits, new files and
+            folders, renames, moves and the Trash. <code>CTRL/CMD+Z</code> in Files does the same, as
+            for your own renames and moves. A file you&apos;ve edited since is left as it is, and the
+            panel says which.
+          </p>
+          <Callout type="tip">
+            Private notes (<code>private: true</code> or a <code>private</code> tag) are never read,
+            edited, moved or put in the Trash by the companion, and the open note isn&apos;t added as
+            a chip when it&apos;s private.
+          </Callout>
         </>
       ),
     },
     {
       id: "ai-templates",
       title: "AI templates",
-      lead: "Ask AI Chat for a template and it writes one you can save into templates/ with one click.",
-      keywords: "ai template skill create rfc prompt save replace",
+      lead: "Ask the companion for a template and it saves one in _templates/, checked first.",
+      keywords: "ai template skill create rfc prompt save",
       body: (
         <>
           <p>
-            Mention a template in AI Chat, for example &ldquo;make me an RFC template that asks for
-            an owner&rdquo;, or start a message with <code>/template</code>. From then on, the chat
-            knows the{" "}
-            <TextLink href="#templates">template tokens</TextLink>. Each
-            template in a reply shows a card with its path (for example <code>_templates/rfc.md</code>) and any problems
-            it spotted, like an unknown token.
+            Mention a template, for example &ldquo;make me an RFC template that asks for an
+            owner&rdquo;, or start a message with <code>/template</code>. From then on the companion
+            knows the <TextLink href="#templates">template tokens</TextLink> and saves templates
+            itself, as <code>_templates/RFC.md</code> for example. They show up in{" "}
+            <code>/template</code> straight away.
           </p>
           <p>
-            Nothing is saved until you click <strong>Save template</strong>. If a template with that
-            name exists, the button reads <strong>Replace template</strong>. Saved templates show up
-            in <code>/template</code> straight away. You need an open vault to save.
-          </p>
-          <p>
-            The template instructions are only added to chats that mention templates, as part of the
-            same AI request. Nothing else is sent.
+            Each template is checked before it&apos;s saved, for things like an unknown token or two{" "}
+            <code>{"{{cursor}}"}</code>s. When there&apos;s a problem the companion fixes it and tries
+            again; nothing is saved until it passes. It never replaces a template you have: ask it to
+            change one and it edits that file. <strong>Undo</strong> under the reply removes a new
+            template again. You need an open vault.
           </p>
         </>
       ),
     },
     {
       id: "ai-weekly-review-tasks",
-      title: "Tasks in AI Chat",
-      lead: "Ask AI Chat about your tasks, and it works from your own open tasks.",
+      title: "Tasks and the companion",
+      lead: "Ask about your tasks, and the companion works from your own open tasks.",
       keywords: "ai tasks todo action items plan day next skill command",
       body: (
         <>
           <p>
             Mention <strong>tasks</strong>, to-dos or action items, or start with{" "}
-            <code>/tasks</code>, and the chat sees your open tasks: in progress, to do and on hold,
+            <code>/tasks</code>, and the companion sees your open tasks: in progress, to do and on hold,
             with their due dates, priorities and notes. Ask what to work on next, what&apos;s overdue,
             or paste meeting notes and ask for tasks. You get task lines with real{" "}
-            <code>@due()</code> dates, worked out from today. The chat can&apos;t change your notes:
-            apply its lines yourself.
+            <code>@due()</code> dates, worked out from today, and it can add them to a note or change
+            a task&apos;s line where it is.
           </p>
           <Callout type="tip">
             Private notes (<code>private: true</code> or a <code>private</code> tag) are never sent. Their tasks are left out and
@@ -140,16 +152,16 @@ export const aiFeaturesGroup: Group = {
     {
       id: "ai-skill-notes",
       title: "Your own skills",
-      lead: "Write a note of type skill, and /its-name turns it on in AI Chat.",
+      lead: "Write a note of type skill, and /its-name turns it on in the companion.",
       keywords: "ai skill skills custom own instructions prompt command slash note type",
       body: (
         <>
           <p>
             Any note with <code>type: skill</code> in its frontmatter (or a <code>#type/skill</code> tag)
-            is a skill, wherever it is in your vault. Start an AI Chat message with a slash and the
+            is a skill, wherever it is in your vault. Start a message to the companion with a slash and the
             note&apos;s file name, lowercase with hyphens for spaces (<code>Standup notes.md</code> is{" "}
             <code>/standup-notes</code>), and the note&apos;s text below its frontmatter is added to the
-            chat&apos;s instructions from then on.
+            companion&apos;s instructions from then on.
           </p>
           <Code>{`---
 type: skill
@@ -164,27 +176,69 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
     },
     {
       id: "ai-chat-tools",
-      title: "AI Chat tools: search and tasks",
-      lead: "With a vault open, AI Chat can look things up in your notes and tasks.",
-      keywords: "ai tools search notes read note open tasks overdue due today agent",
+      title: "How the companion looks things up",
+      lead: "With a vault open, the companion reads your notes and files instead of guessing.",
+      keywords: "ai tools search notes read note file folder open tasks overdue due today agent",
       body: (
         <>
           <p>
-            Ask about your own notes and the chat looks them up instead of guessing. It can{" "}
-            <strong>search your notes</strong> (by text, name or tag), <strong>read a note</strong>, and{" "}
-            <strong>list your open tasks</strong>: all of them, in progress, due today, overdue or
-            upcoming, or by tag. Each lookup shows as a quiet line in the thread, like{" "}
-            <em>Searched notes for &ldquo;pricing&rdquo; · 3 found</em>.
-          </p>
-          <p>
-            The tools only read. To put what the chat writes into a note, use{" "}
-            <strong>Insert at cursor</strong> or <strong>Copy</strong> under its reply.
+            It can <strong>search your notes</strong> (by text, name or tag), <strong>read a note or
+            file</strong>, <strong>list a folder</strong>, look at <strong>the note you have open</strong>{" "}
+            (your selection and the code block the cursor is in) and <strong>list your open
+            tasks</strong>: all of them, in progress, due today, overdue or upcoming, or by tag.
           </p>
           <Callout type="tip">
-            The tools run in your browser, against your vault. Only what they find for a question goes
-            to the AI, in the same request. Private notes are never
-            searched or read.
+            The lookups run in your browser, against your vault. Only what they find for a question goes
+            to the AI, in the same request. Private notes are never searched or read.
           </Callout>
+        </>
+      ),
+    },
+    {
+      id: "ai-web-search",
+      title: "Web search",
+      lead: "With Claude, the companion can look things up online, and lists the pages it used.",
+      keywords: "ai web search internet online lookup sources links current news",
+      body: (
+        <>
+          <p>
+            In Settings → AI Features, with Claude as the provider, turn on{" "}
+            <strong>Let the companion search the web</strong>. It&apos;s off until you do. The companion then
+            searches when a question needs current or outside information, shows each search as a line
+            like <em>Searched the web for &ldquo;release date&rdquo;</em>, and lists the pages it drew on
+            under its reply.
+          </p>
+          <p>
+            Searches are run by Anthropic and billed on your key, up to five per reply. Web search must
+            also be allowed for your key in the Anthropic Console. With Gemini it isn&apos;t offered yet.
+          </p>
+          <Callout type="note">
+            What the companion searches for can quote your notes. Leave it off if that matters for what
+            you keep in your vault; private notes are never read, so they can&apos;t be searched for.
+          </Callout>
+        </>
+      ),
+    },
+    {
+      id: "ai-browser-agents",
+      title: "Browser agents",
+      lead: "AI agents built into your browser can use your notes too, if you let them. No key needed.",
+      keywords: "webmcp browser agent model context tools read write",
+      body: (
+        <>
+          <p>
+            Some browsers have AI agents of their own that can use tools a page offers (WebMCP). In
+            Settings → AI Features, <strong>Let browser agents read notes</strong> lets them search
+            your notes, read one and list open tasks. It&apos;s off until you turn it on, and works
+            without an AI key.
+          </p>
+          <p>
+            With it on, <strong>Let browser agents change notes</strong> also lets them edit and
+            create notes and files, make folders, rename and move them, and save templates, as the
+            companion does. Each change shows a toast with <strong>Undo</strong>, and{" "}
+            <code>CTRL/CMD+Z</code> in Files takes it back too. They can never use the Trash or touch
+            private notes.
+          </p>
         </>
       ),
     },
@@ -196,7 +250,7 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
       body: (
         <>
           <p>
-            Ask AI Chat for a table with totals, averages or counts, and
+            Ask the companion for a table with totals, averages or counts, and
             you get formulas like <code>=SUM(B2:B5)</code> in a totals row, not numbers the AI
             worked out itself. The table keeps computing correctly as you edit it. You can also ask
             it to add or fix a formula, or explain why a cell shows <code>#REF!</code> or{" "}
@@ -207,9 +261,8 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
             the table, so formulas such as <code>=SUM(Income!B)</code> can find them by name.
           </p>
           <p>
-            Every AI action that rewrites text (improve, fix grammar, shorten, change tone, expand,
-            continue, fix document) is told to keep formulas exactly as written. It never swaps a{" "}
-            <code>=SUM(...)</code> for its current result.
+            When it edits a note, the companion is told to keep formulas exactly as written. It never
+            swaps a <code>=SUM(...)</code> for its current result.
           </p>
           <Callout type="tip">
             When asking for changes that add or remove rows, check the totals row afterwards. The AI is
@@ -227,15 +280,14 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
       body: (
         <>
           <p>
-            AI Chat, Continue writing and new notes from a prompt know HermesMarkdown&apos;s own
-            syntax. Tasks get their status in the box (<code>[ ]</code> <code>[/]</code>{" "}
+            The companion knows HermesMarkdown&apos;s own syntax. Tasks get their status in the box (<code>[ ]</code> <code>[/]</code>{" "}
             <code>[!]</code> <code>[x]</code> <code>[-]</code>), never a <code>#todo</code> tag, with{" "}
             <code>@due()</code> and <code>@priority()</code> at the end of the line. Links to other
             notes are <code>[[wiki links]]</code>, and callouts use the <code>&gt; [!tip]</code>{" "}
             form.
           </p>
           <p>
-            Every action that rewrites text keeps task boxes, their <code>@started()</code> and{" "}
+            When it edits a note it keeps task boxes, their <code>@started()</code> and{" "}
             <code>@done()</code> dates, links, tags and callout headers exactly as written.
           </p>
         </>
@@ -256,13 +308,16 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
             rows={[
               { label: "Local vault files", value: "Never leave your machine" },
               { label: "AI requests", value: "Relayed to Anthropic / Google, not stored" },
+              { label: "Web searches (when on)", value: "Run by Anthropic during the reply" },
               { label: "App settings (theme, font, editor layout)", value: "Browser localStorage / IndexedDB" },
               { label: "AI API key", value: "Browser localStorage" },
+              { label: "Companion conversation", value: "Browser localStorage (New chat clears it)" },
             ]}
           />
           <Callout type="note">
-            Without an AI key configured, no note content is ever sent anywhere. Every AI action is
-            triggered manually — nothing runs on its own.
+            Without an AI key configured, no note content is ever sent anywhere. The companion only
+            works when you send it a message — nothing runs on its own. Browser agents only get your
+            notes if you turn them on in Settings.
           </Callout>
         </>
       ),

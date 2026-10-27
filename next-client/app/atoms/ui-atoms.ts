@@ -379,9 +379,9 @@ export const atom_openingFilePath = atom<string | null>(null);
 // so a newer disk text can replace it without losing a keystroke.
 export const atom_verifyingNotePath = atom<string | null>(null);
 
-// Bumped to request the AI Builder dialog from outside the editor (e.g. the
-// status bar), since the actual handler lives inside useAIEditorActions,
-// scoped to the editor's textarea/value.
+// Bumped to open the AI companion from outside the editor page (Ask AI,
+// Ctrl/Cmd+J, the slash menu); the editor page opens it with the note in
+// front and its selection (companion/use-open-companion.ts).
 export const atom_aiBuilderRequest = atom<number>(0);
 
 // The CM6 EditorView belonging to whichever pane is currently active: AI

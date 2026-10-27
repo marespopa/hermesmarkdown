@@ -18,9 +18,17 @@ export const atom_aiEnabled = atom(
   (_get, set, enabled: boolean) => set(atom_aiEnabledStored, enabled),
 );
 
+// Let the AI companion search the web (Claude's own web search, run by
+// Anthropic and billed on the user's key). Off until turned on; read per
+// request by companion-chat-store.ts (getAIConfig's webSearch).
+export const atom_aiWebSearchEnabled = atomWithStorage<boolean>("hermes_ai_web_search", false);
+
 // Browser agents (WebMCP): let AI agents in this browser use the read-only
 // note tools. Off until turned on; separate from AI Features (no key needed).
 export const atom_webMcpEnabled = atomWithStorage<boolean>("hermes_webmcp_enabled", false);
+// …and, with it on, let them change notes too (the AI companion's edit and
+// organising tools, never the Trash). Off until turned on.
+export const atom_webMcpWritesEnabled = atomWithStorage<boolean>("hermes_webmcp_writes_enabled", false);
 
 export const atom_isAiConfigured = atom((get) => {
   if (!get(atom_aiEnabled)) return false;

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   isSkillActive,
-  parseTemplateBlocks,
   TASKS_SKILL,
   TEMPLATE_SKILL,
 } from "./chat-skills";
@@ -29,36 +28,10 @@ describe("tasks skill", () => {
   });
 });
 
-describe("parseTemplateBlocks", () => {
-  it("finds several blocks, keeping ``` code blocks inside a 4-tilde fence", () => {
-    const reply = [
-      "Here you go:",
-      "~~~~hermes-template rfc.md",
-      "# {{title}}",
-      "```js",
-      "code();",
-      "```",
-      "~~~~",
-      "And another:",
-      "~~~~hermes-template meeting",
-      "Attendees: {{prompt:Who}}",
-      "~~~~",
-    ].join("\n");
-    expect(parseTemplateBlocks(reply)).toEqual([
-      { fileName: "rfc.md", content: "# {{title}}\n```js\ncode();\n```\n" },
-      { fileName: "meeting.md", content: "Attendees: {{prompt:Who}}\n" },
-    ]);
-  });
-
-  it("ignores ordinary code fences and unclosed blocks", () => {
-    expect(parseTemplateBlocks("```md\n# x\n```")).toEqual([]);
-    expect(parseTemplateBlocks("~~~~hermes-template a.md\nno end")).toEqual([]);
-  });
-});
-
 describe("TEMPLATE_SKILL", () => {
-  it("builds the built-in text from the syntax guide and block format", () => {
+  it("builds the built-in text from the syntax guide, saving through create_template", () => {
     expect(TEMPLATE_SKILL.builtin).toContain("{{prompt:Label}}");
-    expect(TEMPLATE_SKILL.builtin).toContain("~~~~hermes-template rfc.md");
+    expect(TEMPLATE_SKILL.builtin).toContain("create_template");
+    expect(TEMPLATE_SKILL.builtin).not.toContain("hermes-template");
   });
 });

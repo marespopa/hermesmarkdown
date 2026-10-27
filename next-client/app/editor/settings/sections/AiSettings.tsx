@@ -11,7 +11,9 @@ import {
   atom_claudeKey,
   atom_geminiKey,
   atom_selectedAiModel,
+  atom_aiWebSearchEnabled,
   atom_webMcpEnabled,
+  atom_webMcpWritesEnabled,
 } from "@/app/atoms/atoms";
 import Button from "@/app/components/Button";
 import Input from "@/app/components/Input";
@@ -56,8 +58,10 @@ const noSubscription = () => () => {};
 
 // Settings → AI Features: an off-by-default switch, then (once on) the
 // provider, your API key, the model loaded from the key's account and a
-// connection check. Turning it off keeps the key; Remove key deletes it.
-// Below, always shown, the Browser agents switch (WebMCP, off by default).
+// connection check, and for Claude, whether the companion may search the
+// web (off by default). Turning it off keeps the key; Remove key deletes it.
+// Below, always shown, the Browser agents switch (WebMCP, off by default),
+// and once it is on, a second one that lets them change notes (also off).
 export default function AiSettings() {
   const [aiEnabled, setAiEnabled] = useAtom(atom_aiEnabled);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
@@ -69,7 +73,9 @@ export default function AiSettings() {
   const [isFetchingModels, setIsFetchingModels] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [webSearchEnabled, setWebSearchEnabled] = useAtom(atom_aiWebSearchEnabled);
   const [webMcpEnabled, setWebMcpEnabled] = useAtom(atom_webMcpEnabled);
+  const [webMcpWritesEnabled, setWebMcpWritesEnabled] = useAtom(atom_webMcpWritesEnabled);
   // Read after hydration: the server render can't know the browser.
   const webMcpSupported = useSyncExternalStore(noSubscription, isWebMcpSupported, () => false);
 
@@ -125,7 +131,7 @@ export default function AiSettings() {
       <SettingGroup>
         <SettingItem
           label="AI features"
-          description="Optional, and off unless you turn it on. Adds AI Chat and one-click rewrites, using your own Claude or Gemini API key."
+          description="Optional, and off unless you turn it on. Adds the AI companion, using your own Claude or Gemini API key."
           control={<Toggle variant="soft" active={aiEnabled} onChange={setAiEnabled} label="AI features" />}
         />
       </SettingGroup>
@@ -209,6 +215,13 @@ export default function AiSettings() {
               }
             />
           )}
+          {aiProvider === "claude" && (
+            <SettingItem
+              label="Let the companion search the web"
+              description="Claude can look things up online while it answers, and lists the pages it used. Searches are billed on your key, and what it searches for can quote your notes. It must also be allowed in your Anthropic Console."
+              control={<Toggle variant="soft" active={webSearchEnabled} onChange={setWebSearchEnabled} label="Let the companion search the web" />}
+            />
+          )}
           <SettingNote>
             Nothing is sent until you use an AI feature. Then only what that request needs (your message, the note or
             selection) goes to {provider.name}, by way of HermesMarkdown&apos;s server, which doesn&apos;t log or keep it.
@@ -221,11 +234,18 @@ export default function AiSettings() {
           label="Let browser agents read notes"
           description={
             webMcpSupported
-              ? "AI agents built into this browser can search your notes, read one and list open tasks (WebMCP). Private notes stay hidden, and nothing is written. No key needed."
+              ? "AI agents built into this browser can search your notes, read one and list open tasks (WebMCP). Private notes stay hidden, and nothing is written unless you allow it below. No key needed."
               : "For AI agents built into the browser (WebMCP). This browser doesn't offer them yet."
           }
           control={<Toggle variant="soft" active={webMcpEnabled} onChange={setWebMcpEnabled} label="Let browser agents read notes" />}
         />
+        {webMcpEnabled && (
+          <SettingItem
+            label="Let browser agents change notes"
+            description="They can also edit and create notes and files, make folders, rename and move them, and save templates, as the AI companion does. Never the Trash or private notes. Each change can be undone from its toast or with ⌘Z in Files."
+            control={<Toggle variant="soft" active={webMcpWritesEnabled} onChange={setWebMcpWritesEnabled} label="Let browser agents change notes" />}
+          />
+        )}
       </SettingGroup>
     </>
   );

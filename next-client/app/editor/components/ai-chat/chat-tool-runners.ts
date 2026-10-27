@@ -5,9 +5,9 @@ import type { TaskItem } from "@/app/utils/taskExtractor";
 import { boardTextForReading } from "@/app/utils/board/board-format";
 import { frontmatterList } from "@/app/utils/frontmatter-utils";
 
-// The pure half of AI Chat's tools (declared in app/api/ai/chat-tools.ts):
+// The pure half of the note tools (declared in app/services/note-tool-defs.ts):
 // what each one answers, from the vault's index and the text the client read.
-// use-chat-tools.ts runs them. Private notes (`private: true` or tag) are never
+// use-note-tools.ts runs them. Private notes (`private: true` or tag) are never
 // returned: searching skips them, and reading one says it's private.
 
 export const CHAT_TOOL_NAMES = ["search_notes", "read_note", "list_open_tasks"] as const;

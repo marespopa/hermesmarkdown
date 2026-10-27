@@ -12,7 +12,7 @@ interface MentionMenuProps {
   onSelect: (option: MentionOption) => void;
 }
 
-// The @mention dropdown floating above the AI Chat input: whole-vault index,
+// The @mention dropdown floating above the AI companion's input: whole-vault index,
 // folder indexes, then single notes.
 export default function MentionMenu({ options, activeIndex, query, onSelect }: MentionMenuProps) {
   return (

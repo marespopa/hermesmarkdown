@@ -37,6 +37,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ai-sdk/gateway@npm:3.0.222":
+  version: 3.0.222
+  resolution: "@ai-sdk/gateway@npm:3.0.222"
+  dependencies:
+    "@ai-sdk/provider": "npm:3.0.19"
+    "@ai-sdk/provider-utils": "npm:4.0.62"
+    "@vercel/oidc": "npm:3.2.0"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10c0/903175e32a37ec81340ba30fa2ae86c5e5d5a35d183dfa8a1bd30d1e3cec24fbfab5f603b61082f6af632decb5a18bde92dbf0afa3ef563219dedd1de9e0f8c9
+  languageName: node
+  linkType: hard
+
 "@ai-sdk/google@npm:^3.0.135":
   version: 3.0.135
   resolution: "@ai-sdk/google@npm:3.0.135"
@@ -69,6 +82,20 @@ __metadata:
   dependencies:
     json-schema: "npm:^0.4.0"
   checksum: 10c0/f77fcae35b7e388704a2594d59eb2d89bb2311c1b8c794937bcb2dfcd566fc83a870bbe0e03d96349539e465e69cce29ce9b3cdf32b708304a09830c0a459ea5
+  languageName: node
+  linkType: hard
+
+"@ai-sdk/react@npm:^3":
+  version: 3.0.319
+  resolution: "@ai-sdk/react@npm:3.0.319"
+  dependencies:
+    "@ai-sdk/provider-utils": "npm:4.0.62"
+    ai: "npm:6.0.316"
+    swr: "npm:^2.2.5"
+    throttleit: "npm:2.1.0"
+  peerDependencies:
+    react: ^18 || ~19.0.1 || ~19.1.2 || ^19.2.1
+  checksum: 10c0/e7e6eb18cf9d3961528adf558c237152c04f6b21888d89be05a52443243e81f21a88f60bc89cbf9bd43f9d7117a8a64d109635441c322697bc5b441e93966832
   languageName: node
   linkType: hard
 
@@ -3670,6 +3697,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ai@npm:6.0.316":
+  version: 6.0.316
+  resolution: "ai@npm:6.0.316"
+  dependencies:
+    "@ai-sdk/gateway": "npm:3.0.222"
+    "@ai-sdk/provider": "npm:3.0.19"
+    "@ai-sdk/provider-utils": "npm:4.0.62"
+    "@opentelemetry/api": "npm:^1.9.0"
+  peerDependencies:
+    zod: ^3.25.76 || ^4.1.8
+  checksum: 10c0/bf21d4c2807be91a80a56d66c2a122abd9ebb62189c9435cf4f12d61e0fb967c31be14aa17be1fdcba612034ca156bfe082dfdbce3a2b771456892147dbaa7e5
+  languageName: node
+  linkType: hard
+
 "ai@npm:^6.0.309":
   version: 6.0.309
   resolution: "ai@npm:6.0.309"
@@ -5994,6 +6035,7 @@ __metadata:
   dependencies:
     "@ai-sdk/anthropic": "npm:^3.0.133"
     "@ai-sdk/google": "npm:^3.0.135"
+    "@ai-sdk/react": "npm:^3"
     "@codemirror/autocomplete": "npm:^6.20.3"
     "@codemirror/commands": "npm:^6.11.1"
     "@codemirror/lang-markdown": "npm:^6.5.2"
@@ -8673,6 +8715,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"swr@npm:^2.2.5":
+  version: 2.5.1
+  resolution: "swr@npm:2.5.1"
+  dependencies:
+    dequal: "npm:^2.0.3"
+    use-sync-external-store: "npm:^1.6.0"
+  peerDependencies:
+    react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/46a815a8abaf38378c6febc3beacedf4d7e1fafce0656ff6ed23561cfa9e380de3831d708b36d516f70bd3d0decac824108bce96d0826f258c33cf56e1e837b6
+  languageName: node
+  linkType: hard
+
 "tailwindcss-animate@npm:^1.0.7":
   version: 1.0.7
   resolution: "tailwindcss-animate@npm:1.0.7"
@@ -8743,6 +8797,13 @@ __metadata:
   dependencies:
     any-promise: "npm:^1.0.0"
   checksum: 10c0/f375aeb2b05c100a456a30bc3ed07ef03a39cbdefe02e0403fb714b8c7e57eeaad1a2f5c4ecfb9ce554ce3db9c2b024eba144843cd9e344566d9fcee73b04767
+  languageName: node
+  linkType: hard
+
+"throttleit@npm:2.1.0":
+  version: 2.1.0
+  resolution: "throttleit@npm:2.1.0"
+  checksum: 10c0/1696ae849522cea6ba4f4f3beac1f6655d335e51b42d99215e196a718adced0069e48deaaf77f7e89f526ab31de5b5c91016027da182438e6f9280be2f3d5265
   languageName: node
   linkType: hard
 
@@ -9148,7 +9209,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-sync-external-store@npm:^1.2.2":
+"use-sync-external-store@npm:^1.2.2, use-sync-external-store@npm:^1.6.0":
   version: 1.7.0
   resolution: "use-sync-external-store@npm:1.7.0"
   peerDependencies:

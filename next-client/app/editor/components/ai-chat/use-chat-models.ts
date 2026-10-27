@@ -11,7 +11,7 @@ import {
 import { fetchClaudeModels, fetchGeminiModels } from "@/app/services/ai";
 import { FALLBACK_CLAUDE_MODELS, FALLBACK_GEMINI_MODELS } from "./chat-helpers";
 
-// Model picker state for AI Chat. Loads the real model list on first open,
+// Model picker state for the AI companion. Loads the real model list on first open,
 // the same lookup Settings uses — shared through the atoms, so it only
 // happens once per session either way.
 export function useChatModels(isOpen: boolean) {

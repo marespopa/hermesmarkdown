@@ -83,6 +83,20 @@ Schemas go in `app/services/companion-tool-defs.ts`, which extends `NOTE_TOOL_DE
   - `aiBuilderRequest`, if nothing still uses it
 - **WebMCP:** read tools only. Write tools sit behind a new Settings toggle that is off by default.
 
+## Progress (2026-10-27)
+- Shipped together on release/6.48.0: phase 1 (streaming panel, read tools), the edit half of phase 2 (`edit_file`, `edit_code_block`, `create_file`, Undo per turn through the companion's own `turn-journal.ts` / `atom_companionJournals`, not yet merged into `FileUndoGroup`), and the deletions of phase 5. The old dialog wasn't kept as a fallback: AIChatDialog, AIReviewDialog, AIThinkingOverlay, the one-click actions and Suggest properties are gone; Ask AI (Ctrl/Cmd+J) opens the companion, and Ctrl/Cmd+Shift+B is retired.
+- The thread lives in one Chat instance for the session and is saved in localStorage (`companion-chat-store.ts`).
+- Companion atoms are in `app/atoms/companion-atoms.ts` (ui-atoms.ts is at its size limit).
+- Then, also on release/6.48.0 (2026-10-27):
+  - **Shared undo.** A turn is one group on the app's file-undo stack: `FileUndoGroup` gained `id` and ordered `steps` (`move`, `content`, `create`, `folder`) instead of separate `contents` / `creates`, so a mixed turn (edit, move, edit again) undoes in order. `recordUndo(label, moves, group?)` and `recordSteps(group, steps | update)` in `use-file-undo.ts`; `atom_undoneFileGroups` holds each undone group's outcome. Undo turn, ⌘Z in Files and a toast's Undo all reverse the same group. `atom_companionJournals` / `atom_companionUndone` are gone.
+  - **Organising (phase 3).** `create_folder`, `rename`, `move`, `trash` with `TrashConfirmCard` (`use-companion-organise.ts`, `trash-confirm.ts`). `renameFile`, `moveItems` and `trashItems` take an optional undo group (and then skip their own Undo toast); `moveItems` and `trashItems` resolve to their moves. Folders a turn makes are steps too, removed on undo while empty.
+  - **Templates (phase 4).** `create_template` lints first and writes into the templates folder, never replacing one. The `/template` skill now saves through it; `parseTemplateBlocks` is gone.
+  - **WebMCP.** A second switch, "Let browser agents change notes" (`atom_webMcpWritesEnabled`, off by default), adds the companion's file reads and write tools (never `trash`), each call its own undo group with an Undo toast.
+  - **Docs (phase 6).** `ai-features.tsx` rewritten for the companion; stale "AI Chat" / "Ask or Edit with AI…" mentions fixed across the docs and the shortcuts overlay; READMEs and `ARCHITECTURE.md` updated.
+- **Web search** (added after the plan): Claude's own `web_search` (`webSearch_20260209` on Opus/Sonnet 4.6+, `webSearch_20250305` before), behind an off-by-default switch, sources listed under the reply. `shouldContinue` now ignores provider-run tool parts, which share a step with the answer and would otherwise resend until the cap. Gemini's Google Search isn't offered: combining it with function tools wasn't confirmed.
+- **"The companion doesn't edit" (no tool lines under replies):** traced end to end with the installed SDK (`route.tools.test.ts`: the model gets every tool and its calls stream back; `companion-chat-store.test.ts`: the browser runs them and resends). The pipeline works; the model was answering in text. Most likely cause: the saved thread began before the edit tools existed, and the model stayed consistent with its earlier "I can't edit". The prompt now says earlier replies about missing abilities are out of date.
+- Not done: the panel width in Settings (the panel's edge resizes it, so it was left out), and the manual checks below.
+
 ## Phases (each one can ship on its own)
 1. **Streaming panel with read tools.**
    - Covers the new route, the shared server code, `CompanionPanel` with the push layout, and the rewired entry points. The old dialog stays as a fallback.

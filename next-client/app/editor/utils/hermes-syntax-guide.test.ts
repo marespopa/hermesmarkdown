@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CALLOUT_META } from "@/app/editor/constants/callouts";
 import { TASK_STATUSES, TASK_STATUS_CHAR } from "@/app/utils/task-status";
 import { extractTasks } from "@/app/utils/taskExtractor";
-import { SYSTEM_PROMPT } from "@/app/editor/components/ai-chat/chat-helpers";
+import { COMPANION_PROMPT } from "@/app/editor/components/companion/companion-prompt";
 import { HERMES_SYNTAX_GUIDE, SYNTAX_PRESERVATION_RULE } from "./hermes-syntax-guide";
 
 describe("HermesMarkdown syntax guide", () => {
@@ -29,8 +29,8 @@ describe("HermesMarkdown syntax guide", () => {
     for (const type of Object.keys(CALLOUT_META)) expect(HERMES_SYNTAX_GUIDE).toContain(type);
   });
 
-  it("is part of the AI Chat system prompt", () => {
-    expect(SYSTEM_PROMPT).toContain(HERMES_SYNTAX_GUIDE);
-    expect(SYSTEM_PROMPT).toContain(SYNTAX_PRESERVATION_RULE);
+  it("is part of the AI companion's system prompt", () => {
+    expect(COMPANION_PROMPT).toContain(HERMES_SYNTAX_GUIDE);
+    expect(COMPANION_PROMPT).toContain(SYNTAX_PRESERVATION_RULE);
   });
 });

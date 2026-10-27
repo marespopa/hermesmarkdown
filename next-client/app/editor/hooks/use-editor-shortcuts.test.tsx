@@ -3,8 +3,9 @@ import { renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import type { EditorView } from "@codemirror/view";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { atom_aiEnabled } from "@/app/atoms/ai-atoms";
-import { atom_activeEditorView, atom_filesFocusRequested, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_aiEnabled, atom_claudeKey } from "@/app/atoms/ai-atoms";
+import { atom_companionOpen } from "@/app/atoms/companion-atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_filesFocusRequested, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { useEditorShortcuts } from "./use-editor-shortcuts";
 
 const openSearchPanel = vi.fn();
@@ -21,6 +22,7 @@ function renderShortcuts(view: EditorView | null, navigateWithGuard = vi.fn(), a
   const store = createStore();
   store.set(atom_activeEditorView, view);
   store.set(atom_aiEnabled, aiEnabled);
+  if (aiEnabled) store.set(atom_claudeKey, "claude-key");
   const wrapper = ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
   renderHook(() => useEditorShortcuts({
     navigateWithGuard,
@@ -94,7 +96,7 @@ describe("useEditorShortcuts: Show Files", () => {
   });
 });
 
-describe("useEditorShortcuts: Ask or Edit with AI", () => {
+describe("useEditorShortcuts: Ask AI", () => {
   beforeEach(() => {
     openMenu.mockClear();
     window.localStorage.clear();
@@ -106,15 +108,23 @@ describe("useEditorShortcuts: Ask or Edit with AI", () => {
     return event;
   };
 
-  it("opens the palette's AI menu with Ctrl/Cmd+J", () => {
-    renderShortcuts(null, vi.fn(), true);
+  it("asks for the AI companion with Ctrl/Cmd+J", () => {
+    const store = renderShortcuts(null, vi.fn(), true);
     expect(pressCtrlJ().defaultPrevented).toBe(true);
-    expect(openMenu).toHaveBeenCalledWith("ai-menu");
+    expect(store.get(atom_aiBuilderRequest)).toBe(1);
+  });
+
+  it("closes the open companion with Ctrl/Cmd+J", () => {
+    const store = renderShortcuts(null, vi.fn(), true);
+    store.set(atom_companionOpen, true);
+    pressCtrlJ();
+    expect(store.get(atom_companionOpen)).toBe(false);
+    expect(store.get(atom_aiBuilderRequest)).toBe(0);
   });
 
   it("leaves Ctrl/Cmd+J alone with AI Features off", () => {
-    renderShortcuts(null, vi.fn(), false);
+    const store = renderShortcuts(null, vi.fn(), false);
     expect(pressCtrlJ().defaultPrevented).toBe(false);
-    expect(openMenu).not.toHaveBeenCalled();
+    expect(store.get(atom_aiBuilderRequest)).toBe(0);
   });
 });

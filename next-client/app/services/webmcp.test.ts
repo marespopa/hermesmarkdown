@@ -61,6 +61,19 @@ describe("registerNoteTools", () => {
   });
 });
 
+describe("registerNoteTools with writes", () => {
+  it("adds the companion's file reads and its writes, never the Trash", async () => {
+    const context = fakeContext();
+    await registerNoteTools(context, vi.fn(), new AbortController().signal, { writes: true });
+
+    const names = [...context.tools.keys()];
+    expect(names).toEqual(expect.arrayContaining(["read_file", "list_folder", "edit_file", "create_file", "rename", "move", "create_template"]));
+    expect(names).not.toContain("trash");
+    expect(context.tools.get("edit_file")!.annotations).toEqual({ readOnlyHint: false });
+    expect(context.tools.get("read_file")!.annotations).toEqual({ readOnlyHint: true, untrustedContentHint: true });
+  });
+});
+
 describe("getModelContext", () => {
   afterEach(() => {
     delete (document as unknown as { modelContext?: unknown }).modelContext;

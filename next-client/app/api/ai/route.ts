@@ -1,48 +1,7 @@
-import { createAnthropic } from '@ai-sdk/anthropic';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { generateText, generateObject } from 'ai';
-import { z } from 'zod';
+import { generateText } from 'ai';
 import { NextResponse } from 'next/server';
-import { CHAT_TOOLS } from './chat-tools';
-
-const sanitizeMessage = (message: string): string => {
-  const stripped = message.replace(/^Failed after \d+ attempts?\. Last error:\s*/i, "");
-  return stripped.replace(/((?:sk|ghp|github_pat|xox[baprs]-|AIza)[A-Za-z0-9_-]{12,})/g, "[REDACTED]")
-    .replace(/(Bearer\s+)[A-Za-z0-9._-]+/gi, "$1[REDACTED]")
-    .replace(/(api[_-]?key\s*[:=]\s*)([^\s,;]+)/gi, "$1[REDACTED]")
-    .replace(/([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g, "[REDACTED_EMAIL]");
-};
-
-const createAIModel = (provider: string, apiKey: string, modelKey: string) => {
-  if (provider === 'claude') {
-    // Short tier keys (from the static fallback list) map to a known model ID.
-    // Anything else is assumed to already be a real Anthropic model ID, as
-    // returned by the dynamic /v1/models lookup used to populate the picker.
-    const modelId = modelKey === 'opus-4-8' ? 'claude-opus-4-8' :
-                    modelKey === 'haiku-4-5' ? 'claude-haiku-4-5-20251001' :
-                    modelKey === 'sonnet-5' ? 'claude-sonnet-5' :
-                    modelKey && modelKey.startsWith('claude-') ? modelKey :
-                    'claude-sonnet-5';
-
-    return createAnthropic({ apiKey, baseURL: 'https://api.anthropic.com/v1' })(modelId);
-  } else {
-    // Strip models/ prefix if present
-    let modelId = modelKey.replace('models/', '');
-    
-    // Map legacy/shortcut keys to latest versions
-    if (modelId === 'gemini-flash' || modelId === 'gemini-1.5-flash' || modelId === 'gemini-2.5-flash') {
-      modelId = 'gemini-3.5-flash';
-    } else if (modelId === 'gemini-pro' || modelId === 'gemini-1.5-pro' || modelId === 'gemini-2.5-pro') {
-      modelId = 'gemini-3.1-pro';
-    } else if (modelId === 'gemini-flash-lite') {
-      modelId = 'gemini-3.1-flash-lite';
-    }
-    
-    return createGoogleGenerativeAI({
-      apiKey,
-    })(modelId);
-  }
-};
+import { createAIModel } from './providers';
+import { errorStatus, sanitizeMessage } from './errors';
 
 // A reply with no text (a thinking model that spent its whole output budget
 // before answering, or a filtered response) is an error, not an empty answer:
@@ -58,7 +17,7 @@ const emptyReplyError = (finishReason?: string) =>
 
 export async function POST(req: Request) {
   try {
-    const { action, provider, apiKey, modelKey, system, prompt, noteBody, messages, tools: useTools } = await req.json();
+    const { action, provider, apiKey, modelKey, system, prompt } = await req.json();
 
     if (!apiKey) {
       return NextResponse.json({ error: "API key is required" }, { status: 400 });
@@ -95,67 +54,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ text });
     }
     
-    if (action === 'object') {
-      const { object } = await generateObject({
-        model,
-        schema: z.object({
-          title: z.string().describe("a concise, descriptive title for the note"),
-          scope: z.string().describe("one sentence summary, max 20 words"),
-          tags: z.array(z.string()).describe("3-5 lowercase kebab-case tags"),
-          read_when: z.array(z.string()).describe("2-3 phrases starting with 'when you need to...'"),
-        }),
-        messages: [
-          { role: 'user', content: `Generate metadata for this note body:\n\n${noteBody}` }
-        ],
-      });
-
-      return NextResponse.json({ object });
-    }
-
-    if (action === 'chat') {
-      // messages may have content as a plain string or a content-parts array
-      // (images), and, with tools on, assistant tool calls and 'tool' results.
-      const msgs = messages as Array<{ role: 'user' | 'assistant' | 'tool'; content: any }>;
-      const tools = useTools ? CHAT_TOOLS : undefined;
-      // A turn ends with text, or with tool calls for the client to run
-      // (`responseMessages` carries them, to send back with the results).
-      const reply = (result: {
-        text: string;
-        finishReason?: string;
-        toolCalls?: { toolCallId: string; toolName: string; input: unknown }[];
-        response: { messages: unknown[] };
-      }) => {
-        const toolCalls = (result.toolCalls ?? []).map(({ toolCallId, toolName, input }) => ({ toolCallId, toolName, input }));
-        if (!toolCalls.length && !result.text?.trim()) return emptyReplyError(result.finishReason);
-        return NextResponse.json({
-          text: result.text,
-          ...(toolCalls.length ? { toolCalls, responseMessages: result.response.messages } : {}),
-        });
-      };
-
-      if (provider === 'gemini') {
-        // Gemini: fold system into the first user message text part
-        const firstContent = msgs[0]?.content;
-        const firstText = typeof firstContent === 'string'
-          ? firstContent
-          : (firstContent as any[]).find((p: any) => p.type === 'text')?.text ?? '';
-        const firstParts = typeof firstContent === 'string'
-          ? [{ type: 'text' as const, text: `${system}\n\n${firstContent}` }]
-          : [{ type: 'text' as const, text: `${system}\n\n${firstText}` }, ...(firstContent as any[]).filter((p: any) => p.type !== 'text')];
-
-        return reply(await generateText({
-          model,
-          tools,
-          messages: [
-            { role: 'user' as const, content: firstParts },
-            ...msgs.slice(1),
-          ],
-        }));
-      }
-
-      return reply(await generateText({ model, system, tools, messages: msgs }));
-    }
-
     if (action === 'test') {
       await generateText({
         model,
@@ -169,16 +67,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("AI Proxy Error:", error);
     const message: string = error.message || "An unexpected error occurred during AI processing.";
-    const lowerMessage = message.toLowerCase();
-
-    const status =
-      lowerMessage.includes("high demand") || lowerMessage.includes("overloaded") || lowerMessage.includes("529")
-        ? 503
-        : lowerMessage.includes("rate limit") || lowerMessage.includes("429")
-        ? 429
-        : lowerMessage.includes("unauthorized") || lowerMessage.includes("authentication") || (lowerMessage.includes("invalid") && (lowerMessage.includes("key") || lowerMessage.includes("api")))
-        ? 401
-        : 500;
+    const status = errorStatus(message);
 
     const cleanMessage = sanitizeMessage(message);
 

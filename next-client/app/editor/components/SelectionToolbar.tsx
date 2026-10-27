@@ -20,7 +20,7 @@ interface SelectionToolbarProps {
    * and the browser's own Copy/Paste bar.
    */
   placement: "above" | "docked";
-  /** Opens AI Chat with the selection. Omit to hide Ask AI (AI not configured). */
+  /** Opens the AI companion with the selection. Omit to hide Ask AI (AI not configured). */
   onAsk?: () => void;
   isAiLoading?: boolean;
 }

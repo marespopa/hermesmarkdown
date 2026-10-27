@@ -229,7 +229,7 @@ tags: []
         </p>
         <p>
           With nothing typed it lists your pinned and recent files, then a short menu of what you
-          reach for most: <strong>Search in Files…</strong> (file text), <strong>Ask or Edit with AI…</strong>,{" "}
+          reach for most: <strong>Search in Files…</strong> (file text), <strong>Ask AI</strong>,{" "}
           <strong>New File</strong>, <strong>Insert template…</strong>, <strong>Toggle Focus Mode</strong>;
           then, set apart, the pages it can take you to: <strong>Open Tasks</strong>,{" "}
           <strong>Open Templates</strong>, <strong>Open Settings</strong> and <strong>Open Documentation</strong>.
@@ -299,7 +299,7 @@ tags: []
             { label: "Files", value: "New File, Open File from Disk…, Export as Markdown (always a .md download, never a save), Copy Contents, Rename / Duplicate / Move / Delete File" },
             { label: "Folders", value: "New folder (one level at a time)" },
             { label: "Editing", value: "Undo, redo, focus, formatting, tasks, and templates" },
-            { label: "AI", value: "Ask or Edit with AI… (CTRL/CMD+J): Freeform Prompt, Improve Writing, Summarize / Structure, Insert Element" },
+            { label: "AI", value: "Ask AI (CTRL/CMD+J): opens the AI companion with the note and selection" },
           ]}
         />
         <KV
@@ -328,7 +328,7 @@ tags: []
             { label: "New File", value: "Blank file, named from its first line" },
             { label: "New Folder", value: "Choose a vault folder, then enter a name" },
             { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },
-            { label: "Ask or Edit with AI…", value: "CTRL/CMD+J · when AI features are on" },
+            { label: "Ask AI", value: "CTRL/CMD+J · when AI features are on" },
             { label: "Navigate", value: "Open All Files, Open Tags, Open Tasks, Open Templates, Show Changes, Open Trash, Open Settings, Open Documentation, Send Feedback…, Show Keyboard Shortcuts" },
           ]}
         />

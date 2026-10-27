@@ -547,7 +547,7 @@ graph TD
             { label: "Callout · Collapse", value: "Callout / collapsed callout" },
             { label: "Frontmatter", value: "Insert or reveal the YAML block" },
             { label: "Template (/template, /tpl)", value: "Insert a template from your vault" },
-            { label: "AI Chat & AI actions", value: "Only when AI is configured" },
+            { label: "Ask AI", value: "Opens the AI companion; only when AI is configured" },
           ]}
         />
       </>

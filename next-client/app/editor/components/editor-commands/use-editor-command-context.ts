@@ -51,7 +51,6 @@ export type EditorCommandsProps = {
   onOpenTemplates: () => void;
   onRefreshVault?: () => void;
   onImport: () => void;
-  onRunAIAction: (id: string) => void;
 };
 
 export function useEditorCommandContext(props: EditorCommandsProps) {

@@ -13,7 +13,7 @@ interface UseChatMentionsOptions {
   currentFilePath?: string;
 }
 
-// @mention support for the AI Chat input: detects an `@query` before the
+// @mention support for the AI companion's input: detects an `@query` before the
 // caret, offers vault / folder / note options, and on selection writes the
 // resolved label into the text and loads its content as a vault ref.
 export function useChatMentions({ input, setInput, inputRef, setVaultRefs, currentFilePath }: UseChatMentionsOptions) {

@@ -61,8 +61,8 @@ export default function MobileFileIndicator({ onSave, onOpenAIChat }: MobileFile
       {onOpenAIChat && (
         <Button variant="unstyled"
           onClick={onOpenAIChat}
-          aria-label="AI Chat"
-          title="AI Chat"
+          aria-label="Ask AI"
+          title="Ask AI"
           className="flex items-center justify-center h-11 min-w-11 shrink-0 text-fg-faint hover:text-fg transition-colors"
         >
           <HiOutlineChatAlt2 size={18} />
