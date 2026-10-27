@@ -45,7 +45,7 @@ export default function CompanionThread({ messages, activities, status, compacti
             const settled = i < messages.length - 1 || (status !== "submitted" && status !== "streaming");
             return (
               <React.Fragment key={message.id}>
-                <CompanionMessage message={message} activities={activities} latest={i === lastReply} />
+                <CompanionMessage message={message} activities={activities} latest={i === lastReply} autoModel={message.role === "assistant" ? messages[i - 1]?.metadata?.auto?.name : undefined} />
                 {turnId && settled && <TurnSummary turnId={turnId} onUndo={onUndoTurn} />}
               </React.Fragment>
             );

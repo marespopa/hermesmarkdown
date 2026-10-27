@@ -1,7 +1,7 @@
 ---
 title: Ollama as a BYOK AI Provider Architecture & Implementation Plan
 tags: [architecture, plan, ollama]
-status: completed
+status: done
 ---
 
 # Ollama as a BYOK AI Provider Architecture & Implementation Plan

@@ -20,7 +20,7 @@ import { replyToHtml } from "./reply-html";
 // call (a trash call waiting for the user's answer shows its
 // TrashConfirmCard instead), then the pages a web search drew on as links. Its Markdown can be copied: the latest reply always shows Copy,
 // earlier ones on hover or keyboard focus.
-export default function CompanionMessage({ message, activities, latest = false }: { message: Message; activities: Record<string, string>; latest?: boolean }) {
+export default function CompanionMessage({ message, activities, latest = false, autoModel }: { message: Message; activities: Record<string, string>; latest?: boolean; autoModel?: string }) {
   const [copied, setCopied] = useState(false);
   const trashRequests = useAtomValue(atom_trashRequests);
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function CompanionMessage({ message, activities, latest = false }
         </div>
       )}
       {text && (
-        <div className={latest ? undefined : "opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"}>
+        <div className={`flex items-center gap-2 ${latest ? "" : "opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"}`}>
           <Button
             variant="small"
             className="!h-7 bg-fill hover:bg-fill-hover"
@@ -100,6 +100,7 @@ export default function CompanionMessage({ message, activities, latest = false }
             {copied ? <HiOutlineCheck size={13} /> : <HiOutlineDocumentDuplicate size={13} />}
             {copied ? "Copied" : "Copy"}
           </Button>
+          {autoModel && <span className="truncate text-ui-caption text-fg-faint">Auto → {autoModel}</span>}
         </div>
       )}
     </div>

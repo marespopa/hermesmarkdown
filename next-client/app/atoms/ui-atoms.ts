@@ -350,7 +350,7 @@ export const atom_indexerState = atom<IndexerState>("idle");
 export type AiModelKey = string;
 export const atom_selectedAiModel = atomWithStorage<AiModelKey>(
   "selectedAiModel",
-  "sonnet-5",
+  "auto",
 );
 
 export interface GeminiModelInfo {

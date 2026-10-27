@@ -35,6 +35,12 @@ describe("userTurn", () => {
     expect(turn.metadata).toEqual({ context: ["/tasks"] });
   });
 
+  it("records the model Auto chose on the turn", () => {
+    const auto = { model: "haiku-4-5", name: "Claude 4.5 Haiku", tier: "fast" as const };
+    expect(userTurn("hi", noContext, undefined, auto).metadata).toEqual({ auto });
+    expect(userTurn("hi", noContext).metadata).toBeUndefined();
+  });
+
   it("sends no skill block without one", () => {
     expect(userTurn("hello", noContext).parts).toEqual([{ type: "text", text: "hello" }]);
   });

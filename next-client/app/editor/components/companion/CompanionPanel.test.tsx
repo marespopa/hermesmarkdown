@@ -119,6 +119,24 @@ describe("CompanionPanel", () => {
     expect(setModel).toHaveBeenCalledWith("opus-4-8");
   });
 
+  it("lists Auto first in the model menu and picks it", () => {
+    setup();
+    fireEvent.click(screen.getByRole("button", { name: /Claude Sonnet 5/ }));
+    const rows = screen.getAllByRole("menuitemcheckbox");
+    expect(rows[0]).toHaveAccessibleName("Auto");
+    fireEvent.click(rows[0]);
+    expect(setModel).toHaveBeenCalledWith("auto");
+  });
+
+  it("shows the model Auto chose under its reply", () => {
+    messages = [
+      { id: "u1", role: "user", metadata: { auto: { model: "haiku-4-5", name: "Claude 4.5 Haiku", tier: "fast" } }, parts: [{ type: "text", text: "Fix this typo" }] },
+      { id: "a1", role: "assistant", parts: [{ type: "text", text: "Done." }] },
+    ];
+    setup();
+    expect(screen.getByText("Auto → Claude 4.5 Haiku")).toBeInTheDocument();
+  });
+
   it("shows replies as Markdown, with Copy shown on the latest reply only", () => {
     messages = [
       { id: "u1", role: "user", parts: [{ type: "text", text: "Summarise" }] },

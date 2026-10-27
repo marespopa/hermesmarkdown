@@ -2,7 +2,7 @@ import React from "react";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider, createStore } from "jotai";
-import { atom_aiEnabled, atom_aiProvider, atom_aiWebSearchEnabled, atom_claudeKey, atom_isAiConfigured, atom_ollamaBaseUrl, atom_ollamaKey, atom_webMcpEnabled, atom_webMcpWritesEnabled } from "@/app/atoms/ui-atoms";
+import { atom_aiEnabled, atom_aiProvider, atom_aiWebSearchEnabled, atom_claudeKey, atom_isAiConfigured, atom_ollamaBaseUrl, atom_selectedAiModel, atom_ollamaKey, atom_webMcpEnabled, atom_webMcpWritesEnabled } from "@/app/atoms/ui-atoms";
 import AiSettings from "./AiSettings";
 
 vi.mock("@/app/services/ai", () => ({
@@ -53,6 +53,23 @@ describe("AiSettings", () => {
 
     fireEvent.click(screen.getByText("Remove key"));
     expect(store.get(atom_claudeKey)).toBe("");
+  });
+
+  it("offers Auto first in the model select, on by default, and returns to it on a provider switch", async () => {
+    const store = renderWith((s) => {
+      s.set(atom_aiEnabled, true);
+      s.set(atom_claudeKey, "sk-ant-test");
+    });
+    const select = screen.getByRole("combobox", { name: "Model" });
+    expect(select).not.toBeDisabled();
+    expect((select as HTMLSelectElement).options[0]).toHaveTextContent("Auto (picks by task)");
+    expect(store.get(atom_selectedAiModel)).toBe("auto");
+
+    await screen.findByRole("option", { name: "Claude Sonnet 5" });
+    fireEvent.change(select, { target: { value: "sonnet-5" } });
+    expect(store.get(atom_selectedAiModel)).toBe("sonnet-5");
+    fireEvent.click(screen.getByRole("button", { name: "Gemini" }));
+    expect(store.get(atom_selectedAiModel)).toBe("auto");
   });
 
   it("sets up Ollama with a base URL and no key, and resets the URL", async () => {

@@ -6,6 +6,7 @@ import { IoClose } from "react-icons/io5";
 import Button from "@/app/components/Button";
 import { PANE_HEADER_HEIGHT } from "../pane-header-classes";
 import TabContextMenu from "../TabContextMenu";
+import { AUTO_MODEL_ID } from "../ai-chat/auto-model";
 import { useChatModels } from "../ai-chat/use-chat-models";
 
 interface CompanionHeaderProps {
@@ -20,10 +21,10 @@ interface CompanionHeaderProps {
 // own pop-up menu, New chat and Close. Summarizing is a command (/compact),
 // listed by the composer's / menu.
 export default function CompanionHeader({ open, onNewChat, onClose, canStartOver }: CompanionHeaderProps) {
-  const { modelOptions, selectedAiModel, setSelectedAiModel, isFetchingModels } = useChatModels(open);
+  const { modelOptions, selectedAiModel, setSelectedAiModel } = useChatModels(open);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const modelRef = useRef<HTMLButtonElement>(null);
-  const modelName = modelOptions.find((m) => m.id === selectedAiModel)?.name ?? selectedAiModel;
+  const modelName = selectedAiModel === AUTO_MODEL_ID ? "Auto" : modelOptions.find((m) => m.id === selectedAiModel)?.name ?? selectedAiModel;
 
   return (
     <header className={`flex shrink-0 items-center gap-1 border-b border-edge-subtle pl-4 pr-3 ${PANE_HEADER_HEIGHT}`}>
@@ -32,8 +33,7 @@ export default function CompanionHeader({ open, onNewChat, onClose, canStartOver
         ref={modelRef}
         variant="small"
         className="ml-auto min-w-0 !h-7 !px-2"
-        disabled={isFetchingModels || !modelOptions.length}
-        aria-haspopup="menu"
+                aria-haspopup="menu"
         aria-expanded={!!menu}
         title="Model"
         onClick={() => {
@@ -59,11 +59,14 @@ export default function CompanionHeader({ open, onNewChat, onClose, canStartOver
           label="Model"
           anchorRef={modelRef}
           onClose={() => setMenu(null)}
-          items={modelOptions.map((m) => ({
-            label: m.name,
-            checked: m.id === selectedAiModel,
-            onClick: () => setSelectedAiModel(m.id),
-          }))}
+          items={[
+            { label: "Auto", checked: selectedAiModel === AUTO_MODEL_ID, onClick: () => setSelectedAiModel(AUTO_MODEL_ID) },
+            ...modelOptions.map((m) => ({
+              label: m.name,
+              checked: m.id === selectedAiModel,
+              onClick: () => setSelectedAiModel(m.id),
+            })),
+          ]}
         />
       )}
     </header>

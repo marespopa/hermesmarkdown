@@ -1,17 +1,11 @@
 import { beginAiAction, dismissAiActionStatus, finishAiActionSuccess, finishAiActionError } from "./ai-status";
 
 import type { AIProvider } from "@/app/atoms/ai-atoms";
+import { AUTO_MODEL_ID, resolveAutoModel } from "@/app/editor/components/ai-chat/auto-model";
 import { DEFAULT_OLLAMA_BASE_URL } from "@/app/atoms/ai-atoms";
 
 export type { AIProvider };
 
-// The model used before the user picks one. Ollama has none: its models are
-// whatever the instance has pulled, listed by /api/tags.
-const DEFAULT_MODELS: Record<AIProvider, string> = {
-  claude: 'sonnet-5',
-  gemini: 'gemini-3.5-flash',
-  ollama: '',
-};
 
 const getFromStorage = (key: string) => {
   if (typeof window === 'undefined') return null;
@@ -39,13 +33,25 @@ export const isLocalBaseUrl = (baseUrl: string): boolean => {
   }
 };
 
-export const getAIConfig = () => {
+// The models the Ollama instance last reported, so Auto can pick among them
+// without a request.
+let knownOllamaModels: { id: string; name: string }[] = [];
+
+// The picked model; Auto (the default) is the provider's balanced model
+// here. The companion picks per message itself (use-companion-chat.ts).
+const selectedModel = (provider: AIProvider): string => {
+  const picked = getFromStorage("selectedAiModel") || AUTO_MODEL_ID;
+  return picked === AUTO_MODEL_ID ? resolveAutoModel(provider, 'balanced', knownOllamaModels) : picked;
+};
+
+// `model` overrides the picked one: the companion's per-message Auto choice.
+export const getAIConfig = (model?: string) => {
   const provider = (getFromStorage("hermes_ai_provider") as AIProvider) || 'claude';
   const apiKey = getFromStorage(`hermes_${provider}_key`) || '';
-  const modelKey = getFromStorage("selectedAiModel") || DEFAULT_MODELS[provider];
+  const modelKey = model || selectedModel(provider);
 
   if (provider === 'ollama') {
-    if (!modelKey) throw new Error('No model selected. Pick one in Settings → AI (pull a model in Ollama first).');
+    if (!modelKey) throw new Error('No model available. Open Settings → AI to load your models (pull one in Ollama first).');
     return { provider, apiKey, baseUrl: getOllamaBaseUrl(), modelKey };
   }
   if (!apiKey) {
@@ -181,7 +187,7 @@ export async function fetchOllamaModels(apiKey: string, baseUrl: string = getOll
       });
       if (!response.ok) throw new Error(`Failed to fetch models (Status ${response.status})`);
       const data = await response.json();
-      return (data.models || []).map((m: any) => ({ id: m.name, name: m.name })) as { id: string; name: string }[];
+      return (knownOllamaModels = (data.models || []).map((m: any) => ({ id: m.name, name: m.name })));
     }
     const response = await fetch('/api/ai', {
       method: 'POST',
@@ -190,7 +196,7 @@ export async function fetchOllamaModels(apiKey: string, baseUrl: string = getOll
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || `Failed to fetch models (Status ${response.status})`);
-    return data.models as { id: string; name: string }[];
+    return (knownOllamaModels = data.models as { id: string; name: string }[]);
   } catch (error: any) {
     throw new Error(beautifyAIError(error.message || "Failed to fetch models."));
   }
@@ -259,7 +265,7 @@ export async function callAI(system: string, prompt: string, signal?: AbortSigna
  * Validates the connection for a given provider and key.
  */
 export async function testAIConnection(provider: AIProvider, apiKey: string, baseUrl?: string) {
-  const modelKey = getFromStorage("selectedAiModel") || DEFAULT_MODELS[provider];
+  const modelKey = selectedModel(provider);
 
   try {
     if (provider === 'ollama' && baseUrl && isLocalBaseUrl(baseUrl)) {

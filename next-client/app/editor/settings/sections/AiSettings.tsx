@@ -24,6 +24,7 @@ import Input from "@/app/components/Input";
 import Toggle from "@/app/components/Toggle";
 import { showErrorToast, showSuccessToast } from "@/app/components/Toastr";
 import { fetchClaudeModels, fetchGeminiModels, fetchOllamaModels, isLocalBaseUrl, testAIConnection } from "@/app/services/ai";
+import { AUTO_MODEL_ID, AUTO_MODEL_LABEL } from "@/app/editor/components/ai-chat/auto-model";
 import { isWebMcpSupported } from "@/app/services/webmcp-context";
 import { SegmentedControl, SelectControl, SettingGroup, SettingItem, SettingNote } from "../components/SettingControls";
 
@@ -33,7 +34,6 @@ const PROVIDERS = {
     name: "Claude",
     keyDescription: "Create one at console.anthropic.com.",
     keyPlaceholder: "sk-ant-...",
-    defaultModel: "sonnet-5",
     fallbackModels: [
       { id: "sonnet-5", name: "Claude Sonnet 5" },
       { id: "haiku-4-5", name: "Claude 4.5 Haiku" },
@@ -45,7 +45,6 @@ const PROVIDERS = {
     name: "Gemini",
     keyDescription: "Create one at aistudio.google.com.",
     keyPlaceholder: "AIza...",
-    defaultModel: "gemini-3.5-flash",
     fallbackModels: [
       { id: "gemini-3.5-flash", name: "Gemini 3.5 Flash" },
       { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro (Preview)" },
@@ -57,7 +56,6 @@ const PROVIDERS = {
     name: "Ollama",
     keyDescription: "Needed for Ollama Cloud (ollama.com/settings/keys); leave empty for a local instance.",
     keyPlaceholder: "Optional",
-    defaultModel: "",
     fallbackModels: [],
     fetchModels: fetchOllamaModels,
   },
@@ -114,7 +112,7 @@ export default function AiSettings() {
         const loaded = await provider.fetchModels(key, baseUrl);
         setAvailableModels(loaded);
         // A model the instance doesn't have is replaced by its first one.
-        if (isOllama && loaded.length > 0 && !loaded.some((m: { id: string }) => m.id === selectedAiModel)) {
+        if (isOllama && loaded.length > 0 && selectedAiModel !== AUTO_MODEL_ID && !loaded.some((m: { id: string }) => m.id === selectedAiModel)) {
           setSelectedAiModel(loaded[0].id);
         }
       } catch (error: any) {
@@ -178,7 +176,7 @@ export default function AiSettings() {
                 value={aiProvider}
                 onChange={(next) => {
                   setAiProvider(next);
-                  setSelectedAiModel(PROVIDERS[next].defaultModel);
+                  setSelectedAiModel(AUTO_MODEL_ID);
                 }}
               />
             }
@@ -265,7 +263,8 @@ export default function AiSettings() {
               }
               control={
                 <div className="flex items-center gap-2">
-                  <SelectControl value={selectedAiModel} onChange={(v) => setSelectedAiModel(v as any)} disabled={isFetchingModels || models.length === 0} ariaLabel="Model">
+                  <SelectControl value={selectedAiModel} onChange={(v) => setSelectedAiModel(v as any)} ariaLabel="Model">
+                    <option value={AUTO_MODEL_ID}>{AUTO_MODEL_LABEL}</option>
                     {models.map((m) => (
                       <option key={m.id} value={m.id}>{m.name}</option>
                     ))}
