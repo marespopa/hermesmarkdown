@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   expandNameSegment,
   folderTemplateDisplayName,
+  newFolderTemplatePlan,
   planScaffold,
   scaffoldPromptLabels,
   scaffoldUsesClipboard,
@@ -136,5 +137,32 @@ describe("planScaffold", () => {
   it("writes an empty note as a newline", () => {
     const plan = ok(planScaffold(source("A", [file("Empty.md", "")]), ctx()));
     expect(plan.entries[1].content).toBe("\n");
+  });
+});
+
+describe("newFolderTemplatePlan", () => {
+  it("puts the entries in the folder and marks its README", () => {
+    const plan = newFolderTemplatePlan("{{Client}}", [
+      folder("Notes"),
+      file("Notes/Kickoff.md", "Kick"),
+      file("README.md", "---\ntags: work\n---\n# {{title}}"),
+    ]);
+    expect(plan.topName).toBe("{{Client}}");
+    expect(plan.entries.map((e) => e.path)).toEqual(["{{Client}}", "{{Client}}/Notes", "{{Client}}/Notes/Kickoff.md", "{{Client}}/README.md"]);
+    const readme = plan.entries.find((e) => e.isRootReadme);
+    expect(readme?.content).toContain("scaffold: true");
+    expect(readme?.content).toContain("tags: work");
+    expect(readme?.content).toContain("# {{title}}");
+    expect(plan.noteCount).toBe(2);
+  });
+
+  it("makes a frontmatter-only README when there is none, so created folders don't get one", () => {
+    const plan = newFolderTemplatePlan("Launch", [file("Plan.md", "x"), file("Notes/README.md", "nested")]);
+    const readme = plan.entries.find((e) => e.isRootReadme);
+    expect(readme).toMatchObject({ path: "Launch/README.md", content: "---\nscaffold: true\n---\n" });
+    const source = { name: "Launch", entries: plan.entries.slice(1).map((e) => ({
+      path: e.path.slice("Launch/".length), kind: e.kind, text: String(e.content),
+    })) };
+    expect(ok(planScaffold(source, ctx())).entries.map((e) => e.path)).not.toContain("Launch/README.md");
   });
 });

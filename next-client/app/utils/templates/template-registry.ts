@@ -19,6 +19,8 @@ export interface TemplateEntry {
   pack?: string;
   /** A built-in starter (not in the vault): its raw text, read instead of `path`. */
   body?: string;
+  /** A built-in starter's one-line summary, shown in the picker. */
+  description?: string;
 }
 
 export interface TemplatePack {

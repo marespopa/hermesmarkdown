@@ -102,7 +102,7 @@ describe("TemplatesPage", () => {
     expect(screen.getByRole("heading", { name: "Folder templates" })).toBeInTheDocument();
     const card = screen.getByRole("region", { name: "Project folder folder template" });
     expect(within(card).getByText(/Meetings\/Kickoff/)).toBeInTheDocument();
-    fireEvent.click(within(card).getByRole("button", { name: "Add to vault: Project folder" }));
+    fireEvent.click(within(card).getByRole("button", { name: "Copy to vault: Project folder" }));
     expect(packs.addBuiltinPack).toHaveBeenCalledWith(expect.objectContaining({ id: "project-folder" }));
   });
 

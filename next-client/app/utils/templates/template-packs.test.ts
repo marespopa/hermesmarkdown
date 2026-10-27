@@ -4,7 +4,7 @@ import { evaluateTable } from "@/app/editor/utils/formula-engine";
 import { findAllTables } from "@/app/editor/utils/table-detection";
 import { parseTable, type TableData } from "@/app/editor/utils/tableParser";
 import { lintTemplate } from "./template-lint";
-import { BUILTIN_PACKS, packTemplatesInVault } from "./template-packs";
+import { BUILTIN_PACKS, builtinNoteTemplates, packTemplatesInVault, STARTER_TEMPLATES } from "./template-packs";
 import { expandTemplate } from "./template-tokens";
 
 const ctx = { now: new Date(2026, 9, 12, 9, 0), title: "", clipboard: "", prompts: {} };
@@ -98,5 +98,13 @@ describe("packTemplatesInVault", () => {
     const meetings = BUILTIN_PACKS.find((pack) => pack.name === "Meetings")!;
     const paths = ["_templates/meetings/standup.md", "_templates/Meetings/Meeting notes.md", "_templates/One-on-one.md"];
     expect([...packTemplatesInVault(meetings, "_templates", paths)].sort()).toEqual(["Meeting notes", "Standup"]);
+  });
+});
+
+describe("builtinNoteTemplates", () => {
+  it("lists the starters under Built-in, from memory, minus names the vault already has", () => {
+    const listed = builtinNoteTemplates([{ name: "meeting NOTES", path: "_templates/Meeting notes.md" }]);
+    expect(listed.map((t) => t.name)).toEqual(STARTER_TEMPLATES.map((t) => t.name).filter((n) => n !== "Meeting notes"));
+    expect(listed.every((t) => t.pack === "Built-in" && t.body && t.path.startsWith("builtin:"))).toBe(true);
   });
 });

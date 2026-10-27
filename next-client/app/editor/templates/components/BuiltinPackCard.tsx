@@ -14,20 +14,22 @@ interface BuiltinPackCardProps {
   onAdd: (pack: BuiltinPack) => Promise<unknown> | void;
   /** Without a vault there is nowhere to add it. */
   disabled?: boolean;
+  /** The button before anything is in the vault ("Add to vault"). */
+  addLabel?: string;
 }
 
 // A pack the app ships: its name, what it's for, its templates, and Add to
 // vault (Add missing when some files are there already, Added when all are).
 // From the first click until the pack is in, the button is disabled and
 // spins (Adding…), so a second tap can't start another copy.
-export default function BuiltinPackCard({ pack, inVault, onAdd, disabled = false }: BuiltinPackCardProps) {
+export default function BuiltinPackCard({ pack, inVault, onAdd, disabled = false, addLabel = "Add to vault" }: BuiltinPackCardProps) {
   const [adding, setAdding] = useState(false);
   // Blocks a second click before the disabled state has rendered.
   const addingRef = useRef(false);
   const title = pack.displayName ?? pack.name;
   const missing = pack.templates.length - inVault.size;
   const added = missing === 0;
-  const label = adding ? "Adding…" : added ? "Added" : inVault.size > 0 ? `Add ${missing} missing` : "Add to vault";
+  const label = adding ? "Adding…" : added ? "Added" : inVault.size > 0 ? `Add ${missing} missing` : addLabel;
 
   const add = async () => {
     if (addingRef.current) return;

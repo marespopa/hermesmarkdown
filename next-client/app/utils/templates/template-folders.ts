@@ -1,18 +1,20 @@
-// The folder templates the app ships, offered on the Templates page next to
-// the packs (BUILTIN_PACKS). "Add to vault" writes the files under
-// `_templates/<folder name>/`; the README's `scaffold: true` makes it a folder
-// template (folder-template.ts), and the folder's name, a prompt, names the
-// folder it creates. Same shape as a pack (nested file names such as
+// The folder templates the app ships. Used straight from memory by "New from
+// folder template…" (builtinFolderSource), so nothing is written to the vault
+// until the user copies one there (Templates page, or the template wizard) to
+// change it, under `_templates/<folder name>/`. The README's `scaffold: true`
+// makes it a folder template (folder-template.ts), and the folder's name, a
+// prompt, names the folder it creates; the README's `{{title}}` is that name. Same shape as a pack (nested file names such as
 // "Meetings/Kickoff"), so the same card, writer and presence check serve both.
 // Raw bodies: never expanded on write.
 
+import type { ScaffoldSource, ScaffoldSourceEntry } from "./folder-template";
 import type { BuiltinPack } from "./template-packs";
 
 const PROJECT_README = [
   "---",
   "scaffold: true",
   "---",
-  "# {{prompt:Project name}}",
+  "# {{title}}",
   "",
   "## Goal",
   "- ",
@@ -73,3 +75,28 @@ export const BUILTIN_FOLDER_TEMPLATES: BuiltinPack[] = [
     ],
   },
 ];
+
+// A built-in folder template as if read from disk: folders before their
+// contents, siblings by name, every file a `.md` note.
+export function builtinFolderSource(pack: BuiltinPack): ScaffoldSource {
+  const files = pack.templates.map((t) => `${t.name}.md`);
+  const folders = new Set<string>();
+  for (const path of files) {
+    const segments = path.split("/").slice(0, -1);
+    segments.forEach((_, i) => folders.add(segments.slice(0, i + 1).join("/")));
+  }
+  const byPath = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+  const entries: ScaffoldSourceEntry[] = [];
+  const visit = (prefix: string) => {
+    const inHere = (path: string) => path.startsWith(prefix ? `${prefix}/` : "") && !path.slice(prefix ? prefix.length + 1 : 0).includes("/");
+    for (const folder of [...folders].filter(inHere).sort(byPath)) {
+      entries.push({ path: folder, kind: "folder" });
+      visit(folder);
+    }
+    for (const path of files.filter(inHere).sort(byPath)) {
+      entries.push({ path, kind: "file", text: pack.templates.find((t) => `${t.name}.md` === path)!.body });
+    }
+  };
+  visit("");
+  return { name: pack.name, entries };
+}

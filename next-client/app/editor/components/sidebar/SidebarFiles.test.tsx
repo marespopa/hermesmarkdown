@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore, Provider } from "jotai";
-import { atom_fileMetadata } from "@/app/atoms/metadata";
 import SidebarFiles from "./SidebarFiles";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => "/editor" }));
@@ -59,15 +58,8 @@ describe("SidebarFiles filter", () => {
     expect(tree.props!.expandAll).toBe(false);
   });
 
-  it("gives the tree the folder template action only when the vault has a folder template", () => {
+  it("always gives the tree the folder template action: the built-in ones need nothing in the vault", () => {
     setup();
-    expect(tree.props!.newFromFolderTemplate).toBeUndefined();
-    cleanup();
-    const store = createStore();
-    store.set(atom_fileMetadata, {
-      "_templates/Launch/README.md": { path: "_templates/Launch/README.md", name: "README", frontmatter: { scaffold: "true" } } as never,
-    });
-    setup(store);
     expect(tree.props!.newFromFolderTemplate).toBe(fs.newFromFolderTemplate);
   });
 

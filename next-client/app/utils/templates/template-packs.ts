@@ -456,8 +456,10 @@ export const BUILTIN_PACKS: BuiltinPack[] = [
   FINANCE_PACK,
 ];
 
-// The empty-note pills before the vault has templates of its own (or with no
-// vault at all): a few built-ins used straight from memory, nothing written.
+// The built-in note templates used straight from memory, nothing written: the
+// empty-note pills (before the vault has templates of its own, or with no
+// vault at all), the template picker after the vault's own, and the template
+// wizard's examples.
 const STARTERS: [packId: string, name: string][] = [
   ["meetings", "Meeting notes"],
   ["writing", "Outline"],
@@ -468,8 +470,17 @@ const STARTERS: [packId: string, name: string][] = [
 export const STARTER_TEMPLATES: TemplateEntry[] = STARTERS.map(([packId, name]) => {
   const pack = BUILTIN_PACKS.find((p) => p.id === packId)!;
   const template = pack.templates.find((t) => t.name === name)!;
-  return { name, path: `builtin:${packId}/${name}`, pack: pack.name, body: template.body };
+  return { name, path: `builtin:${packId}/${name}`, pack: pack.name, body: template.body, description: template.description };
 });
+
+// The starters for the template picker, listed under "Built-in", without any
+// the vault already has a template of the same name for.
+export function builtinNoteTemplates(vaultTemplates: TemplateEntry[]): TemplateEntry[] {
+  const taken = new Set(vaultTemplates.map((t) => t.name.toLowerCase()));
+  return STARTER_TEMPLATES
+    .filter((t) => !taken.has(t.name.toLowerCase()))
+    .map((t) => ({ ...t, pack: "Built-in" }));
+}
 
 // Which of a pack's templates already exist in `_templates/<pack>/`
 // (by file name, ignoring case), from the vault's indexed paths.

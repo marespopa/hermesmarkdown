@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAtom, useAtomValue } from "jotai";
 import Button from "@/app/components/Button";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
-import { atom_folderTemplates } from "@/app/atoms/template-atoms";
 import { atom_vaultName } from "@/app/atoms/vault-atoms";
 import { atom_selectedFileTags } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -37,7 +36,6 @@ export default function FilesPage() {
     vaultHandle,
     newFromFolderTemplate,
   } = useFileSystem();
-  const folderTemplates = useAtomValue(atom_folderTemplates);
   const vaultName = useAtomValue(atom_vaultName);
   // No Refresh button: the list follows the disk (useVaultSync, mounted by
   // EditorShell on every /editor route).
@@ -159,7 +157,7 @@ export default function FilesPage() {
                 createFolder={createFolder}
                 moveItem={moveItem}
                 moveItems={moveItems}
-                newFromFolderTemplate={folderTemplates.length > 0 ? newFromFolderTemplate : undefined}
+                newFromFolderTemplate={newFromFolderTemplate}
               />
               {isFiltered && hasMoreResults && (
                 <Button variant="bare" onClick={() => setShowAllResults(true)} className="w-full py-2 text-ui-footnote text-fg-muted hover:text-fg">

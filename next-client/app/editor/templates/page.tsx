@@ -132,8 +132,9 @@ export default function TemplatesPage() {
             <div>
               <h2 id="folder-templates" className="text-ui-headline font-semibold">Folder templates</h2>
               <p className="mt-1 text-ui-footnote text-fg-muted">
-                A folder template makes a whole folder of notes at once. Adding one copies it into <code>{folder}/</code>;
-                use it from the command palette with New from folder template. Files you already have are never replaced.
+                A folder template makes a whole folder of notes at once. These are ready to use with New from folder
+                template, without adding anything to your vault. Copy one into <code>{folder}/</code> only to change it;
+                files you already have are never replaced.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -143,6 +144,7 @@ export default function TemplatesPage() {
                   pack={pack}
                   inVault={packTemplatesInVault(pack, folder, paths)}
                   onAdd={addBuiltinPack}
+                  addLabel="Copy to vault"
                   disabled={!vaultHandle}
                 />
               ))}

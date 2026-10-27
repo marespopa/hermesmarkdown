@@ -1,17 +1,14 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { planScaffold } from "./folder-template";
-import { BUILTIN_FOLDER_TEMPLATES } from "./template-folders";
+import { builtinFolderSource, BUILTIN_FOLDER_TEMPLATES } from "./template-folders";
 import { packTemplatesInVault } from "./template-packs";
 
 const project = BUILTIN_FOLDER_TEMPLATES[0];
 
 describe("BUILTIN_FOLDER_TEMPLATES", () => {
   it("makes a scaffold whose folder is named from the Project name prompt", () => {
-    const source = {
-      name: project.name,
-      entries: project.templates.map((t) => ({ path: `${t.name}.md`, kind: "file" as const, text: t.body })),
-    };
+    const source = builtinFolderSource(project);
     const plan = planScaffold(source, { now: new Date(2026, 9, 12), clipboard: "", prompts: { "Project name": "Mobile app" } });
     expect(plan.ok).toBe(true);
     if (plan.ok) {
@@ -21,6 +18,16 @@ describe("BUILTIN_FOLDER_TEMPLATES", () => {
       expect(String(readme?.content)).not.toContain("scaffold");
       expect(plan.entries.some((e) => e.path === "Mobile app/Meetings/Kickoff.md")).toBe(true);
     }
+  });
+
+  it("reads like a folder on disk: folders before their contents, siblings by name", () => {
+    expect(builtinFolderSource(project).entries.map((e) => `${e.kind}:${e.path}`)).toEqual([
+      "folder:Meetings",
+      "file:Meetings/Kickoff.md",
+      "file:Decisions.md",
+      "file:README.md",
+      "file:Tasks.md",
+    ]);
   });
 
   it("marks the README as a scaffold and keeps date tokens raw in Decisions", () => {

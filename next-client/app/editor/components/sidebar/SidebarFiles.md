@@ -23,4 +23,4 @@ Description: The vault's file tree in the sidebar (`VaultFileTree`, tree view, o
 | openHandle | `(handle, path?) => void` | | Opens a row |
 | allFiles / folderPaths |  | | The tree |
 
-The tree also gets `newFromFolderTemplate` (from `useFileSystem`) only while `atom_folderTemplates` is non-empty, which adds "New from Folder Template…" to the folder and empty-space menus (long-press on mobile).
+The tree always gets `newFromFolderTemplate` (from `useFileSystem`; the built-in folder templates need nothing in the vault), which adds "New from Folder Template…" to the folder and empty-space menus (long-press on mobile).

@@ -30,7 +30,15 @@ export const atom_templates = atom<TemplateEntry[]>((get) =>
   ),
 );
 
-// The open template picker or prompts form (ephemeral). Resolving with null
+// What the template wizard answers: the kind, the name, and what to start
+// from: "blank", "example:<id>" (a built-in: a starter's path for a note, a
+// BUILTIN_FOLDER_TEMPLATES id for a folder) or "vault" (a folder in the vault,
+// picked next). `askName`: the folder template asks for its folder's name.
+export type TemplateWizardResult =
+  | { kind: "note"; name: string; from: "blank" | `example:${string}` }
+  | { kind: "folder"; name: string; from: "blank" | "vault" | `example:${string}`; askName: boolean };
+
+// The open template picker, prompts form or template wizard (ephemeral). Resolving with null
 // cancels the whole action.
 export type TemplateDialogRequest =
   | {
@@ -46,6 +54,10 @@ export type TemplateDialogRequest =
       labels: string[];
       confirmLabel: string;
       resolve: (value: Record<string, string> | null) => void;
+    }
+  | {
+      kind: "wizard";
+      resolve: (value: TemplateWizardResult | null) => void;
     };
 
 export const atom_templateDialog = atom<TemplateDialogRequest | null>(null);

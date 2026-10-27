@@ -71,12 +71,26 @@ beforeEach(() => {
 });
 
 describe("useFolderTemplate", () => {
-  it("shows the hint and opens no dialog without folder templates", async () => {
-    const { run, store } = await setup({ withTemplate: false });
-    expect(await run()).toBeNull();
-    expect(mocks.toast.error).toHaveBeenCalledWith(expect.stringContaining("No folder templates yet"));
-    expect(mocks.select).not.toHaveBeenCalled();
-    expect(store.get(atom_pendingTreeEntries).size).toBe(0);
+  it("lists the vault's folder templates, then the built-in ones", async () => {
+    const { run } = await setup();
+    await run();
+    const options = mocks.select.mock.calls[0][1] as { label: string; value: string }[];
+    expect(options).toEqual([
+      { label: "Launch", value: "_templates/Launch" },
+      { label: "Project folder (built-in)", value: "builtin:project-folder" },
+    ]);
+  });
+
+  it("makes a built-in folder template from memory, without reading or copying it into the vault", async () => {
+    mocks.askPrompts.mockResolvedValue({ "Project name": "Mobile app" });
+    const { run } = await setup({ withTemplate: false });
+    expect(await run("Projects")).toBe("Projects/Mobile app");
+    expect(mocks.read).not.toHaveBeenCalled();
+    expect(mocks.askPrompts).toHaveBeenCalledWith(["Project name"], "Create");
+    await vi.waitFor(() => expect(mocks.write).toHaveBeenCalledOnce());
+    const plan = mocks.write.mock.calls[0][1] as { topName: string; entries: { path: string }[] };
+    expect(plan.topName).toBe("Mobile app");
+    expect(plan.entries.map((e) => e.path)).toContain("Mobile app/Meetings/Kickoff.md");
   });
 
   it.each([

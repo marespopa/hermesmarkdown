@@ -8,6 +8,7 @@ import {
   type TemplateContext,
 } from "./template-tokens";
 import { templateContent } from "./template-frontmatter";
+import { FM_REGEX } from "@/app/utils/frontmatter-utils";
 
 // Folder templates (scaffolding), pure: expands a folder template that was
 // read from disk into the list of folders and files to create. No React, no I/O.
@@ -200,4 +201,38 @@ export function planScaffold(source: ScaffoldSource, ctx: Omit<TemplateContext, 
     seen.set(key, path);
   }
   return { ok: true, topName, entries, noteCount };
+}
+
+// `text` with `scaffold: true` in its frontmatter (a block is added when
+// there is none; a `scaffold:` line already there is replaced).
+function withScaffoldFlag(text: string): string {
+  const match = FM_REGEX.exec(text);
+  if (!match) return `---\nscaffold: true\n---\n\n${text.replace(/^\s+/, "")}`;
+  const lines = match[1].split(/\r?\n/).filter((line) => !/^scaffold:/.test(line));
+  return `---\n${[...lines, "scaffold: true"].join("\n")}\n---\n${text.slice(match[0].length)}`;
+}
+
+// A new folder template's files, ready for writeScaffold: `entries` inside a
+// `folderName` folder, the root README.md marked `scaffold: true` (one is
+// made when there is none: frontmatter only, so the folders it creates don't
+// get it).
+export function newFolderTemplatePlan(folderName: string, entries: ScaffoldSourceEntry[]): Extract<ScaffoldPlan, { ok: true }> {
+  const hasReadme = entries.some((e) => e.kind === "file" && isReadme(e.path) && !e.path.includes("/"));
+  const all: ScaffoldSourceEntry[] = hasReadme ? entries : [...entries, { path: "README.md", kind: "file", text: "" }];
+  const planned: ScaffoldPlanEntry[] = [{ path: folderName, kind: "folder" }];
+  let noteCount = 0;
+  for (const entry of all) {
+    const path = `${folderName}/${entry.path}`;
+    if (entry.kind === "folder") {
+      planned.push({ path, kind: "folder" });
+      continue;
+    }
+    const isRoot = !entry.path.includes("/") && isReadme(entry.path);
+    if (isMarkdown(entry.path)) noteCount++;
+    const content = isRoot
+      ? (entry.text?.trim() ? withScaffoldFlag(entry.text) : "---\nscaffold: true\n---\n")
+      : entry.text ?? entry.bytes ?? new ArrayBuffer(0);
+    planned.push({ path, kind: "file", content, ...(isRoot ? { isRootReadme: true } : {}) });
+  }
+  return { ok: true, topName: folderName, entries: planned, noteCount };
 }

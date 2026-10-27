@@ -4,8 +4,9 @@ The dialogs vault templates need, driven by `atom_templateDialog` (`app/atoms/te
 
 | Component | Role |
 |---|---|
-| [TemplateDialogHost](TemplateDialogHost.md) | Mounted once in `MainPage`; renders the open request as a template picker or a prompts form. |
+| [TemplateDialogHost](TemplateDialogHost.md) | Mounted once in `MainPage`; renders the open request as a template picker, a prompts form or the template wizard. |
 | [TemplatePicker](TemplatePicker.md) | Searchable, keyboard-navigable list of templates (icons, summaries, ⌘1…9, preview pane), with optional "Blank note" and "Board" rows and an optional preselected template listed first. |
 | [TemplatePreview](TemplatePreview.md) | Read-only preview of the note a template makes. |
 | [TemplateIcon](TemplateIcon.md) | Monochrome icon picked from a template's name. |
 | [TemplatePromptForm](TemplatePromptForm.md) | "Fill in the template": one input per `{{prompt:Label}}`. |
+| [TemplateWizard](TemplateWizard.md) | "New template": a note or folder template, its name, and what it starts from (blank, a built-in example, a vault folder). |

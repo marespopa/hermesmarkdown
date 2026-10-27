@@ -15,6 +15,7 @@ import {
   scaffoldUsesClipboard,
   type ScaffoldPlan,
 } from "@/app/utils/templates/folder-template";
+import { builtinFolderSource, BUILTIN_FOLDER_TEMPLATES } from "@/app/utils/templates/template-folders";
 import { offsetToLineColumn } from "@/app/utils/templates/template-tokens";
 import { useDialog } from "../use-dialog";
 import { useTemplateDialog } from "../use-template-dialog";
@@ -32,14 +33,14 @@ interface UseFolderTemplateProps {
 type OkPlan = Extract<ScaffoldPlan, { ok: true }>;
 
 const ROOT_VALUE = "__root__";
-const NO_TEMPLATES =
-  "No folder templates yet. Add scaffold: true to the frontmatter of a README.md in a folder inside _templates/.";
+const BUILTIN_VALUE = "builtin:";
 const isHiddenSegment = (path: string) => path.split("/").some((s) => s.startsWith("_") || s.startsWith("."));
 
 let runCounter = 0;
 
 // "New from folder template": copies a folder template (_templates/<F>/ with
-// `scaffold: true` in its README.md) into a new folder in the vault. The tree
+// `scaffold: true` in its README.md, or a built-in one, read from memory and
+// listed after the vault's) into a new folder in the vault. The tree
 // shows the result at once (pending rows + a busy top folder); the writes run
 // in the background and are rolled back as a whole on failure. Never overwrites.
 export function useFolderTemplate({ scanVault, indexVaultTags, openFile }: UseFolderTemplateProps) {
@@ -103,23 +104,19 @@ export function useFolderTemplate({ scanVault, indexVaultTags, openFile }: UseFo
   const newFromFolderTemplate = useCallback(async (destinationArg?: string): Promise<string | null> => {
     const vault = store.get(atom_vaultHandle);
     if (!vault) return null;
-    const templates = store.get(atom_folderTemplates);
-    if (templates.length === 0) {
-      toast.error(NO_TEMPLATES);
-      return null;
-    }
-
     const now = new Date();
-    const named = templates
-      .map((t) => ({ t, label: folderTemplateDisplayName(t.name, now) }))
+    const named = store.get(atom_folderTemplates)
+      .map((t) => ({ label: folderTemplateDisplayName(t.name, now), value: t.folder }))
       .sort((a, b) => a.label.localeCompare(b.label));
-    const picked = await dialog.select(
-      "Choose a folder template:",
-      named.map(({ t, label }) => ({ label, value: t.folder })),
-      "New from Folder Template",
-    );
-    const template = picked ? templates.find((t) => t.folder === picked) : undefined;
-    if (!template) return null;
+    const builtins = BUILTIN_FOLDER_TEMPLATES.map((pack) => ({
+      label: `${pack.displayName ?? folderTemplateDisplayName(pack.name, now)} (built-in)`,
+      value: `${BUILTIN_VALUE}${pack.id}`,
+    }));
+    const picked = await dialog.select("Choose a folder template:", [...named, ...builtins], "New from Folder Template");
+    if (!picked) return null;
+    const builtin = BUILTIN_FOLDER_TEMPLATES.find((pack) => `${BUILTIN_VALUE}${pack.id}` === picked);
+    const template = builtin ? undefined : store.get(atom_folderTemplates).find((t) => t.folder === picked);
+    if (!builtin && !template) return null;
 
     let destinationPath = destinationArg;
     if (destinationPath === undefined) {
@@ -139,10 +136,10 @@ export function useFolderTemplate({ scanVault, indexVaultTags, openFile }: UseFo
 
     let source: Awaited<ReturnType<typeof readScaffoldSource>>;
     try {
-      source = await readScaffoldSource(vault, template);
+      source = builtin ? builtinFolderSource(builtin) : await readScaffoldSource(vault, template!);
     } catch (err) {
       console.error("Failed to read the folder template:", err);
-      toast.error(`Couldn't read the folder template ${template.name}`);
+      toast.error(`Couldn't read the folder template ${template!.name}`);
       return null;
     }
 

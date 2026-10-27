@@ -26,7 +26,17 @@ export async function readScaffoldSource(
   vault: FileSystemDirectoryHandle,
   template: FolderTemplate,
 ): Promise<ScaffoldSource> {
-  const root = await directoryAtPath(vault, template.folder);
+  return readFolderSource(vault, template.folder, template.name);
+}
+
+// Any vault folder read the same way (the template wizard copies one into a
+// new folder template).
+export async function readFolderSource(
+  vault: FileSystemDirectoryHandle,
+  folderPath: string,
+  name: string,
+): Promise<ScaffoldSource> {
+  const root = await directoryAtPath(vault, folderPath);
   const entries: ScaffoldSourceEntry[] = [];
   const visit = async (dir: FileSystemDirectoryHandle, prefix: string): Promise<void> => {
     const children: FileSystemHandle[] = [];
@@ -47,7 +57,7 @@ export async function readScaffoldSource(
     }
   };
   await visit(root, "");
-  return { name: template.name, entries };
+  return { name, entries };
 }
 
 // Creates the plan's top folder (which must be new) and everything in it.
