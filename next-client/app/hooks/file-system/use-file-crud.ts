@@ -120,6 +120,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     instantiate,
     createNoteFromMissingLink,
     createTemplate,
+    newTemplate,
     createLinkedNoteFromTemplate,
     createNoteFromTemplate,
     createLinkedBoard,

@@ -7,9 +7,7 @@ import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import EmptyNoteTemplates from "./EmptyNoteTemplates";
 
-const push = vi.fn();
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
-const fileSystem = vi.hoisted(() => ({ openVault: vi.fn(), isVaultSupported: true, isBrowserVaultSupported: true }));
+const fileSystem = vi.hoisted(() => ({ openVault: vi.fn(), newTemplate: vi.fn(), isVaultSupported: true, isBrowserVaultSupported: true }));
 vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => fileSystem }));
 
 const meta = (path: string) => ({ path, name: path.split("/").pop()! }) as FileMetadata;
@@ -36,18 +34,17 @@ function renderPills(props: Partial<React.ComponentProps<typeof EmptyNoteTemplat
 const pillNames = () => screen.getAllByRole("button").map((b) => b.textContent);
 
 describe("EmptyNoteTemplates", () => {
-  it("offers built-in starters and the template packs when the vault has no templates", () => {
-    push.mockClear();
+  it("offers built-in starters and New template when the vault has no templates", () => {
     renderPills();
-    expect(pillNames()).toEqual(["Meeting notes", "Outline", "Project brief", "Book note", "Browse template packs"]);
-    fireEvent.click(screen.getByText("Browse template packs"));
-    expect(push).toHaveBeenCalledWith("/editor/templates");
+    expect(pillNames()).toEqual(["Meeting notes", "Project brief", "New template"]);
+    fireEvent.click(screen.getByText("New template"));
+    expect(fileSystem.newTemplate).toHaveBeenCalledOnce();
   });
 
   it("fills the note from a built-in starter, carrying its text", () => {
     const { onPick } = renderPills();
-    fireEvent.click(screen.getByText("Outline"));
-    expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ name: "Outline", body: expect.any(String) }));
+    fireEvent.click(screen.getByText("Project brief"));
+    expect(onPick).toHaveBeenCalledWith(expect.objectContaining({ name: "Project brief", body: expect.any(String) }));
   });
 
   it("offers a Board pill that starts a drawing board", () => {
@@ -61,7 +58,7 @@ describe("EmptyNoteTemplates", () => {
   it("leads with Open Vault, then only the built-in starters, without a vault", () => {
     fileSystem.openVault.mockClear();
     renderPills({ onBoard: vi.fn() }, [], false);
-    expect(pillNames()).toEqual(["Open Vault", "Meeting notes", "Outline", "Project brief", "Book note"]);
+    expect(pillNames()).toEqual(["Open Vault", "Meeting notes", "Project brief"]);
     fireEvent.click(screen.getByText("Open Vault"));
     expect(fileSystem.openVault).toHaveBeenCalledOnce();
   });

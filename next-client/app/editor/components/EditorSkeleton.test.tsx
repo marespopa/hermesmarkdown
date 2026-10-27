@@ -34,19 +34,19 @@ describe("EditorSkeleton", () => {
     expect(container.querySelector(".editor-sheet")).not.toBeNull();
   });
 
-  it("outlines the Templates page on a refresh there, with the built-in packs by name", () => {
+  it("outlines the Templates page on a refresh there, with the built-in examples by name", () => {
     pathname.current = "/editor/templates";
     renderSkeleton();
     expect(screen.getByRole("status", { name: "Loading vault" })).toBeInTheDocument();
-    expect(screen.getByText("Template packs")).toBeInTheDocument();
-    expect(screen.getByText("Engineering")).toBeInTheDocument();
+    expect(screen.getByText("Examples")).toBeInTheDocument();
+    expect(screen.getByText("Research folder")).toBeInTheDocument();
   });
 
   it("outlines the Tasks page on a refresh there, with its view tabs", () => {
     pathname.current = "/editor/tasks";
     renderSkeleton();
     expect(screen.getAllByText("Tasks").length).toBeGreaterThan(0);
-    expect(screen.queryByText("Template packs")).not.toBeInTheDocument();
+    expect(screen.queryByText("Research folder")).not.toBeInTheDocument();
   });
 
   it("outlines All Files, Settings and Trash on a refresh there", () => {

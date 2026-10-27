@@ -70,7 +70,7 @@ const SettingsPage = () => {
   };
 
   return (
-    <ShellPage title="Settings">
+    <ShellPage title="Settings" help={{ href: "/documentation#settings", label: "What the settings do" }}>
     <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
       <aside className="flex shrink-0 flex-col border-b border-edge-subtle lg:w-60 lg:border-b-0 lg:border-r">
         <nav aria-label="Settings sections" className="flex gap-0.5 overflow-x-auto px-3 py-3 lg:flex-col lg:overflow-visible">

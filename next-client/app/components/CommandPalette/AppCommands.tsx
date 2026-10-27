@@ -117,7 +117,7 @@ export default function AppCommands() {
     page("replace-in-files", "Replace in Files…", "/editor/replace", "replace find rename substitute all files vault regex bulk"),
     page("open-trash", "Open Trash", "/editor/trash", "trash deleted restore put back recover bin"),
     page("go-tasks", "Open Tasks", "/editor/tasks", "tasks todos checklist", false),
-    page("go-templates", "Open Templates", "/editor/templates", "templates template packs manage", false),
+    page("go-templates", "Open Templates", "/editor/templates", "templates new template wizard examples manage", false),
   ].filter((command): command is Command => !!command);
 
   useRegisterCommand({

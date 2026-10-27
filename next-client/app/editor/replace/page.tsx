@@ -157,7 +157,7 @@ export default function ReplacePage() {
   }
 
   return (
-    <ShellPage title="Replace in Files">
+    <ShellPage title="Replace in Files" help={{ href: "/documentation#command-palette", label: "How to replace across files" }}>
       <LoadingBar isVisible={applying} label="Replacing" />
       <main className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
         <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-8 sm:px-8">{body}</div>

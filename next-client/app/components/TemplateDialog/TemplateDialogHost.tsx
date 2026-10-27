@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAtomValue } from "jotai";
-import { atom_templateDialog, atom_templates, atom_templatesFolder } from "@/app/atoms/template-atoms";
+import { atom_folderTemplates, atom_templateDialog, atom_templates, atom_templatesFolder } from "@/app/atoms/template-atoms";
 import TemplatePicker from "./TemplatePicker";
 import TemplatePromptForm from "./TemplatePromptForm";
 import TemplateWizard from "./TemplateWizard";
@@ -13,7 +13,7 @@ import { atom_vaultFolderPaths } from "@/app/atoms/vault-atoms";
 import { builtinNoteTemplates } from "@/app/utils/templates/template-packs";
 import { BUILTIN_FOLDER_TEMPLATES } from "@/app/utils/templates/template-folders";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
-import type { TemplateEntry } from "@/app/utils/templates/template-registry";
+import { groupTemplatePacks, type TemplateEntry } from "@/app/utils/templates/template-registry";
 import toast from "react-hot-toast";
 import { useStore } from "jotai";
 
@@ -25,9 +25,18 @@ export default function TemplateDialogHost() {
   const request = useAtomValue(atom_templateDialog);
   const vaultTemplates = useAtomValue(atom_templates);
   const templates = useMemo(() => [...vaultTemplates, ...builtinNoteTemplates(vaultTemplates)], [vaultTemplates]);
-  const hasFolders = useAtomValue(atom_vaultFolderPaths).some((path) => !path.split("/").some((s) => s.startsWith("_") || s.startsWith(".")));
+  const folderPaths = useAtomValue(atom_vaultFolderPaths);
+  const folderTemplates = useAtomValue(atom_folderTemplates);
+  const hasFolders = folderPaths.some((path) => !path.split("/").some((s) => s.startsWith("_") || s.startsWith(".")));
   const { createTemplate } = useFileSystem();
   const { folder } = useAtomValue(atom_templatesFolder);
+  // The wizard's Pack choices: your packs, empty ones too, not folder templates.
+  const packNames = useMemo(
+    () => groupTemplatePacks(folder, vaultTemplates, folderPaths, new Set(folderTemplates.map((t) => t.name)))
+      .map((p) => p.name)
+      .filter(Boolean),
+    [folder, vaultTemplates, folderPaths, folderTemplates],
+  );
   // A fresh dialog (empty search / fields) for every request, even back to back.
   const ids = useRef(new WeakMap<object, number>());
   const nextId = useRef(0);
@@ -101,9 +110,11 @@ export default function TemplateDialogHost() {
       <TemplateWizard
         key={key}
         isOpen
+        preset={request.preset}
         noteExamples={builtinNoteTemplates([]).map((t) => ({ id: t.path, name: t.name, description: t.description }))}
         folderExamples={BUILTIN_FOLDER_TEMPLATES.map((pack) => ({ id: pack.id, name: pack.displayName ?? pack.name, description: pack.description }))}
         canCopyFolder={hasFolders}
+        packs={packNames}
         onSubmit={(result) => request.resolve(result)}
         onCancel={() => request.resolve(null)}
       />

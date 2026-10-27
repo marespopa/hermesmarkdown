@@ -50,6 +50,12 @@ export interface FolderTemplate {
   readmePath: string;
 }
 
+// A pack's folder name: one path segment, no leading dots (hidden folders
+// aren't indexed), no characters file systems reject. Empty when nothing is left.
+export function sanitizePackName(name: string): string {
+  return name.replace(/[\\/:*?"<>|]/g, "-").trim().replace(/^\.+/, "").trim();
+}
+
 // `scaffold: true` as frontmatter holds it: a string (or boolean), trimmed, any case.
 export function isScaffoldFlag(value: unknown): boolean {
   return String(value ?? "").trim().toLowerCase() === "true";

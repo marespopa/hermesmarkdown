@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useSetAtom } from "jotai";
-import { atom_templateDialog, type TemplateWizardResult } from "@/app/atoms/template-atoms";
+import { atom_templateDialog, type TemplateWizardPreset, type TemplateWizardResult } from "@/app/atoms/template-atoms";
 import type { TemplateEntry } from "@/app/utils/templates/template-registry";
 
 export interface PickTemplateOptions {
@@ -51,12 +51,14 @@ export function useTemplateDialog() {
     [setRequest],
   );
 
-  // The template wizard (New template…): kind, name and starting point.
+  // The template wizard (New template…): kind, name and starting point,
+  // opened on `preset` when given.
   const openWizard = useCallback(
-    () =>
+    (preset?: TemplateWizardPreset) =>
       new Promise<TemplateWizardResult | null>((resolve) => {
         setRequest({
           kind: "wizard",
+          preset,
           resolve: (value) => {
             setRequest(null);
             resolve(value);

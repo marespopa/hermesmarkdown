@@ -66,6 +66,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [CopyContentButton](CopyContentButton.md) | Copies the active note as Markdown; sits just left of the SearchPill in the editor's top-right corner, in its look. |
 | [SearchPill](SearchPill.md) | The command palette's search field at rest, in the toolbar and every page's title bar: the app's main way in. |
 | [ShellPage](ShellPage.md) | The frame of every /editor page (Tasks, Templates, Trash, All Files, Settings): a title bar and the page, beside the open sidebar. |
+| [PageHelpLink](PageHelpLink.md) | The (?) in a page's title bar: a link to its section of the documentation. |
 | [WorkspaceSidebar](WorkspaceSidebar.md) | The window's sidebar (desktop), the same on every /editor route and only the library: the vault switcher, New note, Pinned and Files; hideable and resizable. |
 | [sidebar/](sidebar/README.md) | `WorkspaceSidebar`'s parts and its navigation hook. |
 

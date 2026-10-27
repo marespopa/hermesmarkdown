@@ -78,6 +78,7 @@ describe("useFolderTemplate", () => {
     expect(options).toEqual([
       { label: "Launch", value: "_templates/Launch" },
       { label: "Project folder (built-in)", value: "builtin:project-folder" },
+      { label: "Research folder (built-in)", value: "builtin:research-folder" },
     ]);
   });
 

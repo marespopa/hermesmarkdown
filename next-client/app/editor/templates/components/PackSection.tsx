@@ -2,7 +2,7 @@
 
 import React from "react";
 import { HiOutlineDuplicate, HiOutlinePencil, HiOutlinePlus, HiOutlineTrash } from "react-icons/hi";
-import Button from "@/app/components/Button";
+import ActionButton from "./ActionButton";
 import TemplateIcon from "@/app/components/TemplateDialog/TemplateIcon";
 import type { TemplateEntry, TemplatePack } from "@/app/utils/templates/template-registry";
 
@@ -13,6 +13,10 @@ interface PackSectionProps {
   onDuplicate: (pack: TemplatePack) => void;
   onDelete: (pack: TemplatePack) => void;
   onDeleteTemplate: (template: TemplateEntry) => void;
+  /** The pack action under way ("new", "duplicate", "delete"): its buttons wait. */
+  pending?: string;
+  /** The action under way on one template ("edit", "delete"), if any. */
+  templatePending?: (template: TemplateEntry) => string | undefined;
 }
 
 // The group of templates directly in templates/, outside any pack folder.
@@ -21,8 +25,19 @@ export const NO_PACK_TITLE = "Not in a pack";
 // One of your packs (or the templates in no pack, `pack.name` ""): its name
 // and count, New template / Duplicate / Delete (no Delete for the templates
 // in no pack, which aren't a folder of their own), then a row per template
-// with Edit (open the template file) and Delete (just that file).
-export default function PackSection({ pack, onEdit, onNewTemplate, onDuplicate, onDelete, onDeleteTemplate }: PackSectionProps) {
+// with Edit (open the template file) and Delete (just that file). While an
+// action runs, the pack's (or the template's) buttons are disabled and the
+// clicked one spins, so it can't run twice.
+export default function PackSection({
+  pack,
+  onEdit,
+  onNewTemplate,
+  onDuplicate,
+  onDelete,
+  onDeleteTemplate,
+  pending,
+  templatePending = () => undefined,
+}: PackSectionProps) {
   const title = pack.name || NO_PACK_TITLE;
   const count = pack.templates.length;
   return (
@@ -33,16 +48,31 @@ export default function PackSection({ pack, onEdit, onNewTemplate, onDuplicate, 
           <span className="ml-2 font-normal text-fg-faint">{count === 1 ? "1 template" : `${count} templates`}</span>
         </h3>
         <div className="-mr-1.5 flex items-center">
-          <Button variant="small" onClick={() => onNewTemplate(pack)} aria-label={`New template in ${title}`}>
-            <HiOutlinePlus size={14} aria-hidden /> New
-          </Button>
-          <Button variant="small" onClick={() => onDuplicate(pack)} isDisabled={count === 0} aria-label={`Duplicate ${title}`}>
-            <HiOutlineDuplicate size={14} aria-hidden /> Duplicate
-          </Button>
+          <ActionButton
+            onClick={() => onNewTemplate(pack)}
+            pending={pending === "new"}
+            isDisabled={!!pending}
+            aria-label={`New template in ${title}`}
+            icon={<HiOutlinePlus size={14} aria-hidden />}
+            label="New"
+          />
+          <ActionButton
+            onClick={() => onDuplicate(pack)}
+            pending={pending === "duplicate"}
+            isDisabled={count === 0 || !!pending}
+            aria-label={`Duplicate ${title}`}
+            icon={<HiOutlineDuplicate size={14} aria-hidden />}
+            label="Duplicate"
+          />
           {pack.name && (
-            <Button variant="small" onClick={() => onDelete(pack)} aria-label={`Delete ${title}`}>
-              <HiOutlineTrash size={14} aria-hidden /> Delete
-            </Button>
+            <ActionButton
+              onClick={() => onDelete(pack)}
+              pending={pending === "delete"}
+              isDisabled={!!pending}
+              aria-label={`Delete ${title}`}
+              icon={<HiOutlineTrash size={14} aria-hidden />}
+              label="Delete"
+            />
           )}
         </div>
       </header>
@@ -50,21 +80,34 @@ export default function PackSection({ pack, onEdit, onNewTemplate, onDuplicate, 
         <p className="px-4 py-3 text-ui-footnote text-fg-faint">No templates in this pack yet.</p>
       ) : (
         <ul className="divide-y divide-edge-subtle">
-          {pack.templates.map((template) => (
+          {pack.templates.map((template) => {
+            const busy = templatePending(template) ?? (pending === "delete" ? "pack" : undefined);
+            return (
             <li key={template.path} className="flex items-center gap-3 px-4 py-2">
               <TemplateIcon name={template.name} className="text-fg-muted" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-ui-subhead text-fg">{template.name}</span>
                 <span className="block truncate text-ui-caption text-fg-faint">{template.path}</span>
               </span>
-              <Button variant="small" onClick={() => onEdit(template)} aria-label={`Edit ${template.name}`}>
-                <HiOutlinePencil size={14} aria-hidden /> Edit
-              </Button>
-              <Button variant="small" onClick={() => onDeleteTemplate(template)} aria-label={`Delete template ${template.name}`}>
-                <HiOutlineTrash size={14} aria-hidden /> Delete
-              </Button>
+              <ActionButton
+                onClick={() => onEdit(template)}
+                pending={busy === "edit"}
+                isDisabled={!!busy}
+                aria-label={`Edit ${template.name}`}
+                icon={<HiOutlinePencil size={14} aria-hidden />}
+                label="Edit"
+              />
+              <ActionButton
+                onClick={() => onDeleteTemplate(template)}
+                pending={busy === "delete"}
+                isDisabled={!!busy}
+                aria-label={`Delete template ${template.name}`}
+                icon={<HiOutlineTrash size={14} aria-hidden />}
+                label="Delete"
+              />
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </section>

@@ -7,13 +7,19 @@ import TemplateWizard from "./TemplateWizard";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
-function renderWizard({ canCopyFolder = true } = {}) {
+function renderWizard({
+  canCopyFolder = true,
+  preset,
+  packs = ["Work"],
+}: { canCopyFolder?: boolean; preset?: React.ComponentProps<typeof TemplateWizard>["preset"]; packs?: string[] } = {}) {
   const onSubmit = vi.fn();
   const onCancel = vi.fn();
   render(
     <Provider>
       <TemplateWizard
         isOpen
+        preset={preset}
+        packs={packs}
         noteExamples={[{ id: "builtin:meetings/Meeting notes", name: "Meeting notes", description: "Agenda, decisions, action items" }]}
         folderExamples={[{ id: "project-folder", name: "Project folder" }]}
         canCopyFolder={canCopyFolder}
@@ -28,6 +34,40 @@ function renderWizard({ canCopyFolder = true } = {}) {
 const name = () => screen.getByLabelText("Name") as HTMLInputElement;
 
 describe("TemplateWizard", () => {
+  it("puts a note template in one of your packs, or a new one named here", () => {
+    const { onSubmit } = renderWizard();
+    fireEvent.change(name(), { target: { value: "Standup" } });
+    fireEvent.change(screen.getByLabelText("Pack"), { target: { value: "Work" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create template" }));
+    expect(onSubmit).toHaveBeenLastCalledWith({ kind: "note", name: "Standup", from: "blank", pack: "Work" });
+
+    fireEvent.change(screen.getByLabelText("Pack"), { target: { value: "\u0000new" } });
+    const create = screen.getByRole("button", { name: "Create template" });
+    expect(create).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("New pack name"), { target: { value: " Rituals " } });
+    fireEvent.click(create);
+    expect(onSubmit).toHaveBeenLastCalledWith({ kind: "note", name: "Standup", from: "blank", pack: "Rituals" });
+  });
+
+  it("opens on a pack (a pack's New), with no pack field for a folder template", () => {
+    const { onSubmit } = renderWizard({ preset: { kind: "note", pack: "Work" } });
+    expect((screen.getByLabelText("Pack") as HTMLSelectElement).value).toBe("Work");
+    fireEvent.click(screen.getByRole("button", { name: "Folder" }));
+    expect(screen.queryByLabelText("Pack")).not.toBeInTheDocument();
+    fireEvent.change(name(), { target: { value: "Launch" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create template" }));
+    expect(onSubmit).toHaveBeenCalledWith({ kind: "folder", name: "Launch", from: "blank", askName: true });
+  });
+
+  it("opens on a preset example, kind and name filled in", () => {
+    const { onSubmit } = renderWizard({ preset: { kind: "folder", from: "example:project-folder" } });
+    expect(screen.getByRole("button", { name: "Folder" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("radio", { name: /Project folder/ })).toHaveAttribute("aria-checked", "true");
+    expect(name().value).toBe("Project folder");
+    fireEvent.click(screen.getByRole("button", { name: "Create template" }));
+    expect(onSubmit).toHaveBeenCalledWith({ kind: "folder", name: "Project folder", from: "example:project-folder", askName: true });
+  });
+
   it("creates a blank note template once a name is in", () => {
     const { onSubmit } = renderWizard();
     const create = screen.getByRole("button", { name: "Create template" });

@@ -97,6 +97,28 @@ export const editorWorkspaceItems: Subsection[] = [
   },
 
   {
+    id: "tags-page",
+    title: "Tags page",
+    lead: "Every tag in your vault, how many notes carry it, and those notes, newest first.",
+    keywords: "tags tag page hashtag #tag count notes pin tag sidebar frontmatter tags privacy",
+    body: (
+      <>
+        <p>
+          Open <strong>Tags</strong> from the sidebar, or run <strong>Open Tags</strong> from the command
+          palette. A tag is an inline <code>#tag</code> in a note, or one listed under <code>tags:</code>{" "}
+          in its frontmatter. The page lists every tag with how many notes carry it; pick one to see those
+          notes, the most recently changed first, and click a note to open it.
+        </p>
+        <p>
+          The tag you pick is in the address (<code>/editor/tags?tag=release</code>), so a refresh or a
+          link lands on it. <strong>Pin</strong> beside its name keeps it in the sidebar. With Privacy Mode
+          on, private notes are left out of the counts as well as the list.
+        </p>
+      </>
+    ),
+  },
+
+  {
     id: "frontmatter",
     title: "Frontmatter",
     lead: "The YAML block at the top of a file — edited as plain text, with a shortcut to add one.",
@@ -287,7 +309,7 @@ tags: []
             { label: "Export as HTML", value: "Download the note as a standalone web page" },
             { label: "Show Files", value: "CTRL/CMD+SHIFT+E" },
             { label: "Open Tasks", value: "—" },
-            { label: "Open Templates", value: "Your templates and template packs" },
+            { label: "Open Templates", value: "Your templates, New template and examples" },
             { label: "Open files", value: "Next/previous, close current/other/all" },
             { label: "Tasks", value: "Grouping, due-date filters, and clear filters" },
             { label: "Toggle Hidden Files / Toggle Sidebar", value: "—" },

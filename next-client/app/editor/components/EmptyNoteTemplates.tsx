@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { useRouter } from "next/navigation";
 import { HiOutlineDatabase, HiOutlineTemplate, HiOutlineViewBoards } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import TemplateIcon from "@/app/components/TemplateDialog/TemplateIcon";
@@ -33,15 +32,14 @@ const PILL_CLASS = "pointer-events-auto min-h-11 sm:min-h-9 bg-fill hover:bg-fil
 // open, an "Open Vault" pill leads (a folder on disk, or a browser vault
 // where there's no disk access). Then one click fills
 // the note from one of the vault's templates. With none yet (or no vault at
-// all), a few built-in starters fill it instead, plus a "Browse template
-// packs" pill to the Templates page when there's a vault to add them to; a
+// all), the built-in starters fill it instead, plus a "New template" pill
+// (the template wizard) when there's a vault to make one in; a
 // Board pill (vault only: it creates a file) starts a drawing board instead
 // of text. They fade out as soon as the note has text.
 export default function EmptyNoteTemplates({ isEmpty, onPick, onMore, onBoard }: EmptyNoteTemplatesProps) {
   const templates = useAtomValue(atom_templates);
   const hasVault = !!useAtomValue(atom_vaultHandle);
-  const router = useRouter();
-  const { openVault, isVaultSupported, isBrowserVaultSupported } = useFileSystem();
+  const { openVault, isVaultSupported, isBrowserVaultSupported, newTemplate } = useFileSystem();
   const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
   const canOpenVault = !hasVault && (isVaultSupported || isBrowserVaultSupported);
   // Stays mounted for the fade-out, then unmounts.
@@ -84,9 +82,9 @@ export default function EmptyNoteTemplates({ isEmpty, onPick, onMore, onBoard }:
         </Button>
       ))}
       {templates.length === 0 && hasVault && (
-        <Button variant="small" onClick={() => router.push("/editor/templates")} className={PILL_CLASS}>
+        <Button variant="small" onClick={() => void newTemplate()} className={PILL_CLASS}>
           <HiOutlineTemplate size={14} aria-hidden />
-          Browse template packs
+          New template
         </Button>
       )}
       {onBoard && hasVault && (

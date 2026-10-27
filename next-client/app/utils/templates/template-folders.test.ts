@@ -2,9 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { planScaffold } from "./folder-template";
 import { builtinFolderSource, BUILTIN_FOLDER_TEMPLATES } from "./template-folders";
-import { packTemplatesInVault } from "./template-packs";
 
-const project = BUILTIN_FOLDER_TEMPLATES[0];
+const project = BUILTIN_FOLDER_TEMPLATES.find((p) => p.id === "project-folder")!;
 
 describe("BUILTIN_FOLDER_TEMPLATES", () => {
   it("makes a scaffold whose folder is named from the Project name prompt", () => {
@@ -35,9 +34,14 @@ describe("BUILTIN_FOLDER_TEMPLATES", () => {
     expect(project.templates.find((t) => t.name === "Decisions")!.body).toContain("{{date}}");
   });
 
-  it("counts the files already in the vault, nested ones included", () => {
-    const dir = "_templates/{{Project name}}";
-    expect([...packTemplatesInVault(project, "_templates", [`${dir}/Tasks.md`, `${dir}/Meetings/Kickoff.md`])].sort())
-      .toEqual(["Meetings/Kickoff", "Tasks"]);
+  it("makes a Research folder named from its prompt, with a sources table", () => {
+    const research = BUILTIN_FOLDER_TEMPLATES.find((p) => p.id === "research-folder")!;
+    const plan = planScaffold(builtinFolderSource(research), { now: new Date(2026, 9, 12), clipboard: "", prompts: { "Research topic": "Pricing" } });
+    expect(plan.ok).toBe(true);
+    if (plan.ok) {
+      expect(plan.topName).toBe("Pricing");
+      expect(plan.entries.map((e) => e.path)).toEqual(expect.arrayContaining(["Pricing/README.md", "Pricing/Sources.md", "Pricing/Open questions.md"]));
+      expect(String(plan.entries.find((e) => e.path === "Pricing/Sources.md")?.content)).toContain("| Source | Takeaway |");
+    }
   });
 });

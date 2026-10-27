@@ -93,7 +93,7 @@ export default function FilesPage() {
   if (!isMounted) return null;
 
   return (
-    <ShellPage title="All Files">
+    <ShellPage title="All Files" help={{ href: "/documentation#organizing-files", label: "How to organize your files" }}>
       <main className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-4 py-5 sm:px-8">
         <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
           <div className="min-w-0">

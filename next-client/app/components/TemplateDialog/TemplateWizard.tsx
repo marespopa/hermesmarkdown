@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import { HiCheck } from "react-icons/hi";
-import type { TemplateWizardResult } from "@/app/atoms/template-atoms";
+import type { TemplateWizardPreset, TemplateWizardResult } from "@/app/atoms/template-atoms";
 import Button, { SEGMENT_TRACK_CLASS } from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal";
-import Input from "@/app/components/Input";
+import Input, { Select } from "@/app/components/Input";
 import Toggle from "@/app/components/Toggle";
 
 type Kind = TemplateWizardResult["kind"];
@@ -20,15 +20,22 @@ export interface TemplateWizardExample {
 
 interface TemplateWizardProps {
   isOpen: boolean;
+  /** Opens on this kind and example (its name filled in). */
+  preset?: TemplateWizardPreset;
   /** Built-in note templates to start from. */
   noteExamples: TemplateWizardExample[];
   /** Built-in folder templates to start from. */
   folderExamples: TemplateWizardExample[];
   /** Offer "A folder in your vault" (it has folders to copy). */
   canCopyFolder: boolean;
+  /** Your packs (folders of note templates in `_templates/`), to put a note template in. */
+  packs?: string[];
   onSubmit: (result: TemplateWizardResult) => void;
   onCancel: () => void;
 }
+
+// The Pack select's "New pack…".
+const NEW_PACK = "\u0000new";
 
 const KINDS: { value: Kind; label: string; hint: string }[] = [
   { value: "note", label: "Note", hint: "Starts one note. Use it with /template or New note from a link." },
@@ -37,22 +44,33 @@ const KINDS: { value: Kind; label: string; hint: string }[] = [
 
 // "New template": what kind (a note or a folder template), its name, and what
 // it starts from: blank, a built-in example, or (folders) a folder already in
-// the vault. Picking an example fills an untouched name. A folder template can
+// the vault. Picking an example fills an untouched name; `preset` opens on
+// one, or on a pack. A note template can go in a pack: none, one of yours,
+// or a new one named here (Folder templates sit directly in the templates
+// folder, so they have none). A folder template can
 // ask for its new folder's name each time it's used (on by default). Enter
 // creates once a name is in; Esc or Cancel cancels.
 export default function TemplateWizard({
   isOpen,
+  preset,
+  packs = [],
   noteExamples,
   folderExamples,
   canCopyFolder,
   onSubmit,
   onCancel,
 }: TemplateWizardProps) {
-  const [kind, setKind] = useState<Kind>("note");
-  const [name, setName] = useState("");
+  const presetName = preset
+    ? (preset.kind === "note" ? noteExamples : folderExamples).find((e) => `example:${e.id}` === preset.from)?.name
+    : undefined;
+  const [kind, setKind] = useState<Kind>(preset?.kind ?? "note");
+  const [name, setName] = useState(presetName ?? "");
   // The name as the last example filled it in; a typed name is never replaced.
-  const [filledName, setFilledName] = useState("");
-  const [from, setFrom] = useState<From>("blank");
+  const [filledName, setFilledName] = useState(presetName ?? "");
+  const [from, setFrom] = useState<From>(presetName && preset?.from ? preset.from : "blank");
+  // "" no pack, NEW_PACK a new one (named in newPack), else one of yours.
+  const [pack, setPack] = useState(preset?.pack ?? "");
+  const [newPack, setNewPack] = useState("");
   const [askName, setAskName] = useState(true);
 
   const examples = kind === "note" ? noteExamples : folderExamples;
@@ -88,12 +106,20 @@ export default function TemplateWizard({
   };
 
   const trimmed = name.trim();
+  const packName = pack === NEW_PACK ? newPack.trim() : pack;
+  const canSubmit = !!trimmed && !(kind === "note" && pack === NEW_PACK && !packName);
   const submit = () => {
-    if (!trimmed) return;
+    if (!canSubmit) return;
     onSubmit(kind === "note"
-      ? { kind, name: trimmed, from: from === "vault" ? "blank" : from }
+      ? { kind, name: trimmed, from: from === "vault" ? "blank" : from, ...(packName ? { pack: packName } : {}) }
       : { kind, name: trimmed, from, askName });
   };
+  const packOptions = [
+    { value: "", label: "No pack" },
+    // A preset pack not listed yet (an empty one just made) still shows.
+    ...[...new Set([...packs, ...(preset?.pack ? [preset.pack] : [])])].map((p) => ({ value: p, label: p })),
+    { value: NEW_PACK, label: "New pack…" },
+  ];
 
   return (
     <DialogModal
@@ -153,6 +179,28 @@ export default function TemplateWizard({
           ))}
         </div>
 
+        {kind === "note" && (
+          <div className="space-y-2">
+            <Select
+              name="template-wizard-pack"
+              label="Pack"
+              value={pack}
+              options={packOptions}
+              handleChange={(e) => setPack(e.target.value)}
+              compact
+              fullWidth
+            />
+            {pack === NEW_PACK && (
+              <Input
+                name="template-wizard-new-pack"
+                label="New pack name"
+                value={newPack}
+                handleChange={(e) => setNewPack(e.target.value)}
+              />
+            )}
+          </div>
+        )}
+
         {kind === "folder" && (
           <div className="flex items-center gap-3">
             <span className="min-w-0 flex-1">
@@ -166,7 +214,7 @@ export default function TemplateWizard({
         )}
 
         <div className="flex flex-col gap-2 pt-1">
-          <Button variant="primary" onClick={submit} isDisabled={!trimmed} className="w-full">
+          <Button variant="primary" onClick={submit} isDisabled={!canSubmit} className="w-full">
             Create template
           </Button>
           <Button variant="secondary" onClick={onCancel} className="w-full">

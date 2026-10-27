@@ -34,9 +34,14 @@ export const atom_templates = atom<TemplateEntry[]>((get) =>
 // from: "blank", "example:<id>" (a built-in: a starter's path for a note, a
 // BUILTIN_FOLDER_TEMPLATES id for a folder) or "vault" (a folder in the vault,
 // picked next). `askName`: the folder template asks for its folder's name.
+// `pack`: the note template goes in `_templates/<pack>/` (made if new).
 export type TemplateWizardResult =
-  | { kind: "note"; name: string; from: "blank" | `example:${string}` }
+  | { kind: "note"; name: string; from: "blank" | `example:${string}`; pack?: string }
   | { kind: "folder"; name: string; from: "blank" | "vault" | `example:${string}`; askName: boolean };
+
+// What the template wizard opens on: a kind, and a built-in example to start
+// from (the Templates page's examples) or a pack to put it in (a pack's New).
+export type TemplateWizardPreset = { kind: TemplateWizardResult["kind"]; from?: `example:${string}`; pack?: string };
 
 // The open template picker, prompts form or template wizard (ephemeral). Resolving with null
 // cancels the whole action.
@@ -57,6 +62,7 @@ export type TemplateDialogRequest =
     }
   | {
       kind: "wizard";
+      preset?: TemplateWizardPreset;
       resolve: (value: TemplateWizardResult | null) => void;
     };
 

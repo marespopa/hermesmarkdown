@@ -3,7 +3,7 @@
 import React from "react";
 import { HiOutlineArrowLeft } from "react-icons/hi";
 import { TASK_VIEWS } from "@/app/editor/tasks/task-views";
-import { BUILTIN_PACKS } from "@/app/utils/templates/template-packs";
+import TemplateExamples from "../templates/components/TemplateExamples";
 import { SEARCH_PILL_WIDTH } from "./SearchPill";
 
 // One placeholder shape. Static black / white so the opacity modifier works
@@ -53,20 +53,19 @@ function SearchField() {
 }
 
 // Templates page: title and actions, two of your packs, then the built-in
-// packs (static data, so their real names, descriptions and templates).
+// examples (static data, so the real list, its buttons disabled).
 export function TemplatesSkeleton() {
   return (
     <div className="flex h-full w-full flex-col">
       <TitleHeader title="Templates" />
       <div className="mx-auto w-full max-w-3xl space-y-10 overflow-hidden px-4 py-8 sm:px-8">
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="min-w-0 flex-1">
+        <div className="space-y-4">
+          <div>
             <h1 className="text-ui-title-2 font-semibold tracking-tight">Templates</h1>
             <Text textClass="mt-1 text-ui-footnote" barClass="h-2.5 w-4/5" />
           </div>
-          <div className="flex items-center gap-1">
-            <div className={`h-8 w-28 rounded-lg ${SKELETON_BAR}`} />
-            <div className={`h-8 w-24 rounded-lg ${SKELETON_BAR}`} />
+          <div className="flex items-center gap-2">
+            <div className={`h-11 w-36 rounded-xl ${SKELETON_BAR}`} />
           </div>
         </div>
 
@@ -98,33 +97,10 @@ export function TemplatesSkeleton() {
 
         <section className="space-y-3">
           <div>
-            <h2 className="text-ui-headline font-semibold">Template packs</h2>
+            <h2 className="text-ui-headline font-semibold">Examples</h2>
             <Text textClass="mt-1 text-ui-footnote" barClass="h-2.5 w-3/4" />
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {BUILTIN_PACKS.map((pack) => (
-              <div key={pack.id} className="flex flex-col rounded-xl border border-edge-subtle bg-surface p-4">
-                <div className="flex items-start gap-3">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-ui-subhead font-semibold text-fg">{pack.name}</h3>
-                    <p className="mt-0.5 text-ui-footnote text-fg-muted">{pack.description}</p>
-                  </div>
-                  <div className={`h-8 w-28 shrink-0 rounded-lg ${SKELETON_BAR}`} />
-                </div>
-                <ul className="mt-3 space-y-1.5">
-                  {pack.templates.map((template) => (
-                    <li key={template.name} className="flex items-start gap-2.5 text-ui-footnote">
-                      <span className={`mt-0.5 h-3.5 w-3.5 shrink-0 rounded ${SKELETON_BAR}`} />
-                      <span className="min-w-0">
-                        <span className="text-fg">{template.name}</span>
-                        <span className="text-fg-faint"> · {template.description}</span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+          <TemplateExamples onStart={() => {}} disabled />
         </section>
       </div>
     </div>

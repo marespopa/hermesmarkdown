@@ -56,6 +56,13 @@ describe("useTemplateWizard", () => {
     expect(props.createTemplate).toHaveBeenLastCalledWith(undefined, { name: "Sync", body: expect.stringContaining("Action items") });
   });
 
+  it("puts a note template in the pack chosen, its name made safe", async () => {
+    const { run, props } = await setup();
+    mocks.openWizard.mockResolvedValueOnce({ kind: "note", name: "Standup", from: "blank", pack: " Work/Daily " });
+    await run();
+    expect(props.createTemplate).toHaveBeenLastCalledWith("Work-Daily", { name: "Standup", body: NEW_TEMPLATE_BODY });
+  });
+
   it("makes a blank folder template that asks for its folder's name, and opens its README", async () => {
     mocks.openWizard.mockResolvedValue({ kind: "folder", name: "Client", from: "blank", askName: true });
     const { run, vault, props } = await setup();

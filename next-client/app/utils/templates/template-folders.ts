@@ -1,11 +1,11 @@
-// The folder templates the app ships. Used straight from memory by "New from
-// folder template…" (builtinFolderSource), so nothing is written to the vault
-// until the user copies one there (Templates page, or the template wizard) to
-// change it, under `_templates/<folder name>/`. The README's `scaffold: true`
+// The folder templates the app ships: two examples. Used straight from memory
+// by "New from folder template…" (builtinFolderSource), so nothing is written
+// to the vault until the user starts a template of their own from one (the
+// template wizard), under `_templates/<name>/`. The README's `scaffold: true`
 // makes it a folder template (folder-template.ts), and the folder's name, a
-// prompt, names the folder it creates; the README's `{{title}}` is that name. Same shape as a pack (nested file names such as
-// "Meetings/Kickoff"), so the same card, writer and presence check serve both.
-// Raw bodies: never expanded on write.
+// prompt, names the folder it creates; the README's `{{title}}` is that name.
+// Nested file names ("Meetings/Kickoff") make subfolders. Raw bodies: never
+// expanded on write.
 
 import type { ScaffoldSource, ScaffoldSourceEntry } from "./folder-template";
 import type { BuiltinPack } from "./template-packs";
@@ -61,6 +61,40 @@ const PROJECT_KICKOFF = [
   "",
 ].join("\n");
 
+const RESEARCH_README = [
+  "---",
+  "scaffold: true",
+  "---",
+  "# {{title}}",
+  "",
+  "## Question",
+  "- ",
+  "",
+  "## Findings",
+  "- ",
+  "",
+  "## Next steps",
+  "- [ ] ",
+  "",
+].join("\n");
+
+const RESEARCH_SOURCES = [
+  "# Sources",
+  "",
+  "| Source | Takeaway |",
+  "| --- | --- |",
+  "| Name or link | - |",
+  "",
+].join("\n");
+
+const RESEARCH_QUESTIONS = [
+  "# Open questions",
+  "",
+  "- [ ] What do we already know?",
+  "- [ ] What would change the decision?",
+  "",
+].join("\n");
+
 export const BUILTIN_FOLDER_TEMPLATES: BuiltinPack[] = [
   {
     id: "project-folder",
@@ -72,6 +106,17 @@ export const BUILTIN_FOLDER_TEMPLATES: BuiltinPack[] = [
       { name: "Tasks", description: "A few tasks to tick off", body: PROJECT_TASKS },
       { name: "Decisions", description: "A dated decision log", body: PROJECT_DECISIONS },
       { name: "Meetings/Kickoff", description: "Agenda, decisions and action items", body: PROJECT_KICKOFF },
+    ],
+  },
+  {
+    id: "research-folder",
+    name: "{{Research topic}}",
+    displayName: "Research folder",
+    description: "A topic to look into: asks for its name, then makes the notes below inside a folder of that name.",
+    templates: [
+      { name: "README", description: "Question, Findings and Next steps (marks the folder as a template)", body: RESEARCH_README },
+      { name: "Sources", description: "A table of sources and what each one says", body: RESEARCH_SOURCES },
+      { name: "Open questions", description: "Questions to answer, as tasks", body: RESEARCH_QUESTIONS },
     ],
   },
 ];

@@ -3,11 +3,12 @@
 import { useCallback } from "react";
 import { useStore } from "jotai";
 import toast from "react-hot-toast";
-import { atom_templatesFolder, type TemplateWizardResult } from "@/app/atoms/template-atoms";
+import { atom_templatesFolder, type TemplateWizardPreset, type TemplateWizardResult } from "@/app/atoms/template-atoms";
 import { atom_vaultFolderPaths, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { newFolderTemplatePlan, type ScaffoldSourceEntry } from "@/app/utils/templates/folder-template";
 import { builtinFolderSource, BUILTIN_FOLDER_TEMPLATES } from "@/app/utils/templates/template-folders";
 import { STARTER_TEMPLATES } from "@/app/utils/templates/template-packs";
+import { sanitizePackName } from "@/app/utils/templates/template-registry";
 import { useDialog } from "../use-dialog";
 import { useTemplateDialog } from "../use-template-dialog";
 import { entryExists } from "./directory-ops";
@@ -46,9 +47,10 @@ async function withSlowNotice<T>(message: string, work: () => Promise<T>): Promi
   }
 }
 
-// "New template…": the template wizard (TemplateWizard), then the template.
-// A note template is `_templates/<name>.md` (blank, or a built-in example's
-// text). A folder template is `_templates/<name>/` (or `{{<name>}}/` when it
+// "New template…": the template wizard (TemplateWizard, opened on `preset`
+// when given), then the template.
+// A note template is `_templates/<name>.md`, or `_templates/<pack>/<name>.md`
+// (the pack made if new), blank or a built-in example's text. A folder template is `_templates/<name>/` (or `{{<name>}}/` when it
 // asks for its folder's name) with `scaffold: true` on its README: blank, a
 // built-in example, or a copy of a vault folder. Never overwrites; opens what
 // it made.
@@ -126,14 +128,14 @@ export function useTemplateWizard({ scanVault, indexVaultTags, openFile, createT
     });
   }, [store, folderEntries, scanVault, indexVaultTags, openFile]);
 
-  const newTemplate = useCallback(async (): Promise<boolean> => {
+  const newTemplate = useCallback(async (preset?: TemplateWizardPreset): Promise<boolean> => {
     const vault = store.get(atom_vaultHandle);
     if (!vault) return false;
-    const result = await openWizard();
+    const result = await openWizard(preset);
     if (!result) return false;
     if (result.kind === "folder") return createFolderTemplate(vault, result);
     const example = STARTER_TEMPLATES.find((t) => `example:${t.path}` === result.from);
-    return createTemplate(undefined, { name: result.name, body: example?.body ?? NEW_TEMPLATE_BODY });
+    return createTemplate(sanitizePackName(result.pack ?? "") || undefined, { name: result.name, body: example?.body ?? NEW_TEMPLATE_BODY });
   }, [store, openWizard, createFolderTemplate, createTemplate]);
 
   return { newTemplate };
