@@ -1,5 +1,6 @@
 import { convertToModelMessages, streamText, type UIMessage } from 'ai';
 import { createAIModel } from '../providers';
+import { BaseUrlError, validateBaseUrl } from '../base-url';
 import { errorMessage, errorStatus, sanitizeMessage } from '../errors';
 import { COMPANION_TOOLS, foldSystem, webSearchTool, withPromptCache } from './companion-tools';
 import { withKeepAlive } from './keep-alive';
@@ -16,27 +17,38 @@ import { withKeepAlive } from './keep-alive';
 // prompt and thread for its prompt cache (withPromptCache).
 export async function POST(req: Request) {
   try {
-    const { provider, apiKey, modelKey, system = '', messages, webSearch = false } = await req.json() as {
+    const { provider, apiKey = '', baseUrl: rawBaseUrl, modelKey, system = '', messages, webSearch = false } = await req.json() as {
       provider?: string;
       apiKey?: string;
+      baseUrl?: string;
       modelKey?: string;
       system?: string;
       messages?: UIMessage[];
       webSearch?: boolean;
     };
-    if (!apiKey) return new Response('API key is required', { status: 400 });
+    if (!apiKey && provider !== 'ollama') return new Response('API key is required', { status: 400 });
     if (!Array.isArray(messages) || !messages.length) return new Response('No messages to answer', { status: 400 });
 
-    const model = createAIModel(provider ?? 'claude', apiKey, modelKey ?? '');
+    let baseUrl: string | undefined;
+    if (provider === 'ollama') {
+      try {
+        baseUrl = await validateBaseUrl(rawBaseUrl || 'https://ollama.com');
+      } catch (error) {
+        if (error instanceof BaseUrlError) return new Response(error.message, { status: 400 });
+        throw error;
+      }
+    }
+    const model = createAIModel({ provider: provider ?? 'claude', apiKey, baseUrl, modelKey: modelKey ?? '' });
     // Web search is Claude's own tool; Gemini's Google Search isn't offered
-    // (whether it can run beside the browser-run tools isn't settled).
+    // (whether it can run beside the browser-run tools isn't settled), and
+    // Ollama has none.
     const modelId = typeof model === 'string' ? model : model.modelId;
-    const tools = provider !== 'gemini' && webSearch
+    const tools = (provider ?? 'claude') === 'claude' && webSearch
       ? { ...COMPANION_TOOLS, web_search: webSearchTool(modelId) }
       : COMPANION_TOOLS;
     // A turn stopped mid tool call leaves a call with no result; it is dropped.
     const modelMessages = await convertToModelMessages(messages, { tools, ignoreIncompleteToolCalls: true });
-    const result = provider === 'gemini'
+    const result = provider === 'gemini' || provider === 'ollama'
       ? streamText({ model, tools, messages: foldSystem(system, modelMessages) })
       : streamText({ model, tools, messages: withPromptCache(system, modelMessages) });
 

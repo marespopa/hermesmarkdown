@@ -5,7 +5,8 @@ The AI companion: one AI in the app. A panel docked on the window's trailing edg
 | File | Purpose |
 |---|---|
 | [CompanionPanel](CompanionPanel.md) | The panel: header, thread, composer, the resize handle; a full-height sheet on mobile. |
-| [CompanionHeader](CompanionHeader.md) | Title, model picker, Summarize chat, New chat, Close. |
+| [SlashMenu](SlashMenu.md) | The `/` menu above the input: the companion's commands and the skills. |
+| [CompanionHeader](CompanionHeader.md) | Title, model picker, New chat, Close. |
 | [CompanionThread](CompanionThread.md) | The conversation, with a turn summary under each reply that changed files. |
 | [CompanionMessage](CompanionMessage.md) | One message: Markdown text, tool chips, Copy. |
 | [ToolActivityChip](ToolActivityChip.md) | One tool call as a quiet line (spinner after 300 ms). |
@@ -13,7 +14,7 @@ The AI companion: one AI in the app. A panel docked on the window's trailing edg
 | [TrashConfirmCard](TrashConfirmCard.md) | Keep / Move to Trash, in place of a waiting `trash` call. |
 | [CompanionComposer](CompanionComposer.md) | The input: the shared `Textarea` field, context chips, @mentions, attach, send / stop. |
 | `use-companion-chat.ts` | `useChat` on the one Chat instance; `newChat`, and `compact` (`callAI` writes the summary; the thread stays until it's back, on failure and when Stop or New chat cancels it); `/new` and `/compact` in `send`; the system prompt (with the skill list) and a `/command` message's skill per turn; saves the thread when a turn settles; AI status. |
-| `companion-commands.ts` | The companion's own commands, ahead of skills: `/new` / `/clear` (new chat) and `/compact` / `/summarize` (words after it say what to keep); the summary's prompt (`transcriptText`: typed text, replies, one line per tool call, never context or results) and `summaryMessage`, the user turn (`metadata.summary`) a compacted thread starts with. The palette's New AI chat / Summarize AI chat reach the hook through `atom_companionAction`. |
+| `companion-commands.ts` | The companion's own commands, ahead of skills: `/new` / `/clear` (new chat) and `/compact` / `/summarize` / `/summarise` (words after it say what to keep); the summary's prompt (`transcriptText`: typed text, replies, one line per tool call, never context or results) and `summaryMessage`, the user turn (`metadata.summary`) a compacted thread starts with. The palette's New AI chat / Summarize AI chat reach the hook through `atom_companionAction`. |
 | `companion-chat-store.ts` | The session's Chat instance (`createCompanionChat`: transport to `/api/ai/companion` with the key, model and web search setting, tool calls, the auto-resend loop, `forModel` on each request's messages; `withReadableErrors` turns a host's HTML error page, such as a proxy's Inactivity Timeout, into one line) and `loadThread` / `saveThread` (localStorage, newest 80 messages, images dropped). |
 | `companion-messages.ts` | A user turn's parts (typed text, then a `--- CONTEXT ---` part with a `/command`'s `--- SKILL ---` block first, then images), `forModel` (the last `FULL_TURNS` (6) turns sent whole; older turns' long tool results and context parts become `LEFT_OUT`, their images dropped; the saved thread is untouched), `MAX_TOOL_ROUNDS` (12) and `shouldContinue` (resend once the last step's browser-run calls all have results; provider-run ones, `WEB_TOOL_NAMES`, never call for a round), tool part views. |
 | `reply-html.ts` | A reply's Markdown as safe HTML (`noteToHtml`; no images, diagram and math sources as code). |

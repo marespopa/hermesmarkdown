@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { beautifyAIError, callAI } from "./ai";
+import { beautifyAIError, callAI, getAIConfig } from "./ai";
 
 describe("beautifyAIError", () => {
   it.each([
@@ -9,6 +9,16 @@ describe("beautifyAIError", () => {
     "401 Unauthorized",
   ])("tells the user to update their key: %s", (raw) => {
     expect(beautifyAIError(raw)).toMatch(/Invalid API Key.*Settings/);
+  });
+});
+
+describe("beautifyAIError for Ollama", () => {
+  it("explains a model outside the plan, keeps Ollama's suggestion and drops the ref", () => {
+    const raw = "this model is not included in your free usage, add usage credits to pay as you go: https://ollama.com/settings or upgrade for included usage: https://ollama.com/upgrade. Try gemma4:31b-cloud, which is in the Free plan. (ref: dde41ccf)";
+    const message = beautifyAIError(raw);
+    expect(message).toMatch(/isn't included in your Ollama plan/);
+    expect(message).toContain("Try gemma4:31b-cloud instead");
+    expect(message).not.toContain("ref:");
   });
 });
 
@@ -50,5 +60,31 @@ describe("callAI errors", () => {
     const result = callAI("s", "hi", controller.signal);
     controller.abort();
     await expect(result).rejects.toMatchObject({ name: "AbortError" });
+  });
+});
+
+describe("getAIConfig with Auto", () => {
+  afterEach(() => localStorage.clear());
+
+  it("uses the provider's balanced model, never the Auto id", () => {
+    localStorage.setItem("hermes_claude_key", JSON.stringify("sk-ant-test"));
+    expect(getAIConfig().modelKey).toBe("sonnet-5");
+    localStorage.setItem("selectedAiModel", JSON.stringify("auto"));
+    expect(getAIConfig().modelKey).toBe("sonnet-5");
+    localStorage.setItem("hermes_ai_provider", JSON.stringify("gemini"));
+    localStorage.setItem("hermes_gemini_key", JSON.stringify("g-key"));
+    expect(getAIConfig().modelKey).toBe("gemini-3.5-flash");
+  });
+
+  it("keeps a picked model, and lets a per-message model win", () => {
+    localStorage.setItem("hermes_claude_key", JSON.stringify("sk-ant-test"));
+    localStorage.setItem("selectedAiModel", JSON.stringify("opus-4-8"));
+    expect(getAIConfig().modelKey).toBe("opus-4-8");
+    expect(getAIConfig("haiku-4-5").modelKey).toBe("haiku-4-5");
+  });
+
+  it("asks for a model when Ollama has none known", () => {
+    localStorage.setItem("hermes_ai_provider", JSON.stringify("ollama"));
+    expect(() => getAIConfig()).toThrow(/No model available/);
   });
 });

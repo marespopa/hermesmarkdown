@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider, createStore } from "jotai";
-import { atom_darkTheme, atom_focusMode, atom_lightTheme, atom_theme, atom_wordWrap } from "@/app/atoms/ui-atoms";
+import { atom_darkTheme, atom_focusMode, atom_lightTheme, atom_terminalHost, atom_terminalUser, atom_theme, atom_wordWrap } from "@/app/atoms/ui-atoms";
 import { atom_gitAvailable, atom_showGitChanges } from "@/app/atoms/git-atoms";
 import SettingsCommands from "@/app/editor/settings/components/SettingsCommands";
 import AppCommands from "./AppCommands";
@@ -188,5 +188,38 @@ describe("AppCommands and SettingsCommands", () => {
     expect(command("set-autosave-afterDelay")?.label).toBe("Autosave: After Delay");
     expect(command("set-autosave-manual")?.label).toBe("Autosave: Manual Only");
     expect(command("set-autosave-onFocusChange")).toBeUndefined();
+  });
+  describe("Open Terminal", () => {
+    const location = { href: "http://localhost/" };
+    beforeEach(() => {
+      location.href = "http://localhost/";
+      vi.stubGlobal("location", location);
+    });
+    afterEach(() => vi.unstubAllGlobals());
+
+    it("opens ssh:// for the host, with the user when set", () => {
+      const store = createStore();
+      store.set(atom_terminalHost, "build.local");
+      renderCommands(store);
+      expect(command("open-terminal")?.label).toBe("Open Terminal");
+      expect(command("open-terminal")?.disabledReason).toBeUndefined();
+      act(() => { void command("open-terminal")?.action(); });
+      expect(location.href).toBe("ssh://build.local");
+      cleanup();
+
+      store.set(atom_terminalUser, "dev");
+      renderCommands(store);
+      act(() => { void command("open-terminal")?.action(); });
+      expect(location.href).toBe("ssh://dev@build.local");
+    });
+
+    it("is disabled and does not navigate for an invalid host", () => {
+      const store = createStore();
+      store.set(atom_terminalHost, "my host");
+      renderCommands(store);
+      expect(command("open-terminal")?.disabledReason).toBe("Set a terminal host in Settings");
+      act(() => { void command("open-terminal")?.action(); });
+      expect(location.href).toBe("http://localhost/");
+    });
   });
 });

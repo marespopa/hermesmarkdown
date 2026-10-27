@@ -119,6 +119,24 @@ describe("CompanionPanel", () => {
     expect(setModel).toHaveBeenCalledWith("opus-4-8");
   });
 
+  it("lists Auto first in the model menu and picks it", () => {
+    setup();
+    fireEvent.click(screen.getByRole("button", { name: /Claude Sonnet 5/ }));
+    const rows = screen.getAllByRole("menuitemcheckbox");
+    expect(rows[0]).toHaveAccessibleName("Auto");
+    fireEvent.click(rows[0]);
+    expect(setModel).toHaveBeenCalledWith("auto");
+  });
+
+  it("shows the model Auto chose under its reply", () => {
+    messages = [
+      { id: "u1", role: "user", metadata: { auto: { model: "haiku-4-5", name: "Claude 4.5 Haiku", tier: "fast" } }, parts: [{ type: "text", text: "Fix this typo" }] },
+      { id: "a1", role: "assistant", parts: [{ type: "text", text: "Done." }] },
+    ];
+    setup();
+    expect(screen.getByText("Auto → Claude 4.5 Haiku")).toBeInTheDocument();
+  });
+
   it("shows replies as Markdown, with Copy shown on the latest reply only", () => {
     messages = [
       { id: "u1", role: "user", parts: [{ type: "text", text: "Summarise" }] },
@@ -135,19 +153,44 @@ describe("CompanionPanel", () => {
     expect(latest.parentElement).not.toHaveClass("opacity-0");
   });
 
-  it("offers New chat and Summarize chat only once there is a thread", () => {
+  it("offers New chat only once there is a thread, and no Summarize button", () => {
     setup();
     expect(screen.getByRole("button", { name: "New chat" })).toBeDisabled();
-    expect(screen.getByRole("button", { name: "Summarize chat" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Summarize chat" })).toBeNull();
   });
 
-  it("starts over and summarizes from the header", () => {
+  it("starts over from the header", () => {
     messages = [{ id: "u1", role: "user", parts: [{ type: "text", text: "Hi" }] }];
     setup();
-    fireEvent.click(screen.getByRole("button", { name: "Summarize chat" }));
-    expect(compact).toHaveBeenCalledOnce();
     fireEvent.click(screen.getByRole("button", { name: "New chat" }));
     expect(newChat).toHaveBeenCalledOnce();
+  });
+
+  it("lists the commands after a slash, filters them and completes one with Enter", () => {
+    setup();
+    const field = screen.getByRole("textbox", { name: "Message the AI" });
+    fireEvent.change(field, { target: { value: "/" } });
+    expect(screen.getByRole("option", { name: /\/clear/ })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: /\/summarize/ })).toBeInTheDocument();
+
+    fireEvent.change(field, { target: { value: "/su" } });
+    expect(screen.queryByRole("option", { name: /\/clear/ })).toBeNull();
+    fireEvent.keyDown(field, { key: "Enter" });
+    expect(field).toHaveValue("/summarize ");
+    expect(send).not.toHaveBeenCalled();
+    expect(screen.queryByRole("listbox")).toBeNull();
+  });
+
+  it("sends a command typed in full, and lets Escape close the menu", async () => {
+    setup();
+    const field = screen.getByRole("textbox", { name: "Message the AI" });
+    fireEvent.change(field, { target: { value: "/clear" } });
+    fireEvent.keyDown(field, { key: "Enter" });
+    await waitFor(() => expect(send).toHaveBeenCalledWith("/clear", expect.anything()));
+
+    fireEvent.change(field, { target: { value: "/ne" } });
+    fireEvent.keyDown(field, { key: "Escape" });
+    expect(screen.queryByRole("listbox")).toBeNull();
   });
 
   it("shows a compacted thread's summary as the earlier conversation", () => {

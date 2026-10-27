@@ -1,8 +1,17 @@
 "use client";
 
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { usePathname, useRouter } from "next/navigation";
-import { atom_darkTheme, atom_keyboardShortcutsOpen, atom_lightTheme, atom_theme, type Theme } from "@/app/atoms/ui-atoms";
+import {
+  atom_darkTheme,
+  atom_keyboardShortcutsOpen,
+  atom_lightTheme,
+  atom_terminalHost,
+  atom_terminalUser,
+  atom_theme,
+  type Theme,
+} from "@/app/atoms/ui-atoms";
+import { buildSshUri } from "@/app/services/terminal-uri";
 import { DARK_THEMES, LIGHT_THEMES, resolveDarkTheme, resolveLightTheme } from "@/app/theme-palettes";
 import RegisteredCommands from "@/app/editor/components/editor-commands/RegisteredCommands";
 import { sendFeedback } from "@/app/utils/send-feedback";
@@ -16,7 +25,8 @@ const THEME_COMMANDS: { value: Theme; label: string }[] = [
 ];
 
 // The app-wide commands, registered once for every route (the editor adds
-// its own on top): navigation, Settings, theme and keyboard shortcuts.
+// its own on top): navigation, Settings, theme, keyboard shortcuts and the
+// terminal.
 // Editor preferences live in SettingsCommands.
 export default function AppCommands() {
   const pathname = usePathname() ?? "";
@@ -25,6 +35,9 @@ export default function AppCommands() {
   const [lightTheme, setLightTheme] = useAtom(atom_lightTheme);
   const [darkTheme, setDarkTheme] = useAtom(atom_darkTheme);
   const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
+  const terminalUser = useAtomValue(atom_terminalUser);
+  const terminalHost = useAtomValue(atom_terminalHost);
+  const sshUri = buildSshUri(terminalUser, terminalHost);
   const inEditor = pathname.startsWith("/editor");
 
   // The marketing site's landing page: not part of writing, so the editor
@@ -129,6 +142,22 @@ export default function AppCommands() {
     shortcut: pageShortcutFor("open-settings"),
     disabledReason: pathname === "/editor/settings" ? "Already in settings" : undefined,
     action: () => router.push("/editor/settings"),
+  });
+
+  // The system terminal over SSH: the browser hands ssh://user@host (set in
+  // Settings → General → Terminal) to the OS's SSH handler, asking first.
+  // The page stays where it is, so no `opens`; no shortcut, to stay clear of
+  // OS and browser keys.
+  useRegisterCommand({
+    id: "open-terminal",
+    label: "Open Terminal",
+    description: sshUri ?? undefined,
+    category: "Workspace",
+    keywords: "shell ssh console command line terminal",
+    disabledReason: sshUri ? undefined : "Set a terminal host in Settings",
+    action: () => {
+      if (sshUri) window.location.href = sshUri;
+    },
   });
 
   useRegisterCommand({

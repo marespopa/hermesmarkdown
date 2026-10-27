@@ -2,12 +2,14 @@ import React from "react";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider, createStore } from "jotai";
-import { atom_aiEnabled, atom_aiProvider, atom_aiWebSearchEnabled, atom_claudeKey, atom_isAiConfigured, atom_webMcpEnabled, atom_webMcpWritesEnabled } from "@/app/atoms/ui-atoms";
+import { atom_aiEnabled, atom_aiProvider, atom_aiWebSearchEnabled, atom_claudeKey, atom_isAiConfigured, atom_ollamaBaseUrl, atom_selectedAiModel, atom_ollamaKey, atom_webMcpEnabled, atom_webMcpWritesEnabled } from "@/app/atoms/ui-atoms";
 import AiSettings from "./AiSettings";
 
 vi.mock("@/app/services/ai", () => ({
   fetchClaudeModels: vi.fn().mockResolvedValue([{ id: "sonnet-5", name: "Claude Sonnet 5" }]),
   fetchGeminiModels: vi.fn().mockResolvedValue([]),
+  fetchOllamaModels: vi.fn().mockResolvedValue([]),
+  isLocalBaseUrl: (url: string) => /localhost|127\.0\.0\.1/.test(url),
   testAIConnection: vi.fn().mockResolvedValue({ success: true }),
 }));
 vi.mock("@/app/components/Toastr", () => ({
@@ -51,6 +53,57 @@ describe("AiSettings", () => {
 
     fireEvent.click(screen.getByText("Remove key"));
     expect(store.get(atom_claudeKey)).toBe("");
+  });
+
+  it("offers Auto first in the model select, on by default, and returns to it on a provider switch", async () => {
+    const store = renderWith((s) => {
+      s.set(atom_aiEnabled, true);
+      s.set(atom_claudeKey, "sk-ant-test");
+    });
+    const select = screen.getByRole("combobox", { name: "Model" });
+    expect(select).not.toBeDisabled();
+    expect((select as HTMLSelectElement).options[0]).toHaveTextContent("Auto (picks by task)");
+    expect(store.get(atom_selectedAiModel)).toBe("auto");
+
+    await screen.findByRole("option", { name: "Claude Sonnet 5" });
+    fireEvent.change(select, { target: { value: "sonnet-5" } });
+    expect(store.get(atom_selectedAiModel)).toBe("sonnet-5");
+    fireEvent.click(screen.getByRole("button", { name: "Gemini" }));
+    expect(store.get(atom_selectedAiModel)).toBe("auto");
+  });
+
+  it("sets up Ollama with a base URL and no key, and resets the URL", async () => {
+    const store = renderWith((s) => {
+      s.set(atom_aiEnabled, true);
+      s.set(atom_aiProvider, "ollama");
+    });
+
+    expect(store.get(atom_isAiConfigured)).toBe(true);
+    expect(screen.getByText("API key (optional)")).toBeInTheDocument();
+    expect(await screen.findByText("No models found. Pull a model first (ollama pull <model>), then refresh.")).toBeInTheDocument();
+    expect(screen.queryByText("Remove key")).not.toBeInTheDocument();
+    expect(screen.queryByText("Reset URL")).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText("https://ollama.com"), { target: { value: "https://ollama.example.com" } });
+    expect(store.get(atom_ollamaBaseUrl)).toBe("https://ollama.example.com");
+
+    fireEvent.change(screen.getByPlaceholderText("Optional"), { target: { value: "ollama-key" } });
+    expect(store.get(atom_ollamaKey)).toBe("ollama-key");
+
+    fireEvent.click(screen.getByText("Reset URL"));
+    expect(store.get(atom_ollamaBaseUrl)).toBe("https://ollama.com");
+
+    fireEvent.click(screen.getByText("Remove key"));
+    expect(store.get(atom_ollamaKey)).toBe("");
+  });
+
+  it("explains the local-instance CORS setting for a local Ollama URL", () => {
+    renderWith((s) => {
+      s.set(atom_aiEnabled, true);
+      s.set(atom_aiProvider, "ollama");
+      s.set(atom_ollamaBaseUrl, "http://localhost:11434");
+    });
+    expect(screen.getByText(/OLLAMA_ORIGINS/)).toBeInTheDocument();
   });
 
   it("turning it off keeps the key but disables AI", () => {

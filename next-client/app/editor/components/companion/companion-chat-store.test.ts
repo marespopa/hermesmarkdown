@@ -3,8 +3,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { companionHandlers, createCompanionChat, withReadableErrors } from "./companion-chat-store";
 
 vi.mock("@/app/services/ai", () => ({
-  getAIConfig: () => ({ provider: "claude", apiKey: "claude-key", modelKey: "sonnet-5" }),
+  getAIConfig: (model?: string) => ({ provider: "claude", apiKey: "claude-key", modelKey: model || "sonnet-5" }),
   isWebSearchEnabled: () => false,
+  isLocalBaseUrl: () => false,
 }));
 
 // One reply from /api/ai/companion as the route streams it: a UI message
@@ -55,6 +56,24 @@ type SentBody = { messages: { role: string; parts: { type: string; state?: strin
 describe("the companion's chat loop", () => {
   afterEach(() => {
     companionHandlers.runToolCall = async () => "The tools aren't ready yet. Try again.";
+    companionHandlers.modelOverride = undefined;
+  });
+
+  it("sends the model Auto chose for the turn, else the picked one", async () => {
+    const fetch = vi.fn()
+      .mockResolvedValueOnce(textReply("One."))
+      .mockResolvedValueOnce(textReply("Two."));
+    const chat = createCompanionChat({ fetch });
+
+    companionHandlers.modelOverride = "haiku-4-5";
+    await chat.sendMessage({ text: "first" });
+    await until(() => expect(chat.status).toBe("ready"));
+    companionHandlers.modelOverride = undefined;
+    await chat.sendMessage({ text: "second" });
+    await until(() => expect(fetch).toHaveBeenCalledTimes(2));
+
+    expect(JSON.parse(fetch.mock.calls[0][1].body as string).modelKey).toBe("haiku-4-5");
+    expect(JSON.parse(fetch.mock.calls[1][1].body as string).modelKey).toBe("sonnet-5");
   });
 
   it("runs a streamed tool call in the browser and sends its result back for the answer", async () => {

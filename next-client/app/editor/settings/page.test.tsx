@@ -17,6 +17,7 @@ const pushMock = vi.fn();
 vi.mock("@/app/services/ai", () => ({
   fetchClaudeModels: vi.fn().mockResolvedValue([]),
   fetchGeminiModels: vi.fn().mockResolvedValue([]),
+  fetchOllamaModels: vi.fn().mockResolvedValue([]),
   testAIConnection: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({
@@ -200,7 +201,7 @@ describe("SettingsPage", () => {
     fireEvent.click(screen.getByText("General"));
 
     const text = document.querySelector("main")!.textContent!;
-    const order = ["Profile", "Your Data", "Help", "About"].map((title) => text.indexOf(title));
+    const order = ["Profile", "Your Data", "Terminal", "Help", "About"].map((title) => text.indexOf(title));
     expect(order.every((index) => index >= 0)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
     expect(screen.queryByText("Onboarding")).not.toBeInTheDocument();

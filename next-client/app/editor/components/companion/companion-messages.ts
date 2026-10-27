@@ -1,4 +1,5 @@
 import type { FileUIPart, TextUIPart, UIMessage } from "ai";
+import type { Tier } from "../ai-chat/auto-model";
 import type { Attachment, VaultRef } from "../ai-chat/chat-helpers";
 
 // The companion thread's messages: what a user turn sends (their words, then
@@ -14,6 +15,8 @@ export const MAX_TOOL_ROUNDS = 12;
 // (companion-commands.ts).
 export interface CompanionMetadata {
   context?: string[];
+  // On a user turn sent with Auto: the model chosen for its reply.
+  auto?: { model: string; name: string; tier: Tier };
   summary?: boolean;
 }
 export type CompanionMessage = UIMessage<CompanionMetadata>;
@@ -34,7 +37,7 @@ export interface TurnSkill {
 }
 
 // The parts and metadata of a user turn, for useChat's sendMessage.
-export function userTurn(text: string, { path, selection, vaultRefs, attachments }: CompanionContext, skill?: TurnSkill) {
+export function userTurn(text: string, { path, selection, vaultRefs, attachments }: CompanionContext, skill?: TurnSkill, auto?: CompanionMetadata["auto"]) {
   const blocks: string[] = [];
   const labels: string[] = [];
   if (skill) {
@@ -65,7 +68,8 @@ export function userTurn(text: string, { path, selection, vaultRefs, attachments
   const parts: (TextUIPart | FileUIPart)[] = [{ type: "text", text: text || "(see the attached context)" }];
   if (blocks.length) parts.push({ type: "text", text: `--- CONTEXT ---\n${blocks.join("\n\n")}\n--- END CONTEXT ---` });
   parts.push(...files);
-  return { parts, metadata: labels.length ? { context: labels } : undefined };
+  const metadata: CompanionMetadata = { ...(labels.length ? { context: labels } : {}), ...(auto ? { auto } : {}) };
+  return { parts, metadata: Object.keys(metadata).length ? metadata : undefined };
 }
 
 // The newest turns sent to the model in full. In older ones, long tool

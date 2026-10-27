@@ -8,3 +8,4 @@ Description: One message. A user message shows what they typed (the first text p
 | message | `CompanionMessage` | A UI message |
 | activities | `Record<string, string>` | Chip labels by toolCallId |
 | latest | `boolean` | The thread's latest reply: Copy always shows |
+| autoModel | `string?` | The model name Auto chose for this reply (from the user turn's `metadata.auto`); shown as "Auto → name" beside Copy |

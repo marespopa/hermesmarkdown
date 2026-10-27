@@ -57,9 +57,10 @@ export const aiFeaturesGroup: Group = {
           <p>
             Type <code>@</code> to add another note, a folder or the whole vault. Attach images or files.
             Replies stream in as they&apos;re written, in Markdown. Pick the model from the panel&apos;s
-            header. Start over with <strong>New chat</strong> (the chat bubble in the header, or type{" "}
+            header. Type <code>/</code> to list the commands and skills and pick one. Start over with{" "}
+            <strong>New chat</strong> (the chat bubble in the header, or type{" "}
             <code>/new</code> or <code>/clear</code>). When a conversation grows long,{" "}
-            <strong>Summarize chat</strong> (or <code>/compact</code>, optionally followed by what to keep)
+            <strong>Summarize chat</strong> (<code>/compact</code> or <code>/summarize</code>, optionally followed by what to keep)
             replaces it with a short summary the companion goes on from; Stop cancels a summary and keeps the conversation. Both are also in the command
             palette as <em>New AI chat</em> and <em>Summarize AI chat</em>. The conversation stays when you
             close the panel or reload the page.

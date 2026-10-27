@@ -232,6 +232,11 @@ export const atom_hasCompletedOnboarding = atomWithStorage<boolean>(
   false,
 );
 export const atom_userName = atomWithStorage<string>("userName", "");
+// Settings → General → Terminal: the user and host the "Open Terminal"
+// palette command opens as ssh://user@host through the OS's SSH handler
+// (services/terminal-uri.ts). An empty user leaves it out of the URI.
+export const atom_terminalUser = atomWithStorage<string>("terminalUser", "");
+export const atom_terminalHost = atomWithStorage<string>("terminalHost", "localhost");
 // "Not Now" on the FolderPrompt: it shrinks to a "Not saved to a folder"
 // mark for the rest of the visit. In memory, so the next visit asks again.
 export const atom_folderPromptDismissed = atom<boolean>(false);
@@ -345,7 +350,7 @@ export const atom_indexerState = atom<IndexerState>("idle");
 export type AiModelKey = string;
 export const atom_selectedAiModel = atomWithStorage<AiModelKey>(
   "selectedAiModel",
-  "sonnet-5",
+  "auto",
 );
 
 export interface GeminiModelInfo {
@@ -359,6 +364,12 @@ export interface ClaudeModelInfo {
   name: string;
 }
 export const atom_availableClaudeModels = atom<ClaudeModelInfo[]>([]);
+
+export interface OllamaModelInfo {
+  id: string;
+  name: string;
+}
+export const atom_availableOllamaModels = atom<OllamaModelInfo[]>([]);
 
 // Ambient AI action status, surfaced as the status bar's center pill.
 // `seq` lets a delayed "auto-clear to idle" timeout (see app/services/ai-status.ts)

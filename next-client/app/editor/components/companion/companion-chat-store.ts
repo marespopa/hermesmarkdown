@@ -1,6 +1,7 @@
 import { Chat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { getAIConfig, isWebSearchEnabled } from "@/app/services/ai";
+import { getAIConfig, isLocalBaseUrl, isWebSearchEnabled } from "@/app/services/ai";
+import { withLocalOllama } from "@/app/services/ollama-direct";
 import { forModel, shouldContinue, WEB_TOOL_NAMES, type CompanionMessage } from "./companion-messages";
 
 // The companion's one conversation, outside React: the Chat instance lives
@@ -17,6 +18,9 @@ const MAX_SAVED_CHARS = 1_500_000;
 
 export interface CompanionHandlers {
   system: string;
+  // The model Auto chose for the current turn (use-companion-chat.ts); unset
+  // when a model is picked, so its tool rounds follow the same choice.
+  modelOverride?: string;
   runToolCall: (call: { toolName: string; toolCallId: string; input: unknown }, turnId: string) => Promise<string>;
 }
 
@@ -89,10 +93,10 @@ export function createCompanionChat({ messages = [], fetch }: { messages?: Compa
     messages,
     transport: new DefaultChatTransport<CompanionMessage>({
       api: "/api/ai/companion",
-      fetch: withReadableErrors(fetch),
+      fetch: withLocalOllama(withReadableErrors(fetch), isLocalBaseUrl),
       // Read fresh for each request: the key, provider and model never leave
       // the browser except to this route.
-      body: () => ({ ...getAIConfig(), system: companionHandlers.system, webSearch: isWebSearchEnabled() }),
+      body: () => ({ ...getAIConfig(companionHandlers.modelOverride), system: companionHandlers.system, webSearch: isWebSearchEnabled() }),
       // Older turns go trimmed (forModel); the thread itself keeps them whole.
       prepareSendMessagesRequest: ({ id, messages, body, trigger, messageId }) => ({
         body: { ...body, id, messages: forModel(messages), trigger, messageId },
