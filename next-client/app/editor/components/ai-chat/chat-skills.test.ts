@@ -1,42 +1,33 @@
 import { describe, expect, it } from "vitest";
 import {
+  CHAT_SKILLS,
   CODE_SKILL,
-  isSkillActive,
+  skillCommand,
+  startsWithCommand,
   TASKS_SKILL,
   TEMPLATE_SKILL,
 } from "./chat-skills";
 
-describe("isSkillActive", () => {
-  it("turns on for template / templates, or a /template message", () => {
-    expect(isSkillActive(TEMPLATE_SKILL, ["make me an RFC template that asks for an owner"])).toBe(true);
-    expect(isSkillActive(TEMPLATE_SKILL, ["hi", "Fix my Templates please"])).toBe(true);
-    expect(isSkillActive(TEMPLATE_SKILL, ["/template meeting notes"])).toBe(true);
+describe("skill commands", () => {
+  it("names a skill with or without its slash", () => {
+    expect(skillCommand("tasks")).toBe("/tasks");
+    expect(skillCommand(" /Tasks ")).toBe("/tasks");
+    expect(skillCommand("/")).toBe("");
   });
 
-  it("stays off otherwise", () => {
-    expect(isSkillActive(TEMPLATE_SKILL, ["summarize this note", "templated text"])).toBe(false);
-    expect(isSkillActive(TEMPLATE_SKILL, [])).toBe(false);
+  it("matches a message starting with the command as a word", () => {
+    expect(startsWithCommand("  /Template meeting notes", TEMPLATE_SKILL.command)).toBe(true);
+    expect(startsWithCommand("/tasks", TASKS_SKILL.command)).toBe(true);
+    expect(startsWithCommand("/taskslist", TASKS_SKILL.command)).toBe(false);
+    expect(startsWithCommand("what tasks are due?", TASKS_SKILL.command)).toBe(false);
   });
-});
 
-describe("tasks skill", () => {
-
-  it("turns tasks on for tasks, to-dos and action items, or /tasks", () => {
-    for (const text of ["what tasks are due?", "make to-dos from this", "list the action items", "/Tasks"]) {
-      expect(isSkillActive(TASKS_SKILL, [text])).toBe(true);
-    }
-    expect(isSkillActive(TASKS_SKILL, ["tighten this intro", "multitasking tips"])).toBe(false);
+  it("describes every built-in skill for the prompt's list", () => {
+    for (const skill of CHAT_SKILLS) expect(skill.description.length).toBeGreaterThan(10);
   });
 });
 
 describe("code skill", () => {
-  it("turns on for code, refactoring, stack traces and unit tests, or /code", () => {
-    for (const text of ["explain this code", "refactor the parser", "here's the stack trace", "write unit tests for it", "/Code"]) {
-      expect(isSkillActive(CODE_SKILL, [text])).toBe(true);
-    }
-    expect(isSkillActive(CODE_SKILL, ["tighten this intro", "the zip codes list", "encoded text"])).toBe(false);
-  });
-
   it("edits code files with edit_file and note blocks with edit_code_block", () => {
     expect(CODE_SKILL.builtin).toContain("edit_file");
     expect(CODE_SKILL.builtin).toContain("edit_code_block");

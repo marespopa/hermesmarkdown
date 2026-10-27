@@ -40,3 +40,18 @@ export function foldSystem(system: string, messages: ModelMessage[]): ModelMessa
     : [{ type: 'text' as const, text: system }, ...first.content];
   return messages.map((message, i) => (i === index ? { ...first, content } : message));
 }
+
+const CACHE_CONTROL = { type: 'ephemeral' } as const;
+
+// Claude caches the request up to a marked message: the tools and system
+// prompt (the same every round), then the thread so far, marked at its last
+// message. Each tool round and the next turn read them back from the cache
+// at a fraction of the price.
+export function withPromptCache(system: string, messages: ModelMessage[]): ModelMessage[] {
+  const last = messages.length - 1;
+  const marked = messages.map((message, i) => (i === last
+    ? { ...message, providerOptions: { ...message.providerOptions, anthropic: { ...message.providerOptions?.anthropic, cacheControl: CACHE_CONTROL } } } as ModelMessage
+    : message));
+  if (!system.trim()) return marked;
+  return [{ role: 'system', content: system, providerOptions: { anthropic: { cacheControl: CACHE_CONTROL } } }, ...marked];
+}

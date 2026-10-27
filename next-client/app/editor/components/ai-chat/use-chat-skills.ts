@@ -6,14 +6,21 @@ import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_templatesFolder } from "@/app/atoms/template-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { isTemplatePath } from "@/app/utils/templates/template-registry";
-import { CHAT_SKILLS, isSkillActive, type ChatSkill } from "./chat-skills";
+import { CHAT_SKILLS, skillCommand, startsWithCommand, type ChatSkill } from "./chat-skills";
 import { openTasksBlock } from "./skill-context";
-import { isUserSkillActive, readUserSkill, userSkillsFrom } from "./user-skills";
+import { readUserSkill, userSkillsFrom } from "./user-skills";
 
-// The AI companion's skills: which skill text a turn sends (each active
-// built-in skill's instructions, plus the open tasks the tasks skill works
-// from, and the user's own skill notes turned on by their /command, read
-// fresh each turn).
+// A skill in the companion's system prompt list: its command and when to load it.
+export interface SkillListing {
+  command: string;
+  description?: string;
+}
+
+// The AI companion's skills: the list its system prompt names (built-in
+// skills, then the user's skill notes), and a skill's text when the model
+// loads it (load_skill) or a message starts with its /command: the built-in
+// skill's instructions plus the data it works from (the open tasks for the
+// tasks skill), or the skill note read fresh from disk.
 export function useChatSkills() {
   const store = useStore();
 
@@ -27,23 +34,38 @@ export function useChatSkills() {
     return "";
   }, [store]);
 
-  // Skill text for the next request, given the thread including the new user message.
-  const skillInstructionsFor = useCallback(async (userTexts: string[]): Promise<string[]> => {
-    const active = CHAT_SKILLS.filter((skill) => isSkillActive(skill, userTexts));
-    const builtIn = Promise.all(active.map(async (skill) => {
-      const context = await skillContext(skill);
-      return context ? `${skill.builtin}\n\n${context}` : skill.builtin;
-    }));
-    // The user's own skill notes turned on by their /command (user-skills.ts).
-    const vault = store.get(atom_vaultHandle);
-    const own = vault
-      ? userSkillsFrom(store.get(atom_fileMetadata), CHAT_SKILLS.map((skill) => skill.command))
-        .filter((skill) => isUserSkillActive(skill, userTexts))
-      : [];
-    const ownTexts = Promise.all(own.map((skill) => readUserSkill(vault!, skill.path)));
-    const [fromApp, fromVault] = await Promise.all([builtIn, ownTexts]);
-    return [...fromApp, ...fromVault.filter((text): text is string => !!text)];
-  }, [store, skillContext]);
+  // The user's skill notes (none without a vault); built-in commands win.
+  const userSkills = useCallback(() => (store.get(atom_vaultHandle)
+    ? userSkillsFrom(store.get(atom_fileMetadata), CHAT_SKILLS.map((skill) => skill.command))
+    : []), [store]);
 
-  return { skillInstructionsFor };
+  const skillList = useCallback((): SkillListing[] => [
+    ...CHAT_SKILLS.map(({ command, description }) => ({ command, description })),
+    ...userSkills().map(({ command, description }) => ({ command, description })),
+  ], [userSkills]);
+
+  // A skill's text by name or command ("tasks", "/tasks"); null when there's
+  // no such skill or its note is gone or empty.
+  const loadSkill = useCallback(async (name: string): Promise<string | null> => {
+    const command = skillCommand(name);
+    if (!command) return null;
+    const builtIn = CHAT_SKILLS.find((skill) => skill.command === command);
+    if (builtIn) {
+      const context = await skillContext(builtIn);
+      return context ? `${builtIn.builtin}\n\n${context}` : builtIn.builtin;
+    }
+    const own = userSkills().find((skill) => skill.command === command);
+    const vault = store.get(atom_vaultHandle);
+    return own && vault ? readUserSkill(vault, own.path) : null;
+  }, [store, skillContext, userSkills]);
+
+  // The skill a message's /command names, with its text; null otherwise.
+  const commandSkill = useCallback(async (text: string): Promise<{ command: string; text: string } | null> => {
+    const listing = skillList().find((skill) => startsWithCommand(text, skill.command));
+    if (!listing) return null;
+    const skillText = await loadSkill(listing.command);
+    return skillText ? { command: listing.command, text: skillText } : null;
+  }, [skillList, loadSkill]);
+
+  return { skillList, loadSkill, commandSkill };
 }

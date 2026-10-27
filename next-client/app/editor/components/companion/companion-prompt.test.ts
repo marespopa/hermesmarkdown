@@ -16,9 +16,13 @@ describe("buildCompanionSystemPrompt", () => {
     expect(buildCompanionSystemPrompt({ hasVault: false })).toContain("No vault is open");
   });
 
-  it("appends each skill's instructions", () => {
-    expect(buildCompanionSystemPrompt({ hasVault: true, skillInstructions: ["List open tasks.", " "] }))
-      .toBe(`${COMPANION_PROMPT}\n\n--- SKILL ---\nList open tasks.\n--- END SKILL ---`);
+  it("lists the skills load_skill can load, never their instructions", () => {
+    const prompt = buildCompanionSystemPrompt({
+      hasVault: true,
+      skills: [{ command: "/tasks", description: "Work with open tasks." }, { command: "/standup" }],
+    });
+    expect(prompt).toBe(`${COMPANION_PROMPT}\n\nSkills you can load:\n- /tasks: Work with open tasks.\n- /standup (the user's own skill)`);
+    expect(COMPANION_PROMPT).toContain("load_skill");
   });
 
   it("mentions web search only when it's on", () => {

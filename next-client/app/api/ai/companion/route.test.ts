@@ -48,14 +48,18 @@ describe('AI companion route', () => {
     expect(streamTextMock).not.toHaveBeenCalled();
   });
 
-  it('streams Claude with the system prompt and the browser-run tools', async () => {
+  it('streams Claude with the system prompt, marked for its prompt cache, and the browser-run tools', async () => {
     const response = await post({ provider: 'claude', apiKey: 'claude-key', modelKey: 'sonnet-5', system: 'Be brief', messages: uiMessages });
 
     expect(await response.text()).toBe(': keep-alive\n\nstream');
     const options = streamTextMock.mock.calls[0][0];
     expect(options.model).toEqual({ modelId: 'claude-sonnet-5', provider: 'anthropic' });
-    expect(options.system).toBe('Be brief');
-    expect(options.messages).toBe(modelMessages);
+    const cache = { anthropic: { cacheControl: { type: 'ephemeral' } } };
+    expect(options.system).toBeUndefined();
+    expect(options.messages).toEqual([
+      { role: 'system', content: 'Be brief', providerOptions: cache },
+      { ...modelMessages[0], providerOptions: cache },
+    ]);
     expect(Object.keys(options.tools)).toEqual(expect.arrayContaining(['search_notes', 'read_file', 'list_folder', 'get_active_note']));
     expect(Object.values(options.tools).every((tool) => !(tool as { execute?: unknown }).execute)).toBe(true);
   });

@@ -1,7 +1,7 @@
 import { Chat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { getAIConfig, isWebSearchEnabled } from "@/app/services/ai";
-import { shouldContinue, WEB_TOOL_NAMES, type CompanionMessage } from "./companion-messages";
+import { forModel, shouldContinue, WEB_TOOL_NAMES, type CompanionMessage } from "./companion-messages";
 
 // The companion's one conversation, outside React: the Chat instance lives
 // for the whole session, so the thread survives the panel closing,
@@ -93,6 +93,10 @@ export function createCompanionChat({ messages = [], fetch }: { messages?: Compa
       // Read fresh for each request: the key, provider and model never leave
       // the browser except to this route.
       body: () => ({ ...getAIConfig(), system: companionHandlers.system, webSearch: isWebSearchEnabled() }),
+      // Older turns go trimmed (forModel); the thread itself keeps them whole.
+      prepareSendMessagesRequest: ({ id, messages, body, trigger, messageId }) => ({
+        body: { ...body, id, messages: forModel(messages), trigger, messageId },
+      }),
     }),
     sendAutomaticallyWhen: shouldContinue,
     onToolCall: async ({ toolCall }) => {

@@ -9,6 +9,7 @@ import { atom_vaultFolderPaths, atom_vaultHandle, atom_vaultTextFiles } from "@/
 import { useNoteBuffer } from "@/app/hooks/file-system/use-note-buffer";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { NOTE_TOOL_DEFS } from "@/app/services/note-tool-defs";
+import { useChatSkills } from "../ai-chat/use-chat-skills";
 import { useNoteTools, type NoteToolResult } from "../ai-chat/use-note-tools";
 import { guardFilePath, guardFolderPath } from "./tools/path-guard";
 import { useCompanionOrganise } from "./use-companion-organise";
@@ -25,7 +26,8 @@ const stringList = (value: unknown) => (Array.isArray(value) ? value.map(String)
 
 // Runs the companion's tool calls in the browser: the note tools through
 // useNoteTools, the vault and editor read tools (list_folder, read_file,
-// get_active_note) here, behind the path guard, the writes (edit_file,
+// get_active_note) here, behind the path guard, load_skill through
+// useChatSkills, the writes (edit_file,
 // edit_code_block, create_file, create_folder, create_template) through
 // useCompanionWrites and the organising tools (rename, move, trash) through
 // useCompanionOrganise, recorded in the turn's undo group (`turnId`, the id
@@ -36,6 +38,7 @@ export function useCompanionTools() {
   const store = useStore();
   const { runTool: runNoteTool } = useNoteTools();
   const { readCurrentText } = useNoteBuffer();
+  const { loadSkill } = useChatSkills();
   const writes = useCompanionWrites();
   const organise = useCompanionOrganise();
 
@@ -88,6 +91,12 @@ export function useCompanionTools() {
         }
         return { output: readFileOutput(guarded.path, note, text), activity: activity(text === null ? "not found" : "") };
       }
+      if (toolName === "load_skill") {
+        const name = String(input.name ?? "");
+        const text = await loadSkill(name);
+        if (text) return { output: `--- SKILL ${name} ---\n${text}\n--- END SKILL ---`, activity: activity() };
+        return { output: `There's no skill ${name}. Use one of the skills listed in your instructions.`, activity: activity("not found") };
+      }
       if (toolName === "edit_file") {
         const edits = Array.isArray(input.edits) ? (input.edits as FindReplace[]) : [];
         const { output, detail } = await writes.editFile(turnId, String(input.path ?? ""), edits);
@@ -131,7 +140,7 @@ export function useCompanionTools() {
       console.warn("Companion: tool failed", toolName, err);
       return { output: `${toolName} failed: ${err instanceof Error ? err.message : String(err)}`, activity: activity("failed") };
     }
-  }, [store, runNoteTool, readCurrentText, writes, organise]);
+  }, [store, runNoteTool, readCurrentText, loadSkill, writes, organise]);
 
   return { runTool, undoTurn: writes.undoTurn };
 }

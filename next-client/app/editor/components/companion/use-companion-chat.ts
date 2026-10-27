@@ -10,7 +10,7 @@ import { beginAiAction, dismissAiActionStatus } from "@/app/services/ai-status";
 import { useChatSkills } from "../ai-chat/use-chat-skills";
 import { companionChat, companionHandlers, saveThread } from "./companion-chat-store";
 import { buildCompanionSystemPrompt } from "./companion-prompt";
-import { typedText, userTurn, type CompanionContext } from "./companion-messages";
+import { userTurn, type CompanionContext } from "./companion-messages";
 import { declineAllTrash } from "./trash-confirm";
 import { useCompanionTools } from "./use-companion-tools";
 
@@ -26,7 +26,7 @@ const atom_toolActivities = atom<Record<string, string>>({});
 export function useCompanionChat() {
   const store = useStore();
   const { runTool, undoTurn } = useCompanionTools();
-  const { skillInstructionsFor } = useChatSkills();
+  const { skillList, commandSkill } = useChatSkills();
   const [activities, setActivities] = useAtom(atom_toolActivities);
 
   useEffect(() => {
@@ -52,16 +52,17 @@ export function useCompanionChat() {
   }, [isBusy, messages]);
 
   const send = useCallback(async (text: string, context: CompanionContext) => {
-    const typed = [...messages.filter((m) => m.role === "user").map(typedText), text];
-    const skillInstructions = await skillInstructionsFor(typed);
+    // A message starting with a skill's /command carries the skill; other
+    // skills the model loads itself (load_skill).
+    const skill = await commandSkill(text);
     companionHandlers.system = buildCompanionSystemPrompt({
       hasVault: !!store.get(atom_vaultHandle),
       webSearch: isWebSearchEnabled() && store.get(atom_aiProvider) === "claude",
-      skillInstructions,
+      skills: skillList(),
     });
     clearError();
-    await sendMessage(userTurn(text, context));
-  }, [messages, skillInstructionsFor, store, sendMessage, clearError]);
+    await sendMessage(userTurn(text, context, skill ?? undefined));
+  }, [skillList, commandSkill, store, sendMessage, clearError]);
 
   // Stopping keeps any files a waiting trash call would move.
   const stopTurn = useCallback(() => {

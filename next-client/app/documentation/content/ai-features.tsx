@@ -111,10 +111,10 @@ export const aiFeaturesGroup: Group = {
       body: (
         <>
           <p>
-            Mention a template, for example &ldquo;make me an RFC template that asks for an
-            owner&rdquo;, or start a message with <code>/template</code>. From then on the companion
-            knows the <TextLink href="#templates">template tokens</TextLink> and saves templates
-            itself, as <code>_templates/RFC.md</code> for example. They show up in{" "}
+            Ask for a template, for example &ldquo;make me an RFC template that asks for an
+            owner&rdquo;, or start a message with <code>/template</code>. The companion loads its
+            template skill, learns the <TextLink href="#templates">template tokens</TextLink> and
+            saves the template itself, as <code>_templates/RFC.md</code> for example. They show up in{" "}
             <code>/template</code> straight away.
           </p>
           <p>
@@ -135,8 +135,8 @@ export const aiFeaturesGroup: Group = {
       body: (
         <>
           <p>
-            Mention <strong>tasks</strong>, to-dos or action items, or start with{" "}
-            <code>/tasks</code>, and the companion sees your open tasks: in progress, to do and on hold,
+            Ask about your tasks, to-dos or action items, or start with <code>/tasks</code>, and
+            the companion loads its tasks skill and sees your open tasks: in progress, to do and on hold,
             with their due dates, priorities and notes. Ask what to work on next, what&apos;s overdue,
             or paste meeting notes and ask for tasks. You get task lines with real{" "}
             <code>@due()</code> dates, worked out from today, and it can add them to a note or change
@@ -157,8 +157,8 @@ export const aiFeaturesGroup: Group = {
       body: (
         <>
           <p>
-            Mention <strong>code</strong>, refactoring, a stack trace or unit tests, or start with{" "}
-            <code>/code</code>, and the companion works on the code files in your vault and the code
+            Ask about code, a refactor, a stack trace or unit tests, or start with <code>/code</code>,
+            and the companion loads its code skill and works on the code files in your vault and the code
             blocks in your notes. Ask it to explain, review or refactor, to fix an error you paste, or
             to write tests. Say &ldquo;this code&rdquo; and it looks at the file you have open and the
             block your cursor is in.
@@ -174,7 +174,7 @@ export const aiFeaturesGroup: Group = {
     {
       id: "ai-skill-notes",
       title: "Your own skills",
-      lead: "Write a note of type skill, and /its-name turns it on in the companion.",
+      lead: "Write a note of type skill, and the companion loads it when a request fits, or when you type /its-name.",
       keywords: "ai skill skills custom own instructions prompt command slash note type",
       body: (
         <>
@@ -182,15 +182,18 @@ export const aiFeaturesGroup: Group = {
             Any note with <code>type: skill</code> in its frontmatter (or a <code>#type/skill</code> tag)
             is a skill, wherever it is in your vault. Start a message to the companion with a slash and the
             note&apos;s file name, lowercase with hyphens for spaces (<code>Standup notes.md</code> is{" "}
-            <code>/standup-notes</code>), and the note&apos;s text below its frontmatter is added to the
-            companion&apos;s instructions from then on.
+            <code>/standup-notes</code>), and the note&apos;s text below its frontmatter goes with that
+            message. Give it a <code>description</code> saying when to use it, and the companion loads
+            the skill by itself whenever a request fits.
           </p>
           <Code>{`---
 type: skill
+description: Write my daily standup from my notes
 ---
 Write today's standup from my notes: done, next, blocked. Keep each to one line.`}</Code>
           <p>
-            The note is read fresh each time you send, so edits apply at once. The app never creates or
+            The companion sees only each skill&apos;s name and description until it loads one, so
+            having many skills costs nothing. The note is read fresh each time, so edits apply at once. The app never creates or
             changes skill notes. <code>/template</code>, <code>/tasks</code> and <code>/code</code> are the app&apos;s own skills.
           </p>
         </>

@@ -134,6 +134,7 @@ export function companionToolActivity(name: string, input: Record<string, unknow
   if (name === "list_folder") return `Listed ${String(input.path ?? "") || "the vault"}${suffix}`;
   if (name === "read_file") return `Read ${String(input.path ?? "a file")}${suffix}`;
   if (name === "get_active_note") return `Looked at the open note${suffix}`;
+  if (name === "load_skill") return `Loaded the skill ${String(input.name ?? "")}${suffix}`;
   if (name === "edit_file") return `Edited ${String(input.path ?? "a file")}${suffix}`;
   if (name === "edit_code_block") return `Edited code in ${String(input.path ?? "a note")}${suffix}`;
   if (name === "create_file") return `Created ${String(input.path ?? "a file")}${suffix}`;
