@@ -1,6 +1,4 @@
 import { beginAiAction, finishAiActionSuccess, finishAiActionError } from "./ai-status";
-import { FORMULA_PRESERVATION_RULE, NOTE_CALC_GUIDE, TABLE_FORMULA_GUIDE } from "@/app/editor/utils/formula-ai-guide";
-import { HERMES_SYNTAX_GUIDE, SYNTAX_PRESERVATION_RULE } from "@/app/editor/utils/hermes-syntax-guide";
 
 export type AIProvider = 'claude' | 'gemini';
 
@@ -15,7 +13,7 @@ const getFromStorage = (key: string) => {
   }
 };
 
-const getAIConfig = () => {
+export const getAIConfig = () => {
   const provider = (getFromStorage("hermes_ai_provider") as AIProvider) || 'claude';
   const apiKey = getFromStorage(`hermes_${provider}_key`);
   const modelKey = getFromStorage("selectedAiModel") || (provider === 'claude' ? 'sonnet-5' : 'gemini-3.5-flash');
@@ -26,6 +24,9 @@ const getAIConfig = () => {
 
   return { provider, apiKey, modelKey };
 };
+
+// Whether the AI companion may search the web (Settings → AI Features).
+export const isWebSearchEnabled = () => getFromStorage("hermes_ai_web_search") === true;
 
 export const beautifyAIError = (error: string) => {
   const lowerError = error.toLowerCase();
@@ -94,9 +95,6 @@ async function postAI(body: Record<string, unknown>, fallbackError: string) {
 }
 
 /**
- * Fetches available Gemini models using a direct REST call for maximum compatibility.
- */
-/**
  * Fetches available Claude models via the server proxy (Anthropic's API doesn't
  * allow direct browser calls, unlike Gemini's).
  */
@@ -145,68 +143,6 @@ export async function fetchGeminiModels(apiKey: string) {
 }
 
 /**
- * Multi-turn chat generation for the AI Chat dialog.
- */
-export type ApiPart =
-  | { type: 'text'; text: string }
-  | { type: 'image'; image: string; mimeType: string };
-
-export type ApiMessage = {
-  role: 'user' | 'assistant';
-  content: string | ApiPart[];
-};
-
-// With tools: what the model asked the client to run.
-export type AIToolCall = { toolCallId: string; toolName: string; input: unknown };
-
-// A message of a tool exchange, passed through as the AI SDK shaped it
-// (assistant tool calls from `responseMessages`, or a 'tool' result).
-export type ToolExchangeMessage = { role: 'assistant' | 'tool'; content: unknown };
-
-export type AIChatTurn = {
-  text: string;
-  toolCalls?: AIToolCall[];
-  /** The assistant's turn as the AI SDK shaped it; send back before the tool results. */
-  responseMessages?: ToolExchangeMessage[];
-};
-
-/**
- * One chat request with AI Chat's tools on (app/api/ai/chat-tools.ts): the
- * reply's text, or the tool calls for the client to run and answer.
- */
-export async function callAIChatTurn(system: string, messages: (ApiMessage | ToolExchangeMessage)[]): Promise<AIChatTurn> {
-  const seq = beginAiAction("Thinking…");
-  try {
-    const config = getAIConfig();
-    const data = await postAI({ action: 'chat', ...config, system, messages, tools: true }, "Failed to generate response");
-    finishAiActionSuccess(seq, "Done");
-    return { text: data.text ?? "", toolCalls: data.toolCalls, responseMessages: data.responseMessages };
-  } catch (error: any) {
-    console.error("AI Chat Error:", error);
-    const message = beautifyAIError(error.message || "An unexpected error occurred.");
-    finishAiActionError(seq, message);
-    throw new Error(message);
-  }
-}
-
-export async function callAIChat(system: string, messages: ApiMessage[]) {
-  const seq = beginAiAction("Thinking…");
-
-  try {
-    const config = getAIConfig();
-    const data = await postAI({ action: 'chat', ...config, system, messages }, "Failed to generate response");
-
-    finishAiActionSuccess(seq, "Done");
-    return data.text as string;
-  } catch (error: any) {
-    console.error("AI Chat Error:", error);
-    const message = beautifyAIError(error.message || "An unexpected error occurred.");
-    finishAiActionError(seq, message);
-    throw new Error(message);
-  }
-}
-
-/**
  * Simple text generation for Summarize, Expand, Improve features.
  */
 export async function callAI(system: string, prompt: string) {
@@ -224,76 +160,6 @@ export async function callAI(system: string, prompt: string) {
     finishAiActionError(seq, message);
     throw new Error(message);
   }
-}
-
-/**
- * Structured object generation for Frontmatter feature.
- */
-export async function generateFrontmatterData(noteBody: string) {
-  const seq = beginAiAction("Generating frontmatter…");
-
-  try {
-    const config = getAIConfig();
-    const response = await fetch('/api/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'object',
-        ...config,
-        noteBody
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Failed to generate structured frontmatter");
-
-    finishAiActionSuccess(seq, "Frontmatter generated");
-    return data.object;
-  } catch (error: any) {
-    console.error("AI Structured Data Error:", error);
-    const message = beautifyAIError(error.message || "Failed to generate structured frontmatter.");
-    finishAiActionError(seq, message);
-    throw new Error(message);
-  }
-}
-
-/**
- * Fixes structural/formatting issues across the whole document (frontmatter,
- * headings, syntax) in a single pass, returning the corrected markdown.
- */
-export async function generateContentFix(content: string, issues: string[]) {
-  const system = `You are an expert markdown editor. Fix the structural and formatting issues listed below in the given document, while preserving its meaning and existing information.
-Rules:
-- Preserve existing frontmatter values that are already correct; only fill in or fix what's missing or wrong.
-- Keep the body content's meaning intact — only restructure headings, fences, bullets, tables, bold, etc. as needed to resolve the listed issues.
-- ${FORMULA_PRESERVATION_RULE}
-- ${SYNTAX_PRESERVATION_RULE}
-- Return ONLY the complete corrected markdown document (including frontmatter) — no commentary, no explanation, no wrapping code fences.`;
-
-  const prompt = `Issues to fix:\n${issues.map((i) => `- ${i}`).join("\n")}\n\n--- DOCUMENT ---\n${content}`;
-
-  const text = await callAI(system, prompt);
-  const fenceMatch = text.trim().match(/^```(?:markdown|md)?\n([\s\S]*?)\n```$/);
-  return fenceMatch ? fenceMatch[1] : text.trim();
-}
-
-/**
- * Generates a complete markdown note (body + frontmatter metadata) from a user prompt.
- */
-export async function generateFileFromPrompt(userPrompt: string) {
-  const system =
-    `You are a markdown note writer. Write a well-structured, informative markdown note based on the user's prompt. Use headers, lists, and code blocks where appropriate. Do not include YAML frontmatter. Return only the markdown content.
-
-${HERMES_SYNTAX_GUIDE}
-
-When the note needs a table with totals or other calculations, use formulas instead of precomputed numbers:
-${TABLE_FORMULA_GUIDE}
-
-For quick sums or estimates outside tables, use inline calculator lines:
-${NOTE_CALC_GUIDE}`;
-  const body = await callAI(system, userPrompt);
-  const meta = await generateFrontmatterData(body);
-  return { body, ...meta };
 }
 
 /**

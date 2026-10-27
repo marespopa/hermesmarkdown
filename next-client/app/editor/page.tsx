@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import ConflictDialog from "./components/ConflictDialog";
-import { atom, useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_isFileLoading, atom_isVaultRestoring, contentStore } from "@/app/atoms/atoms";
 import { flushAllBoardWrites } from "@/app/utils/board/board-flush";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
@@ -23,10 +23,6 @@ import RenderedBlockSourceDialog from "./components/RenderedBlockSourceDialog";
 import ImageDialog from "./components/ImageDialog";
 import TokenCostDialog from "./components/TokenCostDialog";
 import PdfExport from "./components/PdfExport";
-import { useAIEditorActions } from "./hooks/useAIEditorActions";
-import AIChatDialog from "./components/AIChatDialog";
-import { AIReviewDialog } from "./components/AIReviewDialog";
-import { AIThinkingOverlay } from "./components/AIThinkingOverlay";
 import { useRouter } from "next/navigation";
 import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_newNoteRequested, atom_saveRequested } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
@@ -42,9 +38,8 @@ import { useActiveFileUrlSync } from "./hooks/use-active-file-url";
 import { useFirstRun } from "./hooks/use-first-run";
 import { useChooseFolder } from "./hooks/use-choose-folder";
 import { showSuccessToast } from "@/app/components/Toastr";
+import { useOpenCompanion } from "./components/companion/use-open-companion";
 import { downloadMarkdown } from "@/app/utils/download-markdown";
-
-const NO_TEXT = atom("");
 
 export default function LiteEditor() {
   const router = useRouter();
@@ -57,9 +52,6 @@ export default function LiteEditor() {
   const isFileLoading = useAtomValue(atom_isFileLoading);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const aiBuilderRequest = useAtomValue(atom_aiBuilderRequest);
-  // Single AI-chat/actions session shared by the whole app (not one per
-  // pane): targets whichever CM6 view is currently active.
-  const aiActions = useAIEditorActions();
   const isMobileChrome = useIsMobileChrome();
   const visibleViewport = useVisibleViewport();
   const {
@@ -94,18 +86,17 @@ export default function LiteEditor() {
   useFirstRun(isMobileChrome);
   const chooseFolder = useChooseFolder(materializeDraft);
 
-  // "Open AI Chat" (keyboard shortcut / command palette) bumps this counter
-  // from outside the editor; the actual open() call has to happen here since
-  // it needs the current selection at request time, not whenever this atom
-  // last changed.
-  const { openChat: openAiChat } = aiActions;
+  // Ask AI (Ctrl/Cmd+J, the palette, the slash menu) bumps
+  // this counter from outside the editor; the companion opens here with the
+  // selection read at request time, not whenever this atom last changed.
+  const openCompanion = useOpenCompanion();
   const prevAiBuilderRequestRef = useRef(aiBuilderRequest);
   useEffect(() => {
     if (aiBuilderRequest !== prevAiBuilderRequestRef.current) {
       prevAiBuilderRequestRef.current = aiBuilderRequest;
-      openAiChat();
+      openCompanion();
     }
-  }, [aiBuilderRequest, openAiChat]);
+  }, [aiBuilderRequest, openCompanion]);
 
   useSyncCurrentDirectory(activeFilePath, isVaultPending, syncCurrentDirectoryToPath);
   // Until the saved vault is readable, the editor
@@ -136,9 +127,6 @@ export default function LiteEditor() {
     const frame = requestAnimationFrame(() => setIsMounting(false));
     return () => cancelAnimationFrame(frame);
   }, []);
-
-  // The note's text for AI Chat, followed only while it's open.
-  const chatContent = useAtomValue(aiActions.isChatOpen ? atom_content : NO_TEXT);
 
   const handleSave = useCallback(async () => {
     // A board's pending stroke goes into the store first; read from there.
@@ -220,7 +208,6 @@ export default function LiteEditor() {
         onOpenTemplates={() => navigateWithGuard("/editor/templates", "Templates")}
         onRefreshVault={handleRefreshVault}
         onImport={handleImport}
-        onRunAIAction={aiActions.runAIActionById}
       />
       {/* On the feed, its skeleton (gate, then the main area) leads straight into it. */}
       <LoadingOverlay isVisible={!!navigatingLabel} text={`${navigatingLabel}...`} />
@@ -228,12 +215,13 @@ export default function LiteEditor() {
           it takes >150ms) signals the read + re-render instead of a full veil. */}
       <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />
       <div
-        className={`app-sheet fixed inset-y-0 right-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none`}
+        className={`app-sheet fixed inset-y-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none`}
         // Past the open sidebar, sliding with it (EditorShell); the whole
         // window on mobile.
         style={{
           left: "var(--content-left, 0px)",
-          transition: "left var(--layout-duration) var(--ease-layout), background-color 500ms, color 500ms",
+          right: "var(--content-right, 0px)",
+          transition: "left var(--layout-duration) var(--ease-layout), right var(--layout-duration) var(--ease-layout), background-color 500ms, color 500ms",
           ...visibleViewport,
         } as CSSProperties}
       >
@@ -261,7 +249,7 @@ export default function LiteEditor() {
             {isMobileChrome && !isVaultLocked && (
               <MobileFileIndicator
                 onSave={() => handleSaveRef.current()}
-                onOpenAIChat={isAiConfigured ? openAiChat : undefined}
+                onOpenAIChat={isAiConfigured ? openCompanion : undefined}
               />
             )}
             <div className="relative flex-1 min-h-0">
@@ -294,24 +282,8 @@ export default function LiteEditor() {
 
         <SelectionToolbar
           placement={isMobileChrome ? "docked" : "above"}
-          onAsk={isAiConfigured ? aiActions.openChat : undefined}
-          isAiLoading={aiActions.isAiLoading}
+          onAsk={isAiConfigured ? openCompanion : undefined}
         />
-        <AIChatDialog
-          isOpen={aiActions.isChatOpen}
-          onClose={aiActions.closeChat}
-          documentContent={chatContent}
-          selectedText={aiActions.chatSelectedText}
-          currentFilePath={activeFilePath ?? undefined}
-          onApply={aiActions.applyFromChat}
-        />
-        <AIReviewDialog
-          review={aiActions.aiReview}
-          onClose={aiActions.dismissReview}
-          onReplace={aiActions.applyReplace}
-          onInsertBelow={aiActions.applyInsertBelow}
-        />
-        {aiActions.isAiLoading && <AIThinkingOverlay />}
       </div>
     </ErrorBoundary>
   );

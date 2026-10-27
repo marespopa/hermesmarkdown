@@ -21,7 +21,6 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     onOpenTemplates: vi.fn(),
     onRefreshVault: vi.fn(),
     onImport: vi.fn(),
-    onRunAIAction: vi.fn(),
     router: { push: vi.fn() },
     openVault: vi.fn(),
     vaultHandle: {
@@ -237,18 +236,15 @@ describe("buildEditorCommands", () => {
     expect(commands.some((command) => command.id.startsWith("ai-"))).toBe(false);
   });
 
-  it("collapses the AI actions into one menu of four modes", () => {
-    const commands = buildEditorCommands(createContext());
-    const menu = commands.find((command) => command.id === "ai-menu");
-    expect(menu?.label).toBe("Ask or Edit with AI…");
-    expect(menu?.subcommands?.map((mode) => mode.label)).toEqual([
-      "Freeform Prompt", "Improve Writing", "Summarize / Structure", "Insert Element",
-    ]);
-    const mode = (label: string) => menu?.subcommands?.find((item) => item.label === label)?.subcommands?.map((item) => item.id);
-    expect(mode("Improve Writing")).toEqual(expect.arrayContaining(["ai-improve", "ai-fix-grammar", "ai-tone-formal"]));
-    expect(mode("Summarize / Structure")).toEqual(expect.arrayContaining(["ai-summarize", "ai-extract-tasks", "ai-outline"]));
-    expect(mode("Insert Element")).toEqual(["ai-table", "ai-diagram", "ai-formula"]);
+  it("offers one Ask AI command that opens the companion", () => {
+    const context = createContext();
+    const commands = buildEditorCommands(context);
+    const ask = commands.find((command) => command.id === "ai-menu");
+    expect(ask?.label).toBe("Ask AI");
+    expect(ask?.subcommands).toBeUndefined();
     expect(commands.filter((command) => command.category === "AI").map((command) => command.id)).toEqual(["ai-menu"]);
+    ask?.action();
+    expect(context.setAiBuilderRequest).toHaveBeenCalledOnce();
   });
 
   it("preserves availability reasons and action callbacks", () => {
@@ -262,11 +258,10 @@ describe("buildEditorCommands", () => {
     const command = (id: string) => flatten(commands).find((candidate) => candidate.id === id);
 
     expect(command("format-bold")?.disabledReason).toBe("Open and focus a note first");
-    expect(command("ai-improve")?.disabledReason).toBe("Add an API key in Settings → AI Features");
+    expect(command("ai-menu")?.disabledReason).toBe("Add an API key in Settings → AI Features");
 
     command("save-file")?.action();
     command("open-tasks-panel")?.action();
-    command("ai-improve")?.action();
     command("new-folder")?.action();
     command("rename-current-file")?.action();
     command("delete-current-file")?.action();
@@ -274,7 +269,6 @@ describe("buildEditorCommands", () => {
     expect(context.onSave).toHaveBeenCalledOnce();
     expect(commands.some((candidate) => candidate.id === "open-explorer" || candidate.id === "show-files")).toBe(false);
     expect(context.onOpenTasks).toHaveBeenCalledOnce();
-    expect(context.onRunAIAction).toHaveBeenCalledWith("improve");
     expect(context.createFolder).toHaveBeenCalledOnce();
     expect(context.renameFile).toHaveBeenCalledWith(context.activeFileHandle, undefined, context.activeFilePath);
     expect(context.deleteFile).toHaveBeenCalledWith(context.activeFileHandle, context.activeFilePath);

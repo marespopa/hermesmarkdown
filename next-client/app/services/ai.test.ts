@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { beautifyAIError, callAIChat } from "./ai";
+import { beautifyAIError, callAI } from "./ai";
 
 describe("beautifyAIError", () => {
   it.each([
@@ -12,7 +12,7 @@ describe("beautifyAIError", () => {
   });
 });
 
-describe("callAIChat errors", () => {
+describe("callAI errors", () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
@@ -27,7 +27,7 @@ describe("callAIChat errors", () => {
       status: 500,
       json: async () => ({ error: "API key not valid. Please pass a valid API key." }),
     }));
-    await expect(callAIChat("s", [{ role: "user", content: "hi" }])).rejects.toThrow(/Settings/);
+    await expect(callAI("s", "hi")).rejects.toThrow(/Settings/);
   });
 
   it("rejects with a timeout message when the proxy never answers", async () => {
@@ -36,7 +36,7 @@ describe("callAIChat errors", () => {
     vi.stubGlobal("fetch", vi.fn((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
       init.signal?.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })));
     })));
-    const assertion = expect(callAIChat("s", [{ role: "user", content: "hi" }])).rejects.toThrow(/within 2 minutes/);
+    const assertion = expect(callAI("s", "hi")).rejects.toThrow(/within 2 minutes/);
     await vi.advanceTimersByTimeAsync(120_001);
     await assertion;
   });

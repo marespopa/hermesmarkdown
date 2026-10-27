@@ -9,6 +9,7 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_remapVaultPaths, type FileUndoGroup } from "@/app/atoms/vault-atoms";
+import type { FileUndoGroupRef } from "./use-file-undo";
 import { useRewriteLinksAfterMove } from "./use-rewrite-links";
 import { useDialog } from "../use-dialog";
 import { withBusyPaths } from "./busy-paths";
@@ -30,7 +31,7 @@ async function renamedOnDisk(dir: FileSystemDirectoryHandle, from: string, to: s
 interface UseRenameItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
   indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
-  recordUndo: (label: string, moves: FileUndoGroup["moves"]) => FileUndoGroup | null;
+  recordUndo: (label: string, moves: FileUndoGroup["moves"], group?: FileUndoGroupRef) => FileUndoGroup | null;
 }
 
 // Renames quietly (the new name shows where the item is); ⌘Z in the file
@@ -45,7 +46,7 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
 
   const renameFile = useCallback(
     // Resolves to the item's new vault path once renamed.
-    async (handle: FileSystemHandle, requestedName?: string, itemPath?: string): Promise<string | undefined> => {
+    async (handle: FileSystemHandle, requestedName?: string, itemPath?: string, undoGroup?: FileUndoGroupRef): Promise<string | undefined> => {
       if (!vaultHandle) return;
       // The item's name now: from the caller's path, which follows renames,
       // rather than the handle's, which can be an older handle's (a note in
@@ -203,7 +204,7 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
         // that includes everything inside it.
         try {
           await remapVaultPaths({ oldPath, newPath });
-          recordUndo("Rename", [{ from: oldPath, to: newPath }]);
+          recordUndo("Rename", [{ from: oldPath, to: newPath }], undoGroup);
           // Links to the renamed note(s) follow it; a failure here never
           // undoes the rename or skips the rescan.
           try {

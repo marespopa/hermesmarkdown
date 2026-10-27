@@ -25,7 +25,7 @@ describe("KeyboardShortcutsOverlay", () => {
     renderOpen();
     expect(screen.getByText("Save")).toBeTruthy();
     expect(screen.getByText("Show Files")).toBeTruthy();
-    expect(screen.getByText("AI Chat (with an AI key)")).toBeTruthy();
+    expect(screen.getByText("Ask AI (AI features on)")).toBeTruthy();
   });
 
   it("lists formatting shortcuts without registered commands", () => {

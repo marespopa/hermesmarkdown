@@ -27,10 +27,11 @@ interface UseFileCrudProps {
  * Main hook for File System CRUD operations.
  * Composes specialized hooks for creation, deletion (to the vault's Trash),
  * renaming, moving, importing, notes created from vault templates, and the
- * undo of renames, moves and moves to Trash.
+ * undo of renames, moves and moves to Trash (and of the AI companion's
+ * grouped changes, `recordSteps`).
  */
 export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrudProps) {
-  const { recordUndo, undoFileOperation } = useFileUndo({ scanVault, indexVaultTags });
+  const { recordUndo, recordSteps, undoFileOperation } = useFileUndo({ scanVault, indexVaultTags });
 
   const { chooseTargetDirectory, createFile, createNewFile, createFolder } = useCreateItem({
     scanVault,
@@ -114,6 +115,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
   return {
     chooseTargetDirectory,
     ...held,
+    recordSteps,
     createWikiLinkFile,
     importFile,
     readTemplate,

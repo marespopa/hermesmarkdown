@@ -218,9 +218,9 @@ export const TEMPLATES: Template[] = [
   },
   // --- AI ---
   {
-    label: "AI Chat",
+    label: "Ask AI",
     icon: "✨",
-    description: "Open AI Chat with the current note and selection",
+    description: "Open the AI panel with the current note and selection",
     aliases: ["ai", "chat", "ask"],
     content: AI_CHAT_SENTINEL,
     aiOnly: true,

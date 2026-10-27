@@ -6,15 +6,22 @@ import toast from "react-hot-toast";
 import {
   atom_fileUndoStack,
   atom_remapVaultPaths,
+  atom_undoneFileGroups,
   atom_vaultHandle,
   FILE_UNDO_LIMIT,
+  resolveFileHandleAtPath,
   type FileUndoGroup,
+  type FileUndoOutcome,
+  type FileUndoStep,
 } from "@/app/atoms/vault-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { useRewriteLinksAfterMove } from "./use-rewrite-links";
+import { useNoteBuffer } from "./use-note-buffer";
 import { isTrashPath } from "@/app/services/vault-trash";
-import { relocateEntry } from "./directory-ops";
+import { textFingerprint } from "@/app/workers/replace-search";
+import { directoryAtPath, relocateEntry } from "./directory-ops";
 import { removeEmptyTrashSlot } from "./trash-ops";
+import { withRetry } from "./shared";
 import { withBusyPaths } from "./busy-paths";
 import type { BusyPath } from "@/app/atoms/busy-path-atoms";
 
@@ -23,15 +30,59 @@ interface UseFileUndoProps {
   indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
 }
 
-// Records undoable file actions and takes the latest one back: every item
-// moves from its `to` path back to `from` (out of the Trash, back to its old
-// folder, or back to its old name), newest first.
+// A group many changes share (an AI companion turn): its id and the label
+// it's created with.
+export interface FileUndoGroupRef {
+  id: string;
+  label: string;
+}
+
+const splitPath = (path: string) => {
+  const at = path.lastIndexOf("/");
+  return { folder: at < 0 ? "" : path.slice(0, at), name: path.slice(at + 1) };
+};
+
+const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? "" : "s"}`;
+
+// Records undoable file actions and takes the latest one back, newest step
+// first: every moved item goes from its `to` path back to `from` (out of the
+// Trash, back to its old folder, or back to its old name); in a group with
+// steps (an AI companion turn), edited files get their text from before
+// (through the note buffer, so an open tab shows it) and created files and
+// folders are removed, each only while it still holds what the group left.
 export function useFileUndo({ scanVault, indexVaultTags }: UseFileUndoProps) {
   const store = useStore();
   const remapVaultPaths = useSetAtom(atom_remapVaultPaths);
   const rewriteLinks = useRewriteLinksAfterMove();
+  const { writeThrough, readCurrentText } = useNoteBuffer();
 
-  const recordUndo = useCallback((label: string, moves: FileUndoGroup["moves"]): FileUndoGroup | null => {
+  // Adds `steps` to the group with `ref.id` (made, newest, when there's
+  // none), or with a function, replaces its steps with what it returns.
+  const recordSteps = useCallback((
+    ref: FileUndoGroupRef,
+    update: FileUndoStep[] | ((steps: FileUndoStep[]) => FileUndoStep[]),
+  ): FileUndoGroup | null => {
+    const vault = store.get(atom_vaultHandle);
+    if (!vault) return null;
+    let group: FileUndoGroup | null = null;
+    store.set(atom_fileUndoStack, (prev) => {
+      const stack = prev.filter((g) => g.vault === vault);
+      const existing = stack.find((g) => g.id === ref.id);
+      const current = existing?.steps ?? [];
+      const steps = typeof update === "function" ? update(current) : [...current, ...update];
+      if (steps.length === 0) return prev;
+      const moves = steps.flatMap((step) => (step.kind === "move" ? [{ from: step.from, to: step.to }] : []));
+      group = { vault, label: existing?.label ?? ref.label, id: ref.id, steps, moves };
+      return existing
+        ? stack.map((g) => (g === existing ? group! : g))
+        : [...stack.slice(-(FILE_UNDO_LIMIT - 1)), group];
+    });
+    return group;
+  }, [store]);
+
+  // With `ref`, the moves join that group instead of making their own.
+  const recordUndo = useCallback((label: string, moves: FileUndoGroup["moves"], ref?: FileUndoGroupRef): FileUndoGroup | null => {
+    if (ref) return recordSteps(ref, moves.map((move) => ({ kind: "move" as const, ...move })));
     const vault = store.get(atom_vaultHandle);
     if (!vault || moves.length === 0) return null;
     const group = { vault, label, moves };
@@ -40,10 +91,40 @@ export function useFileUndo({ scanVault, indexVaultTags }: UseFileUndoProps) {
       group,
     ]);
     return group;
-  }, [store]);
+  }, [store, recordSteps]);
 
-  // With `expected` (a toast's Undo), only that action is undone, and only
-  // while it is still the latest one.
+  // One step back. Moves throw on failure; the rest answer how it went.
+  const undoStep = useCallback(async (vault: FileSystemDirectoryHandle, step: FileUndoStep): Promise<"restored" | "skipped"> => {
+    if (step.kind === "move") {
+      await relocateEntry(vault, step.to, step.from);
+      if (isTrashPath(step.to)) await removeEmptyTrashSlot(vault, step.to);
+      else await remapVaultPaths({ oldPath: step.to, newPath: step.from });
+      return "restored";
+    }
+    if (step.kind === "content") {
+      const handle = await resolveFileHandleAtPath(vault, step.path);
+      const { result } = await writeThrough(step.path, handle, (text) => (textFingerprint(text) === step.afterFingerprint ? step.before : null));
+      if (result === "failed") throw new Error(`Couldn't save ${step.path}`);
+      return result === "written" ? "restored" : "skipped";
+    }
+    const { folder, name } = splitPath(step.path);
+    const parent = await directoryAtPath(vault, folder);
+    if (step.kind === "create") {
+      if (textFingerprint(await readCurrentText(step.path)) !== step.afterFingerprint) return "skipped";
+      await withRetry(() => parent.removeEntry(name));
+      return "restored";
+    }
+    // A folder the group made goes only while it's empty.
+    const dir = await parent.getDirectoryHandle(name);
+    for await (const entry of (dir as any).values()) {
+      if (entry) return "skipped";
+    }
+    await withRetry(() => parent.removeEntry(name));
+    return "restored";
+  }, [remapVaultPaths, writeThrough, readCurrentText]);
+
+  // With `expected` (a toast's Undo, or Undo turn), only that action is
+  // undone, and only while it is still the latest one.
   const undoFileOperation = useCallback(async (expected?: FileUndoGroup): Promise<boolean> => {
     const vault = store.get(atom_vaultHandle);
     const stack = store.get(atom_fileUndoStack);
@@ -52,59 +133,67 @@ export function useFileUndo({ scanVault, indexVaultTags }: UseFileUndoProps) {
       toast("Nothing to undo", { id: "file-undo" });
       return false;
     }
-    if (expected && group !== expected) {
-      toast(stack.includes(expected) ? "Undo the later changes first" : "That change can no longer be undone", { id: "file-undo" });
+    // A group with an id is replaced as it grows, so it's matched by id.
+    const isExpected = (g: FileUndoGroup) => g === expected || (!!expected?.id && g.id === expected.id);
+    if (expected && !isExpected(group)) {
+      toast(stack.some(isExpected) ? "Undo the later changes first" : "That change can no longer be undone", { id: "file-undo" });
       return false;
     }
     store.set(atom_fileUndoStack, stack.slice(0, -1));
 
-    // Both ends of every move: the item shows at one of them meanwhile.
-    const busy = group.moves.flatMap(({ from, to }) => [from, to]).map((path): [string, BusyPath] => [path, { op: "undo" }]);
+    const steps: FileUndoStep[] = group.steps ?? group.moves.map((move) => ({ kind: "move" as const, ...move }));
+    // Every path a step touches: the item shows at one of them meanwhile.
+    const busy = steps
+      .flatMap((step) => (step.kind === "move" ? [step.from, step.to] : [step.path]))
+      .map((path): [string, BusyPath] => [path, { op: "undo" }]);
     return withBusyPaths(store, busy, async () => {
-      let failed = 0;
+      const outcome: FileUndoOutcome = { restored: 0, skipped: [], failed: [] };
       const before = store.get(atom_fileMetadata);
       const reverseMoves: { from: string; to: string }[] = [];
-      for (const { from, to } of [...group.moves].reverse()) {
+      for (const step of [...steps].reverse()) {
+        const path = step.kind === "move" ? step.from : step.path;
         try {
-          await relocateEntry(vault, to, from);
-          if (isTrashPath(to)) await removeEmptyTrashSlot(vault, to);
+          if ((await undoStep(vault, step)) === "skipped") outcome.skipped.push(path);
           else {
-            await remapVaultPaths({ oldPath: to, newPath: from });
-            reverseMoves.push({ from: to, to: from });
+            outcome.restored++;
+            if (step.kind === "move" && !isTrashPath(step.to)) reverseMoves.push({ from: step.to, to: step.from });
           }
         } catch (err) {
-          console.error(`Failed to undo ${group.label} for ${from}:`, err);
-          failed++;
+          console.error(`Failed to undo ${group.label} for ${path}:`, err);
+          outcome.failed.push(path);
         }
       }
       // Undoing a rename/move restores the link text with the reverse mapping
       // (never for Trash moves). Failures only toast; the undo stands.
       if (reverseMoves.length > 0) {
         try {
-          const outcome = await rewriteLinks(before, reverseMoves);
-          if (outcome.failed > 0) {
-            toast.error(`Couldn't update links in ${outcome.failed} note${outcome.failed === 1 ? "" : "s"}`, { id: "file-undo-links" });
+          const links = await rewriteLinks(before, reverseMoves);
+          if (links.failed > 0) {
+            toast.error(`Couldn't update links in ${plural(links.failed, "note")}`, { id: "file-undo-links" });
           }
         } catch (err) {
           console.error("Link update failed:", err);
           toast.error("Couldn't update links", { id: "file-undo-links" });
         }
       }
+      if (group.id) store.set(atom_undoneFileGroups, (prev) => ({ ...prev, [group.id!]: outcome }));
       await scanVault(vault);
       void indexVaultTags();
-      if (failed === 0) {
-        toast.success(`Undo ${group.label}`, { id: "file-undo" });
+      const { failed, skipped } = outcome;
+      if (failed.length === 0) {
+        const note = skipped.length ? ` · ${plural(skipped.length, "file")} changed since, left as is` : "";
+        toast.success(`Undo ${group.label}${note}`, { id: "file-undo" });
         return true;
       }
       toast.error(
-        failed === group.moves.length
+        failed.length === steps.length
           ? `Couldn't undo ${group.label}`
-          : `Undo ${group.label}: ${failed} of ${group.moves.length} items couldn't be restored`,
+          : `Undo ${group.label}: ${failed.length} of ${steps.length} items couldn't be restored`,
         { id: "file-undo" },
       );
       return false;
     });
-  }, [store, remapVaultPaths, rewriteLinks, scanVault, indexVaultTags]);
+  }, [store, undoStep, rewriteLinks, scanVault, indexVaultTags]);
 
-  return { recordUndo, undoFileOperation };
+  return { recordUndo, recordSteps, undoFileOperation };
 }

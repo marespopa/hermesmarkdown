@@ -8,10 +8,8 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 
 | Component | Role |
 |---|---|
-| [AIChatDialog](AIChatDialog.md) | Multi-turn AI chat about the current document and selection, with vault file references and apply modes (insert or replace all). |
-| [ai-chat/](ai-chat/README.md) | `AIChatDialog` building blocks: helpers, model and @mention hooks, message item, mention menu, context chips. |
-| [AIReviewDialog](AIReviewDialog.md) | Word-level diff review of an AI suggestion against the original text, with an editable suggestion and replace or insert-below actions. |
-| [AIThinkingOverlay](AIThinkingOverlay.md) | Portaled busy indicator with rotating status messages, shown while an AI request is in flight. |
+| [companion/](companion/README.md) | The AI companion: a panel on the trailing edge that streams, reads the vault, edits notes and code files, and undoes a whole turn at once. |
+| [ai-chat/](ai-chat/README.md) | Shared AI building blocks the companion uses: @mention and model hooks, skills, the note tools, mention menu, context chips. |
 | [CalloutTypeMenu](CalloutTypeMenu.md) | Dropdown of callout types, opened right after inserting a callout from the slash menu; picking one rewrites `[!type]`. |
 | [ConflictDialog](ConflictDialog.md) | Resolves an on-disk change to the open file by reloading from disk, keeping the current text, or merging manually (conflict markers, with per-side resolution). |
 | [DraftImportDialog](DraftImportDialog.md) | Confirms before an imported file replaces a non-empty draft. |

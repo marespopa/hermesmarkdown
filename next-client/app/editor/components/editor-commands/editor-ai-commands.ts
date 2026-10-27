@@ -27,7 +27,6 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     activeFilePath,
     isAiEnabled,
     isAiConfigured,
-    onRunAIAction,
     runEditorCommand,
     setAiBuilderRequest,
   } = context;
@@ -105,71 +104,18 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
       },
     }));
 
-  // One AI entry, Ask or Edit with AI… (Ctrl/Cmd+J), a menu of four modes
-  // instead of every prompt as its own command: Freeform Prompt (AI Chat),
-  // then Improve Writing, Summarize / Structure and Insert Element, each a
-  // menu of one-click actions. With AI Features off, there is no menu at all.
+  // One AI entry, Ask AI (Ctrl/Cmd+J): opens the AI companion with the note
+  // in front and its selection. With AI Features off, there is none.
   const noKey = isAiConfigured ? undefined : "Add an API key in Settings → AI Features";
-  const aiAction = (id: string, label: string, keywords: string): Command => ({
-    id: `ai-${id}`,
-    label,
-    category: "AI",
-    keywords,
-    disabledReason: noKey ?? (activeEditorView ? undefined : "Open and focus a note first"),
-    action: () => onRunAIAction(id),
-  });
-  const aiMode = (id: string, label: string, description: string, keywords: string, subcommands: Command[]): Command => ({
-    id: `ai-mode-${id}`,
-    label,
-    description,
-    category: "AI",
-    keywords,
-    subcommands,
-    action: () => {},
-  });
   const aiMenu: Command[] = !isAiEnabled ? [] : [{
     id: "ai-menu",
-    label: "Ask or Edit with AI…",
+    label: "Ask AI",
+    description: "Open the AI panel",
     category: "AI",
     shortcut: formatShortcut("J"),
-    keywords: "ai assistant chat prompt ask rewrite improve grammar tone summarize outline tasks table diagram mermaid formula",
-    subcommands: [
-      {
-        id: "ai-builder",
-        label: "Freeform Prompt",
-        description: "Ask anything in AI Chat",
-        category: "AI",
-        shortcut: formatShortcut("B", { shift: true }),
-        keywords: "ai chat generate create revise section ask type anything",
-        disabledReason: noKey,
-        action: () => setAiBuilderRequest((value) => value + 1),
-      },
-      aiMode("improve", "Improve Writing", "Fix grammar, adjust tone, format", "rewrite edit polish grammar spelling tone shorten expand", [
-        aiAction("improve", "Improve writing", "clarity flow concise rewrite"),
-        aiAction("fix-grammar", "Fix spelling and grammar", "proofread typos"),
-        aiAction("shorten", "Shorten selection", "compress concise trim"),
-        aiAction("expand", "Expand selection", "elaborate longer idea"),
-        aiAction("continue", "Continue writing", "next paragraph more"),
-        aiAction("tone-formal", "Change tone to formal", "tone voice"),
-        aiAction("tone-casual", "Change tone to casual", "tone voice"),
-        aiAction("tone-direct", "Change tone to direct", "tone voice"),
-        aiAction("tone-polished", "Change tone to polished", "tone voice"),
-      ]),
-      aiMode("structure", "Summarize / Structure", "Extract tasks, key points, outline", "summary summarize tasks todos outline key points title explain properties frontmatter metadata", [
-        aiAction("summarize", "Summarize selection", "summary key points tldr"),
-        aiAction("extract-tasks", "Extract tasks", "todos checklist action items"),
-        aiAction("outline", "Create outline", "headings structure bullets"),
-        aiAction("title", "Generate title", "name heading"),
-        aiAction("properties", "Suggest properties", "frontmatter metadata yaml title description tags auto fill"),
-        aiAction("explain", "Explain selection", "simplify meaning"),
-      ]),
-      aiMode("insert", "Insert Element", "Generate a table, Mermaid diagram or formula", "generate table diagram mermaid chart flowchart formula math calculation", [
-        aiAction("table", "Generate table", "pipe table columns rows"),
-        aiAction("diagram", "Generate Mermaid diagram", "mermaid chart flowchart sequence timeline"),
-        aiAction("formula", "Generate formula", "math equation calculation spreadsheet katex"),
-      ]),
-    ],
-    action: () => {},
+    keywords: "ai assistant chat prompt ask companion rewrite improve summarize edit",
+    disabledReason: noKey,
+    action: () => setAiBuilderRequest((value) => value + 1),
   }];
 
   return { aiMenu, focusAndHistory, editor, templates };

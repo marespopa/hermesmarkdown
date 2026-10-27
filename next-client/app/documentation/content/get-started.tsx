@@ -250,7 +250,7 @@ export const getStartedGroup: Group = {
             button and click it to save, or to try again. Click the name to rename the file in
             place: press <code>Enter</code> or click away to keep the new name, <code>Esc</code> to back out. The
             search bar in the top-right corner (or <code>CTRL/CMD+K</code>) opens the command palette, where every file
-            and command is: Save, Copy Contents, Export as PDF or HTML, Pin File, Settings, Documentation, Ask or Edit with AI and the rest.
+            and command is: Save, Copy Contents, Export as PDF or HTML, Pin File, Settings, Documentation, Ask AI and the rest.
             The editor keeps up to 20 files
             open behind the one in front; switch between them from the command palette
             (<code>CTRL/CMD+K</code>). Opening another closes the one you looked at least recently, never one
@@ -312,8 +312,7 @@ export const getStartedGroup: Group = {
               { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings · / file text" },
               { label: "Commands on or off", value: "The > button in the search field" },
               { label: "Files controls", value: "New file, new folder, and file actions" },
-              { label: "Ask or Edit with AI…", value: "CTRL/CMD+J" },
-              { label: "AI Chat", value: "CTRL+SHIFT+B" },
+              { label: "Ask AI (the AI companion)", value: "CTRL/CMD+J" },
               { label: "Keyboard shortcuts", value: "Show Keyboard Shortcuts command" },
             ]}
           />

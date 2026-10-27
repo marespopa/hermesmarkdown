@@ -15,15 +15,13 @@ Description: Renders nothing visible. It builds the editor's command-palette ent
 import EditorCommands from "./EditorCommands";
 
 <EditorCommands onNewFile={newFile} onSave={save} onExport={exportDoc} onImport={importFile}
-  onOpenTasks={openTasks} onOpenTemplates={openTemplates}
-  onRunAIAction={runAIAction} />
+  onOpenTasks={openTasks} onOpenTemplates={openTemplates} />
 ```
 
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | onNewFile / onSave / onExport / onImport | `() => void` |  | Document actions: New File, Save, Export as Markdown (`onExport`, always a .md download, never a save), Open File from Disk… (`onImport`) |
-| onRunAIAction | `(id: string) => void` |  | Runs a palette AI action (`improve`, `summarize`, …) |
 | onOpenTasks / onOpenTemplates | `() => void` |  | Navigation |
 | isMobileChrome? / onRefreshVault? |  |  | Mobile and vault helpers |
 

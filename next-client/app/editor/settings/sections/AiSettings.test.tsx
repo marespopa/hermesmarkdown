@@ -1,8 +1,8 @@
 import React from "react";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider, createStore } from "jotai";
-import { atom_aiEnabled, atom_claudeKey, atom_isAiConfigured, atom_webMcpEnabled } from "@/app/atoms/ui-atoms";
+import { atom_aiEnabled, atom_aiProvider, atom_aiWebSearchEnabled, atom_claudeKey, atom_isAiConfigured, atom_webMcpEnabled, atom_webMcpWritesEnabled } from "@/app/atoms/ui-atoms";
 import AiSettings from "./AiSettings";
 
 vi.mock("@/app/services/ai", () => ({
@@ -75,6 +75,30 @@ describe("AiSettings", () => {
 
     expect(store.get(atom_webMcpEnabled)).toBe(true);
     expect(store.get(atom_aiEnabled)).toBe(false);
+  });
+
+  it("lets Claude search the web once turned on, off by default, and not for Gemini", () => {
+    const store = renderWith((s) => s.set(atom_aiEnabled, true));
+    const webSearch = screen.getByRole("switch", { name: "Let the companion search the web" });
+    expect(webSearch).toHaveAttribute("aria-checked", "false");
+
+    fireEvent.click(webSearch);
+    expect(store.get(atom_aiWebSearchEnabled)).toBe(true);
+
+    act(() => store.set(atom_aiProvider, "gemini"));
+    expect(screen.queryByRole("switch", { name: "Let the companion search the web" })).toBeNull();
+  });
+
+  it("offers letting browser agents change notes only once they may read, off by default", () => {
+    const store = renderWith();
+    expect(screen.queryByRole("switch", { name: "Let browser agents change notes" })).toBeNull();
+
+    fireEvent.click(screen.getByRole("switch", { name: "Let browser agents read notes" }));
+    const writes = screen.getByRole("switch", { name: "Let browser agents change notes" });
+    expect(writes).toHaveAttribute("aria-checked", "false");
+
+    fireEvent.click(writes);
+    expect(store.get(atom_webMcpWritesEnabled)).toBe(true);
   });
 
   it("reads as on for a key saved before the switch existed", () => {

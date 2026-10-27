@@ -177,7 +177,7 @@ export const mobileGroup: Group = {
           <p>
             Selecting text shows the same toolbar on both: Turn into (text, headings, lists, quote), Bold, Italic, Link, and Ask AI
             when AI is set up. On desktop it sits above the selection; on mobile it sits at the bottom
-            of the screen, above the keyboard, clear of the phone&apos;s own Copy/Paste bar. AI Chat is also in the
+            of the screen, above the keyboard, clear of the phone&apos;s own Copy/Paste bar. Ask AI is also in the
             command palette.
           </p>
         </>

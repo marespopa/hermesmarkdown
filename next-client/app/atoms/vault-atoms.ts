@@ -25,18 +25,37 @@ export const atom_vaultFolderPaths = atom<string[]>([]);
 // listed in Files and opened as plain text, never indexed.
 export const atom_vaultTextFiles = atom<{ handle: FileSystemFileHandle; path: string }[]>([]);
 
-// File operations that can be undone (⌘Z in the file tree, or a toast's
-// Undo), newest last. Each group is one user action — a rename, a move or a
-// move to Trash — of one or more items, recorded as vault-relative
-// `from` → `to` paths; undoing moves each item back. Tied to the vault it
-// was recorded in.
+// File operations that can be undone (⌘Z in the file tree, a toast's Undo,
+// or the AI companion's Undo turn), newest last. Each group is one action —
+// a rename, a move or a move to Trash — of one or more items, recorded as
+// vault-relative `from` → `to` paths; undoing moves each item back. A group
+// with an `id` gathers many changes under one Undo (an AI companion turn, by
+// the id of the message that started it): its `steps` hold every change in
+// order — moves, edited files' text from before (with a fingerprint of the
+// text left, so a file edited since is skipped), created files and folders —
+// and `moves` its moves alone. Tied to the vault it was recorded in.
+export type FileUndoStep =
+  | { kind: "move"; from: string; to: string }
+  | { kind: "content"; path: string; before: string; afterFingerprint: string }
+  | { kind: "create"; path: string; afterFingerprint: string }
+  | { kind: "folder"; path: string };
 export interface FileUndoGroup {
   vault: FileSystemDirectoryHandle;
   label: string;
   moves: { from: string; to: string }[];
+  id?: string;
+  steps?: FileUndoStep[];
 }
 export const FILE_UNDO_LIMIT = 20;
 export const atom_fileUndoStack = atom<FileUndoGroup[]>([]);
+// How an undone group with an `id` came out, by id: what was put back, and
+// the files left as they were (changed since) or that couldn't be restored.
+export interface FileUndoOutcome {
+  restored: number;
+  skipped: string[];
+  failed: string[];
+}
+export const atom_undoneFileGroups = atom<Record<string, FileUndoOutcome>>({});
 export const atom_isVaultPending = atom<boolean>(false);
 export const atom_hasLoadedVault = atom<boolean>(false);
 // True until the saved vault's permission is known on startup: the editor

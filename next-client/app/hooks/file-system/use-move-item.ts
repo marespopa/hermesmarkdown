@@ -10,6 +10,7 @@ import {
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import type { FileUndoGroup } from "@/app/atoms/vault-atoms";
+import type { FileUndoGroupRef } from "./use-file-undo";
 import { useRewriteLinksAfterMove } from "./use-rewrite-links";
 import { writeFileContent } from "@/app/services/file-writer";
 import { moveDirectoryByCopy } from "./directory-ops";
@@ -20,7 +21,7 @@ import type { BusyPath } from "@/app/atoms/busy-path-atoms";
 interface UseMoveItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
   indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
-  recordUndo: (label: string, moves: FileUndoGroup["moves"]) => FileUndoGroup | null;
+  recordUndo: (label: string, moves: FileUndoGroup["moves"], group?: FileUndoGroupRef) => FileUndoGroup | null;
   undoFileOperation: (expected?: FileUndoGroup) => Promise<boolean>;
 }
 
@@ -201,8 +202,8 @@ export function useMoveItem({ scanVault, indexVaultTags, recordUndo, undoFileOpe
   // Moves items into `targetDir` as one action: one rescan, one toast and
   // one Undo for all of them.
   const moveItems = useCallback(
-    async (handles: FileSystemHandle[], targetDir: FileSystemDirectoryHandle) => {
-      if (!vaultHandle || !targetDir || handles.length === 0) return;
+    async (handles: FileSystemHandle[], targetDir: FileSystemDirectoryHandle, undoGroup?: FileUndoGroupRef): Promise<FileUndoGroup["moves"]> => {
+      if (!vaultHandle || !targetDir || handles.length === 0) return [];
       // The rows, where they are now and where they go, show a spinner
       // until the move and the rescan are done.
       const busy = await busyEntries(vaultHandle, handles, targetDir);
@@ -221,7 +222,7 @@ export function useMoveItem({ scanVault, indexVaultTags, recordUndo, undoFileOpe
             toast.error(err.message || `Failed to move ${handle.name}`);
           }
         }
-        if (movedCount === 0) return;
+        if (movedCount === 0) return moves;
 
         // Links that would stop resolving follow the move; a failure here
         // never undoes it or skips the rescan.
@@ -239,13 +240,15 @@ export function useMoveItem({ scanVault, indexVaultTags, recordUndo, undoFileOpe
 
         await scanVault(vaultHandle);
         indexVaultTags();
-        const group = recordUndo("Move", moves);
+        // In a group (an AI companion turn), its own Undo takes the move back.
+        const group = recordUndo("Move", moves, undoGroup);
         const base = movedCount === 1
           ? `Moved ${handles.length === 1 ? handles[0].name : "1 item"} to ${targetDir.name}`
           : `Moved ${movedCount} items to ${targetDir.name}`;
         const message = updated > 0 ? `${base} · updated links in ${updated} note${updated === 1 ? "" : "s"}` : base;
-        if (group) showUndoToast(message, () => void undoFileOperation(group));
+        if (group && !undoGroup) showUndoToast(message, () => void undoFileOperation(group));
         else toast.success(message);
+        return moves;
       });
     },
     [vaultHandle, store, moveOne, rewriteLinks, scanVault, indexVaultTags, recordUndo, undoFileOperation],

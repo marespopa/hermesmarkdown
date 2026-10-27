@@ -1,11 +1,10 @@
 import { TEMPLATE_SYNTAX_GUIDE } from "@/app/utils/templates/template-lint";
-import { sanitizeTemplateFileName } from "@/app/utils/templates/template-registry";
 
-// Chat skills: extra instructions added to the AI Chat system prompt while a
+// Chat skills: extra instructions added to the AI companion's system prompt while a
 // keyword or a slash command in the thread turns them on. The template skill
-// answers with a fenced block the user saves from a card; the tasks skill
-// also sends data the app gathers (use-chat-skills.ts). Nothing
-// is written without the user's click.
+// has the companion save templates with its create_template tool (checked
+// first, undone with the turn); the tasks skill also sends data the app
+// gathers (use-chat-skills.ts).
 
 export type ChatSkillId = "create-template" | "tasks";
 
@@ -18,25 +17,23 @@ export interface ChatSkill {
   builtin: string;
 }
 
-export const TEMPLATE_BLOCK_INFO = "hermes-template";
-
 const TEMPLATE_SKILL_BUILTIN = [
   "Skill: create HermesMarkdown note templates.",
-  "When the user asks for a template, write it as a template file the user can save into the vault's templates/ folder.",
+  "When the user asks for a template, save it with the create_template tool: it lands in the vault's templates folder, where the template picker finds it.",
   "",
   TEMPLATE_SYNTAX_GUIDE,
   "",
-  "Output format: put each template in its own block fenced with four tildes, with the file name after the info string, exactly like this:",
-  "~~~~hermes-template rfc.md",
+  "Example body for a template named \"RFC\":",
   "# {{title}}",
   "Owner: {{prompt:Owner}}",
   "{{cursor}}",
-  "~~~~",
   "",
   "Rules:",
-  "- Use a short lowercase file name ending in .md, without folders.",
+  "- Give it a short name, without folders.",
   "- Use {{prompt:Label}} for values the user should type in each time; reuse the same label for the same value.",
-  "- Keep a short sentence before the block saying what the template does. Don't claim it is saved: the user saves it with the Save template button.",
+  "- create_template checks the body first. If it lists problems, fix them and call it again; don't tell the user it's saved until it says so.",
+  "- To change an existing template, read it and use edit_file; create_template never replaces one.",
+  "- After saving, say in one short line what the template does and its name.",
 ].join("\n");
 
 export const TEMPLATE_SKILL: ChatSkill = {
@@ -55,7 +52,7 @@ const TASKS_SKILL_BUILTIN = [
   "- Keep #tags the user already uses for the same topic.",
   "- Use [/] only for work the text says is under way, [!] for work it says is blocked.",
   "When asked to plan a day or pick what's next, prefer in-progress and overdue tasks, then those due soon, then high priority, and say why in a few words.",
-  "You can't edit existing tasks. To change one, give the revised task line so the user can apply it in its note.",
+  "To change a task, read its note and edit its line there with edit_file; to add tasks to a note, edit that note.",
 ].join("\n");
 
 export const TASKS_SKILL: ChatSkill = {
@@ -69,24 +66,4 @@ export const CHAT_SKILLS: ChatSkill[] = [TEMPLATE_SKILL, TASKS_SKILL];
 
 export function isSkillActive(skill: ChatSkill, userTexts: string[]): boolean {
   return userTexts.some((text) => text.trimStart().toLowerCase().startsWith(skill.command) || skill.trigger.test(text));
-}
-
-export interface TemplateBlock {
-  /** Sanitized base file name, always ending in `.md`. */
-  fileName: string;
-  content: string;
-}
-
-// Every `~~~~hermes-template <name>` … `~~~~` block in a reply. The 4-tilde
-// fence lets the template itself contain ``` code blocks.
-export function parseTemplateBlocks(reply: string): TemplateBlock[] {
-  const text = reply.replace(/\r\n/g, "\n");
-  const blocks: TemplateBlock[] = [];
-  // Group 3 is the body up to and including its last newline; the closing
-  // fence must start a line and repeat the opening tildes exactly.
-  const fence = /^(~{4,})[ \t]*hermes-template\b[ \t]*([^\n]*)\n((?:[\s\S]*?\n)?)\1[ \t]*$/gm;
-  for (const match of text.matchAll(fence)) {
-    blocks.push({ fileName: sanitizeTemplateFileName(match[2]), content: match[3] });
-  }
-  return blocks;
 }

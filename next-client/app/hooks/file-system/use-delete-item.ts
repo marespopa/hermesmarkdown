@@ -15,6 +15,7 @@ import { atom_forgetFileTreePaths, atom_vaultFiles, atom_vaultFolderPaths } from
 import { atom_forgetPins } from "@/app/atoms/pin-atoms";
 import { removePathsFromLayout } from "@/app/atoms/utils";
 import type { FileUndoGroup } from "@/app/atoms/vault-atoms";
+import type { FileUndoGroupRef } from "./use-file-undo";
 import { useDialog } from "../use-dialog";
 import { emptyDirectory } from "./directory-ops";
 import { moveToTrash } from "./trash-ops";
@@ -26,7 +27,7 @@ import type { BusyPath } from "@/app/atoms/busy-path-atoms";
 interface UseDeleteItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
   indexVaultTags: (passedHandle?: FileSystemDirectoryHandle) => Promise<void>;
-  recordUndo: (label: string, moves: FileUndoGroup["moves"]) => FileUndoGroup | null;
+  recordUndo: (label: string, moves: FileUndoGroup["moves"], group?: FileUndoGroupRef) => FileUndoGroup | null;
   undoFileOperation: (expected?: FileUndoGroup) => Promise<boolean>;
 }
 
@@ -224,8 +225,10 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
   );
 
   const trashItems = useCallback(
-    async (items: TrashItem[]) => {
-      if (!vaultHandle || items.length === 0) return;
+    // With `undoGroup` (an AI companion turn), the moves join that group and
+    // its own Undo takes them back. Resolves to what went to the Trash.
+    async (items: TrashItem[], undoGroup?: FileUndoGroupRef): Promise<FileUndoGroup["moves"]> => {
+      if (!vaultHandle || items.length === 0) return [];
       const located: { handle: FileSystemHandle; path: string }[] = [];
       for (const item of items) {
         let path = item.path;
@@ -266,12 +269,11 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
         if (moves.length > 0) {
           await scanVault(vaultHandle);
           void indexVaultTags();
-          const group = recordUndo("Move to Trash", moves);
+          const group = recordUndo("Move to Trash", moves, undoGroup);
           const name = moves[0].from.split("/").pop();
-          showUndoToast(
-            moves.length === 1 ? `Moved “${name}” to Trash` : `Moved ${moves.length} items to Trash`,
-            () => void undoFileOperation(group ?? undefined),
-          );
+          const message = moves.length === 1 ? `Moved “${name}” to Trash` : `Moved ${moves.length} items to Trash`;
+          if (undoGroup) toast.success(message);
+          else showUndoToast(message, () => void undoFileOperation(group ?? undefined));
         }
       });
       for (const item of holdsTrash) {
@@ -288,6 +290,7 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
           `“${item.handle.name}” couldn't be moved to the Trash. Delete it permanently? This cannot be undone.`,
         );
       }
+      return moves;
     },
     [vaultHandle, scanVault, indexVaultTags, forgetItem, deleteForever, recordUndo, undoFileOperation, store],
   );

@@ -1,0 +1,30 @@
+# companion
+
+The AI companion: one AI in the app. A panel docked on the window's trailing edge, hidden until opened (Ask AI, Ctrl/Cmd+J, the slash menu, the selection toolbar's Ask AI, the mobile file bar). Open, it takes room and the page moves over (`--content-right`, `EditorShell`). It streams its replies, reads the vault, edits notes and code files, creates files and folders, renames and moves items, moves them to the Trash after asking, and saves templates. Every change saves at once, and a turn's changes are one group on the app's file-undo stack, so they undo together (Undo turn, ⌘Z in Files, a toast's Undo).
+
+| File | Purpose |
+|---|---|
+| [CompanionPanel](CompanionPanel.md) | The panel: header, thread, composer, the resize handle; a full-height sheet on mobile. |
+| [CompanionHeader](CompanionHeader.md) | Title, model picker, New chat, Close. |
+| [CompanionThread](CompanionThread.md) | The conversation, with a turn summary under each reply that changed files. |
+| [CompanionMessage](CompanionMessage.md) | One message: Markdown text, tool chips, Copy. |
+| [ToolActivityChip](ToolActivityChip.md) | One tool call as a quiet line (spinner after 300 ms). |
+| [TurnSummary](TurnSummary.md) | Files a turn changed, and Undo (the turn's group on the app's file-undo stack). |
+| [TrashConfirmCard](TrashConfirmCard.md) | Keep / Move to Trash, in place of a waiting `trash` call. |
+| [CompanionComposer](CompanionComposer.md) | The input: the shared `Textarea` field, context chips, @mentions, attach, send / stop. |
+| `use-companion-chat.ts` | `useChat` on the one Chat instance; skills and the system prompt per turn; saves the thread when a turn settles; AI status. |
+| `companion-chat-store.ts` | The session's Chat instance (`createCompanionChat`: transport to `/api/ai/companion` with the key, model and web search setting, tool calls, the auto-resend loop) and `loadThread` / `saveThread` (localStorage, newest 80 messages, images dropped). |
+| `companion-messages.ts` | A user turn's parts (typed text, then a `--- CONTEXT ---` part, then images), `MAX_TOOL_ROUNDS` (12) and `shouldContinue` (resend once the last step's browser-run calls all have results; provider-run ones, `WEB_TOOL_NAMES`, never call for a round), tool part views. |
+| `reply-html.ts` | A reply's Markdown as safe HTML (`noteToHtml`; no images, diagram and math sources as code). |
+| `companion-prompt.ts` | `COMPANION_PROMPT` and `buildCompanionSystemPrompt` (adds skills). |
+| `use-companion-tools.ts` | Runs each tool call in the browser: note tools (`ai-chat/use-note-tools.ts`), `list_folder`, `read_file`, `get_active_note`, the writes and the organising tools. Also used by `hooks/use-webmcp-tools.ts` for browser agents' writes. |
+| `use-companion-writes.ts` | `edit_file`, `edit_code_block`, `create_file`, `create_folder` and `create_template` (`lintTemplate` first; problems go back to the model, nothing is written; never replaces a template) through `useNoteBuffer().writeThrough` (disk wins over tab text), each a step of the turn's undo group (`recordSteps`, `turnUndoGroup`); `undoTurn` through the app's `undoFileOperation`. |
+| `use-companion-organise.ts` | `rename` (`renameFile`; links follow; a file keeps its extension), `move` (`moveItems`, into an existing folder) and `trash` (`trashItems`, after the card), in the turn's undo group; private notes and folders holding one are never touched. |
+| `trash-confirm.ts` | A waiting trash call's paths (`atom_trashRequests`, by toolCallId) and its answer; Stop and New chat keep the files. |
+| `turn-journal.ts` | Pure helpers over a turn's undo steps: `recordContent` (keeps the first text from before, unless something moved there since), `recordCreate`, `changedPaths`, `trashedCount`. |
+| `use-open-companion.ts` | Opens the panel with the note in front and its selection; never for a private note. |
+| `tools/path-guard.ts` | Paths normalised, kept in the vault, never in `.hermesmarkdown/` (Trash); `guardItemPath` (any file or folder) and `guardNewName` for rename. |
+| `tools/read-tools.ts` | The read tools' answers (private notes listed as "private (hidden)", 40 KB per file, 100 entries per page), code blocks, chip labels. |
+| `tools/edit-tools.ts` | `applyEdits` (each `find` must match once, else the count goes back to the model) and `replaceCodeBlock`. |
+
+Server side: `app/api/ai/companion/route.ts` (streams; tools without `execute`, plus Claude's own `web_search` when the user turned it on, and its sources), `companion-tools.ts` (`COMPANION_TOOLS`, `webSearchTool` by model, `foldSystem` for Gemini), shared `app/api/ai/providers.ts` and `errors.ts`. Tool schemas: `app/services/companion-tool-defs.ts`. State: `app/atoms/companion-atoms.ts`.

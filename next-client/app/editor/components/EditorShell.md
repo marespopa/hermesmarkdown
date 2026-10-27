@@ -21,3 +21,6 @@ Description: The one frame around every /editor route (`app/editor/layout.tsx`, 
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | children | `ReactNode` | | The route |
+
+## AI companion
+Once AI is set up (`atom_isAiConfigured`) and the vault is unlocked, the shell mounts [CompanionPanel](companion/CompanionPanel.md) on the trailing edge (a sheet on mobile) and sets `--content-right` to its width while it's open, so the editor page, every ShellPage, the corner buttons and RecoveryBanner stop short of it.
