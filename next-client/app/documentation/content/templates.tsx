@@ -10,7 +10,7 @@ export const templatesItems: Subsection[] = [
     id: "templates",
     title: "Templates",
     lead: "A template is a note you start other notes from. Fields like Today's date or Ask: Owner fill in each time you use it.",
-    keywords: "template templates year month day weekday month name week number quarter slug save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet log entry timestamp token field add field placeholder prompt question ask cursor clipboard date new note missing link folder new notes go where name clash already exists new template create template week name weekly monthly quarterly yearly iso week quarter pack packs",
+    keywords: "template templates year month day weekday month name week number quarter slug save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet log entry timestamp token field add field placeholder prompt question ask cursor clipboard date new note missing link folder new notes go where name clash already exists new template create template week name weekly monthly quarterly yearly iso week quarter pack packs folder template scaffold structure",
     body: (
       <>
         <h4 className={h4}>Make a template</h4>
@@ -100,6 +100,33 @@ export const templatesItems: Subsection[] = [
             note. The template the name points to comes first: one named after the folder (
             <code>rfcs/</code> → <code>rfc</code>), one whose name starts it (&quot;Meeting notes
             2026-10-05&quot;), or your journal for a date.
+          </li>
+        </ul>
+        <h4 className={h4}>Folder templates</h4>
+        <p>
+          A folder template creates a whole set of notes at once, such as a project with its folders and
+          starter notes. Make one by adding a folder to <code>_templates/</code> and putting{" "}
+          <code>scaffold: true</code> in the frontmatter of its <code>README.md</code>. Everything in the
+          folder is copied: notes, other files and empty subfolders. The README is copied too, without the{" "}
+          <code>scaffold</code> line, and opens when the folder is done.
+        </p>
+        <ul>
+          <li>
+            Run it from the command palette (<strong>New from folder template…</strong>, then pick where
+            it goes), or right-click a folder in Files (or the empty space) and choose{" "}
+            <strong>New from Folder Template…</strong>.
+          </li>
+          <li>
+            Fields and dates work in file and folder names as well as in notes. A folder called{" "}
+            <code>{"_templates/{{prompt:Client}} engagement/"}</code> asks for the client once and creates{" "}
+            <code>Acme engagement</code>; <code>{"{{date:YYYY-MM}} review.md"}</code> becomes a dated name.
+            Characters a name can&apos;t have (such as <code>:</code> or <code>/</code>) become{" "}
+            <code>-</code>.
+          </li>
+          <li>
+            It never replaces anything. If the new folder already exists, or two names would end up the
+            same, nothing is created and you are told why. If a write fails halfway, what was made is
+            removed again.
           </li>
         </ul>
         <h4 className={h4}>Under the hood</h4>

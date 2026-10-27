@@ -15,6 +15,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     createBoard,
     createFolder,
     createTemplate,
+    newFromFolderTemplate,
     deleteFile,
     dialog,
     duplicateFile,
@@ -85,6 +86,15 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           // Name prompt; creates _templates/<name>.md with a minimal body, or
           // opens the existing template of that name.
           action: () => { void createTemplate(); },
+        },
+        {
+          id: "new-from-folder-template",
+          label: "New from folder template…",
+          category: "Vault" as const,
+          keywords: "folder template scaffold structure project new folder from template copy",
+          // Pick a folder template (_templates/<F>/ with scaffold: true in its
+          // README.md) and a destination; copies it into a new folder.
+          action: () => { void newFromFolderTemplate(); },
         }]
       : []),
     {

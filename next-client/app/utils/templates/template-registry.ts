@@ -4,7 +4,9 @@ import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
 // list of indexed vault-relative paths (the keys of atom_fileMetadata).
 // Templates live in `_templates/` at the vault root (created on first use). A
 // template is a `.md` file directly in it, or one folder down: a template
-// pack (`_templates/Journal/Daily.md`).
+// pack (`_templates/Journal/Daily.md`). A subfolder whose README.md has
+// `scaffold: true` in its frontmatter is a folder template (copied as a whole
+// into the vault), not a pack: its files are no templates.
 
 export const TEMPLATES_FOLDER = "_templates";
 
@@ -37,6 +39,36 @@ export function resolveTemplatesFolder(paths: string[]): { folder: string; exist
   return { folder: TEMPLATES_FOLDER, exists };
 }
 
+export interface FolderTemplate {
+  /** The folder's own name (may contain tokens). */
+  name: string;
+  /** Vault-relative folder: `_templates/<name>`. */
+  folder: string;
+  /** Vault-relative path of its README.md marker (case as on disk). */
+  readmePath: string;
+}
+
+// `scaffold: true` as frontmatter holds it: a string (or boolean), trimmed, any case.
+export function isScaffoldFlag(value: unknown): boolean {
+  return String(value ?? "").trim().toLowerCase() === "true";
+}
+
+// Direct subfolders of `folder` whose README.md frontmatter has scaffold: true.
+export function listFolderTemplates(
+  folder: string,
+  metadata: Record<string, { frontmatter?: Record<string, unknown> }>,
+): FolderTemplate[] {
+  const found: FolderTemplate[] = [];
+  for (const [path, meta] of Object.entries(metadata)) {
+    if (!path.startsWith(`${folder}/`)) continue;
+    const rest = path.slice(folder.length + 1).split("/");
+    if (rest.length !== 2 || rest[0].startsWith(".") || rest[1].toLowerCase() !== "readme.md") continue;
+    if (!isScaffoldFlag(meta?.frontmatter?.scaffold)) continue;
+    found.push({ name: rest[0], folder: `${folder}/${rest[0]}`, readmePath: path });
+  }
+  return found.sort((a, b) => byName(a.name, b.name));
+}
+
 // The pack a path's template belongs to: "" directly in the folder, the
 // subfolder's name one level down, null when it isn't a template at all.
 function packOf(path: string, folder: string): string | null {
@@ -55,11 +87,11 @@ export function isTemplatePath(path: string, folder: string): boolean {
 const byName = (a: string, b: string) => a.toLowerCase().localeCompare(b.toLowerCase()) || a.localeCompare(b);
 
 // Loose templates first, then each pack in name order; by name within each.
-export function listTemplates(folder: string, paths: string[]): TemplateEntry[] {
+export function listTemplates(folder: string, paths: string[], exclude: ReadonlySet<string> = new Set()): TemplateEntry[] {
   return paths
     .flatMap((path): TemplateEntry[] => {
       const pack = packOf(path, folder);
-      if (pack === null) return [];
+      if (pack === null || (pack && exclude.has(pack))) return [];
       const name = path.split("/").pop()!.replace(/\.md$/i, "");
       return [pack ? { name, path, pack } : { name, path }];
     })
@@ -68,16 +100,25 @@ export function listTemplates(folder: string, paths: string[]): TemplateEntry[] 
 
 // Templates grouped by pack: the loose ones first (name ""), then every pack
 // folder, including empty ones from `folderPaths` (the vault's folders).
-export function groupTemplatePacks(folder: string, templates: TemplateEntry[], folderPaths: string[] = []): TemplatePack[] {
+export function groupTemplatePacks(
+  folder: string,
+  templates: TemplateEntry[],
+  folderPaths: string[] = [],
+  exclude: ReadonlySet<string> = new Set(),
+): TemplatePack[] {
   const packs = new Map<string, TemplatePack>();
   const packFor = (name: string) => {
     if (!packs.has(name)) packs.set(name, { name, folder: name ? `${folder}/${name}` : folder, templates: [] });
     return packs.get(name)!;
   };
   for (const path of folderPaths) {
-    if (folderOf(path) === folder && !path.split("/").pop()!.startsWith(".")) packFor(path.split("/").pop()!);
+    const name = path.split("/").pop()!;
+    if (folderOf(path) === folder && !name.startsWith(".") && !exclude.has(name)) packFor(name);
   }
-  for (const template of templates) packFor(template.pack ?? "").templates.push(template);
+  for (const template of templates) {
+    if (template.pack && exclude.has(template.pack)) continue;
+    packFor(template.pack ?? "").templates.push(template);
+  }
   return [...packs.values()]
     .filter((pack) => pack.name || pack.templates.length > 0)
     .sort((a, b) => (a.name === "" ? -1 : b.name === "" ? 1 : byName(a.name, b.name)));

@@ -87,6 +87,8 @@ All file writes go through `writeFileContent()` in `app/services/file-writer.ts`
 
 | Hook | Purpose |
 |------|---------|
+| `use-folder-template.ts` | `newFromFolderTemplate(destinationPath?)`: pick a folder template (`_templates/<F>/` with `scaffold: true` in its README.md) → destination (palette only) → prompts → plan (`utils/templates/folder-template.ts`) → preflight (never overwrites) → optimistic pending rows (`atom_pendingTreeEntries`) and a busy top folder → background writes inside `holdVaultSync` → rescan/index, then rows turn real, toast, README opens; any failure rolls the top folder back. Not wrapped in `useHeldSync` (it holds the sync itself) |
+| `folder-template-ops.ts` | Disk side of folder templates: `readScaffoldSource` (fresh handles, skips dot entries, `.md` as text, others as bytes), `writeScaffold` (new top folder, `ScaffoldClashError` instead of overwriting), `rollbackScaffold` (`emptyDirectory` + `removeEntry`) |
 | `use-file-crud.ts` | Composes create / delete / rename / move / import, the template note hooks and `useFileUndo` with shared callbacks; create, Trash, rename, duplicate, move and undo hold the background sync while they run (`use-held-sync.ts`) |
 | `vault-sync-hold.ts` | `holdVaultSync(op)` / `isVaultSyncHeld()`: while an app file operation runs and `VAULT_SYNC_QUIET_MS` (1.5s) after, `useVaultSync` skips its background syncs; the operation rescans itself, so a sync in its middle only slowed it and raced its handles |
 | `use-held-sync.ts` | `useHeldSync(fn)`: `fn` wrapped in `holdVaultSync`, same identity while `fn` is |

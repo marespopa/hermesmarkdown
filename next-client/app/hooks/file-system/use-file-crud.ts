@@ -9,6 +9,7 @@ import { useImportItem } from "./use-import-item";
 import { useTemplateNotes } from "./use-template-notes";
 import { useTemplateCreate } from "./use-template-create";
 import { useTemplateSave } from "./use-template-save";
+import { useFolderTemplate } from "./use-folder-template";
 import { useOpenOrCreateLink } from "./use-open-or-create-link";
 import { useOpenFileLink } from "./use-open-file-link";
 import { useFileUndo } from "./use-file-undo";
@@ -82,6 +83,8 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
   const { openOrCreateLink } = useOpenOrCreateLink({ openFile, createNoteFromMissingLink });
   const { openFileLink } = useOpenFileLink({ openFile });
   const saveAsTemplate = useTemplateSave({ scanVault });
+  // Not in `held`: it holds the sync itself, for writes that outlive its promise.
+  const { newFromFolderTemplate } = useFolderTemplate({ scanVault, indexVaultTags, openFile });
 
   // Operations that change the vault's files hold the background sync
   // (vault-sync-hold.ts) until they're done.
@@ -112,6 +115,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     createLinkedBoard,
     writeNewNote,
     saveAsTemplate,
+    newFromFolderTemplate,
     openOrCreateLink,
     openFileLink,
   };

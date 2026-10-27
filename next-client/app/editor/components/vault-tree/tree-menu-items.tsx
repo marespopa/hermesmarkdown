@@ -4,8 +4,10 @@ import {
   HiOutlineDocumentText,
   HiOutlineDuplicate,
   HiOutlinePencil,
+  HiOutlineTemplate,
   HiOutlineTrash,
 } from "react-icons/hi";
+import { TEMPLATES_FOLDER } from "@/app/utils/templates/template-registry";
 import { TbPinned } from "react-icons/tb";
 import { fileCreateActions } from "./file-create-actions";
 import { renameShortcut, trashShortcut, type TreeMenuItem } from "./TreeContextMenu";
@@ -21,11 +23,24 @@ export function treeMenuItems(
   props: VaultFileTreeProps,
   actions: ReturnType<typeof useTreeActions>,
 ): TreeMenuItem[] {
-  const newItems = (parentPath: string): TreeMenuItem[] =>
-    fileCreateActions({
+  const newItems = (parentPath: string): TreeMenuItem[] => {
+    const items: TreeMenuItem[] = fileCreateActions({
       newNote: props.createNewFile ? () => actions.startCreate("file", parentPath) : undefined,
       newFolder: props.createFolder ? () => actions.startCreate("folder", parentPath) : undefined,
     }).map(({ label, icon, onSelect }) => ({ label, icon, onSelect }));
+    // Never into the templates folder itself.
+    const inTemplates = parentPath === TEMPLATES_FOLDER || parentPath.startsWith(`${TEMPLATES_FOLDER}/`);
+    if (props.newFromFolderTemplate && !inTemplates) {
+      items.push({
+        label: "New from Folder Template…",
+        icon: <HiOutlineTemplate {...ICON} />,
+        onSelect: () => void props.newFromFolderTemplate!(parentPath).then((path) => {
+          if (path) actions.reveal([path]);
+        }),
+      });
+    }
+    return items;
+  };
 
   if (target.type === "background") return newItems("");
 

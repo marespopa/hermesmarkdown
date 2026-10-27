@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useCallback, useDeferredValue, useMemo, useState } from "react";
+import { useAtomValue } from "jotai";
 import { HiOutlineSearch } from "react-icons/hi";
+import { atom_folderTemplates } from "@/app/atoms/template-atoms";
 import BareInput from "@/app/components/Input/BareInput";
 import { FIELD_SIDEBAR_CLASS } from "@/app/components/Input/field-styles";
 import { useFileSystem } from "@/app/hooks/use-file-system";
@@ -44,8 +46,9 @@ export default function SidebarFiles({ treeController, activeFilePath, openHandl
   );
   const {
     vaultHandle, renameFile, deleteFile, trashItems, duplicateFile, moveItem, moveItems,
-    createNewFile, createFolder, undoFileOperation,
+    createNewFile, createFolder, undoFileOperation, newFromFolderTemplate,
   } = useFileSystem();
+  const folderTemplates = useAtomValue(atom_folderTemplates);
 
   const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
     if (!path) return vaultHandle;
@@ -125,6 +128,7 @@ export default function SidebarFiles({ treeController, activeFilePath, openHandl
         createFolder={createFolder}
         moveItem={moveItem}
         moveItems={moveItems}
+        newFromFolderTemplate={folderTemplates.length > 0 ? newFromFolderTemplate : undefined}
         isPinned={(path, kind) => isPinned(kind === "folder" ? "folder" : "note", path)}
         togglePin={(path, kind) => void togglePin(kind === "folder" ? "folder" : "note", path)}
       />

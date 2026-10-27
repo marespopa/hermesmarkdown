@@ -22,14 +22,15 @@ function stripFmComments(raw: string, match: RegExpExecArray): { cleaned: string
 
 // A raw template's content: frontmatter comments and retired keys removed.
 // If that leaves the frontmatter block empty, the block is dropped.
-export function templateContent(raw: string): string {
+export function templateContent(raw: string, { dropKeys = [] }: { dropKeys?: string[] } = {}): string {
   const match = FM_REGEX.exec(raw);
   if (!match) return raw;
   const stripped = stripFmComments(raw, match);
   if (stripped.empty) return stripped.cleaned;
   const fields = parseFmFields(stripped.cleaned);
-  if (!Object.keys(RETIRED_KEYS).some((key) => key in fields)) return stripped.cleaned;
-  const updated = updateFmFields(stripped.cleaned, { ...RETIRED_KEYS });
+  const removed: Record<string, null> = { ...RETIRED_KEYS, ...Object.fromEntries(dropKeys.map((k) => [k, null])) };
+  if (!Object.keys(removed).some((key) => key in fields)) return stripped.cleaned;
+  const updated = updateFmFields(stripped.cleaned, removed);
   const block = FM_REGEX.exec(updated);
   return block && !block[1].trim() ? dropLeadingBlankLines(updated.slice(block[0].length)) : updated;
 }

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { HiOutlineFolderAdd, HiOutlinePlus } from "react-icons/hi";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_templates, atom_templatesFolder } from "@/app/atoms/template-atoms";
+import { atom_folderTemplates, atom_templates, atom_templatesFolder } from "@/app/atoms/template-atoms";
 import { atom_vaultFolderPaths, atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
 import Button from "@/app/components/Button";
 import { useTemplatePacks } from "@/app/hooks/file-system/use-template-packs";
@@ -33,7 +33,11 @@ export default function TemplatesPage() {
   const { addBuiltinPack, createPack, duplicatePack, deletePack, deleteTemplate } = useTemplatePacks();
 
   const paths = useMemo(() => Object.keys(metadata), [metadata]);
-  const packs = useMemo(() => groupTemplatePacks(folder, templates, folderPaths), [folder, templates, folderPaths]);
+  const folderTemplates = useAtomValue(atom_folderTemplates);
+  const packs = useMemo(
+    () => groupTemplatePacks(folder, templates, folderPaths, new Set(folderTemplates.map((t) => t.name))),
+    [folder, templates, folderPaths, folderTemplates],
+  );
 
   // Opened straight on this page (a reload), the vault hasn't been read yet.
   useEffect(() => {

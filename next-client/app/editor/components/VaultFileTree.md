@@ -39,6 +39,7 @@ const tree = useRef<VaultFileTreeController | null>(null);
 | renameFile | `(handle, newName?, path?) => unknown` |  | Renames (resolving to the new path); called with the typed name from the inline field |
 | deleteFile / trashItems? | callbacks |  | Move to Trash: `trashItems` takes the whole selection as one action; without it, `deleteFile` per item |
 | duplicateFile? | `(handle) => void` |  | Menu action |
+| newFromFolderTemplate? | `(destinationPath) => Promise<string \| null>` |  | Folder templates: adds "New from Folder Template…" to folder and empty-space menus (not inside `_templates/`); resolves to the created top folder, which is revealed. Hosts pass it only while `atom_folderTemplates` is non-empty. While it writes, the pending rows (`atom_pendingTreePaths`) show with a busy spinner (`op: "create"`) |
 | undoFileOperation? | `() => unknown` |  | ⌘Z / Ctrl+Z in the tree |
 | controllerRef? | `MutableRefObject<VaultFileTreeController \| null>` |  | Lets the host start naming a new note / folder in place (`startCreate(kind, parentPath?)`; without a parent, in the selected folder) and give the tree keyboard focus with its cursor row in view (`focus()`, Show Files), or with the row at a path selected and in view once its folders are open (`reveal(path)`, Show in Files) |
 | treeView? | `boolean` | `false` | Tree layout instead of a flat list |
