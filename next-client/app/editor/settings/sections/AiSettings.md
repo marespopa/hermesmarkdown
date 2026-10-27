@@ -1,14 +1,15 @@
 # AiSettings
 
-Description: The Settings → AI Features section. One group holds the **AI features** switch, off by default and worded as optional. Turned on, a **Setup** group follows: Provider (Claude or Gemini, a segmented control), the API key (with where to get one and that it stays in this browser), then, once a key is in, compact gray **Test connection** / **Remove key** buttons (filled, like the other settings actions, so they never read as plain text) and the Model picker (loaded from the key's account, with a refresh button and fallback list), and a note on what is sent and when. Provider-specific copy and defaults live in one `PROVIDERS` table.
+Description: The Settings → AI Features section. One group holds the **AI features** switch, off by default and worded as optional. Turned on, a **Setup** group follows: Provider (Claude or Gemini, a segmented control), the API key (with where to get one and that it stays in this browser), then, once a key is in, compact gray **Test connection** / **Remove key** buttons (filled, like the other settings actions, so they never read as plain text) and the Model picker (loaded from the key's account, with a refresh button and fallback list), and a note on what is sent and when. Provider-specific copy and defaults live in one `PROVIDERS` table. Last, always shown, a **Browser agents** group: the **Let browser agents read notes** switch (WebMCP), off by default and independent of AI features; its description says what agents can do (search, read a note, list open tasks; private notes hidden, nothing written), or that this browser doesn't offer WebMCP yet.
 
 ## Logic
 - `atom_aiEnabled` (`localStorage["hermes_ai_enabled"]`): never stored reads as on when a Claude or Gemini key was saved before the switch existed, so those setups keep working; otherwise off.
 - `atom_isAiConfigured` needs the switch on and the provider's key, so every AI entry point (chat, Ask AI, slash menu, `AI: …` palette actions, Ctrl/Cmd+Shift+B) follows the switch. With it off, the palette lists no AI actions.
 - Turning it off keeps the key; **Remove key** deletes it. Models are only fetched while it's on.
+- `atom_webMcpEnabled` (`localStorage["hermes_webmcp_enabled"]`): read by `hooks/use-webmcp-tools.ts`, which registers the note tools with the browser while it's on and a vault is open. Support is read with `useSyncExternalStore` (`isWebMcpSupported`, false on the server), so hydration matches.
 
 ## Local State & Storage
-- State: `atom_aiEnabled`, `atom_aiProvider`, `atom_selectedAiModel`, `atom_claudeKey`, `atom_geminiKey`, `atom_availableClaudeModels`, `atom_availableGeminiModels`; fetching, fetch error, and testing flags are local useState.
+- State: `atom_aiEnabled`, `atom_webMcpEnabled`, `atom_aiProvider`, `atom_selectedAiModel`, `atom_claudeKey`, `atom_geminiKey`, `atom_availableClaudeModels`, `atom_availableGeminiModels`; fetching, fetch error, and testing flags are local useState.
 - Persistence: The switch, keys and selections in `localStorage` (`hermes_ai_enabled`, `hermes_claude_key`, `hermes_gemini_key`, …).
 
 ## Dependencies

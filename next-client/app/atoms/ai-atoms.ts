@@ -18,6 +18,10 @@ export const atom_aiEnabled = atom(
   (_get, set, enabled: boolean) => set(atom_aiEnabledStored, enabled),
 );
 
+// Browser agents (WebMCP): let AI agents in this browser use the read-only
+// note tools. Off until turned on; separate from AI Features (no key needed).
+export const atom_webMcpEnabled = atomWithStorage<boolean>("hermes_webmcp_enabled", false);
+
 export const atom_isAiConfigured = atom((get) => {
   if (!get(atom_aiEnabled)) return false;
   const provider = get(atom_aiProvider);
