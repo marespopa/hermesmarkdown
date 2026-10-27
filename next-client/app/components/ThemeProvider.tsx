@@ -17,6 +17,23 @@ function readStored(key: string): unknown {
   }
 }
 
+// The browser and installed-app bars (status bar, Android navigation bar)
+// take <meta name="theme-color">; it gets the page's painted --surface, so
+// they follow the mode and palette instead of the OS scheme. Every such meta
+// is updated (Next renders one from layout.tsx's viewport), none removed.
+export function syncThemeColor() {
+  const surface = getComputedStyle(document.documentElement).getPropertyValue("--surface").trim();
+  if (!surface) return;
+  let metas = Array.from(document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'));
+  if (metas.length === 0) {
+    const meta = document.createElement("meta");
+    meta.name = "theme-color";
+    document.head.appendChild(meta);
+    metas = [meta];
+  }
+  for (const meta of metas) meta.content = surface;
+}
+
 type Props = {
   children: React.ReactNode;
 };
@@ -62,6 +79,11 @@ export default function ThemeProvider({ children }: Props) {
     root.dataset.lightTheme = lightTheme;
     root.dataset.darkTheme = darkTheme;
   }, [lightTheme, darkTheme]);
+
+  // After the mode and palette effects above, so it reads the new colors.
+  useLayoutEffect(() => {
+    syncThemeColor();
+  }, [resolvedTheme, theme, lightTheme, darkTheme]);
 
   // The code font, as --font-code (globals.scss) on <html>.
   useLayoutEffect(() => {

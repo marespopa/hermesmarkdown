@@ -1,7 +1,7 @@
 import { render, waitFor } from "@testing-library/react";
 import { Provider as JotaiProvider, createStore } from "jotai";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import ThemeProvider from "./ThemeProvider";
+import ThemeProvider, { syncThemeColor } from "./ThemeProvider";
 import { useResolvedTheme } from "@/app/hooks/use-resolved-theme";
 
 function ThemeProbe() {
@@ -72,5 +72,44 @@ describe("ThemeProvider", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     observer.disconnect();
     expect(seen.filter((v) => v.startsWith("paper/") || v.endsWith("/ink"))).toEqual([]);
+  });
+
+  describe("syncThemeColor", () => {
+    afterEach(() => {
+      document.head.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.remove());
+      document.documentElement.style.removeProperty("--surface");
+    });
+
+    it("paints every theme-color meta with the page's surface", () => {
+      const meta = document.createElement("meta");
+      meta.name = "theme-color";
+      meta.content = "#F1F0EB";
+      document.head.appendChild(meta);
+      document.documentElement.style.setProperty("--surface", "#2E3440");
+
+      syncThemeColor();
+
+      expect(meta.content).toBe("#2E3440");
+    });
+
+    it("adds a theme-color meta when the page has none", () => {
+      document.documentElement.style.setProperty("--surface", "#FDF6E3");
+
+      syncThemeColor();
+
+      const metas = document.head.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+      expect(Array.from(metas, (m) => m.content)).toEqual(["#FDF6E3"]);
+    });
+
+    it("leaves the meta alone before the colors have loaded", () => {
+      const meta = document.createElement("meta");
+      meta.name = "theme-color";
+      meta.content = "#F1F0EB";
+      document.head.appendChild(meta);
+
+      syncThemeColor();
+
+      expect(meta.content).toBe("#F1F0EB");
+    });
   });
 });

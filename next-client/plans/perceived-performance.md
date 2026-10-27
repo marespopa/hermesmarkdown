@@ -1,12 +1,3 @@
----
-state: new
-size: normal
-kind: feature
-blocked_from:
-rejections: 0
-created: 2026-10-26T14:19:46Z
----
-
 # Perceived performance: instant opens, lighter keystrokes
 
 ## Problem
