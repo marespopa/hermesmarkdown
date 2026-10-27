@@ -150,6 +150,28 @@ export const aiFeaturesGroup: Group = {
       ),
     },
     {
+      id: "ai-code-skill",
+      title: "Code and the companion",
+      lead: "Ask about code, or start with /code, and the companion works like a careful code assistant.",
+      keywords: "ai code coding assistant refactor review explain fix error stack trace unit tests code block skill command",
+      body: (
+        <>
+          <p>
+            Mention <strong>code</strong>, refactoring, a stack trace or unit tests, or start with{" "}
+            <code>/code</code>, and the companion works on the code files in your vault and the code
+            blocks in your notes. Ask it to explain, review or refactor, to fix an error you paste, or
+            to write tests. Say &ldquo;this code&rdquo; and it looks at the file you have open and the
+            block your cursor is in.
+          </p>
+          <p>
+            It reads the whole file before it changes anything, keeps your style, and makes small edits
+            rather than rewriting the file. The changes save at once, and Undo turn takes them all back.
+            It can&apos;t run code, so it tells you what it couldn&apos;t check.
+          </p>
+        </>
+      ),
+    },
+    {
       id: "ai-skill-notes",
       title: "Your own skills",
       lead: "Write a note of type skill, and /its-name turns it on in the companion.",
@@ -169,7 +191,7 @@ type: skill
 Write today's standup from my notes: done, next, blocked. Keep each to one line.`}</Code>
           <p>
             The note is read fresh each time you send, so edits apply at once. The app never creates or
-            changes skill notes. <code>/template</code> and <code>/tasks</code> are the app&apos;s own skills.
+            changes skill notes. <code>/template</code>, <code>/tasks</code> and <code>/code</code> are the app&apos;s own skills.
           </p>
         </>
       ),
