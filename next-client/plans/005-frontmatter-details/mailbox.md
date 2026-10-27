@@ -1,1 +1,0 @@
-- architect: PRD written by hand in chat (no factory architect run). Ready for the engineer.
