@@ -124,9 +124,9 @@ describe("useCompanionTools", () => {
   it("hands create_template its name and body", async () => {
     createTemplate.mockResolvedValue({ output: "The template wasn't saved. Fix these…", detail: "needs fixes" });
 
-    const result = await setup().runTool({ toolName: "create_template", input: { name: "RFC", body: "# {{titel}}" } }, "turn-1");
+    const result = await setup().runTool({ toolName: "create_template", input: { name: "RFC", body: "# {{titl}}" } }, "turn-1");
 
-    expect(createTemplate).toHaveBeenCalledWith("turn-1", "RFC", "# {{titel}}");
+    expect(createTemplate).toHaveBeenCalledWith("turn-1", "RFC", "# {{titl}}");
     expect(result.output).toMatch(/wasn't saved/);
   });
 });

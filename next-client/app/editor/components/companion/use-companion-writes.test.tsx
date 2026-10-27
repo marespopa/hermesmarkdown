@@ -44,10 +44,10 @@ describe("useCompanionWrites", () => {
   it("sends a template's problems back to the model and writes nothing", async () => {
     const { vault, writes } = await setup();
 
-    const result = await writes.createTemplate("turn-1", "RFC", "# {{titel}}\n{{cursor}}\n{{cursor}}");
+    const result = await writes.createTemplate("turn-1", "RFC", "# {{titl}}\n{{cursor}}\n{{cursor}}");
 
     expect(result.detail).toBe("needs fixes");
-    expect(result.output).toContain("{{titel}} looks like {{title}}");
+    expect(result.output).toContain("{{titl}} looks like {{title}}");
     expect(result.output).toContain("more than once");
     expect(vault.listPaths()).toEqual(["Projects/Roadmap.md"]);
     expect(steps).toEqual([]);
