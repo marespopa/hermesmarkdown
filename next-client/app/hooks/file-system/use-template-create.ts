@@ -167,14 +167,15 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     await writeNewNote(folder, parsed.baseName, expanded);
   }, [store, newNotesFolder, pickTemplate, linkedNoteText, writeNewNote, scanVault, openFile]);
 
-  // "New template…": asks the name, then `_templates/<name>.md` (in
-  // `<pack>/` when given) with a minimal body. A template with the same name
-  // (any case) in the same place is opened unchanged instead. True once a
-  // template is open.
-  const createTemplate = useCallback(async (pack?: string): Promise<boolean> => {
+  // A pack's "New template": asks the name, then `_templates/<name>.md` (in
+  // `<pack>/` when given) with a minimal body. With `from`, no question: its
+  // name and body (the template wizard, copying a built-in to change it). A
+  // template with the same name (any case) in the same place is opened
+  // unchanged instead. True once a template is open.
+  const createTemplate = useCallback(async (pack?: string, from?: { name: string; body: string }): Promise<boolean> => {
     const vaultHandle = store.get(atom_vaultHandle);
     if (!vaultHandle) return false;
-    const name = String((await dialog.prompt("Template name:", "", "New template")) ?? "").trim();
+    const name = (from?.name ?? String((await dialog.prompt("Template name:", "", "New template")) ?? "")).trim();
     if (!name) return false;
     const baseName = sanitizeTemplateFileName(name).slice(0, -".md".length);
     const root = store.get(atom_templatesFolder).folder;
@@ -197,7 +198,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
       }
       // A stale index entry falls through to the create.
     }
-    return (await writeNewNote(folder, baseName, { text: NEW_TEMPLATE_BODY, cursor: null }, {
+    return (await writeNewNote(folder, baseName, { text: from?.body ?? NEW_TEMPLATE_BODY, cursor: null }, {
       onExisting: openedExisting,
     })) !== null;
   }, [store, dialog, openFile, writeNewNote]);

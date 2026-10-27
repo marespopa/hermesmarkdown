@@ -6,6 +6,7 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultFiles, atom_vaultFolderPaths, atom_vaultKey, atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
 import { atom_vaultTreeListedKey, atom_vaultTreeSnapshot } from "@/app/atoms/tree-snapshot-atoms";
 import { isPlainTextPath } from "@/app/utils/file-kinds";
+import { atom_pendingTreePaths } from "@/app/atoms/pending-tree-atoms";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
 // Which view is searching: "files" (the Files page, the sidebar's Files
@@ -97,14 +98,18 @@ export function useVaultFileSearch({ selectedTags, panel, rememberedTree = false
   const snapshot = useAtomValue(atom_vaultTreeSnapshot);
   const listedKey = useAtomValue(atom_vaultTreeListedKey);
   const treeSnapshot = rememberedTree && snapshot && snapshot.vaultKey === vaultKey && listedKey !== vaultKey ? snapshot : null;
+  // Files being created (a folder template, pending-tree-atoms.ts) show the
+  // same way, whether or not a snapshot is in use.
+  const pending = useAtomValue(atom_pendingTreePaths);
   const allFiles = useMemo(() => {
-    if (!treeSnapshot) return foundFiles;
+    if (!treeSnapshot && pending.files.size === 0) return foundFiles;
     const found = new Set(foundFiles.map((file) => file.path));
-    const remembered = treeSnapshot.files
+    const extra = [...(treeSnapshot?.files ?? []), ...pending.files];
+    const remembered = [...new Set(extra)]
       .filter((path) => !found.has(path) && isVisibleFile(path) && !isHiddenPath(path))
       .map((path) => ({ name: path.split("/").pop() || path, kind: "file" as const, handle: null as FileSystemFileHandle | null, path }));
     return [...foundFiles, ...remembered].sort((a, b) => a.name.localeCompare(b.name));
-  }, [foundFiles, treeSnapshot, isVisibleFile, isHiddenPath]);
+  }, [foundFiles, treeSnapshot, pending, isVisibleFile, isHiddenPath]);
 
   // Metadata only indexes files, so folders come from the indexing walk
   // (every depth) plus the latest directory listing (a folder created since),
@@ -113,11 +118,11 @@ export function useVaultFileSearch({ selectedTags, panel, rememberedTree = false
     const listed = (Array.isArray(vaultFiles) ? vaultFiles : [])
       .filter((entry: any) => entry.kind === "directory")
       .map((entry: any) => (entry.path || entry.name) as string);
-    return [...new Set([...walkedFolderPaths, ...listed, ...(treeSnapshot?.folders ?? [])])].filter((path) =>
+    return [...new Set([...walkedFolderPaths, ...listed, ...(treeSnapshot?.folders ?? []), ...pending.folders])].filter((path) =>
       (showHiddenFiles || !path.split("/").some((segment) => segment.startsWith("."))) &&
       !isHiddenPath(path),
     );
-  }, [vaultFiles, walkedFolderPaths, treeSnapshot, showHiddenFiles, isHiddenPath]);
+  }, [vaultFiles, walkedFolderPaths, treeSnapshot, pending, showHiddenFiles, isHiddenPath]);
 
   const [showAllResults, setShowAllResults] = useState(false);
 

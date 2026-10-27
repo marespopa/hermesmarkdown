@@ -1,15 +1,24 @@
 import React, { useEffect } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Provider } from "jotai";
+import { createStore, Provider } from "jotai";
 import SidebarFiles from "./SidebarFiles";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => "/editor" }));
-vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => ({ vaultHandle: { name: "Notes" } }) }));
+const fs = vi.hoisted(() => ({ newFromFolderTemplate: () => Promise.resolve(null) }));
+vi.mock("@/app/hooks/use-file-system", () => ({
+  useFileSystem: () => ({ vaultHandle: { name: "Notes" }, newFromFolderTemplate: fs.newFromFolderTemplate }),
+}));
 vi.mock("@/app/hooks/use-pins", () => ({ usePins: () => ({ isPinned: () => false, togglePin: vi.fn() }) }));
 
 // The tree, reduced to what it was given.
-type TreeProps = { processedFiles: { path: string }[]; folderPaths: string[]; expandAll?: boolean; isSearchActive?: boolean };
+type TreeProps = {
+  processedFiles: { path: string }[];
+  folderPaths: string[];
+  expandAll?: boolean;
+  isSearchActive?: boolean;
+  newFromFolderTemplate?: unknown;
+};
 const tree = vi.hoisted(() => ({ props: null as TreeProps | null }));
 vi.mock("../VaultFileTree", () => ({
   default: function MockTree(props: TreeProps) {
@@ -23,11 +32,11 @@ vi.mock("../VaultFileTree", () => ({
 const files = ["projects/roadmap.md", "projects/launch/plan.md", "notes/release.md"].map((path) => ({ path, name: path.split("/").pop() }));
 const folders = ["projects", "projects/launch", "notes"];
 
-function setup() {
+function setup(store = createStore()) {
   const focus = vi.fn();
   const treeController = { current: { focus, startCreate: vi.fn(), reveal: vi.fn(), openBackgroundMenu: vi.fn() } } as never;
   render(
-    <Provider>
+    <Provider store={store}>
       <SidebarFiles treeController={treeController} activeFilePath={null} openHandle={vi.fn()} allFiles={files} folderPaths={folders} />
     </Provider>,
   );
@@ -47,6 +56,11 @@ describe("SidebarFiles filter", () => {
     expect(shownPaths()).toEqual(files.map((file) => file.path));
     expect(tree.props!.folderPaths).toEqual(folders);
     expect(tree.props!.expandAll).toBe(false);
+  });
+
+  it("always gives the tree the folder template action: the built-in ones need nothing in the vault", () => {
+    setup();
+    expect(tree.props!.newFromFolderTemplate).toBe(fs.newFromFolderTemplate);
   });
 
   it("narrows the tree to paths matching a regular expression, with their folders open", () => {

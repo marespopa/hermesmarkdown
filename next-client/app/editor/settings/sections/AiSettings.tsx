@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 import { useAtom } from "jotai";
 import { HiOutlineRefresh } from "react-icons/hi";
 import {
@@ -11,12 +11,14 @@ import {
   atom_claudeKey,
   atom_geminiKey,
   atom_selectedAiModel,
+  atom_webMcpEnabled,
 } from "@/app/atoms/atoms";
 import Button from "@/app/components/Button";
 import Input from "@/app/components/Input";
 import Toggle from "@/app/components/Toggle";
 import { showErrorToast, showSuccessToast } from "@/app/components/Toastr";
 import { fetchClaudeModels, fetchGeminiModels, testAIConnection } from "@/app/services/ai";
+import { isWebMcpSupported } from "@/app/services/webmcp-context";
 import { SegmentedControl, SelectControl, SettingGroup, SettingItem, SettingNote } from "../components/SettingControls";
 
 // Per-provider copy, defaults, and the model list shown before the real one loads.
@@ -49,9 +51,13 @@ const PROVIDERS = {
 
 type Provider = keyof typeof PROVIDERS;
 
+// WebMCP support doesn't change while the page is open.
+const noSubscription = () => () => {};
+
 // Settings → AI Features: an off-by-default switch, then (once on) the
 // provider, your API key, the model loaded from the key's account and a
 // connection check. Turning it off keeps the key; Remove key deletes it.
+// Below, always shown, the Browser agents switch (WebMCP, off by default).
 export default function AiSettings() {
   const [aiEnabled, setAiEnabled] = useAtom(atom_aiEnabled);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
@@ -63,6 +69,9 @@ export default function AiSettings() {
   const [isFetchingModels, setIsFetchingModels] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [webMcpEnabled, setWebMcpEnabled] = useAtom(atom_webMcpEnabled);
+  // Read after hydration: the server render can't know the browser.
+  const webMcpSupported = useSyncExternalStore(noSubscription, isWebMcpSupported, () => false);
 
   const provider = PROVIDERS[aiProvider];
   const key = aiProvider === "claude" ? claudeKey : geminiKey;
@@ -206,6 +215,18 @@ export default function AiSettings() {
           </SettingNote>
         </SettingGroup>
       )}
+
+      <SettingGroup title="Browser agents">
+        <SettingItem
+          label="Let browser agents read notes"
+          description={
+            webMcpSupported
+              ? "AI agents built into this browser can search your notes, read one and list open tasks (WebMCP). Private notes stay hidden, and nothing is written. No key needed."
+              : "For AI agents built into the browser (WebMCP). This browser doesn't offer them yet."
+          }
+          control={<Toggle variant="soft" active={webMcpEnabled} onChange={setWebMcpEnabled} label="Let browser agents read notes" />}
+        />
+      </SettingGroup>
     </>
   );
 }

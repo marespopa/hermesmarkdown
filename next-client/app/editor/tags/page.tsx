@@ -79,7 +79,7 @@ function TagsView() {
   };
 
   return (
-    <ShellPage title="Tags">
+    <ShellPage title="Tags" help={{ href: "/documentation#tags-page", label: "How to use tags" }}>
       {!vaultHandle ? (
         <p className="m-8 rounded-xl border border-edge-subtle bg-surface px-4 py-3 text-ui-footnote text-fg-muted">
           Open a vault to see its tags.

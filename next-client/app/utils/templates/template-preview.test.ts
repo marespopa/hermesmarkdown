@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { templateIcon, templatePreview, templateSummary } from "./template-preview";
-import { BUILTIN_PACKS } from "./template-packs";
+import { STARTER_TEMPLATES } from "./template-packs";
 
 const NOW = new Date(2026, 9, 5, 9, 0);
 
@@ -17,8 +17,8 @@ describe("templateIcon", () => {
 
 describe("templateSummary", () => {
   it("describes sections, tasks, date and questions", () => {
-    const meeting = BUILTIN_PACKS.flatMap((p) => p.templates).find((t) => t.name === "Meeting notes")!;
-    expect(templateSummary(meeting.body)).toBe("5 sections • Action items • Today's date • Asks Attendees");
+    const meeting = STARTER_TEMPLATES.find((t) => t.name === "Meeting notes")!;
+    expect(templateSummary(meeting.body!)).toBe("5 sections • Action items • Today's date • Asks Attendees");
     expect(templateSummary("Date: {{date}}\nOwner: {{prompt:Owner}}")).toBe("Today's date • Asks Owner");
   });
 

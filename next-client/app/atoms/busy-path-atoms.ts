@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 
-export type BusyOp = "rename" | "move" | "trash" | "delete" | "undo";
+export type BusyOp = "rename" | "move" | "trash" | "delete" | "undo" | "create";
 
 export interface BusyPath {
   op: BusyOp;
@@ -8,7 +8,8 @@ export interface BusyPath {
   newName?: string;
 }
 
-// Vault paths a rename, move, move to Trash, delete or undo is working on.
+// Vault paths a rename, move, move to Trash, delete, undo or folder-template
+// create is working on.
 // Their rows show a spinner and take no actions until it is done; a busy
 // folder covers everything inside it. Never persisted.
 export const atom_busyPaths = atom<ReadonlyMap<string, BusyPath>>(new Map());

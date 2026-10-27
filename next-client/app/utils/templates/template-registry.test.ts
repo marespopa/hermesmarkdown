@@ -3,6 +3,7 @@ import {
   suggestTemplateName,
   matchTemplateForName,
   groupTemplatePacks,
+  listFolderTemplates,
   isTemplatePath,
   listTemplates,
   parseMissingLink,
@@ -65,6 +66,44 @@ describe("groupTemplatePacks", () => {
     expect(groupTemplatePacks("_templates", templates).map((pack) => pack.name)).toEqual(["Journal"]);
   });
 
+});
+
+const meta = (scaffold?: unknown) => ({ frontmatter: scaffold === undefined ? {} : { scaffold } });
+
+describe("listFolderTemplates", () => {
+  it("finds folders whose README.md says scaffold: true, in any case", () => {
+    const found = listFolderTemplates("_templates", {
+      "_templates/Launch/README.md": meta("true"),
+      "_templates/Roadmap/README.md": meta("True"),
+      "_templates/Client/readme.md": meta("true"),
+    });
+    expect(found.map((t) => t.name)).toEqual(["Client", "Launch", "Roadmap"]);
+    expect(found[0]).toEqual({ name: "Client", folder: "_templates/Client", readmePath: "_templates/Client/readme.md" });
+  });
+
+  it("ignores false, a missing key, deeper READMEs and one directly in _templates", () => {
+    expect(listFolderTemplates("_templates", {
+      "_templates/A/README.md": meta("false"),
+      "_templates/B/README.md": meta(),
+      "_templates/C/D/README.md": meta("true"),
+      "_templates/README.md": meta("true"),
+      "notes/E/README.md": meta("true"),
+    })).toEqual([]);
+  });
+});
+
+describe("exclude (folder templates)", () => {
+  const paths = ["_templates/rfc.md", "_templates/Launch/README.md", "_templates/Launch/Plan.md", "_templates/Journal/Daily.md"];
+
+  it("drops a folder template's files and its empty-pack entry, keeping other packs", () => {
+    const exclude = new Set(["Launch"]);
+    const templates = listTemplates("_templates", paths, exclude);
+    expect(templates.map((t) => t.path)).toEqual(["_templates/rfc.md", "_templates/Journal/Daily.md"]);
+    const packs = groupTemplatePacks("_templates", templates, ["_templates/Launch", "_templates/Journal"], exclude);
+    expect(packs.map((p) => p.name)).toEqual(["", "Journal"]);
+    const all = groupTemplatePacks("_templates", listTemplates("_templates", paths), ["_templates/Launch"], exclude);
+    expect(all.map((p) => p.name)).not.toContain("Launch");
+  });
 });
 
 describe("matchTemplateForName by folder", () => {

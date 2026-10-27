@@ -1,6 +1,6 @@
 # TemplateStrip
 
-Description: One quiet line at the top of a template note (a `.md` file directly in `_templates/` at the vault root, or one folder down in a pack), rendered by [MarkdownEditor](MarkdownEditor.md) above the text. It lets someone author a template without knowing its file format: **Editing template: Name · + Add field**, plus plain-language warnings from `lintTemplate()` (the same ones AI Chat's save card shows). Nothing is shown below the line when there are no warnings.
+Description: One quiet line at the top of a template note (a `.md` file directly in `_templates/` at the vault root, or one folder down in a pack), rendered by [MarkdownEditor](MarkdownEditor.md) above the text. It lets someone author a template without knowing its file format: **Editing template: Name · Templates page · + Add field**, where **Templates page** links to `/editor/templates` (all your templates, New template), plus plain-language warnings from `lintTemplate()` (the same ones AI Chat's save card shows). Nothing is shown below the line when there are no warnings.
 
 ## Props
 

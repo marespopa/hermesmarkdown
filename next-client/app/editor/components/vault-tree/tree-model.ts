@@ -59,6 +59,9 @@ export interface VaultFileTreeProps {
   createNewFile?: (targetDirectory?: FileSystemDirectoryHandle, name?: string) => void | Promise<unknown>;
   createFolder?: (parentDirectory?: FileSystemDirectoryHandle, name?: string) => Promise<FileSystemDirectoryHandle | null>;
   moveItem?: (handle: any, targetDir: any) => void;
+  // Folder templates (use-folder-template.ts): given only while the vault has one.
+  // Resolves to the created top folder's path once it shows, or null.
+  newFromFolderTemplate?: (destinationPath: string) => Promise<string | null>;
 }
 
 export interface DraggedEntry {

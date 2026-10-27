@@ -40,6 +40,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     moveItem: vi.fn(),
     createFolder: vi.fn(),
     createTemplate: vi.fn(),
+    newFromFolderTemplate: vi.fn(),
     dialog: {
       confirm: vi.fn(),
       prompt: vi.fn(),
@@ -134,6 +135,7 @@ describe("buildEditorCommands", () => {
       "insert-template",
       "save-as-template",
       "new-template",
+      "new-from-folder-template",
       "export-file",
       "import-file",
       "open-tasks-panel",
@@ -304,6 +306,18 @@ describe("buildEditorCommands", () => {
 
     const withoutVault = buildEditorCommands(createContext({ vaultHandle: null }));
     expect(withoutVault.some((candidate) => candidate.id === "new-template")).toBe(false);
+  });
+
+  it("lists New from folder template… only with a vault and starts it without arguments", () => {
+    const newFromFolderTemplate = vi.fn();
+    const withVault = buildEditorCommands(createContext({ newFromFolderTemplate }));
+    const command = withVault.find((candidate) => candidate.id === "new-from-folder-template");
+    expect(command).toMatchObject({ label: "New from folder template…", category: "Vault" });
+    command?.action();
+    expect(newFromFolderTemplate).toHaveBeenCalledWith();
+
+    const withoutVault = buildEditorCommands(createContext({ vaultHandle: null }));
+    expect(withoutVault.some((candidate) => candidate.id === "new-from-folder-template")).toBe(false);
   });
 
   it("switches the privacy level and disables the current one", () => {

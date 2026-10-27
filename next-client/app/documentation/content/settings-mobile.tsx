@@ -70,7 +70,7 @@ export const settingsGroup: Group = {
           <p>
             Templates are in <code>_templates/</code> at the root of your vault, made the
             first time you need it: every <code>.md</code> file directly in it, or one folder down
-            (a <TextLink href="#template-packs">template pack</TextLink>), is a{" "}
+            (a pack, see the <TextLink href="#templates-page">Templates page</TextLink>), is a{" "}
             <TextLink href="#templates">template</TextLink>.
           </p>
         </>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback } from "react";
 import { useCreateItem } from "./use-create-item";
 import { useDeleteItem } from "./use-delete-item";
 import { useRenameItem } from "./use-rename-item";
@@ -9,6 +10,8 @@ import { useImportItem } from "./use-import-item";
 import { useTemplateNotes } from "./use-template-notes";
 import { useTemplateCreate } from "./use-template-create";
 import { useTemplateSave } from "./use-template-save";
+import { useFolderTemplate } from "./use-folder-template";
+import { useTemplateWizard } from "./use-template-wizard";
 import { useOpenOrCreateLink } from "./use-open-or-create-link";
 import { useOpenFileLink } from "./use-open-file-link";
 import { useFileUndo } from "./use-file-undo";
@@ -69,7 +72,7 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
   const {
     writeNewNote,
     createNoteFromMissingLink,
-    createTemplate,
+    createTemplate: createTemplateFile,
     createWikiLinkFile,
     createLinkedNoteFromTemplate,
     createNoteFromTemplate,
@@ -82,6 +85,16 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
   const { openOrCreateLink } = useOpenOrCreateLink({ openFile, createNoteFromMissingLink });
   const { openFileLink } = useOpenFileLink({ openFile });
   const saveAsTemplate = useTemplateSave({ scanVault });
+  // Not in `held`: it holds the sync itself, for writes that outlive its promise.
+  const { newFromFolderTemplate } = useFolderTemplate({ scanVault, indexVaultTags, openFile });
+  const { newTemplate } = useTemplateWizard({ scanVault, indexVaultTags, openFile, createTemplate: createTemplateFile });
+  // "New template…" with nothing given opens the template wizard; a pack's
+  // New template (`pack`) and a copy of a built-in (`from`) write the file.
+  const createTemplate = useCallback(
+    (pack?: string, from?: { name: string; body: string }) =>
+      (pack === undefined && from === undefined ? newTemplate() : createTemplateFile(pack, from)),
+    [newTemplate, createTemplateFile],
+  );
 
   // Operations that change the vault's files hold the background sync
   // (vault-sync-hold.ts) until they're done.
@@ -107,11 +120,13 @@ export function useFileCrud({ scanVault, indexVaultTags, openFile }: UseFileCrud
     instantiate,
     createNoteFromMissingLink,
     createTemplate,
+    newTemplate,
     createLinkedNoteFromTemplate,
     createNoteFromTemplate,
     createLinkedBoard,
     writeNewNote,
     saveAsTemplate,
+    newFromFolderTemplate,
     openOrCreateLink,
     openFileLink,
   };

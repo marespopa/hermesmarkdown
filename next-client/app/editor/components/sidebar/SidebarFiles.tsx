@@ -44,7 +44,7 @@ export default function SidebarFiles({ treeController, activeFilePath, openHandl
   );
   const {
     vaultHandle, renameFile, deleteFile, trashItems, duplicateFile, moveItem, moveItems,
-    createNewFile, createFolder, undoFileOperation,
+    createNewFile, createFolder, undoFileOperation, newFromFolderTemplate,
   } = useFileSystem();
 
   const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
@@ -125,6 +125,7 @@ export default function SidebarFiles({ treeController, activeFilePath, openHandl
         createFolder={createFolder}
         moveItem={moveItem}
         moveItems={moveItems}
+        newFromFolderTemplate={newFromFolderTemplate}
         isPinned={(path, kind) => isPinned(kind === "folder" ? "folder" : "note", path)}
         togglePin={(path, kind) => void togglePin(kind === "folder" ? "folder" : "note", path)}
       />

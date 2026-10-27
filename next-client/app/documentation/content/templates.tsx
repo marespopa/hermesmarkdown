@@ -1,5 +1,5 @@
 import { Callout, Code, KV, type Subsection } from "../doc-primitives";
-import { templatePacksItem } from "./template-packs";
+import { templatesPageItem } from "./templates-page";
 import TextLink from "@/app/components/TextLink";
 
 const h4 = "text-[19px] font-semibold tracking-tight !mb-2 !mt-0";
@@ -10,16 +10,15 @@ export const templatesItems: Subsection[] = [
     id: "templates",
     title: "Templates",
     lead: "A template is a note you start other notes from. Fields like Today's date or Ask: Owner fill in each time you use it.",
-    keywords: "template templates year month day weekday month name week number quarter slug save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet log entry timestamp token field add field placeholder prompt question ask cursor clipboard date new note missing link folder new notes go where name clash already exists new template create template week name weekly monthly quarterly yearly iso week quarter pack packs",
+    keywords: "template templates year month day weekday month name week number quarter slug save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet log entry timestamp token field add field placeholder prompt question ask cursor clipboard date new note missing link folder new notes go where name clash already exists new template create template week name weekly monthly quarterly yearly iso week quarter pack packs folder template scaffold structure",
     body: (
       <>
         <h4 className={h4}>Make a template</h4>
         <p>
           Run <strong>New template…</strong> from the command palette, or press{" "}
-          <strong>New template</strong> on the Templates page, and give it a name. It starts with a
-          heading for the note&apos;s title and a spot where you start typing; add what you need. If a
-          template with that name already exists, it opens instead. For ready-made ones, add a{" "}
-          <TextLink href="#template-packs">template pack</TextLink>.
+          <strong>New template</strong> on the Templates page. Pick a note or a folder template, give it
+          a name, and start blank or from an example; it opens so you can add what you need. Nothing is
+          overwritten. See the <TextLink href="#templates-page">Templates page</TextLink>.
         </p>
         <p>
           Or turn a note you already like into one: run <strong>Save as template…</strong> from the
@@ -30,7 +29,7 @@ export const templatesItems: Subsection[] = [
         <p>
           Edit a template like any note: open it from Files, or hover it in the template
           list and press the pencil (⌘E / Ctrl+E). The line at the top says{" "}
-          <strong>Editing template</strong>. Changes save as you type and apply the next time you
+          <strong>Editing template</strong>, with a link back to the <strong>Templates page</strong>. Changes save as you type and apply the next time you
           use it.
         </p>
         <h4 className={h4}>Add fields</h4>
@@ -85,9 +84,8 @@ export const templatesItems: Subsection[] = [
         <ul>
           <li>
             <strong>An empty note</strong> shows your templates as small buttons under the first line;
-            click one to fill the note. With no templates yet, a few built-in ones (meeting notes, an
-            outline, a project brief, a book note) are offered instead, and{" "}
-            <strong>Browse template packs</strong> takes you to the Templates page to add your own.
+            click one to fill the note. With no templates yet, the built-in examples (meeting notes and a
+            project brief) are offered instead, and <strong>New template</strong> makes your own.
           </li>
           <li>
             <strong><code>/template</code></strong> in a note inserts a template where you&apos;re
@@ -100,6 +98,41 @@ export const templatesItems: Subsection[] = [
             note. The template the name points to comes first: one named after the folder (
             <code>rfcs/</code> → <code>rfc</code>), one whose name starts it (&quot;Meeting notes
             2026-10-05&quot;), or your journal for a date.
+          </li>
+        </ul>
+        <h4 className={h4}>Folder templates</h4>
+        <p>
+          A folder template creates a whole set of notes at once, such as a project with its folders and
+          starter notes. Make one with <strong>New template</strong> (choose <strong>Folder</strong>), or
+          by hand: add a folder to <code>_templates/</code> and put{" "}
+          <code>scaffold: true</code> in the frontmatter of its <code>README.md</code>. Everything in the
+          folder is copied: notes, other files and empty subfolders. The README is copied too, without the{" "}
+          <code>scaffold</code> line, and opens when the folder is done.
+        </p>
+        <ul>
+          <li>
+            Run it from the command palette (<strong>New from folder template…</strong>, then pick where
+            it goes), or right-click a folder in Files (or the empty space) and choose{" "}
+            <strong>New from Folder Template…</strong>.
+          </li>
+          <li>
+            Fields and dates work in file and folder names as well as in notes. A folder called{" "}
+            <code>{"_templates/{{prompt:Client}} engagement/"}</code> asks for the client once and creates{" "}
+            <code>Acme engagement</code>; <code>{"{{date:YYYY-MM}} review.md"}</code> becomes a dated name.
+            Characters a name can&apos;t have (such as <code>:</code> or <code>/</code>) become{" "}
+            <code>-</code>.
+          </li>
+          <li>
+            It never replaces anything. If the new folder already exists, or two names would end up the
+            same, nothing is created and you are told why. If a write fails halfway, what was made is
+            removed again.
+          </li>
+          <li>
+            Two examples come built in: a <strong>Project folder</strong> (README, Tasks, Decisions and a
+            Kickoff meeting) and a <strong>Research folder</strong> (README, Sources and Open questions).
+            Both ask for the folder&apos;s name. Use them as they are from{" "}
+            <strong>New from folder template…</strong>, or press <strong>Start from this</strong> on the
+            Templates page to make your own copy.
           </li>
         </ul>
         <h4 className={h4}>Under the hood</h4>
@@ -144,5 +177,5 @@ export const templatesItems: Subsection[] = [
       </>
     ),
   },
-  templatePacksItem,
+  templatesPageItem,
 ];

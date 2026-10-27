@@ -22,3 +22,5 @@ Description: The vault's file tree in the sidebar (`VaultFileTree`, tree view, o
 | activeFilePath | `string \| null` | | Highlighted row |
 | openHandle | `(handle, path?) => void` | | Opens a row |
 | allFiles / folderPaths |  | | The tree |
+
+The tree always gets `newFromFolderTemplate` (from `useFileSystem`; the built-in folder templates need nothing in the vault), which adds "New from Folder Template…" to the folder and empty-space menus (long-press on mobile).

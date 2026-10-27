@@ -40,7 +40,7 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
       id: "open-templates",
       label: "Open Templates",
       opens: "page",
-      keywords: "templates template packs journal daily weekly meeting manage",
+      keywords: "templates new template wizard examples meeting project manage",
       shortcut: pageShortcutFor("open-templates"),
       action: onOpenTemplates,
     },

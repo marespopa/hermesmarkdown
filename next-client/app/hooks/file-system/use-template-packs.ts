@@ -6,19 +6,15 @@ import toast from "react-hot-toast";
 import { atom_templatesFolder } from "@/app/atoms/template-atoms";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
 import { writeFileContent } from "@/app/services/file-writer";
-import type { BuiltinPack } from "@/app/utils/templates/template-packs";
-import type { TemplateEntry, TemplatePack } from "@/app/utils/templates/template-registry";
+import { folderTemplateDisplayName } from "@/app/utils/templates/folder-template";
+import { sanitizePackName } from "@/app/utils/templates/template-registry";
+import type { FolderTemplate, TemplateEntry, TemplatePack } from "@/app/utils/templates/template-registry";
 import { useDialog } from "../use-dialog";
 import { useFileSystem } from "../use-file-system";
 import { withRetry } from "./shared";
 import { ensureVaultFolder } from "./unique-file";
-import { findExisting } from "./use-template-create";
 
-// A pack's folder name: one path segment, no leading dots (hidden folders
-// aren't indexed), no characters file systems reject. Empty when nothing is left.
-export function sanitizePackName(name: string): string {
-  return name.replace(/[\\/:*?"<>|]/g, "-").trim().replace(/^\.+/, "").trim();
-}
+export { sanitizePackName };
 
 async function folderHandle(vaultHandle: FileSystemDirectoryHandle, path: string): Promise<FileSystemDirectoryHandle> {
   let current = vaultHandle;
@@ -35,17 +31,11 @@ async function folderExists(vaultHandle: FileSystemDirectoryHandle, path: string
   }
 }
 
-// Built-in packs being added, by id. A second request for the same pack
-// (a double tap) joins the run in progress: two runs would both find the
-// files missing and write them twice (as "Name (1).md" on some folders).
-const addsInFlight = new Map<string, Promise<number>>();
-
 // The Templates page's pack actions. A pack is a subfolder of the templates
 // folder (template-registry.ts), so every action is a plain file operation:
-// adding a built-in pack writes its templates there (never over a file that
-// exists), a new pack is an empty folder, duplicating copies the files into
-// a new folder, and deleting moves the folder, or one template, to the
-// vault's Trash (Undo).
+// duplicating copies the files into a new folder (new packs are made by the
+// template wizard, with their first template), and deleting moves the folder, one template, or a folder template,
+// to the vault's Trash (Undo).
 export function useTemplatePacks() {
   const store = useStore();
   const dialog = useDialog();
@@ -70,58 +60,6 @@ export function useTemplatePacks() {
     }
     return name;
   }, [store, dialog]);
-
-  // Writes the pack's templates into `<templates>/<pack.name>/`, skipping
-  // files that already exist (yours win). Resolves to the number written;
-  // a request while the same pack is being added gets that run.
-  const writeBuiltinPack = useCallback(async (pack: BuiltinPack): Promise<number> => {
-    const vaultHandle = store.get(atom_vaultHandle);
-    if (!vaultHandle) return 0;
-    const folder = `${store.get(atom_templatesFolder).folder}/${pack.name}`;
-    let written = 0;
-    try {
-      const dir = await ensureVaultFolder(vaultHandle, folder);
-      for (const template of pack.templates) {
-        const fileName = `${template.name}.md`;
-        if (await findExisting(vaultHandle, `${folder}/${fileName}`)) continue;
-        const handle = await withRetry(() => dir.getFileHandle(fileName, { create: true }));
-        await withRetry(() => writeFileContent(handle, template.body));
-        written++;
-      }
-    } catch (err) {
-      console.warn("Couldn't add template pack:", err);
-      toast.error(`Couldn't add the ${pack.name} pack`);
-    }
-    if (written > 0) {
-      await refresh(vaultHandle);
-      toast.success(`Added ${pack.name}: ${written} template${written === 1 ? "" : "s"} in ${folder}`);
-    }
-    return written;
-  }, [store, refresh]);
-
-  const addBuiltinPack = useCallback((pack: BuiltinPack): Promise<number> => {
-    const inFlight = addsInFlight.get(pack.id);
-    if (inFlight) return inFlight;
-    const run = writeBuiltinPack(pack).finally(() => addsInFlight.delete(pack.id));
-    addsInFlight.set(pack.id, run);
-    return run;
-  }, [writeBuiltinPack]);
-
-  // An empty pack folder; resolves to its name, or null.
-  const createPack = useCallback(async (): Promise<string | null> => {
-    const vaultHandle = store.get(atom_vaultHandle);
-    const name = await askPackName("New pack", "");
-    if (!vaultHandle || !name) return null;
-    try {
-      await ensureVaultFolder(vaultHandle, `${store.get(atom_templatesFolder).folder}/${name}`);
-      await refresh(vaultHandle);
-      return name;
-    } catch (err) {
-      console.warn("Couldn't create template pack:", err);
-      toast.error("Couldn't create the pack");
-      return null;
-    }
-  }, [store, askPackName, refresh]);
 
   // Copies the pack's templates (as saved on disk) into a new pack folder.
   const duplicatePack = useCallback(async (pack: TemplatePack): Promise<string | null> => {
@@ -183,5 +121,22 @@ export function useTemplatePacks() {
     }
   }, [store, dialog, trashItems]);
 
-  return { addBuiltinPack, createPack, duplicatePack, deletePack, deleteTemplate };
+  // Moves a folder template (its whole folder) to the vault's Trash, after asking.
+  const deleteFolderTemplate = useCallback(async (template: FolderTemplate): Promise<boolean> => {
+    const vaultHandle = store.get(atom_vaultHandle);
+    if (!vaultHandle) return false;
+    const name = folderTemplateDisplayName(template.name, new Date());
+    const ok = await dialog.confirm(`Move the ${name} folder template to the Trash?`, "Delete folder template", "Delete", "Cancel");
+    if (!ok) return false;
+    try {
+      await trashItems([{ handle: await folderHandle(vaultHandle, template.folder), path: template.folder }]);
+      return true;
+    } catch (err) {
+      console.warn("Couldn't delete folder template:", err);
+      toast.error("Couldn't delete the folder template");
+      return false;
+    }
+  }, [store, dialog, trashItems]);
+
+  return { duplicatePack, deletePack, deleteTemplate, deleteFolderTemplate };
 }

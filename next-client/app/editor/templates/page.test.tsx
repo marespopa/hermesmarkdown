@@ -15,15 +15,15 @@ const fileSystem = {
   scanVault: vi.fn(async () => {}),
   indexVaultTags: vi.fn(async () => {}),
   createTemplate: vi.fn(async () => true),
+  newTemplate: vi.fn(async () => true),
 };
 vi.mock("@/app/hooks/use-file-system", () => ({ useFileSystem: () => fileSystem }));
 
 const packs = {
-  addBuiltinPack: vi.fn(async () => 1),
-  createPack: vi.fn(async () => "Work"),
   duplicatePack: vi.fn(async () => "Journal copy"),
   deletePack: vi.fn(async () => true),
   deleteTemplate: vi.fn(async () => true),
+  deleteFolderTemplate: vi.fn(async () => true),
 };
 vi.mock("@/app/hooks/file-system/use-template-packs", () => ({ useTemplatePacks: () => packs }));
 
@@ -33,13 +33,18 @@ vi.mock("@/app/atoms/vault-atoms", async (importOriginal) => ({
   resolveFileHandleAtPath,
 }));
 
-const meta = (path: string) => ({ path, name: path.split("/").pop()! }) as FileMetadata;
+const meta = (path: string) =>
+  ({ path, name: path.split("/").pop()!, ...(path.endsWith("README.md") ? { frontmatter: { scaffold: "true" } } : {}) }) as unknown as FileMetadata;
 
-function renderPage({ vault = true, paths = ["_templates/Meeting.md", "_templates/Journal/Daily.md", "notes/a.md"] } = {}) {
+function renderPage({
+  vault = true,
+  paths = ["_templates/Meeting.md", "_templates/Journal/Daily.md", "notes/a.md"],
+  folders = ["_templates", "_templates/Journal", "_templates/Empty", "notes"],
+} = {}) {
   const store = createStore();
   if (vault) store.set(atom_vaultHandle, { name: "Notes" } as unknown as FileSystemDirectoryHandle);
   store.set(atom_fileMetadata, Object.fromEntries(paths.map((path) => [path, meta(path)])));
-  store.set(atom_vaultFolderPaths, ["_templates", "_templates/Journal", "_templates/Empty", "notes"]);
+  store.set(atom_vaultFolderPaths, folders);
   render(<Provider store={store}><TemplatesPage /></Provider>);
 }
 
@@ -80,45 +85,115 @@ describe("TemplatesPage", () => {
     renderPage();
     const journal = screen.getByRole("region", { name: "Journal" });
     fireEvent.click(within(journal).getByRole("button", { name: "New template in Journal" }));
-    await waitFor(() => expect(fileSystem.createTemplate).toHaveBeenCalledWith("Journal"));
+    await waitFor(() => expect(fileSystem.newTemplate).toHaveBeenCalledWith({ kind: "note", pack: "Journal" }));
+    await waitFor(() => expect(within(journal).getByRole("button", { name: "Duplicate Journal" })).toBeEnabled());
     fireEvent.click(within(journal).getByRole("button", { name: "Duplicate Journal" }));
-    fireEvent.click(within(journal).getByRole("button", { name: "Delete Journal" }));
     expect(packs.duplicatePack).toHaveBeenCalledWith(expect.objectContaining({ name: "Journal", folder: "_templates/Journal" }));
+    await waitFor(() => expect(within(journal).getByRole("button", { name: "Delete Journal" })).toBeEnabled());
+    fireEvent.click(within(journal).getByRole("button", { name: "Delete Journal" }));
     expect(packs.deletePack).toHaveBeenCalledWith(expect.objectContaining({ name: "Journal" }));
-    fireEvent.click(screen.getByRole("button", { name: "New pack" }));
-    expect(packs.createPack).toHaveBeenCalled();
   });
 
-  it("offers the built-in packs, counting what's already there", () => {
+  it("has no New pack: a new pack is made in the wizard, with its first template", () => {
     renderPage();
-    const journal = screen.getByRole("region", { name: "Journal pack" });
-    fireEvent.click(within(journal).getByRole("button", { name: /Add 4 missing: Journal/ }));
-    expect(packs.addBuiltinPack).toHaveBeenCalledWith(expect.objectContaining({ name: "Journal" }));
-    expect(within(screen.getByRole("region", { name: "Meetings pack" })).getByRole("button", { name: "Add to vault: Meetings" })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "New pack" })).not.toBeInTheDocument();
   });
 
-  it("disables a pack's button and spins from the first click until the pack is added", async () => {
-    let finish!: (written: number) => void;
-    packs.addBuiltinPack.mockImplementationOnce(() => new Promise<number>((resolve) => { finish = resolve; }));
+  it("opens the template wizard from New template, then shows what it made", async () => {
     renderPage();
-    const journal = screen.getByRole("region", { name: "Journal pack" });
-    fireEvent.click(within(journal).getByRole("button", { name: /Add 4 missing: Journal/ }));
+    fireEvent.click(screen.getByRole("button", { name: "New template" }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/editor"));
+    expect(fileSystem.newTemplate).toHaveBeenCalledWith(undefined);
+  });
 
-    const adding = within(journal).getByRole("button", { name: "Adding…: Journal" });
-    expect(adding).toBeDisabled();
-    expect(adding).toHaveAttribute("aria-busy", "true");
-    fireEvent.click(adding);
-    expect(packs.addBuiltinPack).toHaveBeenCalledTimes(1);
+  it("stays on the page when the wizard is cancelled", async () => {
+    fileSystem.newTemplate.mockResolvedValueOnce(false);
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "New template" }));
+    await waitFor(() => expect(fileSystem.newTemplate).toHaveBeenCalled());
+    expect(push).not.toHaveBeenCalled();
+  });
 
-    await act(async () => finish(4));
-    expect(within(journal).getByRole("button", { name: /Add 4 missing: Journal/ })).toBeEnabled();
+  it("offers two note and two folder examples, each opening the wizard on it", async () => {
+    renderPage();
+    const starts = screen.getAllByRole("button", { name: /^Start from / }).map((b) => b.getAttribute("aria-label"));
+    expect(starts).toEqual(["Start from Meeting notes", "Start from Project brief", "Start from Project folder", "Start from Research folder"]);
+    fireEvent.click(screen.getByRole("button", { name: "Start from Research folder" }));
+    await waitFor(() => expect(fileSystem.newTemplate).toHaveBeenCalledWith({ kind: "folder", from: "example:research-folder" }));
+    fireEvent.click(screen.getByRole("button", { name: "Start from Meeting notes" }));
+    expect(fileSystem.newTemplate).toHaveBeenCalledWith({ kind: "note", from: "example:builtin:meetings/Meeting notes" });
+  });
+
+  it("lists your folder templates by their readable name, to edit or delete", async () => {
+    const readme = "_templates/{{Research topic}}/README.md";
+    renderPage({ paths: [readme, "_templates/{{Research topic}}/Sources.md"] });
+    const list = screen.getByRole("region", { name: "Folder templates" });
+    expect(within(list).getByText("Research topic")).toBeInTheDocument();
+    expect(within(list).getByText("Asks for the new folder's name")).toBeInTheDocument();
+    fireEvent.click(within(list).getByRole("button", { name: "Delete folder template Research topic" }));
+    expect(packs.deleteFolderTemplate).toHaveBeenCalledWith(expect.objectContaining({ folder: "_templates/{{Research topic}}" }));
+    await waitFor(() => expect(within(list).getByRole("button", { name: "Edit Research topic" })).toBeEnabled());
+    fireEvent.click(within(list).getByRole("button", { name: "Edit Research topic" }));
+    await waitFor(() => expect(fileSystem.openFile).toHaveBeenCalledWith({ name: readme }, readme, true));
+  });
+
+  it("invites you to make a first template when there are none", () => {
+    renderPage({ paths: ["notes/a.md"], folders: ["notes"] });
+    expect(screen.getByText(/No templates yet. Make one with New template/)).toBeInTheDocument();
+  });
+
+  it("runs Duplicate and Delete once, however fast you click, and spins until done", async () => {
+    let finish!: (name: string) => void;
+    packs.duplicatePack.mockImplementationOnce(() => new Promise<string>((resolve) => { finish = resolve; }));
+    renderPage();
+    const journal = screen.getByRole("region", { name: "Journal" });
+    const duplicate = within(journal).getByRole("button", { name: "Duplicate Journal" });
+    fireEvent.click(duplicate);
+    fireEvent.click(duplicate);
+    expect(packs.duplicatePack).toHaveBeenCalledTimes(1);
+    expect(within(journal).getByRole("button", { name: "Duplicate Journal" })).toHaveAttribute("aria-busy", "true");
+    expect(within(journal).getByRole("button", { name: "Delete Journal" })).toBeDisabled();
+    fireEvent.click(within(journal).getByRole("button", { name: "Delete Journal" }));
+    expect(packs.deletePack).not.toHaveBeenCalled();
+
+    await act(async () => finish("Journal copy"));
+    expect(within(journal).getByRole("button", { name: "Duplicate Journal" })).toBeEnabled();
+  });
+
+  it("deletes a template once on a double click", async () => {
+    let finish!: (ok: boolean) => void;
+    packs.deleteTemplate.mockImplementationOnce(() => new Promise<boolean>((resolve) => { finish = resolve; }));
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Delete template Daily" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete template Daily" }));
+    expect(packs.deleteTemplate).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: "Edit Daily" })).toBeDisabled();
+    await act(async () => finish(true));
+  });
+
+  it("opens one wizard at a time: New template and the examples wait while it's open", async () => {
+    let finish!: (made: boolean) => void;
+    fileSystem.newTemplate.mockImplementationOnce(() => new Promise<boolean>((resolve) => { finish = resolve; }));
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Start from Project brief" }));
+    expect(screen.getByRole("button", { name: "Start from Project brief" })).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("button", { name: "New template" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Start from Research folder" })).toBeDisabled();
+    await act(async () => finish(false));
+    expect(screen.getByRole("button", { name: "New template" })).toBeEnabled();
+  });
+
+  it("links to the documentation on making your own template", () => {
+    renderPage();
+    expect(screen.getByRole("link", { name: "Help: How to make your own template" })).toHaveAttribute("href", "/documentation#templates-page");
   });
 
   it("asks for a vault first, and reads the vault when opened on this page", () => {
     renderPage({ vault: false });
     expect(screen.getByText(/Open a vault in the editor/)).toBeInTheDocument();
     expect(screen.queryByText("Your templates")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Add to vault: Meetings" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Start from Project folder" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "New template" })).not.toBeInTheDocument();
 
     renderPage({ paths: [] });
     expect(fileSystem.scanVault).toHaveBeenCalled();

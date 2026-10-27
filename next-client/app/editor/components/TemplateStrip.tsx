@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import Button from "@/app/components/Button";
+import TextLink from "@/app/components/TextLink";
 import { lintTemplate } from "@/app/utils/templates/template-lint";
 
 interface TemplateStripProps {
@@ -14,7 +15,8 @@ interface TemplateStripProps {
 }
 
 // One quiet line at the top of a template note ("Editing template: Name"),
-// an Add field button, and plain-language warnings.
+// a link to the Templates page (all your templates), an Add field button,
+// and plain-language warnings.
 export default function TemplateStrip({ name, doc, onAddField }: TemplateStripProps) {
   const warnings = useMemo(() => lintTemplate(doc), [doc]);
 
@@ -24,7 +26,14 @@ export default function TemplateStrip({ name, doc, onAddField }: TemplateStripPr
         <span className="min-w-0 truncate">
           Editing template: <span className="font-medium text-fg">{name}</span>
         </span>
-        <Button variant="bare" onClick={onAddField} className="ml-auto min-h-11 shrink-0 px-2 text-sage">
+        <TextLink
+          href="/editor/templates"
+          variant="quiet"
+          className="ml-auto inline-flex min-h-11 shrink-0 items-center px-2 font-medium"
+        >
+          Templates page
+        </TextLink>
+        <Button variant="bare" onClick={onAddField} className="min-h-11 shrink-0 px-2 text-sage">
           + Add field
         </Button>
       </div>

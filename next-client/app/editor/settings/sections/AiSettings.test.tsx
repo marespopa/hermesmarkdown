@@ -2,7 +2,7 @@ import React from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider, createStore } from "jotai";
-import { atom_aiEnabled, atom_claudeKey, atom_isAiConfigured } from "@/app/atoms/ui-atoms";
+import { atom_aiEnabled, atom_claudeKey, atom_isAiConfigured, atom_webMcpEnabled } from "@/app/atoms/ui-atoms";
 import AiSettings from "./AiSettings";
 
 vi.mock("@/app/services/ai", () => ({
@@ -63,6 +63,18 @@ describe("AiSettings", () => {
     expect(store.get(atom_isAiConfigured)).toBe(false);
     expect(store.get(atom_claudeKey)).toBe("sk-ant-test");
     expect(screen.queryByText("API key")).not.toBeInTheDocument();
+  });
+
+  it("keeps Browser agents off by default and separate from AI features", () => {
+    const store = renderWith();
+    const browserAgents = screen.getByRole("switch", { name: "Let browser agents read notes" });
+    expect(browserAgents).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByText(/doesn't offer them yet/)).toBeInTheDocument();
+
+    fireEvent.click(browserAgents);
+
+    expect(store.get(atom_webMcpEnabled)).toBe(true);
+    expect(store.get(atom_aiEnabled)).toBe(false);
   });
 
   it("reads as on for a key saved before the switch existed", () => {

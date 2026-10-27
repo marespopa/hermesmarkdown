@@ -34,6 +34,7 @@ export default function FilesPage() {
     openFile,
     renameFile,
     vaultHandle,
+    newFromFolderTemplate,
   } = useFileSystem();
   const vaultName = useAtomValue(atom_vaultName);
   // No Refresh button: the list follows the disk (useVaultSync, mounted by
@@ -92,7 +93,7 @@ export default function FilesPage() {
   if (!isMounted) return null;
 
   return (
-    <ShellPage title="All Files">
+    <ShellPage title="All Files" help={{ href: "/documentation#organizing-files", label: "How to organize your files" }}>
       <main className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col px-4 py-5 sm:px-8">
         <div className="mb-5 flex shrink-0 items-center justify-between gap-4">
           <div className="min-w-0">
@@ -156,6 +157,7 @@ export default function FilesPage() {
                 createFolder={createFolder}
                 moveItem={moveItem}
                 moveItems={moveItems}
+                newFromFolderTemplate={newFromFolderTemplate}
               />
               {isFiltered && hasMoreResults && (
                 <Button variant="bare" onClick={() => setShowAllResults(true)} className="w-full py-2 text-ui-footnote text-fg-muted hover:text-fg">

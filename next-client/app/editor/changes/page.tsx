@@ -124,7 +124,7 @@ export default function ChangesPage() {
   }
 
   return (
-    <ShellPage title="Changes">
+    <ShellPage title="Changes" help={{ href: "/documentation#git", label: "How Git changes work" }}>
       <LoadingBar isVisible={scanning} label="Checking changes" />
       <main className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
         <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-8 sm:px-8">{body}</div>

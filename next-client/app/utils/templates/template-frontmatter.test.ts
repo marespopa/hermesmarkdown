@@ -32,6 +32,21 @@ describe("templateContent", () => {
   });
 });
 
+describe("templateContent dropKeys", () => {
+  it("removes the given key and keeps the others", () => {
+    expect(templateContent("---\nscaffold: true\nstatus: draft\n---\n# Hi", { dropKeys: ["scaffold"] }))
+      .toBe("---\nstatus: draft\n---\n# Hi");
+  });
+
+  it("drops a block it emptied", () => {
+    expect(templateContent("---\nscaffold: true\n---\n# Hi", { dropKeys: ["scaffold"] })).toBe("# Hi");
+  });
+
+  it("leaves the key alone without the option", () => {
+    expect(templateContent("---\nscaffold: true\n---\n# Hi")).toBe("---\nscaffold: true\n---\n# Hi");
+  });
+});
+
 describe("templateBody", () => {
   it("returns the content after the frontmatter block", () => {
     expect(templateBody("---\nstatus: draft\n---\n\n# Title\nText")).toBe("# Title\nText");

@@ -278,5 +278,6 @@ export function useTreeActions({
     menu, openMenu, closeMenu: () => setMenu(null),
     trashPaths, trashSelection, targetPaths,
     openPath, openRow, handleFor, startDrag, dropInto, kindOf, entryByPath, isFolderCollapsed, busyFor,
+    reveal,
   };
 }

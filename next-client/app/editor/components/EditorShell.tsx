@@ -10,6 +10,7 @@ import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useVaultPins } from "@/app/hooks/use-vault-pins";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useVaultTreeSnapshot } from "@/app/hooks/use-vault-tree-snapshot";
+import { useWebMcpTools } from "@/app/hooks/use-webmcp-tools";
 import { PageShortcuts } from "@/app/components/CommandPalette/use-page-shortcuts";
 import { formatShortcut } from "@/app/utils/platform";
 import { useRecentVaultTracker } from "../hooks/use-recent-vaults";
@@ -72,6 +73,8 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   useVaultTreeSnapshot();
   // On every route, so the Vault menu lists the recents from Settings too.
   useRecentVaultTracker();
+  // Browser agents (WebMCP), when turned on in Settings.
+  useWebMcpTools(!isVaultLocked);
   const onEditor = usePathname() === "/editor";
 
   useEffect(() => {

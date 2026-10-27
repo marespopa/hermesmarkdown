@@ -18,7 +18,7 @@ export interface InstantiatedTemplate {
   expanded: ExpandedTemplate;
 }
 
-async function readClipboard(): Promise<string> {
+export async function readClipboard(): Promise<string> {
   try {
     return (await navigator.clipboard?.readText()) ?? "";
   } catch {

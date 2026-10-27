@@ -74,7 +74,7 @@ export default function TrashPage() {
   };
 
   return (
-    <ShellPage title="Trash">
+    <ShellPage title="Trash" help={{ href: "/documentation#organizing-files", label: "How the Trash works" }}>
       <main className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
         <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-8 sm:px-8">
           <div className="flex flex-wrap items-end gap-3">

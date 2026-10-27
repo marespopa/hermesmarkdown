@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore, Provider } from "jotai";
 import toast from "react-hot-toast";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
-import { BUILTIN_PACKS } from "@/app/utils/templates/template-packs";
 import { sanitizePackName, useTemplatePacks } from "./use-template-packs";
 
 vi.mock("react-hot-toast", () => ({ default: { error: vi.fn(), success: vi.fn() } }));
@@ -70,8 +69,6 @@ async function setup(files: Record<string, string> = {}) {
   return { root, packs: result.current };
 }
 
-const journal = BUILTIN_PACKS.find((pack) => pack.name === "Journal")!;
-
 describe("sanitizePackName", () => {
   it("keeps one plain folder name", () => {
     expect(sanitizePackName(" Work/Notes ")).toBe("Work-Notes");
@@ -82,44 +79,6 @@ describe("sanitizePackName", () => {
 
 describe("useTemplatePacks", () => {
   beforeEach(() => vi.clearAllMocks());
-
-  it("adds a built-in pack into the templates folder, keeping files you already have", async () => {
-    const { root, packs } = await setup({ "_templates/Journal/Daily.md": "mine\n" });
-    let written = 0;
-    await act(async () => { written = await packs.addBuiltinPack(journal); });
-    expect(written).toBe(journal.templates.length - 1);
-    expect(root.at("_templates/Journal/Daily.md")?.content).toBe("mine\n");
-    expect(root.at("_templates/Journal/Weekly.md")?.content).toBe(journal.templates.find((t) => t.name === "Weekly")!.body);
-    expect(fileSystem.scanVault).toHaveBeenCalled();
-    expect(toast.success).toHaveBeenCalledWith(expect.stringContaining("Added Journal"));
-  });
-
-  it("joins an add already in progress for the same pack instead of writing it twice", async () => {
-    const { packs } = await setup();
-    const { writeFileContent } = await import("@/app/services/file-writer");
-    let first = 0;
-    let second = 0;
-    await act(async () => {
-      [first, second] = await Promise.all([packs.addBuiltinPack(journal), packs.addBuiltinPack(journal)]);
-    });
-    expect(first).toBe(journal.templates.length);
-    expect(second).toBe(first);
-    expect(writeFileContent).toHaveBeenCalledTimes(journal.templates.length);
-    expect(toast.success).toHaveBeenCalledTimes(1);
-  });
-
-  it("creates an empty pack folder, refusing a name that's taken", async () => {
-    const { root, packs } = await setup({ "_templates/Work/a.md": "a\n" });
-    dialog.prompt.mockResolvedValueOnce("Writing");
-    await act(async () => { await packs.createPack(); });
-    expect(root.dirs.get("_templates")!.dirs.has("Writing")).toBe(true);
-
-    dialog.prompt.mockResolvedValueOnce("Work");
-    let name: string | null = "x";
-    await act(async () => { name = await packs.createPack(); });
-    expect(name).toBeNull();
-    expect(toast.error).toHaveBeenCalledWith("There's already a pack named Work");
-  });
 
   it("duplicates a pack's templates as saved", async () => {
     const { root, packs } = await setup({ "_templates/Journal/Daily.md": "# {{date}}\n" });
@@ -153,5 +112,18 @@ describe("useTemplatePacks", () => {
     await act(async () => { await packs.deleteTemplate(template); });
     expect(dialog.confirm).toHaveBeenCalledWith("Move the Meeting template to the Trash?", "Delete template", "Delete", "Cancel");
     expect(fileSystem.trashItems).toHaveBeenCalledWith([expect.objectContaining({ path: "_templates/Meeting.md" })]);
+  });
+
+  it("moves a folder template's whole folder to the Trash only after asking", async () => {
+    const { packs } = await setup({ "_templates/{{Research topic}}/README.md": "---\nscaffold: true\n---\n" });
+    const template = { name: "{{Research topic}}", folder: "_templates/{{Research topic}}", readmePath: "_templates/{{Research topic}}/README.md" };
+    dialog.confirm.mockResolvedValueOnce(false);
+    await act(async () => { await packs.deleteFolderTemplate(template); });
+    expect(fileSystem.trashItems).not.toHaveBeenCalled();
+
+    dialog.confirm.mockResolvedValueOnce(true);
+    await act(async () => { await packs.deleteFolderTemplate(template); });
+    expect(dialog.confirm).toHaveBeenCalledWith("Move the Research topic folder template to the Trash?", "Delete folder template", "Delete", "Cancel");
+    expect(fileSystem.trashItems).toHaveBeenCalledWith([expect.objectContaining({ path: "_templates/{{Research topic}}" })]);
   });
 });
