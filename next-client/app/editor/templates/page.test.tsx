@@ -34,7 +34,7 @@ vi.mock("@/app/atoms/vault-atoms", async (importOriginal) => ({
 }));
 
 const meta = (path: string) =>
-  ({ path, name: path.split("/").pop()!, ...(path.endsWith("README.md") ? { frontmatter: { scaffold: "true" } } : {}) }) as FileMetadata;
+  ({ path, name: path.split("/").pop()!, ...(path.endsWith("README.md") ? { frontmatter: { scaffold: "true" } } : {}) }) as unknown as FileMetadata;
 
 function renderPage({
   vault = true,
