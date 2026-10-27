@@ -51,7 +51,7 @@ describe('AI companion route', () => {
   it('streams Claude with the system prompt and the browser-run tools', async () => {
     const response = await post({ provider: 'claude', apiKey: 'claude-key', modelKey: 'sonnet-5', system: 'Be brief', messages: uiMessages });
 
-    expect(await response.text()).toBe('stream');
+    expect(await response.text()).toBe(': keep-alive\n\nstream');
     const options = streamTextMock.mock.calls[0][0];
     expect(options.model).toEqual({ modelId: 'claude-sonnet-5', provider: 'anthropic' });
     expect(options.system).toBe('Be brief');
