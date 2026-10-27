@@ -1,4 +1,19 @@
 {
+  "permissions": {
+    "deny": [
+      "Read(**/node_modules/**)",
+      "Read(**/.next/**)",
+      "Read(**/dist/**)",
+      "Read(**/build/**)",
+      "Read(**/out/**)",
+      "Read(**/coverage/**)",
+      "Read(**/.yarn/**)",
+      "Read(**/yarn.lock)",
+      "Read(**/package-lock.json)",
+      "Read(**/pnpm-lock.yaml)",
+      "Read(**/*.tsbuildinfo)"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {
