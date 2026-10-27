@@ -11,8 +11,11 @@ import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { ACCEPT_FILES, readAttachments, resolveMentionRefs, type Attachment, type VaultRef } from "../ai-chat/chat-helpers";
 import ChatContextChips from "../ai-chat/ChatContextChips";
 import MentionMenu from "../ai-chat/MentionMenu";
+import { useChatSkills } from "../ai-chat/use-chat-skills";
 import { useChatMentions } from "../ai-chat/use-chat-mentions";
+import { COMPANION_COMMAND_LIST } from "./companion-commands";
 import type { CompanionContext } from "./companion-messages";
+import SlashMenu, { type SlashOption } from "./SlashMenu";
 
 interface CompanionComposerProps {
   request: CompanionRequest | null;
@@ -28,7 +31,9 @@ const BUTTON_SLOT = "flex h-11 shrink-0 items-center justify-center";
 // The companion's input: the app's own text field (Input's Textarea, the
 // shared field look), with attach and send beside it. An entry point's request (the note in front and its
 // selection) becomes removable context chips; @mentions load a note, folder
-// or the vault index as chips (use-chat-mentions); files attach. Enter sends
+// or the vault index as chips (use-chat-mentions); files attach. A message
+// that is just a /word lists the commands and skills to pick from (Arrow keys,
+// Enter or Tab fill one in, Escape closes). Enter sends
 // (Shift+Enter: new line) and clears the field and chips at once; while a
 // turn runs, the send button stops it.
 export default function CompanionComposer({ request, isBusy, onSend, onStop }: CompanionComposerProps) {
@@ -39,6 +44,9 @@ export default function CompanionComposer({ request, isBusy, onSend, onStop }: C
   const [vaultRefs, setVaultRefs] = useState<VaultRef[]>([]);
   const [path, setPath] = useState<string | null>(null);
   const [selection, setSelection] = useState("");
+  const [slashIndex, setSlashIndex] = useState(0);
+  const [slashDismissed, setSlashDismissed] = useState(false);
+  const { skillList } = useChatSkills();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -65,6 +73,18 @@ export default function CompanionComposer({ request, isBusy, onSend, onStop }: C
     field.style.height = `${Math.min(field.scrollHeight, MAX_HEIGHT)}px`;
   }, [input]);
 
+  // The / menu: only while the whole message is one /word (no space yet).
+  const slashQuery = /^\/(\S*)$/.exec(input)?.[1]?.toLowerCase();
+  const slashOptions: SlashOption[] = slashQuery === undefined || slashDismissed || mention
+    ? []
+    : [...COMPANION_COMMAND_LIST, ...skillList()].filter((option) => option.command.startsWith(`/${slashQuery}`));
+  const activeSlash = slashOptions[Math.min(slashIndex, slashOptions.length - 1)];
+
+  const selectSlash = (option: SlashOption) => {
+    setInput(`${option.command} `);
+    inputRef.current?.focus();
+  };
+
   const canSend = !isBusy && (input.trim().length > 0 || attachments.length > 0 || !!selection.trim());
 
   const send = async () => {
@@ -88,6 +108,14 @@ export default function CompanionComposer({ request, isBusy, onSend, onStop }: C
       if (e.key === "Enter" || e.key === "Tab") { e.preventDefault(); void selectMention(mentionOptions[mentionIndex]); return; }
       if (e.key === "Escape") { e.preventDefault(); setMention(null); return; }
     }
+    if (activeSlash) {
+      if (e.key === "ArrowDown") { e.preventDefault(); setSlashIndex((i) => (i + 1) % slashOptions.length); return; }
+      if (e.key === "ArrowUp") { e.preventDefault(); setSlashIndex((i) => (i - 1 + slashOptions.length) % slashOptions.length); return; }
+      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setSlashDismissed(true); return; }
+      // A command typed in full just sends; otherwise Enter completes it.
+      const typedInFull = activeSlash.command === input.trim().toLowerCase();
+      if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey && !typedInFull)) { e.preventDefault(); selectSlash(activeSlash); return; }
+    }
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); void send(); }
   };
 
@@ -96,6 +124,7 @@ export default function CompanionComposer({ request, isBusy, onSend, onStop }: C
       {mention && mentionOptions.length > 0 && (
         <MentionMenu options={mentionOptions} activeIndex={mentionIndex} query={mention.query} onSelect={selectMention} />
       )}
+      {activeSlash && <SlashMenu options={slashOptions} activeIndex={slashIndex} onSelect={selectSlash} />}
       <ChatContextChips
         path={path}
         selection={selection}
@@ -137,6 +166,8 @@ export default function CompanionComposer({ request, isBusy, onSend, onStop }: C
           value={input}
           handleChange={(e) => {
             setInput(e.target.value);
+            setSlashIndex(0);
+            setSlashDismissed(false);
             detectMention(e.target.value, e.target.selectionStart ?? e.target.value.length);
           }}
           onKeyDown={handleKeyDown}
