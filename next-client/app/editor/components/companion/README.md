@@ -13,7 +13,7 @@ The AI companion: one AI in the app. A panel docked on the window's trailing edg
 | [TrashConfirmCard](TrashConfirmCard.md) | Keep / Move to Trash, in place of a waiting `trash` call. |
 | [CompanionComposer](CompanionComposer.md) | The input: the shared `Textarea` field, context chips, @mentions, attach, send / stop. |
 | `use-companion-chat.ts` | `useChat` on the one Chat instance; skills and the system prompt per turn; saves the thread when a turn settles; AI status. |
-| `companion-chat-store.ts` | The session's Chat instance (`createCompanionChat`: transport to `/api/ai/companion` with the key, model and web search setting, tool calls, the auto-resend loop) and `loadThread` / `saveThread` (localStorage, newest 80 messages, images dropped). |
+| `companion-chat-store.ts` | The session's Chat instance (`createCompanionChat`: transport to `/api/ai/companion` with the key, model and web search setting, tool calls, the auto-resend loop; `withReadableErrors` turns a host's HTML error page, such as a proxy's Inactivity Timeout, into one line) and `loadThread` / `saveThread` (localStorage, newest 80 messages, images dropped). |
 | `companion-messages.ts` | A user turn's parts (typed text, then a `--- CONTEXT ---` part, then images), `MAX_TOOL_ROUNDS` (12) and `shouldContinue` (resend once the last step's browser-run calls all have results; provider-run ones, `WEB_TOOL_NAMES`, never call for a round), tool part views. |
 | `reply-html.ts` | A reply's Markdown as safe HTML (`noteToHtml`; no images, diagram and math sources as code). |
 | `companion-prompt.ts` | `COMPANION_PROMPT` and `buildCompanionSystemPrompt` (adds skills). |
@@ -27,4 +27,4 @@ The AI companion: one AI in the app. A panel docked on the window's trailing edg
 | `tools/read-tools.ts` | The read tools' answers (private notes listed as "private (hidden)", 40 KB per file, 100 entries per page), code blocks, chip labels. |
 | `tools/edit-tools.ts` | `applyEdits` (each `find` must match once, else the count goes back to the model) and `replaceCodeBlock`. |
 
-Server side: `app/api/ai/companion/route.ts` (streams; tools without `execute`, plus Claude's own `web_search` when the user turned it on, and its sources), `companion-tools.ts` (`COMPANION_TOOLS`, `webSearchTool` by model, `foldSystem` for Gemini), shared `app/api/ai/providers.ts` and `errors.ts`. Tool schemas: `app/services/companion-tool-defs.ts`. State: `app/atoms/companion-atoms.ts`.
+Server side: `app/api/ai/companion/route.ts` (streams; tools without `execute`, plus Claude's own `web_search` when the user turned it on, and its sources; `keep-alive.ts` sends an SSE comment at once and every 5 s so a host's proxy doesn't end a long think as an Inactivity Timeout), `companion-tools.ts` (`COMPANION_TOOLS`, `webSearchTool` by model, `foldSystem` for Gemini), shared `app/api/ai/providers.ts` and `errors.ts`. Tool schemas: `app/services/companion-tool-defs.ts`. State: `app/atoms/companion-atoms.ts`.

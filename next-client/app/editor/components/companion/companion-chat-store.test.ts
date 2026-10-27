@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { companionHandlers, createCompanionChat } from "./companion-chat-store";
+import { companionHandlers, createCompanionChat, withReadableErrors } from "./companion-chat-store";
 
 vi.mock("@/app/services/ai", () => ({
   getAIConfig: () => ({ provider: "claude", apiKey: "claude-key", modelKey: "sonnet-5" }),
@@ -82,6 +82,21 @@ describe("the companion's chat loop", () => {
     expect(reply.parts.some((part) => part.type === "text" && part.text === "Moved the launch to Q4.")).toBe(true);
   });
 
+  it("reads a reply with the route's keep-alive pings between its events", async () => {
+    const reply = await textReply("Done.").text();
+    const pinged = ": keep-alive\n\n" + reply.replace(/\n\n/g, "\n\n: keep-alive\n\n");
+    const chat = createCompanionChat({
+      fetch: async () => new Response(pinged, {
+        headers: { "content-type": "text/event-stream", "x-vercel-ai-ui-message-stream": "v1" },
+      }),
+    });
+    await chat.sendMessage({ text: "Tidy the roadmap" });
+    await until(() => expect(chat.status).toBe("ready"));
+    expect(chat.error).toBeUndefined();
+    const last = chat.messages[chat.messages.length - 1];
+    expect(last.parts.some((part) => part.type === "text" && part.text === "Done.")).toBe(true);
+  });
+
   it("ends the turn after a web search the provider ran, without asking again", async () => {
     const fetch = vi.fn().mockResolvedValueOnce(textReply("It shipped on 3 March.", [
       { type: "tool-input-available", toolCallId: "search-1", toolName: "web_search", input: { query: "launch date" }, providerExecuted: true },
@@ -100,5 +115,36 @@ describe("the companion's chat loop", () => {
     expect(runToolCall).not.toHaveBeenCalled();
     const reply = chat.messages[chat.messages.length - 1];
     expect(reply.parts.some((part) => part.type === "source-url")).toBe(true);
+  });
+});
+
+describe("withReadableErrors", () => {
+  const TIMEOUT_PAGE = `<HTML>
+<HEAD>
+<TITLE>Inactivity Timeout</TITLE>
+</HEAD>
+<BODY><H1>Inactivity Timeout</H1></BODY>`;
+
+  it("turns the host's timeout page into one readable line", async () => {
+    const fetch = withReadableErrors(async () => new Response(TIMEOUT_PAGE, { status: 504, headers: { "content-type": "text/html" } }));
+    const response = await fetch("/api/ai/companion");
+    expect(response.status).toBe(504);
+    const text = await response.text();
+    expect(text).toContain("The server stopped waiting for the AI's answer (Inactivity Timeout, 504)");
+    expect(text).not.toContain("<");
+  });
+
+  it("keeps the route's own error text", async () => {
+    const fetch = withReadableErrors(async () => new Response("API key is required", { status: 400 }));
+    expect(await (await fetch("/api/ai/companion")).text()).toBe("API key is required");
+  });
+
+  it("shows the error in the chat instead of the page", async () => {
+    const chat = createCompanionChat({
+      fetch: async () => new Response(TIMEOUT_PAGE, { status: 504, headers: { "content-type": "text/html" } }),
+    });
+    await chat.sendMessage({ text: "What can we do about frontmatter?" });
+    await until(() => expect(chat.error?.message).toContain("Inactivity Timeout, 504"));
+    expect(chat.error?.message).not.toContain("<HTML>");
   });
 });

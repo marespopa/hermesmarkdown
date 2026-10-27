@@ -2,6 +2,7 @@ import { convertToModelMessages, streamText, type UIMessage } from 'ai';
 import { createAIModel } from '../providers';
 import { errorMessage, errorStatus, sanitizeMessage } from '../errors';
 import { COMPANION_TOOLS, foldSystem, webSearchTool } from './companion-tools';
+import { withKeepAlive } from './keep-alive';
 
 // The AI companion's streaming route. The client (useChat in
 // app/editor/components/companion/use-companion-chat.ts) sends the thread as
@@ -10,7 +11,8 @@ import { COMPANION_TOOLS, foldSystem, webSearchTool } from './companion-tools';
 // as a UI message stream. Tool calls end the step and run in the browser,
 // which sends their results with the next request. Errors before the stream
 // starts are plain text (useChat shows a failed response's text); errors
-// during it are sanitized into the stream.
+// during it are sanitized into the stream. While the model thinks, keep-alive
+// pings hold the connection open (keep-alive.ts).
 export async function POST(req: Request) {
   try {
     const { provider, apiKey, modelKey, system = '', messages, webSearch = false } = await req.json() as {
@@ -37,14 +39,14 @@ export async function POST(req: Request) {
       ? streamText({ model, tools, messages: foldSystem(system, modelMessages) })
       : streamText({ model, system, tools, messages: modelMessages });
 
-    return result.toUIMessageStreamResponse({
+    return withKeepAlive(result.toUIMessageStreamResponse({
       // Web search results' pages, shown as links under the reply.
       sendSources: true,
       onError: (error) => {
         console.error('AI companion stream error:', error);
         return sanitizeMessage(errorMessage(error, 'The AI request failed.'));
       },
-    });
+    }));
   } catch (error) {
     console.error('AI companion error:', error);
     const message = errorMessage(error, 'An unexpected error occurred during AI processing.');
