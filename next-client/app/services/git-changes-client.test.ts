@@ -34,6 +34,15 @@ describe("startChangesScan without Worker", () => {
   });
 });
 
+describe("startChangesScan workerOnly", () => {
+  it("does not scan on this thread without a Worker", async () => {
+    vi.stubGlobal("Worker", undefined);
+    const { startChangesScan } = await import("./git-changes-client");
+    expect(await startChangesScan(vault, () => {}, () => {}, [], { workerOnly: true }).result).toBe("cancelled");
+    expect(scanChanges).not.toHaveBeenCalled();
+  });
+});
+
 describe("startChangesScan with a Worker", () => {
   it("passes progress and the result through and posts cancel", async () => {
     const posted: unknown[] = [];

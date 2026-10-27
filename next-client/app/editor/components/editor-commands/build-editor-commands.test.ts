@@ -179,6 +179,7 @@ describe("buildEditorCommands", () => {
       "format-code-block",
       "format-code",
       "find-in-note",
+      "go-to-line",
       "fold-current-section",
       "unfold-all-sections",
       "next-git-change",

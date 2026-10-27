@@ -22,7 +22,8 @@ without changing the public props contract or command behavior.
   Rename / Delete File, and `New template…` (with a vault open: name prompt, then
   `_templates/<name>.md` with a minimal body, or the existing template of that
   name opened unchanged).
-- `editor-ai-commands.ts` defines editor formatting, templates and AI
+- `editor-ai-commands.ts` defines editor formatting, `Go to Line…`
+  (`Ctrl/Cmd+Alt+G`), templates and AI
   commands. The `Insert: …` commands skip the slash menu's vault
   **Template** entry (`vaultOnly`). AI is one menu command, **Ask or Edit
   with AI…** (`ai-menu`, `Ctrl/Cmd+J`), listed only with AI Features switched

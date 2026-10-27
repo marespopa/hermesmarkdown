@@ -18,6 +18,8 @@ const START_DELAY_MS = 4000;
  * page shows at once (atom_gitChangesCache, and the copy saved for the vault).
  * Nothing runs for a vault already scanned this session, a vault not on disk,
  * or while the Changes page is open (it scans itself); leaving cancels it.
+ * Worker only: where the worker can't scan, nothing runs on the page's thread
+ * (the Changes page scans when opened).
  * Mounted once by EditorShell.
  */
 export function useBackgroundGitScan(enabled: boolean): void {
@@ -37,7 +39,7 @@ export function useBackgroundGitScan(enabled: boolean): void {
         ...Object.values(store.get(atom_fileMetadata)).flatMap((meta) => (meta.handle ? [{ path: meta.path, handle: meta.handle as FileSystemFileHandle }] : [])),
         ...store.get(atom_vaultTextFiles),
       ];
-      const started = startChangesScan(vault, () => {}, () => {}, known);
+      const started = startChangesScan(vault, () => {}, () => {}, known, { workerOnly: true });
       scan = started;
       void started.result.then((result) => {
         if (cancelled || result === "cancelled" || result.status === "error") return;
