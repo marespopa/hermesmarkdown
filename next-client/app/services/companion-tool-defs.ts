@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { NOTE_TOOL_DEFS } from './note-tool-defs';
 
 // The AI companion's tools: the note tools (search_notes, read_note,
-// list_open_tasks), the vault and editor read tools, the edits, the
-// organising tools and create_template. Sent to the model
+// list_open_tasks), the vault and editor read tools, load_skill, the edits,
+// the organising tools and create_template. Sent to the model
 // without `execute` (app/api/ai/companion/companion-tools.ts) and run in the
 // browser (app/editor/components/companion/use-companion-tools.ts).
 export const COMPANION_TOOL_DEFS = {
@@ -30,6 +30,14 @@ export const COMPANION_TOOL_DEFS = {
     description:
       'What the user has open in the editor: its path, the text they selected, and the fenced code block the cursor is in (when it is in one). Read the whole file with read_file.',
     inputSchema: z.object({}),
+  },
+  load_skill: {
+    title: 'Load skill',
+    description:
+      "Load one of the skills listed in your instructions: its full instructions, and for the tasks skill the user's open tasks. Load a skill before starting work that fits it; a message starting with the skill's command already carries it.",
+    inputSchema: z.object({
+      name: z.string().min(1).describe('The skill\'s command, e.g. "/tasks" or "/standup-notes"'),
+    }),
   },
   edit_file: {
     title: 'Edit file',

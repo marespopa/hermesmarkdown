@@ -1,7 +1,9 @@
 import { TEMPLATE_SYNTAX_GUIDE } from "@/app/utils/templates/template-lint";
 
-// Chat skills: extra instructions added to the AI companion's system prompt while a
-// keyword or a slash command in the thread turns them on. The template skill
+// Chat skills: extra instructions the AI companion loads when a request needs
+// them. Their names and descriptions are listed in its system prompt; the
+// model loads one with its load_skill tool, and a message starting with a
+// skill's slash command carries the skill with it. The template skill
 // has the companion save templates with its create_template tool (checked
 // first, undone with the turn); the tasks skill also sends data the app
 // gathers (use-chat-skills.ts); the code skill steers reading and editing code
@@ -13,7 +15,8 @@ export interface ChatSkill {
   id: ChatSkillId;
   /** Starting a message with this turns the skill on, e.g. `/template`. */
   command: string;
-  trigger: RegExp;
+  /** One line in the system prompt's skill list: when to load it. */
+  description: string;
   /** The skill's instructions; skills live in the app, never in the vault. */
   builtin: string;
 }
@@ -40,7 +43,7 @@ const TEMPLATE_SKILL_BUILTIN = [
 export const TEMPLATE_SKILL: ChatSkill = {
   id: "create-template",
   command: "/template",
-  trigger: /\btemplates?\b/i,
+  description: "Create or change note templates (template tokens, saving with create_template).",
   builtin: TEMPLATE_SKILL_BUILTIN,
 };
 
@@ -59,7 +62,7 @@ const TASKS_SKILL_BUILTIN = [
 export const TASKS_SKILL: ChatSkill = {
   id: "tasks",
   command: "/tasks",
-  trigger: /\b(?:tasks?|to-?dos?|action items?|next actions?)\b/i,
+  description: "Answer about the user's open tasks, plan their day, or turn text into task lines.",
   builtin: TASKS_SKILL_BUILTIN,
 };
 
@@ -84,12 +87,22 @@ const CODE_SKILL_BUILTIN = [
 export const CODE_SKILL: ChatSkill = {
   id: "code",
   command: "/code",
-  trigger: /\b(?:code|refactor(?:ing)?|stack ?trace|unit tests?)\b/i,
+  description: "Explain, review, fix, refactor or test code in code files or fenced blocks.",
   builtin: CODE_SKILL_BUILTIN,
 };
 
 export const CHAT_SKILLS: ChatSkill[] = [TEMPLATE_SKILL, TASKS_SKILL, CODE_SKILL];
 
-export function isSkillActive(skill: ChatSkill, userTexts: string[]): boolean {
-  return userTexts.some((text) => text.trimStart().toLowerCase().startsWith(skill.command) || skill.trigger.test(text));
+// A skill's command with or without its slash, lowercased: "/tasks" for
+// "tasks", "Tasks" or "/tasks".
+export function skillCommand(name: string): string {
+  const bare = name.trim().toLowerCase().replace(/^\/+/, "");
+  return bare ? `/${bare}` : "";
+}
+
+// The text starts with the command as a word (`/tasks`, `/tasks today`, not
+// `/taskslist`).
+export function startsWithCommand(text: string, command: string): boolean {
+  const start = text.trimStart().toLowerCase();
+  return start.startsWith(command) && !/[\w-]/.test(start.charAt(command.length));
 }

@@ -9,6 +9,8 @@ import { useCompanionTools } from "./use-companion-tools";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 const runNoteTool = vi.fn();
 vi.mock("../ai-chat/use-note-tools", () => ({ useNoteTools: () => ({ runTool: runNoteTool }) }));
+const loadSkill = vi.fn();
+vi.mock("../ai-chat/use-chat-skills", () => ({ useChatSkills: () => ({ loadSkill }) }));
 const readCurrentText = vi.fn();
 vi.mock("@/app/hooks/file-system/use-note-buffer", () => ({ useNoteBuffer: () => ({ readCurrentText }) }));
 const editFile = vi.fn();
@@ -52,6 +54,20 @@ describe("useCompanionTools", () => {
 
     expect(runNoteTool).toHaveBeenCalledWith({ toolName: "search_notes", input: { query: "roadmap" } });
     expect(result.output).toBe("1 note matches");
+  });
+
+  it("loads a skill's text, or says there's no such skill", async () => {
+    loadSkill.mockResolvedValueOnce("Skill: work with tasks.").mockResolvedValueOnce(null);
+    const tools = setup();
+
+    const found = await tools.runTool({ toolName: "load_skill", input: { name: "/tasks" } });
+    const missing = await tools.runTool({ toolName: "load_skill", input: { name: "/nope" } });
+
+    expect(loadSkill).toHaveBeenCalledWith("/tasks");
+    expect(found.output).toBe("--- SKILL /tasks ---\nSkill: work with tasks.\n--- END SKILL ---");
+    expect(found.activity).toBe("Loaded the skill /tasks");
+    expect(missing.output).toContain("There's no skill /nope");
+    expect(missing.activity).toBe("Loaded the skill /nope · not found");
   });
 
   it("lists a folder from the vault's lists", async () => {

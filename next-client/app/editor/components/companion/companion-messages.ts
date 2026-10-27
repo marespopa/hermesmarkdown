@@ -2,8 +2,9 @@ import type { FileUIPart, TextUIPart, UIMessage } from "ai";
 import type { Attachment, VaultRef } from "../ai-chat/chat-helpers";
 
 // The companion thread's messages: what a user turn sends (their words, then
-// the context chips as a second text part, then images), how the tool loop
-// is capped, and how a message's parts read back for display.
+// the context chips as a second text part, then images), what of the thread
+// is sent to the model, how the tool loop is capped, and how a message's
+// parts read back for display.
 
 // A turn makes at most this many rounds of tool calls before it stops.
 export const MAX_TOOL_ROUNDS = 12;
@@ -23,10 +24,20 @@ export interface CompanionContext {
   attachments: Attachment[];
 }
 
+// The skill a message's /command named, sent in its context.
+export interface TurnSkill {
+  command: string;
+  text: string;
+}
+
 // The parts and metadata of a user turn, for useChat's sendMessage.
-export function userTurn(text: string, { path, selection, vaultRefs, attachments }: CompanionContext) {
+export function userTurn(text: string, { path, selection, vaultRefs, attachments }: CompanionContext, skill?: TurnSkill) {
   const blocks: string[] = [];
   const labels: string[] = [];
+  if (skill) {
+    blocks.push(`--- SKILL ${skill.command} ---\n${skill.text}\n--- END SKILL ---`);
+    labels.push(skill.command);
+  }
   if (path) {
     blocks.push(`The user is in ${path}.`);
     labels.push(path.split("/").pop() ?? path);
@@ -52,6 +63,42 @@ export function userTurn(text: string, { path, selection, vaultRefs, attachments
   if (blocks.length) parts.push({ type: "text", text: `--- CONTEXT ---\n${blocks.join("\n\n")}\n--- END CONTEXT ---` });
   parts.push(...files);
   return { parts, metadata: labels.length ? { context: labels } : undefined };
+}
+
+// The newest turns sent to the model in full. In older ones, long tool
+// results and context blocks are left out and images dropped; the model can
+// read a file again. Only the request is trimmed, never the saved thread,
+// and a turn's rounds all send the same history, so the provider's cache
+// holds for the turn.
+export const FULL_TURNS = 6;
+const LONG_PART_CHARS = 2_000;
+export const LEFT_OUT = "(Left out of this earlier turn to save space; read it again if you need it.)";
+
+function trimOld<M extends UIMessage>(message: M): M {
+  let typedSeen = false;
+  const parts = message.parts.flatMap((part): M["parts"] => {
+    if (message.role === "user" && part.type === "file") return [];
+    if (message.role === "user" && part.type === "text") {
+      const keep = !typedSeen || part.text.length <= LONG_PART_CHARS;
+      typedSeen = true;
+      return [keep ? part : { ...part, text: LEFT_OUT }];
+    }
+    const tool = part as { type: string; state?: string; output?: unknown };
+    if (isToolPart(part) && tool.state === "output-available" && typeof tool.output === "string" && tool.output.length > LONG_PART_CHARS) {
+      return [{ ...part, output: LEFT_OUT } as typeof part];
+    }
+    return [part];
+  });
+  return { ...message, parts } as M;
+}
+
+// The thread as the next request sends it: the last FULL_TURNS user turns
+// and their replies as they are, older turns trimmed.
+export function forModel<M extends UIMessage>(messages: M[]): M[] {
+  const starts = messages.flatMap((message, index) => (message.role === "user" ? [index] : []));
+  if (starts.length <= FULL_TURNS) return messages;
+  const cutoff = starts[starts.length - FULL_TURNS];
+  return messages.map((message, index) => (index < cutoff ? trimOld(message) : message));
 }
 
 // Rounds of tool calls in the reply so far (each round starts a step).

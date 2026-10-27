@@ -37,7 +37,7 @@ describe('AI companion route, end to end with a model', () => {
     expect(seen.tools?.map((t) => t.name)).toEqual(expect.arrayContaining(['edit_file', 'create_file', 'rename', 'move', 'trash', 'create_template']));
     expect(seen.tools?.every((t) => t.type === 'function')).toBe(true);
     expect(seen.prompt).toEqual([
-      { role: 'system', content: 'Be brief' },
+      expect.objectContaining({ role: 'system', content: 'Be brief' }),
       expect.objectContaining({ role: 'user' }),
     ]);
     expect(text).toContain('"type":"tool-input-available"');

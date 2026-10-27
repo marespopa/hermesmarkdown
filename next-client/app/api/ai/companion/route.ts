@@ -1,7 +1,7 @@
 import { convertToModelMessages, streamText, type UIMessage } from 'ai';
 import { createAIModel } from '../providers';
 import { errorMessage, errorStatus, sanitizeMessage } from '../errors';
-import { COMPANION_TOOLS, foldSystem, webSearchTool } from './companion-tools';
+import { COMPANION_TOOLS, foldSystem, webSearchTool, withPromptCache } from './companion-tools';
 import { withKeepAlive } from './keep-alive';
 
 // The AI companion's streaming route. The client (useChat in
@@ -12,7 +12,8 @@ import { withKeepAlive } from './keep-alive';
 // which sends their results with the next request. Errors before the stream
 // starts are plain text (useChat shows a failed response's text); errors
 // during it are sanitized into the stream. While the model thinks, keep-alive
-// pings hold the connection open (keep-alive.ts).
+// pings hold the connection open (keep-alive.ts). Claude's requests mark the
+// prompt and thread for its prompt cache (withPromptCache).
 export async function POST(req: Request) {
   try {
     const { provider, apiKey, modelKey, system = '', messages, webSearch = false } = await req.json() as {
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
     const modelMessages = await convertToModelMessages(messages, { tools, ignoreIncompleteToolCalls: true });
     const result = provider === 'gemini'
       ? streamText({ model, tools, messages: foldSystem(system, modelMessages) })
-      : streamText({ model, system, tools, messages: modelMessages });
+      : streamText({ model, tools, messages: withPromptCache(system, modelMessages) });
 
     return withKeepAlive(result.toUIMessageStreamResponse({
       // Web search results' pages, shown as links under the reply.

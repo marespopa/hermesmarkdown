@@ -14,22 +14,23 @@ describe("user skills", () => {
 
   it("finds notes of type skill, from frontmatter or a type tag, leaving out taken commands", () => {
     const skills = userSkillsFrom({
-      "skills/standup.md": meta("skills/standup.md", { frontmatter: { type: "skill" } }),
+      "skills/standup.md": meta("skills/standup.md", { frontmatter: { type: "skill", description: " Write today's standup " } }),
       "release-check.md": meta("release-check.md", { tags: ["type/skill"] }),
       "template.md": meta("template.md", { frontmatter: { type: "skill" } }),
       "roadmap.md": meta("roadmap.md", { frontmatter: { type: "project" } }),
     }, ["/template", "/tasks"]);
     expect(skills).toEqual([
       { path: "release-check.md", command: "/release-check" },
-      { path: "skills/standup.md", command: "/standup" },
+      { path: "skills/standup.md", command: "/standup", description: "Write today's standup" },
     ]);
   });
 
   it("turns on only for a message starting with the command as a word", () => {
     const skill = { path: "skills/standup.md", command: "/standup" };
-    expect(isUserSkillActive(skill, ["  /Standup for today"])).toBe(true);
-    expect(isUserSkillActive(skill, ["/standup"])).toBe(true);
-    expect(isUserSkillActive(skill, ["/standups please", "run /standup"])).toBe(false);
+    expect(isUserSkillActive(skill, "  /Standup for today")).toBe(true);
+    expect(isUserSkillActive(skill, "/standup")).toBe(true);
+    expect(isUserSkillActive(skill, "/standups please")).toBe(false);
+    expect(isUserSkillActive(skill, "run /standup")).toBe(false);
   });
 
   it("reads the note's text after its frontmatter, and nothing for an empty or missing note", async () => {
