@@ -8,7 +8,7 @@ import type { Attachment, VaultRef } from "../ai-chat/chat-helpers";
 // parts read back for display.
 
 // A turn makes at most this many rounds of tool calls before it stops.
-export const MAX_TOOL_ROUNDS = 12;
+export const MAX_TOOL_ROUNDS = 30;
 
 // Shown under a sent message: the labels of the context it carried.
 // `summary` marks the message a compacted thread starts with

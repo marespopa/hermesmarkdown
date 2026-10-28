@@ -60,7 +60,7 @@ export default function CompanionThread({ messages, activities, status, compacti
           )}
           {capped && (
             <p className="text-ui-caption text-fg-muted">
-              Stopped after {MAX_TOOL_ROUNDS} rounds of lookups without an answer. Try asking more specifically.
+              Stopped after {MAX_TOOL_ROUNDS} rounds of tool calls. Say "continue" to pick up where it left off.
             </p>
           )}
           {errorText && (
