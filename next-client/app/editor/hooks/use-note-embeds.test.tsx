@@ -83,6 +83,23 @@ describe("useNoteEmbeds", () => {
     expect(hook.result.current.contents.get("chart.png")).toEqual({ kind: "image", path: "chart.png", url: "blob:chart" });
   });
 
+  it("sanitises an SVG into a blob URL and shows a missing embed when nothing survives", async () => {
+    Object.assign(URL, { createObjectURL: vi.fn(() => "blob:svg"), revokeObjectURL: vi.fn() });
+    const files: Record<string, unknown> = {
+      "good.svg": { getFile: async () => ({ lastModified: 1, text: async () => `<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script><rect width="1" height="1"/></svg>` }) },
+      "bad.svg": { getFile: async () => ({ lastModified: 1, text: async () => `<svg><script>alert(1)</script></svg>` }) },
+    };
+    const vault = {
+      getDirectoryHandle: vi.fn(async () => { throw new Error("NotFound"); }),
+      getFileHandle: vi.fn(async (name: string) => { if (files[name]) return files[name]; throw new Error("NotFound"); }),
+    };
+    const { store, hook } = setup("/good.svg\n/bad.svg", [], "Weekly.md");
+    store.set(atom_vaultHandle, vault as unknown as FileSystemDirectoryHandle);
+    await waitFor(() => expect(hook.result.current.contents.size).toBe(2));
+    expect(hook.result.current.contents.get("good.svg")).toMatchObject({ kind: "image", path: "good.svg", url: "blob:svg" });
+    expect(hook.result.current.contents.get("bad.svg")).toEqual({ kind: "missing" });
+  });
+
   it("checks files again when the window comes back", async () => {
     let text = "product,status\nSync,planned";
     let modified = 1;

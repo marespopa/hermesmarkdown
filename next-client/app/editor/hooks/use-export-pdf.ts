@@ -8,6 +8,8 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_revealAllPrivate, atom_revealedPrivatePaths } from "@/app/atoms/privacy-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { isSvgPath } from "@/app/utils/file-kinds";
+import { sanitizeSvg } from "@/app/utils/sanitize-svg";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { printDate } from "@/app/utils/print/print-settings";
 import { atom_pdfSettings } from "@/app/atoms/print-atoms";
@@ -84,7 +86,13 @@ export function useExportPdf() {
       // Embed lines print what they embed, nested embeds included; private
       // and unreadable files keep their lines.
       const text = await compileEmbeds(store.get(atom_content), notePath);
-      const { title: h1, body } = await renderNote(text, notePath, store.get(atom_vaultHandle), async (file) => {
+      const { title: h1, body } = await renderNote(text, notePath, store.get(atom_vaultHandle), async (file, path) => {
+        if (isSvgPath(path)) {
+          const url = await sanitizeSvg(file);
+          if (!url) throw new Error("SVG failed to sanitise");
+          urls.push(url);
+          return url;
+        }
         const url = URL.createObjectURL(file);
         urls.push(url);
         return url;

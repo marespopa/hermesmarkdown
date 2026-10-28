@@ -93,7 +93,13 @@ export function useNoteEmbeds(
       if (ref.kind !== "note") {
         const located = await locateVaultFile(vault, ref, fromPath);
         if (!located) return { kind: "missing" };
-        if (ref.kind === "image") return { kind: "image", path: located.path, url: imageUrlFor(located) };
+        if (ref.kind === "image") {
+          // imageUrlFor sanitises an SVG and gives null when its bytes aren't
+          // safe to show (utils/embed-files.ts), so an <img> only ever gets a
+          // URL whose script and remote references are gone.
+          const url = await imageUrlFor(located);
+          return url ? { kind: "image", path: located.path, url } : { kind: "missing" };
+        }
         const text = await readLocatedText(located);
         if (ref.kind === "code") return { kind: "code", path: located.path, ...clipCode(text) };
         return { kind: "note", path: located.path, markdown: csvToMarkdownTable(text) };
