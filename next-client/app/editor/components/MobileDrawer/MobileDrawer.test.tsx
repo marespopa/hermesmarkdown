@@ -34,7 +34,10 @@ describe("MobileDrawer", () => {
     expect(screen.getByRole("tab", { name: "Files" })).toHaveAttribute("aria-selected", "true");
     fireEvent.click(screen.getByRole("tab", { name: "Tags" }));
     expect(screen.getByRole("tab", { name: "Tags" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("tabpanel", { name: "Files", hidden: true })).toHaveAttribute("hidden");
+    // A hidden panel has no accessible name, so find the panels by role alone.
+    const [filesPanel] = screen.getAllByRole("tabpanel", { hidden: true });
+    expect(filesPanel).toHaveAttribute("hidden");
+    expect(screen.getByRole("tabpanel", { name: "Tags" })).toBeVisible();
   });
 
   it("closes first, then goes to the picked tag", () => {
