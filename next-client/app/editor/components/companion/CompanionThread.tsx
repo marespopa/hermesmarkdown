@@ -1,9 +1,22 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
-import { MAX_TOOL_ROUNDS, stoppedAtCap, type CompanionMessage as Message } from "./companion-messages";
+import { MAX_TOOL_ROUNDS, stoppedAtCap, toolPartView, type CompanionMessage as Message } from "./companion-messages";
 import CompanionMessage from "./CompanionMessage";
+import { DelayedSpinner } from "./ToolActivityChip";
+import { companionToolActivity } from "./tools/read-tools";
 import TurnSummary from "./TurnSummary";
+
+// What the call in flight is doing, from the newest reply; null when none is.
+function runningToolLabel(messages: Message[], activities: Record<string, string>): string | null {
+  const last = messages[messages.length - 1];
+  if (last?.role !== "assistant") return null;
+  for (const part of [...last.parts].reverse()) {
+    const view = toolPartView(part);
+    if (view?.state === "running") return activities[view.toolCallId] ?? companionToolActivity(view.toolName, view.input);
+  }
+  return null;
+}
 
 interface CompanionThreadProps {
   messages: Message[];
@@ -16,8 +29,8 @@ interface CompanionThreadProps {
 
 // The companion's conversation, scrolled to the newest turn: each message,
 // a turn's summary (files changed, Undo) under its reply once it settled,
-// three dots while the model hasn't started its reply or a summary is being
-// written (/compact), a note when a turn stopped at the tool-round cap, and
+// one quiet working line (delayed spinner + what is running) for as long as a
+// turn runs or a summary is being written (/compact), a note when a turn stopped at the tool-round cap, and
 // the error that ended a turn.
 export default function CompanionThread({ messages, activities, status, compacting = false, errorText, onUndoTurn }: CompanionThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -25,7 +38,9 @@ export default function CompanionThread({ messages, activities, status, compacti
     bottomRef.current?.scrollIntoView?.({ block: "end" });
   }, [messages, status, compacting, errorText]);
 
-  const waiting = status === "submitted" || compacting;
+  // Busy from send to finish, between tool rounds too: one line says so.
+  const working = status === "submitted" || status === "streaming" || compacting;
+  const workingLabel = compacting ? "Summarizing the conversation…" : runningToolLabel(messages, activities) ?? "Working…";
   const capped = status === "ready" && stoppedAtCap(messages);
   const lastReply = messages.findLastIndex((message) => message.role === "assistant");
 
@@ -45,18 +60,16 @@ export default function CompanionThread({ messages, activities, status, compacti
             const settled = i < messages.length - 1 || (status !== "submitted" && status !== "streaming");
             return (
               <React.Fragment key={message.id}>
-                <CompanionMessage message={message} activities={activities} latest={i === lastReply} autoModel={message.role === "assistant" ? messages[i - 1]?.metadata?.auto?.name : undefined} />
+                <CompanionMessage message={message} activities={activities} latest={i === lastReply} working={working && i === lastReply} autoModel={message.role === "assistant" ? messages[i - 1]?.metadata?.auto?.name : undefined} />
                 {turnId && settled && <TurnSummary turnId={turnId} onUndo={onUndoTurn} />}
               </React.Fragment>
             );
           })}
-          {waiting && (
-            <div className="flex items-center gap-1 py-1" aria-label={compacting ? "Summarizing" : "Thinking"}>
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-fg-faint [animation-delay:0ms]" />
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-fg-faint [animation-delay:150ms]" />
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-fg-faint [animation-delay:300ms]" />
-              {compacting && <span className="ml-1 text-ui-caption text-fg-muted">Summarizing the conversation…</span>}
-            </div>
+          {working && (
+            <p className="flex items-center gap-1.5 py-1 text-ui-caption text-fg-muted" role="status">
+              <DelayedSpinner />
+              <span className="min-w-0 truncate">{workingLabel}</span>
+            </p>
           )}
           {capped && (
             <p className="text-ui-caption text-fg-muted">

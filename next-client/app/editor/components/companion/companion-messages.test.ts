@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { UIMessage } from "ai";
-import { forModel, FULL_TURNS, LEFT_OUT, userTurn } from "./companion-messages";
+import { foldDoneTools, forModel, FULL_TURNS, LEFT_OUT, userTurn } from "./companion-messages";
 
 const noContext = { path: null, selection: "", vaultRefs: [], attachments: [] };
 const long = "x".repeat(3_000);
@@ -76,5 +76,21 @@ describe("forModel", () => {
 
     expect(sent[0].parts).toEqual([{ type: "text", text: "look" }]);
     expect(sent[1]).toEqual(messages[1]);
+  });
+});
+
+describe("foldDoneTools", () => {
+  const tool = (id: string, state: string) => ({ type: "tool-read_file", toolCallId: id, state, input: {} }) as unknown as UIMessage["parts"][number];
+  const text = { type: "text" as const, text: "hi" };
+
+  it("folds a run of finished calls into one item", () => {
+    const items = foldDoneTools([tool("a", "output-available"), tool("b", "output-available"), text]);
+    expect(items).toHaveLength(2);
+    expect("done" in items[0] && items[0].done.map((v) => v.toolCallId)).toEqual(["a", "b"]);
+  });
+
+  it("keeps running and failed calls on their own and splits runs around them", () => {
+    const items = foldDoneTools([tool("a", "output-available"), tool("b", "input-available"), tool("c", "output-error"), tool("d", "output-available")]);
+    expect(items.map((item) => ("done" in item ? "done" : "part"))).toEqual(["done", "part", "part", "done"]);
   });
 });

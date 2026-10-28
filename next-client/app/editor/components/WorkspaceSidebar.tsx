@@ -1,8 +1,9 @@
 "use client";
 
-import React, { Suspense, useEffect, useRef } from "react";
+import React, { Suspense, useEffect, useLayoutEffect, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_workspaceLayout } from "@/app/atoms/atoms";
+import { atom_activeSidebarTab } from "@/app/atoms/sidebar-tab-atoms";
 import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesRevealPath, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
@@ -10,6 +11,9 @@ import SidebarFiles from "./sidebar/SidebarFiles";
 import SidebarFooter from "./sidebar/SidebarFooter";
 import SidebarHeader from "./sidebar/SidebarHeader";
 import SidebarPinned from "./sidebar/SidebarPinned";
+import SidebarSystemFilters from "./sidebar/SidebarSystemFilters";
+import SidebarTabs from "./sidebar/SidebarTabs";
+import SidebarTags from "./sidebar/SidebarTags";
 import { useSidebarNavigation } from "./sidebar/use-sidebar-navigation";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
 
@@ -21,11 +25,13 @@ const NO_TAGS: string[] = [];
 // (EditorShell hosts it), and kept to the library: the vault (a switcher),
 // New note and Hide; the vault's Pinned items (notes, folders, tags and
 // pages, kept on this device, Ctrl/Cmd+1–9), first; and the vault's
-// Files, with a filter; at its foot, Settings and Help (Documentation,
+// Files, with a filter, or its Tags (the Files / Tags switch under the
+// header), the smart filters (All Notes, Untagged, Todo, Today, Archive)
+// above either; at its foot, Settings and Help (Documentation,
 // Keyboard Shortcuts), always at hand.
 // Switching between open notes is the palette's (Ctrl/Cmd+K), and the note's
 // outline is the editor's optional one (Ctrl/Cmd+Shift+M, EditorOutline).
-// Everything else (Home, All Files, Tags, Tasks, Templates, Trash, Export,
+// Everything else (Home, All Files, Tasks, Templates, Trash, Export,
 // search) is the command palette's (Ctrl/Cmd+K,
 // SearchPill) or the toolbar's More menu. A plain panel in the chrome colour with a hairline
 // edge; it takes room, pushing the page over (EditorShell), and slides out
@@ -42,6 +48,18 @@ export default function WorkspaceSidebar() {
   const navigation = useSidebarNavigation();
   const treeController = useRef<VaultFileTreeController | null>(null);
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files", rememberedTree: true });
+  const [activeTab, setActiveTab] = useAtom(atom_activeSidebarTab);
+  // Each view keeps its own scroll position while the other is showing.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollByTab = useRef({ files: 0, tags: 0 });
+
+  const switchTab = (next: typeof activeTab) => {
+    if (scrollRef.current) scrollByTab.current[activeTab] = scrollRef.current.scrollTop;
+    setActiveTab(next);
+  };
+  useLayoutEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollByTab.current[activeTab];
+  }, [activeTab]);
 
   // "Show Files" (atom_showFiles): once the sidebar is open, its Files tree
   // takes keyboard focus, on the folder "Show in Files" asked for if any.
@@ -103,11 +121,13 @@ export default function WorkspaceSidebar() {
       className="absolute inset-y-0 flex flex-col bg-surface paper-grain border-r border-edge-subtle font-sans transition-[left] duration-layout ease-layout motion-reduce:transition-none"
     >
       <SidebarHeader onNewNote={navigation.newNote} onHide={() => setOpen(false)} />
+      {hasVault && <SidebarTabs tab={activeTab} onChange={switchTab} />}
 
       {/* The scroll box: the Files tree virtualizes its rows against it (data-scroll-root).
           A right-click on it outside Pinned, a row or the Search field opens
           the Files root's New File / New Folder menu, as on the tree's empty space. */}
       <div
+        ref={scrollRef}
         data-scroll-root
         onContextMenu={(event) => {
           if (event.defaultPrevented || !(event.target instanceof Element)) return;
@@ -125,13 +145,29 @@ export default function WorkspaceSidebar() {
           </div>
         )}
         {hasVault && (
-          <SidebarFiles
-            treeController={treeController}
-            activeFilePath={currentPath}
-            openHandle={navigation.openHandle}
-            allFiles={allFiles}
-            folderPaths={folderPaths}
-          />
+          <Suspense fallback={null}>
+            <SidebarSystemFilters />
+          </Suspense>
+        )}
+        {/* Both views stay mounted, the other hidden: each keeps its tree
+            open and its filter as you left it. */}
+        {hasVault && (
+          <div hidden={activeTab !== "files"}>
+            <SidebarFiles
+              treeController={treeController}
+              activeFilePath={currentPath}
+              openHandle={navigation.openHandle}
+              allFiles={allFiles}
+              folderPaths={folderPaths}
+            />
+          </div>
+        )}
+        {hasVault && (
+          <div hidden={activeTab !== "tags"}>
+            <Suspense fallback={null}>
+              <SidebarTags />
+            </Suspense>
+          </div>
         )}
       </div>
 

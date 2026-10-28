@@ -5,7 +5,7 @@ import { parseFmFields } from "@/app/utils/frontmatter-utils";
 import { extractTasks } from "@/app/utils/taskExtractor";
 import { notePreview } from "@/app/utils/markdown-preview";
 import { stripBoardFence } from "@/app/utils/board/board-format";
-import { normalizeTag } from "@/app/utils/tag-normalize";
+import { normalizeTag, tagAncestry } from "@/app/utils/tag-normalize";
 import { REGEX_FRONTMATTER } from "./content-index";
 
 const REGEX_TAG = /(?<=^|\s)#(?=[a-zA-Z0-9_\-/]*[a-zA-Z])([a-zA-Z0-9_\-/]+)/g;
@@ -56,6 +56,9 @@ export function parseNoteFile({ path, name, content, modifiedAt }: NoteFileInfo)
   const tagMatches = Array.from(bodyContent.matchAll(REGEX_TAG));
   const inlineTags = tagMatches.map((m: any) => m[1].toLowerCase());
   const tags = Array.from(new Set([...fmTags, ...inlineTags]));
+  // Nested tags, flattened for the tag tree: #work/projects/2026 also lists
+  // #work and #work/projects, so a parent counts its children's notes.
+  const tagPaths = Array.from(new Set(tags.flatMap(tagAncestry)));
 
   // Title fallback: frontmatter title -> first H1 in body -> filename
   if (!frontmatter.title) {
@@ -78,5 +81,5 @@ export function parseNoteFile({ path, name, content, modifiedAt }: NoteFileInfo)
   // Plain-text excerpt for note lists
   const preview = notePreview(text);
 
-  return { path, name, tags, links, frontmatter, modifiedAt, wordCount, tasks, preview };
+  return { path, name, tags, tagPaths, links, frontmatter, modifiedAt, wordCount, tasks, preview };
 }

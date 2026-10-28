@@ -15,9 +15,13 @@ export interface TagNode {
   children: TagNode[];
 }
 
-export type NoteFilter = "all" | "untagged" | "todo";
+export type NoteFilter = "all" | "untagged" | "todo" | "today" | "archive";
 
-export const NOTE_FILTERS: NoteFilter[] = ["all", "untagged", "todo"];
+export const NOTE_FILTERS: NoteFilter[] = ["all", "untagged", "todo", "today", "archive"];
+
+export const NOTE_FILTER_LABELS: Record<NoteFilter, string> = {
+  all: "All Notes", untagged: "Untagged", todo: "Todo", today: "Today", archive: "Archive",
+};
 
 export interface TagIndex {
   tags: TagEntry[];
@@ -25,9 +29,18 @@ export interface TagIndex {
   filterCounts: Record<NoteFilter, number>;
 }
 
-export function noteMatchesFilter(meta: Pick<FileMetadata, "tags" | "tasks">, filter: NoteFilter): boolean {
+// Whether `time` falls on the same local calendar day as `now`.
+const isSameDay = (time: number, now: number) => new Date(time).toDateString() === new Date(now).toDateString();
+
+// Inside a folder named Archive (or .archive), at any depth.
+const inArchive = (path: string) => path.split("/").slice(0, -1).some((folder) => /^\.?archive$/i.test(folder));
+
+// `now` is when Today is judged: notes last changed on that day.
+export function noteMatchesFilter(meta: Pick<FileMetadata, "path" | "tags" | "tasks" | "modifiedAt">, filter: NoteFilter, now = Date.now()): boolean {
   if (filter === "untagged") return meta.tags.length === 0;
   if (filter === "todo") return meta.tasks.some((task) => isOpenStatus(task.status));
+  if (filter === "today") return isSameDay(meta.modifiedAt, now);
+  if (filter === "archive") return inArchive(meta.path);
   return true;
 }
 
@@ -39,14 +52,14 @@ export function noteHasTag(meta: Pick<FileMetadata, "tags">, tag: string): boole
 // Every tag with its note count, the nested tree with rolled-up counts, and
 // the system filters' counts, over the notes a listing may show (`visible`:
 // Privacy Mode applies to counts as well as titles).
-export function buildTagIndex(metadata: Record<string, FileMetadata>, visible: { has(path: string): boolean }): TagIndex {
+export function buildTagIndex(metadata: Record<string, FileMetadata>, visible: { has(path: string): boolean }, now = Date.now()): TagIndex {
   const exact = new Map<string, number>();
   const rolled = new Map<string, number>();
-  const filterCounts: Record<NoteFilter, number> = { all: 0, untagged: 0, todo: 0 };
+  const filterCounts: Record<NoteFilter, number> = { all: 0, untagged: 0, todo: 0, today: 0, archive: 0 };
 
   for (const meta of Object.values(metadata)) {
     if (!visible.has(meta.path)) continue;
-    for (const filter of NOTE_FILTERS) if (noteMatchesFilter(meta, filter)) filterCounts[filter]++;
+    for (const filter of NOTE_FILTERS) if (noteMatchesFilter(meta, filter, now)) filterCounts[filter]++;
     const prefixes = new Set<string>();
     for (const tag of new Set(meta.tags)) {
       exact.set(tag, (exact.get(tag) ?? 0) + 1);

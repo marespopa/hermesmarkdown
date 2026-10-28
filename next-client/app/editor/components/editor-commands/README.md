@@ -54,8 +54,12 @@ Show Files from the palette itself.
 - `RegisteredCommands.tsx` applies the existing `useRegisterCommand` pattern to
   the ordered command list.
 - `SwitchVaultCommands.tsx` registers **Switch Vault…** (`switch-vault`, Vault), a
-  menu with one command per pinned vault, only while two or more are pinned;
-  the open vault is disabled ("Current vault"). `EditorShell` mounts it.
+  menu that lists the top vaults (pinned first, then by `lastOpened` descending,
+  capped to 6) and opens the chosen one; duplicate names append type context.
+  When more than 6 recent vaults exist it adds **View All Recent Vaults…**
+  (`switch-vault:view-all`) to open the full dialog. Only while two or more
+  recent vaults exist; the open vault is disabled ("Current vault").
+  `EditorShell` mounts it.
 - `PinCommands.tsx` registers **Pin Page to Sidebar…** (`pin-page`, Workspace),
   a menu with one command per app page (`pin-page:files` All Files, Tags,
   Tasks, Templates, Trash, Settings) that pins it to the sidebar's Pinned

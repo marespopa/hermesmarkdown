@@ -5,7 +5,7 @@ import { useAtomValue } from "jotai";
 import { HiOutlineCheck, HiOutlineDocumentDuplicate } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import TextLink from "@/app/components/TextLink";
-import { toolPartView, typedText, type CompanionMessage as Message } from "./companion-messages";
+import { foldDoneTools, toolPartView, typedText, type CompanionMessage as Message } from "./companion-messages";
 import ToolActivityChip from "./ToolActivityChip";
 import TrashConfirmCard from "./TrashConfirmCard";
 import { atom_trashRequests } from "./trash-confirm";
@@ -18,9 +18,11 @@ import { replyToHtml } from "./reply-html";
 // An assistant turn shows its parts in order: text rendered as Markdown
 // (reply-html.ts; web links open in a new tab), and a chip for each tool
 // call (a trash call waiting for the user's answer shows its
-// TrashConfirmCard instead), then the pages a web search drew on as links. Its Markdown can be copied: the latest reply always shows Copy,
+// TrashConfirmCard instead; a run of finished calls folds into "N steps
+// done"; a running call is left to the thread's working line while `working`),
+// then the pages a web search drew on as links. Its Markdown can be copied: the latest reply always shows Copy,
 // earlier ones on hover or keyboard focus.
-export default function CompanionMessage({ message, activities, latest = false, autoModel }: { message: Message; activities: Record<string, string>; latest?: boolean; autoModel?: string }) {
+export default function CompanionMessage({ message, activities, latest = false, working = false, autoModel }: { message: Message; activities: Record<string, string>; latest?: boolean; working?: boolean; autoModel?: string }) {
   const [copied, setCopied] = useState(false);
   const trashRequests = useAtomValue(atom_trashRequests);
   useEffect(() => {
@@ -68,13 +70,25 @@ export default function CompanionMessage({ message, activities, latest = false, 
 
   return (
     <div className="group flex flex-col gap-1.5">
-      {message.parts.map((part, i) => {
+      {foldDoneTools(message.parts).map((item) => {
+        if ("done" in item) {
+          const [first] = item.done;
+          // One call keeps its own line; a run of them folds into a count.
+          return item.done.length === 1 ? (
+            <ToolActivityChip key={first.toolCallId} view={first} activity={activities[first.toolCallId]} />
+          ) : (
+            <ToolActivityChip key={first.toolCallId} view={first} activity={`${item.done.length} steps done`} />
+          );
+        }
+        const { part, index } = item;
         if (part.type === "text") {
-          return part.text.trim() ? <ReplyText key={i} markdown={part.text} /> : null;
+          return part.text.trim() ? <ReplyText key={index} markdown={part.text} /> : null;
         }
         const view = toolPartView(part);
         if (!view) return null;
         if (trashRequests[view.toolCallId]) return <TrashConfirmCard key={view.toolCallId} toolCallId={view.toolCallId} />;
+        // The thread's working line already names the call in flight.
+        if (working && view.state === "running") return null;
         return <ToolActivityChip key={view.toolCallId} view={view} activity={activities[view.toolCallId]} />;
       })}
       {sources.length > 0 && (
