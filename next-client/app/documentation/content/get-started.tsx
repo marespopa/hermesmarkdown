@@ -212,6 +212,7 @@ export const getStartedGroup: Group = {
             or <code>CTRL/CMD+D</code> on it in the command palette. Pin a tag with the{" "}
             <strong>Pin</strong> button beside its name on the Tags page, and a page (All Files, Tags,
             Tasks, Templates, Trash or Settings) with <strong>Pin Page to Sidebar…</strong> in the palette.
+            With two or more vaults pinned, <strong>Switch Vault…</strong> in the palette jumps between them.
           </p>
           <p>
             Everything you pin is listed in the sidebar&apos;s <strong>Pinned</strong> section, at the top,

@@ -80,17 +80,17 @@ Formulas are stored as text (`| =SUM(B2:B5) |`), so other Markdown apps show the
 
 Type these shortcodes in the editor:
 
-| Shortcode | Result |
-| --- | --- |
-| `..d` or `{date}` | Today's date |
-| `..tomorrow` / `..yesterday` | Relative date |
-| `{time}` / `{datetime}` | Current time or date and time |
-| `{todo}` / `{done}` | Task list item |
-| `{table}` | Starter Markdown table |
-| `{iso}` / `{unix}` / `{day}` / `{week}` | Timestamp formats |
-| `..log` | Time-stamped log prefix |
-| `{check}` / `{idea}` / `{warn}` / `{bug}` … | Common symbol |
-| `calc(100+50)=` | Replaced with the arithmetic result |
+| Shortcode                                   | Result                              |
+| :------------------------------------------ | :---------------------------------- |
+| `..d` or `{date}`                           | Today's date                        |
+| `..tomorrow` / `..yesterday`                | Relative date                       |
+| `{time}` / `{datetime}`                     | Current time or date and time       |
+| `{todo}` / `{done}`                         | Task list item                      |
+| `{table}`                                   | Starter Markdown table              |
+| `{iso}` / `{unix}` / `{day}` / `{week}`     | Timestamp formats                   |
+| `..log`                                     | Time-stamped log prefix             |
+| `{check}` / `{idea}` / `{warn}` / `{bug}` … | Common symbol                       |
+| `calc(100+50)=`                             | Replaced with the arithmetic result |
 
 For results that stay beside your working, write the math on its own line instead (see the inline calculator under Markdown writing).
 

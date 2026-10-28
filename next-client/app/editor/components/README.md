@@ -27,7 +27,8 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [markdown-editor/](markdown-editor/README.md) | `MarkdownEditor` render pieces: floating pills, link dialog, fold chevrons. |
 | [MermaidDialog](MermaidDialog.md) | Full-size viewer for a Mermaid diagram, rendered locally with `mermaid` (`securityLevel: "strict"`), in a `MermaidViewer`. |
 | [MermaidViewer](MermaidViewer.md) | A rendered diagram with zoom, fit, drag-to-pan and SVG download; used by `MermaidDialog` and the Mermaid tool page (`app/tools/mermaid/`). |
-| [MobileFileIndicator](MobileFileIndicator.md) | Compact mobile header chip showing the active file name and its save state, with save, command palette, and AI chat shortcuts. |
+| [MobileFileIndicator](MobileFileIndicator.md) | Compact mobile header chip showing the active file name and its save state, with menu, save, command palette, AI chat and outline shortcuts. |
+| [MobileDrawer/](MobileDrawer/README.md) | The phone's left (Files / Tags) and right (Outline & metrics) drawers, and the edge swipes that open them. |
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
 | [board/](board/README.md) | Boards: Markdown notes holding an Excalidraw scene, shown as a canvas (`BoardViewLoader` → lazy `BoardView`, `BoardError`). |
 | [PaneLeaf](PaneLeaf.md) | One workspace pane: its quiet title header, the drop layer, and the active file's editor or read-only preview (behind `PrivateNoteGate`). |

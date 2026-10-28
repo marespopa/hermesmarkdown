@@ -4,53 +4,47 @@ This document describes the runtime data flow of the editor.
 
 ## System Architecture & Data Flow
 
-```text
-┌──────────────────────────────┐        ┌──────────────────────────────────┐
-│      LOCAL FILE SYSTEM       │        │   BROWSER VAULT                  │
-│  Plain .md files on disk     │        │  Files in the browser's Origin   │
-│  (File System Access API,    │        │  Private FS                      │
-│   Chromium)                  │        │                                  │
-└──────────────┬───────────────┘        └───────────────┬──────────────────┘
-               │ directory handle                       │ directory handle
-               │                                        │
-               ▼                                        ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                  FILE-SYSTEM HOOKS  (app/hooks/file-system)             │
-│   open / save / create / rename / move / delete, retries, vault manager │
-└───────────────┬───────────────────────────────────────┬─────────────────┘
-                │                                       │
-                ▼                                       ▼
-┌───────────────────────────────┐       ┌─────────────────────────────────┐
-│  FILE WATCHER                 │       │  METADATA WORKER                │
-│  hooks/use-file-watcher.ts    │       │  workers/metadata.worker.ts     │
-│  polls with backoff + on      │       │  frontmatter, tags, wikilinks,  │
-│  focus; conflict dialog       │       │  word count, tasks; note-text   │
-│                               │       │  index + search (heap only)     │
-└───────────────┬───────────────┘       └────────────────┬────────────────┘
-                │                                        │
-                ▼                                        ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                          JOTAI ATOMS  (app/atoms)                        │
-│   vault + open files, workspace tabs, file metadata index,              │
-│   tasks (task-atoms), UI and settings                                   │
-└───────────────────┬─────────────────────────────────┬───────────────────┘
-                    │                                 │
-                    ▼                                 ▼
-┌─────────────────────────────────┐   ┌───────────────────────────────────┐
-│     CODEMIRROR 6 EDITOR         │   │     VIEWS & UI                     │
-│  - Markdown highlighting, pills │   │  - Files (sidebar; /editor/files)  │
-│  - Tables grid + formula engine │   │  - Tasks page (/editor/tasks)      │
-│  - Slash menu, shortcodes       │   │  - Command palette / quick switcher│
-│  - Keyboard commands, Vim       │   │  - Settings, dialogs, AI companion │
-└─────────────────┬───────────────┘   └───────────────────────────────────┘
-                  │                     palette "/" ── content:search ──► METADATA WORKER
-                  │                     (≤50 snippet hits back, kept in component state)
-                  │ AI actions (only with a user key)
-                  ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│    /api/ai  →  Anthropic / Google Gemini   (key sent per request,       │
-│                                              never stored server-side)  │
-└─────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Storage
+        LFS["LOCAL FILE SYSTEM<br/>Plain .md files on disk<br/>(File System Access API, Chromium)"]
+        BV["BROWSER VAULT<br/>Files in the browser's Origin Private FS"]
+    end
+    LFS -- "directory handle" --> FS
+    BV -- "directory handle" --> FS
+
+    subgraph FileLayer["File layer"]
+        FS["FILE-SYSTEM HOOKS (app/hooks/file-system)<br/>open / save / create / rename / move / delete, retries, vault manager"]
+    end
+
+    FS --> FW
+    FS --> MW
+
+    subgraph Workers
+        FW["FILE WATCHER<br/>hooks/use-file-watcher.ts<br/>polls with backoff + on focus; conflict dialog"]
+        MW["METADATA WORKER<br/>workers/metadata.worker.ts<br/>frontmatter, tags, wikilinks, word count, tasks;<br/>note-text index + search (heap only)"]
+    end
+
+    FW --> JA
+    MW --> JA
+
+    subgraph State
+        JA["JOTAI ATOMS (app/atoms)<br/>vault + open files, workspace tabs, file metadata index,<br/>tasks (task-atoms), UI and settings"]
+    end
+
+    JA --> CM
+    JA --> VUI
+
+    subgraph UI
+        CM["CODEMIRROR 6 EDITOR<br/>Markdown highlighting, pills; Tables grid + formula engine;<br/>Slash menu, shortcodes; Keyboard commands, Vim"]
+        VUI["VIEWS & UI<br/>Files (sidebar; /editor/files); Tasks page (/editor/tasks);<br/>Command palette / quick switcher; Settings, dialogs, AI companion"]
+    end
+
+    VUI -- "palette '/' ── content:search<br/>(≤50 snippet hits back, component state)" --> MW
+    VUI -. "AI actions (only with a user key)" .-> API
+    CM -. "AI actions (only with a user key)" .-> API
+
+    API["/api/ai → Anthropic / Google Gemini<br/>(key sent per request, never stored server-side)"]
 ```
 
 ## Architectural Principles
