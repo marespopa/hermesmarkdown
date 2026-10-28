@@ -27,3 +27,5 @@ import PaneLeaf from "./PaneLeaf";
 | leaf | `PanelLeaf` (`app/types/workspace`) |  | Pane id, open tabs, active file |
 
 `PANE_TOP_ROOM` lives in `pane-header-classes.ts`.
+
+- An open image file (`isImagePath`) shows `ImageViewer` instead of the editor; it is never read as text or saved.

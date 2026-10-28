@@ -12,7 +12,7 @@ import {
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { metadataWorker } from "./shared";
 import { markContentIndexed } from "@/app/services/content-search-client";
-import { isPlainTextPath } from "@/app/utils/file-kinds";
+import { isImagePath, isPlainTextPath } from "@/app/utils/file-kinds";
 
 export function useIndexActiveFile() {
   const vaultHandle = useAtomValue(atom_vaultHandle);
@@ -25,7 +25,7 @@ export function useIndexActiveFile() {
   // Debounced Active File Re-indexing
   useEffect(() => {
     // Text files that aren't notes are never indexed (utils/file-kinds.ts).
-    if (!activeFileHandle || !metadataWorker || !vaultHandle || !activeFilePath || isPlainTextPath(activeFilePath)) return;
+    if (!activeFileHandle || !metadataWorker || !vaultHandle || !activeFilePath || isPlainTextPath(activeFilePath) || isImagePath(activeFilePath)) return;
 
     const timeoutId = setTimeout(async () => {
       try {

@@ -16,6 +16,7 @@ import {
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { isOpenNotesHydrated, whenOpenNotesHydrated } from "@/app/atoms/file-atoms";
 import { atom_isFileLoading, atom_openingFilePath } from "@/app/atoms/ui-atoms";
+import { isImagePath } from "@/app/utils/file-kinds";
 import { nextPaint } from "@/app/utils/next-paint";
 import { recordPerf } from "@/app/utils/perf/perf-metrics";
 import { useDialog } from "../use-dialog";
@@ -119,7 +120,8 @@ export function useOpenFile() {
         setIsFileLoading(true);
         const file = await fileHandle.getFile();
         // Read ahead on hover / highlight (note-prefetch.ts), if unchanged since.
-        const fileContent = takePrefetched(finalPath, file) ?? await file.text();
+        // A picture is shown from the file itself, never read as text (the pane's viewer).
+        const fileContent = isImagePath(finalPath) ? "" : takePrefetched(finalPath, file) ?? await file.text();
 
         // 1. Update openFiles registry first so the pane has data to read (persisted fields only)
         setOpenFiles((prev) => ({
