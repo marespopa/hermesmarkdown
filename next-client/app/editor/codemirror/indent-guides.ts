@@ -5,8 +5,9 @@ import { getIndentUnit } from "@codemirror/language";
 
 // Thin vertical guides at each indent level of a code file's lines, drawn as
 // a background on the line itself (no extra DOM): a repeating one-pixel
-// gradient `unit` columns apart over the line's leading whitespace. `ch`
-// follows the code font, and a tab counts as its tab size. Blank lines get
+// gradient `unit` columns apart over the line's leading whitespace, anchored
+// to the content box so it starts at the text's first column, not the line's
+// padding edge. `ch` follows the code font, and a tab counts as its tab size. Blank lines get
 // none.
 function guides(view: EditorView): DecorationSet {
   const { state } = view;
@@ -32,7 +33,8 @@ function guides(view: EditorView): DecorationSet {
 
 const indentGuidesTheme = EditorView.theme({
   ".cm-indent-guides": {
-    backgroundImage: "repeating-linear-gradient(to right, color-mix(in srgb, var(--fg-faint) 40%, transparent) 0 1px, transparent 1px calc(var(--indent-unit) * 1ch))",
+    backgroundImage: "repeating-linear-gradient(to right, color-mix(in srgb, var(--fg-faint) 18%, transparent) 0 1px, transparent 1px calc(var(--indent-unit) * 1ch))",
+    backgroundOrigin: "content-box",
     backgroundSize: "calc(var(--indent-columns) * 1ch) 100%",
     backgroundRepeat: "no-repeat",
   },
