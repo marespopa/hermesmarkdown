@@ -16,7 +16,7 @@ function jsonSchemaOf(schema: z.ZodType): object {
 
 // The companion's other reads, offered with the writes: an agent that edits
 // a file needs its exact text.
-const WRITE_READS: CompanionToolName[] = ["list_folder", "read_file", "get_active_note"];
+const WRITE_READS: CompanionToolName[] = ["list_folder", "read_file", "search_files", "get_active_note"];
 
 /**
  * Offers the read-only note tools to the browser's agents until `signal`

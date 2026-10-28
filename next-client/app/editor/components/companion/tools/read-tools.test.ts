@@ -68,7 +68,7 @@ describe("readFileOutput", () => {
 
   it("caps a long file", () => {
     const output = readFileOutput("Logs/run.log", undefined, "x".repeat(FILE_CHAR_LIMIT + 10));
-    expect(output).toContain("[file continues…]");
+    expect(output).toContain("[lines 1–1 of 1; a line longer than the limit was cut]");
     expect(output.length).toBeLessThan(FILE_CHAR_LIMIT + 100);
   });
 

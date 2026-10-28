@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { NOTE_TOOL_DEFS } from './note-tool-defs';
 
 // The AI companion's tools: the note tools (search_notes, read_note,
-// list_open_tasks), the vault and editor read tools, load_skill, the edits,
+// list_open_tasks), the vault and editor read tools (list_folder, read_file,
+// search_files), update_plan, load_skill, the edits,
 // the organising tools and create_template. Sent to the model
 // without `execute` (app/api/ai/companion/companion-tools.ts) and run in the
 // browser (app/editor/components/companion/use-companion-tools.ts).
@@ -23,6 +24,30 @@ export const COMPANION_TOOL_DEFS = {
       "Read one file of the user's vault in full by its vault-relative path: a note (.md) or a code or text file. Use list_folder or search_notes to find paths; never guess them.",
     inputSchema: z.object({
       path: z.string().min(1).describe('Vault-relative path, e.g. "Projects/Roadmap.md" or "scripts/build.py"'),
+      startLine: z.number().int().min(1).optional().describe('First line to read (default 1); a long file ends with the startLine to ask for next'),
+      lineCount: z.number().int().min(1).max(2000).optional().describe('How many lines to read (default: as many as fit)'),
+    }),
+  },
+  search_files: {
+    title: 'Search files',
+    description:
+      "Find text inside the vault's files, code and text files as well as notes: each match comes back with its path, line number and line. Use it to locate a function, a name or a setting before reading or editing. Searches the exact text (any case) or, with regex, a JavaScript regular expression. Limit it to a folder with `folder`.",
+    inputSchema: z.object({
+      query: z.string().min(1).describe('Text to look for, or a regular expression when regex is true'),
+      regex: z.boolean().optional().describe('Treat query as a JavaScript regular expression (default false)'),
+      folder: z.string().optional().describe('Only search this vault-relative folder, e.g. "src"'),
+      limit: z.number().int().min(1).max(100).optional().describe('Most matches to return (default 30)'),
+    }),
+  },
+  update_plan: {
+    title: 'Update plan',
+    description:
+      "Keep a checklist of the steps of a multi-step job, such as a coding plan. Send the whole list each time with each step's status: pending, in_progress (one at a time) or done. Call it when you start a plan and as each step finishes, so the user sees progress. It changes no files.",
+    inputSchema: z.object({
+      steps: z.array(z.object({
+        text: z.string().min(1).describe('The step, in a few words'),
+        status: z.enum(['pending', 'in_progress', 'done']),
+      })).min(1).describe('Every step of the plan, in order'),
     }),
   },
   get_active_note: {
@@ -49,6 +74,15 @@ export const COMPANION_TOOL_DEFS = {
         find: z.string().min(1).describe('Exact text now in the file; must match exactly once'),
         replace: z.string().describe('The text to put in its place ("" deletes it)'),
       })).min(1).describe('Applied in order'),
+    }),
+  },
+  write_file: {
+    title: 'Write file',
+    description:
+      "Replace a file's whole text, or create it (with its folders) when it doesn't exist. Use it to rewrite a file or when most of it changes; for a few changes use edit_file. Give the complete new text: whatever you leave out is gone. The change is saved at once and the user can undo the whole turn.",
+    inputSchema: z.object({
+      path: z.string().min(1).describe('Vault-relative path, e.g. "src/index.ts"'),
+      content: z.string().describe("The file's complete new text"),
     }),
   },
   edit_code_block: {
@@ -124,5 +158,5 @@ export const COMPANION_TOOL_NAMES = Object.keys(COMPANION_TOOL_DEFS) as Companio
 // write switch (hooks/use-webmcp-tools.ts). trash isn't offered there: it
 // asks on a card in the companion's thread.
 export const COMPANION_WRITE_TOOL_NAMES: CompanionToolName[] = [
-  'edit_file', 'edit_code_block', 'create_file', 'create_folder', 'rename', 'move', 'create_template',
+  'edit_file', 'write_file', 'edit_code_block', 'create_file', 'create_folder', 'rename', 'move', 'create_template',
 ];

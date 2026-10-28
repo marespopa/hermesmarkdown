@@ -15,6 +15,7 @@ import { guardFilePath, guardFolderPath } from "./tools/path-guard";
 import { useCompanionOrganise } from "./use-companion-organise";
 import { useCompanionWrites } from "./use-companion-writes";
 import type { FindReplace } from "./tools/edit-tools";
+import { matchesIn, planOutput, searchFilesOutput, searchMatcher, searchablePaths, SEARCH_DEFAULT_LIMIT, SEARCH_MAX_FILES, type SearchMatch } from "./tools/search-tools";
 import { activeNoteOutput, codeBlockAt, companionToolActivity, listFolderOutput, readFileOutput } from "./tools/read-tools";
 
 const NO_VAULT = "No vault is open, so there are no files to look at. Ask the user to open a folder.";
@@ -26,8 +27,8 @@ const stringList = (value: unknown) => (Array.isArray(value) ? value.map(String)
 
 // Runs the companion's tool calls in the browser: the note tools through
 // useNoteTools, the vault and editor read tools (list_folder, read_file,
-// get_active_note) here, behind the path guard, load_skill through
-// useChatSkills, the writes (edit_file,
+// get_active_note, search_files, update_plan) here, behind the path guard, load_skill through
+// useChatSkills, the writes (edit_file, write_file,
 // edit_code_block, create_file, create_folder, create_template) through
 // useCompanionWrites and the organising tools (rename, move, trash) through
 // useCompanionOrganise, recorded in the turn's undo group (`turnId`, the id
@@ -89,7 +90,39 @@ export function useCompanionTools() {
         } catch (err) {
           console.warn("Companion: couldn't read", guarded.path, err);
         }
-        return { output: readFileOutput(guarded.path, note, text), activity: activity(text === null ? "not found" : "") };
+        return { output: readFileOutput(guarded.path, note, text, Number(input.startLine) || undefined, Number(input.lineCount) || undefined), activity: activity(text === null ? "not found" : "") };
+      }
+      if (toolName === "search_files") {
+        if (!store.get(atom_vaultHandle)) return { output: NO_VAULT, activity: activity() };
+        const query = String(input.query ?? "");
+        const matcher = query ? searchMatcher(query, input.regex === true) : null;
+        if (!matcher) return { output: query ? `"${query}" isn't a valid regular expression.` : "Say what to search for.", activity: activity("refused") };
+        const folder = guardFolderPath(String(input.folder ?? ""));
+        if (!folder.ok) return { output: folder.reason, activity: activity("refused") };
+        const limit = Math.min(100, Math.max(1, Number(input.limit) || SEARCH_DEFAULT_LIMIT));
+        const all = searchablePaths(store.get(atom_fileMetadata), store.get(atom_vaultTextFiles).map((file) => file.path), folder.path);
+        const paths = all.slice(0, SEARCH_MAX_FILES);
+        const hits: SearchMatch[] = [];
+        let scanned = 0;
+        for (const path of paths) {
+          if (hits.length >= limit) break;
+          scanned++;
+          try {
+            hits.push(...matchesIn(path, await readCurrentText(path), matcher, limit - hits.length));
+          } catch {
+            // Unreadable files are skipped.
+          }
+        }
+        const output = searchFilesOutput(query, hits, { limit, truncated: scanned < all.length && hits.length < limit, scanned });
+        return { output, activity: activity(`${hits.length} found`) };
+      }
+      if (toolName === "update_plan") {
+        const { output, detail } = planOutput(input.steps);
+        return { output, activity: activity(detail) };
+      }
+      if (toolName === "write_file") {
+        const { output, detail } = await writes.writeFile(turnId, String(input.path ?? ""), String(input.content ?? ""));
+        return { output, activity: activity(detail) };
       }
       if (toolName === "load_skill") {
         const name = String(input.name ?? "");

@@ -34,7 +34,7 @@ const splitPath = (path: string) => {
   return { folder: at < 0 ? "" : path.slice(0, at), name: path.slice(at + 1) };
 };
 
-// The companion's writes: edit_file, edit_code_block, create_file,
+// The companion's writes: edit_file, write_file, edit_code_block, create_file,
 // create_folder and create_template, applied at once (an open tab shows the
 // new text straight away, and disk wins over its cached text, through
 // useNoteBuffer().writeThrough), each recorded as a step of its turn's group
@@ -163,6 +163,20 @@ export function useCompanionWrites() {
     }
   }, [store, ensureFolder, record, refreshTree]);
 
+  // A whole file's new text: replaces an existing file (a step of the turn's
+  // undo group, like an edit) or creates it when the path is free.
+  const writeFile = useCallback(async (turnId: string, rawPath: string, content: string): Promise<WriteResult> => {
+    const vault = store.get(atom_vaultHandle);
+    if (!vault) return { output: "No vault is open, so nothing can be changed.", detail: "no vault" };
+    const guarded = guardFilePath(rawPath);
+    if (!guarded.ok) return { output: guarded.reason, detail: "refused" };
+    const exists = await resolveFileHandleAtPath(vault, guarded.path).then(() => true, () => false);
+    if (!exists) return createFile(turnId, guarded.path, content);
+    return transformFile(turnId, guarded.path, (text) => (text === (content || "\n")
+      ? { ok: false, reason: `${guarded.path} already has exactly that text.` }
+      : { ok: true, text: content || "\n", summary: "rewritten" }));
+  }, [store, createFile, transformFile]);
+
   const createFolder = useCallback(async (turnId: string, rawPath: string): Promise<WriteResult> => {
     const vault = store.get(atom_vaultHandle);
     if (!vault) return { output: "No vault is open, so nothing can be created.", detail: "no vault" };
@@ -209,5 +223,5 @@ export function useCompanionWrites() {
     return group ? undoFileOperation(group) : false;
   }, [store, undoFileOperation]);
 
-  return { editFile, editCodeBlock, createFile, createFolder, createTemplate, undoTurn };
+  return { editFile, writeFile, editCodeBlock, createFile, createFolder, createTemplate, undoTurn };
 }
