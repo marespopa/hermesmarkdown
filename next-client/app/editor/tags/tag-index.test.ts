@@ -35,7 +35,16 @@ describe("buildTagIndex", () => {
       note("b.md", [], [task("done")]),
       note("c.md", [], [task("prog")]),
     ]);
-    expect(filterCounts).toEqual({ all: 3, untagged: 2, todo: 2 });
+    expect(filterCounts).toEqual({ all: 3, untagged: 2, todo: 2, today: 0, archive: 0 });
+  });
+
+  it("counts the notes changed today and those in an Archive folder", () => {
+    const now = new Date(2026, 9, 28, 15).getTime();
+    const at = (path: string, modifiedAt: number) => ({ ...note(path, []), modifiedAt });
+    const notes = [at("a.md", now - 3_600_000), at("Archive/b.md", now - 5 * 86_400_000), at("x/.archive/c.md", now), at("archive.md", 1)];
+    const { filterCounts } = buildTagIndex(Object.fromEntries(notes.map((meta) => [meta.path, meta])), { has: () => true }, now);
+    expect(filterCounts.today).toBe(2);
+    expect(filterCounts.archive).toBe(2);
   });
 
   it("leaves out notes a listing may not show", () => {

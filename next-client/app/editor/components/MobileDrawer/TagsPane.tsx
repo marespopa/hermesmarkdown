@@ -5,11 +5,9 @@ import { HiChevronRight } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import CountBadge from "@/app/components/CountBadge";
 import { useTagIndex } from "../../tags/use-tag-index";
-import { NOTE_FILTERS, type NoteFilter, type TagNode } from "../../tags/tag-index";
+import { NOTE_FILTER_LABELS, NOTE_FILTERS, type TagNode } from "../../tags/tag-index";
 import { editorNoteFilterHref, editorTagHref } from "../../utils/editor-url";
 import { SIDEBAR_ICON_CLASS } from "../sidebar/sidebar-classes";
-
-const FILTER_LABELS: Record<NoteFilter, string> = { all: "All Notes", untagged: "Untagged", todo: "Todo" };
 
 const ROW_CLASS = "flex w-full items-center gap-2 min-h-11 px-3 rounded-lg text-ui-subhead text-left text-fg transition-colors hover:bg-fill active:bg-fill-hover";
 
@@ -63,7 +61,7 @@ export default function TagsPane({ onNavigate }: TagsPaneProps) {
         {NOTE_FILTERS.map((filter) => (
           <li key={filter}>
             <Button variant="unstyled" onClick={() => onNavigate(editorNoteFilterHref(filter))} className={ROW_CLASS}>
-              <span className="min-w-0 flex-1 truncate">{FILTER_LABELS[filter]}</span>
+              <span className="min-w-0 flex-1 truncate">{NOTE_FILTER_LABELS[filter]}</span>
               <CountBadge count={filterCounts[filter]} />
             </Button>
           </li>

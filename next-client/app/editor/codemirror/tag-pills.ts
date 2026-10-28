@@ -113,6 +113,8 @@ export function collectTagMatches(doc: string, detectFrontmatter = true): TagMat
   const matches: TagMatch[] = [];
   const lines = doc.split("\n");
   let inFrontmatter = false;
+  // Inside a block-style `tags:` list (`- a` items on the lines below).
+  let inTagsBlock = false;
   // A running offset: summing every earlier line's length for each line
   // made this quadratic, on every keystroke and caret move.
   let nextLineStart = 0;
@@ -132,6 +134,14 @@ export function collectTagMatches(doc: string, detectFrontmatter = true): TagMat
     }
 
     if (inFrontmatter) {
+      const item = inTagsBlock ? line.match(/^(\s*-\s+)(\S.*?)\s*$/) : null;
+      if (item) {
+        const from = lineStart + item[1].length;
+        const built = buildTagMatch(item[2], from, from + item[2].length);
+        if (built) matches.push(built);
+        continue;
+      }
+      inTagsBlock = /^\s*tags\s*:\s*$/.test(line);
       matches.push(...collectFrontmatterTagMatchesForLine(line, lineStart));
     }
 

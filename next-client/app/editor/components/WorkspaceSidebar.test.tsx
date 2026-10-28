@@ -216,6 +216,21 @@ describe("WorkspaceSidebar", () => {
     expect(within(screen.getByRole("navigation")).queryByRole("status")).not.toBeInTheDocument();
   });
 
+  it("switches between Files and Tags under the header, with the smart filters above both", () => {
+    fileSystem.vaultHandle = { name: "Notes" };
+    renderSidebar();
+
+    expect(screen.getByRole("tab", { name: "Files" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("region", { name: "Filters" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Tags" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Tags" }));
+    expect(screen.getByRole("tab", { name: "Tags" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("region", { name: "Tags" })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Files" })).not.toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Filters" })).toBeInTheDocument();
+  });
+
   it("switches vaults from its header: the open vault's name opens the vault menu", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar();

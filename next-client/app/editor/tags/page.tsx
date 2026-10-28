@@ -14,10 +14,8 @@ import { SIDEBAR_ICON_CLASS, sidebarItemClass } from "../components/sidebar/side
 import { formatModified } from "../components/vault-tree/list-columns";
 import { editorFileHref, FILTER_PARAM, replaceUrlParam, TAG_PARAM } from "../utils/editor-url";
 import TagHeading from "./TagHeading";
-import { NOTE_FILTERS, noteHasTag, noteMatchesFilter, type NoteFilter } from "./tag-index";
+import { NOTE_FILTER_LABELS, NOTE_FILTERS, noteHasTag, noteMatchesFilter, type NoteFilter } from "./tag-index";
 import { useTagIndex } from "./use-tag-index";
-
-const FILTER_LABELS: Record<NoteFilter, string> = { all: "All Notes", untagged: "Untagged", todo: "Todo" };
 
 // Tags: every tag in the vault with how many notes carry it, and the notes
 // of the one you pick, most recently changed first. The pick is in the URL
@@ -43,7 +41,7 @@ function TagsView() {
   const searchParams = useSearchParams();
   const urlTag = searchParams?.get(TAG_PARAM) ?? null;
   const filterParam = searchParams?.get(FILTER_PARAM);
-  // A system filter (the mobile drawer's All Notes / Untagged / Todo) lists
+  // A system filter (the sidebar's All Notes, Untagged, Todo, Today and Archive) lists
   // notes instead of one tag's.
   const filter = NOTE_FILTERS.find((candidate) => candidate === filterParam) ?? null;
   // A pick shows at once; once the URL changes (the pick itself synced, or a
@@ -112,12 +110,12 @@ function TagsView() {
                   {selected ? (
                     <TagHeading tag={selected} hasVault={!!vaultHandle} />
                   ) : (
-                    <h1 className="mb-4 text-ui-title-3 font-semibold">{FILTER_LABELS[filter!]}</h1>
+                    <h1 className="mb-4 text-ui-title-3 font-semibold">{NOTE_FILTER_LABELS[filter!]}</h1>
                   )}
                   {notes.length === 0 ? (
                     <p className="text-ui-footnote text-fg-muted">{selected ? "No notes carry this tag." : "No notes here."}</p>
                   ) : (
-                    <ul aria-label={selected ? `Notes tagged ${selected}` : FILTER_LABELS[filter!]} className="divide-y divide-edge-subtle overflow-hidden rounded-xl border border-edge-subtle bg-surface">
+                    <ul aria-label={selected ? `Notes tagged ${selected}` : NOTE_FILTER_LABELS[filter!]} className="divide-y divide-edge-subtle overflow-hidden rounded-xl border border-edge-subtle bg-surface">
                       {notes.map((meta) => {
                         const display = displayItems.get(meta.path)!;
                         const folder = meta.path.split("/").slice(0, -1).join("/");

@@ -9,7 +9,7 @@ The AI companion: one AI in the app. A panel docked on the window's trailing edg
 | [CompanionHeader](CompanionHeader.md) | Title, model picker, New chat, Close. |
 | [CompanionThread](CompanionThread.md) | The conversation, with a turn summary under each reply that changed files. |
 | [CompanionMessage](CompanionMessage.md) | One message: Markdown text, tool chips, Copy. |
-| [ToolActivityChip](ToolActivityChip.md) | One tool call as a quiet line (spinner after 300 ms). |
+| [ToolActivityChip](ToolActivityChip.md) | One tool call as a quiet line (spinner after 300 ms); finished runs fold into "N steps done". |
 | [TurnSummary](TurnSummary.md) | Files a turn changed, and Undo (the turn's group on the app's file-undo stack). |
 | [TrashConfirmCard](TrashConfirmCard.md) | Keep / Move to Trash, in place of a waiting `trash` call. |
 | [CompanionComposer](CompanionComposer.md) | The input: the shared `Textarea` field, context chips, @mentions, attach, send / stop. |

@@ -5,6 +5,8 @@ export interface FileMetadata {
   path: string;
   name: string;
   tags: string[];
+  /** Tags and every tag above them (#work also for #work/projects), from parse-note.ts. */
+  tagPaths?: string[];
   links: string[]; // Paths or names this file links to [[Link]]
   frontmatter: Record<string, any>;
   modifiedAt: number;

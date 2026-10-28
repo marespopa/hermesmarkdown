@@ -166,6 +166,27 @@ export interface ToolPartView {
   input: Record<string, unknown>;
 }
 
+export type PartItem = { part: UIMessage["parts"][number]; index: number } | { done: ToolPartView[] };
+
+// A reply's parts with each run of two or more finished tool calls folded
+// into one item, so a many-step turn reads as a line, not a stack. Running
+// and failed calls, and text, stay as they are.
+export function foldDoneTools(parts: UIMessage["parts"]): PartItem[] {
+  const items: PartItem[] = [];
+  parts.forEach((part, index) => {
+    const view = toolPartView(part);
+    const last = items[items.length - 1];
+    if (view?.state === "done" && last && "done" in last) {
+      last.done.push(view);
+    } else if (view?.state === "done") {
+      items.push({ done: [view] });
+    } else {
+      items.push({ part, index });
+    }
+  });
+  return items;
+}
+
 // A tool part of an assistant message, for its chip; null for other parts.
 export function toolPartView(part: UIMessage["parts"][number]): ToolPartView | null {
   const isStatic = part.type.startsWith("tool-");

@@ -58,6 +58,8 @@ export async function POST(req: Request) {
     return withKeepAlive(result.toUIMessageStreamResponse({
       // Web search results' pages, shown as links under the reply.
       sendSources: true,
+      // Reasoning is never shown, so it isn't streamed.
+      sendReasoning: false,
       onError: (error) => {
         console.error('AI companion stream error:', error);
         return sanitizeMessage(errorMessage(error, 'The AI request failed.'));
