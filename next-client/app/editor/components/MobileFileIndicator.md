@@ -1,9 +1,9 @@
 # MobileFileIndicator
 
-Description: Compact mobile header chip showing the active file name and its save state, with save, command palette and AI chat shortcuts. It stays on screen while you type.
+Description: Compact mobile header chip showing the active file name and its save state, with a menu button (opens the navigation drawer), save, command palette, AI chat and outline (opens the outline drawer) shortcuts. It stays on screen while you type.
 
 ## Local State & Storage
-- State: `atom_workspaceLayout`, `atom_openFiles`, `atom_saveStatus`, `atom_vaultHandle`, `useCommandPalette`.
+- State: `atom_workspaceLayout`, `atom_openFiles`, `atom_saveStatus`, `atom_vaultHandle`, `useCommandPalette`, `atom_mobileDrawerOpen`, `atom_mobileOutlineOpen`.
 - Persistence: None itself. It reads `localStorage["workspaceLayout"]` and the open notes (`atom_openFiles`, IndexedDB with `localStorage["openNotes"]`) through the atoms.
 
 ## Dependencies

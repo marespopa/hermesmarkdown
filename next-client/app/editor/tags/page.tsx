@@ -12,13 +12,12 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import ShellPage from "../components/ShellPage";
 import { SIDEBAR_ICON_CLASS, sidebarItemClass } from "../components/sidebar/sidebar-classes";
 import { formatModified } from "../components/vault-tree/list-columns";
-import { editorFileHref, replaceUrlParam, TAG_PARAM } from "../utils/editor-url";
+import { editorFileHref, FILTER_PARAM, replaceUrlParam, TAG_PARAM } from "../utils/editor-url";
 import TagHeading from "./TagHeading";
+import { NOTE_FILTERS, noteHasTag, noteMatchesFilter, type NoteFilter } from "./tag-index";
+import { useTagIndex } from "./use-tag-index";
 
-interface TagEntry {
-  tag: string;
-  count: number;
-}
+const FILTER_LABELS: Record<NoteFilter, string> = { all: "All Notes", untagged: "Untagged", todo: "Todo" };
 
 // Tags: every tag in the vault with how many notes carry it, and the notes
 // of the one you pick, most recently changed first. The pick is in the URL
@@ -41,33 +40,32 @@ function TagsView() {
   const { openFile, vaultHandle } = useFileSystem();
   const metadata = useAtomValue(atom_fileMetadata);
   const displayItems = useAtomValue(atom_noteDisplayItems);
-  const urlTag = useSearchParams()?.get(TAG_PARAM) ?? null;
+  const searchParams = useSearchParams();
+  const urlTag = searchParams?.get(TAG_PARAM) ?? null;
+  const filterParam = searchParams?.get(FILTER_PARAM);
+  // A system filter (the mobile drawer's All Notes / Untagged / Todo) lists
+  // notes instead of one tag's.
+  const filter = NOTE_FILTERS.find((candidate) => candidate === filterParam) ?? null;
   // A pick shows at once; once the URL changes (the pick itself synced, or a
   // pinned tag's link) the URL wins.
   const [picked, setPicked] = useState<{ from: string | null; tag: string | null } | null>(null);
   if (picked && picked.from !== urlTag) setPicked(null);
   const selected = picked && picked.from === urlTag ? picked.tag : urlTag;
 
-  const tags = useMemo<TagEntry[]>(() => {
-    const counts = new Map<string, number>();
-    for (const meta of Object.values(metadata)) {
-      if (!displayItems.has(meta.path)) continue;
-      for (const tag of meta.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
-    }
-    return [...counts].map(([tag, count]) => ({ tag, count })).sort((a, b) => a.tag.localeCompare(b.tag));
-  }, [metadata, displayItems]);
+  const { tags } = useTagIndex();
 
   const notes = useMemo(
-    () => selected
+    () => selected || filter
       ? Object.values(metadata)
-          .filter((meta) => meta.tags.includes(selected) && displayItems.has(meta.path))
+          .filter((meta) => displayItems.has(meta.path) && (selected ? noteHasTag(meta, selected) : noteMatchesFilter(meta, filter!)))
           .sort((a, b) => b.modifiedAt - a.modifiedAt)
       : [],
-    [metadata, displayItems, selected],
+    [metadata, displayItems, selected, filter],
   );
 
   const pick = (tag: string | null) => {
     setPicked({ from: urlTag, tag });
+    replaceUrlParam(FILTER_PARAM, null);
     replaceUrlParam(TAG_PARAM, tag);
   };
 
@@ -84,7 +82,7 @@ function TagsView() {
         <p className="m-8 rounded-xl border border-edge-subtle bg-surface px-4 py-3 text-ui-footnote text-fg-muted">
           Open a vault to see its tags.
         </p>
-      ) : tags.length === 0 ? (
+      ) : tags.length === 0 && !filter ? (
         <p className="m-8 text-ui-footnote text-fg-muted">
           No tags yet. Add one anywhere in a note, like <code>#idea</code>, or in its frontmatter.
         </p>
@@ -107,15 +105,19 @@ function TagsView() {
           </nav>
           <main className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
             <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-8">
-              {!selected ? (
+              {!selected && !filter ? (
                 <p className="text-ui-footnote text-fg-muted">Pick a tag to see its notes.</p>
               ) : (
                 <>
-                  <TagHeading tag={selected} hasVault={!!vaultHandle} />
-                  {notes.length === 0 ? (
-                    <p className="text-ui-footnote text-fg-muted">No notes carry this tag.</p>
+                  {selected ? (
+                    <TagHeading tag={selected} hasVault={!!vaultHandle} />
                   ) : (
-                    <ul aria-label={`Notes tagged ${selected}`} className="divide-y divide-edge-subtle overflow-hidden rounded-xl border border-edge-subtle bg-surface">
+                    <h1 className="mb-4 text-ui-title-3 font-semibold">{FILTER_LABELS[filter!]}</h1>
+                  )}
+                  {notes.length === 0 ? (
+                    <p className="text-ui-footnote text-fg-muted">{selected ? "No notes carry this tag." : "No notes here."}</p>
+                  ) : (
+                    <ul aria-label={selected ? `Notes tagged ${selected}` : FILTER_LABELS[filter!]} className="divide-y divide-edge-subtle overflow-hidden rounded-xl border border-edge-subtle bg-surface">
                       {notes.map((meta) => {
                         const display = displayItems.get(meta.path)!;
                         const folder = meta.path.split("/").slice(0, -1).join("/");

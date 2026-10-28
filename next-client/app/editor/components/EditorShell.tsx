@@ -30,9 +30,14 @@ import WorkspaceSidebar from "./WorkspaceSidebar";
 import ActiveFileIndexer from "./ActiveFileIndexer";
 import RecoveryBanner from "./RecoveryBanner";
 import PinCommands from "./editor-commands/PinCommands";
+import SwitchVaultCommands from "./editor-commands/SwitchVaultCommands";
 import PerfReadout from "@/app/components/PerfReadout/PerfReadout";
 import CompanionPanel from "./companion/CompanionPanel";
 import ShellCommands from "./ShellCommands";
+import MobileDrawer from "./MobileDrawer/MobileDrawer";
+import MobileOutlineDrawer from "./MobileDrawer/MobileOutlineDrawer";
+import { useEdgeSwipe } from "./MobileDrawer/use-edge-swipe";
+import { atom_mobileDrawerOpen, atom_mobileOutlineOpen } from "@/app/atoms/mobile-drawer-atoms";
 
 // Show / hide the sidebar: Ctrl/Cmd+\, Ctrl/Cmd+Alt+S (`code`, since Alt
 // changes `key` on macOS), or Ctrl+[ — Ctrl on macOS too, where Cmd+[ is the
@@ -73,6 +78,15 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   // Settings is a page of its own: neither the sidebar nor the companion.
   const onSettings = usePathname() === "/editor/settings";
   const hasSidebar = !isMobileChrome && !isVaultLocked && !onSettings;
+  // Phone: the navigation drawer (left edge) and the outline drawer (right).
+  const hasMobileDrawer = isMobileChrome && !isVaultLocked && !onSettings;
+  const setMobileDrawerOpen = useSetAtom(atom_mobileDrawerOpen);
+  const setMobileOutlineOpen = useSetAtom(atom_mobileOutlineOpen);
+  useEdgeSwipe({
+    enabled: hasMobileDrawer,
+    onLeftEdge: () => setMobileDrawerOpen(true),
+    onRightEdge: () => setMobileOutlineOpen(true),
+  });
   useVaultPins(!isVaultLocked);
   useVaultSync();
   // The Changes scan, warmed up early so that page opens with a result.
@@ -168,8 +182,15 @@ export default function EditorShell({ children }: { children: ReactNode }) {
           </div>
         )
       )}
+      {hasMobileDrawer && (
+        <>
+          <MobileDrawer />
+          <MobileOutlineDrawer />
+        </>
+      )}
       {!isVaultLocked && <RecoveryBanner />}
       {!isVaultLocked && <PinCommands />}
+      {!isVaultLocked && <SwitchVaultCommands />}
       {!isVaultLocked && !onSettings && <ShellCommands hasCompanion={hasCompanion} />}
       {/* Tasks, Changes, Templates and Settings by key, from every route. */}
       {!isVaultLocked && <PageShortcuts />}

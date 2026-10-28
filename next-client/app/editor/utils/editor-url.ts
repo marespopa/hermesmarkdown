@@ -12,6 +12,7 @@
 export const FILE_PARAM = "file";
 export const SECTION_PARAM = "section";
 export const TAG_PARAM = "tag";
+export const FILTER_PARAM = "filter";
 export const FIND_PARAM = "find";
 export const REGEX_PARAM = "regex";
 
@@ -30,6 +31,11 @@ export function editorFileHref(path?: string | null): string {
 // The Tags page on `tag` (a pinned tag's link).
 export function editorTagHref(tag: string): string {
   return `/editor/tags?${serialize(new URLSearchParams({ [TAG_PARAM]: tag }))}`;
+}
+
+// The Tags page on a system filter ("all", "untagged" or "todo").
+export function editorNoteFilterHref(filter: string): string {
+  return `/editor/tags?${serialize(new URLSearchParams({ [FILTER_PARAM]: filter }))}`;
 }
 
 // Replace in Files, optionally prefilled with a Find text (and Regex on).

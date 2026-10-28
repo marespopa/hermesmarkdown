@@ -7,6 +7,7 @@ import { version } from "../../../package.json";
 import CommandPalette from "./CommandPalette";
 import { CommandPaletteProvider, useCommandPalette, useRegisterCommand } from "./CommandPaletteContext";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_mobileDrawerOpen, atom_mobileDrawerTab } from "@/app/atoms/mobile-drawer-atoms";
 import { atom_pinsByVault, atom_pinsVaultKey } from "@/app/atoms/pin-atoms";
 import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
@@ -266,14 +267,15 @@ describe("CommandPalette", () => {
     expect(store.get(atom_sidebarOpen)).toBe(true);
   });
 
-  it("Show Files on mobile opens the Files page", async () => {
+  it("Show Files on mobile opens the navigation drawer on Files", async () => {
     isMobileChrome = true;
     const store = renderPaletteWithStore();
     fireEvent.keyDown(document, { key: "k", ctrlKey: true });
 
     fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">show files" } });
     fireEvent.click(screen.getByRole("option", { name: /Show Files/ }));
-    await waitFor(() => expect(push).toHaveBeenCalledWith("/editor/files"));
+    await waitFor(() => expect(store.get(atom_mobileDrawerOpen)).toBe(true));
+    expect(store.get(atom_mobileDrawerTab)).toBe("files");
     expect(store.get(atom_sidebarOpen)).toBe(false);
   });
 
