@@ -11,6 +11,10 @@ export type MatchResult = {
   indices: number[];
 };
 
+export type CommandMatchResult = MatchResult & {
+  source: "label" | "metadata";
+};
+
 export type FileMatchResult = {
   score: number;
   titleIndices: number[];
@@ -63,16 +67,18 @@ export function fuzzyMatch(query: string, target: string): MatchResult | null {
   return queryIndex === normalizedQuery.length ? { score, indices } : null;
 }
 
-export function matchCommand(query: string, command: SearchableCommand): MatchResult | null {
+export function matchCommand(query: string, command: SearchableCommand): CommandMatchResult | null {
   const labelMatch = fuzzyMatch(query, command.label);
   const metadataMatch = fuzzyMatch(
     query,
     [command.description, normalizeKeywords(command.keywords), command.category].filter(Boolean).join(" "),
   );
 
-  if (!labelMatch) return metadataMatch ? { ...metadataMatch, indices: [] } : null;
-  if (!metadataMatch) return labelMatch;
-  return labelMatch.score >= metadataMatch.score ? labelMatch : { ...metadataMatch, indices: [] };
+  if (!labelMatch) return metadataMatch ? { ...metadataMatch, indices: [], source: "metadata" } : null;
+  if (!metadataMatch) return { ...labelMatch, source: "label" };
+  return labelMatch.score >= metadataMatch.score
+    ? { ...labelMatch, source: "label" }
+    : { ...metadataMatch, indices: [], source: "metadata" };
 }
 
 export function matchFile(query: string, file: { name: string; path: string }): FileMatchResult | null {

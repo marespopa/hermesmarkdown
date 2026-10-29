@@ -225,6 +225,35 @@ Write today's standup from my files: done, next, blocked. Keep each to one line.
       ),
     },
     {
+      id: "ai-project-checks",
+      title: "Local project checks",
+      lead: "Run a fixed repository check through a local helper after approving its exact command.",
+      keywords: "ai project check typecheck unit tests helper local command approval network sandbox output",
+      body: (
+        <>
+          <p>
+            <code>check_file</code> is a browser-side syntax check. To run the repository TypeScript check or unit tests,
+            start the helper from a terminal and choose the project directory explicitly:
+          </p>
+          <Code>{`node helper/start.mjs --root /absolute/path/to/next-client`}</Code>
+          <p>
+            In Settings → AI Features, enter the one-time pairing code. Each invocation asks before it starts and shows
+            the fixed command, project directory, time limit and output destination. Only the fixed <code>typecheck</code>
+            and <code>unit-tests</code> IDs are available; the companion cannot supply a command or arguments.
+          </p>
+          <Callout type="warning">
+            The helper is not an OS sandbox. Network blocking is best effort, and unit tests execute code from the selected
+            project; a test can access local resources or modify project files. Run checks only for a project you trust.
+          </Callout>
+          <p>
+            Browser vaults and mobile are not supported because they do not expose a local project path. Nothing is
+            exported from OPFS. The helper does not receive vault contents, chat history or AI credentials. Output is
+            bounded and redacted before it is shown and returned to the companion; it is not saved in the thread or vault.
+          </p>
+        </>
+      ),
+    },
+    {
       id: "ai-web-search",
       title: "Web search",
       lead: "With Claude, the companion can look things up online, and lists the pages it used.",

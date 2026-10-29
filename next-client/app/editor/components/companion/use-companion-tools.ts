@@ -5,10 +5,13 @@ import { useStore } from "jotai";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
-import { atom_vaultFolderPaths, atom_vaultHandle, atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
+import { atom_isCloudVault, atom_vaultDescriptor, atom_vaultFolderPaths, atom_vaultHandle, atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
+import { atom_projectCheckUiState } from "@/app/atoms/companion-atoms";
 import { useNoteBuffer } from "@/app/hooks/file-system/use-note-buffer";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { NOTE_TOOL_DEFS } from "@/app/services/note-tool-defs";
+import type { CompanionToolName } from "@/app/services/companion-tool-defs";
+import type { ProjectCheckId } from "@/app/services/project-checks";
 import { useChatSkills } from "../ai-chat/use-chat-skills";
 import { useNoteTools, type NoteToolResult } from "../ai-chat/use-note-tools";
 import { guardFilePath, guardFolderPath } from "./tools/path-guard";
@@ -19,6 +22,10 @@ import { startChangesScan } from "@/app/services/git-changes-client";
 import { loadYaml } from "@/app/utils/load-yaml";
 import { createLinkResolver } from "@/app/utils/note-links/link-resolver";
 import { checkFileOutput } from "./tools/check-tools";
+import { projectCheckById, isProjectCheckAvailable, PROJECT_CHECK_MAX_OUTPUT_CHARS } from "@/app/services/project-checks";
+import { projectCheckPairing, runProjectCheck } from "@/app/services/project-check-helper-client";
+import { requestProjectCheckApproval } from "./project-check-approval";
+import { trackProjectCheckAbort } from "./companion-chat-store";
 import { gitDiffOutput, gitStatusOutput } from "./tools/git-tools";
 import { findFilesOutput, globMatcher, matchesIn, planOutput, searchFilesOutput, searchMatcher, searchablePaths, SEARCH_DEFAULT_LIMIT, SEARCH_MAX_FILES, type SearchMatch } from "./tools/search-tools";
 import { activeNoteOutput, codeBlockAt, companionToolActivity, listFolderOutput, readFileOutput } from "./tools/read-tools";
@@ -27,6 +34,7 @@ const NO_VAULT = "No vault is open, so there are no files to look at. Ask the us
 
 // A tool call to run: its name, input and id (trash's card is shown by it).
 export type CompanionToolCall = { toolName: string; input: unknown; toolCallId?: string };
+export type ActiveSkillPolicy = { tools?: CompanionToolName[]; checks?: ProjectCheckId[] };
 
 const stringList = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
 
@@ -48,10 +56,59 @@ export function useCompanionTools() {
   const writes = useCompanionWrites();
   const organise = useCompanionOrganise();
 
-  const runTool = useCallback(async ({ toolName, input: rawInput, toolCallId = "" }: CompanionToolCall, turnId = "turn"): Promise<NoteToolResult> => {
+  const runTool = useCallback(async ({ toolName, input: rawInput, toolCallId = "" }: CompanionToolCall, turnId = "turn", policy?: ActiveSkillPolicy): Promise<NoteToolResult> => {
     const input = (rawInput ?? {}) as Record<string, unknown>;
     const activity = (detail = "") => companionToolActivity(toolName, input, detail);
+    if (policy?.tools && !policy.tools.includes(toolName as CompanionToolName)) {
+      return { output: `The active skill does not bind to ${toolName}.`, activity: activity("skill restriction") };
+    }
+    if (toolName === "run_project_check" && policy?.checks && !policy.checks.includes(String(input.checkId) as ProjectCheckId)) {
+      return { output: "The active skill does not bind to that project check.", activity: activity("skill restriction") };
+    }
     try {
+      if (toolName === "run_project_check") {
+        const check = projectCheckById(input.checkId);
+        if (!check) return { output: "That project check is not in the fixed allowlist.", activity: activity("refused") };
+        const vault = store.get(atom_vaultHandle);
+        const descriptor = store.get(atom_vaultDescriptor);
+        const paired = projectCheckPairing();
+        const mobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const availability = isProjectCheckAvailable({
+          hasVault: !!vault && !store.get(atom_isCloudVault),
+          browserVault: descriptor?.kind === "browser",
+          mobile,
+          paired: paired.paired,
+        });
+        const baseState = {
+          toolCallId: toolCallId || `${turnId}:project-check`, checkId: check.id, label: check.label,
+          argv: [...check.argv], projectRoot: paired.projectRoot ?? "No helper paired", timeoutMs: check.timeoutMs,
+          status: availability.available ? "approval" as const : "unavailable" as const, output: "",
+        };
+        if (!availability.available) {
+          store.set(atom_projectCheckUiState, { ...baseState, detail: availability.reason });
+          return { output: availability.reason ?? "Project checks are unavailable. Use check_file for syntax checks.", activity: activity("unavailable") };
+        }
+        const approved = await requestProjectCheckApproval(store, baseState);
+        if (!approved) return { output: "The user did not approve this project check. No local process was started.", activity: activity("denied") };
+        const currentPairing = projectCheckPairing();
+        if (!currentPairing.paired || currentPairing.projectRoot !== paired.projectRoot || currentPairing.generation !== paired.generation) {
+          store.set(atom_projectCheckUiState, { ...baseState, status: "disconnected", detail: "The helper pairing changed. Pair it again and request approval for a new invocation." });
+          return { output: "The helper pairing changed while approval was pending. No local process was started; request a new approved check.", activity: activity("pairing changed") };
+        }
+        const controller = new AbortController();
+        const untrack = trackProjectCheckAbort(controller);
+        try {
+          const result = await runProjectCheck(check.id, {
+            signal: controller.signal,
+            onOutput: (line) => store.set(atom_projectCheckUiState, (current) => current?.toolCallId === baseState.toolCallId
+              ? { ...current, output: `${current.output}${line}`.slice(-PROJECT_CHECK_MAX_OUTPUT_CHARS) } : current),
+          });
+          store.set(atom_projectCheckUiState, { ...baseState, status: result.status, output: result.output, exitCode: result.exitCode, durationMs: result.durationMs, detail: result.error });
+          const diagnostics = result.output.slice(0, 8_000);
+          const output = `Local project check ${check.label}: ${result.status}${result.exitCode === null ? "" : ` (exit code ${result.exitCode})`}.${result.error ? ` ${result.error}` : ""}${diagnostics ? `\nBounded, redacted local output:\n${diagnostics}` : ""}`;
+          return { output, activity: activity(result.status.replaceAll("_", " ")) };
+        } finally { untrack(); }
+      }
       if (toolName in NOTE_TOOL_DEFS) {
         if (!store.get(atom_vaultHandle)) return { output: NO_VAULT, activity: activity() };
         return await runNoteTool({ toolName, input });

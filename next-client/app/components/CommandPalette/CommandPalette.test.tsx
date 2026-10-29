@@ -66,6 +66,31 @@ function TestCommand() {
   return null;
 }
 
+function RankingCommands() {
+  useRegisterCommand({
+    id: "next-tab",
+    label: "Activate Next Tab",
+    category: "Workspace",
+    keywords: "switch file",
+    action: vi.fn(),
+  });
+  useRegisterCommand({
+    id: "previous-tab",
+    label: "Activate Previous Tab",
+    category: "Workspace",
+    keywords: "switch file",
+    action: vi.fn(),
+  });
+  useRegisterCommand({
+    id: "switch-vault",
+    label: "Switch Vault…",
+    category: "Vault",
+    keywords: ["switch", "vault", "workspace"],
+    action: vi.fn(),
+  });
+  return null;
+}
+
 function CreateNoteHandler({ onCreate }: { onCreate: (title: string) => Promise<unknown> }) {
   const { setCreateNote } = useCommandPalette();
   React.useEffect(() => {
@@ -80,12 +105,13 @@ function Hydrate({ values, children }: { values: any[]; children: React.ReactNod
   return children;
 }
 
-function renderPalette(values: any[] = []) {
+function renderPalette(values: any[] = [], extraCommands: React.ReactNode = null) {
   return render(
     <Provider>
       <Hydrate values={values}>
         <CommandPaletteProvider>
           <TestCommand />
+          {extraCommands}
           <CommandPalette />
         </CommandPaletteProvider>
       </Hydrate>
@@ -199,6 +225,16 @@ describe("CommandPalette", () => {
 
     await screen.findByRole("combobox");
     expect(screen.getAllByRole("option")[0]).toHaveAccessibleName(/Test command/);
+  });
+
+  it("prioritizes a command label over keyword-only matches", async () => {
+    renderPalette([], <RankingCommands />);
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true, shiftKey: true });
+
+    const input = await screen.findByRole("combobox");
+    fireEvent.change(input, { target: { value: "> Switch" } });
+
+    expect(screen.getAllByRole("option")[0]).toHaveAccessibleName("Switch Vault…");
   });
 
   it("cycles command results with Tab and arrow keys", async () => {

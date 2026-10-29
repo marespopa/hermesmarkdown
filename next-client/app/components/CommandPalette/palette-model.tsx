@@ -65,7 +65,7 @@ export type FileResult = { path: string; name: string; handle: FileSystemFileHan
 type TagMatch = { tag: string; score: number; indices: number[] };
 type TaggedFileMatch = { file: FileResult; matches: TagMatch[]; score: number };
 export type Row =
-  | { kind: "command"; id: string; label: string; detail: string; command: Command; titleIndices: number[]; detailIndices: number[]; score: number }
+  | { kind: "command"; id: string; label: string; detail: string; command: Command; titleIndices: number[]; detailIndices: number[]; score: number; matchSource: "label" | "metadata" }
   | { kind: "file"; id: string; label: string; detail: string; file: FileResult; titleIndices: number[]; detailIndices: number[]; score: number }
   | { kind: "task"; id: string; label: string; detail: string; isMasked: boolean; titleIndices: number[]; detailIndices: number[]; score: number }
   | { kind: "heading"; id: string; label: string; detail: string; from: number; titleIndices: number[]; detailIndices: number[]; score: number }
@@ -76,8 +76,8 @@ export type Row =
 export type ContentRow = Extract<Row, { kind: "content" }>;
 export type CommandRow = Extract<Row, { kind: "command" }>;
 
-export function commandRow(command: Command, titleIndices: number[] = [], score = 0): CommandRow {
-  return { kind: "command", id: command.id, label: command.label, detail: command.disabledReason ?? command.category ?? "Command", command, titleIndices, detailIndices: [], score };
+export function commandRow(command: Command, titleIndices: number[] = [], score = 0, matchSource: CommandRow["matchSource"] = "label"): CommandRow {
+  return { kind: "command", id: command.id, label: command.label, detail: command.disabledReason ?? command.category ?? "Command", command, titleIndices, detailIndices: [], score, matchSource };
 }
 
 // A menu command's rows (`subcommands`): its list as given for an empty
@@ -91,9 +91,13 @@ export function buildMenuRows(query: string, menu: Command): CommandRow[] {
   const candidates = [...children, ...children.flatMap((command) => (command.subcommands ? leaves(command.subcommands) : []))];
   return candidates.map((command) => {
     const match = matchCommand(query, command);
-    return match ? commandRow(command, match.indices, match.score) : null;
+    return match ? commandRow(command, match.indices, match.score, match.source) : null;
   }).filter((row): row is CommandRow => row !== null)
-    .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
+    .sort((a, b) =>
+      Number(b.matchSource === "label") - Number(a.matchSource === "label")
+      || b.score - a.score
+      || a.label.localeCompare(b.label),
+    );
 }
 
 // The "Create '…'" row for a file query: offered when a create handler is

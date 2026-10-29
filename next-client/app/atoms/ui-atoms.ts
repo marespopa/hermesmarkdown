@@ -259,10 +259,9 @@ export const atom_showHiddenFiles = atomWithStorage<boolean>(
   "hermes_show_hidden_files",
   false,
 );
-// The palette's `/` text search also reads code and other text files from
-// disk (services/text-grep-client.ts). Off by default: they're never in the
-// note-text index, so each search reads them again.
-export const atom_searchCodeFiles = atomWithStorage<boolean>("hermes_search_code_files", false);
+// The palette's `/` text search includes Markdown and other readable text
+// files by default. When enabled, it restricts results to Markdown notes.
+export const atom_searchMarkdownOnly = atomWithStorage<boolean>("hermes_search_markdown_only", false);
 // The `/` search reads the query as a regular expression (the palette's
 // Regex chip, Alt+R). Remembered, like a find bar's regex toggle.
 export const atom_searchRegex = atomWithStorage<boolean>("hermes_search_regex", false);

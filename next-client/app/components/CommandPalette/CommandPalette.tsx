@@ -119,7 +119,7 @@ export default function CommandPalette() {
         return match ? {
           kind: "command" as const, id: command.id, label: command.label,
           detail: command.disabledReason ?? command.category ?? "Command", command,
-          titleIndices: match.indices, detailIndices: [] as number[], score: match.score,
+          titleIndices: match.indices, detailIndices: [] as number[], score: match.score, matchSource: match.source,
         } : null;
       }).filter((row): row is Extract<Row, { kind: "command" }> => row !== null)
         .sort((a, b) => {
@@ -138,7 +138,9 @@ export default function CommandPalette() {
             if (defaultOrderDifference) return defaultOrderDifference;
           }
 
-          return b.score - a.score || a.label.localeCompare(b.label);
+          return Number(b.matchSource === "label") - Number(a.matchSource === "label")
+            || b.score - a.score
+            || a.label.localeCompare(b.label);
         });
     }
     if (scope === "tag") return buildTagRows(query, filesByTag);

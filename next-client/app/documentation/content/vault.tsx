@@ -134,7 +134,7 @@ export const vaultGroup: Group = {
             rows={[
               { label: "Format Code", value: "SHIFT+ALT+F or the palette: the whole file, or a file's code block" },
               { label: "Formats", value: "JavaScript, TypeScript, JSON, CSS, SCSS, Less, HTML, Vue, YAML, GraphQL" },
-              { label: "Search inside", value: "Settings → Files → Search Code Files, then / in the palette" },
+              { label: "Search inside", value: "Use / in the palette; Settings → Files can limit this to Markdown files" },
             ]}
           />
           <p>
@@ -146,8 +146,8 @@ export const vaultGroup: Group = {
             used and the toast says so.
           </p>
           <Callout type="note">
-            Code files aren&apos;t kept in the text index. With Search Code Files on, the first{" "}
-            <code>/</code> search reads them from disk in the background and keeps them, so later
+            Code files aren&apos;t kept in the text index. The first <code>/</code> search reads
+            them from disk in the background and keeps them, so later
             searches are instant until a file changes. Their matches follow the files&apos; as they
             come in.
           </Callout>

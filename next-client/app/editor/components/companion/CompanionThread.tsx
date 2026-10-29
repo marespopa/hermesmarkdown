@@ -6,6 +6,10 @@ import CompanionMessage from "./CompanionMessage";
 import { DelayedSpinner } from "./ToolActivityChip";
 import { companionToolActivity } from "./tools/read-tools";
 import TurnSummary from "./TurnSummary";
+import { useStore, useAtomValue } from "jotai";
+import { atom_projectCheckUiState } from "@/app/atoms/companion-atoms";
+import ProjectCheckApproval from "./ProjectCheckApproval";
+import { answerProjectCheckApproval } from "./project-check-approval";
 
 // What the call in flight is doing, from the newest reply; null when none is.
 function runningToolLabel(messages: Message[], activities: Record<string, string>): string | null {
@@ -34,6 +38,8 @@ interface CompanionThreadProps {
 // the error that ended a turn.
 export default function CompanionThread({ messages, activities, status, compacting = false, errorText, onUndoTurn }: CompanionThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const store = useStore();
+  const projectCheck = useAtomValue(atom_projectCheckUiState);
   useEffect(() => {
     bottomRef.current?.scrollIntoView?.({ block: "end" });
   }, [messages, status, compacting, errorText]);
@@ -81,6 +87,7 @@ export default function CompanionThread({ messages, activities, status, compacti
           )}
         </div>
       )}
+      {projectCheck && <ProjectCheckApproval state={projectCheck} onApprove={() => answerProjectCheckApproval(store, true)} onDeny={() => answerProjectCheckApproval(store, false)} />}
       <div ref={bottomRef} />
     </div>
   );

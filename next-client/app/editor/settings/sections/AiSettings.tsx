@@ -27,6 +27,8 @@ import { fetchClaudeModels, fetchGeminiModels, fetchOllamaModels, isLocalBaseUrl
 import { AUTO_MODEL_ID, AUTO_MODEL_LABEL } from "@/app/editor/components/ai-chat/auto-model";
 import { isWebMcpSupported } from "@/app/services/webmcp-context";
 import { SegmentedControl, SelectControl, SettingGroup, SettingItem, SettingNote } from "../components/SettingControls";
+import ProjectCheckSettings from "./ProjectCheckSettings";
+import SkillSettings from "./SkillSettings";
 
 // Per-provider copy, defaults, and the model list shown before the real one loads.
 const PROVIDERS = {
@@ -167,6 +169,7 @@ export default function AiSettings() {
       </SettingGroup>
 
       {aiEnabled && (
+        <>
         <SettingGroup title="Setup">
           <SettingItem
             label="Provider"
@@ -299,7 +302,10 @@ export default function AiSettings() {
               : "by way of HermesMarkdown's server, which doesn't log or keep it."}
           </SettingNote>
         </SettingGroup>
+        <ProjectCheckSettings />
+        </>
       )}
+      <SkillSettings />
 
       <SettingGroup title="Browser agents">
         <SettingItem

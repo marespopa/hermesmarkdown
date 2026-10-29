@@ -32,11 +32,13 @@ Atom persistence uses Jotai `atomWithStorage` (`localStorage`) directly in `app/
 ## AI (client)
 
 - `note-tool-defs.ts` — `NOTE_TOOL_DEFS`: the read-only note tools' titles, descriptions and zod input schemas (`search_notes`, `read_note`, `list_open_tasks`), shared by the AI companion and WebMCP.
+- `project-checks.ts` / `project-check-catalog.json` — fixed `typecheck` and `unit-tests` IDs, argv, limits and disk/browser/mobile availability; never accepts a model-authored command.
 - `companion-tool-defs.ts` — `COMPANION_TOOL_DEFS`: the note tools plus `list_folder`, `read_file`, `get_active_note`, `edit_file`, `edit_code_block`, `create_file`; sent to the model by `app/api/ai/companion/` and run in the browser.
 - `webmcp-context.ts` — WebMCP's browser side, typed for what's used: `getModelContext()` (`document.modelContext`, or an early preview's `navigator.modelContext`; null without `registerTool`), `isWebMcpSupported()`. No schemas, so checking support stays light.
 - `webmcp.ts` — `registerNoteTools(context, run, signal, { writes })`: registers each note tool (JSON Schema input from `z.toJSONSchema`, `readOnlyHint` and `untrustedContentHint` set), and with `writes` also the companion's file reads and `COMPANION_WRITE_TOOL_NAMES` (`readOnlyHint: false`; never `trash`), with the registration `signal`, and also unregisters by name on abort for early previews; a refused tool is logged and the rest still offered. Loaded on demand by `hooks/use-webmcp-tools.ts`.
 - `ollama-direct.ts` — Local Ollama (localhost or a private address) called from the browser, since the server refuses those hosts: one-shot text (`localOllamaText`) and the companion's stream (`withLocalOllama` wraps the companion's `fetch`, same tools and folded system prompt as the route). The instance must allow this origin via `OLLAMA_ORIGINS`.
 - `ai.ts` — Calls `/api/ai` for Claude, Gemini and Ollama (cloud or hosted): one-shot text (`callAI`), model listing, and `testAIConnection`; `getAIConfig` gives the AI companion's stream (`/api/ai/companion`) the provider, key and model. The user's API key is sent with each request and never stored server-side. Gemini model listing calls Google directly from the browser.
+- `project-check-helper-client.ts` — in-memory pairing with the user-started loopback helper, ID-only run requests, timeout/abort, bounded/redacted streamed output and disconnect state.
 - `ai-status.ts` — Reports AI action progress / success / error to the UI from non-React code.
 
 ## Legacy GitHub vaults

@@ -3,13 +3,14 @@ import { startsWithCommand } from "../ai-chat/chat-skills";
 import { toolPartView, typedText, type CompanionMessage } from "./companion-messages";
 
 // The companion's own commands, typed at the start of a message: /new (or
-// /clear) starts a new chat; /compact (or /summarize, /summarise) replaces the thread
-// with a summary of it, so a long conversation goes on lighter. Words after
-// /compact say what the summary should keep. They win over skills of the
-// same name (use-chat-skills.ts never lists them).
+// /clear) starts a new chat; /compact (or /summarize, /summarise) replaces the
+// thread with a summary; /plan makes a plan without changing files. Words after
+// /compact say what the summary should keep. They win over skills of the same
+// name (use-chat-skills.ts never lists them).
 export const NEW_CHAT_COMMANDS = ["/new", "/clear"] as const;
 export const COMPACT_COMMANDS = ["/compact", "/summarize", "/summarise"] as const;
-export const COMPANION_COMMANDS: readonly string[] = [...NEW_CHAT_COMMANDS, ...COMPACT_COMMANDS];
+export const PLAN_COMMAND = "/plan";
+export const COMPANION_COMMANDS: readonly string[] = [...NEW_CHAT_COMMANDS, ...COMPACT_COMMANDS, PLAN_COMMAND];
 
 // What the composer's / menu lists for the companion's own commands.
 export const COMPANION_COMMAND_LIST: readonly { command: string; description: string }[] = [
@@ -18,15 +19,17 @@ export const COMPANION_COMMAND_LIST: readonly { command: string; description: st
   { command: "/compact", description: "Summarize the chat and go on from it" },
   { command: "/summarize", description: "Summarize the chat and go on from it" },
   { command: "/summarise", description: "Summarize the chat and go on from it" },
+  { command: "/plan", description: "Write an implementation plan without changing files" },
 ];
 
-export type CompanionCommand = { kind: "new" } | { kind: "compact"; focus: string };
+export type CompanionCommand = { kind: "new" } | { kind: "compact"; focus: string } | { kind: "plan"; request: string };
 
 export function parseCompanionCommand(text: string): CompanionCommand | null {
   if (NEW_CHAT_COMMANDS.some((command) => startsWithCommand(text, command))) return { kind: "new" };
   const compact = COMPACT_COMMANDS.find((command) => startsWithCommand(text, command));
-  if (!compact) return null;
-  return { kind: "compact", focus: text.trimStart().slice(compact.length).trim() };
+  if (compact) return { kind: "compact", focus: text.trimStart().slice(compact.length).trim() };
+  if (startsWithCommand(text, PLAN_COMMAND)) return { kind: "plan", request: text.trimStart().slice(PLAN_COMMAND.length).trim() };
+  return null;
 }
 
 // The longest transcript sent for a summary; older text is cut first.

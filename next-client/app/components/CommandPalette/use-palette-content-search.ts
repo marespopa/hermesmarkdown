@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
-import { atom_searchCodeFiles, atom_searchRegex } from "@/app/atoms/ui-atoms";
+import { atom_searchMarkdownOnly, atom_searchRegex } from "@/app/atoms/ui-atoms";
 import { DEFAULT_SEARCH_LIMIT, isContentSearchAvailable, searchNoteContent } from "@/app/services/content-search-client";
 import { grepTextFiles } from "@/app/services/text-grep-client";
 import type { ContentHit } from "@/app/workers/content-search-protocol";
@@ -45,17 +45,17 @@ const NO_GREP: GrepState = { query: "", hits: [], scanned: 0, total: 0, done: tr
 // The palette's `/` scope: debounced text search in the metadata worker
 // over the palette's file list minus private notes (which never match, in
 // any Privacy Mode). Keeps the previous rows while a newer search runs and
-// ignores superseded responses. Posts nothing while `active` is false. With
-// Search Code Files on, the code and other text files are grepped too
-// (text-grep-client.ts); their rows follow the notes' as they arrive. With
-// Regex on, every file goes through the grep instead, as a pattern.
+// ignores superseded responses. Posts nothing while `active` is false. Notes
+// use the metadata index, while code and other text files use the disk-backed
+// grep; all searchable text files participate by default. With Regex on,
+// every file goes through the grep instead, as a pattern.
 export function usePaletteContentSearch(active: boolean, query: string, files: FileResult[]) {
   const [result, setResult] = useState<SearchState>(EMPTY);
   const available = isContentSearchAvailable();
   const trimmed = query.trim();
   const isShort = trimmed.length < MIN_QUERY_CHARS;
 
-  const searchCodeFiles = useAtomValue(atom_searchCodeFiles);
+  const searchMarkdownOnly = useAtomValue(atom_searchMarkdownOnly);
   const regex = useAtomValue(atom_searchRegex);
   const [grep, setGrep] = useState<GrepState>(NO_GREP);
 
@@ -64,9 +64,9 @@ export function usePaletteContentSearch(active: boolean, query: string, files: F
   const paths = useMemo(() => searchable.filter((file) => !file.isText).map((file) => file.path), [searchable]);
   const grepFiles = useMemo<GrepFile[]>(
     () => searchable
-      .filter((file) => (file.isText ? searchCodeFiles : regex))
+      .filter((file) => searchMarkdownOnly ? Boolean(regex && !file.isText) : (file.isText || regex))
       .map(({ path, name, handle, isText }) => ({ path, name, handle, ...(isText ? {} : { isNote: true }) })),
-    [regex, searchCodeFiles, searchable],
+    [regex, searchMarkdownOnly, searchable],
   );
   const greps = active && available && !isShort && grepFiles.length > 0;
   const searchesIndex = active && available && !isShort && !regex;

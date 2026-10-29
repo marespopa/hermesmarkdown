@@ -244,7 +244,7 @@ tags: []
             { label: ">", value: "Commands by name, description, category, or keyword" },
             { label: "!", value: "Tasks; choose one to open its file at the source line" },
             { label: "@", value: "Headings in the active file; choose one to place it at the top" },
-            { label: "/", value: "File text across the vault (code files too, with Search Code Files on); choose a line to open it at that match" },
+            { label: "/", value: "File text across the vault, including readable code and text files; choose a line to open it at that match" },
             { label: "~", value: "Your templates; Enter inserts one into the file, CTRL/CMD+Enter starts a new file from it" },
           ]}
         />

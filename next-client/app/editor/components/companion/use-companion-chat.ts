@@ -18,7 +18,9 @@ import { AUTO_MODEL_ID, pickTier, resolveAutoModel } from "../ai-chat/auto-model
 import { FALLBACK_CLAUDE_MODELS, FALLBACK_GEMINI_MODELS } from "../ai-chat/chat-helpers";
 import { useChatSkills } from "../ai-chat/use-chat-skills";
 import { parseCompanionCommand, summaryMessage, summaryPrompt, SUMMARY_SYSTEM } from "./companion-commands";
-import { companionChat, companionHandlers, saveThread } from "./companion-chat-store";
+import { cancelProjectCheck, companionChat, companionHandlers, saveThread } from "./companion-chat-store";
+import { cancelPendingProjectCheckApproval } from "./project-check-approval";
+import { atom_projectCheckUiState } from "@/app/atoms/companion-atoms";
 import { buildCompanionSystemPrompt } from "./companion-prompt";
 import { userTurn, type CompanionContext } from "./companion-messages";
 import { declineAllTrash } from "./trash-confirm";
@@ -42,14 +44,18 @@ export function useCompanionChat() {
   const [activities, setActivities] = useAtom(atom_toolActivities);
 
   useEffect(() => {
-    companionHandlers.runToolCall = async ({ toolName, toolCallId, input }, turnId) => {
-      const { output, activity } = await runTool({ toolName, input, toolCallId }, turnId);
+    companionHandlers.runToolCall = async ({ toolName, toolCallId, input }, turnId, policy) => {
+      const { output, activity } = await runTool({ toolName, input, toolCallId }, turnId, policy);
       setActivities((prev) => ({ ...prev, [toolCallId]: activity }));
       return output;
     };
   }, [runTool, setActivities]);
 
   const { messages, sendMessage, status, stop, setMessages, error, clearError } = useChat({ chat: companionChat() });
+
+  useEffect(() => {
+    if (status === "error") { cancelPendingProjectCheckApproval(store); cancelProjectCheck(); }
+  }, [status, store]);
 
   // A summary is being written; the thread stays until it's back.
   const [compacting, setCompacting] = useState(false);
@@ -74,6 +80,8 @@ export function useCompanionChat() {
   // summary being written (the thread stays as it was).
   const stopTurn = useCallback(() => {
     declineAllTrash(store);
+    cancelPendingProjectCheckApproval(store);
+    cancelProjectCheck();
     if (compactAbort.current) {
       compactAbort.current.abort();
       compactAbort.current = null;
@@ -85,10 +93,11 @@ export function useCompanionChat() {
   const newChat = useCallback(() => {
     stopTurn();
     setMessages([]);
+    store.set(atom_projectCheckUiState, null);
     setActivities({});
     clearError();
     saveThread([]);
-  }, [stopTurn, setMessages, setActivities, clearError]);
+  }, [stopTurn, setMessages, setActivities, clearError, store]);
 
   // Replaces the thread with a summary of it. The thread stays as it is
   // while the summary is written (the thread shows that it is), if it fails
@@ -160,18 +169,22 @@ export function useCompanionChat() {
     const command = parseCompanionCommand(text);
     if (command?.kind === "new") return newChat();
     if (command?.kind === "compact") return compact(command.focus);
+    const planning = command?.kind === "plan";
+    if (planning) { cancelPendingProjectCheckApproval(store); cancelProjectCheck(); store.set(atom_projectCheckUiState, null); }
     // A message starting with a skill's /command carries the skill; other
     // skills the model loads itself (load_skill).
     const skill = await commandSkill(text);
     companionHandlers.system = buildCompanionSystemPrompt({
       hasVault: !!store.get(atom_vaultHandle),
       webSearch: isWebSearchEnabled() && store.get(atom_aiProvider) === "claude",
+      planning,
       skills: skillList(),
     });
     clearError();
     const auto = autoChoice(text, context);
     companionHandlers.modelOverride = auto?.model;
-    await sendMessage(userTurn(text, context, skill ?? undefined, auto ?? undefined));
+    companionHandlers.planning = planning;
+    await sendMessage(userTurn(planning ? command.request || "Write an implementation plan for the current context." : text, context, skill ?? undefined, auto ?? undefined));
   }, [skillList, commandSkill, store, sendMessage, clearError, newChat, compact, autoChoice]);
 
   const errorText = error ? beautifyAIError(error.message || "The AI request failed.") : null;
