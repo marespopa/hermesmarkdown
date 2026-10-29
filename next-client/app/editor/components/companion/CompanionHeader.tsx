@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { HiOutlinePencilAlt, HiOutlineX } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import Typeahead from "@/app/components/Typeahead";
@@ -22,10 +22,12 @@ interface CompanionHeaderProps {
 export default function CompanionHeader({ open, onNewChat, onClose, canStartOver }: CompanionHeaderProps) {
   const { modelOptions, selectedAiModel, setSelectedAiModel } = useChatModels(open);
   const [modelQuery, setModelQuery] = useState("");
-  const modelName = selectedAiModel === AUTO_MODEL_ID
-    ? AUTO_MODEL_LABEL
-    : modelOptions.find((model) => model.id === selectedAiModel)?.name ?? selectedAiModel;
-  const modelNames = [AUTO_MODEL_LABEL, ...modelOptions.map((model) => model.name)];
+  const { modelName, modelNames } = useMemo(() => ({
+    modelName: selectedAiModel === AUTO_MODEL_ID
+      ? AUTO_MODEL_LABEL
+      : modelOptions.find((model) => model.id === selectedAiModel)?.name ?? selectedAiModel,
+    modelNames: [AUTO_MODEL_LABEL, ...modelOptions.map((model) => model.name)],
+  }), [modelOptions, selectedAiModel]);
 
   return (
     <header className={`flex shrink-0 items-center gap-1 border-b border-edge-subtle pl-4 pr-3 ${PANE_HEADER_HEIGHT}`}>
@@ -36,6 +38,7 @@ export default function CompanionHeader({ open, onNewChat, onClose, canStartOver
         value={modelQuery}
         onChange={setModelQuery}
         options={modelNames}
+        maxResults={50}
         placeholder={modelName}
         className="ml-auto !my-0 w-44"
         inputClassName="!h-7 !py-1 !text-ui-footnote"
