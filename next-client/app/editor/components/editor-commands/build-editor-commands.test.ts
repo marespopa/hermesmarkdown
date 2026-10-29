@@ -157,6 +157,7 @@ describe("buildEditorCommands", () => {
       "export-vault-zip",
       "import-into-vault",
       "ai-menu",
+      "ai-rewrite-selection",
       "ai-new-chat",
       "ai-compact-chat",
       "focus-editor",
@@ -240,7 +241,7 @@ describe("buildEditorCommands", () => {
     const ask = commands.find((command) => command.id === "ai-menu");
     expect(ask?.label).toBe("Ask AI");
     expect(ask?.subcommands).toBeUndefined();
-    expect(commands.filter((command) => command.category === "AI").map((command) => command.id)).toEqual(["ai-menu", "ai-new-chat", "ai-compact-chat"]);
+    expect(commands.filter((command) => command.category === "AI").map((command) => command.id)).toEqual(["ai-menu", "ai-rewrite-selection", "ai-new-chat", "ai-compact-chat"]);
     ask?.action();
     expect(context.setAiBuilderRequest).toHaveBeenCalledOnce();
     commands.find((command) => command.id === "ai-new-chat")?.action();
