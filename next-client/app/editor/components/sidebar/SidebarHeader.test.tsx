@@ -61,10 +61,10 @@ describe("SidebarHeader", () => {
     expect(navigation.push).toHaveBeenCalledWith("/editor/settings");
   });
 
-  it("replaces the New file control with Documentation", () => {
+  it("has no New file control or Documentation link", () => {
     recents.openVaultEntry = null;
     setup();
     expect(screen.queryByRole("button", { name: "New file" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Documentation" })).toHaveAttribute("href", "/documentation");
+    expect(screen.queryByRole("link", { name: "Documentation" })).not.toBeInTheDocument();
   });
 });
