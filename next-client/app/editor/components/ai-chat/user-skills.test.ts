@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { MemoryDirectoryHandle } from "@/app/services/memory-file-system.test-utils";
-import { isUserSkillActive, readUserSkill, skillCommandFor, userSkillsFrom } from "./user-skills";
+import { isUserSkill, isUserSkillActive, readUserSkill, skillCommandFor, userSkillsFrom } from "./user-skills";
 
 const meta = (path: string, extra: Partial<FileMetadata> = {}) =>
   ({ path, name: path.split("/").pop()!, tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [], handle: {} as never, ...extra }) as FileMetadata;
@@ -19,10 +19,22 @@ describe("user skills", () => {
       "template.md": meta("template.md", { frontmatter: { type: "skill" } }),
       "roadmap.md": meta("roadmap.md", { frontmatter: { type: "project" } }),
     }, ["/template", "/tasks"]);
+    expect(isUserSkill(meta("is-skill.md", { frontmatter: { type: "skill" } }))).toBe(true);
     expect(skills).toEqual([
       { path: "release-check.md", command: "/release-check" },
       { path: "skills/standup.md", command: "/standup", description: "Write today's standup" },
     ]);
+  });
+
+  it("keeps the first duplicate command and reports invalid bindings", () => {
+    const skills = userSkillsFrom({
+      "a/review.md": meta("a/review.md", { frontmatter: { type: "skill", tools: ["read_file", "read_file", "edit_file", 4], checks: ["unknown"] } }),
+      "b/review.md": meta("b/review.md", { frontmatter: { type: "skill" } }),
+    }, []);
+    expect(skills).toHaveLength(1);
+    expect(skills[0].path).toBe("a/review.md");
+    expect(skills[0].toolBindings).toEqual(["read_file"]);
+    expect(skills[0].validationWarnings).toEqual(expect.arrayContaining(["Duplicate tool binding: read_file.", "Unknown or disallowed tool: edit_file.", "Malformed tool binding.", "Unknown or disallowed check: unknown."]));
   });
 
   it("turns on only for a message starting with the command as a word", () => {

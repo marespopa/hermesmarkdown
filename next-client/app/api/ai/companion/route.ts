@@ -4,7 +4,7 @@ import { BaseUrlError, validateBaseUrl } from '../base-url';
 import { errorMessage, errorStatus, sanitizeMessage } from '../errors';
 import { COMPANION_TOOLS, foldSystem, webSearchTool, withPromptCache } from './companion-tools';
 import { withKeepAlive } from './keep-alive';
-import { COMPANION_MUTATING_TOOL_NAMES } from '@/app/services/companion-tool-defs';
+import { COMPANION_EXECUTION_TOOL_NAMES, COMPANION_MUTATING_TOOL_NAMES } from '@/app/services/companion-tool-defs';
 
 // The AI companion's streaming route. The client (useChat in
 // app/editor/components/companion/use-companion-chat.ts) sends the thread as
@@ -18,7 +18,7 @@ import { COMPANION_MUTATING_TOOL_NAMES } from '@/app/services/companion-tool-def
 // prompt and thread for its prompt cache (withPromptCache).
 // Long replies (thinking, web search) outlast a host's default function limit.
 export const maxDuration = 300;
-const MUTATING_TOOL_NAMES = new Set<string>(COMPANION_MUTATING_TOOL_NAMES);
+const MUTATING_TOOL_NAMES = new Set<string>([...COMPANION_MUTATING_TOOL_NAMES, ...COMPANION_EXECUTION_TOOL_NAMES]);
 
 export async function POST(req: Request) {
   try {

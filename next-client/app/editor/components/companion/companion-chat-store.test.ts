@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { companionHandlers, createCompanionChat, withReadableErrors } from "./companion-chat-store";
+import { cancelProjectCheck, companionHandlers, createCompanionChat, saveThread, trackProjectCheckAbort, withReadableErrors } from "./companion-chat-store";
 
 vi.mock("@/app/services/ai", () => ({
   getAIConfig: (model?: string) => ({ provider: "claude", apiKey: "claude-key", modelKey: model || "sonnet-5" }),
@@ -104,6 +104,7 @@ describe("the companion's chat loop", () => {
     expect(runToolCall).toHaveBeenCalledWith(
       expect.objectContaining({ toolName: "edit_file", toolCallId: "call-1", input: { path: "Roadmap.md", edits: [{ find: "Q3", replace: "Q4" }] } }),
       userId,
+      undefined,
     );
     const second = JSON.parse(fetch.mock.calls[1][1].body as string) as SentBody;
     expect(second.provider).toBe("claude");
@@ -146,6 +147,24 @@ describe("the companion's chat loop", () => {
     expect(runToolCall).not.toHaveBeenCalled();
     const reply = chat.messages[chat.messages.length - 1];
     expect(reply.parts.some((part) => part.type === "source-url")).toBe(true);
+  });
+});
+
+describe("local project-check lifecycle", () => {
+  it("cancels the tracked helper request", () => {
+    const controller = new AbortController();
+    const untrack = trackProjectCheckAbort(controller);
+    cancelProjectCheck();
+    expect(controller.signal.aborted).toBe(true);
+    untrack();
+  });
+
+  it("replaces project-check output before saving the thread", () => {
+    const storage = { value: null as string | null, getItem: () => storage.value, setItem: (_key: string, value: string) => { storage.value = value; }, removeItem: () => { storage.value = null; } };
+    vi.stubGlobal("localStorage", storage);
+    saveThread([{ id: "assistant-1", role: "assistant", parts: [{ type: "tool-run_project_check", toolCallId: "check-1", state: "output-available", output: "sensitive local output" }] }] as never);
+    expect(JSON.parse(storage.value ?? "[]")[0].parts[0].output).toBe("[Local project check output is not saved.]");
+    vi.unstubAllGlobals();
   });
 });
 

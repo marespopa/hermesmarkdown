@@ -56,6 +56,6 @@ describe('AI companion route, end to end with a model', () => {
     await response.text();
     const tools = seen.tools?.map((tool) => tool.name) ?? [];
     expect(tools).toEqual(expect.arrayContaining(['read_file', 'search_files', 'update_plan']));
-    expect(tools).not.toEqual(expect.arrayContaining(['edit_file', 'write_file', 'create_file', 'rename', 'move', 'trash']));
+    expect(tools).not.toEqual(expect.arrayContaining(['edit_file', 'write_file', 'create_file', 'rename', 'move', 'trash', 'run_project_check']));
   });
 });

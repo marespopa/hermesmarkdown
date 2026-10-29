@@ -10,11 +10,15 @@ import { CHAT_SKILLS, skillCommand, startsWithCommand, type ChatSkill } from "./
 import { openTasksBlock } from "./skill-context";
 import { readUserSkill, userSkillsFrom } from "./user-skills";
 import { COMPANION_COMMANDS } from "../companion/companion-commands";
+import type { CompanionToolName } from "@/app/services/companion-tool-defs";
+import type { ProjectCheckId } from "@/app/services/project-checks";
 
 // A skill in the companion's system prompt list: its command and when to load it.
 export interface SkillListing {
   command: string;
   description?: string;
+  toolBindings?: CompanionToolName[];
+  projectChecks?: ProjectCheckId[];
 }
 
 // The AI companion's skills: the list its system prompt names (built-in
@@ -43,7 +47,7 @@ export function useChatSkills() {
 
   const skillList = useCallback((): SkillListing[] => [
     ...CHAT_SKILLS.map(({ command, description }) => ({ command, description })),
-    ...userSkills().map(({ command, description }) => ({ command, description })),
+    ...userSkills().map(({ command, description, toolBindings, projectChecks }) => ({ command, description, toolBindings, projectChecks })),
   ], [userSkills]);
 
   // A skill's text by name or command ("tasks", "/tasks"); null when there's
@@ -62,11 +66,11 @@ export function useChatSkills() {
   }, [store, skillContext, userSkills]);
 
   // The skill a message's /command names, with its text; null otherwise.
-  const commandSkill = useCallback(async (text: string): Promise<{ command: string; text: string } | null> => {
+  const commandSkill = useCallback(async (text: string): Promise<{ command: string; text: string; toolBindings?: CompanionToolName[]; projectChecks?: ProjectCheckId[] } | null> => {
     const listing = skillList().find((skill) => startsWithCommand(text, skill.command));
     if (!listing) return null;
     const skillText = await loadSkill(listing.command);
-    return skillText ? { command: listing.command, text: skillText } : null;
+    return skillText ? { command: listing.command, text: skillText, ...(listing.toolBindings ? { toolBindings: listing.toolBindings } : {}), ...(listing.projectChecks ? { projectChecks: listing.projectChecks } : {}) } : null;
   }, [skillList, loadSkill]);
 
   return { skillList, loadSkill, commandSkill };

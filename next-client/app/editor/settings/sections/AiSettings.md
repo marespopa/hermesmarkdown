@@ -25,3 +25,6 @@ Description: The Settings → AI Features section. One group holds the **AI feat
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | (none) | | | Reads and writes its settings atoms directly |
+
+## Skills and local project checks
+The settings section also includes `SkillSettings` for creating and editing declarative vault skill notes, and `ProjectCheckSettings` for pairing a user-started loopback helper. The helper is local-only, requires approval per run and does not provide an OS sandbox.

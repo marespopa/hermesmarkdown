@@ -160,6 +160,7 @@ export function companionToolActivity(name: string, input: Record<string, unknow
   if (name === "search_files") return `Searched files for “${String(input.query ?? "")}”${suffix}`;
   if (name === "find_files") return `Found files named ${String(input.pattern ?? "")}${suffix}`;
   if (name === "check_file") return `Checked ${String(input.path ?? "a file")}${suffix}`;
+  if (name === "run_project_check") return `Ran local project check ${String(input.checkId ?? "")}${suffix}`;
   if (name === "git_status") return `Checked what changed since the last commit${suffix}`;
   if (name === "git_diff") return `Read the changes${input.path ? ` in ${String(input.path)}` : ""}${suffix}`;
   if (name === "write_file") return `Wrote ${String(input.path ?? "a file")}${suffix}`;

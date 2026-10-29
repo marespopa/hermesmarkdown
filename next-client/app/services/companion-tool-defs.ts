@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { NOTE_TOOL_DEFS } from './note-tool-defs';
+import { NOTE_TOOL_DEFS } from "./note-tool-defs";
+import { PROJECT_CHECK_IDS } from "./project-checks";
 
 // The AI companion's tools: the note tools (search_notes, read_note,
 // list_open_tasks), the vault and editor read tools (list_folder, read_file,
@@ -51,10 +52,17 @@ export const COMPANION_TOOL_DEFS = {
   check_file: {
     title: 'Check file',
     description:
-      "Check one file for syntax problems, after you write it or when asked: JSON and YAML are parsed, code files go through a language parser (JavaScript, TypeScript, CSS, HTML, Python, Rust, Go, Java, PHP, SQL and more), and a note's frontmatter, unclosed code fences, [[links]] that match no file and fenced code are checked. Syntax only: it can't check types, imports or behaviour, and you can't run tests, so say that the user should.",
+      "Check one file for syntax problems, after you write it or when asked: JSON and YAML are parsed, code files go through a language parser (JavaScript, TypeScript, CSS, HTML, Python, Rust, Go, Java, PHP, SQL and more), and note frontmatter, unclosed code fences, [[links]] that match no file and fenced code are checked. Syntax only: it cannot check types, imports or behaviour. Approved local project checks are separate and require a paired helper.",
     inputSchema: z.object({
       path: z.string().min(1).describe('Vault-relative path of the file to check'),
     }),
+  },
+  run_project_check: {
+    title: "Run project check",
+    description: "Request one approved local project check from the fixed catalog. This never accepts a command or arguments; each run requires the user’s approval. Project checks require a paired local helper and are unavailable for browser vaults and mobile.",
+    inputSchema: z.object({
+      checkId: z.enum(PROJECT_CHECK_IDS).describe("A fixed check ID, such as typecheck or unit-tests"),
+    }).strict(),
   },
   git_status: {
     title: 'Git status',
@@ -184,6 +192,13 @@ export const COMPANION_TOOL_DEFS = {
 
 export type CompanionToolName = keyof typeof COMPANION_TOOL_DEFS;
 export const COMPANION_TOOL_NAMES = Object.keys(COMPANION_TOOL_DEFS) as CompanionToolName[];
+
+// User skills may bind only to these fixed, non-mutating companion tools.
+export const COMPANION_SKILL_TOOL_BINDINGS: readonly CompanionToolName[] = [
+  "search_notes", "read_note", "list_open_tasks", "list_folder", "read_file", "search_files",
+  "find_files", "check_file", "git_status", "git_diff", "run_project_check",
+];
+export const COMPANION_EXECUTION_TOOL_NAMES: CompanionToolName[] = ["run_project_check"];
 
 // The tools that change the vault (everything but the reads), for WebMCP's
 // write switch (hooks/use-webmcp-tools.ts). trash isn't offered there: it
