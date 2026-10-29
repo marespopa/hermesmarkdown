@@ -7,7 +7,7 @@ import CommandPalette from "./CommandPalette";
 import { CommandPaletteProvider } from "./CommandPaletteContext";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
-import { atom_pendingScrollTarget, atom_searchCodeFiles, atom_searchRegex, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
+import { atom_pendingScrollTarget, atom_searchMarkdownOnly, atom_searchRegex, atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
 
 const openFile = vi.fn();
@@ -187,22 +187,15 @@ describe("CommandPalette / note text scope", () => {
       await waitFor(() => expect(openFile).toHaveBeenCalledWith(apiHandle, "src/api.ts"));
     });
 
-    it("leaves them to Search Code Files, off by default", async () => {
+    it("searches them by default alongside notes", async () => {
       renderPalette(codeFiles);
       await type("/needle");
       await waitFor(() => expect(search.searchNoteContent).toHaveBeenCalledWith("needle", ["projects/Plan.md"]));
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      expect(search.grepTextFiles).not.toHaveBeenCalled();
-    });
-
-    it("greps them when it's on, listing their rows after the notes' and showing progress", async () => {
       let report: (progress: unknown) => void = () => {};
       search.grepTextFiles.mockImplementation((_query, _files, _limit, onProgress) => {
         report = onProgress;
         return () => {};
       });
-      renderPalette([...codeFiles, [atom_searchCodeFiles, true]]);
-      await type("/needle");
 
       await waitFor(() => expect(search.grepTextFiles).toHaveBeenCalledWith("needle", [{ path: "src/api.ts", name: "api.ts", handle: apiHandle }], 50, expect.any(Function), "text"));
       expect(await screen.findByText("Searching files… 0 of 1")).toBeInTheDocument();
@@ -211,6 +204,15 @@ describe("CommandPalette / note text scope", () => {
       const options = await screen.findAllByRole("option");
       expect(options.map((option) => option.textContent)).toEqual([expect.stringContaining("Plan.md:3"), expect.stringContaining("api.ts:2")]);
       expect(screen.queryByText(/Searching files/)).not.toBeInTheDocument();
+    });
+
+    it("can restrict content search to Markdown notes", async () => {
+      renderPalette([...codeFiles, [atom_searchMarkdownOnly, true]]);
+      await type("/needle");
+
+      await waitFor(() => expect(search.searchNoteContent).toHaveBeenCalledWith("needle", ["projects/Plan.md"]));
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      expect(search.grepTextFiles).not.toHaveBeenCalled();
     });
   });
 

@@ -1,9 +1,9 @@
 // Messages between the main thread and the text-file grep worker
 // (text-grep.worker.ts). Text files (code, data, plain text) are never kept
-// in the note-text index; when Search Code Files is on, the palette's `/`
-// scope searches them in this worker, which keeps their text between
-// searches (text-grep.ts). With Regex on, every searched file, notes too,
-// goes through this worker, so a runaway pattern can be stopped.
+// in the note-text index; the palette's `/` scope searches them in this
+// worker, which keeps their text between searches. With Regex on, every
+// searched file, notes too, goes through this worker, so a runaway pattern
+// can be stopped.
 // Replace in Files uses the same script (its own instance, see
 // services/replace-client.ts) with `replace:scan`: every match of a find
 // text in the raw file text, for a preview before replacing.

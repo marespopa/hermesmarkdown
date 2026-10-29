@@ -3,7 +3,7 @@
 import React from "react";
 import { useAtom } from "jotai";
 import { atom_autosaveMode, atom_showHiddenFiles } from "@/app/atoms/atoms";
-import { atom_newNoteFolder, atom_searchCodeFiles } from "@/app/atoms/ui-atoms";
+import { atom_newNoteFolder, atom_searchMarkdownOnly } from "@/app/atoms/ui-atoms";
 import { BareInput, FIELD_COMPACT_CLASS } from "@/app/components/Input";
 import Toggle from "@/app/components/Toggle";
 import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
@@ -17,7 +17,7 @@ export default function FilesSettings() {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [newNoteFolder, setNewNoteFolder] = useAtom(atom_newNoteFolder);
-  const [searchCodeFiles, setSearchCodeFiles] = useAtom(atom_searchCodeFiles);
+  const [searchMarkdownOnly, setSearchMarkdownOnly] = useAtom(atom_searchMarkdownOnly);
   const { scanVault, indexVaultTags, vaultHandle } = useFileSystem();
 
   const handleShowHiddenFilesChange = (next: boolean) => {
@@ -52,9 +52,9 @@ export default function FilesSettings() {
           control={<Toggle variant="soft" active={showHiddenFiles} onChange={handleShowHiddenFilesChange} />}
         />
         <SettingItem
-          label="Search Code Files"
-          description="Include code and other text files in the command palette's / text search. They're read from disk for each search, so large repositories take a moment."
-          control={<Toggle variant="soft" active={searchCodeFiles} onChange={setSearchCodeFiles} />}
+          label="Search Markdown Files Only"
+          description="Limit the command palette's / text search to Markdown notes. Turn this off to include other readable text files."
+          control={<Toggle variant="soft" active={searchMarkdownOnly} onChange={setSearchMarkdownOnly} />}
         />
       </SettingGroup>
       <SettingGroup title="Autosave">

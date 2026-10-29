@@ -19,6 +19,17 @@ describe("command search ranking", () => {
 
     expect(match).not.toBeNull();
     expect(match?.indices).toEqual([]);
+    expect(match?.source).toBe("metadata");
+  });
+
+  it("marks label matches separately from metadata matches", () => {
+    const match = matchCommand("switch", {
+      id: "switch-vault",
+      label: "Switch Vault…",
+      keywords: ["vault", "workspace"],
+    });
+
+    expect(match?.source).toBe("label");
   });
 
   it("returns null when the query is not a subsequence", () => {
