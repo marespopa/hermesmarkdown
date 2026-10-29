@@ -4,7 +4,6 @@ import ProductHuntBadge from "./components/ProductHuntBadge";
 import ToolsCafeBadge from "./components/ToolsCafeBadge";
 import ClientOnly from "../ClientOnly";
 import packageJson from "@/package.json";
-import { TOOLS, toolPath } from "@/app/tools/content/tools";
 import TextLink from "@/app/components/TextLink";
 
 export default function Footer() {
@@ -43,10 +42,6 @@ export default function Footer() {
                     <li><TextLink href="/documentation" variant="quiet">Documentation</TextLink></li>
                     <li><TextLink href="/markdown-editor" variant="quiet">What Is a Markdown Editor?</TextLink></li>
                     <li><TextLink href="/what-is-hermes-md" variant="quiet">HermesMarkdown vs Hermes Agent</TextLink></li>
-                    <li><TextLink href="/tools" variant="quiet">Free Tools</TextLink></li>
-                    {TOOLS.map((tool) => (
-                      <li key={tool.slug}><TextLink href={toolPath(tool)} variant="quiet">{tool.name}</TextLink></li>
-                    ))}
                     <li>
                       <TextLink
                         href="https://github.com/marespopa/hermesmarkdown/issues"

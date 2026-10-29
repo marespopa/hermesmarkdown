@@ -1,6 +1,6 @@
 # TextLink
 
-Description: The one link primitive: use it for every link instead of a raw `<a>`. Site paths (`/tools`) render through `next/link`, so they navigate on the client and prefetch. Same-page anchors (`#templates`) and `mailto:` links are plain anchors. Other sites (`https://…`) open in a new tab with `rel="noopener noreferrer"`, unless `target`/`rel` are passed. Every variant has the shared focus ring (as `Button`).
+Description: The one link primitive: use it for every link instead of a raw `<a>`. Site paths (`/documentation`) render through `next/link`, so they navigate on the client and prefetch. Same-page anchors (`#templates`) and `mailto:` links are plain anchors. Other sites (`https://…`) open in a new tab with `rel="noopener noreferrer"`, unless `target`/`rel` are passed. Every variant has the shared focus ring (as `Button`).
 
 ## Local State & Storage
 - State: None (stateless).

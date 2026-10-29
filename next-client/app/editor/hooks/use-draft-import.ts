@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import type React from "react";
 import { useSetAtom, useStore } from "jotai";
-import toast from "react-hot-toast";
 import { atom_activePaneId, atom_openFiles } from "@/app/atoms/atoms";
 import { atom_openDraft, EMPTY_DRAFT } from "@/app/atoms/file-atoms";
 import type { useFileSystem } from "@/app/hooks/use-file-system";
@@ -10,8 +9,6 @@ import { focusPaneEditorWhenReady } from "../utils/focus-pane-editor";
 export interface PendingDraft {
   text: string;
   name: string;
-  // Where it came from: a picked file, or a tool page (useToolHandoff).
-  origin?: "file" | "tool";
 }
 
 // Imported text always goes into the draft, never the active tab: with a
@@ -55,7 +52,7 @@ export function useDraftImport(importFile: ReturnType<typeof useFileSystem>["imp
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
-      offerDraft({ text, name: file.name.replace(/\.[^/.]+$/, ""), origin: "file" });
+      offerDraft({ text, name: file.name.replace(/\.[^/.]+$/, "") });
     };
     reader.readAsText(file);
     e.target.value = "";
@@ -67,7 +64,6 @@ export function useDraftImport(importFile: ReturnType<typeof useFileSystem>["imp
   };
 
   const cancelPendingDraft = () => {
-    if (pendingDraft?.origin === "tool") toast("Kept your current draft.");
     setPendingDraft(null);
   };
 

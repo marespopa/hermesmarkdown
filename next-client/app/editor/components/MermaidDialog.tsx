@@ -7,7 +7,7 @@ import MermaidViewer from "./MermaidViewer";
 
 // Full-size viewer for a diagram in a note, opened with
 // `hermes:open-mermaid-dialog`. The viewer itself (zoom, fit, pan,
-// download) is MermaidViewer, shared with the Mermaid tool page.
+// download) is MermaidViewer.
 export default function MermaidDialog() {
   const [open, setOpen] = useState(false);
   const [svg, setSvg] = useState<string | null>(null);
