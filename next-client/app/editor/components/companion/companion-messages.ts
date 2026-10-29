@@ -178,7 +178,7 @@ export function shouldContinue({ messages }: { messages: UIMessage[] }): boolean
 const INTENT = /^(let me|let's|i'll|i will|i'm going to|i am going to|now,? i|next,? i|now let me|first,? i)\b/i;
 export function stalledOnIntent(messages: UIMessage[]): boolean {
   const last = messages[messages.length - 1];
-  if (last?.role !== "assistant" || toolRounds(messages) < 1) return false;
+  if (last?.role !== "assistant" || !last.parts.some(isToolPart)) return false;
   const start = last.parts.map((part) => part.type).lastIndexOf("step-start");
   const step = last.parts.slice(start + 1);
   if (step.some(isToolPart)) return false;

@@ -67,7 +67,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     setRevealAllPrivate: vi.fn(),
     setRevealedPrivatePaths: vi.fn(),
     activeFileHandle: { name: "Note.md" },
-    activeEditorView: {},
+    activeEditorView: { state: { selection: { main: { from: 0, to: 0 } } } },
     activeLeaf,
     activeFilePath: "Note.md",
     handleCopy: vi.fn(),

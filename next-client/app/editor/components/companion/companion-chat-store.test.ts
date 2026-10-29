@@ -92,7 +92,6 @@ describe("the companion's chat loop", () => {
     expect(runToolCall).toHaveBeenCalledWith(
       expect.objectContaining({ toolName: "edit_file", toolCallId: "call-1", input: { path: "Roadmap.md", edits: [{ find: "Q3", replace: "Q4" }] } }),
       userId,
-      undefined,
     );
     const second = JSON.parse(fetch.mock.calls[1][1].body as string) as SentBody;
     expect(second.provider).toBe("claude");

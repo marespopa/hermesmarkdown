@@ -38,6 +38,8 @@ describe("useCompanionChat vault switch", () => {
 
   it("keeps the chat when the same vault is reopened", async () => {
     const store = setup(vault("A"));
+    // The thread's vault outlives each test; let the first mount settle on A.
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
     act(() => { companionChat().messages = [message]; });
     act(() => store.set(atom_vaultHandle, vault("A", true)));
     await new Promise((r) => setTimeout(r, 20));
