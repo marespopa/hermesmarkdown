@@ -10,6 +10,19 @@ export interface HeadInfo {
 }
 
 const HEX_ID = /^[0-9a-f]{40}$/i;
+const LOCAL_BRANCH_PREFIX = "ref: refs/heads/";
+
+/** Returns the local branch named by HEAD, excluding detached and unborn heads. */
+export function branchNameFromHead(head: string): string | null {
+  if (!head.startsWith(LOCAL_BRANCH_PREFIX)) return null;
+  const branch = head.slice(LOCAL_BRANCH_PREFIX.length).trim();
+  return branch && !/\s/.test(branch) ? branch : null;
+}
+
+export async function readBranchName(gitDir: FileSystemDirectoryHandle): Promise<string | null> {
+  const headFile = await getFileAt(gitDir, "HEAD");
+  return headFile ? branchNameFromHead(await headFile.text()) : null;
+}
 
 async function readPackedRef(gitDir: FileSystemDirectoryHandle, ref: string): Promise<{ id: string | null; stamp: string }> {
   const file = await getFileAt(gitDir, "packed-refs");

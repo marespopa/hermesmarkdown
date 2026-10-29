@@ -1,86 +1,59 @@
 "use client";
 
-import React, { useRef, useState } from "react";
-import { useSetAtom } from "jotai";
-import { usePathname, useRouter } from "next/navigation";
-import { HiOutlineBookOpen, HiOutlineCog, HiOutlineMail, HiOutlineQuestionMarkCircle } from "react-icons/hi";
-import { TbKeyboard } from "react-icons/tb";
-import { atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
+import React from "react";
+import { useAtomValue } from "jotai";
+import { TbCopy, TbGitBranch } from "react-icons/tb";
+import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import Button from "@/app/components/Button";
-import { sendFeedback } from "@/app/utils/send-feedback";
-import { formatShortcut } from "@/app/utils/platform";
-import TabContextMenu from "../TabContextMenu";
-import { SIDEBAR_ICON_CLASS, sidebarItemClass } from "./sidebar-classes";
+import { showCopyToast, showErrorToast } from "@/app/components/Toastr";
+import { useVaultGitBranch } from "../../hooks/use-vault-git-branch";
+import { SIDEBAR_ICON_CLASS } from "./sidebar-classes";
 
 const ICON = { size: 15, "aria-hidden": true, className: SIDEBAR_ICON_CLASS } as const;
 
-// The sidebar's foot, below the scrolling library and set apart by a
-// hairline: Settings (current while on a Settings page) and Help, whose menu
-// opens the Documentation in a new tab (the note stays put, as the palette's
-// Open Documentation does), the Keyboard Shortcuts overlay, or Send
-// Feedback… (the user's own mail app; send-feedback.ts).
+// The sidebar's foot: a VS Code-style status strip for the local Git branch
+// when the vault is a repository.
 export default function SidebarFooter() {
-  const router = useRouter();
-  const pathname = usePathname() ?? "";
-  const setShortcutsOpen = useSetAtom(atom_keyboardShortcutsOpen);
-  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
-  const helpRef = useRef<HTMLButtonElement>(null);
-  const onSettings = pathname.startsWith("/editor/settings");
+  const vaultHandle = useAtomValue(atom_vaultHandle);
+  const isDiskVault = useAtomValue(atom_vaultDescriptor)?.kind === "local";
+  const branch = useVaultGitBranch(isDiskVault ? vaultHandle : null);
+  const copyBranch = () => {
+    if (!branch || !navigator.clipboard) {
+      showErrorToast("Couldn't copy branch name.");
+      return;
+    }
+    navigator.clipboard.writeText(branch).then(
+      () => showCopyToast("Branch name copied"),
+      () => showErrorToast("Couldn't copy branch name."),
+    );
+  };
 
   return (
-    <div className="shrink-0 flex flex-col gap-px border-t border-edge-subtle px-2 py-1.5">
-      <Button
-        variant="unstyled"
-        onClick={() => router.push("/editor/settings")}
-        aria-current={onSettings ? "page" : undefined}
-        className={sidebarItemClass(onSettings)}
+    isDiskVault && branch !== null ? (
+      <div
+        role="status"
+        aria-label={branch ? `Git branch: ${branch}` : "Loading Git branch"}
+        title={branch ? `Git branch: ${branch}` : undefined}
+        className="flex h-11 shrink-0 items-center gap-2 border-t border-edge-subtle bg-fill px-3 text-ui-footnote text-fg-muted"
       >
-        <HiOutlineCog {...ICON} />
-        <span className="truncate">Settings</span>
-      </Button>
-      <Button
-        ref={helpRef}
-        variant="unstyled"
-        onClick={() => {
-          const anchor = helpRef.current?.getBoundingClientRect();
-          // Beside the row, out over the page: the menu lifts itself to fit
-          // above the window's bottom edge without covering the footer.
-          setMenu((open) => (open || !anchor ? null : { x: anchor.right + 4, y: anchor.top }));
-        }}
-        aria-haspopup="menu"
-        aria-expanded={!!menu}
-        className={`${sidebarItemClass(false)} ${menu ? "bg-fill" : ""}`}
-      >
-        <HiOutlineQuestionMarkCircle {...ICON} />
-        <span className="truncate">Help</span>
-      </Button>
-      {menu && (
-        <TabContextMenu
-          x={menu.x}
-          y={menu.y}
-          label="Help"
-          anchorRef={helpRef}
-          onClose={() => setMenu(null)}
-          items={[
-            {
-              label: "Documentation",
-              icon: <HiOutlineBookOpen size={14} aria-hidden="true" />,
-              onClick: () => { window.open("/documentation", "_blank", "noopener"); },
-            },
-            {
-              label: "Keyboard Shortcuts",
-              icon: <TbKeyboard size={14} aria-hidden="true" />,
-              shortcut: formatShortcut("?"),
-              onClick: () => setShortcutsOpen(true),
-            },
-            {
-              label: "Send Feedback…",
-              icon: <HiOutlineMail size={14} aria-hidden="true" />,
-              onClick: sendFeedback,
-            },
-          ]}
-        />
-      )}
-    </div>
+        <TbGitBranch {...ICON} />
+        {branch === undefined ? (
+          <span aria-hidden="true" className="loading-bar-appear h-3 w-24 rounded-full bg-surface" />
+        ) : (
+          <>
+            <span className="truncate">{branch}</span>
+            <Button
+              variant="unstyled"
+              onClick={copyBranch}
+              aria-label="Copy branch name"
+              title="Copy branch name"
+              className="ml-auto flex h-11 w-11 shrink-0 items-center justify-center rounded text-fg-faint hover:bg-surface hover:text-fg"
+            >
+              <TbCopy size={13} aria-hidden="true" />
+            </Button>
+          </>
+        )}
+      </div>
+    ) : null
   );
 }

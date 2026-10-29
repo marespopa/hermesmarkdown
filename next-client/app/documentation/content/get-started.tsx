@@ -272,8 +272,7 @@ export const getStartedGroup: Group = {
             <code>CTRL/CMD+1–9</code>) and <strong>Files</strong>, the vault&apos;s tree, with a{" "}
             <strong>Search</strong> field above it: type part of a path, or a regular expression
             (<code>projects/.*plan</code>), and the tree shows only the files that match, their folders open;{" "}
-            <code>Esc</code> clears it. At its foot, <strong>Settings</strong> and <strong>Help</strong>{" "}
-            (the documentation, the keyboard shortcuts, and Send Feedback…, which opens your own email app with a message to us) are always one click away. For an overview of a long note, turn on the{" "}
+            <code>Esc</code> clears it. Its header has <strong>Settings</strong>, and the Documentation icon sits beside the command search. For an overview of a long note, turn on the{" "}
             <strong>Outline</strong> (<code>CTRL/CMD+SHIFT+M</code>, or Settings → Editor → View): the file&apos;s
             headings (in a code file, its functions, classes and other symbols) in the editor&apos;s bottom-right corner, the section you&apos;re reading marked; click one to jump there. A line sets each section apart, and each has a chevron to fold or unfold it.
             It sits beside the page and pushes it over rather than covering it.

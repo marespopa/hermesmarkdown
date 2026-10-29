@@ -8,6 +8,11 @@ import SidebarHeader from "./SidebarHeader";
 const recents = vi.hoisted(() => ({ openVaultEntry: null as RecentVault | null, setRecentVaultIcon: vi.fn() }));
 vi.mock("../../hooks/use-recent-vaults", () => ({ useRecentVaults: () => recents }));
 vi.mock("../../hooks/use-vault-menu-items", () => ({ useVaultMenuItems: () => [] }));
+const navigation = vi.hoisted(() => ({ push: vi.fn(), pathname: "/editor" }));
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: navigation.push }),
+  usePathname: () => navigation.pathname,
+}));
 vi.mock("../PinIconPopover", () => ({
   default: ({ onPick, label }: { onPick: (icon: string | null) => Promise<boolean>; label: string }) => (
     <div role="dialog" aria-label={label}>
@@ -15,16 +20,19 @@ vi.mock("../PinIconPopover", () => ({
     </div>
   ),
 }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
-
 const ENTRY: RecentVault = { key: "local:notes", kind: "local", name: "notes", handle: { name: "notes" } as FileSystemDirectoryHandle, openedAt: 0 };
 
 function setup() {
-  render(<Provider store={createStore()}><SidebarHeader onNewNote={vi.fn()} onHide={vi.fn()} /></Provider>);
+  const store = createStore();
+  render(<Provider store={store}><SidebarHeader onHide={vi.fn()} /></Provider>);
+  return store;
 }
 
 describe("SidebarHeader", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    navigation.pathname = "/editor";
+  });
 
   it("sets the open vault's icon from the picker in one click", () => {
     recents.openVaultEntry = ENTRY;
@@ -44,5 +52,19 @@ describe("SidebarHeader", () => {
     recents.openVaultEntry = null;
     setup();
     expect(screen.queryByRole("button", { name: /vault icon/ })).not.toBeInTheDocument();
+  });
+
+  it("opens Settings from the header", () => {
+    recents.openVaultEntry = null;
+    setup();
+    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
+    expect(navigation.push).toHaveBeenCalledWith("/editor/settings");
+  });
+
+  it("replaces the New file control with Documentation", () => {
+    recents.openVaultEntry = null;
+    setup();
+    expect(screen.queryByRole("button", { name: "New file" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Documentation" })).toHaveAttribute("href", "/documentation");
   });
 });

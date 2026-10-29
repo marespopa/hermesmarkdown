@@ -7,10 +7,13 @@ import Portal from "../Portal";
 interface TypeaheadProps {
   name: string;
   label?: string;
+  ariaLabel?: string;
   value: string;
   onChange: (val: string) => void;
   options: string[];
   placeholder?: string;
+  className?: string;
+  inputClassName?: string;
   allowMultiple?: boolean;
   autoFocus?: boolean;
   onOptionSelect?: (option: string) => void;
@@ -20,10 +23,13 @@ interface TypeaheadProps {
 export default function Typeahead({
   name,
   label,
+  ariaLabel,
   value,
   onChange,
   options,
   placeholder,
+  className,
+  inputClassName,
   allowMultiple = false,
   autoFocus,
   onOptionSelect,
@@ -125,6 +131,7 @@ export default function Typeahead({
       <Input
         name={name}
         label={label}
+        aria-label={ariaLabel}
         value={value}
         handleChange={(e) => {
           onChange(e.target.value);
@@ -134,6 +141,8 @@ export default function Typeahead({
         onKeyDown={handleKeyDown}
         onFocus={() => setIsOpen(true)}
         placeholder={placeholder}
+        className={className}
+        inputClassName={inputClassName}
         autoComplete="off"
         autoFocus={autoFocus}
       />

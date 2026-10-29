@@ -107,6 +107,16 @@ export async function verifyPermission(handle: FileSystemHandle, readWrite = tru
   return false;
 }
 
+// Call only from a click or key handler. requestPermission must begin before
+// any await, because querying first can consume the browser's user activation.
+export async function requestPermissionFromUserGesture(handle: FileSystemHandle, readWrite = true): Promise<boolean> {
+  if (!hasPermissionApi(handle)) return true;
+  const request = (handle as any).requestPermission;
+  if (typeof request !== "function") return false;
+  const options: any = readWrite ? { mode: "readwrite" } : {};
+  return (await request.call(handle, options)) === "granted";
+}
+
 export async function queryPermission(handle: FileSystemHandle, readWrite = true): Promise<boolean> {
   if (!hasPermissionApi(handle)) return true;
   const options: any = readWrite ? { mode: "readwrite" } : {};

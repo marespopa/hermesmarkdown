@@ -108,23 +108,26 @@ describe("CompanionPanel", () => {
     ));
   });
 
-  it("picks the model from its menu, whose Escape leaves the panel open", () => {
+  it("filters and picks the model from its typeahead, whose Escape leaves the panel open", () => {
     const store = setup();
-    fireEvent.click(screen.getByRole("button", { name: /Claude Sonnet 5/ }));
-    fireEvent.keyDown(screen.getByRole("menuitemcheckbox", { name: /Claude Opus 4.8/ }), { key: "Escape" });
+    const field = screen.getByRole("textbox", { name: "Model" });
+    fireEvent.focus(field);
+    fireEvent.change(field, { target: { value: "opus" } });
+    fireEvent.keyDown(field, { key: "Escape" });
     expect(store.get(atom_companionOpen)).toBe(true);
 
-    fireEvent.click(screen.getByRole("button", { name: /Claude Sonnet 5/ }));
-    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: /Claude Opus 4.8/ }));
+    fireEvent.focus(field);
+    fireEvent.change(field, { target: { value: "opus" } });
+    fireEvent.click(screen.getByText("Claude Opus 4.8"));
     expect(setModel).toHaveBeenCalledWith("opus-4-8");
   });
 
-  it("lists Auto first in the model menu and picks it", () => {
+  it("lists Auto first in the model typeahead and picks it", () => {
     setup();
-    fireEvent.click(screen.getByRole("button", { name: /Claude Sonnet 5/ }));
-    const rows = screen.getAllByRole("menuitemcheckbox");
-    expect(rows[0]).toHaveAccessibleName("Auto");
-    fireEvent.click(rows[0]);
+    const field = screen.getByRole("textbox", { name: "Model" });
+    fireEvent.focus(field);
+    expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("Auto");
+    fireEvent.click(screen.getByText("Auto"));
     expect(setModel).toHaveBeenCalledWith("auto");
   });
 

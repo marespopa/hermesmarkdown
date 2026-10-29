@@ -120,7 +120,7 @@ export default function WorkspaceSidebar() {
       style={{ width, left: open ? 0 : -width }}
       className="absolute inset-y-0 flex flex-col bg-surface paper-grain border-r border-edge-subtle font-sans transition-[left] duration-layout ease-layout motion-reduce:transition-none"
     >
-      <SidebarHeader onNewNote={navigation.newNote} onHide={() => setOpen(false)} />
+      <SidebarHeader onHide={() => setOpen(false)} />
       {hasVault && <SidebarTabs tab={activeTab} onChange={switchTab} />}
 
       {/* The scroll box: the Files tree virtualizes its rows against it (data-scroll-root).

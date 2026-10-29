@@ -2,12 +2,14 @@
 
 import React, { useRef, useState } from "react";
 import { useAtomValue } from "jotai";
-import { HiChevronDown, HiOutlineDatabase, HiOutlineEmojiHappy, HiOutlinePencilAlt } from "react-icons/hi";
+import { useRouter } from "next/navigation";
+import { HiChevronDown, HiOutlineCog, HiOutlineDatabase, HiOutlineEmojiHappy } from "react-icons/hi";
 import { VscLayoutSidebarLeft } from "react-icons/vsc";
 import { atom_vaultName } from "@/app/atoms/vault-atoms";
 import Button from "@/app/components/Button";
-import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
+import { formatShortcut } from "@/app/utils/platform";
 import { PANE_HEADER_HEIGHT, PANE_ICON_SIZE } from "../pane-header-classes";
+import DocumentationLink from "../DocumentationLink";
 import PaneToolbarButton from "../PaneToolbarButton";
 import PinIconPopover from "../PinIconPopover";
 import TabContextMenu from "../TabContextMenu";
@@ -18,15 +20,16 @@ import { useVaultMenuItems } from "../../hooks/use-vault-menu-items";
 // (its emoji, else a quiet vault glyph that turns into a smiley on hover; a
 // click opens the emoji picker), the vault switcher (the open vault's
 // name; its menu lists the pinned vaults, then Open / Create Vault and Recent
-// Vaults…, as the pane title's crumb does), New note and the button that
-// hides the sidebar (the toolbar shows it again).
-export default function SidebarHeader({ onNewNote, onHide }: { onNewNote: () => void; onHide: () => void }) {
+// Vaults…, as the pane title's crumb does), Documentation, Settings, and the
+// button that hides the sidebar (the toolbar shows it again).
+export default function SidebarHeader({ onHide }: { onHide: () => void }) {
+  const router = useRouter();
   const vaultName = useAtomValue(atom_vaultName);
   const vaultItems = useVaultMenuItems();
   const { openVaultEntry, setRecentVaultIcon } = useRecentVaults();
   const [picker, setPicker] = useState<DOMRect | null>(null);
   const iconRef = useRef<HTMLButtonElement>(null);
-  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  const [vaultMenu, setVaultMenu] = useState<{ x: number; y: number } | null>(null);
   const switcherRef = useRef<HTMLButtonElement>(null);
   const name = vaultName ?? "No vault";
   // The open vault is checked among the recent ones.
@@ -64,25 +67,25 @@ export default function SidebarHeader({ onNewNote, onHide }: { onNewNote: () => 
           variant="unstyled"
           onClick={() => {
             const anchor = switcherRef.current?.getBoundingClientRect();
-            setMenu((open) => (open || !anchor ? null : { x: anchor.left, y: anchor.bottom + 4 }));
+            setVaultMenu((open) => (open || !anchor ? null : { x: anchor.left, y: anchor.bottom + 4 }));
           }}
           disabled={items.length === 0}
           title="Switch vault"
           aria-label={`Switch vault: ${name}`}
           aria-haspopup="menu"
-          aria-expanded={!!menu}
-          className={`flex h-7 max-w-full items-center gap-1 rounded-md px-2 text-ui-footnote font-semibold text-fg select-none hover:bg-fill disabled:hover:bg-transparent ${menu ? "bg-fill" : ""}`}
+          aria-expanded={!!vaultMenu}
+          className={`flex h-7 max-w-full items-center gap-1 rounded-md px-2 text-ui-footnote font-semibold text-fg select-none hover:bg-fill disabled:hover:bg-transparent ${vaultMenu ? "bg-fill" : ""}`}
         >
           <span className="truncate">{name}</span>
           <HiChevronDown size={12} aria-hidden="true" className="shrink-0 text-fg-faint" />
         </Button>
       </div>
+      <DocumentationLink compact />
       <PaneToolbarButton
-        icon={<HiOutlinePencilAlt size={PANE_ICON_SIZE} />}
-        label="New file"
-        shortcut={isMacPlatform() ? "⌃⌥N" : "Ctrl+Alt+N"}
+        icon={<HiOutlineCog size={PANE_ICON_SIZE} />}
+        label="Settings"
         tooltipPosition="bottom-end"
-        onClick={onNewNote}
+        onClick={() => router.push("/editor/settings")}
         className="shrink-0"
       />
       {/* A plain icon button: alone, it needs no section capsule. */}
@@ -107,14 +110,14 @@ export default function SidebarHeader({ onNewNote, onHide }: { onNewNote: () => 
           label="Vault icon"
         />
       )}
-      {menu && (
+      {vaultMenu && (
         <TabContextMenu
-          x={menu.x}
-          y={menu.y}
+          x={vaultMenu.x}
+          y={vaultMenu.y}
           items={items}
           label="Switch vault"
           anchorRef={switcherRef}
-          onClose={() => setMenu(null)}
+          onClose={() => setVaultMenu(null)}
         />
       )}
     </div>

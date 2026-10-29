@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MemoryDirectoryHandle } from "../memory-file-system.test-utils";
-import { resolveHead } from "./git-refs";
+import { branchNameFromHead, readBranchName, resolveHead } from "./git-refs";
 import { fakeId, makeRepoVault } from "./git-test-utils";
 
 async function gitDir(files: Parameters<typeof makeRepoVault>[0]) {
@@ -11,6 +11,24 @@ describe("resolveHead", () => {
   it("reads a symbolic HEAD through a loose ref", async () => {
     const dir = await gitDir({ head: "ref: refs/heads/main\n", refs: { "refs/heads/main": fakeId(0xabc) } });
     expect((await resolveHead(dir)).commit).toBe(fakeId(0xabc));
+  });
+
+  describe("branchNameFromHead", () => {
+    it("reads a named local branch from a symbolic HEAD", () => {
+      expect(branchNameFromHead("ref: refs/heads/feature/breadcrumb\n")).toBe("feature/breadcrumb");
+    });
+
+    it("hides detached, unborn, malformed, and non-local heads", () => {
+      expect(branchNameFromHead(fakeId(0xdef))).toBeNull();
+      expect(branchNameFromHead("")).toBeNull();
+      expect(branchNameFromHead("ref: refs/remotes/origin/main")).toBeNull();
+      expect(branchNameFromHead("ref: refs/heads/invalid branch")).toBeNull();
+    });
+
+    it("reads the branch name directly from HEAD", async () => {
+      const dir = await gitDir({ head: "ref: refs/heads/main\n" });
+      expect(await readBranchName(dir)).toBe("main");
+    });
   });
 
   it("falls back to packed-refs, skipping comment and peeled lines", async () => {

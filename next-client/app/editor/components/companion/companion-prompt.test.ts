@@ -12,6 +12,12 @@ describe("buildCompanionSystemPrompt", () => {
     expect(buildCompanionSystemPrompt({ hasVault: true })).toBe(COMPANION_PROMPT);
   });
 
+  it("treats a requested file as an artifact to create before deep research", () => {
+    expect(COMPANION_PROMPT).toContain("create or save a file is a deliverable");
+    expect(COMPANION_PROMPT).toContain("Use create_plan for a new plan file");
+    expect(COMPANION_PROMPT).toContain("report its exact path");
+  });
+
   it("says when no vault is open", () => {
     expect(buildCompanionSystemPrompt({ hasVault: false })).toContain("No vault is open");
   });

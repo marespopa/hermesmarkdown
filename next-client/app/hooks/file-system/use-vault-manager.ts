@@ -28,8 +28,8 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
   loadVaultHandle,
   clearVaultHandle,
-  verifyPermission,
   queryPermission,
+  requestPermissionFromUserGesture,
 } from "@/app/services/idb";
 import { metadataWorker, isIdbSupported } from "./shared";
 import {
@@ -191,7 +191,7 @@ export function useVaultManager() {
     isRestoringRef.current = true;
 
     try {
-      const granted = await verifyPermission(vaultHandle);
+      const granted = await requestPermissionFromUserGesture(vaultHandle);
       if (granted) {
         // Pending (route hidden, inert) until the open notes are bound and the
         // top folder listed; the vault is then indexed behind the editor.

@@ -63,6 +63,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [RecoveryBanner](RecoveryBanner.md) | The line above the editor while notes can't be saved (vault access lost, vault folder missing, storage full or nearly full) or the note is very large; offers Export note as .md and a fix. |
 | [ActiveFileIndexer](ActiveFileIndexer.md) | Re-indexes the active note a second after its text changes; mounted once by EditorShell so typing re-renders only it. |
 | [CopyContentButton](CopyContentButton.md) | Copies the active note as Markdown; sits just left of the SearchPill in the editor's top-right corner, in its look. |
+| [DocumentationLink](DocumentationLink.md) | The compact Documentation icon immediately before the SearchPill in editor and page headers. |
 | [SearchPill](SearchPill.md) | The command palette's search field at rest, in the toolbar and every page's title bar: the app's main way in. |
 | [ShellPage](ShellPage.md) | The frame of every /editor page (Tasks, Templates, Trash, All Files, Settings): a title bar and the page, beside the open sidebar. |
 | [PageHelpLink](PageHelpLink.md) | The (?) in a page's title bar: a link to its section of the documentation. |

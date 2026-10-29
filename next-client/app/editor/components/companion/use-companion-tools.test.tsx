@@ -26,8 +26,9 @@ vi.mock("./project-check-approval", () => ({ requestProjectCheckApproval: (...ar
 vi.mock("./companion-chat-store", () => ({ trackProjectCheckAbort: (controller: AbortController) => { trackedControllers.push(controller); return vi.fn(); } }));
 vi.mock("@/app/services/git-changes-client", () => ({ startChangesScan: () => ({ result: scanResult(), cancel: vi.fn() }) }));
 const createTemplate = vi.fn();
+const createPlan = vi.fn();
 vi.mock("./use-companion-writes", () => ({
-  useCompanionWrites: () => ({ editFile, writeFile, editCodeBlock: vi.fn(), createFile: vi.fn(), createFolder: vi.fn(), createTemplate, undoTurn: vi.fn() }),
+  useCompanionWrites: () => ({ editFile, writeFile, editCodeBlock: vi.fn(), createFile: vi.fn(), createPlan, createFolder: vi.fn(), createTemplate, undoTurn: vi.fn() }),
 }));
 const move = vi.fn();
 const trash = vi.fn();
@@ -160,6 +161,15 @@ describe("useCompanionTools", () => {
 
     expect(createTemplate).toHaveBeenCalledWith("turn-1", "RFC", "# {{titl}}");
     expect(result.output).toMatch(/wasn't saved/);
+  });
+
+  it("hands create_plan to the non-overwriting plan writer", async () => {
+    createPlan.mockResolvedValue({ output: "Created plans/Companion flow.md.", detail: "" });
+
+    const result = await setup().runTool({ toolName: "create_plan", input: { path: "plans/Companion flow.md", content: "# Companion flow" } }, "turn-1");
+
+    expect(createPlan).toHaveBeenCalledWith("turn-1", "plans/Companion flow.md", "# Companion flow");
+    expect(result.output).toBe("Created plans/Companion flow.md.");
   });
 
   it("searches files, skipping private notes", async () => {

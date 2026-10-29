@@ -42,7 +42,7 @@ const stringList = (value: unknown) => (Array.isArray(value) ? value.map(String)
 // useNoteTools, the vault and editor read tools (list_folder, read_file,
 // get_active_note, search_files, find_files, check_file, git_status, git_diff, update_plan) here, behind the path guard, load_skill through
 // useChatSkills, the writes (edit_file, write_file,
-// edit_code_block, create_file, create_folder, create_template) through
+// edit_code_block, create_file, create_plan, create_folder, create_template) through
 // useCompanionWrites and the organising tools (rename, move, trash) through
 // useCompanionOrganise, recorded in the turn's undo group (`turnId`, the id
 // of the user message that started it). Every call
@@ -246,6 +246,10 @@ export function useCompanionTools() {
       }
       if (toolName === "create_file") {
         const { output, detail } = await writes.createFile(turnId, String(input.path ?? ""), String(input.content ?? ""));
+        return { output, activity: activity(detail) };
+      }
+      if (toolName === "create_plan") {
+        const { output, detail } = await writes.createPlan(turnId, String(input.path ?? ""), String(input.content ?? ""));
         return { output, activity: activity(detail) };
       }
       if (toolName === "create_folder") {

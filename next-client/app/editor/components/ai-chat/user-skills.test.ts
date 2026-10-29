@@ -37,6 +37,14 @@ describe("user skills", () => {
     expect(skills[0].validationWarnings).toEqual(expect.arrayContaining(["Duplicate tool binding: read_file.", "Unknown or disallowed tool: edit_file.", "Malformed tool binding.", "Unknown or disallowed check: unknown."]));
   });
 
+  it("allows a skill to bind the dedicated plan creator", () => {
+    const skills = userSkillsFrom({
+      "skills/plan.md": meta("skills/plan.md", { frontmatter: { type: "skill", tools: ["create_plan"] } }),
+    }, []);
+
+    expect(skills).toEqual([{ path: "skills/plan.md", command: "/plan", toolBindings: ["create_plan"] }]);
+  });
+
   it("turns on only for a message starting with the command as a word", () => {
     const skill = { path: "skills/standup.md", command: "/standup" };
     expect(isUserSkillActive(skill, "  /Standup for today")).toBe(true);

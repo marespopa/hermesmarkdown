@@ -1,28 +1,24 @@
 import React from "react";
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore, Provider } from "jotai";
-import { atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
+import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import SidebarFooter from "./SidebarFooter";
 
-const navigation = vi.hoisted(() => ({ push: vi.fn(), pathname: "/editor" }));
+const git = vi.hoisted(() => ({ branch: null as string | null | undefined }));
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: navigation.push }),
-  usePathname: () => navigation.pathname,
-}));
-
-const mail = vi.hoisted(() => ({ open: vi.fn() }));
-vi.mock("@/app/utils/feedback-mail", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/app/utils/feedback-mail")>()),
-  openMailLink: mail.open,
-}));
+vi.mock("../../hooks/use-vault-git-branch", () => ({ useVaultGitBranch: () => git.branch }));
 
 const showCopyToast = vi.hoisted(() => vi.fn());
-vi.mock("@/app/components/Toastr", () => ({ showCopyToast }));
+const showErrorToast = vi.hoisted(() => vi.fn());
+vi.mock("@/app/components/Toastr", () => ({ showCopyToast, showErrorToast }));
 
-const renderFooter = () => {
+const renderFooter = ({ diskVault = false } = {}) => {
   const store = createStore();
+  if (diskVault) {
+    store.set(atom_vaultDescriptor, { kind: "local" });
+    store.set(atom_vaultHandle, {} as FileSystemDirectoryHandle);
+  }
   render(
     <Provider store={store}>
       <SidebarFooter />
@@ -33,53 +29,36 @@ const renderFooter = () => {
 
 describe("SidebarFooter", () => {
   beforeEach(() => {
-    navigation.push.mockClear();
-    navigation.pathname = "/editor";
+    git.branch = null;
   });
   afterEach(cleanup);
 
-  it("opens Settings, marked current while on a Settings page", () => {
+  it("does not render Settings or Help controls", () => {
     renderFooter();
-    const settings = screen.getByRole("button", { name: "Settings" });
-    expect(settings).not.toHaveAttribute("aria-current");
-    fireEvent.click(settings);
-    expect(navigation.push).toHaveBeenCalledWith("/editor/settings");
-
-    cleanup();
-    navigation.pathname = "/editor/settings";
-    renderFooter();
-    expect(screen.getByRole("button", { name: "Settings" })).toHaveAttribute("aria-current", "page");
+    expect(screen.queryByRole("button", { name: "Settings" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Help" })).not.toBeInTheDocument();
   });
 
-  it("opens the Documentation in a new tab from the Help menu", () => {
-    const open = vi.spyOn(window, "open").mockReturnValue(null);
-    renderFooter();
-    fireEvent.click(screen.getByRole("button", { name: "Help" }));
-    fireEvent.click(within(screen.getByRole("menu", { name: "Help" })).getByRole("menuitem", { name: "Documentation" }));
-    expect(open).toHaveBeenCalledWith("/documentation", "_blank", "noopener");
-    expect(screen.queryByRole("menu", { name: "Help" })).not.toBeInTheDocument();
-    open.mockRestore();
+  it("shows the named Git branch in a bottom status bar", () => {
+    git.branch = "feature/footer";
+    renderFooter({ diskVault: true });
+    const branch = screen.getByRole("status", { name: "Git branch: feature/footer" });
+    expect(branch).toHaveAttribute("title", "Git branch: feature/footer");
+    expect(screen.queryByRole("button", { name: "Git branch: feature/footer" })).not.toBeInTheDocument();
   });
 
-  it("shows the keyboard shortcuts from the Help menu", () => {
-    const store = renderFooter();
-    fireEvent.click(screen.getByRole("button", { name: "Help" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: /Keyboard Shortcuts/ }));
-    expect(store.get(atom_keyboardShortcutsOpen)).toBe(true);
-  });
-
-  it("sends feedback from the Help menu in the user's own mail app, copying the address", () => {
-    const writeText = vi.fn(async () => {});
+  it("copies the named Git branch from the status bar", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
-    renderFooter();
-    fireEvent.click(screen.getByRole("button", { name: "Help" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Send Feedback…" }));
+    git.branch = "feature/footer";
+    renderFooter({ diskVault: true });
+    fireEvent.click(screen.getByRole("button", { name: "Copy branch name" }));
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith("feature/footer"));
+    expect(showCopyToast).toHaveBeenCalledWith("Branch name copied");
+  });
 
-    const href = mail.open.mock.calls[0][0] as string;
-    expect(href).toMatch(/^mailto:office@marespopa\.com\?subject=HermesMarkdown%20feedback&body=/);
-    expect(decodeURIComponent(href.split("body=")[1])).toContain(navigator.userAgent);
-    expect(writeText).toHaveBeenCalledWith("office@marespopa.com");
-    expect(showCopyToast).toHaveBeenCalledWith(expect.stringContaining("office@marespopa.com"));
-    expect(screen.queryByRole("menu", { name: "Help" })).not.toBeInTheDocument();
+  it("does not show a status bar for a disk vault without Git", () => {
+    renderFooter({ diskVault: true });
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });

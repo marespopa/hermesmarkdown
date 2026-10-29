@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
-import { TbFileDiff, TbGitCompare, TbListDetails } from "react-icons/tb";
+import { TbFileDiff, TbGitBranch, TbGitCompare, TbListDetails } from "react-icons/tb";
 import { atom_gitAvailable, atom_gitLoading, atom_showGitChanges } from "@/app/atoms/git-atoms";
 import { atom_isVaultPending, atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import Button from "@/app/components/Button";
@@ -10,6 +10,7 @@ import Tooltip from "@/app/components/Tooltip";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatPageShortcut, PAGE_SHORTCUTS, pageCommand, runPageCommand } from "@/app/components/CommandPalette/page-shortcuts";
 import { useVaultHasGit } from "../hooks/use-vault-has-git";
+import { useVaultGitBranch } from "../hooks/use-vault-git-branch";
 import { PILL_BUTTON_CLASS } from "./pane-header-classes";
 import TabContextMenu, { type TabContextMenuItem } from "./TabContextMenu";
 
@@ -33,20 +34,31 @@ export default function GitChangesToggleButton({ className = "" }: { className?:
   // Checked once access is allowed: before that the folder can't be read.
   const isPending = useAtomValue(atom_isVaultPending);
   const hasGit = useVaultHasGit(isDiskVault && !isPending ? vaultHandle : null);
+  const branch = useVaultGitBranch(hasGit ? vaultHandle : null);
   const { commands } = useCommandPalette();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
+  const [menuBranch, setMenuBranch] = useState<string | null>(null);
   const label = showGitChanges && gitAvailable === false ? "No .git folder at the vault's root" : "Git";
 
   if (!hasGit) return null;
 
   const showChanges = pageCommand(CHANGES_SHORTCUT, commands);
   const items: TabContextMenuItem[] = [
+    ...(menuBranch
+      ? [{
+          label: `Branch: ${menuBranch}`,
+          icon: <TbGitBranch size={15} />,
+          disabled: true,
+          onClick: () => undefined,
+        }]
+      : []),
     ...(showChanges
       ? [{
           label: "Show Changes",
           icon: <TbListDetails size={15} />,
           shortcut: formatPageShortcut(CHANGES_SHORTCUT),
+          divider: !!menuBranch,
           onClick: () => runPageCommand(showChanges),
         }]
       : []),
@@ -62,7 +74,12 @@ export default function GitChangesToggleButton({ className = "" }: { className?:
 
   const toggleMenu = () => {
     const rect = buttonRef.current?.getBoundingClientRect();
-    setMenuAt((open) => (open || !rect ? null : { x: rect.right, y: rect.bottom + 4 }));
+    if (menuAt || !rect) {
+      setMenuAt(null);
+      return;
+    }
+    setMenuBranch(branch ?? null);
+    setMenuAt({ x: rect.right, y: rect.bottom + 4 });
   };
 
   return (

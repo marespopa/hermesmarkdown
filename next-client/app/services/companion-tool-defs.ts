@@ -145,6 +145,15 @@ export const COMPANION_TOOL_DEFS = {
       content: z.string().describe("The file's text"),
     }),
   },
+  create_plan: {
+    title: 'Create plan',
+    description:
+      "Create a new Markdown plan at a vault-relative path. Use this when the user explicitly asks for a new plan file: after at most one folder listing to choose a destination, create it before further research. Never overwrites. It adds standard plan frontmatter (title, created date, type: plan and status: draft) unless the supplied content already sets those fields.",
+    inputSchema: z.object({
+      path: z.string().min(1).describe('Vault-relative Markdown path, e.g. "plans/Improve companion flow.md"'),
+      content: z.string().describe("The plan's Markdown body, optionally with frontmatter"),
+    }),
+  },
   create_folder: {
     title: 'Create folder',
     description:
@@ -193,10 +202,10 @@ export const COMPANION_TOOL_DEFS = {
 export type CompanionToolName = keyof typeof COMPANION_TOOL_DEFS;
 export const COMPANION_TOOL_NAMES = Object.keys(COMPANION_TOOL_DEFS) as CompanionToolName[];
 
-// User skills may bind only to these fixed, non-mutating companion tools.
+// User skills may bind only to these fixed, safe companion tools.
 export const COMPANION_SKILL_TOOL_BINDINGS: readonly CompanionToolName[] = [
   "search_notes", "read_note", "list_open_tasks", "list_folder", "read_file", "search_files",
-  "find_files", "check_file", "git_status", "git_diff", "run_project_check",
+  "find_files", "check_file", "git_status", "git_diff", "run_project_check", "create_plan",
 ];
 export const COMPANION_EXECUTION_TOOL_NAMES: CompanionToolName[] = ["run_project_check"];
 
@@ -204,7 +213,7 @@ export const COMPANION_EXECUTION_TOOL_NAMES: CompanionToolName[] = ["run_project
 // write switch (hooks/use-webmcp-tools.ts). trash isn't offered there: it
 // asks on a card in the companion's thread.
 export const COMPANION_WRITE_TOOL_NAMES: CompanionToolName[] = [
-  'edit_file', 'write_file', 'edit_code_block', 'create_file', 'create_folder', 'rename', 'move', 'create_template',
+  'edit_file', 'write_file', 'edit_code_block', 'create_file', 'create_plan', 'create_folder', 'rename', 'move', 'create_template',
 ];
 
 // All vault-mutating tools. Planning turns omit these from the server's tool

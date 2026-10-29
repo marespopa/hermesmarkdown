@@ -9,6 +9,7 @@ import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import PageHelpLink, { type PageHelp } from "./PageHelpLink";
+import DocumentationLink from "./DocumentationLink";
 import { PANE_HEADER_HEIGHT } from "./pane-header-classes";
 import SearchPill from "./SearchPill";
 import { editorFileHref } from "../utils/editor-url";
@@ -22,7 +23,7 @@ const EDGE_ROOM = "1.25rem";
 // bar level with the sidebar's header, then the page. The bar leads with
 // ← Editor (the sidebar is only the library, so this is the way back),
 // which returns to the note in front, at its URL. With `help`, a (?) before
-// the SearchPill links to the page's section of the documentation.
+// the Documentation link points to the page's section of the documentation.
 export default function ShellPage({ title, help, children }: { title: string; help?: PageHelp; children: ReactNode }) {
   const router = useRouter();
   const isMobileChrome = useIsMobileChrome();
@@ -53,6 +54,7 @@ export default function ShellPage({ title, help, children }: { title: string; he
         <span aria-hidden="true" className="h-4 w-px shrink-0 bg-edge-subtle" />
         <span className="min-w-0 flex-1 truncate text-ui-subhead font-semibold select-none">{title}</span>
         {help && <PageHelpLink {...help} />}
+        <DocumentationLink />
         <SearchPill className="shrink" />
       </header>
       <div className="flex min-h-0 flex-1 flex-col">

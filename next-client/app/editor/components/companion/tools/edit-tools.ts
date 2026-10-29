@@ -98,6 +98,20 @@ export function withNewNoteFrontmatter(path: string, content: string, today = lo
   return `---\n${block[1]}\n${lines.join("\n")}\n---\n${content.slice(block[0].length)}`;
 }
 
+// Standard fields for plans created by the companion. Callers may supply
+// either field to choose a more specific value.
+export function withPlanFrontmatter(content: string): string {
+  const fields = parseFmFields(content);
+  const additions = [
+    !fields.type && "type: plan",
+    !fields.status && "status: draft",
+  ].filter(Boolean).join("\n");
+  if (!additions) return content;
+  const block = FM_REGEX.exec(content);
+  if (!block) return `---\n${additions}\n---\n\n${content.trim() ? `${content.trim()}\n` : ""}`;
+  return `---\n${block[1]}\n${additions}\n---\n${content.slice(block[0].length)}`;
+}
+
 const FRONTMATTER = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
 // Template fields (`{{date}}`) are filled in later and aren't YAML yet.
 const TEMPLATE_FIELD = /\{\{[^{}\n]*\}\}/g;

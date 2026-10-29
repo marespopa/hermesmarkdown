@@ -1,17 +1,19 @@
 import React from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { atom_gitLoading, atom_showGitChanges } from "@/app/atoms/git-atoms";
 import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { MemoryDirectoryHandle } from "@/app/services/memory-file-system.test-utils";
 import GitChangesToggleButton from "./GitChangesToggleButton";
 
 const showChanges = vi.fn();
+const git = vi.hoisted(() => ({ branch: null as string | null | undefined }));
 vi.mock("@/app/components/CommandPalette/CommandPaletteContext", () => ({
   useCommandPalette: () => ({ commands: [{ id: "show-changes", label: "Show Changes", opens: "page", action: showChanges }] }),
 }));
 vi.mock("@/app/components/Toastr", () => ({ showErrorToast: vi.fn() }));
+vi.mock("../hooks/use-vault-git-branch", () => ({ useVaultGitBranch: () => git.branch }));
 
 // A store whose open vault is a disk vault, with or without a `.git` folder.
 async function vaultStore(withGit = true) {
@@ -24,6 +26,11 @@ async function vaultStore(withGit = true) {
 }
 
 describe("GitChangesToggleButton", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    git.branch = null;
+  });
+
   it("isn't shown when the vault has no .git folder", async () => {
     const store = await vaultStore(false);
     render(<Provider store={store}><GitChangesToggleButton /></Provider>);
@@ -57,6 +64,14 @@ describe("GitChangesToggleButton", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Git" }));
     fireEvent.click(screen.getByRole("menuitem", { name: /Show Changes/ }));
     expect(showChanges).toHaveBeenCalledOnce();
+  });
+
+  it("shows the named branch in the Git menu", async () => {
+    git.branch = "feature/git-menu";
+    const store = await vaultStore();
+    render(<Provider store={store}><GitChangesToggleButton /></Provider>);
+    fireEvent.click(await screen.findByRole("button", { name: "Git" }));
+    expect(screen.getByRole("menuitem", { name: "Branch: feature/git-menu" })).toBeInTheDocument();
   });
 
   it("is busy while HEAD's text is being read, only when Git Changes is on", async () => {

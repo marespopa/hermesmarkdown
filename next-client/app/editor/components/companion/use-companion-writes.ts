@@ -15,7 +15,7 @@ import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy
 import { lintTemplate } from "@/app/utils/templates/template-lint";
 import { sanitizeTemplateFileName } from "@/app/utils/templates/template-registry";
 import { loadYaml } from "@/app/utils/load-yaml";
-import { applyEdits, repairFrontmatter, replaceCodeBlock, withNewNoteFrontmatter, type CodeBlockTarget, type EditResult, type FindReplace } from "./tools/edit-tools";
+import { applyEdits, repairFrontmatter, replaceCodeBlock, withNewNoteFrontmatter, withPlanFrontmatter, type CodeBlockTarget, type EditResult, type FindReplace } from "./tools/edit-tools";
 import { guardFilePath, guardFolderPath } from "./tools/path-guard";
 import { PRIVATE_HIDDEN } from "./tools/read-tools";
 import { recordContent, recordCreate } from "./turn-journal";
@@ -35,7 +35,7 @@ const splitPath = (path: string) => {
 };
 
 // The companion's writes: edit_file, write_file, edit_code_block, create_file,
-// create_folder and create_template, applied at once (an open tab shows the
+// create_plan, create_folder and create_template, applied at once (an open tab shows the
 // new text straight away, and disk wins over its cached text, through
 // useNoteBuffer().writeThrough), each recorded as a step of its turn's group
 // on the app's file-undo stack (recordSteps), and undoTurn, which takes the
@@ -163,6 +163,11 @@ export function useCompanionWrites() {
     }
   }, [store, ensureFolder, record, refreshTree]);
 
+  const createPlan = useCallback(async (turnId: string, path: string, content: string): Promise<WriteResult> => {
+    if (!isMarkdownPath(path)) return { output: "Plans must use a .md path.", detail: "refused" };
+    return createFile(turnId, path, withPlanFrontmatter(content));
+  }, [createFile]);
+
   // A whole file's new text: replaces an existing file (a step of the turn's
   // undo group, like an edit) or creates it when the path is free.
   const writeFile = useCallback(async (turnId: string, rawPath: string, content: string): Promise<WriteResult> => {
@@ -223,5 +228,5 @@ export function useCompanionWrites() {
     return group ? undoFileOperation(group) : false;
   }, [store, undoFileOperation]);
 
-  return { editFile, writeFile, editCodeBlock, createFile, createFolder, createTemplate, undoTurn };
+  return { editFile, writeFile, editCodeBlock, createFile, createPlan, createFolder, createTemplate, undoTurn };
 }

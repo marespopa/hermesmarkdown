@@ -34,7 +34,7 @@ describe('AI companion route, end to end with a model', () => {
       }),
     }));
     const text = await response.text();
-    expect(seen.tools?.map((t) => t.name)).toEqual(expect.arrayContaining(['edit_file', 'create_file', 'rename', 'move', 'trash', 'create_template']));
+    expect(seen.tools?.map((t) => t.name)).toEqual(expect.arrayContaining(['edit_file', 'create_file', 'create_plan', 'rename', 'move', 'trash', 'create_template']));
     expect(seen.tools?.every((t) => t.type === 'function')).toBe(true);
     expect(seen.prompt).toEqual([
       expect.objectContaining({ role: 'system', content: 'Be brief' }),
@@ -56,6 +56,6 @@ describe('AI companion route, end to end with a model', () => {
     await response.text();
     const tools = seen.tools?.map((tool) => tool.name) ?? [];
     expect(tools).toEqual(expect.arrayContaining(['read_file', 'search_files', 'update_plan']));
-    expect(tools).not.toEqual(expect.arrayContaining(['edit_file', 'write_file', 'create_file', 'rename', 'move', 'trash', 'run_project_check']));
+    expect(tools).not.toEqual(expect.arrayContaining(['edit_file', 'write_file', 'create_file', 'create_plan', 'rename', 'move', 'trash', 'run_project_check']));
   });
 });
