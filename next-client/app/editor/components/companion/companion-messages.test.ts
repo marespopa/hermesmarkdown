@@ -24,24 +24,13 @@ const thread = (turns: number) =>
   Array.from({ length: turns }, (_, i) => [user(`u${i}`, `question ${i}`, long), reply(`a${i}`, long)]).flat();
 
 describe("userTurn", () => {
-  it("carries a /command's skill in the context, labelled with its command", () => {
-    const turn = userTurn("/tasks what's next?", noContext, { command: "/tasks", text: "Skill: work with tasks." });
-
-    expect(turn.parts[0]).toEqual({ type: "text", text: "/tasks what's next?" });
-    expect(turn.parts[1]).toEqual({
-      type: "text",
-      text: "--- CONTEXT ---\n--- SKILL /tasks ---\nSkill: work with tasks.\n--- END SKILL ---\n--- END CONTEXT ---",
-    });
-    expect(turn.metadata).toEqual({ context: ["/tasks"] });
-  });
-
   it("records the model Auto chose on the turn", () => {
     const auto = { model: "haiku-4-5", name: "Claude 4.5 Haiku", tier: "fast" as const };
-    expect(userTurn("hi", noContext, undefined, auto).metadata).toEqual({ auto });
+    expect(userTurn("hi", noContext, auto).metadata).toEqual({ auto });
     expect(userTurn("hi", noContext).metadata).toBeUndefined();
   });
 
-  it("sends no skill block without one", () => {
+  it("sends only the text when there is no context", () => {
     expect(userTurn("hello", noContext).parts).toEqual([{ type: "text", text: "hello" }]);
   });
 });
