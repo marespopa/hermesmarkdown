@@ -2,11 +2,11 @@ import { EditorSelection, type EditorState } from "@codemirror/state";
 import { syntaxTree } from "@codemirror/language";
 import type { EditorView } from "@codemirror/view";
 import { showActionToast } from "@/app/components/Toastr";
-import { hasMarkdownStructure } from "@/app/tools/cleaner/html-structure";
+import { hasMarkdownStructure } from "@/app/editor/paste/html-structure";
 
 // Pasting rich text (a web page, Google Docs, Word, a mail) converts its
-// HTML to Markdown with the Markdown Cleaner's pipeline (the Free Tools'
-// converter, then its clean pass): headings, lists, links, tables, bold and
+// HTML to Markdown with its own pipeline (`editor/paste/`: the
+// converter, then a clean pass): headings, lists, links, tables, bold and
 // italics arrive as Markdown instead of flat text. A toast offers "Paste as
 // plain text", which swaps the result back for the clipboard's plain text.
 // Left to the normal paste: HTML with no structure (a code editor's copy),
@@ -50,7 +50,7 @@ export function onlyEscapesPlain(markdown: string, plain: string): boolean {
 }
 
 const loadConverter = async (html: string) => {
-  const { convertInput } = await import("@/app/tools/cleaner/convert-input");
+  const { convertInput } = await import("@/app/editor/paste/convert-input");
   return convertInput(html, "html").markdown;
 };
 

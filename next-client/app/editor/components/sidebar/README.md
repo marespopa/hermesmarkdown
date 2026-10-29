@@ -10,7 +10,6 @@ The parts of `WorkspaceSidebar` (one level up), top to bottom, and what they sha
 | [SidebarSystemFilters](SidebarSystemFilters.md) | The smart filters (All Notes, Untagged, Todo, Today, Archive) with counts, above both views; a click lists them on the Tags page. |
 | [SidebarTags](SidebarTags.md) | The Tags view: tags nested on `/` with rolled-up counts and optional icons, pinned tags first, right-click to Pin / Unpin. |
 | [SidebarFiles](SidebarFiles.md) | The vault's file tree under a Search field (a regular expression on paths); a note's or folder's menu has Pin / Unpin. |
-| [SidebarFooter](SidebarFooter.md) | At the foot, below a hairline: Settings (current on a Settings page) and Help, whose menu opens the Documentation in a new tab or the Keyboard Shortcuts overlay. |
 | [SidebarSection](SidebarSection.md) | A collapsible group set apart by a full-width hairline, its chevron always shown, with an optional ⋯ menu. |
 | `sidebar-classes.ts` | The quiet look every part uses: 28px rows in the primary text colour, neutral grey icons (`SIDEBAR_ICON_CLASS`), the current row on a soft accent fill (`SIDEBAR_ACCENT_FILL`, the file tree's active-row fill), quiet icon buttons. |
 | `files-filter.ts` | The Files filter: `compileFilesFilter(query)` (a case-insensitive regular expression, or the text as typed when it isn't valid) and `filterVault(files, folderPaths, filter, pathOf)` (matching files and the folders around them). |

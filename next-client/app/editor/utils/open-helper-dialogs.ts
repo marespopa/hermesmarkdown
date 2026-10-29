@@ -1,7 +1,7 @@
 import type { EditorView } from "@codemirror/view";
 import type { RenderedBlockMatch } from "../codemirror/rendered-block";
 
-// The Mermaid, image, rendered-block source and token cost dialogs listen
+// The Mermaid, image, and rendered-block source dialogs listen
 // for these document events, so any editor pane (a pill button, double-click
 // or Ctrl/Cmd+Shift+Enter), menu or command can open them.
 export function openMermaidDialog(source: string) {
@@ -29,13 +29,6 @@ export function openImageDialog(src: string, alt: string) {
     detail: { src, alt },
     bubbles: true,
   }));
-}
-
-export const TOKEN_COST_EVENT = "hermes:open-token-cost";
-
-// Prices the note in front.
-export function openTokenCostDialog() {
-  document.dispatchEvent(new CustomEvent(TOKEN_COST_EVENT));
 }
 
 export const EXPORT_PDF_EVENT = "hermes:export-pdf";

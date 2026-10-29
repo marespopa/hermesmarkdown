@@ -9,7 +9,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | Component | Role |
 |---|---|
 | [companion/](companion/README.md) | The AI companion: a panel on the trailing edge that streams, reads the vault, edits notes and code files, and undoes a whole turn at once. |
-| [ai-chat/](ai-chat/README.md) | Shared AI building blocks the companion uses: @mention and model hooks, skills, the note tools, mention menu, context chips. |
+| [ai-chat/](ai-chat/README.md) | Shared AI building blocks the companion uses: @mention and model hooks, the note tools, mention menu, context chips. |
 | [CalloutTypeMenu](CalloutTypeMenu.md) | Dropdown of callout types, opened right after inserting a callout from the slash menu; picking one rewrites `[!type]`. |
 | [ConflictDialog](ConflictDialog.md) | Resolves an on-disk change to the open file by reloading from disk, keeping the current text, or merging manually (conflict markers, with per-side resolution). |
 | [DraftImportDialog](DraftImportDialog.md) | Confirms before an imported file replaces a non-empty draft. |
@@ -19,14 +19,13 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [BlockTypeMenu](BlockTypeMenu.md) | The selection toolbar's "Turn into" dropdown: shows the line's block type and turns selected lines into text, a heading, a list, a to-do or a quote. |
 | [BrowserVaultDialog](BrowserVaultDialog.md) | Create, reopen, or delete vaults stored in browser storage (Safari, Firefox, mobile). |
 | [RecentVaultsDialog](RecentVaultsDialog.md) | Open, reorder, pin or remove recent vaults; only pinned ones are listed in the Vault menu, and they never age out. |
-| [GitChangesToggleButton](GitChangesToggleButton.md) | The editor corner's git pill, left of the outline toggle: a menu with Show Changes (the Changes page) and Git Changes in Note (the diff in the note). |
 | [OutlineToggleButton](OutlineToggleButton.md) | The editor corner's pill that shows or hides the note's outline, left of Copy Contents. |
 | [ImageDialog](ImageDialog.md) | Lightbox for note images; resolves vault-relative paths locally. |
 | [LinkPill](LinkPill.md) | Floating pill over a Markdown or wiki link in the editor, offering open and edit (label and URL). |
 | [MarkdownEditor](MarkdownEditor.md) | CodeMirror 6 Markdown editor with inline pills, callouts, slash templates, and folding. |
 | [markdown-editor/](markdown-editor/README.md) | `MarkdownEditor` render pieces: floating pills, link dialog, fold chevrons. |
 | [MermaidDialog](MermaidDialog.md) | Full-size viewer for a Mermaid diagram, rendered locally with `mermaid` (`securityLevel: "strict"`), in a `MermaidViewer`. |
-| [MermaidViewer](MermaidViewer.md) | A rendered diagram with zoom, fit, drag-to-pan and SVG download; used by `MermaidDialog` and the Mermaid tool page (`app/tools/mermaid/`). |
+| [MermaidViewer](MermaidViewer.md) | A rendered diagram with zoom, fit, drag-to-pan and SVG download; used by `MermaidDialog`. |
 | [MobileFileIndicator](MobileFileIndicator.md) | Compact mobile header chip showing the active file name and its save state, with menu, save, command palette, AI chat and outline shortcuts. |
 | [MobileDrawer/](MobileDrawer/README.md) | The phone's left (Files / Tags) and right (Outline & metrics) drawers, and the edge swipes that open them. |
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
@@ -41,7 +40,6 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [PaneTitle](PaneTitle.md) | The pane's header, in place of a toolbar: the note's folder breadcrumb (each folder opens a `FolderPopover`), its name and a save dot, at the top left; a click on the name (or a right-click) opens the note's menu, whose Rename renames it in place. `save-state.tsx` holds the save-state dot, icon and labels it shares with the mobile file bar. |
 | [PdfExport](PdfExport.md) | Mounts **Export as PDF** (palette and More menu): the focused note rendered with its `pdf_*` page setup, shown in the export dialog, and printed through the browser's dialog, on the device; also **Export as HTML**, a standalone `.html` download. |
 | [PdfExportDialog](PdfExportDialog.md) | The export dialog: the note's page setup beside a preview of its pages; Save as PDF… opens the print dialog. |
-| [TokenCostDialog](TokenCostDialog.md) | What sending the focused note to each AI model costs (o200k count, input prices); opened from the palette. |
 | [RenderedBlockSourceDialog](RenderedBlockSourceDialog.md) | Source editor with live preview for an inline-rendered Mermaid diagram or math block; Save writes the body back as one undo step. |
 | [SectionHeader](SectionHeader.md) | Collapsible section header with a title, a chevron toggle, and an optional trailing action. |
 | [SelectionToolbar](SelectionToolbar.md) | Floating toolbar on a text selection, desktop and mobile: Turn into menu, Bold, Italic, Link, and Ask AI when AI is configured. |
@@ -63,6 +61,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [RecoveryBanner](RecoveryBanner.md) | The line above the editor while notes can't be saved (vault access lost, vault folder missing, storage full or nearly full) or the note is very large; offers Export note as .md and a fix. |
 | [ActiveFileIndexer](ActiveFileIndexer.md) | Re-indexes the active note a second after its text changes; mounted once by EditorShell so typing re-renders only it. |
 | [CopyContentButton](CopyContentButton.md) | Copies the active note as Markdown; sits just left of the SearchPill in the editor's top-right corner, in its look. |
+| [DocumentationLink](DocumentationLink.md) | The compact Documentation icon immediately before the SearchPill in editor and page headers. |
 | [SearchPill](SearchPill.md) | The command palette's search field at rest, in the toolbar and every page's title bar: the app's main way in. |
 | [ShellPage](ShellPage.md) | The frame of every /editor page (Tasks, Templates, Trash, All Files, Settings): a title bar and the page, beside the open sidebar. |
 | [PageHelpLink](PageHelpLink.md) | The (?) in a page's title bar: a link to its section of the documentation. |

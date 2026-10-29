@@ -13,13 +13,10 @@ export type PageShortcut = {
   key: string;
   code: string;
   alt: boolean;
-  /** Only for a git vault: the empty pane leaves its chip out otherwise. */
-  needsGit?: boolean;
 };
 
 export const PAGE_SHORTCUTS: PageShortcut[] = [
   { label: "Tasks", ids: ["open-tasks-panel", "go-tasks"], key: "t", code: "KeyT", alt: true },
-  { label: "Changes", ids: ["show-changes"], key: "g", code: "KeyG", alt: true, needsGit: true },
   { label: "Templates", ids: ["open-templates", "go-templates"], key: "p", code: "KeyP", alt: true },
   { label: "Settings", ids: ["open-settings"], key: ",", code: "Comma", alt: false },
 ];

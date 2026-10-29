@@ -6,8 +6,6 @@ import { atom_activePaneId, atom_openFiles, atom_workspaceLayout } from "@/app/a
 import { EMPTY_DRAFT } from "@/app/atoms/file-atoms";
 import { useDraftImport } from "./use-draft-import";
 
-const toast = vi.hoisted(() => vi.fn());
-vi.mock("react-hot-toast", () => ({ default: toast }));
 vi.mock("../utils/focus-pane-editor", () => ({ focusPaneEditorWhenReady: vi.fn() }));
 
 const NOTE = "notes/a.md";
@@ -39,15 +37,15 @@ describe("useDraftImport", () => {
 
   it("fills an empty draft and shows it", () => {
     const { store, result } = setup({ noteActive: true });
-    act(() => result.current.offerDraft({ text: "# Table", name: "Markdown table", origin: "tool" }));
+    act(() => result.current.offerDraft({ text: "# Table", name: "Markdown table" }));
     expect(store.get(atom_openFiles).draft).toMatchObject({ content: "# Table", fileName: "Markdown table" });
     expect(activeFilePath(store)).toBe("draft");
   });
 
   it("asks before replacing a draft with text", () => {
     const { store, result } = setup({ draft: "Keep me" });
-    act(() => result.current.offerDraft({ text: "New", name: "New", origin: "file" }));
-    expect(result.current.pendingDraft).toEqual({ text: "New", name: "New", origin: "file" });
+    act(() => result.current.offerDraft({ text: "New", name: "New" }));
+    expect(result.current.pendingDraft).toEqual({ text: "New", name: "New" });
     expect(store.get(atom_openFiles).draft.content).toBe("Keep me");
 
     act(() => result.current.confirmPendingDraft());
@@ -55,22 +53,17 @@ describe("useDraftImport", () => {
     expect(result.current.pendingDraft).toBeNull();
   });
 
-  it("keeps the draft on cancel, with a toast only for tool work", () => {
+  it("keeps the draft on cancel, quietly", () => {
     const { store, result } = setup({ draft: "Keep me" });
-    act(() => result.current.offerDraft({ text: "New", name: "New", origin: "file" }));
+    act(() => result.current.offerDraft({ text: "New", name: "New" }));
     act(() => result.current.cancelPendingDraft());
-    expect(toast).not.toHaveBeenCalled();
-
-    act(() => result.current.offerDraft({ text: "New", name: "New", origin: "tool" }));
-    act(() => result.current.cancelPendingDraft());
-    expect(toast).toHaveBeenCalledWith("Kept your current draft.");
     expect(store.get(atom_openFiles).draft.content).toBe("Keep me");
     expect(result.current.pendingDraft).toBeNull();
   });
 
   it("never writes an import into the open vault note", () => {
     const { store, result } = setup({ draft: "Draft text", noteActive: true });
-    act(() => result.current.offerDraft({ text: "Imported", name: "b", origin: "file" }));
+    act(() => result.current.offerDraft({ text: "Imported", name: "b" }));
     act(() => result.current.confirmPendingDraft());
     expect(store.get(atom_openFiles)[NOTE].content).toBe("My note");
     expect(store.get(atom_openFiles).draft.content).toBe("Imported");

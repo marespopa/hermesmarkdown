@@ -9,14 +9,16 @@ import { atom_revealAllPrivate, atom_revealedPrivatePaths } from "@/app/atoms/pr
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { resolveFileMetaByName } from "@/app/hooks/file-system/resolve-file-by-name";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
-import { noteEmbedsDataField, setNoteEmbeds, type EmbedContent, type NoteEmbedsData } from "../codemirror/note-embeds";
+import { noteEmbedsDataField, noteEmbedRefsField, setNoteEmbeds, type EmbedContent, type NoteEmbedsData } from "../codemirror/note-embeds";
 import { csvToMarkdownTable, embedKey, findEmbeds, type EmbedRef } from "../utils/note-embeds";
 import { clipCode, imageUrlFor, locateVaultFile, readLocatedText, readNoteFile } from "../utils/embed-files";
 
-// A line starting with `![[` or `/`: the cheap check before the full scan.
-const MAY_EMBED = /^[ \t]*(?:!\[\[|\/[^\s/])/m;
 // Edits in an embedded note's tab reach the embed once typing pauses.
 const SETTLE_MS = 200;
+
+function refsIn(value: string): readonly EmbedRef[] {
+  return findEmbeds(value).map(({ ref }) => ref);
+}
 
 // Counts the times the window comes back into view, so embeds re-check their
 // files then: a CSV edited in a spreadsheet app shows its new rows as soon as
@@ -51,11 +53,18 @@ export function useNoteEmbeds(
   fromPath: string | undefined,
   open: (target: string) => void,
 ): NoteEmbedsData {
+  const [refs, setRefs] = useState<readonly EmbedRef[]>(() =>
+    view?.state.field(noteEmbedRefsField, false) ?? refsIn(value),
+  );
+  // The CodeMirror field is updated transaction-by-transaction, before this
+  // effect runs. A prop-only fallback keeps the loader correct before mount.
+  useEffect(() => {
+    const next = view?.state.field(noteEmbedRefsField, false) ?? refsIn(value);
+    setRefs((current) => (current === next ? current : next));
+  }, [view, value]);
   const refsSignature = useMemo(
-    () => (MAY_EMBED.test(value)
-      ? [...new Set(findEmbeds(value).map(({ ref }) => JSON.stringify(ref)))].join("\n")
-      : ""),
-    [value],
+    () => [...new Set(refs.map((ref) => JSON.stringify(ref)))].join("\n"),
+    [refs],
   );
   const resolved = useMemo(() => {
     const refs: EmbedRef[] = refsSignature ? refsSignature.split("\n").map((ref) => JSON.parse(ref)) : [];

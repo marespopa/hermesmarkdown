@@ -3,8 +3,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
-import { atom_showGitChanges } from "@/app/atoms/git-atoms";
-import { atom_isVaultPending, atom_vaultDescriptor } from "@/app/atoms/vault-atoms";
 import { atom_aiBuilderRequest, atom_focusMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_vimMode } from "@/app/atoms/ui-atoms";
 import type { TemplateEntry } from "@/app/utils/templates/template-registry";
 import { useAtom } from "jotai";
@@ -19,7 +17,6 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useEditorAppearance } from "../hooks/use-editor-appearance";
 import { useActiveEditorView } from "../hooks/use-active-editor-view";
 import { useCodeMirrorEditor } from "../hooks/use-codemirror-editor";
-import { useGitBaseline } from "../hooks/use-git-baseline";
 import { useCodeMirrorFeatures } from "../hooks/use-codemirror-features";
 import { useCodeMirrorTemplates } from "../hooks/use-codemirror-templates";
 import { useVaultTemplateInsert } from "../hooks/use-vault-template-insert";
@@ -53,6 +50,8 @@ import { useVimStatus } from "../hooks/use-vim-status";
 import TemplateStrip from "./TemplateStrip";
 import EmptyNoteTemplates from "./EmptyNoteTemplates";
 import { useTemplateNote } from "../hooks/use-template-note";
+import { atom_companionProposals } from "@/app/atoms/companion-atoms";
+import { decideHunk } from "./companion/proposal";
 
 interface MarkdownEditorProps {
   value: string;
@@ -76,8 +75,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const showWordCount = useAtomValue(atom_showWordCount);
   const showOutline = useAtomValue(atom_showOutline);
   const showInvisibles = useAtomValue(atom_showInvisibles);
-  const showGitChanges = useAtomValue(atom_showGitChanges);
-  const isDiskVault = useAtomValue(atom_vaultDescriptor)?.kind === "local";
   const vimMode = useAtomValue(atom_vimMode);
   // Paragraph or sentence dimming and typewriter scrolling: the two
   // strongest Focus levels.
@@ -88,10 +85,16 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
   const [, setIsEditorFocused] = useAtom(atom_isEditorFocused);
   const filePath = props.filePath || "draft";
-  // Not before the user allows access to a restored vault: HEAD can't be read until then.
-  const isVaultPending = useAtomValue(atom_isVaultPending);
-  const gitEnabled = showGitChanges && isDiskVault && !isVaultPending && filePath !== "draft";
   const [editorView, setEditorView] = useState<EditorView | null>(null);
+  const [proposals, setProposals] = useAtom(atom_companionProposals);
+  const proposalRanges = React.useMemo(() => proposals
+    .filter((proposal) => proposal.path === filePath)
+    .flatMap((proposal) => proposal.hunks.flatMap((hunk, index) => hunk.status === "pending"
+      ? [{
+        from: hunk.from, to: hunk.to, insert: hunk.insert, active: index === proposal.activeHunkIndex,
+        onDecide: (status: "accepted" | "rejected") => setProposals((all) => decideHunk(all, proposal.id, hunk.id, status)),
+      }]
+      : [])), [proposals, filePath, setProposals]);
 
   const editorValue = props.value;
   const editorOnChange = useCallback((newVal: string) => {
@@ -237,7 +240,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     wordWrap,
     lineNumbers,
     showInvisibles,
-    gitChanges: gitEnabled,
     vimMode,
     flowMode,
     onOpenActiveHelperRef: openActiveHelperRef,
@@ -253,8 +255,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     pasteImageRef,
     onViewCreated: handleViewCreated,
     filePath,
+    proposalRanges,
   });
-  useGitBaseline({ viewRef, vaultHandle, filePath, enabled: gitEnabled });
   useVerifyingReadOnly(editorView, filePath);
   // After useCodeMirrorEditor, so the Vim compartment is live (see the hook).
   const { hostRef: vimStatusHostRef, status: vimStatus } = useVimStatus(editorView, vimMode);

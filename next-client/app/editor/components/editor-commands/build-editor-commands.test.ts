@@ -67,7 +67,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     setRevealAllPrivate: vi.fn(),
     setRevealedPrivatePaths: vi.fn(),
     activeFileHandle: { name: "Note.md" },
-    activeEditorView: {},
+    activeEditorView: { state: { selection: { main: { from: 0, to: 0 } } } },
     activeLeaf,
     activeFilePath: "Note.md",
     handleCopy: vi.fn(),
@@ -142,7 +142,6 @@ describe("buildEditorCommands", () => {
       "move-current-file",
       "close-other-tabs",
       "toggle-hidden-files",
-      "token-cost",
       "privacy-mode-show-title",
       "privacy-mode-hidden",
       "reveal-private-session",
@@ -158,6 +157,7 @@ describe("buildEditorCommands", () => {
       "export-vault-zip",
       "import-into-vault",
       "ai-menu",
+      "ai-rewrite-selection",
       "ai-new-chat",
       "ai-compact-chat",
       "focus-editor",
@@ -182,8 +182,6 @@ describe("buildEditorCommands", () => {
       "go-to-line",
       "fold-current-section",
       "unfold-all-sections",
-      "next-git-change",
-      "previous-git-change",
       "indent-subtree",
       "outdent-subtree",
       "toggle-checkbox",
@@ -243,7 +241,7 @@ describe("buildEditorCommands", () => {
     const ask = commands.find((command) => command.id === "ai-menu");
     expect(ask?.label).toBe("Ask AI");
     expect(ask?.subcommands).toBeUndefined();
-    expect(commands.filter((command) => command.category === "AI").map((command) => command.id)).toEqual(["ai-menu", "ai-new-chat", "ai-compact-chat"]);
+    expect(commands.filter((command) => command.category === "AI").map((command) => command.id)).toEqual(["ai-menu", "ai-rewrite-selection", "ai-new-chat", "ai-compact-chat"]);
     ask?.action();
     expect(context.setAiBuilderRequest).toHaveBeenCalledOnce();
     commands.find((command) => command.id === "ai-new-chat")?.action();

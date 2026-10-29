@@ -24,8 +24,8 @@ export type NoteToolResult = { output: string; activity: string };
 
 // The read-only note tools, run in the browser against the open vault:
 // search_notes (content index, plus names and tags), read_note and
-// list_open_tasks. The AI companion (companion/use-companion-tools.ts) and WebMCP
-// (hooks/use-webmcp-tools.ts) both run them through `runTool`.
+// list_open_tasks. The AI companion (companion/use-companion-tools.ts)
+// runs them through `runTool`.
 export function useNoteTools() {
   const store = useStore();
   const { readCurrentText } = useNoteBuffer();

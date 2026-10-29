@@ -1,6 +1,6 @@
 # Toast
 
-Description: Persistent call-to-action card with icon, title, action button, and an optional inline name field, on the panel material (`.glass-panel`, see DESIGN.md) with the description in `text-fg-muted` so it reads over the page behind. The action button is a plain primary button and isn't focused when the card appears (focusing it drew its focus ring at once); with a name field, the field takes focus and Enter in it takes the action.
+Description: Persistent call-to-action card with icon, title, action button, and an optional inline name field, on the panel material (`.glass-panel`, see DESIGN.md) with the description in `text-fg-muted` so it reads over the page behind. The action button is a plain primary button and isn't focused when the card appears (focusing it drew its focus ring at once); with a name field, the field takes focus and Enter in it takes the action. Its dismiss control uses the shared `Button` close treatment and `IoClose` glyph.
 
 ## Local State & Storage
 - State: Dismissed and closing flags (useState).

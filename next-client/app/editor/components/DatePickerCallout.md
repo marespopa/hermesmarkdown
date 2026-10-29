@@ -1,6 +1,6 @@
 # DatePickerCallout
 
-Description: Calendar dialog for picking or replacing a date in the editor, with keyboard navigation and quick relative actions.
+Description: Calendar dialog for picking or replacing a date in the editor, with keyboard navigation, quick relative actions, and the shared `Button` close treatment with the `IoClose` glyph.
 
 ## Local State & Storage
 - State: Viewed month and focused day (useState/useMemo).

@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { HiOutlineCheck, HiOutlineDocumentDuplicate } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import TextLink from "@/app/components/TextLink";
 import { replyItems, typedText, type CompanionMessage as Message } from "./companion-messages";
-import PlanCard from "./PlanCard";
 import ToolActivityChip from "./ToolActivityChip";
 import TrashConfirmCard from "./TrashConfirmCard";
 import { atom_trashRequests } from "./trash-confirm";
@@ -17,14 +16,14 @@ import { replyToHtml } from "./reply-html";
 // the summary a compacted thread starts with (/compact) shows as a quiet
 // card.
 // An assistant turn shows its parts in order: text rendered as Markdown
-// (reply-html.ts; web links open in a new tab), the plan as one PlanCard,
+// (reply-html.ts; web links open in a new tab)
 // and a trash call waiting for the user's answer as its TrashConfirmCard.
 // Finished and failed tool calls are debugging detail, left behind a quiet
 // "Show N steps"; a running call is left to the thread's working line while
 // `working`,
 // then the pages a web search drew on as links. Its Markdown can be copied: the latest reply always shows Copy,
 // earlier ones on hover or keyboard focus.
-export default function CompanionMessage({ message, activities, latest = false, working = false, autoModel }: { message: Message; activities: Record<string, string>; latest?: boolean; working?: boolean; autoModel?: string }) {
+function CompanionMessage({ message, activities, latest = false, working = false, autoModel }: { message: Message; activities: Record<string, string>; latest?: boolean; working?: boolean; autoModel?: string }) {
   const [copied, setCopied] = useState(false);
   const [showSteps, setShowSteps] = useState(false);
   const trashRequests = useAtomValue(atom_trashRequests);
@@ -76,7 +75,6 @@ export default function CompanionMessage({ message, activities, latest = false, 
   return (
     <div className="group flex flex-col gap-1.5">
       {items.map((item) => {
-        if ("plan" in item) return <PlanCard key="plan" steps={item.plan} />;
         if ("tool" in item) {
           const view = item.tool;
           if (trashRequests[view.toolCallId]) return <TrashConfirmCard key={view.toolCallId} toolCallId={view.toolCallId} />;
@@ -141,3 +139,6 @@ function ReplyText({ markdown }: { markdown: string }) {
     />
   );
 }
+
+// Earlier messages don't change while a reply streams: skip their re-render per token.
+export default memo(CompanionMessage);

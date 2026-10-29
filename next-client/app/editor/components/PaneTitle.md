@@ -35,4 +35,3 @@ Description: The pane's header on desktop, at its top left, in place of a toolba
 | onMenu? | `(anchor: DOMRect) => void` |  | Opens or closes the menu from a click on the name; absent makes the name plain text |
 | menuOpen? | `boolean` | `false` | The menu is open from the name: keeps its fill and `aria-expanded` |
 | menuButtonRef? | `Ref<HTMLButtonElement>` |  | The name's button, the menu's `anchorRef` |
-

@@ -12,7 +12,7 @@ const keyEvent = (init: KeyboardEventInit) => new KeyboardEvent("keydown", init)
 describe("page shortcuts", () => {
   it("matches Ctrl+Alt+letter by key off macOS", () => {
     expect(matchPageShortcut(keyEvent({ ctrlKey: true, altKey: true, key: "t", code: "KeyT" }))?.label).toBe("Tasks");
-    expect(matchPageShortcut(keyEvent({ ctrlKey: true, altKey: true, key: "g", code: "KeyG" }))?.label).toBe("Changes");
+    expect(matchPageShortcut(keyEvent({ ctrlKey: true, altKey: true, key: "g", code: "KeyG" }))).toBeUndefined();
     expect(matchPageShortcut(keyEvent({ ctrlKey: true, key: ",", code: "Comma" }))?.label).toBe("Settings");
   });
 

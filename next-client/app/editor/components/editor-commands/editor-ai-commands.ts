@@ -12,7 +12,6 @@ import {
 } from "../../codemirror/commands";
 import { setHeading, toggleCodeBlock, wrapAsLink } from "../../codemirror/format-shortcuts";
 import { foldCurrentSection, unfoldAllSections } from "../../codemirror/heading-fold";
-import { goToNextGitChange, goToPreviousGitChange } from "../../codemirror/git-changes";
 import { gotoLine, openSearchPanel } from "@codemirror/search";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
@@ -29,6 +28,7 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     isAiConfigured,
     runEditorCommand,
     setAiBuilderRequest,
+    openCompanion,
     requestCompanionAction,
   } = context;
 
@@ -71,8 +71,6 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     { id: "go-to-line", label: "Go to Line…", category: "Editor" as const, shortcut: formatShortcut("G", { alt: true }), keywords: "jump line number goto", action: () => runEditorCommand(gotoLine) },
     { id: "fold-current-section", label: "Fold current section", category: "Editor" as const, shortcut: formatShortcut(".", { shift: true }), keywords: "collapse heading outline hide", action: () => runEditorCommand(foldCurrentSection) },
     { id: "unfold-all-sections", label: "Unfold all sections", category: "Editor" as const, shortcut: formatShortcut(",", { shift: true }), keywords: "expand headings sections show", action: () => runEditorCommand(unfoldAllSections) },
-    { id: "next-git-change", label: "Next Git change", category: "Editor" as const, shortcut: isMacPlatform() ? "⌥F5" : "Alt+F5", keywords: "diff changes git head commit jump hunk", action: () => runEditorCommand(goToNextGitChange) },
-    { id: "previous-git-change", label: "Previous Git change", category: "Editor" as const, shortcut: isMacPlatform() ? "⇧⌥F5" : "Shift+Alt+F5", keywords: "diff changes git head commit jump hunk", action: () => runEditorCommand(goToPreviousGitChange) },
     { id: "indent-subtree", label: "Indent current item", category: "Editor" as const, keywords: "nest list task", action: () => runEditorCommand(indentCurrentSubtree) },
     { id: "outdent-subtree", label: "Outdent current item", category: "Editor" as const, keywords: "unnest list task", action: () => runEditorCommand(outdentCurrentSubtree) },
     { id: "toggle-checkbox", label: "Toggle checkbox", category: "Tasks" as const, keywords: "task done todo", action: () => runEditorCommand(toggleCheckboxOnLine) },
@@ -111,6 +109,7 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
   // or replace the thread with its summary (as /new and /compact). With AI
   // Features off, there are none.
   const noKey = isAiConfigured ? undefined : "Add an API key in Settings → AI Features";
+  const hasSelection = !!activeEditorView && activeEditorView.state.selection.main.from !== activeEditorView.state.selection.main.to;
   const aiMenu: Command[] = !isAiEnabled ? [] : [{
     id: "ai-menu",
     label: "Ask AI",
@@ -120,6 +119,17 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     keywords: "ai assistant chat prompt ask companion rewrite improve summarize edit",
     disabledReason: noKey,
     action: () => setAiBuilderRequest((value) => value + 1),
+  }, {
+    id: "ai-rewrite-selection",
+    label: "Rewrite selected text with AI",
+    description: "Creates a reviewable proposal; it does not edit the note immediately",
+    category: "AI",
+    keywords: "ai rewrite transform improve selection proposal review",
+    disabledReason: noKey ?? (hasSelection ? undefined : "Select text in the editor first"),
+    action: () => openCompanion({
+      prompt: "Rewrite the selected text for clarity. Use edit_file to propose the change for review; do not make any direct write.",
+      autoSend: true,
+    }),
   }, {
     id: "ai-new-chat",
     label: "New AI chat",

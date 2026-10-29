@@ -1,6 +1,6 @@
 import LandingPage from "./components/LandingPage/LandingPage";
 import { LANDING_FAQ } from "./components/LandingPage/landing-content";
-import { serializeJsonLd } from "./tools/components/tool-json-ld";
+import { serializeJsonLd } from "./utils/json-ld";
 
 // Same questions and answers as the FAQ section on the page.
 const FAQ_JSON_LD = {

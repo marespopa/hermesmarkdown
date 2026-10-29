@@ -8,7 +8,6 @@ import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesReve
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import SidebarFiles from "./sidebar/SidebarFiles";
-import SidebarFooter from "./sidebar/SidebarFooter";
 import SidebarHeader from "./sidebar/SidebarHeader";
 import SidebarPinned from "./sidebar/SidebarPinned";
 import SidebarSystemFilters from "./sidebar/SidebarSystemFilters";
@@ -120,7 +119,7 @@ export default function WorkspaceSidebar() {
       style={{ width, left: open ? 0 : -width }}
       className="absolute inset-y-0 flex flex-col bg-surface paper-grain border-r border-edge-subtle font-sans transition-[left] duration-layout ease-layout motion-reduce:transition-none"
     >
-      <SidebarHeader onNewNote={navigation.newNote} onHide={() => setOpen(false)} />
+      <SidebarHeader onHide={() => setOpen(false)} />
       {hasVault && <SidebarTabs tab={activeTab} onChange={switchTab} />}
 
       {/* The scroll box: the Files tree virtualizes its rows against it (data-scroll-root).
@@ -171,7 +170,6 @@ export default function WorkspaceSidebar() {
         )}
       </div>
 
-      <SidebarFooter />
 
       {/* Resize handle on the trailing edge: a hairline lights up on hover
           and while dragging; arrow keys resize it too (Shift: larger steps). */}

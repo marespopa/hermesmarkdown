@@ -13,7 +13,6 @@ import CompanionPanel from "./CompanionPanel";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 const send = vi.fn();
-const newChat = vi.fn();
 const compact = vi.fn();
 const setModel = vi.fn();
 let messages: unknown[] = [];
@@ -26,7 +25,6 @@ vi.mock("./use-companion-chat", () => ({
     activities: {},
     send,
     stop: vi.fn(),
-    newChat,
     compact,
     compacting: false,
     undoTurn: vi.fn(),
@@ -65,9 +63,9 @@ describe("CompanionPanel", () => {
     expect(panel()).toHaveAttribute("inert");
   });
 
-  it("closes from its Close button and with Escape", () => {
+  it("collapses from its Hide AI companion button and with Escape", () => {
     const store = setup();
-    fireEvent.click(screen.getByRole("button", { name: "Close AI panel" }));
+    fireEvent.click(screen.getByRole("button", { name: "Hide AI companion" }));
     expect(store.get(atom_companionOpen)).toBe(false);
 
     act(() => store.set(atom_companionOpen, true));
@@ -108,23 +106,29 @@ describe("CompanionPanel", () => {
     ));
   });
 
-  it("picks the model from its menu, whose Escape leaves the panel open", () => {
+  it("filters and picks the model from its typeahead, whose Escape leaves the panel open", () => {
     const store = setup();
-    fireEvent.click(screen.getByRole("button", { name: /Claude Sonnet 5/ }));
-    fireEvent.keyDown(screen.getByRole("menuitemcheckbox", { name: /Claude Opus 4.8/ }), { key: "Escape" });
+    expect(screen.queryByRole("textbox", { name: "Model" })).toBeNull();
+    fireEvent.click(screen.getByTitle("Model"));
+    const field = screen.getByRole("textbox", { name: "Model" });
+    fireEvent.change(field, { target: { value: "opus" } });
+    fireEvent.keyDown(field, { key: "Escape" });
     expect(store.get(atom_companionOpen)).toBe(true);
 
-    fireEvent.click(screen.getByRole("button", { name: /Claude Sonnet 5/ }));
-    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: /Claude Opus 4.8/ }));
+    fireEvent.click(screen.getByTitle("Model"));
+    const reopenedField = screen.getByRole("textbox", { name: "Model" });
+    fireEvent.change(reopenedField, { target: { value: "opus" } });
+    fireEvent.click(screen.getByText("Claude Opus 4.8"));
     expect(setModel).toHaveBeenCalledWith("opus-4-8");
   });
 
-  it("lists Auto first in the model menu and picks it", () => {
+  it("lists Auto first in the model typeahead and picks it", () => {
     setup();
-    fireEvent.click(screen.getByRole("button", { name: /Claude Sonnet 5/ }));
-    const rows = screen.getAllByRole("menuitemcheckbox");
-    expect(rows[0]).toHaveAccessibleName("Auto");
-    fireEvent.click(rows[0]);
+    fireEvent.click(screen.getByTitle("Model"));
+    const field = screen.getByRole("textbox", { name: "Model" });
+    fireEvent.focus(field);
+    expect(screen.getAllByRole("listitem")[0]).toHaveTextContent(/^Auto$/);
+    fireEvent.click(screen.getByText("Auto"));
     expect(setModel).toHaveBeenCalledWith("auto");
   });
 
@@ -153,17 +157,10 @@ describe("CompanionPanel", () => {
     expect(latest.parentElement).not.toHaveClass("opacity-0");
   });
 
-  it("offers New chat only once there is a thread, and no Summarize button", () => {
+  it("keeps header actions limited to closing the panel", () => {
     setup();
-    expect(screen.getByRole("button", { name: "New chat" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "New chat" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Summarize chat" })).toBeNull();
-  });
-
-  it("starts over from the header", () => {
-    messages = [{ id: "u1", role: "user", parts: [{ type: "text", text: "Hi" }] }];
-    setup();
-    fireEvent.click(screen.getByRole("button", { name: "New chat" }));
-    expect(newChat).toHaveBeenCalledOnce();
   });
 
   it("lists the commands after a slash, filters them and completes one with Enter", () => {

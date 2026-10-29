@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
-import type { ProjectCheckId } from "@/app/services/project-checks";
+import type { CompanionProposal } from "@/app/editor/components/companion/proposal";
 
 // The AI companion (app/editor/components/companion/): a panel docked on the
 // window's trailing edge, hidden until opened. Open, it takes room and the
@@ -28,17 +28,21 @@ export interface CompanionRequest {
   seq: number;
   path: string | null;
   selection: string;
+  prompt?: string;
+  autoSend?: boolean;
 }
 export const atom_companionRequest = atom<CompanionRequest | null>(null);
 
 // Opens the companion with the given context (or none).
 export const atom_openCompanion = atom(
   null,
-  (get, set, context: { path?: string | null; selection?: string } = {}) => {
+  (get, set, context: { path?: string | null; selection?: string; prompt?: string; autoSend?: boolean } = {}) => {
     set(atom_companionRequest, {
       seq: (get(atom_companionRequest)?.seq ?? 0) + 1,
       path: context.path ?? null,
       selection: context.selection ?? "",
+      prompt: context.prompt,
+      autoSend: context.autoSend,
     });
     set(atom_companionOpen, true);
   },
@@ -58,19 +62,6 @@ export const atom_requestCompanionAction = atom(null, (get, set, kind: Companion
 });
 
 
-export type ProjectCheckUiStatus = "approval" | "running" | "completed" | "denied" | "unavailable" | "timed_out" | "cancelled" | "failed" | "nonzero_exit" | "disconnected";
-export interface ProjectCheckUiState {
-  toolCallId: string;
-  checkId: ProjectCheckId;
-  label: string;
-  argv: string[];
-  projectRoot: string;
-  timeoutMs: number;
-  status: ProjectCheckUiStatus;
-  output: string;
-  exitCode?: number | null;
-  durationMs?: number;
-  detail?: string;
-}
-// Local-process output is ephemeral; this atom is never persisted.
-export const atom_projectCheckUiState = atom<ProjectCheckUiState | null>(null);
+// Review-first AI edits live only for this browser session. They never alter
+// the note until the user applies accepted hunks.
+export const atom_companionProposals = atom<CompanionProposal[]>([]);

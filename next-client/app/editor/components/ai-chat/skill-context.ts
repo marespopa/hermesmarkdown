@@ -4,8 +4,7 @@ import { localISODate } from "@/app/utils/task-line";
 import { isOpenStatus, TASK_STATUS_CHAR, TASK_STATUS_LABEL } from "@/app/utils/task-status";
 import type { TaskItem } from "@/app/utils/taskExtractor";
 
-// The data the tasks chat skill sends with their
-// instructions (chat-skills.ts). Pure: use-chat-skills.ts gathers the inputs.
+// The data the list_open_tasks tool sends. Pure: its callers gather the inputs.
 // Private notes (private frontmatter or content) are left out and only
 // counted, like everywhere else note text could leave the device.
 

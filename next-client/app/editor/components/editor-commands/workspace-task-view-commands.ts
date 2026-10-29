@@ -1,6 +1,5 @@
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { pageShortcutFor } from "@/app/components/CommandPalette/page-shortcuts";
-import { openTokenCostDialog } from "../../utils/open-helper-dialogs";
 import type { EditorCommandContext } from "./use-editor-command-context";
 
 export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContext) {
@@ -72,12 +71,6 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
         scanVault(vaultHandle as any, next);
         indexVaultTags?.(vaultHandle as any, next);
       },
-    },
-    {
-      id: "token-cost",
-      label: "Show Token Cost",
-      keywords: "tokens count price cost ai gpt claude gemini llm calculator note",
-      action: openTokenCostDialog,
     },
   ];
 

@@ -157,8 +157,8 @@ export const vaultGroup: Group = {
     {
       id: "git",
       title: "Using git",
-      lead: "HermesMarkdown doesn't run git: commit, pull and push with the tools you already use. It can show what changed since your last commit.",
-      keywords: "git github gitlab repository commit sync push pull source control version history diff changes inline status review",
+      lead: "HermesMarkdown doesn't run or read git: commit, pull and push with the tools you already use.",
+      keywords: "git github gitlab repository commit sync push pull source control version history",
       body: (
         <>
           <p>
@@ -168,36 +168,9 @@ export const vaultGroup: Group = {
             or indexed.
           </p>
           <p>
-            Turn on <strong>Git Changes in File</strong> (the git button in the editor's top-right
-            corner, or <strong>Toggle Git Changes</strong> in the command palette) to see what you have changed since the last
-            commit, the way a pull request shows it. Added and changed lines are tinted green and marked
-            with a +; the old lines they replaced, and lines you deleted, show above them on a red tint,
-            marked with a −, and can't be edited. The diff updates as you type, and again after you commit
-            in another tool. <strong>Next Git change</strong> (Alt+F5) and <strong>Previous Git
-            change</strong> (Shift+Alt+F5), also in the palette, jump between the changes. It shows only when
-            the <code>.git</code> folder is at the root of the vault you opened, and a file that isn't
-            committed yet is marked as all added. HermesMarkdown only reads <code>.git</code>; it never
-            runs git or writes to it.
-          </p>
-          <p>
-            <strong>Show Changes</strong> (the git button's menu, the command palette, or Ctrl/Cmd+Alt+G) opens a page that lists every file changed
-            since the last commit, with its diff, like the file list of a pull request: a summary of how
-            many files changed and how many lines were added and removed, then one section per file that
-            you can collapse. Next to the summary it says whether the list is complete: <strong>Checking N of M files…</strong> while it looks at the vault, then <strong>Up to date</strong>. The last list shows at once and is checked again each time you come back to the page or the window. Long unchanged stretches are folded; click one to show it. Files matched
-            by <code>.gitignore</code>, tool folders and secret files are left out. A file&apos;s
-            <strong>Open file</strong> button opens it at its first change. It compares the files saved on disk, not unsaved
-            edits, refreshes when you return to the window, and only reads the <code>.git</code> folder at
-            the root of the vault.
-          </p>
-          <p>
             When a pull changes a file you have open, the editor picks up the new text; if you have
             unsaved edits in that file, the conflict dialog lets you keep, take or merge the versions.
           </p>
-          <Callout type="note">
-            HermesMarkdown used to sync GitHub vaults itself. A GitHub vault from that time opens as a
-            browser vault with the same name and files. Export it as a zip, or copy the files into a
-            cloned repository, to keep using git with them.
-          </Callout>
         </>
       ),
     },

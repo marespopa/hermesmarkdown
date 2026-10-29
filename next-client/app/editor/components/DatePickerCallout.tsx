@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { HiChevronLeft, HiChevronRight, HiX } from "react-icons/hi";
+import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
+import { IoClose } from "react-icons/io5";
 import DialogModal from "../../components/DialogModal/DialogModal";
 import Button from "../../components/Button";
 
@@ -155,12 +156,12 @@ export default function DatePickerCallout({
               <HiChevronRight className="w-5 h-5 text-sage" />
             </Button>
             <Button
-              variant="icon"
+              variant="close"
               onClick={onClose}
               aria-label="Close calendar"
-              className="p-1 h-8 w-8 flex items-center justify-center hover:bg-paper-softgray dark:hover:bg-paper-dark-surface rounded-full transition-colors ml-1"
+              className="ml-1"
             >
-              <HiX className="w-4 h-4 text-stone" />
+              <IoClose size={20} aria-hidden="true" />
             </Button>
           </div>
         </div>

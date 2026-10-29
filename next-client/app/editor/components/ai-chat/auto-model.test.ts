@@ -26,6 +26,11 @@ describe("pickTier", () => {
     expect(pickTier({ ...base, retries: 1 })).toBe("balanced");
     expect(pickTier({ ...base, retries: 3 })).toBe("deep");
   });
+  it("never goes past maxTier", () => {
+    expect(pickTier({ ...base, prompt: "restructure everything", contextChars: 9000, maxTier: "balanced" })).toBe("balanced");
+    expect(pickTier({ ...base, retries: 5, maxTier: "balanced" })).toBe("balanced");
+    expect(pickTier({ ...base, maxTier: "balanced" })).toBe("fast");
+  });
   it("lets a fixed tier win", () => {
     expect(pickTier({ ...base, prompt: "restructure everything", retries: 5, fixedTier: "fast" })).toBe("fast");
   });

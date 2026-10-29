@@ -41,6 +41,7 @@ import { supportsDirectoryInput } from "@/app/services/vault-archive";
 import { usePaneFileActions } from "../../hooks/use-pane-file-actions";
 import { useCreateBoard } from "../../hooks/use-create-board";
 import { atom_activeIsBoard, atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
+import { useOpenCompanion } from "../companion/use-open-companion";
 
 export type EditorCommandsProps = {
   onNewFile: () => void;
@@ -86,6 +87,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const dialog = useDialog();
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
   const [, setAiBuilderRequest] = useAtom(atom_aiBuilderRequest);
+  const openCompanion = useOpenCompanion();
   const requestCompanionAction = useSetAtom(atom_requestCompanionAction);
   const isAiEnabled = useAtomValue(atom_aiEnabled);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
@@ -151,6 +153,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     showHiddenFiles,
     setShowHiddenFiles,
     setAiBuilderRequest,
+    openCompanion,
     requestCompanionAction,
     isAiEnabled,
     isAiConfigured,

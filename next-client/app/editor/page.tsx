@@ -21,13 +21,11 @@ import AutoSave from "./components/AutoSave";
 import MermaidDialog from "./components/MermaidDialog";
 import RenderedBlockSourceDialog from "./components/RenderedBlockSourceDialog";
 import ImageDialog from "./components/ImageDialog";
-import TokenCostDialog from "./components/TokenCostDialog";
 import PdfExport from "./components/PdfExport";
 import { useRouter } from "next/navigation";
 import { atom_isAiConfigured, atom_aiBuilderRequest, atom_showHiddenFiles, atom_newNoteRequested, atom_saveRequested } from "@/app/atoms/ui-atoms";
 import { usePaneFileActions } from "./hooks/use-pane-file-actions";
 import { useDraftImport } from "./hooks/use-draft-import";
-import { useToolHandoff } from "./hooks/use-tool-handoff";
 import { useEditorShortcuts } from "./hooks/use-editor-shortcuts";
 import { useNavigateWithGuard } from "./hooks/use-navigate-with-guard";
 import { useSyncCurrentDirectory } from "./hooks/use-sync-current-directory";
@@ -108,7 +106,6 @@ export default function LiteEditor() {
 
   const { handleImport, fileInputRef, handleFileChange, pendingDraft, offerDraft, confirmPendingDraft, cancelPendingDraft } =
     useDraftImport(importFile);
-  useToolHandoff({ offerDraft, isVaultLocked });
 
   useEffect(() => {
     const handleFocus = () => {
@@ -232,7 +229,6 @@ export default function LiteEditor() {
         <RenderedBlockSourceDialog />
         <MermaidDialog />
         <ImageDialog />
-        <TokenCostDialog />
         <PdfExport />
         
         <DraftImportDialog pendingDraft={pendingDraft} onConfirm={confirmPendingDraft} onCancel={cancelPendingDraft} />
@@ -283,6 +279,10 @@ export default function LiteEditor() {
         <SelectionToolbar
           placement={isMobileChrome ? "docked" : "above"}
           onAsk={isAiConfigured ? openCompanion : undefined}
+          onTransform={isAiConfigured ? () => openCompanion({
+            prompt: "Rewrite the selected text for clarity. Use edit_file to propose the change for review; do not make any direct write.",
+            autoSend: true,
+          }) : undefined}
         />
       </div>
     </ErrorBoundary>

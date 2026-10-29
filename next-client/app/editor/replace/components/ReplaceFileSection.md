@@ -13,4 +13,4 @@ Description: One file of the Replace in Files preview. The header has a checkbox
 | `onToggleMatch`, `onToggleFile`, `onOpen` | callbacks | Stable, so unchanged sections don't re-render |
 
 ## Dependencies
-- `Button`, `formatCount`, `diff-classes.ts` (`ADD_ROW`, `DEL_ROW`, `CODE_FONT`) from the Changes page.
+- `Button`, `formatCount`.

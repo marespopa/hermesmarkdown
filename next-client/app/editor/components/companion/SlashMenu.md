@@ -1,6 +1,6 @@
 # SlashMenu
 
-Description: The `/` menu above the companion's input. Lists the companion's own commands (`COMPANION_COMMAND_LIST`: /new, /clear, /compact, /summarize, /summarise) and the skills (`useChatSkills().skillList()`), filtered by the text after the slash. Same look as `MentionMenu`.
+Description: The `/` menu above the companion's input. Lists the companion's own commands (`COMPANION_COMMAND_LIST`: /new, /clear, /compact, /summarize, /summarise), filtered by the text after the slash. Same look as `MentionMenu`.
 
 ## Props
 | Prop | Type | Description |

@@ -42,7 +42,7 @@ export const LANDING_PLATFORMS: LandingFeature[] = [
   },
   {
     title: "Alongside git",
-    body: "A disk vault is a plain folder, so keep it in a git repository and commit with the tools you already use. Changes since your last commit show inline, as in a pull request.",
+    body: "A disk vault is a plain folder, so keep it in a git repository and commit with the tools you already use.",
   },
 ];
 
@@ -65,7 +65,7 @@ export const LANDING_FAQ: LandingFaq[] = [
   },
   {
     q: "Can I edit code files with it?",
-    a: "Yes. Code and other text files in the vault open in the same editor, highlighted for their language, with an outline of their symbols, regex search across files and Prettier formatting. Git stays outside the browser: commit with the tools you already use, and changes since your last commit show inline.",
+    a: "Yes. Code and other text files in the vault open in the same editor, highlighted for their language, with an outline of their symbols, regex search across files and Prettier formatting. Git stays outside the browser: commit with the tools you already use.",
   },
   {
     q: "Can I use it with my Obsidian vault?",

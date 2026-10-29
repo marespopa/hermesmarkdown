@@ -6,7 +6,6 @@ Description: Loading outlines of the /editor sub-pages, so a refresh on one show
 - `FilesSkeleton` (All Files): title, vault name and create buttons, search field, count line, the tree panel with rows.
 - `SettingsSkeleton`: the section list (top strip below `lg`) and the open section's title over setting rows.
 - `TrashSkeleton`: the Trash title and note, and the item list.
-- `ChangesSkeleton`: the Changes title over `ChangesBodySkeleton` (a summary bar and two file section blocks), which the Changes page also shows while its scan has no result yet.
 - `ReplaceSkeleton`: the Replace in Files title, two field bars and three row bars.
 - `TagsSkeleton`: the tag list beside the notes column.
 

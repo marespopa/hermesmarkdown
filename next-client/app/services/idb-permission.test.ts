@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from "vitest";
-import { queryPermission, verifyPermission } from "./idb";
+import { queryPermission, requestPermissionFromUserGesture, verifyPermission } from "./idb";
 
 describe("vault permission helpers", () => {
   it("treat handles without a permission API (Safari, Firefox, browser storage) as granted", async () => {
@@ -22,5 +22,17 @@ describe("vault permission helpers", () => {
   it("report denial when there is no way to request permission", async () => {
     const handle = { queryPermission: vi.fn(async () => "prompt") };
     await expect(verifyPermission(handle as unknown as FileSystemHandle)).resolves.toBe(false);
+  });
+
+  it("requests restoration access without awaiting a permission query", async () => {
+    const handle = {
+      queryPermission: vi.fn(async () => "prompt"),
+      requestPermission: vi.fn(async () => "granted"),
+    };
+
+    await expect(requestPermissionFromUserGesture(handle as unknown as FileSystemHandle)).resolves.toBe(true);
+
+    expect(handle.queryPermission).not.toHaveBeenCalled();
+    expect(handle.requestPermission).toHaveBeenCalledWith({ mode: "readwrite" });
   });
 });

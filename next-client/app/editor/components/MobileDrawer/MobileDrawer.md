@@ -4,7 +4,7 @@ Description: The phone's left navigation drawer, an `OverlayPanel variant="edge-
 
 ## Local State & Storage
 - State: `atom_mobileDrawerOpen`, `atom_mobileDrawerTab` (`app/atoms/mobile-drawer-atoms.ts`), in memory only: it always starts closed.
-- Closing: the back gesture (OverlayPanel's `useBackButtonClose`), Escape, the backdrop, a swipe toward the left edge (`useSwipeToClose`) or ×.
+- Closing: the back gesture (OverlayPanel's `useBackButtonClose`), Escape, the backdrop, a swipe toward the left edge (`useSwipeToClose`) or the shared `Button` close control (`IoClose`).
 
 ## Behavior
 - Optimistic: opening a note or picking a tag/filter/Settings closes the drawer first, then opens the note or routes.

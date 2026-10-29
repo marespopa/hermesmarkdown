@@ -47,8 +47,7 @@ See [next-client/ARCHITECTURE.md](next-client/ARCHITECTURE.md) for the detailed 
 - Inline calculator: write `rent = 1200`, `utilities = 180`, then `rent + utilities`, and a faint `= 1380` appears at the end of the line. It supports named values, `450 + 15%` and `15% of 200`. Results are only displayed, and the file keeps just what you typed.
 - Optional flow mode (Settings → Editor or the command palette): fades everything but the paragraph you are writing and keeps the current line centered on screen.
 - Paste or drop images; they are saved to the vault's `assets/` folder and linked.
-- Optional AI (bring your own Anthropic or Gemini key): AI Chat (`Ctrl/Cmd+Shift+B`, or the Ask AI pill on a selection) with `@note` / `@vault` references, attachments and follow-ups; one-click rewrite actions with a diff review; note generation; and repurposing a note into blog/social/newsletter drafts.
-- Voice input with an editable preview before insertion (Chromium browsers).
+- Optional AI (bring your own Anthropic or Gemini key, off until you turn it on): a companion panel (`Ctrl/Cmd+J`, or Ask AI on a selection) with `@note` / `@folder` / `@vault` references, attachments and follow-ups, and rewrite actions on selected text. It reads and edits notes by proposing changes only; you accept or reject each change in a diff before anything is written.
 
 ### Tasks and metadata
 
@@ -115,8 +114,7 @@ Autosave can be configured under Settings → Autosave to save after a delay fro
 | Open quick switcher | `Ctrl/Cmd+K` or `Ctrl/Cmd+P` |
 | Open command palette | `Ctrl/Cmd+Shift+K` or `Ctrl/Cmd+Shift+P` |
 | Search file text | `Ctrl/Cmd+Shift+F` |
-| Open AI chat | `Ctrl/Cmd+Shift+B` |
-| Start/stop voice input | `Ctrl/Cmd+Shift+V` |
+| Open AI companion | `Ctrl/Cmd+J` |
 | Open a link or date | `Ctrl/Cmd+Click` |
 | Toggle a task checkbox | Click `[ ]` or `[x]` |
 | Cycle a lifecycle tag | Click the `#tag` |

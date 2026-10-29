@@ -89,4 +89,5 @@ describe("Typeahead", () => {
 
     expect(screen.queryByText("work")).not.toBeInTheDocument();
   });
+
 });

@@ -11,8 +11,7 @@ import { FOCUS_OPTIONS } from "../focus-options";
 
 // Settings → Editor: the Writing group (Vim mode, Focus, Close Sidebar While
 // Writing, Word Count) and the View group (Outline). Word wrap, line numbers,
-// invisibles and Git Changes are command-palette toggles only
-// (SettingsCommands); Git Changes is also the editor's git menu.
+// and invisibles are command-palette toggles only (SettingsCommands).
 export default function EditorSettings() {
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [focusMode, setFocusMode] = useAtom(atom_focusMode);

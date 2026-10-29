@@ -14,7 +14,7 @@ import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy
 export function useOpenCompanion() {
   const store = useStore();
   const openCompanion = useSetAtom(atom_openCompanion);
-  return useCallback(() => {
+  return useCallback((request: { prompt?: string; autoSend?: boolean } = {}) => {
     const path = store.get(atom_activeFilePath);
     const view = store.get(atom_activeEditorView);
     const isPrivate = !!path && (
@@ -22,10 +22,10 @@ export function useOpenCompanion() {
       (!!view && isPrivateContent(view.state.doc.toString()))
     );
     if (isPrivate) {
-      openCompanion({});
+      openCompanion(request);
       return;
     }
     const range = view?.state.selection.main;
-    openCompanion({ path, selection: view && range ? view.state.sliceDoc(range.from, range.to) : "" });
+    openCompanion({ ...request, path, selection: view && range ? view.state.sliceDoc(range.from, range.to) : "" });
   }, [store, openCompanion]);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import {
   atom_autosaveMode,
   atom_editorFontFamily,
@@ -8,7 +8,6 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_gitAvailable, atom_showGitChanges } from "@/app/atoms/git-atoms";
 import { atom_focusMode, atom_fullWidth, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_toggleSentenceFocus } from "@/app/atoms/ui-atoms";
 import { useRegisterCommand, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { FOCUS_OPTIONS } from "../focus-options";
@@ -28,8 +27,6 @@ export default function SettingsCommands() {
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [showWordCount, setShowWordCount] = useAtom(atom_showWordCount);
   const [showOutline, setShowOutline] = useAtom(atom_showOutline);
-  const [showGitChanges, setShowGitChanges] = useAtom(atom_showGitChanges);
-  const gitAvailable = useAtomValue(atom_gitAvailable);
   const [focusMode, setFocusMode] = useAtom(atom_focusMode);
   const toggleSentenceFocus = useSetAtom(atom_toggleSentenceFocus);
   const [, setEditorFontFamily] = useAtom(atom_editorFontFamily);
@@ -43,14 +40,6 @@ export default function SettingsCommands() {
     { id: "toggle-invisibles", label: "Toggle Invisibles", category: "Settings", keywords: "whitespace empty lines blank spaces tabs pilcrow", action: () => setShowInvisibles(!showInvisibles) },
     { id: "toggle-word-count", label: "Toggle Word Count", category: "Settings", keywords: "words stats statistics length counter", action: () => setShowWordCount(!showWordCount) },
     { id: "toggle-outline", label: "Toggle Outline", category: "Settings", keywords: "headings contents overview minimap toc view", shortcut: formatShortcut("M", { shift: true }), action: () => setShowOutline(!showOutline) },
-    {
-      id: "toggle-git-changes",
-      label: "Toggle Git Changes",
-      description: gitAvailable === false ? "No .git folder at the vault's root" : undefined,
-      category: "Settings",
-      keywords: "git diff changes gutter modified added deleted repository commit head",
-      action: () => setShowGitChanges(!showGitChanges),
-    },
     { id: "toggle-vim-mode", label: "Toggle Vim Mode", category: "Settings", keywords: "editor keybindings modal", action: () => setVimMode(!vimMode) },
     // Focus Mode on (dim other paragraphs) or off: the palette's top-level
     // switch. The levels follow, one command each; the current one is disabled.

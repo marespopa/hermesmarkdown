@@ -2,7 +2,7 @@ import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { isMarkdownPath } from "@/app/utils/file-kinds";
 
-// The pure half of search_files and update_plan: which files to search, the
+// The pure half of search_files: which files to search, the
 // matches in one file's text, and the answers. use-companion-tools.ts reads
 // the files (one at a time, on the main thread, so the palette's own search
 // worker is never interrupted) and runs these.
@@ -70,26 +70,4 @@ export function searchFilesOutput(query: string, hits: SearchMatch[], { limit, t
   const lines = hits.map(({ path, line, text }) => `${path}:${line}: ${text}`);
   const note = hits.length >= limit ? `\n[stopped at ${limit} matches; narrow the query or folder for the rest]` : truncated ? `\n[searched ${scanned} files; narrow it with folder to cover the rest]` : "";
   return `${hits.length} match${hits.length === 1 ? "" : "es"}:\n${lines.join("\n")}${note}`;
-}
-
-export type PlanStep = { text: string; status: "pending" | "in_progress" | "done" };
-
-const MARK = { pending: "[ ]", in_progress: "[~]", done: "[x]" } as const;
-
-// The steps of an update_plan call's input, malformed ones dropped.
-export function parsePlanSteps(raw: unknown): PlanStep[] {
-  return (Array.isArray(raw) ? raw : [])
-    .map((step) => ({ text: String(step?.text ?? "").trim(), status: step?.status === "done" || step?.status === "in_progress" ? step.status : "pending" }) as PlanStep)
-    .filter((step) => step.text);
-}
-
-// update_plan's answer (the list back to the model) and its chip's detail.
-export function planOutput(raw: unknown): { output: string; detail: string } {
-  const steps = parsePlanSteps(raw);
-  if (!steps.length) return { output: "The plan had no steps. Send each step with its status.", detail: "empty" };
-  const done = steps.filter((step) => step.status === "done").length;
-  return {
-    output: `Plan, ${done} of ${steps.length} done:\n${steps.map((step) => `${MARK[step.status]} ${step.text}`).join("\n")}`,
-    detail: `${done} of ${steps.length} done`,
-  };
 }

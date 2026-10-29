@@ -16,7 +16,7 @@ vi.mock("../utils/rendered-block-cache", () => ({
     Promise.resolve(source.includes("bad") ? { error: "Parse error" } : { html: `<div data-rendered="${kind}">${source}</div>` })),
 }));
 
-import { applyRenderedBlockEdit, collectRenderedBlocks, openRenderedBlockAtCaret, renderedBlockExtension } from "./rendered-block";
+import { applyRenderedBlockEdit, collectRenderedBlocks, openRenderedBlockAtCaret, renderedBlockExtension, renderedBlockField } from "./rendered-block";
 
 const views: EditorView[] = [];
 
@@ -93,6 +93,31 @@ describe("collectRenderedBlocks", () => {
 });
 
 describe("renderedBlockExtension", () => {
+  it("maps rendered blocks through edits outside their lines", () => {
+    const view = makeView("Intro\n\n```mermaid\ngraph TD\n```\nAfter");
+    const before = view.state.field(renderedBlockField);
+
+    view.dispatch({ changes: { from: 0, insert: "Longer\n" } });
+
+    const after = view.state.field(renderedBlockField);
+    expect(after.matches).not.toBe(before.matches);
+    expect(after.matches[0]).toMatchObject({
+      from: before.matches[0].from + "Longer\n".length,
+      to: before.matches[0].to + "Longer\n".length,
+      source: "graph TD",
+    });
+    expect(view.dom.querySelector(".cm-rendered-block")).not.toBeNull();
+  });
+
+  it("refreshes rendered blocks when their source changes", () => {
+    const view = makeView("```mermaid\ngraph TD\n```");
+    const source = view.state.doc.toString().indexOf("TD");
+
+    view.dispatch({ changes: { from: source, to: source + 2, insert: "LR" } });
+
+    expect(view.state.field(renderedBlockField).matches).toMatchObject([{ source: "graph LR" }]);
+  });
+
   it("replaces the source with the rendered output", async () => {
     const view = makeView("Intro\n\n```mermaid\ngraph TD\n```\n");
     await waitFor(() => {

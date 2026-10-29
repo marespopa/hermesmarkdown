@@ -1,5 +1,4 @@
 import { MetadataRoute } from "next";
-import { TOOLS, toolPath } from "./tools/content/tools";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://hermesmarkdown.com";
@@ -48,18 +47,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.7,
     },
-    {
-      url: `${baseUrl}/tools`,
-      lastModified: currentDate,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    // One entry per free tool, from the catalog.
-    ...TOOLS.map((tool) => ({
-      url: `${baseUrl}${toolPath(tool)}`,
-      lastModified: currentDate,
-      changeFrequency: "monthly" as const,
-      priority: 0.8,
-    })),
   ];
 }

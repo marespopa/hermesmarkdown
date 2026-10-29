@@ -28,8 +28,8 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
   loadVaultHandle,
   clearVaultHandle,
-  verifyPermission,
   queryPermission,
+  requestPermissionFromUserGesture,
 } from "@/app/services/idb";
 import { metadataWorker, isIdbSupported } from "./shared";
 import {
@@ -47,7 +47,6 @@ import { useOpenVault } from "./use-open-vault";
 import { clearNoteContent } from "@/app/services/content-search-client";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { loadStoredWorkspace } from "./stored-workspace";
-import { migrateLegacyGitHubVaults } from "@/app/services/legacy-github-vaults";
 import { readVaultHint, writeVaultHint } from "@/app/services/vault-hint";
 
 // Each scan and each indexing run takes a number; an older one drops its
@@ -191,7 +190,7 @@ export function useVaultManager() {
     isRestoringRef.current = true;
 
     try {
-      const granted = await verifyPermission(vaultHandle);
+      const granted = await requestPermissionFromUserGesture(vaultHandle);
       if (granted) {
         // Pending (route hidden, inert) until the open notes are bound and the
         // top folder listed; the vault is then indexed behind the editor.
@@ -256,10 +255,7 @@ export function useVaultManager() {
 
     // Restores the saved vault, resolving whether there was one to restore.
     async function restoreSavedVault(): Promise<boolean> {
-      // Once: GitHub vaults left from before their removal become browser
-      // vaults (that touches browser storage only, so the saved folder is
-      // looked up alongside).
-      const [, savedHandle] = await Promise.all([migrateLegacyGitHubVaults(), loadVaultHandle()]);
+      const savedHandle = await loadVaultHandle();
       if (savedHandle) {
         setVaultHandle(savedHandle);
         setVaultDescriptor({ kind: "local" });

@@ -3,16 +3,15 @@
 import React, { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { usePathname } from "next/navigation";
+import { HiOutlineChatAlt2 } from "react-icons/hi";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import { atom_isAiConfigured, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { atom_companionOpen, atom_companionWidth } from "@/app/atoms/companion-atoms";
 import { atom_isVaultPending, atom_isVaultRestoring } from "@/app/atoms/vault-atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
-import { useBackgroundGitScan } from "@/app/hooks/use-background-git-scan";
 import { useVaultPins } from "@/app/hooks/use-vault-pins";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
 import { useVaultTreeSnapshot } from "@/app/hooks/use-vault-tree-snapshot";
-import { useWebMcpTools } from "@/app/hooks/use-webmcp-tools";
 import { PageShortcuts } from "@/app/components/CommandPalette/use-page-shortcuts";
 import { formatShortcut } from "@/app/utils/platform";
 import { useRecentVaultTracker } from "../hooks/use-recent-vaults";
@@ -22,7 +21,6 @@ import NewVaultDialog from "./NewVaultDialog";
 import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 import PaneToolbarButton from "./PaneToolbarButton";
 import CopyContentButton from "./CopyContentButton";
-import GitChangesToggleButton from "./GitChangesToggleButton";
 import OutlineToggleButton from "./OutlineToggleButton";
 import SearchPill from "./SearchPill";
 import WorkspaceSidebar from "./WorkspaceSidebar";
@@ -89,13 +87,10 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   useVaultPins(!isVaultLocked);
   useVaultSync();
   // The Changes scan, warmed up early so that page opens with a result.
-  useBackgroundGitScan(!isVaultLocked);
   // The tree as last seen, until the vault's walk lists it again.
   useVaultTreeSnapshot();
   // On every route, so the Vault menu lists the recents from Settings too.
   useRecentVaultTracker();
-  // Browser agents (WebMCP), when turned on in Settings.
-  useWebMcpTools(!isVaultLocked);
   const onEditor = usePathname() === "/editor";
   // The AI companion, on the trailing edge, once AI is set up.
   const hasCompanion = useAtomValue(atom_isAiConfigured) && !isVaultLocked && !onSettings;
@@ -131,6 +126,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
     "--content-left": `${hasSidebar && sidebarOpen ? sidebarWidth : 0}px`,
     // The open companion's room; on mobile it is a sheet over the page.
     "--content-right": `${hasCompanion && !isMobileChrome && companionOpen ? companionWidth : 0}px`,
+    "--companion-toggle-room": `${hasCompanion && !isMobileChrome && !companionOpen ? 56 : 0}px`,
   } as CSSProperties;
 
   return (
@@ -157,17 +153,27 @@ export default function EditorShell({ children }: { children: ReactNode }) {
           />
         </div>
       )}
+      {hasCompanion && !isMobileChrome && !companionOpen && (
+        <div className={`${PANE_SECTION_CLASS} fixed top-1.5 right-2 !ml-0 z-30`}>
+          <PaneToolbarButton
+            icon={<HiOutlineChatAlt2 size={PANE_ICON_SIZE} />}
+            label="AI Companion"
+            tooltip="Open AI companion"
+            shortcut={formatShortcut("J")}
+            tooltipPosition="bottom-end"
+            onClick={() => setCompanionOpen(true)}
+          />
+        </div>
+      )}
       {hasSidebar && onEditor && (
         // The way into the command palette, the center of the app: every
         // note and command (as Ctrl/Cmd+K). Placed as in ShellPage's title
         // bar, so it stays put moving between the editor and the pages.
-        // Copy Contents sits just left of it, the outline toggle left of that,
-        // and the Git Changes toggle left of the outline toggle.
+        // Copy Contents sits just left of it, the outline toggle left of that.
         <div
-          style={{ right: "calc(var(--content-right, 0px) + 2rem)" }}
+          style={{ right: "calc(var(--content-right, 0px) + var(--companion-toggle-room, 0px) + 2rem)" }}
           className="fixed top-1.5 z-30 flex items-center gap-1.5 transition-[right] duration-layout ease-layout motion-reduce:transition-none"
         >
-          <GitChangesToggleButton />
           <OutlineToggleButton />
           <CopyContentButton />
           <SearchPill />

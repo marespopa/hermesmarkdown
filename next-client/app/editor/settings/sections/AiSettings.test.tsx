@@ -2,7 +2,7 @@ import React from "react";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Provider, createStore } from "jotai";
-import { atom_aiEnabled, atom_aiProvider, atom_aiWebSearchEnabled, atom_claudeKey, atom_isAiConfigured, atom_ollamaBaseUrl, atom_selectedAiModel, atom_ollamaKey, atom_webMcpEnabled, atom_webMcpWritesEnabled } from "@/app/atoms/ui-atoms";
+import { atom_aiEnabled, atom_aiProvider, atom_aiWebSearchEnabled, atom_claudeKey, atom_isAiConfigured, atom_ollamaBaseUrl, atom_selectedAiModel, atom_ollamaKey } from "@/app/atoms/ui-atoms";
 import AiSettings from "./AiSettings";
 
 vi.mock("@/app/services/ai", () => ({
@@ -62,7 +62,7 @@ describe("AiSettings", () => {
     });
     const select = screen.getByRole("combobox", { name: "Model" });
     expect(select).not.toBeDisabled();
-    expect((select as HTMLSelectElement).options[0]).toHaveTextContent("Auto (picks by task)");
+    expect((select as HTMLSelectElement).options[0]).toHaveTextContent("Auto");
     expect(store.get(atom_selectedAiModel)).toBe("auto");
 
     await screen.findByRole("option", { name: "Claude Sonnet 5" });
@@ -118,18 +118,6 @@ describe("AiSettings", () => {
     expect(screen.queryByText("API key")).not.toBeInTheDocument();
   });
 
-  it("keeps Browser agents off by default and separate from AI features", () => {
-    const store = renderWith();
-    const browserAgents = screen.getByRole("switch", { name: "Let browser agents read files" });
-    expect(browserAgents).toHaveAttribute("aria-checked", "false");
-    expect(screen.getByText(/doesn't offer them yet/)).toBeInTheDocument();
-
-    fireEvent.click(browserAgents);
-
-    expect(store.get(atom_webMcpEnabled)).toBe(true);
-    expect(store.get(atom_aiEnabled)).toBe(false);
-  });
-
   it("lets Claude search the web once turned on, off by default, and not for Gemini", () => {
     const store = renderWith((s) => s.set(atom_aiEnabled, true));
     const webSearch = screen.getByRole("switch", { name: "Let the companion search the web" });
@@ -140,18 +128,6 @@ describe("AiSettings", () => {
 
     act(() => store.set(atom_aiProvider, "gemini"));
     expect(screen.queryByRole("switch", { name: "Let the companion search the web" })).toBeNull();
-  });
-
-  it("offers letting browser agents change notes only once they may read, off by default", () => {
-    const store = renderWith();
-    expect(screen.queryByRole("switch", { name: "Let browser agents change files" })).toBeNull();
-
-    fireEvent.click(screen.getByRole("switch", { name: "Let browser agents read files" }));
-    const writes = screen.getByRole("switch", { name: "Let browser agents change files" });
-    expect(writes).toHaveAttribute("aria-checked", "false");
-
-    fireEvent.click(writes);
-    expect(store.get(atom_webMcpWritesEnabled)).toBe(true);
   });
 
   it("reads as on for a key saved before the switch existed", () => {

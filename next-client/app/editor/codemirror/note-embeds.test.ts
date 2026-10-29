@@ -1,7 +1,7 @@
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { describe, expect, it, vi } from "vitest";
-import { noteEmbedsExtension, setNoteEmbeds, touchesEmbedLines, type EmbedContent } from "./note-embeds";
+import { noteEmbedRefsField, noteEmbedsExtension, setNoteEmbeds, touchesEmbedLines, type EmbedContent } from "./note-embeds";
 import { embedKey } from "../utils/note-embeds";
 
 const highlightInto = vi.fn(async () => {});
@@ -121,6 +121,19 @@ describe("touchesEmbedLines", () => {
     view.dispatch({ changes: { from: 0, insert: "Longer " } });
     expect(embeds(view)).toHaveLength(1);
     expect(view.state.doc.lineAt(view.posAtDOM(embeds(view)[0])).text).toBe("![[Roadmap]]");
+    cleanup();
+  });
+
+  it("keeps cached refs for ordinary edits and refreshes them for embed lines", () => {
+    const { view, cleanup } = createEditor(DOC);
+    const refs = view.state.field(noteEmbedRefsField);
+
+    view.dispatch({ changes: { from: 0, insert: "Longer " } });
+    expect(view.state.field(noteEmbedRefsField)).toBe(refs);
+
+    const embed = view.state.doc.toString().indexOf("Roadmap");
+    view.dispatch({ changes: { from: embed, to: embed + "Roadmap".length, insert: "Plan" } });
+    expect(view.state.field(noteEmbedRefsField)).toEqual([{ target: "Plan", heading: null, kind: "note" }]);
     cleanup();
   });
 });

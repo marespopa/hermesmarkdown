@@ -33,7 +33,7 @@ vi.mock("@/app/services/replace-client", () => ({
 }));
 vi.mock("./use-replace-files", () => ({ useReplaceFiles: () => replaceFiles }));
 vi.mock("./use-apply-replace", () => ({ useApplyReplace: () => ({ apply, undo }) }));
-vi.mock("../changes/use-open-change", () => ({ useOpenChange: () => openAt }));
+vi.mock("./use-open-match", () => ({ useOpenMatch: () => openAt }));
 
 const grepFile = (path: string): GrepFile => ({ path, name: path.split("/").pop()!, isNote: true });
 const match = (ordinal: number, line: number, text: string, extra: Partial<ReplaceMatch> = {}): ReplaceMatch => ({

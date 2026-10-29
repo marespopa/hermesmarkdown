@@ -26,4 +26,5 @@ import Typeahead from "@/app/components/Typeahead";
 | options | `string[]` |  | Suggestions |
 | allowMultiple? | `boolean` | `false` | Comma-separated values |
 | onOptionSelect? / onDismiss? | handlers |  | Selection / escape |
-| label? / placeholder? / autoFocus? |  |  | Passed through to `Input` |
+| label? / ariaLabel? / placeholder? / autoFocus? |  |  | Passed through to `Input` |
+| className? / inputClassName? |  |  | Layout and field-style overrides passed through to `Input` |

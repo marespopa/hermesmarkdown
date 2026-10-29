@@ -193,6 +193,22 @@ export function touchesEmbedLines(transaction: Transaction): boolean {
   return touched;
 }
 
+function findEmbedRefs(state: EditorState): readonly EmbedRef[] {
+  const text = state.doc.toString();
+  if (!text.includes("![[") && !/^\s*\//m.test(text)) return [];
+  return findEmbeds(text).map(({ ref }) => ref);
+}
+
+// The React loader needs the same references as the widget extension. Keep
+// them in editor state so ordinary edits do not make React rescan the note.
+export const noteEmbedRefsField = StateField.define<readonly EmbedRef[]>({
+  create: findEmbedRefs,
+  update(value, transaction) {
+    if (!transaction.docChanged || !touchesEmbedLines(transaction)) return value;
+    return findEmbedRefs(transaction.state);
+  },
+});
+
 function buildDecorations(state: EditorState): DecorationSet {
   const text = state.doc.toString();
   if (!text.includes("![[") && !/^\s*\//m.test(text)) return Decoration.none;
@@ -214,4 +230,4 @@ const noteEmbedsField = StateField.define<DecorationSet>({
   provide: (field) => EditorView.decorations.from(field),
 });
 
-export const noteEmbedsExtension: Extension = [noteEmbedsDataField, noteEmbedsField];
+export const noteEmbedsExtension: Extension = [noteEmbedsDataField, noteEmbedRefsField, noteEmbedsField];

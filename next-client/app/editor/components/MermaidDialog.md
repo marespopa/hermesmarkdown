@@ -1,6 +1,6 @@
 # MermaidDialog
 
-Description: Full-size viewer for a Mermaid diagram in a note, rendered locally with `mermaid` (`securityLevel: "strict"`). The viewer itself (zoom, fit, drag-to-pan, SVG download) is `MermaidViewer` with `fit="always"`, shared with the Mermaid tool page.
+Description: Full-size viewer for a Mermaid diagram in a note, rendered locally with `mermaid` (`securityLevel: "strict"`). The viewer itself (zoom, fit, drag-to-pan, SVG download) is `MermaidViewer` with `fit="always"`.
 
 ## Local State & Storage
 - State: Open state, SVG, loading and error (useState); zoom and drag live in `MermaidViewer`.

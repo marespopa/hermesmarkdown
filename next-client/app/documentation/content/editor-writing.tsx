@@ -45,8 +45,7 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <p>
           Paste rich text from a web page, Google Docs, Word or an email and it arrives as Markdown:
-          headings, lists, links, tables, bold and italics, converted the same way as the Markdown
-          Cleaner in Free Tools. A toast offers <strong>Paste as plain text</strong> if you wanted the
+          headings, lists, links, tables, bold and italics, cleaned up as it goes. A toast offers <strong>Paste as plain text</strong> if you wanted the
           bare text instead, and <code>CTRL/CMD+SHIFT+V</code> always pastes plain text. Pastes into
           code blocks, bare URLs and copies with no formatting paste as usual.
         </p>

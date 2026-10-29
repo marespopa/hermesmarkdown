@@ -41,7 +41,7 @@ interface Props {
 }
 
 // A rendered Mermaid diagram with zoom, fit, drag-to-pan and SVG download.
-// Used by MermaidDialog and the Mermaid tool page.
+// Used by MermaidDialog.
 export default function MermaidViewer({
   svg,
   loading = false,
