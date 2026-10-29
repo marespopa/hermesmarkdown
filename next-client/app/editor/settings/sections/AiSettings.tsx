@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useSyncExternalStore } from "react";
+import React, { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { HiOutlineRefresh } from "react-icons/hi";
 import {
@@ -16,8 +16,6 @@ import {
   DEFAULT_OLLAMA_BASE_URL,
   atom_selectedAiModel,
   atom_aiWebSearchEnabled,
-  atom_webMcpEnabled,
-  atom_webMcpWritesEnabled,
 } from "@/app/atoms/atoms";
 import Button from "@/app/components/Button";
 import Input from "@/app/components/Input";
@@ -25,10 +23,7 @@ import Toggle from "@/app/components/Toggle";
 import { showErrorToast, showSuccessToast } from "@/app/components/Toastr";
 import { fetchClaudeModels, fetchGeminiModels, fetchOllamaModels, isLocalBaseUrl, testAIConnection } from "@/app/services/ai";
 import { AUTO_MODEL_ID, AUTO_MODEL_LABEL } from "@/app/editor/components/ai-chat/auto-model";
-import { isWebMcpSupported } from "@/app/services/webmcp-context";
 import { SegmentedControl, SelectControl, SettingGroup, SettingItem, SettingNote } from "../components/SettingControls";
-import ProjectCheckSettings from "./ProjectCheckSettings";
-import SkillSettings from "./SkillSettings";
 
 // Per-provider copy, defaults, and the model list shown before the real one loads.
 const PROVIDERS = {
@@ -65,15 +60,10 @@ const PROVIDERS = {
 
 type Provider = keyof typeof PROVIDERS;
 
-// WebMCP support doesn't change while the page is open.
-const noSubscription = () => () => {};
-
 // Settings → AI Features: an off-by-default switch, then (once on) the
 // provider, your API key (for Ollama, its base URL and an optional key), the
 // model loaded from the key's account and a connection check, and for Claude, whether the companion may search the
 // web (off by default). Turning it off keeps the key; Remove key deletes it.
-// Below, always shown, the Browser agents switch (WebMCP, off by default),
-// and once it is on, a second one that lets them change notes (also off).
 export default function AiSettings() {
   const [aiEnabled, setAiEnabled] = useAtom(atom_aiEnabled);
   const [aiProvider, setAiProvider] = useAtom(atom_aiProvider);
@@ -89,10 +79,6 @@ export default function AiSettings() {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
   const [webSearchEnabled, setWebSearchEnabled] = useAtom(atom_aiWebSearchEnabled);
-  const [webMcpEnabled, setWebMcpEnabled] = useAtom(atom_webMcpEnabled);
-  const [webMcpWritesEnabled, setWebMcpWritesEnabled] = useAtom(atom_webMcpWritesEnabled);
-  // Read after hydration: the server render can't know the browser.
-  const webMcpSupported = useSyncExternalStore(noSubscription, isWebMcpSupported, () => false);
 
   const provider = PROVIDERS[aiProvider];
   const isOllama = aiProvider === "ollama";
@@ -302,29 +288,8 @@ export default function AiSettings() {
               : "by way of HermesMarkdown's server, which doesn't log or keep it."}
           </SettingNote>
         </SettingGroup>
-        <ProjectCheckSettings />
         </>
       )}
-      <SkillSettings />
-
-      <SettingGroup title="Browser agents">
-        <SettingItem
-          label="Let browser agents read files"
-          description={
-            webMcpSupported
-              ? "AI agents built into this browser can search your files, read one and list open tasks (WebMCP). Private files stay hidden, and nothing is written unless you allow it below. No key needed."
-              : "For AI agents built into the browser (WebMCP). This browser doesn't offer them yet."
-          }
-          control={<Toggle variant="soft" active={webMcpEnabled} onChange={setWebMcpEnabled} label="Let browser agents read files" />}
-        />
-        {webMcpEnabled && (
-          <SettingItem
-            label="Let browser agents change files"
-            description="They can also edit and create files, make folders, rename and move them, and save templates, as the AI companion does. Never the Trash or private files. Each change can be undone from its toast or with ⌘Z in Files."
-            control={<Toggle variant="soft" active={webMcpWritesEnabled} onChange={setWebMcpWritesEnabled} label="Let browser agents change files" />}
-          />
-        )}
-      </SettingGroup>
     </>
   );
 }

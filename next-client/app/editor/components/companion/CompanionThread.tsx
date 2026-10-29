@@ -6,10 +6,6 @@ import CompanionMessage from "./CompanionMessage";
 import { DelayedSpinner } from "./ToolActivityChip";
 import { companionToolActivity } from "./tools/read-tools";
 import TurnSummary from "./TurnSummary";
-import { useStore, useAtomValue } from "jotai";
-import { atom_projectCheckUiState } from "@/app/atoms/companion-atoms";
-import ProjectCheckApproval from "./ProjectCheckApproval";
-import { answerProjectCheckApproval } from "./project-check-approval";
 import ProposalReview from "./ProposalReview";
 
 // What the call in flight is doing, from the newest reply; null when none is.
@@ -55,8 +51,6 @@ interface CompanionThreadProps {
 // the error that ended a turn.
 export default function CompanionThread({ messages, activities, status, compacting = false, errorText, onUndoTurn }: CompanionThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
-  const store = useStore();
-  const projectCheck = useAtomValue(atom_projectCheckUiState);
   useEffect(() => {
     // At most once per frame, however fast tokens arrive.
     const frame = requestAnimationFrame(() => bottomRef.current?.scrollIntoView?.({ block: "end" }));
@@ -111,7 +105,6 @@ export default function CompanionThread({ messages, activities, status, compacti
           <ProposalReview />
         </div>
       )}
-      {projectCheck && <ProjectCheckApproval state={projectCheck} onApprove={() => answerProjectCheckApproval(store, true)} onDeny={() => answerProjectCheckApproval(store, false)} />}
       <div ref={bottomRef} />
     </div>
   );

@@ -25,7 +25,6 @@ This directory contains the core logic and routing for the HermesMarkdown Markdo
 - `utils/`: Shared helpers (frontmatter parsing, task extraction, workspace queries, image paste, platform detection). `utils/templates/` is the template engine and the built-in examples; `utils/periods/` names ISO weeks, months, quarters and years (the `ww` / `GGGG` date formats and the legacy `{{weekSheet}}`-style tokens).
 - `workers/`: Web worker that indexes vault metadata off the main thread.
 - `types/`: Shared TypeScript types.
-- `tools/`: Free tool pages (`/tools`: table generator, Mermaid in Markdown, AI tokenizer) that hand their result to the editor's draft; see `tools/README.md`.
 - `documentation/`, `markdown-editor/`, `what-is-hermes-md/`, `privacy-policy/`, `terms/`, `contact/`: Public site pages.
 
 ## Key Concepts

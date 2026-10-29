@@ -1,8 +1,7 @@
 import { z } from 'zod';
 
 // The read-only note tools: their descriptions and input schemas, shared by
-// the AI companion (app/services/companion-tool-defs.ts, sent to the model) and WebMCP
-// (app/services/webmcp.ts, offered to agents in the browser). Both run them
+// the AI companion (app/services/companion-tool-defs.ts, sent to the model). It runs them
 // in the browser through useNoteTools (app/editor/components/ai-chat/use-note-tools.ts).
 // Names must match CHAT_TOOL_NAMES in chat-tool-runners.ts.
 export const NOTE_TOOL_DEFS = {

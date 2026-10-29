@@ -315,7 +315,7 @@ tags: []
             { label: "Toggle Hidden Files", value: "—" },
             { label: "Theme: Light / Dark / System", value: "—" },
             { label: "Light Theme: … / Dark Theme: …", value: "The palette each mode uses" },
-            { label: "Toggle Full Width / Word Wrap / Line Numbers / Invisibles / Git Changes / Word Count / Vim Mode", value: "—" },
+            { label: "Toggle Full Width / Word Wrap / Line Numbers / Invisibles / Word Count / Vim Mode", value: "—" },
             { label: "Toggle Focus Mode", value: "Dim other paragraphs, or turn Focus off" },
             { label: "Focus: …", value: "Off, or dim other paragraphs or sentences" },
             { label: "Settings", value: "Editor Font, Text Size, Autosave, Open Settings" },
@@ -329,7 +329,7 @@ tags: []
             { label: "New Folder", value: "Choose a vault folder, then enter a name" },
             { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },
             { label: "Ask AI", value: "CTRL/CMD+J · when AI features are on" },
-            { label: "Navigate", value: "Open All Files, Open Tags, Open Tasks, Open Templates, Show Changes, Open Trash, Open Settings, Open Documentation, Send Feedback…, Show Keyboard Shortcuts" },
+            { label: "Navigate", value: "Open All Files, Open Tags, Open Tasks, Open Templates, Open Trash, Open Settings, Open Documentation, Send Feedback…, Show Keyboard Shortcuts" },
           ]}
         />
         <p>

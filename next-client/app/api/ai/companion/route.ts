@@ -4,7 +4,6 @@ import { BaseUrlError, validateBaseUrl } from '../base-url';
 import { errorMessage, errorStatus, sanitizeMessage } from '../errors';
 import { COMPANION_TOOLS, foldSystem, webSearchTool, withPromptCache } from './companion-tools';
 import { withKeepAlive } from './keep-alive';
-import { COMPANION_EXECUTION_TOOL_NAMES, COMPANION_MUTATING_TOOL_NAMES } from '@/app/services/companion-tool-defs';
 
 // The AI companion's streaming route. The client (useChat in
 // app/editor/components/companion/use-companion-chat.ts) sends the thread as
@@ -18,11 +17,10 @@ import { COMPANION_EXECUTION_TOOL_NAMES, COMPANION_MUTATING_TOOL_NAMES } from '@
 // prompt and thread for its prompt cache (withPromptCache).
 // Long replies (thinking, web search) outlast a host's default function limit.
 export const maxDuration = 300;
-const MUTATING_TOOL_NAMES = new Set<string>([...COMPANION_MUTATING_TOOL_NAMES, ...COMPANION_EXECUTION_TOOL_NAMES]);
 
 export async function POST(req: Request) {
   try {
-    const { provider, apiKey = '', baseUrl: rawBaseUrl, modelKey, system = '', messages, webSearch = false, planning = false } = await req.json() as {
+    const { provider, apiKey = '', baseUrl: rawBaseUrl, modelKey, system = '', messages, webSearch = false } = await req.json() as {
       provider?: string;
       apiKey?: string;
       baseUrl?: string;
@@ -30,7 +28,6 @@ export async function POST(req: Request) {
       system?: string;
       messages?: UIMessage[];
       webSearch?: boolean;
-      planning?: boolean;
     };
     if (!apiKey && provider !== 'ollama') return new Response('API key is required', { status: 400 });
     if (!Array.isArray(messages) || !messages.length) return new Response('No messages to answer', { status: 400 });
@@ -49,12 +46,9 @@ export async function POST(req: Request) {
     // (whether it can run beside the browser-run tools isn't settled), and
     // Ollama has none.
     const modelId = typeof model === 'string' ? model : model.modelId;
-    const planningTools = planning
-      ? Object.fromEntries(Object.entries(COMPANION_TOOLS).filter(([name]) => !MUTATING_TOOL_NAMES.has(name)))
-      : COMPANION_TOOLS;
     const tools = (provider ?? 'claude') === 'claude' && webSearch
-      ? { ...planningTools, web_search: webSearchTool(modelId) }
-      : planningTools;
+      ? { ...COMPANION_TOOLS, web_search: webSearchTool(modelId) }
+      : COMPANION_TOOLS;
     // A turn stopped mid tool call leaves a call with no result; it is dropped.
     const modelMessages = await convertToModelMessages(messages, { tools, ignoreIncompleteToolCalls: true });
     const result = provider === 'gemini' || provider === 'ollama'

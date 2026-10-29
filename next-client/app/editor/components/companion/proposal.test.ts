@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { newProposal, proposalContent } from "./proposal";
+import { decideHunk, newProposal, proposalContent } from "./proposal";
 
 describe("companion proposals", () => {
   it("keeps independently accepted hunks and leaves rejected text untouched", () => {
@@ -26,5 +26,14 @@ describe("companion proposals", () => {
 
     expect(proposal).toMatchObject({ summary: "Clarify the opening.", activeHunkIndex: 0, showWalkthroughDetails: false });
     expect(proposal.hunks[0]).toMatchObject({ explanation: "Uses simpler wording.", impact: "low" });
+  });
+
+  it("records a hunk's decision and moves on to the next hunk", () => {
+    const proposal = newProposal("turn", "Note.md", "one\ntwo\nthree\n", "ONE\ntwo\nTHREE\n");
+    const [next] = decideHunk([proposal], proposal.id, proposal.hunks[0].id, "accepted");
+
+    expect(next.hunks.map((hunk) => hunk.status)).toEqual(["accepted", "pending"]);
+    expect(next.activeHunkIndex).toBe(1);
+    expect(decideHunk([next], next.id, next.hunks[1].id, "rejected")[0].activeHunkIndex).toBe(1);
   });
 });

@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useStore } from "jotai";
 import { atom_companionProposals } from "@/app/atoms/companion-atoms";
 import { useNoteBuffer } from "@/app/hooks/file-system/use-note-buffer";
-import { applyEdits, replaceCodeBlock, type CodeBlockTarget, type FindReplace } from "./tools/edit-tools";
+import { applyEdits, type FindReplace } from "./tools/edit-tools";
 import { newProposal, proposalContent, type CompanionProposal, type ProposalHunkStatus, type ProposalImpact } from "./proposal";
 import { useCompanionWrites, type WriteResult } from "./use-companion-writes";
 
@@ -42,20 +42,11 @@ export function useCompanionProposals() {
     return proposal ? { output: `Proposed ${path} (${result.summary}). Review it before applying.`, detail: result.summary } : { output: `${path} already has exactly that text.`, detail: "not changed" };
   }, [readCurrentText, add]);
 
-  const writeFile = useCallback(async (turnId: string, path: string, content: string, details?: ProposalDetails): Promise<WriteResult> => {
-    let base: string | null;
-    try { base = await readOrMissing(path); }
-    catch (error) { return readFailure(path, error); }
-    const proposed = content || "\n";
-    const proposal = add(turnId, path, base ?? "", proposed, "write", undefined, details);
-    return proposal ? { output: `Proposed a rewrite of ${path}. Review it before applying.`, detail: "proposed" } : { output: `${path} already has exactly that text.`, detail: "not changed" };
-  }, [readOrMissing, add]);
-
-  const createFile = useCallback(async (turnId: string, path: string, content: string, operation: "create" | "plan" = "create", details?: ProposalDetails): Promise<WriteResult> => {
+  const createFile = useCallback(async (turnId: string, path: string, content: string, details?: ProposalDetails): Promise<WriteResult> => {
     try {
       const existing = await readOrMissing(path);
       if (existing === null) {
-        const proposal = add(turnId, path, "", content, operation, undefined, details);
+        const proposal = add(turnId, path, "", content, "create", undefined, details);
         return proposal ? { output: `Proposed creating ${path}. Review it before applying.`, detail: "proposed" } : { output: `${path} wasn't changed.`, detail: "not changed" };
       }
       return { output: `${path} already exists. Review it and use edit_file instead.`, detail: "exists" };
@@ -74,14 +65,6 @@ export function useCompanionProposals() {
       return { output: `A template ${path} already exists. Read it and use edit_file to change it, or pick another name.`, detail: "exists" };
     } catch (error) { return readFailure(path, error); }
   }, [readOrMissing, add]);
-
-  const editCodeBlock = useCallback(async (turnId: string, path: string, target: CodeBlockTarget, code: string, details?: ProposalDetails): Promise<WriteResult> => {
-    const base = await readCurrentText(path);
-    const result = replaceCodeBlock(base, target, code);
-    if (!result.ok) return { output: result.reason, detail: "not changed" };
-    const proposal = add(turnId, path, base, result.text, "write", undefined, details);
-    return proposal ? { output: `Proposed ${path} (${result.summary}). Review it before applying.`, detail: result.summary } : { output: `${path} already has exactly that text.`, detail: "not changed" };
-  }, [readCurrentText, add]);
 
   const setHunkStatus = useCallback((proposalId: string, hunkId: string, status: ProposalHunkStatus) => {
     store.set(atom_companionProposals, (all) => all.map((proposal) => proposal.id !== proposalId ? proposal : {
@@ -114,16 +97,14 @@ export function useCompanionProposals() {
     if (content === currentContent) return { output: "Accept at least one hunk before applying.", detail: "nothing accepted" };
     const result = proposal.operation === "create"
       ? await writes.createFile(proposal.turnId, proposal.path, content)
-      : proposal.operation === "plan"
-        ? await writes.createPlan(proposal.turnId, proposal.path, content)
-        : proposal.operation === "template"
-          ? await writes.createTemplate(proposal.turnId, proposal.templateName ?? proposal.path, content)
-          : await writes.writeFile(proposal.turnId, proposal.path, content);
+      : proposal.operation === "template"
+        ? await writes.createTemplate(proposal.turnId, proposal.templateName ?? proposal.path, content)
+        : await writes.writeFile(proposal.turnId, proposal.path, content);
     if (!["failed", "not changed", "exists", "refused", "no vault"].includes(result.detail)) {
       store.set(atom_companionProposals, (all) => all.filter((item) => item.id !== proposal.id));
     }
     return result;
   }, [readOrMissing, writes, store]);
 
-  return { editFile, writeFile, createFile, createTemplate, editCodeBlock, setHunkStatus, setActiveHunk, toggleWalkthroughDetails, discard, apply };
+  return { editFile, createFile, createTemplate, setHunkStatus, setActiveHunk, toggleWalkthroughDetails, discard, apply };
 }

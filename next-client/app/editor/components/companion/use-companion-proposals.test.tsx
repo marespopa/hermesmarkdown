@@ -10,7 +10,7 @@ const readCurrentText = vi.fn();
 vi.mock("@/app/hooks/file-system/use-note-buffer", () => ({ useNoteBuffer: () => ({ readCurrentText }) }));
 const writeFile = vi.fn();
 vi.mock("./use-companion-writes", () => ({
-  useCompanionWrites: () => ({ writeFile, createFile: vi.fn(), createPlan: vi.fn(), createTemplate: vi.fn() }),
+  useCompanionWrites: () => ({ writeFile, createFile: vi.fn(), createTemplate: vi.fn() }),
 }));
 
 function setup() {
@@ -37,7 +37,7 @@ describe("useCompanionProposals", () => {
     readCurrentText.mockRejectedValue(new Error("permission denied"));
     const { proposals, store } = setup();
 
-    const result = await proposals.writeFile("turn", "Note.md", "Hello");
+    const result = await proposals.createFile("turn", "Note.md", "Hello");
 
     expect(result).toMatchObject({ detail: "read failed", output: expect.stringContaining("permission denied") });
     expect(store.get(atom_companionProposals)).toHaveLength(0);
@@ -48,7 +48,7 @@ describe("useCompanionProposals", () => {
     writeFile.mockResolvedValue({ output: "Saved", detail: "rewritten" });
     const { proposals, store } = setup();
 
-    await proposals.writeFile("turn", "Note.md", "ONE\nTWO\n");
+    await proposals.editFile("turn", "Note.md", [{ find: "one", replace: "ONE" }, { find: "two", replace: "TWO" }]);
     expect(writeFile).not.toHaveBeenCalled();
     const proposal = store.get(atom_companionProposals)[0];
     act(() => proposals.setHunkStatus(proposal.id, proposal.hunks[0].id, "accepted"));
@@ -62,7 +62,7 @@ describe("useCompanionProposals", () => {
     readCurrentText.mockResolvedValueOnce("one\n").mockResolvedValueOnce("edited\n");
     const { proposals, store } = setup();
 
-    await proposals.writeFile("turn", "Note.md", "ONE\n");
+    await proposals.editFile("turn", "Note.md", [{ find: "one", replace: "ONE" }]);
     const proposal = store.get(atom_companionProposals)[0];
     act(() => proposals.setHunkStatus(proposal.id, proposal.hunks[0].id, "accepted"));
     const result = await proposals.apply(store.get(atom_companionProposals)[0]);
@@ -76,7 +76,7 @@ describe("useCompanionProposals", () => {
     readCurrentText.mockResolvedValue("one\n");
     const { proposals, store } = setup();
 
-    await proposals.writeFile("turn", "Note.md", "ONE\n");
+    await proposals.editFile("turn", "Note.md", [{ find: "one", replace: "ONE" }]);
     act(() => proposals.discard(store.get(atom_companionProposals)[0].id));
 
     expect(store.get(atom_companionProposals)).toHaveLength(0);

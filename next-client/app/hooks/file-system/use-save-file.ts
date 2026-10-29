@@ -112,14 +112,13 @@ export function useSaveFile() {
 
         await writeFileContent(fileToSave, toWrite);
 
-        // Re-derive this file's tasks/tokens/score synchronously from the
-        // content just written to disk, so the Tasks view and token cost
-        // estimate reflect a save immediately — regardless of whether this
+        // Re-derive this file's tasks/score synchronously from the
+        // content just written to disk, so the Tasks view
+        // reflects a save immediately — regardless of whether this
         // file is the active tab, a background tab, or not open at all (e.g.
         // Tasks view's own write-back). Without this, these fields only
         // refresh on the next full vault rescan (5-min interval, window
-        // refocus, or manual refresh). This is the "save-triggered, not
-        // live" computation point for the token cost estimate.
+        // refocus, or manual refresh).
         if (targetPath) {
           setFileMetadata((prev) => {
             const entry = prev[targetPath!];

@@ -83,7 +83,7 @@ export const TOKEN_DESCRIPTIONS: Record<(typeof TEMPLATE_TOKENS)[number], string
 };
 
 // Markdown description of the template grammar, built from TEMPLATE_TOKENS so
-// it can't drift from the engine. The AI chat's template skill embeds it.
+// it can't drift from the engine. The companion's create_template tool description embeds it.
 export const TEMPLATE_SYNTAX_GUIDE = [
   "HermesMarkdown templates are plain Markdown files. Tokens are written {{name}} and are expanded when the template is used:",
   ...TEMPLATE_TOKENS.map((token) => `- {{${token}}}: ${TOKEN_DESCRIPTIONS[token]}`),

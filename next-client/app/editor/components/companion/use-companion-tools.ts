@@ -6,30 +6,17 @@ import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_templatesFolder } from "@/app/atoms/template-atoms";
 import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
-import { atom_isCloudVault, atom_vaultDescriptor, atom_vaultFolderPaths, atom_vaultHandle, atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
-import { atom_projectCheckUiState } from "@/app/atoms/companion-atoms";
+import { atom_vaultFolderPaths, atom_vaultHandle, atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
 import { useNoteBuffer } from "@/app/hooks/file-system/use-note-buffer";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { NOTE_TOOL_DEFS } from "@/app/services/note-tool-defs";
-import type { CompanionToolName } from "@/app/services/companion-tool-defs";
-import type { ProjectCheckId } from "@/app/services/project-checks";
-import { useChatSkills } from "../ai-chat/use-chat-skills";
 import { useNoteTools, type NoteToolResult } from "../ai-chat/use-note-tools";
 import { guardFilePath, guardFolderPath } from "./tools/path-guard";
 import { useCompanionOrganise } from "./use-companion-organise";
 import { useCompanionWrites } from "./use-companion-writes";
 import { useCompanionProposals, type ProposalDetails } from "./use-companion-proposals";
 import type { FindReplace } from "./tools/edit-tools";
-import { startChangesScan } from "@/app/services/git-changes-client";
-import { loadYaml } from "@/app/utils/load-yaml";
-import { createLinkResolver } from "@/app/utils/note-links/link-resolver";
-import { checkFileOutput } from "./tools/check-tools";
-import { projectCheckById, isProjectCheckAvailable, PROJECT_CHECK_MAX_OUTPUT_CHARS } from "@/app/services/project-checks";
-import { projectCheckPairing, runProjectCheck } from "@/app/services/project-check-helper-client";
-import { requestProjectCheckApproval } from "./project-check-approval";
-import { trackProjectCheckAbort } from "./companion-chat-store";
-import { gitDiffOutput, gitStatusOutput } from "./tools/git-tools";
-import { findFilesOutput, globMatcher, matchesIn, planOutput, searchFilesOutput, searchMatcher, searchablePaths, SEARCH_DEFAULT_LIMIT, SEARCH_MAX_FILES, type SearchMatch } from "./tools/search-tools";
+import { findFilesOutput, globMatcher, matchesIn, searchFilesOutput, searchMatcher, searchablePaths, SEARCH_DEFAULT_LIMIT, SEARCH_MAX_FILES, type SearchMatch } from "./tools/search-tools";
 import { activeNoteOutput, codeBlockAt, companionToolActivity, listFolderOutput, readFileOutput } from "./tools/read-tools";
 import { sanitizeTemplateFileName } from "@/app/utils/templates/template-registry";
 
@@ -37,7 +24,6 @@ const NO_VAULT = "No vault is open, so there are no files to look at. Ask the us
 
 // A tool call to run: its name, input and id (trash's card is shown by it).
 export type CompanionToolCall = { toolName: string; input: unknown; toolCallId?: string };
-export type ActiveSkillPolicy = { tools?: CompanionToolName[]; checks?: ProjectCheckId[] };
 
 const stringList = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
 const proposalDetails = (input: Record<string, unknown>): ProposalDetails => ({
@@ -48,9 +34,9 @@ const proposalDetails = (input: Record<string, unknown>): ProposalDetails => ({
 
 // Runs the companion's tool calls in the browser: the note tools through
 // useNoteTools, the vault and editor read tools (list_folder, read_file,
-// get_active_note, search_files, find_files, check_file, git_status, git_diff, update_plan) here, behind the path guard, load_skill through
-// useChatSkills, the writes (edit_file, write_file,
-// edit_code_block, create_file, create_plan, create_folder, create_template) through
+// get_active_note, search_files, find_files) here, behind the path guard,
+// the writes (edit_file, create_file,
+// create_folder, create_template) through
 // useCompanionWrites and the organising tools (rename, move, trash) through
 // useCompanionOrganise, recorded in the turn's undo group (`turnId`, the id
 // of the user message that started it). Every call
@@ -60,64 +46,14 @@ export function useCompanionTools() {
   const store = useStore();
   const { runTool: runNoteTool } = useNoteTools();
   const { readCurrentText } = useNoteBuffer();
-  const { loadSkill } = useChatSkills();
   const writes = useCompanionWrites();
   const proposals = useCompanionProposals();
   const organise = useCompanionOrganise();
 
-  const runTool = useCallback(async ({ toolName, input: rawInput, toolCallId = "" }: CompanionToolCall, turnId = "turn", policy?: ActiveSkillPolicy): Promise<NoteToolResult> => {
+  const runTool = useCallback(async ({ toolName, input: rawInput, toolCallId = "" }: CompanionToolCall, turnId = "turn"): Promise<NoteToolResult> => {
     const input = (rawInput ?? {}) as Record<string, unknown>;
     const activity = (detail = "") => companionToolActivity(toolName, input, detail);
-    if (policy?.tools && !policy.tools.includes(toolName as CompanionToolName)) {
-      return { output: `The active skill does not bind to ${toolName}.`, activity: activity("skill restriction") };
-    }
-    if (toolName === "run_project_check" && policy?.checks && !policy.checks.includes(String(input.checkId) as ProjectCheckId)) {
-      return { output: "The active skill does not bind to that project check.", activity: activity("skill restriction") };
-    }
     try {
-      if (toolName === "run_project_check") {
-        const check = projectCheckById(input.checkId);
-        if (!check) return { output: "That project check is not in the fixed allowlist.", activity: activity("refused") };
-        const vault = store.get(atom_vaultHandle);
-        const descriptor = store.get(atom_vaultDescriptor);
-        const paired = projectCheckPairing();
-        const mobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const availability = isProjectCheckAvailable({
-          hasVault: !!vault && !store.get(atom_isCloudVault),
-          browserVault: descriptor?.kind === "browser",
-          mobile,
-          paired: paired.paired,
-        });
-        const baseState = {
-          toolCallId: toolCallId || `${turnId}:project-check`, checkId: check.id, label: check.label,
-          argv: [...check.argv], projectRoot: paired.projectRoot ?? "No helper paired", timeoutMs: check.timeoutMs,
-          status: availability.available ? "approval" as const : "unavailable" as const, output: "",
-        };
-        if (!availability.available) {
-          store.set(atom_projectCheckUiState, { ...baseState, detail: availability.reason });
-          return { output: availability.reason ?? "Project checks are unavailable. Use check_file for syntax checks.", activity: activity("unavailable") };
-        }
-        const approved = await requestProjectCheckApproval(store, baseState);
-        if (!approved) return { output: "The user did not approve this project check. No local process was started.", activity: activity("denied") };
-        const currentPairing = projectCheckPairing();
-        if (!currentPairing.paired || currentPairing.projectRoot !== paired.projectRoot || currentPairing.generation !== paired.generation) {
-          store.set(atom_projectCheckUiState, { ...baseState, status: "disconnected", detail: "The helper pairing changed. Pair it again and request approval for a new invocation." });
-          return { output: "The helper pairing changed while approval was pending. No local process was started; request a new approved check.", activity: activity("pairing changed") };
-        }
-        const controller = new AbortController();
-        const untrack = trackProjectCheckAbort(controller);
-        try {
-          const result = await runProjectCheck(check.id, {
-            signal: controller.signal,
-            onOutput: (line) => store.set(atom_projectCheckUiState, (current) => current?.toolCallId === baseState.toolCallId
-              ? { ...current, output: `${current.output}${line}`.slice(-PROJECT_CHECK_MAX_OUTPUT_CHARS) } : current),
-          });
-          store.set(atom_projectCheckUiState, { ...baseState, status: result.status, output: result.output, exitCode: result.exitCode, durationMs: result.durationMs, detail: result.error });
-          const diagnostics = result.output.slice(0, 8_000);
-          const output = `Local project check ${check.label}: ${result.status}${result.exitCode === null ? "" : ` (exit code ${result.exitCode})`}.${result.error ? ` ${result.error}` : ""}${diagnostics ? `\nBounded, redacted local output:\n${diagnostics}` : ""}`;
-          return { output, activity: activity(result.status.replaceAll("_", " ")) };
-        } finally { untrack(); }
-      }
       if (toolName in NOTE_TOOL_DEFS) {
         if (!store.get(atom_vaultHandle)) return { output: NO_VAULT, activity: activity() };
         return await runNoteTool({ toolName, input });
@@ -196,69 +132,13 @@ export function useCompanionTools() {
         const found = searchablePaths(store.get(atom_fileMetadata), store.get(atom_vaultTextFiles).map((file) => file.path), "").filter(matches);
         return { output: findFilesOutput(pattern, found, limit), activity: activity(`${found.length} found`) };
       }
-      if (toolName === "check_file") {
-        if (!store.get(atom_vaultHandle)) return { output: NO_VAULT, activity: activity() };
-        const guarded = guardFilePath(String(input.path ?? ""));
-        if (!guarded.ok) return { output: guarded.reason, activity: activity("refused") };
-        const meta = store.get(atom_fileMetadata);
-        if (isPrivateFrontmatter(meta[guarded.path]?.frontmatter)) return { output: readFileOutput(guarded.path, meta[guarded.path], null), activity: activity("private") };
-        let text: string | null = null;
-        try {
-          text = await readCurrentText(guarded.path);
-        } catch (err) {
-          console.warn("Companion: couldn't read", guarded.path, err);
-        }
-        if (text === null) return { output: readFileOutput(guarded.path, undefined, null), activity: activity("not found") };
-        if (isPrivateContent(text) && guarded.path.endsWith(".md")) return { output: readFileOutput(guarded.path, undefined, text), activity: activity("private") };
-        const resolver = createLinkResolver(meta);
-        const output = await checkFileOutput(guarded.path, text, { load: await loadYaml(), linkExists: (name) => !!resolver.resolve(name, guarded.path) });
-        return { output, activity: activity(output.includes("no syntax problems") ? "ok" : "problems") };
-      }
-      if (toolName === "git_status" || toolName === "git_diff") {
-        const vault = store.get(atom_vaultHandle);
-        if (!vault) return { output: NO_VAULT, activity: activity() };
-        const meta = store.get(atom_fileMetadata);
-        const isPrivatePath = (path: string) => isPrivateFrontmatter(meta[path]?.frontmatter);
-        const result = await startChangesScan(vault, () => {}).result;
-        const output = toolName === "git_status"
-          ? gitStatusOutput(result, isPrivatePath)
-          : gitDiffOutput(result, String(input.path ?? "").replace(/^\/+|\/+$/g, ""), isPrivatePath);
-        return { output, activity: activity() };
-      }
-      if (toolName === "update_plan") {
-        const { output, detail } = planOutput(input.steps);
-        return { output, activity: activity(detail) };
-      }
-      if (toolName === "write_file") {
-        const { output, detail } = await proposals.writeFile(turnId, String(input.path ?? ""), String(input.content ?? ""), proposalDetails(input));
-        return { output, activity: activity(detail) };
-      }
-      if (toolName === "load_skill") {
-        const name = String(input.name ?? "");
-        const text = await loadSkill(name);
-        if (text) return { output: `--- SKILL ${name} ---\n${text}\n--- END SKILL ---`, activity: activity() };
-        return { output: `There's no skill ${name}. Use one of the skills listed in your instructions.`, activity: activity("not found") };
-      }
       if (toolName === "edit_file") {
         const edits = Array.isArray(input.edits) ? (input.edits as FindReplace[]) : [];
         const { output, detail } = await proposals.editFile(turnId, String(input.path ?? ""), edits, proposalDetails(input));
         return { output, activity: activity(detail) };
       }
-      if (toolName === "edit_code_block") {
-        const target = {
-          index: typeof input.index === "number" ? input.index : undefined,
-          lang: typeof input.lang === "string" ? input.lang : undefined,
-          firstLine: typeof input.firstLine === "string" ? input.firstLine : undefined,
-        };
-        const { output, detail } = await proposals.editCodeBlock(turnId, String(input.path ?? ""), target, String(input.code ?? ""), proposalDetails(input));
-        return { output, activity: activity(detail) };
-      }
       if (toolName === "create_file") {
-        const { output, detail } = await proposals.createFile(turnId, String(input.path ?? ""), String(input.content ?? ""), "create", proposalDetails(input));
-        return { output, activity: activity(detail) };
-      }
-      if (toolName === "create_plan") {
-        const { output, detail } = await proposals.createFile(turnId, String(input.path ?? ""), String(input.content ?? ""), "plan", proposalDetails(input));
+        const { output, detail } = await proposals.createFile(turnId, String(input.path ?? ""), String(input.content ?? ""), proposalDetails(input));
         return { output, activity: activity(detail) };
       }
       if (toolName === "create_folder") {
@@ -289,7 +169,7 @@ export function useCompanionTools() {
       console.warn("Companion: tool failed", toolName, err);
       return { output: `${toolName} failed: ${err instanceof Error ? err.message : String(err)}`, activity: activity("failed") };
     }
-  }, [store, runNoteTool, readCurrentText, loadSkill, writes, proposals, organise]);
+  }, [store, runNoteTool, readCurrentText, writes, proposals, organise]);
 
   return { runTool, undoTurn: writes.undoTurn };
 }

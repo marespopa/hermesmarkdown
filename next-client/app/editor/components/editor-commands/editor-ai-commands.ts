@@ -12,7 +12,6 @@ import {
 } from "../../codemirror/commands";
 import { setHeading, toggleCodeBlock, wrapAsLink } from "../../codemirror/format-shortcuts";
 import { foldCurrentSection, unfoldAllSections } from "../../codemirror/heading-fold";
-import { goToNextGitChange, goToPreviousGitChange } from "../../codemirror/git-changes";
 import { gotoLine, openSearchPanel } from "@codemirror/search";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
@@ -72,8 +71,6 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     { id: "go-to-line", label: "Go to Line…", category: "Editor" as const, shortcut: formatShortcut("G", { alt: true }), keywords: "jump line number goto", action: () => runEditorCommand(gotoLine) },
     { id: "fold-current-section", label: "Fold current section", category: "Editor" as const, shortcut: formatShortcut(".", { shift: true }), keywords: "collapse heading outline hide", action: () => runEditorCommand(foldCurrentSection) },
     { id: "unfold-all-sections", label: "Unfold all sections", category: "Editor" as const, shortcut: formatShortcut(",", { shift: true }), keywords: "expand headings sections show", action: () => runEditorCommand(unfoldAllSections) },
-    { id: "next-git-change", label: "Next Git change", category: "Editor" as const, shortcut: isMacPlatform() ? "⌥F5" : "Alt+F5", keywords: "diff changes git head commit jump hunk", action: () => runEditorCommand(goToNextGitChange) },
-    { id: "previous-git-change", label: "Previous Git change", category: "Editor" as const, shortcut: isMacPlatform() ? "⇧⌥F5" : "Shift+Alt+F5", keywords: "diff changes git head commit jump hunk", action: () => runEditorCommand(goToPreviousGitChange) },
     { id: "indent-subtree", label: "Indent current item", category: "Editor" as const, keywords: "nest list task", action: () => runEditorCommand(indentCurrentSubtree) },
     { id: "outdent-subtree", label: "Outdent current item", category: "Editor" as const, keywords: "unnest list task", action: () => runEditorCommand(outdentCurrentSubtree) },
     { id: "toggle-checkbox", label: "Toggle checkbox", category: "Tasks" as const, keywords: "task done todo", action: () => runEditorCommand(toggleCheckboxOnLine) },

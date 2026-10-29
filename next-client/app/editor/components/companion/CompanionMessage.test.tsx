@@ -10,7 +10,6 @@ const reply: Message = {
   role: "assistant",
   parts: [
     { type: "text", text: "Adding the types." },
-    { type: "tool-update_plan", toolCallId: "p", state: "output-available", input: { steps: [{ text: "Add types", status: "done" }, { text: "Wire it", status: "in_progress" }] }, output: "ok" },
     { type: "tool-read_file", toolCallId: "r", state: "output-available", input: { path: "src/a.ts" }, output: "x" },
     { type: "tool-edit_file", toolCallId: "e", state: "output-error", input: { path: "src/a.ts" }, errorText: "no" },
   ] as unknown as Message["parts"],
@@ -19,11 +18,10 @@ const reply: Message = {
 const renderMessage = () => render(<Provider><CompanionMessage message={reply} activities={{}} /></Provider>);
 
 describe("CompanionMessage", () => {
-  it("shows the progress text and the plan, not the tool calls", () => {
+  it("shows the progress text, not the tool calls", () => {
     renderMessage();
 
     expect(screen.getByText("Adding the types.")).toBeTruthy();
-    expect(screen.getByText("Plan · 1 of 2 done")).toBeTruthy();
     expect(screen.queryByText(/Read src\/a\.ts/)).toBeNull();
   });
 

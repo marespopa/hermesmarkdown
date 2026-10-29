@@ -232,11 +232,6 @@ export const atom_hasCompletedOnboarding = atomWithStorage<boolean>(
   false,
 );
 export const atom_userName = atomWithStorage<string>("userName", "");
-// Settings → General → Terminal: the user and host the "Open Terminal"
-// palette command opens as ssh://user@host through the OS's SSH handler
-// (services/terminal-uri.ts). An empty user leaves it out of the URI.
-export const atom_terminalUser = atomWithStorage<string>("terminalUser", "");
-export const atom_terminalHost = atomWithStorage<string>("terminalHost", "localhost");
 // "Not Now" on the FolderPrompt: it shrinks to a "Not saved to a folder"
 // mark for the rest of the visit. In memory, so the next visit asks again.
 export const atom_folderPromptDismissed = atom<boolean>(false);

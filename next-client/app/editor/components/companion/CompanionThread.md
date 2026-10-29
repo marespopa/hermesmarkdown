@@ -11,6 +11,3 @@ Description: The conversation, scrolled to the newest turn. Each message (`Compa
 | compacting | `boolean` | A summary is being written |
 | errorText | `string \| null` | |
 | onUndoTurn | `(turnId) => Promise` | Undo for a turn's summary |
-
-## Local project checks
-An ephemeral `ProjectCheckApproval` card appears outside the saved message list. It shows the approval request, fixed argv, project root, timeout, network policy and output destination, then the bounded result state. Stop, New chat, `/plan` and route errors cancel pending helper work.

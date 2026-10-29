@@ -8,7 +8,6 @@ Description: The small (?) at the top right of every /editor page except the edi
 | Tags | `tags-page` |
 | Tasks | `tasks-page` |
 | Templates | `templates-page` |
-| Changes | `git` |
 | Replace in Files | `command-palette` |
 | Settings | `settings` |
 

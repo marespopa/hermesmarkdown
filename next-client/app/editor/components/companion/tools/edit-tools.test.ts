@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { load } from "js-yaml";
-import { applyEdits, repairFrontmatter, replaceCodeBlock, withNewNoteFrontmatter } from "./edit-tools";
+import { applyEdits, repairFrontmatter, withNewNoteFrontmatter } from "./edit-tools";
 
 describe("applyEdits", () => {
   const text = "# Roadmap\n- Ship the beta in Q3\n- Price review\n";
@@ -28,25 +28,6 @@ describe("applyEdits", () => {
 
   it("refuses edits that change nothing", () => {
     expect(applyEdits(text, [{ find: "Q3", replace: "Q3" }]).ok).toBe(false);
-  });
-});
-
-describe("replaceCodeBlock", () => {
-  const doc = "# Build\n```python\nprint('a')\n```\n\n```sh\nmake\n```\n";
-
-  it("replaces a block's code by index, keeping its fences", () => {
-    const result = replaceCodeBlock(doc, { index: 1 }, "make test\n");
-    expect(result.ok && result.text).toBe("# Build\n```python\nprint('a')\n```\n\n```sh\nmake test\n```\n");
-  });
-
-  it("finds a block by language and first line", () => {
-    const result = replaceCodeBlock(doc, { lang: "python", firstLine: "print('a')" }, "print('b')");
-    expect(result.ok && result.text).toContain("```python\nprint('b')\n```");
-  });
-
-  it("refuses when no block matches", () => {
-    const result = replaceCodeBlock(doc, { lang: "rust" }, "fn main() {}");
-    expect(!result.ok && result.reason).toMatch(/No code blocks match/);
   });
 });
 

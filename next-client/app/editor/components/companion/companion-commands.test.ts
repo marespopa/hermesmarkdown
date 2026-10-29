@@ -25,11 +25,6 @@ describe("parseCompanionCommand", () => {
     expect(parseCompanionCommand("/summarize keep the file paths")).toEqual({ kind: "compact", focus: "keep the file paths" });
   });
 
-  it("reads /plan with its planning request", () => {
-    expect(parseCompanionCommand("/plan add a calendar view")).toEqual({ kind: "plan", request: "add a calendar view" });
-    expect(parseCompanionCommand(" /PLAN ")).toEqual({ kind: "plan", request: "" });
-  });
-
   it("leaves other messages and longer words alone", () => {
     expect(parseCompanionCommand("/newsletter draft")).toBeNull();
     expect(parseCompanionCommand("start a /new list")).toBeNull();

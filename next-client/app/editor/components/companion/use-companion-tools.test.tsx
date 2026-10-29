@@ -1,42 +1,26 @@
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
-import { atom_vaultFolderPaths, atom_vaultHandle, atom_vaultTextFiles, atom_vaultDescriptor } from "@/app/atoms/vault-atoms";
-import { atom_projectCheckUiState } from "@/app/atoms/companion-atoms";
+import { atom_vaultFolderPaths, atom_vaultHandle, atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
 import { useCompanionTools } from "./use-companion-tools";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 const runNoteTool = vi.fn();
 vi.mock("../ai-chat/use-note-tools", () => ({ useNoteTools: () => ({ runTool: runNoteTool }) }));
-const loadSkill = vi.fn();
-vi.mock("../ai-chat/use-chat-skills", () => ({ useChatSkills: () => ({ loadSkill }) }));
 const readCurrentText = vi.fn();
 vi.mock("@/app/hooks/file-system/use-note-buffer", () => ({ useNoteBuffer: () => ({ readCurrentText }) }));
 const editFile = vi.fn();
-const writeFile = vi.fn();
-const scanResult = vi.fn();
-const projectCheckPairing = vi.fn();
-const runProjectCheck = vi.fn();
-vi.mock("@/app/services/project-check-helper-client", () => ({ projectCheckPairing: () => projectCheckPairing(), runProjectCheck: (...args: unknown[]) => runProjectCheck(...args) }));
-const requestProjectCheckApproval = vi.fn();
-const trackedControllers: AbortController[] = [];
-vi.mock("./project-check-approval", () => ({ requestProjectCheckApproval: (...args: unknown[]) => requestProjectCheckApproval(...args) }));
-vi.mock("./companion-chat-store", () => ({ trackProjectCheckAbort: (controller: AbortController) => { trackedControllers.push(controller); return vi.fn(); } }));
-vi.mock("@/app/services/git-changes-client", () => ({ startChangesScan: () => ({ result: scanResult(), cancel: vi.fn() }) }));
 const createTemplate = vi.fn();
-const createPlan = vi.fn();
 vi.mock("./use-companion-writes", () => ({
-  useCompanionWrites: () => ({ editFile, writeFile, editCodeBlock: vi.fn(), createFile: vi.fn(), createPlan, createFolder: vi.fn(), createTemplate, undoTurn: vi.fn() }),
+  useCompanionWrites: () => ({ editFile, writeFile: vi.fn(), createFile: vi.fn(), createFolder: vi.fn(), createTemplate, undoTurn: vi.fn() }),
 }));
 const proposalEditFile = vi.fn();
-const proposalWriteFile = vi.fn();
-const proposalEditCodeBlock = vi.fn();
 const proposalCreateFile = vi.fn();
 const proposalCreateTemplate = vi.fn();
 vi.mock("./use-companion-proposals", () => ({
-  useCompanionProposals: () => ({ editFile: proposalEditFile, writeFile: proposalWriteFile, createFile: proposalCreateFile, createTemplate: proposalCreateTemplate, editCodeBlock: proposalEditCodeBlock }),
+  useCompanionProposals: () => ({ editFile: proposalEditFile, createFile: proposalCreateFile, createTemplate: proposalCreateTemplate }),
 }));
 const move = vi.fn();
 const trash = vi.fn();
@@ -46,10 +30,9 @@ const note = (path: string, frontmatter: Record<string, unknown> = {}): FileMeta
   path, name: path.split("/").pop()!, tags: [], links: [], frontmatter, modifiedAt: 0, wordCount: 0, tasks: [], handle: null,
 });
 
-function setup({ vault = true, browserVault = false } = {}) {
+function setup({ vault = true } = {}) {
   const store = createStore();
   if (vault) store.set(atom_vaultHandle, {} as FileSystemDirectoryHandle);
-  store.set(atom_vaultDescriptor, browserVault ? { kind: "browser", id: "test", displayName: "Test" } as never : { kind: "local" });
   store.set(atom_fileMetadata, {
     "Projects/Roadmap.md": note("Projects/Roadmap.md"),
     "Projects/Budget.md": note("Projects/Budget.md", { private: true }),
@@ -64,12 +47,8 @@ function setup({ vault = true, browserVault = false } = {}) {
 describe("useCompanionTools", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    trackedControllers.length = 0;
     runNoteTool.mockResolvedValue({ output: "1 note matches", activity: "Searched notes" });
     readCurrentText.mockResolvedValue("print('ok')");
-    projectCheckPairing.mockReturnValue({ paired: false, projectRoot: null });
-    requestProjectCheckApproval.mockResolvedValue(true);
-    runProjectCheck.mockResolvedValue({ status: "completed", exitCode: 0, durationMs: 4, output: "checks passed" });
   });
 
   it("hands the note tools to useNoteTools", async () => {
@@ -79,20 +58,6 @@ describe("useCompanionTools", () => {
 
     expect(runNoteTool).toHaveBeenCalledWith({ toolName: "search_notes", input: { query: "roadmap" } });
     expect(result.output).toBe("1 note matches");
-  });
-
-  it("loads a skill's text, or says there's no such skill", async () => {
-    loadSkill.mockResolvedValueOnce("Skill: work with tasks.").mockResolvedValueOnce(null);
-    const tools = setup();
-
-    const found = await tools.runTool({ toolName: "load_skill", input: { name: "/tasks" } });
-    const missing = await tools.runTool({ toolName: "load_skill", input: { name: "/nope" } });
-
-    expect(loadSkill).toHaveBeenCalledWith("/tasks");
-    expect(found.output).toBe("--- SKILL /tasks ---\nSkill: work with tasks.\n--- END SKILL ---");
-    expect(found.activity).toBe("Loaded the skill /tasks");
-    expect(missing.output).toContain("There's no skill /nope");
-    expect(missing.activity).toBe("Loaded the skill /nope · not found");
   });
 
   it("lists a folder from the vault's lists", async () => {
@@ -184,12 +149,12 @@ describe("useCompanionTools", () => {
     expect(result.output).toMatch(/Proposed/);
   });
 
-  it("hands create_plan to the non-overwriting plan writer", async () => {
-    proposalCreateFile.mockResolvedValue({ output: "Proposed creating plans/Companion flow.md.", detail: "proposed" });
+  it("hands create_file to the non-overwriting proposal", async () => {
+    proposalCreateFile.mockResolvedValue({ output: "Proposed creating Notes/Launch.md.", detail: "proposed" });
 
-    const result = await setup().runTool({ toolName: "create_plan", input: { path: "plans/Companion flow.md", content: "# Companion flow" } }, "turn-1");
+    const result = await setup().runTool({ toolName: "create_file", input: { path: "Notes/Launch.md", content: "# Launch" } }, "turn-1");
 
-    expect(proposalCreateFile).toHaveBeenCalledWith("turn-1", "plans/Companion flow.md", "# Companion flow", "plan", expect.any(Object));
+    expect(proposalCreateFile).toHaveBeenCalledWith("turn-1", "Notes/Launch.md", "# Launch", expect.any(Object));
     expect(result.output).toMatch(/Proposed/);
   });
 
@@ -220,24 +185,6 @@ describe("useCompanionTools", () => {
     expect(result.output).toContain("b\nc\n[lines 2–3 of 4; call read_file with startLine 4 for the rest]");
   });
 
-  it("writes a whole file in the turn's group", async () => {
-    proposalWriteFile.mockResolvedValue({ output: "Proposed a rewrite of src/a.ts. Review it before applying.", detail: "proposed" });
-    const tools = setup();
-
-    const result = await tools.runTool({ toolName: "write_file", input: { path: "src/a.ts", content: "x" } }, "turn-1");
-
-    expect(proposalWriteFile).toHaveBeenCalledWith("turn-1", "src/a.ts", "x", expect.any(Object));
-    expect(result.activity).toBe("Wrote src/a.ts · proposed");
-  });
-
-  it("answers the plan back with its progress", async () => {
-    const tools = setup();
-
-    const result = await tools.runTool({ toolName: "update_plan", input: { steps: [{ text: "Add types", status: "done" }, { text: "Wire it", status: "in_progress" }] } });
-
-    expect(result.output).toBe("Plan, 1 of 2 done:\n[x] Add types\n[~] Wire it");
-  });
-
   it("finds files by name pattern, never private notes", async () => {
     const tools = setup();
 
@@ -249,85 +196,4 @@ describe("useCompanionTools", () => {
     expect(byPath.output).not.toContain("Budget");
   });
 
-  it("answers git_status and git_diff from the changes scan", async () => {
-    scanResult.mockReturnValue(Promise.resolve({
-      status: "ok",
-      commit: "abcdef1234",
-      files: [{ path: "Projects/build.py", status: "modified", added: 1, removed: 1, diff: { kind: "text", lines: ["b"], changes: [{ oldStart: 1, removed: ["a"], newStart: 1, newCount: 1 }] } }],
-    }));
-    const tools = setup();
-
-    const status = await tools.runTool({ toolName: "git_status", input: {} });
-    const diff = await tools.runTool({ toolName: "git_diff", input: { path: "Projects" } });
-
-    expect(status.output).toContain("M Projects/build.py (+1 −1)");
-    expect(diff.output).toContain("@@ -1,1 +1,1 @@\n-a\n+b");
-  });
-
-  it("gates project checks for missing vaults, browser vaults and mobile", async () => {
-    projectCheckPairing.mockReturnValue({ paired: true, projectRoot: "/repo" });
-    const noVault = await setup({ vault: false }).runTool({ toolName: "run_project_check", input: { checkId: "typecheck" } });
-    expect(noVault.output).toContain("Open a disk vault");
-    const browser = setup({ browserVault: true });
-    expect((await browser.runTool({ toolName: "run_project_check", input: { checkId: "typecheck" } })).output).toContain("check_file");
-    expect(requestProjectCheckApproval).not.toHaveBeenCalled();
-    projectCheckPairing.mockReturnValue({ paired: false, projectRoot: null });
-    const unpaired = await setup().runTool({ toolName: "run_project_check", input: { checkId: "typecheck" } });
-    expect(unpaired.output).toContain("Pair the local helper");
-    const original = navigator.userAgent;
-    Object.defineProperty(navigator, "userAgent", { configurable: true, value: "iPhone" });
-    try { expect((await setup().runTool({ toolName: "run_project_check", input: { checkId: "typecheck" } })).output).toContain("mobile"); }
-    finally { Object.defineProperty(navigator, "userAgent", { configurable: true, value: original }); }
-  });
-
-  it("requires approval for a fixed disk check and rejects arbitrary commands", async () => {
-    projectCheckPairing.mockReturnValue({ paired: true, projectRoot: "/repo" });
-    const tools = setup();
-    const result = await tools.runTool({ toolName: "run_project_check", input: { checkId: "typecheck" }, toolCallId: "call-check" });
-    expect(requestProjectCheckApproval).toHaveBeenCalledWith(tools.store, expect.objectContaining({ checkId: "typecheck", argv: ["corepack", "yarn", "tsc", "--noEmit"], projectRoot: "/repo" }));
-    expect(runProjectCheck).toHaveBeenCalledWith("typecheck", expect.objectContaining({ signal: expect.any(AbortSignal), onOutput: expect.any(Function) }));
-    expect(result.output).toContain("checks passed");
-    expect(readCurrentText).not.toHaveBeenCalled();
-    const refused = await tools.runTool({ toolName: "run_project_check", input: { checkId: "unknown" } });
-    expect(refused.output).toContain("fixed allowlist");
-    expect(tools.store.get(atom_projectCheckUiState)?.status).toBe("completed");
-  });
-
-  it("does not run after the helper pairing changes during approval", async () => {
-    projectCheckPairing.mockReturnValueOnce({ paired: true, projectRoot: "/repo", generation: 1 }).mockReturnValueOnce({ paired: true, projectRoot: "/other", generation: 2 });
-    const tools = setup();
-    const result = await tools.runTool({ toolName: "run_project_check", input: { checkId: "typecheck" } });
-    expect(result.output).toContain("pairing changed");
-    expect(runProjectCheck).not.toHaveBeenCalled();
-    expect(tools.store.get(atom_projectCheckUiState)?.status).toBe("disconnected");
-  });
-
-  it("returns a cancelled status when Stop aborts the local helper", async () => {
-    projectCheckPairing.mockReturnValue({ paired: true, projectRoot: "/repo" });
-    runProjectCheck.mockImplementationOnce((_id: string, options: { signal: AbortSignal }) => new Promise((resolve) => options.signal.addEventListener("abort", () => resolve({ status: "cancelled", exitCode: null, durationMs: 1, output: "partial" }), { once: true })));
-    const tools = setup();
-    const pending = tools.runTool({ toolName: "run_project_check", input: { checkId: "typecheck" } });
-    await waitFor(() => expect(trackedControllers).toHaveLength(1));
-    trackedControllers[0].abort();
-    expect((await pending).output).toContain("cancelled");
-    expect(tools.store.get(atom_projectCheckUiState)?.status).toBe("cancelled");
-  });
-
-  it("keeps a slash skill binding as a hard restriction", async () => {
-    const tools = setup();
-    const result = await tools.runTool({ toolName: "run_project_check", input: { checkId: "typecheck" } }, "turn", { tools: ["read_file"], checks: ["typecheck"] });
-    expect(result.output).toContain("does not bind to run_project_check");
-    expect(runProjectCheck).not.toHaveBeenCalled();
-  });
-
-  it("checks a file's syntax, never a private note", async () => {
-    readCurrentText.mockResolvedValue('{"a": }');
-    const tools = setup();
-
-    const broken = await tools.runTool({ toolName: "check_file", input: { path: "Projects/build.json" } });
-    const secret = await tools.runTool({ toolName: "check_file", input: { path: "Projects/Budget.md" } });
-
-    expect(broken.output).toContain("1 problem");
-    expect(secret.output).toContain("private (hidden)");
-  });
 });

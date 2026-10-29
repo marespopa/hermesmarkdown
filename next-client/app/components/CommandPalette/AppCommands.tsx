@@ -1,17 +1,14 @@
 "use client";
 
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { usePathname, useRouter } from "next/navigation";
 import {
   atom_darkTheme,
   atom_keyboardShortcutsOpen,
   atom_lightTheme,
-  atom_terminalHost,
-  atom_terminalUser,
   atom_theme,
   type Theme,
 } from "@/app/atoms/ui-atoms";
-import { buildSshUri } from "@/app/services/terminal-uri";
 import { DARK_THEMES, LIGHT_THEMES, resolveDarkTheme, resolveLightTheme } from "@/app/theme-palettes";
 import RegisteredCommands from "@/app/editor/components/editor-commands/RegisteredCommands";
 import { sendFeedback } from "@/app/utils/send-feedback";
@@ -25,8 +22,7 @@ const THEME_COMMANDS: { value: Theme; label: string }[] = [
 ];
 
 // The app-wide commands, registered once for every route (the editor adds
-// its own on top): navigation, Settings, theme, keyboard shortcuts and the
-// terminal.
+// its own on top): navigation, Settings, theme, keyboard shortcuts.
 // Editor preferences live in SettingsCommands.
 export default function AppCommands() {
   const pathname = usePathname() ?? "";
@@ -35,9 +31,6 @@ export default function AppCommands() {
   const [lightTheme, setLightTheme] = useAtom(atom_lightTheme);
   const [darkTheme, setDarkTheme] = useAtom(atom_darkTheme);
   const [, setKeyboardShortcutsOpen] = useAtom(atom_keyboardShortcutsOpen);
-  const terminalUser = useAtomValue(atom_terminalUser);
-  const terminalHost = useAtomValue(atom_terminalHost);
-  const sshUri = buildSshUri(terminalUser, terminalHost);
   const inEditor = pathname.startsWith("/editor");
 
   // The marketing site's landing page: not part of writing, so the editor
@@ -89,23 +82,6 @@ export default function AppCommands() {
     action: sendFeedback,
   });
 
-  // The free tools are their own site area, not part of writing: offered
-  // everywhere but the editor.
-  useRegisterCommand(
-    inEditor
-      ? null
-      : {
-          id: "open-tools",
-          label: "Open Free Tools",
-          description: "Table generator, Mermaid, tokenizer, token cost and more",
-          category: "Navigation",
-          opens: "page",
-          keywords: "tools markdown table generator mermaid tokenizer token cost calculator price cleaner converter html",
-          disabledReason: pathname === "/tools" ? "Already viewing the tools" : undefined,
-          action: () => router.push("/tools"),
-        },
-  );
-
   // The editor's pages, from any route: the palette is the way around (the
   // sidebar holds only the vault's files and the note's outline). On the
   // editor itself Tasks and Templates come from its own commands, so they
@@ -126,7 +102,6 @@ export default function AppCommands() {
   const pageCommands = [
     page("open-all-notes", "Open All Files", "/editor/files", "files notes list library browse vault"),
     page("open-tags", "Open Tags", "/editor/tags", "tags hashtags labels topics browse"),
-    page("show-changes", "Show Changes", "/editor/changes", "git changes diff modified added deleted commit head status review files changed pull request"),
     page("replace-in-files", "Replace in Files…", "/editor/replace", "replace find rename substitute all files vault regex bulk"),
     page("open-trash", "Open Trash", "/editor/trash", "trash deleted restore put back recover bin"),
     page("go-tasks", "Open Tasks", "/editor/tasks", "tasks todos checklist", false),
@@ -142,22 +117,6 @@ export default function AppCommands() {
     shortcut: pageShortcutFor("open-settings"),
     disabledReason: pathname === "/editor/settings" ? "Already in settings" : undefined,
     action: () => router.push("/editor/settings"),
-  });
-
-  // The system terminal over SSH: the browser hands ssh://user@host (set in
-  // Settings → General → Terminal) to the OS's SSH handler, asking first.
-  // The page stays where it is, so no `opens`; no shortcut, to stay clear of
-  // OS and browser keys.
-  useRegisterCommand({
-    id: "open-terminal",
-    label: "Open Terminal",
-    description: sshUri ?? undefined,
-    category: "Workspace",
-    keywords: "shell ssh console command line terminal",
-    disabledReason: sshUri ? undefined : "Set a terminal host in Settings",
-    action: () => {
-      if (sshUri) window.location.href = sshUri;
-    },
   });
 
   useRegisterCommand({

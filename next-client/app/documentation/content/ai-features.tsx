@@ -1,4 +1,4 @@
-import { Callout, Code, KV, type Group } from "../doc-primitives";
+import { Callout, KV, type Group } from "../doc-primitives";
 import TextLink from "@/app/components/TextLink";
 
 // Documentation content: AI Features group.
@@ -57,7 +57,7 @@ export const aiFeaturesGroup: Group = {
           <p>
             Type <code>@</code> to add another file, a folder or the whole vault. Attach images or files.
             Replies stream in as they&apos;re written, in Markdown. Pick the model from the panel&apos;s
-            header. Type <code>/</code> to list the commands and skills and pick one. Start over with{" "}
+            header. Type <code>/</code> to list the commands and pick one. Start over with{" "}
             <strong>New chat</strong> (the chat bubble in the header, or type{" "}
             <code>/new</code> or <code>/clear</code>). When a conversation grows long,{" "}
             <strong>Summarize chat</strong> (<code>/compact</code> or <code>/summarize</code>, optionally followed by what to keep)
@@ -75,17 +75,16 @@ export const aiFeaturesGroup: Group = {
     {
       id: "ai-companion-changes",
       title: "What the companion can change",
-      lead: "It edits files and code, makes files and folders, renames and moves them, and every change in a reply undoes together.",
-      keywords: "ai edit change write code block file create folder rename move trash undo turn private",
+      lead: "It proposes edits and new files for you to review, and renames, moves and organises files on request.",
+      keywords: "ai edit change proposal review accept reject hunk apply file create folder rename move trash undo turn private",
       body: (
         <>
           <p>
-            Ask for a change and the companion makes it: it reads the file first, then edits the exact
-            text. It works on files, on code and text files in your vault (<code>.py</code>,{" "}
-            <code>.ts</code>, <code>.json</code>, …) and on a single code block in a file. It can create
-            files and folders, rename an item (links to it follow the new name) and move items
-            into a folder (their links follow too). Changes save at once, and an open file shows them
-            straight away.
+            Ask for a change and the companion proposes it: it reads the file first, then drafts the
+            exact edits. Nothing is written until you review the proposal, accept the changes you want
+            and apply them. The same goes for new files and templates it suggests. It can also create
+            folders, rename an item (links to it follow the new name) and move items into a folder
+            (their links follow too); those save at once, and an open file shows them straight away.
           </p>
           <p>
             To move something to the Trash it asks first, in the thread: <strong>Keep</strong> leaves
@@ -95,7 +94,7 @@ export const aiFeaturesGroup: Group = {
           <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">Undo</h4>
           <p>
             Under a reply that changed files you&apos;ll see what changed and <strong>Undo</strong>.
-            It takes back everything that reply did at once, newest first: edits, new files and
+            It takes back everything that reply did at once, newest first: applied proposals, new
             folders, renames, moves and the Trash. <code>CTRL/CMD+Z</code> in Files does the same, as
             for your own renames and moves. A file you&apos;ve edited since is left as it is, and the
             panel says which.
@@ -112,15 +111,14 @@ export const aiFeaturesGroup: Group = {
       id: "ai-templates",
       title: "AI templates",
       lead: "Ask the companion for a template and it saves one in _templates/, checked first.",
-      keywords: "ai template skill create rfc prompt save",
+      keywords: "ai template create rfc prompt save",
       body: (
         <>
           <p>
             Ask for a template, for example &ldquo;make me an RFC template that asks for an
-            owner&rdquo;, or start a message with <code>/template</code>. The companion loads its
-            template skill, learns the <TextLink href="#templates">template tokens</TextLink> and
-            saves the template itself, as <code>_templates/RFC.md</code> for example. They show up in{" "}
-            <code>/template</code> straight away.
+            owner&rdquo;. The companion knows the <TextLink href="#templates">template tokens</TextLink> and
+            proposes the template, saved as <code>_templates/RFC.md</code> for example once you apply
+            it. It shows up in <code>/template</code> straight away.
           </p>
           <p>
             Each template is checked before it&apos;s saved, for things like an unknown token or two{" "}
@@ -128,78 +126,6 @@ export const aiFeaturesGroup: Group = {
             again; nothing is saved until it passes. It never replaces a template you have: ask it to
             change one and it edits that file. <strong>Undo</strong> under the reply removes a new
             template again. You need an open vault.
-          </p>
-        </>
-      ),
-    },
-    {
-      id: "ai-weekly-review-tasks",
-      title: "Tasks and the companion",
-      lead: "Ask about your tasks, and the companion works from your own open tasks.",
-      keywords: "ai tasks todo action items plan day next skill command",
-      body: (
-        <>
-          <p>
-            Ask about your tasks, to-dos or action items, or start with <code>/tasks</code>, and
-            the companion loads its tasks skill and sees your open tasks: in progress, to do and on hold,
-            with their due dates, priorities and files. Ask what to work on next, what&apos;s overdue,
-            or paste meeting notes and ask for tasks. You get task lines with real{" "}
-            <code>@due()</code> dates, worked out from today, and it can add them to a file or change
-            a task&apos;s line where it is.
-          </p>
-          <Callout type="tip">
-            Private files (<code>private: true</code> or a <code>private</code> tag) are never sent. Their tasks are left out and
-            only counted.
-          </Callout>
-        </>
-      ),
-    },
-    {
-      id: "ai-code-skill",
-      title: "Code and the companion",
-      lead: "Ask about code, or start with /code, and the companion works like a careful code assistant.",
-      keywords: "ai code coding assistant refactor review explain fix error stack trace unit tests code block skill command",
-      body: (
-        <>
-          <p>
-            Ask about code, a refactor, a stack trace or unit tests, or start with <code>/code</code>,
-            and the companion loads its code skill and works on the code files in your vault and the code
-            blocks in your files. Ask it to explain, review or refactor, to fix an error you paste, or
-            to write tests. Say &ldquo;this code&rdquo; and it looks at the file you have open and the
-            block your cursor is in.
-          </p>
-          <p>
-            It reads the whole file before it changes anything, keeps your style, and makes small edits
-            rather than rewriting the file. The changes save at once, and Undo turn takes them all back.
-            It can&apos;t run code, so it tells you what it couldn&apos;t check.
-          </p>
-        </>
-      ),
-    },
-    {
-      id: "ai-skill-notes",
-      title: "Your own skills",
-      lead: "Write a file of type skill, and the companion loads it when a request fits, or when you type /its-name.",
-      keywords: "ai skill skills custom own instructions prompt command slash note type",
-      body: (
-        <>
-          <p>
-            Any file with <code>type: skill</code> in its frontmatter (or a <code>#type/skill</code> tag)
-            is a skill, wherever it is in your vault. Start a message to the companion with a slash and the
-            file&apos;s name, lowercase with hyphens for spaces (<code>Standup notes.md</code> is{" "}
-            <code>/standup-notes</code>), and the file&apos;s text below its frontmatter goes with that
-            message. Give it a <code>description</code> saying when to use it, and the companion loads
-            the skill by itself whenever a request fits.
-          </p>
-          <Code>{`---
-type: skill
-description: Write my daily standup from my files
----
-Write today's standup from my files: done, next, blocked. Keep each to one line.`}</Code>
-          <p>
-            The companion sees only each skill&apos;s name and description until it loads one, so
-            having many skills costs nothing. The file is read fresh each time, so edits apply at once. The app never creates or
-            changes skill files. <code>/template</code>, <code>/tasks</code> and <code>/code</code> are the app&apos;s own skills.
           </p>
         </>
       ),
@@ -225,35 +151,6 @@ Write today's standup from my files: done, next, blocked. Keep each to one line.
       ),
     },
     {
-      id: "ai-project-checks",
-      title: "Local project checks",
-      lead: "Run a fixed repository check through a local helper after approving its exact command.",
-      keywords: "ai project check typecheck unit tests helper local command approval network sandbox output",
-      body: (
-        <>
-          <p>
-            <code>check_file</code> is a browser-side syntax check. To run the repository TypeScript check or unit tests,
-            start the helper from a terminal and choose the project directory explicitly:
-          </p>
-          <Code>{`node helper/start.mjs --root /absolute/path/to/next-client`}</Code>
-          <p>
-            In Settings → AI Features, enter the one-time pairing code. Each invocation asks before it starts and shows
-            the fixed command, project directory, time limit and output destination. Only the fixed <code>typecheck</code>
-            and <code>unit-tests</code> IDs are available; the companion cannot supply a command or arguments.
-          </p>
-          <Callout type="warning">
-            The helper is not an OS sandbox. Network blocking is best effort, and unit tests execute code from the selected
-            project; a test can access local resources or modify project files. Run checks only for a project you trust.
-          </Callout>
-          <p>
-            Browser vaults and mobile are not supported because they do not expose a local project path. Nothing is
-            exported from OPFS. The helper does not receive vault contents, chat history or AI credentials. Output is
-            bounded and redacted before it is shown and returned to the companion; it is not saved in the thread or vault.
-          </p>
-        </>
-      ),
-    },
-    {
       id: "ai-web-search",
       title: "Web search",
       lead: "With Claude, the companion can look things up online, and lists the pages it used.",
@@ -275,29 +172,6 @@ Write today's standup from my files: done, next, blocked. Keep each to one line.
             What the companion searches for can quote your files. Leave it off if that matters for what
             you keep in your vault; private files are never read, so they can&apos;t be searched for.
           </Callout>
-        </>
-      ),
-    },
-    {
-      id: "ai-browser-agents",
-      title: "Browser agents",
-      lead: "AI agents built into your browser can use your files too, if you let them. No key needed.",
-      keywords: "webmcp browser agent model context tools read write",
-      body: (
-        <>
-          <p>
-            Some browsers have AI agents of their own that can use tools a page offers (WebMCP). In
-            Settings → AI Features, <strong>Let browser agents read files</strong> lets them search
-            your files, read one and list open tasks. It&apos;s off until you turn it on, and works
-            without an AI key.
-          </p>
-          <p>
-            With it on, <strong>Let browser agents change files</strong> also lets them edit and
-            create files, make folders, rename and move them, and save templates, as the
-            companion does. Each change shows a toast with <strong>Undo</strong>, and{" "}
-            <code>CTRL/CMD+Z</code> in Files takes it back too. They can never use the Trash or touch
-            private files.
-          </p>
         </>
       ),
     },

@@ -1,19 +1,14 @@
 import type { FileUIPart, TextUIPart, UIMessage } from "ai";
 import type { Tier } from "../ai-chat/auto-model";
 import type { Attachment, VaultRef } from "../ai-chat/chat-helpers";
-import type { CompanionToolName } from "@/app/services/companion-tool-defs";
-import type { ProjectCheckId } from "@/app/services/project-checks";
-import { parsePlanSteps, type PlanStep } from "./tools/search-tools";
 
 // The companion thread's messages: what a user turn sends (their words, then
 // the context chips as a second text part, then images), what of the thread
 // is sent to the model, how the tool loop is capped, and how a message's
 // parts read back for display.
 
-// A turn makes at most this many rounds of tool calls before it stops. A long
-// plan gets there because the turn's own old results are left out of the
-// request (trimLongTurn), so its size stays flat.
-export const MAX_TOOL_ROUNDS = 200;
+// A turn makes at most this many rounds of tool calls before it stops.
+export const MAX_TOOL_ROUNDS = 30;
 
 // Shown under a sent message: the labels of the context it carried.
 // `summary` marks the message a compacted thread starts with
@@ -23,7 +18,6 @@ export interface CompanionMetadata {
   // On a user turn sent with Auto: the model chosen for its reply.
   auto?: { model: string; name: string; tier: Tier };
   summary?: boolean;
-  activeSkillPolicy?: { tools?: CompanionToolName[]; checks?: ProjectCheckId[] };
 }
 export type CompanionMessage = UIMessage<CompanionMetadata>;
 
@@ -36,22 +30,10 @@ export interface CompanionContext {
   attachments: Attachment[];
 }
 
-// The skill a message's /command named, sent in its context.
-export interface TurnSkill {
-  command: string;
-  text: string;
-  toolBindings?: CompanionToolName[];
-  projectChecks?: ProjectCheckId[];
-}
-
 // The parts and metadata of a user turn, for useChat's sendMessage.
-export function userTurn(text: string, { path, selection, vaultRefs, attachments }: CompanionContext, skill?: TurnSkill, auto?: CompanionMetadata["auto"]) {
+export function userTurn(text: string, { path, selection, vaultRefs, attachments }: CompanionContext, auto?: CompanionMetadata["auto"]) {
   const blocks: string[] = [];
   const labels: string[] = [];
-  if (skill) {
-    blocks.push(`--- SKILL ${skill.command} ---\n${skill.text}\n--- END SKILL ---`);
-    labels.push(skill.command);
-  }
   if (path) {
     blocks.push(`The user is in ${path}.`);
     labels.push(path.split("/").pop() ?? path);
@@ -78,7 +60,6 @@ export function userTurn(text: string, { path, selection, vaultRefs, attachments
   parts.push(...files);
   const metadata: CompanionMetadata = {
     ...(labels.length ? { context: labels } : {}), ...(auto ? { auto } : {}),
-    ...(skill && (skill.toolBindings || skill.projectChecks) ? { activeSkillPolicy: { tools: skill.toolBindings, checks: skill.projectChecks } } : {}),
   };
   return { parts, metadata: Object.keys(metadata).length ? metadata : undefined };
 }
@@ -93,12 +74,11 @@ const LONG_PART_CHARS = 2_000;
 export const LEFT_OUT = "(Left out of this earlier turn to save space; read it again if you need it.)";
 
 // A tool part with its long result, and the long text a write sent, left out.
-// update_plan's answer is the model's place in the plan: always kept.
 function trimToolPart<P extends { type: string }>(part: P): P {
   const tool = part as unknown as { type: string; state?: string; input?: Record<string, unknown>; output?: unknown };
   if (!isToolPart(part)) return part;
   let next = tool;
-  if (tool.state === "output-available" && typeof tool.output === "string" && tool.output.length > LONG_PART_CHARS && tool.type !== "tool-update_plan") {
+  if (tool.state === "output-available" && typeof tool.output === "string" && tool.output.length > LONG_PART_CHARS) {
     next = { ...next, output: LEFT_OUT };
   }
   const content = tool.input?.content;
@@ -228,37 +208,25 @@ export interface ToolPartView {
 
 export type PartItem =
   | { part: UIMessage["parts"][number]; index: number }
-  | { plan: PlanStep[] }
   | { tool: ToolPartView };
 
-// A reply's parts as the thread shows them: text, the plan (one checklist, at
-// the first update_plan call, with the latest steps) and calls still waiting
+// A reply's parts as the thread shows them: text and calls still waiting
 // or running (a trash call asks the user). Finished and failed calls are
 // debugging detail: they come back in `hidden`, shown on request.
 export function replyItems(parts: UIMessage["parts"]): { items: PartItem[]; hidden: ToolPartView[] } {
   const items: PartItem[] = [];
   const hidden: ToolPartView[] = [];
-  let plan: PlanStep[] | null = null;
-  let planAt = -1;
   parts.forEach((part, index) => {
     const view = toolPartView(part);
     if (!view) {
       items.push({ part, index });
-    } else if (view.toolName === "update_plan") {
-      const steps = parsePlanSteps(view.input.steps);
-      if (steps.length) plan = steps;
-      if (planAt < 0) {
-        planAt = items.length;
-        items.push({ plan: [] });
-      }
     } else if (view.state === "running") {
       items.push({ tool: view });
     } else {
       hidden.push(view);
     }
   });
-  if (planAt >= 0) items[planAt] = plan ? { plan } : { plan: [] };
-  return { items: items.filter((item) => !("plan" in item) || item.plan.length), hidden };
+  return { items, hidden };
 }
 
 // A tool part of an assistant message, for its chip; null for other parts.

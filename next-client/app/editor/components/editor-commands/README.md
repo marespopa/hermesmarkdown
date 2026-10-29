@@ -32,7 +32,7 @@ without changing the public props contract or command behavior.
   Mermaid diagram, formula), each a menu of one-click actions, disabled until a
   key is set.
 - `workspace-task-view-commands.ts` defines panels, tabs, the editor-only
-  toggles (Toggle Hidden Files), Show Token Cost, the welcome
+  toggles (Toggle Hidden Files), the welcome
   tour, tasks and views.
 
 App-wide commands are not registered here, so each command exists once: Open

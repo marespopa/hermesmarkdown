@@ -61,21 +61,6 @@ describe("useCompanionWrites", () => {
     expect(indexVaultTags).toHaveBeenCalled();
   });
 
-  it("creates a Markdown plan with standard plan frontmatter", async () => {
-    const { vault, writes } = await setup();
-
-    await act(async () => { await writes.createPlan("turn-1", "plans/Companion flow.md", "# Improve the companion\n"); });
-
-    expect(vault.fileAt("plans/Companion flow.md")!.text()).toBe("---\ntype: plan\nstatus: draft\ntitle: Companion flow\ncreated: 2026-10-27\n---\n\n# Improve the companion\n");
-  });
-
-  it("refuses a plan with a non-Markdown path", async () => {
-    const { vault, writes } = await setup();
-
-    expect((await writes.createPlan("turn-1", "plans/Companion flow.txt", "# Improve")).detail).toBe("refused");
-    expect(vault.fileAt("plans/Companion flow.txt")).toBeUndefined();
-  });
-
   it("writes a code file as given", async () => {
     const { vault, writes } = await setup();
 

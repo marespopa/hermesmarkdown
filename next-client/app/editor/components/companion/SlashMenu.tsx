@@ -14,8 +14,8 @@ interface SlashMenuProps {
   onSelect: (option: SlashOption) => void;
 }
 
-// The / menu floating above the companion's input: its own commands, then
-// the skills, filtered by what's typed after the slash.
+// The / menu floating above the companion's input: its own commands,
+// filtered by what's typed after the slash.
 export default function SlashMenu({ options, activeIndex, onSelect }: SlashMenuProps) {
   return (
     <div role="listbox" aria-label="Commands" className="absolute bottom-full left-0 right-0 mb-1 glass-panel rounded-xl overflow-hidden z-50">

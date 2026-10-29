@@ -13,8 +13,7 @@ import {
   tableTabCommand,
 } from "./table-commands";
 
-// The table grid's keyboard model, shared by the editor (extensions.ts) and
-// the table generator tool (app/tools/table). Each command returns false,
+// The table grid's keyboard model, used by the editor (extensions.ts). Each command returns false,
 // falling through to the next binding, when the caret isn't in a table.
 export const tableKeyBindings: KeyBinding[] = [
   { key: "Tab", run: tableTabCommand },

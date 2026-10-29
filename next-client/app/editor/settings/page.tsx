@@ -9,7 +9,6 @@ import EditorSettings from "./sections/EditorSettings";
 import FilesSettings from "./sections/FilesSettings";
 import GuideSettings from "./sections/GuideSettings";
 import ProfileSettings from "./sections/ProfileSettings";
-import TerminalSettings from "./sections/TerminalSettings";
 import ShellPage from "../components/ShellPage";
 import { readUrlParam, replaceUrlParam, SECTION_PARAM } from "../utils/editor-url";
 
@@ -46,11 +45,10 @@ const SettingsPage = () => {
       id: "general",
       label: "General",
       icon: HiOutlineAdjustments,
-      // Your name and data first, then the terminal, then onboarding, help and about.
+      // Your name and data first, then onboarding, help and about.
       content: (
         <>
           <ProfileSettings />
-          <TerminalSettings />
           <GuideSettings />
         </>
       ),

@@ -23,4 +23,26 @@ describe("proposalFeedback", () => {
     expect(found.some((item) => item.cls?.includes("cm-ai-proposal-delete"))).toBe(false);
     expect(found.some((item) => item.widget)).toBe(true);
   });
+
+  it("adds Accept and Reject controls to the active hunk only", () => {
+    const onDecide = () => {};
+    const active = collect(proposalFeedback([{ from: 0, to: 6, insert: "After", active: true, onDecide }]));
+    const inactive = collect(proposalFeedback([{ from: 0, to: 6, insert: "After", onDecide }]));
+
+    expect(active.filter((item) => item.widget)).toHaveLength(2);
+    expect(inactive.filter((item) => item.widget)).toHaveLength(1);
+  });
+
+  it("reports the button clicked", () => {
+    const decisions: string[] = [];
+    const set = proposalFeedback([{ from: 0, to: 6, insert: "After", active: true, onDecide: (d) => decisions.push(d) }]);
+    set.between(0, 1000, (_from, _to, value) => {
+      const widget = value.spec.widget;
+      if (!widget || !("onDecide" in widget)) return;
+      const el = widget.toDOM() as HTMLElement;
+      el.querySelectorAll("button").forEach((button) => button.click());
+    });
+
+    expect(decisions).toEqual(["accepted", "rejected"]);
+  });
 });

@@ -15,3 +15,7 @@ Pending hunks are also drawn inline in the editor as ghost diffs: replaced text
 is struck through and the proposed text appears faintly after it (see
 `codemirror/proposal-feedback.ts`). **Discard** drops the whole proposal without
 writing anything.
+
+The active hunk also carries small Accept / Reject buttons in the editor itself
+(`HunkControlsWidget`); they decide the hunk and move to the next one
+(`decideHunk`), the same as the card's buttons and Mod-Alt-A / Mod-Alt-R.

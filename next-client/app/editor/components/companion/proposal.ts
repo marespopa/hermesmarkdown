@@ -18,7 +18,7 @@ export interface CompanionProposal {
   baseContent: string;
   proposedContent: string;
   hunks: ProposalHunk[];
-  operation: "write" | "create" | "plan" | "template";
+  operation: "write" | "create" | "template";
   templateName?: string;
   summary: string;
   activeHunkIndex: number;
@@ -91,4 +91,18 @@ export function newProposal(
     activeHunkIndex: 0,
     showWalkthroughDetails: false,
   };
+}
+
+// A hunk's decision, with the walkthrough moved on to the next hunk.
+export function decideHunk(all: CompanionProposal[], proposalId: string, hunkId: string, status: ProposalHunkStatus): CompanionProposal[] {
+  return all.map((proposal) => {
+    if (proposal.id !== proposalId) return proposal;
+    const index = proposal.hunks.findIndex((hunk) => hunk.id === hunkId);
+    if (index < 0) return proposal;
+    return {
+      ...proposal,
+      hunks: proposal.hunks.map((hunk) => hunk.id === hunkId ? { ...hunk, status } : hunk),
+      activeHunkIndex: Math.min(index + 1, proposal.hunks.length - 1),
+    };
+  });
 }

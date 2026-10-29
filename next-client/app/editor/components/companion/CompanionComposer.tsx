@@ -11,7 +11,6 @@ import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { ACCEPT_FILES, readAttachments, resolveMentionRefs, type Attachment, type VaultRef } from "../ai-chat/chat-helpers";
 import ChatContextChips from "../ai-chat/ChatContextChips";
 import MentionMenu from "../ai-chat/MentionMenu";
-import { useChatSkills } from "../ai-chat/use-chat-skills";
 import { useChatMentions } from "../ai-chat/use-chat-mentions";
 import { COMPANION_COMMAND_LIST } from "./companion-commands";
 import type { CompanionContext } from "./companion-messages";
@@ -32,7 +31,7 @@ const BUTTON_SLOT = "flex h-11 shrink-0 items-center justify-center";
 // shared field look), with attach and send beside it. An entry point's request (the note in front and its
 // selection) becomes removable context chips; @mentions load a note, folder
 // or the vault index as chips (use-chat-mentions); files attach. A message
-// that is just a /word lists the commands and skills to pick from (Arrow keys,
+// that is just a /word lists the commands to pick from (Arrow keys,
 // Enter or Tab fill one in, Escape closes). Enter sends
 // (Shift+Enter: new line) and clears the field and chips at once; while a
 // turn runs, the send button stops it.
@@ -46,7 +45,6 @@ export default function CompanionComposer({ request, isBusy, onSend, onStop }: C
   const [selection, setSelection] = useState("");
   const [slashIndex, setSlashIndex] = useState(0);
   const [slashDismissed, setSlashDismissed] = useState(false);
-  const { skillList } = useChatSkills();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -77,7 +75,7 @@ export default function CompanionComposer({ request, isBusy, onSend, onStop }: C
   const slashQuery = /^\/(\S*)$/.exec(input)?.[1]?.toLowerCase();
   const slashOptions: SlashOption[] = slashQuery === undefined || slashDismissed || mention
     ? []
-    : [...COMPANION_COMMAND_LIST, ...skillList()].filter((option) => option.command.startsWith(`/${slashQuery}`));
+    : COMPANION_COMMAND_LIST.filter((option) => option.command.startsWith(`/${slashQuery}`));
   const activeSlash = slashOptions[Math.min(slashIndex, slashOptions.length - 1)];
 
   const selectSlash = (option: SlashOption) => {

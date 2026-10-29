@@ -83,7 +83,7 @@ describe("forModel in a long turn", () => {
   const round = (n: number): UIMessage["parts"] => [
     { type: "step-start" },
     { type: "tool-read_file", toolCallId: `r${n}`, state: "output-available", input: { path: "a" }, output: long },
-    { type: "tool-write_file", toolCallId: `w${n}`, state: "output-available", input: { path: "a", content: long }, output: "Saved." },
+    { type: "tool-create_file", toolCallId: `w${n}`, state: "output-available", input: { path: "a", content: long }, output: "Saved." },
   ] as unknown as UIMessage["parts"];
   const turn = (rounds: number): UIMessage[] => [
     user("u1", "do the plan"),
@@ -108,40 +108,17 @@ describe("forModel in a long turn", () => {
     // The saved thread is untouched.
     expect((messages[1].parts[1] as unknown as { output: string }).output).toBe(long);
   });
-
-  it("always keeps the plan's answer", () => {
-    const planned: UIMessage = {
-      id: "a1",
-      role: "assistant",
-      parts: [
-        { type: "step-start" },
-        { type: "tool-update_plan", toolCallId: "p", state: "output-available", input: {}, output: long },
-        ...Array.from({ length: KEEP_ROUNDS + TRIM_BLOCK }, (_, n) => round(n)).flat(),
-      ] as unknown as UIMessage["parts"],
-    };
-    const sent = forModel([user("u1", "go"), planned])[1].parts[1] as unknown as { output: string };
-    expect(sent.output).toBe(long);
-  });
 });
 
 describe("replyItems", () => {
   const tool = (id: string, state: string, name = "read_file", input: unknown = {}) => ({ type: `tool-${name}`, toolCallId: id, state, input }) as unknown as UIMessage["parts"][number];
   const text = { type: "text" as const, text: "Adding the types." };
-  const plan = (id: string, status: string) => tool(id, "output-available", "update_plan", { steps: [{ text: "Types", status }, { text: "Wire", status: "pending" }] });
 
   it("keeps text, hides finished and failed calls, keeps running ones", () => {
     const { items, hidden } = replyItems([text, tool("a", "output-available"), tool("b", "output-error"), tool("c", "input-available")]);
 
-    expect(items.map((item) => ("tool" in item ? "tool" : "plan" in item ? "plan" : "text"))).toEqual(["text", "tool"]);
+    expect(items.map((item) => ("tool" in item ? "tool" : "text"))).toEqual(["text", "tool"]);
     expect(hidden.map((view) => view.toolCallId)).toEqual(["a", "b"]);
-  });
-
-  it("shows the plan once, at its first call, with the latest steps", () => {
-    const { items, hidden } = replyItems([plan("p1", "in_progress"), tool("a", "output-available"), text, plan("p2", "done")]);
-
-    expect(items).toHaveLength(2);
-    expect(items[0]).toEqual({ plan: [{ text: "Types", status: "done" }, { text: "Wire", status: "pending" }] });
-    expect(hidden.map((view) => view.toolCallId)).toEqual(["a"]);
   });
 });
 

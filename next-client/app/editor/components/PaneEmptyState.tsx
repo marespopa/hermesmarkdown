@@ -4,9 +4,7 @@ import React, { useRef } from "react";
 import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { HiOutlineDocumentText, HiOutlineDotsHorizontal, HiOutlineFolderOpen, HiOutlinePlus } from "react-icons/hi";
 import { atom_activeFilePath, atom_activePaneId, atom_openDraft, atom_vaultHandle } from "@/app/atoms/atoms";
-import { atom_isVaultPending, atom_vaultDescriptor } from "@/app/atoms/vault-atoms";
 import { focusPaneEditorWhenReady } from "../utils/focus-pane-editor";
-import { useVaultHasGit } from "../hooks/use-vault-has-git";
 import Button from "@/app/components/Button";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatPageShortcut, PAGE_SHORTCUTS, pageCommand, runPageCommand } from "@/app/components/CommandPalette/page-shortcuts";
@@ -21,7 +19,7 @@ interface PaneEmptyStateProps {
 
 // What a pane shows with no tabs open: new file, open a note (palette) or
 // file (device), vault actions when no vault is open, the pages with their
-// keys (Tasks, Changes in a git vault, Templates, Settings) with a vault,
+// keys (Tasks, Templates, Settings) with a vault,
 // and a palette hint.
 export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
   const vaultHandle = useAtomValue(atom_vaultHandle);
@@ -32,15 +30,11 @@ export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
   const { open: openCommandPalette, commands } = useCommandPalette();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const newFileShortcut = isMacPlatform() ? "⌃⌥N" : "Ctrl+Alt+N";
-  // Changes only for a disk vault with a `.git` folder, as the git menu.
-  const isDiskVault = useAtomValue(atom_vaultDescriptor)?.kind === "local";
-  const isVaultPending = useAtomValue(atom_isVaultPending);
-  const hasGit = useVaultHasGit(isDiskVault && !isVaultPending ? vaultHandle : null);
   // The pages you can reach from here, so they're seen without the palette
-  // (with a vault: they're the vault's Tasks, Changes and Templates).
+  // (with a vault: they're the vault's Tasks and Templates).
   const pages = vaultHandle
     ? PAGE_SHORTCUTS.flatMap((shortcut) => {
-        const command = shortcut.needsGit && !hasGit ? undefined : pageCommand(shortcut, commands);
+        const command = pageCommand(shortcut, commands);
         return command ? [{ shortcut, command }] : [];
       })
     : [];

@@ -3,8 +3,6 @@ import { DefaultChatTransport } from "ai";
 import { getAIConfig, isLocalBaseUrl, isWebSearchEnabled } from "@/app/services/ai";
 import { withLocalOllama } from "@/app/services/ollama-direct";
 import { forModel, shouldContinue, WEB_TOOL_NAMES, type CompanionMessage } from "./companion-messages";
-import type { CompanionToolName } from "@/app/services/companion-tool-defs";
-import type { ProjectCheckId } from "@/app/services/project-checks";
 
 // The companion's one conversation, outside React: the Chat instance lives
 // for the whole session, so the thread survives the panel closing,
@@ -20,11 +18,10 @@ const MAX_SAVED_CHARS = 1_500_000;
 
 export interface CompanionHandlers {
   system: string;
-  planning?: boolean;
   // The model Auto chose for the current turn (use-companion-chat.ts); unset
   // when a model is picked, so its tool rounds follow the same choice.
   modelOverride?: string;
-  runToolCall: (call: { toolName: string; toolCallId: string; input: unknown }, turnId: string, policy?: { tools?: CompanionToolName[]; checks?: ProjectCheckId[] }) => Promise<string>;
+  runToolCall: (call: { toolName: string; toolCallId: string; input: unknown }, turnId: string) => Promise<string>;
 }
 
 export const companionHandlers: CompanionHandlers = {
@@ -52,11 +49,7 @@ export function saveThread(messages: CompanionMessage[]): void {
     }
     const slim = messages.slice(-MAX_SAVED_MESSAGES).map((message) => ({
       ...message,
-      parts: message.parts.filter((part) => part.type !== "file").map((part) => {
-        if (part.type !== "tool-run_project_check") return part;
-        const tool = part as unknown as { type: string; state?: string; output?: unknown; [key: string]: unknown };
-        return tool.state === "output-available" ? { ...tool, output: "[Local project check output is not saved.]" } : tool;
-      }),
+      parts: message.parts.filter((part) => part.type !== "file"),
     }));
     let json = JSON.stringify(slim);
     while (json.length > MAX_SAVED_CHARS && slim.length > 1) {
@@ -92,17 +85,6 @@ export function withReadableErrors(fetchImpl?: typeof globalThis.fetch): typeof 
 }
 
 let chat: Chat<CompanionMessage> | null = null;
-let projectCheckAbort: AbortController | null = null;
-
-export function trackProjectCheckAbort(controller: AbortController) {
-  projectCheckAbort = controller;
-  return () => { if (projectCheckAbort === controller) projectCheckAbort = null; };
-}
-
-export function cancelProjectCheck() {
-  projectCheckAbort?.abort();
-  projectCheckAbort = null;
-}
 
 // A Chat wired to the companion's route and tools; `fetch` stands in for the
 // network in tests.
@@ -118,7 +100,6 @@ export function createCompanionChat({ messages = [], fetch }: { messages?: Compa
         ...getAIConfig(companionHandlers.modelOverride),
         system: companionHandlers.system,
         webSearch: isWebSearchEnabled(),
-        planning: companionHandlers.planning === true,
       }),
       // Older turns go trimmed (forModel); the thread itself keeps them whole.
       prepareSendMessagesRequest: ({ id, messages, body, trigger, messageId }) => ({
@@ -129,10 +110,7 @@ export function createCompanionChat({ messages = [], fetch }: { messages?: Compa
     onToolCall: async ({ toolCall }) => {
       // Web search runs at the provider; its result is already in the stream.
       if (WEB_TOOL_NAMES.has(toolCall.toolName)) return;
-      const currentUser = [...instance.messages].reverse().find((message) => message.role === "user");
-      const output = await companionHandlers.runToolCall(
-        toolCall, currentTurnId(instance.messages), currentUser?.metadata?.activeSkillPolicy,
-      );
+      const output = await companionHandlers.runToolCall(toolCall, currentTurnId(instance.messages));
       // Not awaited: awaiting it inside onToolCall can deadlock the loop.
       void instance.addToolOutput({ tool: toolCall.toolName, toolCallId: toolCall.toolCallId, output });
     },

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { NOTE_TOOL_DEFS } from "./note-tool-defs";
-import { PROJECT_CHECK_IDS } from "./project-checks";
+import { TEMPLATE_SYNTAX_GUIDE } from "@/app/utils/templates/template-lint";
 
 const PROPOSAL_DETAILS = {
   summary: z.string().max(240).optional().describe("Concise user-facing summary of the proposal; never include private reasoning"),
@@ -10,8 +10,8 @@ const PROPOSAL_DETAILS = {
 
 // The AI companion's tools: the note tools (search_notes, read_note,
 // list_open_tasks), the vault and editor read tools (list_folder, read_file,
-// search_files, find_files, check_file), git_status and git_diff, update_plan, load_skill, the edits,
-// the organising tools and create_template. Sent to the model
+// search_files, find_files), the edits (each a proposal), the
+// organising tools and create_template. Sent to the model
 // without `execute` (app/api/ai/companion/companion-tools.ts) and run in the
 // browser (app/editor/components/companion/use-companion-tools.ts).
 export const COMPANION_TOOL_DEFS = {
@@ -55,59 +55,11 @@ export const COMPANION_TOOL_DEFS = {
       limit: z.number().int().min(1).max(200).optional().describe('Most paths to return (default 50)'),
     }),
   },
-  check_file: {
-    title: 'Check file',
-    description:
-      "Check one file for syntax problems, after you write it or when asked: JSON and YAML are parsed, code files go through a language parser (JavaScript, TypeScript, CSS, HTML, Python, Rust, Go, Java, PHP, SQL and more), and note frontmatter, unclosed code fences, [[links]] that match no file and fenced code are checked. Syntax only: it cannot check types, imports or behaviour. Approved local project checks are separate and require a paired helper.",
-    inputSchema: z.object({
-      path: z.string().min(1).describe('Vault-relative path of the file to check'),
-    }),
-  },
-  run_project_check: {
-    title: "Run project check",
-    description: "Request one approved local project check from the fixed catalog. This never accepts a command or arguments; each run requires the user’s approval. Project checks require a paired local helper and are unavailable for browser vaults and mobile.",
-    inputSchema: z.object({
-      checkId: z.enum(PROJECT_CHECK_IDS).describe("A fixed check ID, such as typecheck or unit-tests"),
-    }).strict(),
-  },
-  git_status: {
-    title: 'Git status',
-    description:
-      "Which files of the vault differ from the last commit (git HEAD) and how many lines changed in each. Read only: you can't commit, push or stage; the user does that in their terminal. Say so if asked, and name the files they would commit.",
-    inputSchema: z.object({}),
-  },
-  git_diff: {
-    title: 'Git diff',
-    description:
-      "The line changes of files since the last commit (git HEAD), as diff hunks: one file or folder with `path`, or every changed file without it. Use it to review what has changed, including your own edits this turn. Read only.",
-    inputSchema: z.object({
-      path: z.string().optional().describe('Vault-relative file or folder; leave out for every changed file'),
-    }),
-  },
-  update_plan: {
-    title: 'Update plan',
-    description:
-      "Keep a checklist of the steps of a multi-step job, such as a coding plan. Send the whole list each time with each step's status: pending, in_progress (one at a time) or done. Call it when you start a plan and as each step finishes, so the user sees progress. It changes no files.",
-    inputSchema: z.object({
-      steps: z.array(z.object({
-        text: z.string().min(1).describe('The step, in a few words'),
-        status: z.enum(['pending', 'in_progress', 'done']),
-      })).min(1).describe('Every step of the plan, in order'),
-    }),
-  },
   get_active_note: {
     title: 'Get active note',
     description:
       'What the user has open in the editor: its path, the text they selected, and the fenced code block the cursor is in (when it is in one). Read the whole file with read_file.',
     inputSchema: z.object({}),
-  },
-  load_skill: {
-    title: 'Load skill',
-    description:
-      "Load one of the skills listed in your instructions: its full instructions, and for the tasks skill the user's open tasks. Load a skill before starting work that fits it; a message starting with the skill's command already carries it.",
-    inputSchema: z.object({
-      name: z.string().min(1).describe('The skill\'s command, e.g. "/tasks" or "/standup-notes"'),
-    }),
   },
   edit_file: {
     title: 'Edit file',
@@ -122,29 +74,6 @@ export const COMPANION_TOOL_DEFS = {
       ...PROPOSAL_DETAILS,
     }),
   },
-  write_file: {
-    title: 'Write file',
-    description:
-      "Propose replacing a file's whole text, or creating it when it doesn't exist. Use it to rewrite a file or when most of it changes; for a few changes use edit_file. Give the complete new text: whatever you leave out is gone. Nothing is written until the user explicitly applies accepted hunks.",
-    inputSchema: z.object({
-      path: z.string().min(1).describe('Vault-relative path, e.g. "src/index.ts"'),
-      content: z.string().describe("The file's complete new text"),
-      ...PROPOSAL_DETAILS,
-    }),
-  },
-  edit_code_block: {
-    title: 'Edit code block',
-    description:
-      "Propose replacing the code inside one fenced code block of a note (the fences stay). Pick the block by its index (0 is the note's first; get_active_note gives the one at the cursor). Nothing is written until the user explicitly applies accepted hunks.",
-    inputSchema: z.object({
-      path: z.string().min(1).describe('Vault-relative path of the note'),
-      index: z.number().int().min(0).optional().describe("The block's index in the note"),
-      lang: z.string().optional().describe("The block's language, e.g. python"),
-      firstLine: z.string().optional().describe("The block's current first line of code"),
-      code: z.string().describe('The new code for the block'),
-      ...PROPOSAL_DETAILS,
-    }),
-  },
   create_file: {
     title: 'Create file',
     description:
@@ -152,16 +81,6 @@ export const COMPANION_TOOL_DEFS = {
     inputSchema: z.object({
       path: z.string().min(1).describe('Vault-relative path, e.g. "Projects/Launch plan.md"'),
       content: z.string().describe("The file's text"),
-      ...PROPOSAL_DETAILS,
-    }),
-  },
-  create_plan: {
-    title: 'Create plan',
-    description:
-      "Propose a new Markdown plan at a vault-relative path. Use this when the user explicitly asks for a new plan file. It adds standard plan frontmatter when applied. Nothing is written until the user explicitly applies accepted hunks.",
-    inputSchema: z.object({
-      path: z.string().min(1).describe('Vault-relative Markdown path, e.g. "plans/Improve companion flow.md"'),
-      content: z.string().describe("The plan's Markdown body, optionally with frontmatter"),
       ...PROPOSAL_DETAILS,
     }),
   },
@@ -202,7 +121,7 @@ export const COMPANION_TOOL_DEFS = {
   create_template: {
     title: 'Create template',
     description:
-      "Propose a new note template in the vault's templates folder. Nothing is saved until the user explicitly applies accepted hunks; an existing template is never replaced.",
+      `Propose a new note template in the vault's templates folder. Nothing is saved until the user explicitly applies accepted hunks; an existing template is never replaced. The body is checked first: if problems come back, fix them and call it again. Give it a short name without folders, use {{prompt:Label}} for values the user types each time, and read an existing template and use edit_file to change it.\n\n${TEMPLATE_SYNTAX_GUIDE}`,
     inputSchema: z.object({
       name: z.string().min(1).describe('Short template name, e.g. "Meeting notes" (no folders)'),
       body: z.string().min(1).describe("The template's text, with its fields, e.g. {{title}}, {{date}}, {{prompt:Owner}}, {{cursor}}"),
@@ -213,24 +132,3 @@ export const COMPANION_TOOL_DEFS = {
 
 export type CompanionToolName = keyof typeof COMPANION_TOOL_DEFS;
 export const COMPANION_TOOL_NAMES = Object.keys(COMPANION_TOOL_DEFS) as CompanionToolName[];
-
-// User skills may bind only to these fixed, safe companion tools.
-export const COMPANION_SKILL_TOOL_BINDINGS: readonly CompanionToolName[] = [
-  "search_notes", "read_note", "list_open_tasks", "list_folder", "read_file", "search_files",
-  "find_files", "check_file", "git_status", "git_diff", "run_project_check", "create_plan",
-];
-export const COMPANION_EXECUTION_TOOL_NAMES: CompanionToolName[] = ["run_project_check"];
-
-// The tools that change the vault (everything but the reads), for WebMCP's
-// write switch (hooks/use-webmcp-tools.ts). trash isn't offered there: it
-// asks on a card in the companion's thread.
-export const COMPANION_WRITE_TOOL_NAMES: CompanionToolName[] = [
-  'edit_file', 'write_file', 'edit_code_block', 'create_file', 'create_plan', 'create_folder', 'rename', 'move', 'create_template',
-];
-
-// All vault-mutating tools. Planning turns omit these from the server's tool
-// contract, while update_plan remains available to render the checklist.
-export const COMPANION_MUTATING_TOOL_NAMES: CompanionToolName[] = [
-  ...COMPANION_WRITE_TOOL_NAMES,
-  'trash',
-];

@@ -9,7 +9,6 @@ import type { SlashMenuCallbacks } from "../codemirror/slash-menu";
 import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
 import { flowMode as flowModeExtension, type FlowLevel } from "../codemirror/flow-mode";
 import { invisibles } from "../codemirror/invisibles";
-import { gitChanges } from "../codemirror/git-changes";
 import { proposalFeedback, proposalFeedbackTheme, type ProposalRange } from "../codemirror/proposal-feedback";
 import { changedRange } from "@/app/utils/text-diff";
 import { isPlainTextPath } from "@/app/utils/file-kinds";
@@ -21,7 +20,6 @@ interface UseCodeMirrorEditorOptions {
   wordWrap: boolean;
   lineNumbers: boolean;
   showInvisibles: boolean;
-  gitChanges: boolean;
   vimMode: boolean;
   /** Flow mode level, or false when off. */
   flowMode: FlowLevel | false;
@@ -56,7 +54,6 @@ export function useCodeMirrorEditor({
   wordWrap,
   lineNumbers,
   showInvisibles,
-  gitChanges: showGitChanges,
   vimMode,
   flowMode,
   onOpenActiveHelperRef,
@@ -91,7 +88,6 @@ export function useCodeMirrorEditor({
   // The file's line-number gutters, set once its extensions load.
   const lineGuttersRef = useRef<((on: boolean) => Extension) | null>(null);
   const invisiblesCompartmentRef = useRef<Compartment | null>(null);
-  const gitChangesCompartmentRef = useRef<Compartment | null>(null);
   const vimModeCompartmentRef = useRef<Compartment | null>(null);
   const flowModeCompartmentRef = useRef<Compartment | null>(null);
   const proposalFeedbackCompartmentRef = useRef<Compartment | null>(null);
@@ -120,7 +116,6 @@ export function useCodeMirrorEditor({
       const wordWrapCompartment = new Compartment();
       const lineNumbersCompartment = new Compartment();
       const invisiblesCompartment = new Compartment();
-      const gitChangesCompartment = new Compartment();
       const vimModeCompartment = new Compartment();
       const flowModeCompartment = new Compartment();
       const proposalFeedbackCompartment = new Compartment();
@@ -128,7 +123,6 @@ export function useCodeMirrorEditor({
       lineNumbersCompartmentRef.current = lineNumbersCompartment;
       lineGuttersRef.current = (on) => extensionsModule.lineNumberGutters(plainText, !!codeLanguage, on);
       invisiblesCompartmentRef.current = invisiblesCompartment;
-      gitChangesCompartmentRef.current = gitChangesCompartment;
       vimModeCompartmentRef.current = vimModeCompartment;
       flowModeCompartmentRef.current = flowModeCompartment;
       proposalFeedbackCompartmentRef.current = proposalFeedbackCompartment;
@@ -142,8 +136,6 @@ export function useCodeMirrorEditor({
           lineNumbersCompartment,
           showInvisibles,
           invisiblesCompartment,
-          gitChanges: showGitChanges,
-          gitChangesCompartment,
           vimMode,
           vimModeCompartment,
           flowMode,
@@ -231,13 +223,6 @@ export function useCodeMirrorEditor({
     if (!view || !compartment) return;
     view.dispatch({ effects: compartment.reconfigure(showInvisibles ? invisibles() : []) });
   }, [showInvisibles, viewRef]);
-
-  useEffect(() => {
-    const view = viewRef.current;
-    const compartment = gitChangesCompartmentRef.current;
-    if (!view || !compartment) return;
-    view.dispatch({ effects: compartment.reconfigure(showGitChanges ? gitChanges() : []) });
-  }, [showGitChanges, viewRef]);
 
   useEffect(() => {
     const view = viewRef.current;
