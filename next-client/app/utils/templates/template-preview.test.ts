@@ -22,8 +22,8 @@ describe("templateSummary", () => {
     expect(templateSummary("Date: {{date}}\nOwner: {{prompt:Owner}}")).toBe("Today's date • Asks Owner");
   });
 
-  it("falls back to Plain note", () => {
-    expect(templateSummary("Just text")).toBe("Plain note");
+  it("falls back to Plain file", () => {
+    expect(templateSummary("Just text")).toBe("Plain file");
   });
 });
 

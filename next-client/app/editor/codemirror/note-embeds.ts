@@ -52,7 +52,7 @@ function sameContent(a: EmbedContent | undefined, b: EmbedContent | undefined): 
 }
 
 const MISSING: Record<EmbedRef["kind"], string> = {
-  note: "Note not found",
+  note: "File not found",
   csv: "File not found",
   image: "Image not found",
   code: "File not found",
@@ -112,7 +112,7 @@ class NoteEmbedWidget extends WidgetType {
     title.textContent = ref.heading ? `${ref.target} › ${ref.heading}` : ref.target;
     if (title instanceof HTMLButtonElement) {
       title.type = "button";
-      title.title = "Open the note";
+      title.title = "Open the file";
       title.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -130,7 +130,7 @@ class NoteEmbedWidget extends WidgetType {
 
     if (!content) frame.appendChild(message("Loading…"));
     else if (content.kind === "missing") frame.appendChild(message(MISSING[ref.kind]));
-    else if (content.kind === "self") frame.appendChild(message("A note can't embed itself"));
+    else if (content.kind === "self") frame.appendChild(message("A file can't embed itself"));
     else if (content.kind === "private") frame.appendChild(message("Private note: open it to read"));
     else if (content.kind === "image") {
       const image = document.createElement("img");
@@ -150,8 +150,8 @@ class NoteEmbedWidget extends WidgetType {
       void highlightInto(code, content.code, content.path).then(measure);
     } else {
       const section = embedSection(content.markdown, ref.heading);
-      if (section === null) frame.appendChild(message(`No heading "${ref.heading}" in this note`));
-      else if (!section) frame.appendChild(message(ref.kind === "csv" ? "Empty file" : "Empty note"));
+      if (section === null) frame.appendChild(message(`No heading "${ref.heading}" in this file`));
+      else if (!section) frame.appendChild(message("Empty file"));
       else {
         const body = document.createElement("div");
         body.className = "cm-note-embed-body";

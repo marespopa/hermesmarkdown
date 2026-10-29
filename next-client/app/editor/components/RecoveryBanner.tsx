@@ -33,7 +33,7 @@ export default function RecoveryBanner() {
   const [dismissedLarge, setDismissedLarge] = useState<string[]>([]);
   const { exportNote, regrantAccess, chooseVault, freeUpSpace } = useRecoveryActions();
 
-  const exportAction: Action = { label: "Export note as .md", onClick: exportNote };
+  const exportAction: Action = { label: "Export file as .md", onClick: exportNote };
   const clearCache: Action = { label: "Clear cache", onClick: () => void freeUpSpace() };
 
   let message: string;

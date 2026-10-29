@@ -166,7 +166,7 @@ export function useVaultManager() {
         if (!indexing) return;
         markVaultTreeListed(store, store.get(atom_vaultKey));
         const { done, contentDone } = indexing;
-        void contentDone.catch((err) => console.error("Failed to index note text:", err));
+        void contentDone.catch((err) => console.error("Failed to index file text:", err));
         void done
           .catch((err) => console.error("Failed to parse vault metadata:", err))
           .finally(() => {

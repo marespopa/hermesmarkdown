@@ -39,9 +39,9 @@ export const freeToolsItems: Subsection[] = [
           reason.
         </p>
         <p>
-          To price a note you already have, run <strong>Show Token Cost</strong> from the
+          To price a file you already have, run <strong>Show Token Cost</strong> from the
           editor&apos;s command palette. It counts the
-          note in the editor and shows what sending it costs on each model.
+          file in the editor and shows what sending it costs on each model.
         </p>
         <Callout type="note">
           Nothing from the tools is uploaded. Tables, diagrams, conversions and token counts are all

@@ -10,7 +10,7 @@ import { templateSummary } from "@/app/utils/templates/template-preview";
 import TemplateIcon from "./TemplateIcon";
 import TemplatePreview from "./TemplatePreview";
 
-export const BLANK_NOTE_LABEL = "Blank note";
+export const BLANK_NOTE_LABEL = "Blank file";
 export const BOARD_LABEL = "Board";
 
 /** A row that starts without a template. */
@@ -236,7 +236,7 @@ export default function TemplatePicker<T extends TemplatePickerEntry>({
                     <TemplatePreview raw={bodies?.[pickerEntryKey(highlighted.entry)] ?? null} name={highlighted.entry.name} />
                   ) : (
                     <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-edge-subtle text-ui-caption text-fg-faint">
-                      {highlighted?.kind === "board" ? "An empty drawing board" : "An empty note"}
+                      {highlighted?.kind === "board" ? "An empty drawing board" : "An empty file"}
                     </div>
                   )}
                 </div>

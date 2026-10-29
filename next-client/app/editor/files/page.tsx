@@ -135,7 +135,7 @@ export default function FilesPage() {
               <p>
                 {isFiltered
                   ? formatCount(totalResultsCount, ["matching file", "matching files"])
-                  : `${formatCount(allFiles.length, ["note", "notes"])}, ${formatCount(folderPaths.length, ["folder", "folders"])}`}
+                  : `${formatCount(allFiles.length, ["file", "files"])}, ${formatCount(folderPaths.length, ["folder", "folders"])}`}
               </p>
             </div>
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-edge-subtle bg-surface">

@@ -90,7 +90,7 @@ async function noteProblems(text: string, { load, linkExists }: CheckDeps): Prom
     enter(node) {
       if (node.name !== "FencedCode") return;
       const marks = node.node.getChildren("CodeMark").length;
-      if (marks < 2) found.push(`line ${lineOf(text, node.from)}: the code block is never closed, so the rest of the note reads as code`);
+      if (marks < 2) found.push(`line ${lineOf(text, node.from)}: the code block is never closed, so the rest of the file reads as code`);
       const info = node.node.getChild("CodeInfo");
       const body = node.node.getChild("CodeText");
       if (info && body && marks >= 2) fenced.push({ lang: text.slice(info.from, info.to).trim(), from: body.from, to: body.to });

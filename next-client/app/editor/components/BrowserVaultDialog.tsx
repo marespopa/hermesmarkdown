@@ -106,7 +106,7 @@ export default function BrowserVaultDialog() {
         <div>
           <h2 id="browser-vault-title" className="text-ui-title-3 font-bold">Browser Vaults</h2>
           <p className="mt-1 text-ui-footnote text-fg-muted">
-            Notes are stored privately in this browser and work offline. They are not visible
+            Files are stored privately in this browser and work offline. They are not visible
             as files on disk, so export the vault regularly as a backup.
           </p>
         </div>
@@ -118,7 +118,7 @@ export default function BrowserVaultDialog() {
             value={vaultName}
             handleChange={(event) => setVaultName(event.target.value)}
             onKeyDown={(event) => { if (event.key === "Enter") create(); }}
-            placeholder="My notes"
+            placeholder="My files"
             disabled={isBusy}
           />
           <Button

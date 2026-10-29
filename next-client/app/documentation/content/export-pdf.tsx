@@ -4,7 +4,7 @@ import { Callout, KV, type Subsection } from "../doc-primitives";
 export const exportPdfItem: Subsection = {
   id: "export-pdf",
   title: "Export as PDF",
-  lead: "Save a clean, printable PDF of any note. It's made on your device; the note never leaves it.",
+  lead: "Save a clean, printable PDF of any file. It's made on your device; the file never leaves it.",
   keywords: "pdf export print save share archive download offline report page size a4 letter margins header footer page numbers page break preview",
   body: (
     <>
@@ -40,7 +40,7 @@ export const exportPdfItem: Subsection = {
         of the page is the same.
       </Callout>
       <p>
-        The PDF&apos;s title comes from the note&apos;s first heading, or its file name. A note marked
+        The PDF&apos;s title comes from the file&apos;s first heading, or its file name. A file marked
         private can only be exported once you&apos;ve shown it. <code>CTRL/CMD+P</code> still
         opens the command palette.
       </p>
@@ -52,25 +52,25 @@ export const exportPdfItem: Subsection = {
 export const exportHtmlItem: Subsection = {
   id: "export-html",
   title: "Export as HTML",
-  lead: "Download any note as one standalone web page. It's made on your device; the note never leaves it.",
+  lead: "Download any file as one standalone web page. It's made on your device; the file never leaves it.",
   keywords: "html export web page website publish share download standalone self-contained file offline",
   body: (
     <>
       <p>
         Run <strong>Export as HTML</strong> from the command palette (the button at the top
-        of the page, or <code>CTRL/CMD+K</code>). The note downloads as a single <code>.html</code>{" "}
+        of the page, or <code>CTRL/CMD+K</code>). The file downloads as a single <code>.html</code>{" "}
         file named after it, ready to open in any browser, send, or put on a website.
       </p>
       <KV
         rows={[
-          { label: "Included", value: "Everything Export as PDF prints: headings, lists, task boxes, tables, code, callouts, <details> sections (open or closed as in the note), Mermaid diagrams, math, embeds and vault images" },
-          { label: "Standalone", value: "Images, diagrams and styles are inside the file, so it opens offline and loads nothing else (images the note links to on the web stay links)" },
+          { label: "Included", value: "Everything Export as PDF prints: headings, lists, task boxes, tables, code, callouts, <details> sections (open or closed as in the file), Mermaid diagrams, math, embeds and vault images" },
+          { label: "Standalone", value: "Images, diagrams and styles are inside the file, so it opens offline and loads nothing else (images the file links to on the web stay links)" },
           { label: "Look", value: "A centred reading column that follows the reader's light or dark setting, and prints like the PDF" },
         ]}
       />
       <p>
-        The page&apos;s title comes from the note&apos;s first heading, or its file name. Like Export
-        as PDF, a note marked private can only be exported once you&apos;ve shown it.
+        The page&apos;s title comes from the file&apos;s first heading, or its file name. Like Export
+        as PDF, a file marked private can only be exported once you&apos;ve shown it.
       </p>
     </>
   ),

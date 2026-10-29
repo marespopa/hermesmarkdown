@@ -43,7 +43,7 @@ export function useRecoveryActions() {
   const exportNote = useCallback(() => {
     const content = store.get(atom_content);
     if (!content.trim()) {
-      toast("This note is empty.", { id: "recovery-export" });
+      toast("This file is empty.", { id: "recovery-export" });
       return;
     }
     const name = downloadMarkdown(content, store.get(atom_fileName));

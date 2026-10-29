@@ -175,7 +175,7 @@ describe("createNoteFromMissingLink", () => {
   it("shows a toast for an invalid name and writes nothing", async () => {
     const { flows } = await setup();
     await act(() => flows.createNoteFromMissingLink("bad:name"));
-    expect(toast.error).toHaveBeenCalledWith('Can\'t create a note named "bad:name"');
+    expect(toast.error).toHaveBeenCalledWith('Can\'t create a file named "bad:name"');
     expect(writeFileContent).not.toHaveBeenCalled();
   });
 

@@ -39,7 +39,7 @@ describe("PrivateNoteGate", () => {
   it("reveals the note on Show note and remembers it for the session", () => {
     const { store, show } = setup();
     show("a.md", PRIVATE);
-    fireEvent.click(screen.getByRole("button", { name: "Show note" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show file" }));
     expect(screen.getByTestId("editor")).toHaveTextContent("Salary figures");
     expect(store.get(atom_revealedPrivatePaths).has("a.md")).toBe(true);
 
@@ -52,7 +52,7 @@ describe("PrivateNoteGate", () => {
   it("reveals every private note on Show all", () => {
     const { store, show } = setup();
     show("a.md", PRIVATE);
-    fireEvent.click(screen.getByRole("button", { name: "Show all private notes this session" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show all private files this session" }));
     expect(store.get(atom_revealAllPrivate)).toBe(true);
 
     show("b.md", PRIVATE);

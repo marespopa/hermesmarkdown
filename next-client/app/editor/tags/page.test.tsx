@@ -59,7 +59,7 @@ describe("TagsPage", () => {
     renderPage();
     fireEvent.click(screen.getByRole("button", { name: /release/ }));
 
-    const list = screen.getByRole("list", { name: "Notes tagged release" });
+    const list = screen.getByRole("list", { name: "Files tagged release" });
     const rows = within(list).getAllByRole("button");
     expect(rows).toHaveLength(2);
     expect(rows[0]).toHaveTextContent("changelog");
@@ -85,7 +85,7 @@ describe("TagsPage", () => {
     window.history.replaceState(null, "", "/editor/tags?tag=release");
     rerender(page());
     expect(screen.getByRole("heading", { name: "#release" })).toBeInTheDocument();
-    expect(screen.getByRole("list", { name: "Notes tagged release" })).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: "Files tagged release" })).toBeInTheDocument();
   });
 
   it("pins the chosen tag, then reads Pinned", async () => {

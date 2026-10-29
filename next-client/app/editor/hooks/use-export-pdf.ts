@@ -19,7 +19,7 @@ import { useCompileEmbeds } from "./use-embed-reader";
 import { printDocument, printHtml } from "../utils/print-note";
 import { renderNote } from "../utils/render-note";
 
-export const VEILED_REASON = "Show the note first: it's marked private";
+export const VEILED_REASON = "Show the file first: it's marked private";
 
 // Moved to utils/note-embeds.ts; kept here for existing imports.
 export { vaultImagePath };
@@ -35,7 +35,7 @@ export function useExportDisabledReason(): string | undefined {
   const path = activeFilePath ?? "draft";
   const isPrivate = isPrivateContent(content) || isPrivateFrontmatter(metadata[path]?.frontmatter);
   const veiled = isPrivate && !revealAll && !revealed.has(path);
-  return !content.trim() ? "The note is empty" : veiled ? VEILED_REASON : undefined;
+  return !content.trim() ? "The file is empty" : veiled ? VEILED_REASON : undefined;
 }
 
 // A rendered note waiting in the export dialog. `urls` are its images'
@@ -102,7 +102,7 @@ export function useExportPdf() {
     } catch (err) {
       console.warn("Export as PDF failed:", err);
       revoke(urls);
-      toast.error("Couldn't export the note as PDF");
+      toast.error("Couldn't export the file as PDF");
     } finally {
       busy.current = false;
     }
@@ -121,7 +121,7 @@ export function useExportPdf() {
     } catch (err) {
       console.warn("Export as PDF failed:", err);
       revoke(job.urls);
-      toast.error("Couldn't export the note as PDF");
+      toast.error("Couldn't export the file as PDF");
     }
   }, [job, setJob, store]);
 

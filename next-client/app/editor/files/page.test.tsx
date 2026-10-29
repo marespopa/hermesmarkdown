@@ -51,7 +51,7 @@ describe("FilesPage", () => {
     search.allFiles = Array.from({ length: 1204 }, (_, i) => ({ path: `n${i}.md`, name: `n${i}.md` }));
     search.folderPaths = ["Projects"];
     render(<Provider><FilesPage /></Provider>);
-    expect(screen.getByText("1,204 notes, 1 folder")).toBeInTheDocument();
+    expect(screen.getByText("1,204 files, 1 folder")).toBeInTheDocument();
   });
 
   it("reads 1 matching file when filtered to one", () => {

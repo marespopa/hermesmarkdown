@@ -18,7 +18,7 @@ export function normalizePrivacyLevel(value: unknown): PrivacyLevel {
 /** Fixed length, so the bullet count can't reveal how long the preview is. */
 export const MASKED_PREVIEW = "•••• ••••••• ••••• •••••••• •••";
 export const MASKED_TEXT = "••••••••";
-export const UNTITLED_PRIVATE_TITLE = "Untitled private note";
+export const UNTITLED_PRIVATE_TITLE = "Untitled private file";
 
 export type PreviewStyle = "plain" | "masked";
 

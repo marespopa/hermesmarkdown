@@ -64,7 +64,7 @@ export default function TaskRow({
   const tags = task.isMasked ? [] : task.tags;
   const swipe = useTaskSwipe(task.status, onSetStatus);
   const swiping = swipe.offset !== 0;
-  const openItems = [{ label: "Open Note", icon: <HiOutlineDocumentText size={14} />, onClick: onNavigate }];
+  const openItems = [{ label: "Open File", icon: <HiOutlineDocumentText size={14} />, onClick: onNavigate }];
   return (
     <div className="relative overflow-hidden rounded-xl touch-pan-y" {...swipe.handlers}>
       {swipe.action && (

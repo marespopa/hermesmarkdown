@@ -175,7 +175,7 @@ describe("useFolderTemplate", () => {
     expect(store.get(atom_pendingTreeEntries).size).toBe(0);
     expect(store.get(atom_busyPaths).size).toBe(0);
     expect(store.get(atom_vaultFolderPaths)).toEqual(["Acme launch", "Acme launch/Notes"]);
-    expect(mocks.toast.success).toHaveBeenCalledWith("Created Acme launch: 2 notes");
+    expect(mocks.toast.success).toHaveBeenCalledWith("Created Acme launch: 2 files");
     expect(props.openFile).toHaveBeenCalledWith(handle, "Acme launch/README.md", true);
     expect(store.get(atom_pendingScrollTarget)).toEqual({ path: "Acme launch/README.md", line: 2, column: 4 });
   });

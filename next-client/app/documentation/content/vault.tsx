@@ -23,11 +23,11 @@ export const vaultGroup: Group = {
   daily/            ← yours
     2026-06-25.md`}</Code>
           <p>
-            Every note is a plain <code>.md</code> file, optionally with a YAML frontmatter block. Open
+            Every file is a plain <code>.md</code> file, optionally with a YAML frontmatter block. Open
             the folder in any other editor, sync it with Dropbox or Google Drive, or move it to another
             machine — nothing about it depends on HermesMarkdown being installed. The only folders
             HermesMarkdown creates on its own are <code>assets/</code>, for images you paste or drop
-            into a note, and the hidden <code>.hermesmarkdown/trash/</code>, which holds what you delete
+            into a file, and the hidden <code>.hermesmarkdown/trash/</code>, which holds what you delete
             for 30 days. What you pin to the sidebar is kept in this browser, not in the vault.
           </p>
           <KV
@@ -63,10 +63,10 @@ export const vaultGroup: Group = {
             before filling it.
           </p>
           <p>
-            Files shows every file by its full name, extension included. Besides your notes it lists
+            Files shows every file by its full name, extension included. Besides your files it lists
             the vault&apos;s other text files (code, JSON, YAML, CSV, plain text…); see{" "}
             <TextLink href="#code-files">Code files</TextLink>.
-            A note&apos;s <code>type:</code> in its frontmatter (or a <code>#type/…</code> tag) picks its
+            A file&apos;s <code>type:</code> in its frontmatter (or a <code>#type/…</code> tag) picks its
             icon: project, task, meeting or bookmark.
           </p>
           <p>
@@ -132,7 +132,7 @@ export const vaultGroup: Group = {
           </p>
           <KV
             rows={[
-              { label: "Format Code", value: "SHIFT+ALT+F or the palette: the whole file, or a note's code block" },
+              { label: "Format Code", value: "SHIFT+ALT+F or the palette: the whole file, or a file's code block" },
               { label: "Formats", value: "JavaScript, TypeScript, JSON, CSS, SCSS, Less, HTML, Vue, YAML, GraphQL" },
               { label: "Search inside", value: "Settings → Files → Search Code Files, then / in the palette" },
             ]}
@@ -148,7 +148,7 @@ export const vaultGroup: Group = {
           <Callout type="note">
             Code files aren&apos;t kept in the text index. With Search Code Files on, the first{" "}
             <code>/</code> search reads them from disk in the background and keeps them, so later
-            searches are instant until a file changes. Their matches follow the notes&apos; as they
+            searches are instant until a file changes. Their matches follow the files&apos; as they
             come in.
           </Callout>
         </>
@@ -168,7 +168,7 @@ export const vaultGroup: Group = {
             or indexed.
           </p>
           <p>
-            Turn on <strong>Git Changes in Note</strong> (the git button in the editor's top-right
+            Turn on <strong>Git Changes in File</strong> (the git button in the editor's top-right
             corner, or <strong>Toggle Git Changes</strong> in the command palette) to see what you have changed since the last
             commit, the way a pull request shows it. Added and changed lines are tinted green and marked
             with a +; the old lines they replaced, and lines you deleted, show above them on a red tint,
@@ -217,7 +217,7 @@ export const vaultGroup: Group = {
             ]}
           />
           <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">title</h4>
-          <p>A display title for the note. Notes save fine without it — the file name is the identifier.</p>
+          <p>A display title for the file. Files save fine without it — the file name is the identifier.</p>
           <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">tags</h4>
           <p>
             Free-form tags. Together with inline <code>#tags</code>, they feed the palette&apos;s{" "}
@@ -225,7 +225,7 @@ export const vaultGroup: Group = {
           </p>
           <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">private</h4>
           <p>
-            <code>private: true</code>, or a <code>private</code> tag, marks a note as{" "}
+            <code>private: true</code>, or a <code>private</code> tag, marks a file as{" "}
             <TextLink href="#private-notes">private</TextLink>.
           </p>
         </>
@@ -233,13 +233,13 @@ export const vaultGroup: Group = {
     },
     {
       id: "private-notes",
-      title: "Private notes",
-      lead: "Keep notes with revenue figures, keys or personal details off the screen while you share or record it.",
+      title: "Private files",
+      lead: "Keep files with revenue figures, keys or personal details off the screen while you share or record it.",
       keywords: "private mark as private mark as public /privacy public privacy mode screen share recording hide mask lock reveal",
       body: (
         <>
           <p>
-            A note is private when its frontmatter says so, so the marker travels with the plain
+            A file is private when its frontmatter says so, so the marker travels with the plain
             Markdown file. Either form works:
           </p>
           <Code>{`---
@@ -253,13 +253,13 @@ tags: [finance, private]
 ---`}</Code>
           <p>
             Or type <code>/privacy</code> in a note: <strong>Privacy: mark as private</strong> adds{" "}
-            <code>private: true</code>; on a private note, <strong>Privacy: mark as public</strong>{" "}
+            <code>private: true</code>; on a private file, <strong>Privacy: mark as public</strong>{" "}
             removes it and the <code>private</code> tag. An inline <code>#private</code> in the body
             doesn&apos;t count.
           </p>
           <p>
             A private note opens behind a veil showing only its title, until you choose{" "}
-            <strong>Show note</strong> or <strong>Show all private notes this session</strong>{" "}
+            <strong>Show file</strong> or <strong>Show all private files this session</strong>{" "}
             (both last until you reload). It never shows up in text search (<code>/</code>) and
             is never sent to AI. In lists, <strong>Privacy Mode</strong> decides; set it under{" "}
             <strong>Settings → Files → Privacy</strong> or with the <code>Privacy mode: …</code>{" "}
@@ -267,14 +267,14 @@ tags: [finance, private]
           </p>
           <KV
             rows={[
-              { label: "Mask in lists (default)", value: "Pinned notes, quick open and Tasks show the title with a lock; preview and task text are bullets" },
-              { label: "Hide from lists", value: "Left out of pinned notes, quick open and Tasks" },
+              { label: "Mask in lists (default)", value: "Pinned files, quick open and Tasks show the title with a lock; preview and task text are bullets" },
+              { label: "Hide from lists", value: "Left out of pinned files, quick open and Tasks" },
             ]}
           />
           <Callout type="note">
             <ul>
               <li>This is screen privacy, not encryption: the file stays readable on disk.</li>
-              <li>File names still show in Files and in the editor title. A new note is named after its first line, so give a private note a harmless first line.</li>
+              <li>File names still show in Files and in the editor title. A new file is named after its first line, so give a private file a harmless first line.</li>
             </ul>
           </Callout>
         </>

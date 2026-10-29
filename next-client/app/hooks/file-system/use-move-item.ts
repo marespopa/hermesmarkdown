@@ -231,7 +231,7 @@ export function useMoveItem({ scanVault, indexVaultTags, recordUndo, undoFileOpe
           const outcome = await rewriteLinks(before, moves);
           updated = outcome.updated;
           if (outcome.failed > 0) {
-            toast.error(`Couldn't update links in ${outcome.failed} note${outcome.failed === 1 ? "" : "s"}`);
+            toast.error(`Couldn't update links in ${outcome.failed} file${outcome.failed === 1 ? "" : "s"}`);
           }
         } catch (err: any) {
           console.error("Link update failed:", err?.message || err);
@@ -245,7 +245,7 @@ export function useMoveItem({ scanVault, indexVaultTags, recordUndo, undoFileOpe
         const base = movedCount === 1
           ? `Moved ${handles.length === 1 ? handles[0].name : "1 item"} to ${targetDir.name}`
           : `Moved ${movedCount} items to ${targetDir.name}`;
-        const message = updated > 0 ? `${base} · updated links in ${updated} note${updated === 1 ? "" : "s"}` : base;
+        const message = updated > 0 ? `${base} · updated links in ${updated} file${updated === 1 ? "" : "s"}` : base;
         if (group && !undoGroup) showUndoToast(message, () => void undoFileOperation(group));
         else toast.success(message);
         return moves;

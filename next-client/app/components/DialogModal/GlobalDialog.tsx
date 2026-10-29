@@ -151,7 +151,7 @@ export default function GlobalDialog() {
                   value={newFileType}
                   onChange={setNewFileType}
                   options={allTypes as string[]}
-                  placeholder="e.g. note, project, person"
+                  placeholder="e.g. file, project, person"
                 />
                 
                 <Typeahead

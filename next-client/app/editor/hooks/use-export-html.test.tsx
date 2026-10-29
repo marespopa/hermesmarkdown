@@ -85,10 +85,10 @@ describe("useExportHtml", () => {
 
   it("refuses an empty note", async () => {
     setup("note.md", "   ");
-    expect(registered?.disabledReason).toBe("The note is empty");
+    expect(registered?.disabledReason).toBe("The file is empty");
     await act(async () => { await registered!.action(); });
     expect(downloadText).not.toHaveBeenCalled();
-    expect(toastError).toHaveBeenCalledWith("The note is empty");
+    expect(toastError).toHaveBeenCalledWith("The file is empty");
   });
 });
 

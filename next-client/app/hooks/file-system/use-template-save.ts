@@ -39,7 +39,7 @@ export function useTemplateSave({ scanVault }: UseTemplateSaveProps) {
       const existing = await findExisting(vaultHandle, path);
       if (existing) {
         const replace = await dialog.confirm(
-          `A template named "${indexed?.name ?? baseName}" already exists. Replace it with this note?`,
+          `A template named "${indexed?.name ?? baseName}" already exists. Replace it with this file?`,
           "Save as template",
           "Replace",
           "Cancel",

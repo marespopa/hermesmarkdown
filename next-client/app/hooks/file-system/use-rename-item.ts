@@ -209,8 +209,8 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
           // undoes the rename or skips the rescan.
           try {
             const { updated, failed } = await rewriteLinks(before, [{ from: oldPath, to: newPath }]);
-            if (updated > 0) toast.success(`Updated links in ${updated} note${updated === 1 ? "" : "s"}`);
-            if (failed > 0) toast.error(`Couldn't update links in ${failed} note${failed === 1 ? "" : "s"}`);
+            if (updated > 0) toast.success(`Updated links in ${updated} file${updated === 1 ? "" : "s"}`);
+            if (failed > 0) toast.error(`Couldn't update links in ${failed} file${failed === 1 ? "" : "s"}`);
           } catch (err: any) {
             console.error("Link update failed:", err?.message || err);
             toast.error("Couldn't update links");

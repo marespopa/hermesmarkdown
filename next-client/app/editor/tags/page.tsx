@@ -104,7 +104,7 @@ function TagsView() {
           <main className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
             <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-8">
               {!selected && !filter ? (
-                <p className="text-ui-footnote text-fg-muted">Pick a tag to see its notes.</p>
+                <p className="text-ui-footnote text-fg-muted">Pick a tag to see its files.</p>
               ) : (
                 <>
                   {selected ? (
@@ -113,9 +113,9 @@ function TagsView() {
                     <h1 className="mb-4 text-ui-title-3 font-semibold">{NOTE_FILTER_LABELS[filter!]}</h1>
                   )}
                   {notes.length === 0 ? (
-                    <p className="text-ui-footnote text-fg-muted">{selected ? "No notes carry this tag." : "No notes here."}</p>
+                    <p className="text-ui-footnote text-fg-muted">{selected ? "No files carry this tag." : "No files here."}</p>
                   ) : (
-                    <ul aria-label={selected ? `Notes tagged ${selected}` : NOTE_FILTER_LABELS[filter!]} className="divide-y divide-edge-subtle overflow-hidden rounded-xl border border-edge-subtle bg-surface">
+                    <ul aria-label={selected ? `Files tagged ${selected}` : NOTE_FILTER_LABELS[filter!]} className="divide-y divide-edge-subtle overflow-hidden rounded-xl border border-edge-subtle bg-surface">
                       {notes.map((meta) => {
                         const display = displayItems.get(meta.path)!;
                         const folder = meta.path.split("/").slice(0, -1).join("/");

@@ -18,7 +18,7 @@ const SORT_FIELDS: { field: TaskSortField; label: string; direction: TaskSortDir
   { field: "dueDate", label: "Due Date", direction: "asc" },
   { field: "priority", label: "Priority", direction: "desc" },
   { field: "status", label: "Status", direction: "asc" },
-  { field: "note", label: "Note", direction: "asc" },
+  { field: "note", label: "File", direction: "asc" },
   { field: "text", label: "Title", direction: "asc" },
 ];
 
@@ -31,7 +31,7 @@ export function taskListMenuItems(
   const [field, direction] = sort.split(":") as [TaskSortField, TaskSortDirection];
   return [
     { label: "Group by Status", checked: groupBy === "status", onClick: () => onGroupByChange("status") },
-    { label: "Group by Note", checked: groupBy === "file", onClick: () => onGroupByChange("file") },
+    { label: "Group by File", checked: groupBy === "file", onClick: () => onGroupByChange("file") },
     ...SORT_FIELDS.map((option, i) => ({
       label: `Sort by ${option.label}`,
       checked: field === option.field,

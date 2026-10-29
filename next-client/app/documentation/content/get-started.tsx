@@ -97,7 +97,7 @@ export const getStartedGroup: Group = {
           <p>
             Everything in the folder — your files, your subfolders — is yours; HermesMarkdown never
             restructures it. The only thing it adds on its own is an <code>assets/</code> folder at
-            the vault root, created the first time you paste or drop an image into a note.
+            the vault root, created the first time you paste or drop an image into a file.
           </p>
           <p>
             Opening folders on disk needs a Chromium-based browser. In Safari and Firefox, choose{" "}
@@ -138,25 +138,25 @@ export const getStartedGroup: Group = {
     },
     {
       id: "first-note",
-      title: "Your first note",
-      lead: "Start typing. On its first save the note goes into your New Files folder, named after its first line.",
+      title: "Your first file",
+      lead: "Start typing. On its first save the file goes into your New Files folder, named after its first line.",
       keywords: "new file new note draft save autosave name title folder frontmatter",
       body: (
         <>
           <p>
             Press <code>CTRL+ALT+N</code>, click <strong>New file</strong> at the top of the sidebar, or
-            choose <strong>New File</strong> from the command palette. A blank note opens, ready to type,
+            choose <strong>New File</strong> from the command palette. A blank file opens, ready to type,
             with no name prompt.
           </p>
           <p>
             The first time you open HermesMarkdown there is nothing to set up: you land in the
-            editor on a blank note, ready to type. Once it has text, a bar
+            editor on a blank file, ready to type. Once it has text, a bar
             at the bottom asks where your files live. <strong>Choose Folder…</strong> picks a folder (you can make a new one in the
             picker) and saves the note there; in browsers that can&apos;t open folders it reads{" "}
             <strong>Keep Files in This Browser</strong> and creates a{" "}
             <TextLink href="#browser-vaults">browser vault</TextLink>.{" "}
             <strong>Not Now</strong> shrinks it to a small &ldquo;Not saved to a folder&rdquo; mark;
-            until you choose, the note is kept only in this browser. <code>CTRL/CMD+S</code> asks the
+            until you choose, the file is kept only in this browser. <code>CTRL/CMD+S</code> asks the
             same question.
           </p>
           <p>
@@ -168,11 +168,11 @@ export const getStartedGroup: Group = {
             so nothing you typed is lost.
           </p>
           <p>
-            The note goes into your New Files folder (the vault root unless you set one in
+            The file goes into your New Files folder (the vault root unless you set one in
             Settings → Files), with no dialog. Move it anywhere later from the file tree.
           </p>
           <p>
-            A note you leave empty is never saved, so no empty files pile up in your vault. Renaming
+            A file you leave empty is never saved, so no empty files pile up in your vault. Renaming
             the first line later does not rename the file; use <strong>Rename File</strong>{" "}
             for that.
           </p>
@@ -190,10 +190,10 @@ export const getStartedGroup: Group = {
             Autosave can be changed under{" "}
             Settings → Files → Autosave: <strong>After Delay</strong> (the default, two seconds after
             you stop typing) or{" "}
-            <strong>Manual Only</strong>. With autosave set to manual, a new note is saved only when you
-            press <code>CTRL/CMD+S</code>. To get a copy of a note outside your vault, run{" "}
-            <strong>Export as Markdown</strong>: it always downloads the note as a <code>.md</code> file
-            and never changes the saved note.
+            <strong>Manual Only</strong>. With autosave set to manual, a new file is saved only when you
+            press <code>CTRL/CMD+S</code>. To get a copy of a file outside your vault, run{" "}
+            <strong>Export as Markdown</strong>: it always downloads the file as a <code>.md</code> file
+            and never changes the saved file.
           </p>
         </>
       ),
@@ -274,7 +274,7 @@ export const getStartedGroup: Group = {
             (<code>projects/.*plan</code>), and the tree shows only the files that match, their folders open;{" "}
             <code>Esc</code> clears it. At its foot, <strong>Settings</strong> and <strong>Help</strong>{" "}
             (the documentation, the keyboard shortcuts, and Send Feedback…, which opens your own email app with a message to us) are always one click away. For an overview of a long note, turn on the{" "}
-            <strong>Outline</strong> (<code>CTRL/CMD+SHIFT+M</code>, or Settings → Editor → View): the note&apos;s
+            <strong>Outline</strong> (<code>CTRL/CMD+SHIFT+M</code>, or Settings → Editor → View): the file&apos;s
             headings (in a code file, its functions, classes and other symbols) in the editor&apos;s bottom-right corner, the section you&apos;re reading marked; click one to jump there. A line sets each section apart, and each has a chevron to fold or unfold it.
             It sits beside the page and pushes it over rather than covering it.
           </p>
@@ -298,7 +298,7 @@ export const getStartedGroup: Group = {
           <p>
             Files offers the same actions everywhere, in the same order:{" "}
             <strong>New File</strong> and <strong>New Folder</strong>, at the top and in every folder&apos;s
-            right-click (or ⋯) menu. To start from a template, type <code>/template</code> in the new note.
+            right-click (or ⋯) menu. To start from a template, type <code>/template</code> in the new file.
             There&apos;s no Refresh button: files
             you add, delete or move outside HermesMarkdown show up on their own (straight away in Chrome and Edge,
             otherwise when you come back to the window).

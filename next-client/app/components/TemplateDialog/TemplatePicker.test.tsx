@@ -60,17 +60,17 @@ describe("TemplatePicker", () => {
     expect(onPick).toHaveBeenCalledWith(described[0]);
   });
 
-  it("lists a preselected template first, before Blank note, highlighted", () => {
+  it("lists a preselected template first, before Blank file, highlighted", () => {
     const { onPick } = renderPicker({ includeBlank: true, preselect: "_templates/rfc.md" });
-    expect(rowNames()).toEqual(["rfc_templates/rfc.md", "Blank note", "Board", "meeting_templates/meeting.md"]);
+    expect(rowNames()).toEqual(["rfc_templates/rfc.md", "Blank file", "Board", "meeting_templates/meeting.md"]);
     expect(screen.getAllByRole("option")[0]).toHaveAttribute("aria-selected", "true");
     fireEvent.keyDown(screen.getByLabelText("Search templates"), { key: "Enter" });
     expect(onPick).toHaveBeenCalledWith(templates[1]);
   });
 
-  it("still offers Blank note and every template with a preselection", () => {
+  it("still offers Blank file and every template with a preselection", () => {
     const { onPick } = renderPicker({ includeBlank: true, preselect: "_templates/rfc.md" });
-    fireEvent.click(screen.getByText("Blank note"));
+    fireEvent.click(screen.getByText("Blank file"));
     expect(onPick).toHaveBeenCalledWith("blank");
   });
 
@@ -143,19 +143,19 @@ describe("TemplatePicker", () => {
     expect(onPick).not.toHaveBeenCalled();
   });
 
-  it("shows Blank note first only when asked", () => {
+  it("shows Blank file first only when asked", () => {
     renderPicker({ includeBlank: true });
-    expect(rowNames()[0]).toBe("Blank note");
+    expect(rowNames()[0]).toBe("Blank file");
   });
 
-  it("has no Blank note row by default", () => {
+  it("has no Blank file row by default", () => {
     renderPicker();
-    expect(screen.queryByText("Blank note")).not.toBeInTheDocument();
+    expect(screen.queryByText("Blank file")).not.toBeInTheDocument();
   });
 
-  it("picks Blank note as 'blank'", () => {
+  it("picks Blank file as 'blank'", () => {
     const { onPick } = renderPicker({ includeBlank: true });
-    fireEvent.click(screen.getByText("Blank note"));
+    fireEvent.click(screen.getByText("Blank file"));
     expect(onPick).toHaveBeenCalledWith("blank");
   });
 
@@ -166,9 +166,9 @@ describe("TemplatePicker", () => {
     expect(onPick).toHaveBeenCalledWith("board");
   });
 
-  it("offers only Blank note and Board when the vault has no templates", () => {
+  it("offers only Blank file and Board when the vault has no templates", () => {
     renderPicker({ includeBlank: true, templates: [] });
-    expect(rowNames()).toEqual(["Blank note", "Board"]);
+    expect(rowNames()).toEqual(["Blank file", "Board"]);
   });
 
   it("shows the empty state without templates", () => {

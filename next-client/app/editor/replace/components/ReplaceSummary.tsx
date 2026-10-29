@@ -71,7 +71,7 @@ export default function ReplaceSummary({ searching, scanning, scanned, total, ma
         {scanning && searching && <ScanStatus scanned={scanned} total={total} />}
       </div>
       {message && <p className={NOTE}>{message}</p>}
-      {hasPrivate && <p className="text-ui-caption text-fg-faint">Private notes are skipped.</p>}
+      {hasPrivate && <p className="text-ui-caption text-fg-faint">Private files are skipped.</p>}
     </div>
   );
 }

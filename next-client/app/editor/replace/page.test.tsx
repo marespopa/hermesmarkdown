@@ -255,6 +255,6 @@ describe("ReplacePage", () => {
   it("notes that private notes are skipped", () => {
     replaceFiles.hasPrivate = true;
     renderPage();
-    expect(screen.getByText("Private notes are skipped.")).toBeInTheDocument();
+    expect(screen.getByText("Private files are skipped.")).toBeInTheDocument();
   });
 });

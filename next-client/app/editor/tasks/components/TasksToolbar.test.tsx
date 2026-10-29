@@ -51,7 +51,7 @@ describe("TasksToolbar", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Group and sort" }));
     expect(screen.getByRole("menuitemcheckbox", { name: "Group by Status" })).toHaveAttribute("aria-checked", "true");
-    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "Group by Note" }));
+    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: "Group by File" }));
     expect(onGroupByChange).toHaveBeenCalledWith("file");
 
     fireEvent.click(screen.getByRole("button", { name: "Group and sort" }));

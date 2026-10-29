@@ -38,8 +38,8 @@ interface TemplateWizardProps {
 const NEW_PACK = "\u0000new";
 
 const KINDS: { value: Kind; label: string; hint: string }[] = [
-  { value: "note", label: "Note", hint: "Starts one note. Use it with /template or New note from a link." },
-  { value: "folder", label: "Folder", hint: "Makes a whole folder of notes at once. Use it with New from folder template." },
+  { value: "note", label: "File", hint: "Starts one file. Use it with /template or New file from a link." },
+  { value: "folder", label: "Folder", hint: "Makes a whole folder of files at once. Use it with New from folder template." },
 ];
 
 // "New template": what kind (a note or a folder template), its name, and what
@@ -82,7 +82,7 @@ export default function TemplateWizard({
       description: example.description ? `Example · ${example.description}` : "Example",
     })),
     ...(kind === "folder" && canCopyFolder
-      ? [{ value: "vault" as const, label: "A folder in your vault…", description: "Its notes and subfolders, as they are" }]
+      ? [{ value: "vault" as const, label: "A folder in your vault…", description: "Its files and subfolders, as they are" }]
       : []),
   ];
 

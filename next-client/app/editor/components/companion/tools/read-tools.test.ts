@@ -120,6 +120,6 @@ describe("activeNoteOutput", () => {
   });
 
   it("says when nothing is open", () => {
-    expect(activeNoteOutput({ path: null, selection: "", codeBlock: null, isPrivate: false })).toBe("No note is open in the editor.");
+    expect(activeNoteOutput({ path: null, selection: "", codeBlock: null, isPrivate: false })).toBe("No file is open in the editor.");
   });
 });

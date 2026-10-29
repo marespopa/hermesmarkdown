@@ -34,7 +34,7 @@ export default function FilesSettings() {
       <SettingGroup title="Vault">
         <SettingItem
           label="New Files Folder"
-          description="Where new files go: drafts (named after their first line), and notes made from a template or a link that names no folder. Leave empty for the vault root."
+          description="Where new files go: drafts (named after their first line), and files made from a template or a link that names no folder. Leave empty for the vault root."
           control={
             <BareInput
               value={newNoteFolder}

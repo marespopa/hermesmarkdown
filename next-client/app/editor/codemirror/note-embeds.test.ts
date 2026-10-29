@@ -47,8 +47,8 @@ describe("noteEmbedsExtension", () => {
   });
 
   it.each([
-    [{ kind: "missing" }, "Note not found"],
-    [{ kind: "self" }, "A note can't embed itself"],
+    [{ kind: "missing" }, "File not found"],
+    [{ kind: "self" }, "A file can't embed itself"],
     [{ kind: "private" }, "Private note"],
   ] as [EmbedContent, string][])("shows a message for %j", (content, text) => {
     const { view, cleanup } = createEditor("![[Roadmap]]");

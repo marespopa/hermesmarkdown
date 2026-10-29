@@ -43,7 +43,7 @@ export const aiFeaturesGroup: Group = {
     {
       id: "ai-companion",
       title: "The AI companion",
-      lead: "One AI, in a panel beside your note. Ask it about your notes, or ask it to change them.",
+      lead: "One AI, in a panel beside your file. Ask it about your files, or ask it to change them.",
       keywords: "ask ai companion panel chat selection toolbar ctrl cmd j attachments @file @folder @vault model new chat clear compact summarize conversation",
       body: (
         <>
@@ -51,11 +51,11 @@ export const aiFeaturesGroup: Group = {
             Press <code>CTRL/CMD+J</code>, or choose <strong>Ask AI</strong> in the command palette, the
             slash menu or the toolbar that appears on a selection. On a phone, tap the AI button in the
             file bar. The panel opens on the right and the page moves over; drag its edge to make it
-            wider. The note in front and your selection come along as chips above the message field.
+            wider. The file in front and your selection come along as chips above the message field.
             Remove a chip to leave it out.
           </p>
           <p>
-            Type <code>@</code> to add another note, a folder or the whole vault. Attach images or files.
+            Type <code>@</code> to add another file, a folder or the whole vault. Attach images or files.
             Replies stream in as they&apos;re written, in Markdown. Pick the model from the panel&apos;s
             header. Type <code>/</code> to list the commands and skills and pick one. Start over with{" "}
             <strong>New chat</strong> (the chat bubble in the header, or type{" "}
@@ -75,16 +75,16 @@ export const aiFeaturesGroup: Group = {
     {
       id: "ai-companion-changes",
       title: "What the companion can change",
-      lead: "It edits notes and code, makes files and folders, renames and moves them, and every change in a reply undoes together.",
+      lead: "It edits files and code, makes files and folders, renames and moves them, and every change in a reply undoes together.",
       keywords: "ai edit change write code block file create folder rename move trash undo turn private",
       body: (
         <>
           <p>
             Ask for a change and the companion makes it: it reads the file first, then edits the exact
-            text. It works on notes, on code and text files in your vault (<code>.py</code>,{" "}
-            <code>.ts</code>, <code>.json</code>, …) and on a single code block in a note. It can create
-            notes, files and folders, rename an item (links to it follow the new name) and move items
-            into a folder (their links follow too). Changes save at once, and an open note shows them
+            text. It works on files, on code and text files in your vault (<code>.py</code>,{" "}
+            <code>.ts</code>, <code>.json</code>, …) and on a single code block in a file. It can create
+            files and folders, rename an item (links to it follow the new name) and move items
+            into a folder (their links follow too). Changes save at once, and an open file shows them
             straight away.
           </p>
           <p>
@@ -101,8 +101,8 @@ export const aiFeaturesGroup: Group = {
             panel says which.
           </p>
           <Callout type="tip">
-            Private notes (<code>private: true</code> or a <code>private</code> tag) are never read,
-            edited, moved or put in the Trash by the companion, and the open note isn&apos;t added as
+            Private files (<code>private: true</code> or a <code>private</code> tag) are never read,
+            edited, moved or put in the Trash by the companion, and the open file isn&apos;t added as
             a chip when it&apos;s private.
           </Callout>
         </>
@@ -142,13 +142,13 @@ export const aiFeaturesGroup: Group = {
           <p>
             Ask about your tasks, to-dos or action items, or start with <code>/tasks</code>, and
             the companion loads its tasks skill and sees your open tasks: in progress, to do and on hold,
-            with their due dates, priorities and notes. Ask what to work on next, what&apos;s overdue,
+            with their due dates, priorities and files. Ask what to work on next, what&apos;s overdue,
             or paste meeting notes and ask for tasks. You get task lines with real{" "}
-            <code>@due()</code> dates, worked out from today, and it can add them to a note or change
+            <code>@due()</code> dates, worked out from today, and it can add them to a file or change
             a task&apos;s line where it is.
           </p>
           <Callout type="tip">
-            Private notes (<code>private: true</code> or a <code>private</code> tag) are never sent. Their tasks are left out and
+            Private files (<code>private: true</code> or a <code>private</code> tag) are never sent. Their tasks are left out and
             only counted.
           </Callout>
         </>
@@ -164,7 +164,7 @@ export const aiFeaturesGroup: Group = {
           <p>
             Ask about code, a refactor, a stack trace or unit tests, or start with <code>/code</code>,
             and the companion loads its code skill and works on the code files in your vault and the code
-            blocks in your notes. Ask it to explain, review or refactor, to fix an error you paste, or
+            blocks in your files. Ask it to explain, review or refactor, to fix an error you paste, or
             to write tests. Say &ldquo;this code&rdquo; and it looks at the file you have open and the
             block your cursor is in.
           </p>
@@ -179,27 +179,27 @@ export const aiFeaturesGroup: Group = {
     {
       id: "ai-skill-notes",
       title: "Your own skills",
-      lead: "Write a note of type skill, and the companion loads it when a request fits, or when you type /its-name.",
+      lead: "Write a file of type skill, and the companion loads it when a request fits, or when you type /its-name.",
       keywords: "ai skill skills custom own instructions prompt command slash note type",
       body: (
         <>
           <p>
-            Any note with <code>type: skill</code> in its frontmatter (or a <code>#type/skill</code> tag)
+            Any file with <code>type: skill</code> in its frontmatter (or a <code>#type/skill</code> tag)
             is a skill, wherever it is in your vault. Start a message to the companion with a slash and the
-            note&apos;s file name, lowercase with hyphens for spaces (<code>Standup notes.md</code> is{" "}
-            <code>/standup-notes</code>), and the note&apos;s text below its frontmatter goes with that
+            file&apos;s name, lowercase with hyphens for spaces (<code>Standup notes.md</code> is{" "}
+            <code>/standup-notes</code>), and the file&apos;s text below its frontmatter goes with that
             message. Give it a <code>description</code> saying when to use it, and the companion loads
             the skill by itself whenever a request fits.
           </p>
           <Code>{`---
 type: skill
-description: Write my daily standup from my notes
+description: Write my daily standup from my files
 ---
-Write today's standup from my notes: done, next, blocked. Keep each to one line.`}</Code>
+Write today's standup from my files: done, next, blocked. Keep each to one line.`}</Code>
           <p>
             The companion sees only each skill&apos;s name and description until it loads one, so
-            having many skills costs nothing. The note is read fresh each time, so edits apply at once. The app never creates or
-            changes skill notes. <code>/template</code>, <code>/tasks</code> and <code>/code</code> are the app&apos;s own skills.
+            having many skills costs nothing. The file is read fresh each time, so edits apply at once. The app never creates or
+            changes skill files. <code>/template</code>, <code>/tasks</code> and <code>/code</code> are the app&apos;s own skills.
           </p>
         </>
       ),
@@ -207,19 +207,19 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
     {
       id: "ai-chat-tools",
       title: "How the companion looks things up",
-      lead: "With a vault open, the companion reads your notes and files instead of guessing.",
+      lead: "With a vault open, the companion reads your files instead of guessing.",
       keywords: "ai tools search notes read note file folder open tasks overdue due today agent",
       body: (
         <>
           <p>
-            It can <strong>search your notes</strong> (by text, name or tag), <strong>read a note or
-            file</strong>, <strong>list a folder</strong>, look at <strong>the note you have open</strong>{" "}
+            It can <strong>search your files</strong> (by text, name or tag), <strong>read a
+            file</strong>, <strong>list a folder</strong>, look at <strong>the file you have open</strong>{" "}
             (your selection and the code block the cursor is in) and <strong>list your open
             tasks</strong>: all of them, in progress, due today, overdue or upcoming, or by tag.
           </p>
           <Callout type="tip">
             The lookups run in your browser, against your vault. Only what they find for a question goes
-            to the AI, in the same request. Private notes are never searched or read.
+            to the AI, in the same request. Private files are never searched or read.
           </Callout>
         </>
       ),
@@ -243,8 +243,8 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
             also be allowed for your key in the Anthropic Console. With Gemini it isn&apos;t offered yet.
           </p>
           <Callout type="note">
-            What the companion searches for can quote your notes. Leave it off if that matters for what
-            you keep in your vault; private notes are never read, so they can&apos;t be searched for.
+            What the companion searches for can quote your files. Leave it off if that matters for what
+            you keep in your vault; private files are never read, so they can&apos;t be searched for.
           </Callout>
         </>
       ),
@@ -252,22 +252,22 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
     {
       id: "ai-browser-agents",
       title: "Browser agents",
-      lead: "AI agents built into your browser can use your notes too, if you let them. No key needed.",
+      lead: "AI agents built into your browser can use your files too, if you let them. No key needed.",
       keywords: "webmcp browser agent model context tools read write",
       body: (
         <>
           <p>
             Some browsers have AI agents of their own that can use tools a page offers (WebMCP). In
-            Settings → AI Features, <strong>Let browser agents read notes</strong> lets them search
-            your notes, read one and list open tasks. It&apos;s off until you turn it on, and works
+            Settings → AI Features, <strong>Let browser agents read files</strong> lets them search
+            your files, read one and list open tasks. It&apos;s off until you turn it on, and works
             without an AI key.
           </p>
           <p>
-            With it on, <strong>Let browser agents change notes</strong> also lets them edit and
-            create notes and files, make folders, rename and move them, and save templates, as the
+            With it on, <strong>Let browser agents change files</strong> also lets them edit and
+            create files, make folders, rename and move them, and save templates, as the
             companion does. Each change shows a toast with <strong>Undo</strong>, and{" "}
             <code>CTRL/CMD+Z</code> in Files takes it back too. They can never use the Trash or touch
-            private notes.
+            private files.
           </p>
         </>
       ),
@@ -291,7 +291,7 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
             the table, so formulas such as <code>=SUM(Income!B)</code> can find them by name.
           </p>
           <p>
-            When it edits a note, the companion is told to keep formulas exactly as written. It never
+            When it edits a file, the companion is told to keep formulas exactly as written. It never
             swaps a <code>=SUM(...)</code> for its current result.
           </p>
           <Callout type="tip">
@@ -304,7 +304,7 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
     },
     {
       id: "ai-hermes-syntax",
-      title: "AI & your notes' syntax",
+      title: "AI & your files' syntax",
       lead: "The AI writes tasks, links and callouts the way HermesMarkdown reads them, and keeps them intact when it rewrites text.",
       keywords: "ai tasks status box due priority started done wiki link tag callout syntax",
       body: (
@@ -313,11 +313,11 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
             The companion knows HermesMarkdown&apos;s own syntax. Tasks get their status in the box (<code>[ ]</code> <code>[/]</code>{" "}
             <code>[!]</code> <code>[x]</code> <code>[-]</code>), never a <code>#todo</code> tag, with{" "}
             <code>@due()</code> and <code>@priority()</code> at the end of the line. Links to other
-            notes are <code>[[wiki links]]</code>, and callouts use the <code>&gt; [!tip]</code>{" "}
+            files are <code>[[wiki links]]</code>, and callouts use the <code>&gt; [!tip]</code>{" "}
             form.
           </p>
           <p>
-            When it edits a note it keeps task boxes, their <code>@started()</code> and{" "}
+            When it edits a file it keeps task boxes, their <code>@started()</code> and{" "}
             <code>@done()</code> dates, links, tags and callout headers exactly as written.
           </p>
         </>
@@ -332,7 +332,7 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
         <>
           <p>
             HermesMarkdown is local-first: your vault is read and written directly from the browser,
-            with no upload step and no HermesMarkdown database holding your notes.
+            with no upload step and no HermesMarkdown database holding your files.
           </p>
           <KV
             rows={[
@@ -345,9 +345,9 @@ Write today's standup from my notes: done, next, blocked. Keep each to one line.
             ]}
           />
           <Callout type="note">
-            Without an AI key configured, no note content is ever sent anywhere. The companion only
+            Without an AI key configured, no file content is ever sent anywhere. The companion only
             works when you send it a message — nothing runs on its own. Browser agents only get your
-            notes if you turn them on in Settings.
+            files if you turn them on in Settings.
           </Callout>
         </>
       ),

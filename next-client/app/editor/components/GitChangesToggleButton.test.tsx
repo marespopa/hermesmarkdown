@@ -39,15 +39,15 @@ describe("GitChangesToggleButton", () => {
     expect(button).toHaveAttribute("aria-haspopup", "menu");
 
     fireEvent.click(button);
-    const toggle = screen.getByRole("menuitemcheckbox", { name: /Git Changes in Note/ });
+    const toggle = screen.getByRole("menuitemcheckbox", { name: /Git Changes in File/ });
     expect(toggle).toHaveAttribute("aria-checked", "false");
     fireEvent.click(toggle);
     expect(store.get(atom_showGitChanges)).toBe(true);
     expect(screen.queryByRole("menu")).toBeNull();
 
     fireEvent.click(button);
-    expect(screen.getByRole("menuitemcheckbox", { name: /Git Changes in Note/ })).toHaveAttribute("aria-checked", "true");
-    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: /Git Changes in Note/ }));
+    expect(screen.getByRole("menuitemcheckbox", { name: /Git Changes in File/ })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(screen.getByRole("menuitemcheckbox", { name: /Git Changes in File/ }));
     expect(store.get(atom_showGitChanges)).toBe(false);
   });
 

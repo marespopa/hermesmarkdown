@@ -8,13 +8,13 @@ const PRIVACY_MODE_COMMANDS: { id: string; label: string; description: string; l
   {
     id: "privacy-mode-show-title",
     label: "Privacy mode: Mask in lists",
-    description: "List private notes by title with a lock; mask their previews and tasks",
+    description: "List private files by title with a lock; mask their previews and tasks",
     level: "show_title",
   },
   {
     id: "privacy-mode-hidden",
     label: "Privacy mode: Hide from lists",
-    description: "Leave private notes out of pinned notes, quick open and tasks",
+    description: "Leave private files out of pinned files, quick open and tasks",
     level: "hidden",
   },
 ];
@@ -37,10 +37,10 @@ export function buildPrivacyCommands(context: EditorCommandContext): Command[] {
     ...levelCommands,
     {
       id: "reveal-private-session",
-      label: revealAll ? "Hide private notes again" : "Show all private notes this session",
+      label: revealAll ? "Hide private files again" : "Show all private files this session",
       description: revealAll
-        ? "Veil private notes in the editor again"
-        : "Open private notes without the veil until reload",
+        ? "Veil private files in the editor again"
+        : "Open private files without the veil until reload",
       category: "Privacy",
       keywords: `${KEYWORDS} reveal veil unlock`,
       action: () => {

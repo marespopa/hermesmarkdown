@@ -100,7 +100,7 @@ export const BUILTIN_FOLDER_TEMPLATES: BuiltinPack[] = [
     id: "project-folder",
     name: "{{Project name}}",
     displayName: "Project folder",
-    description: "A project to start from: asks for its name, then makes the notes below inside a folder of that name.",
+    description: "A project to start from: asks for its name, then makes the files below inside a folder of that name.",
     templates: [
       { name: "README", description: "Goal, Scope and Milestones (marks the folder as a template)", body: PROJECT_README },
       { name: "Tasks", description: "A few tasks to tick off", body: PROJECT_TASKS },
@@ -112,7 +112,7 @@ export const BUILTIN_FOLDER_TEMPLATES: BuiltinPack[] = [
     id: "research-folder",
     name: "{{Research topic}}",
     displayName: "Research folder",
-    description: "A topic to look into: asks for its name, then makes the notes below inside a folder of that name.",
+    description: "A topic to look into: asks for its name, then makes the files below inside a folder of that name.",
     templates: [
       { name: "README", description: "Question, Findings and Next steps (marks the folder as a template)", body: RESEARCH_README },
       { name: "Sources", description: "A table of sources and what each one says", body: RESEARCH_SOURCES },

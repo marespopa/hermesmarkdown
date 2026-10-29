@@ -61,7 +61,7 @@ describe("templateFieldOptions", () => {
     const options = templateFieldOptions("", NOW);
     expect(options.find((o) => o.token === "date")?.detail).toBe("2026-10-05");
     expect(options.find((o) => o.token === "time")?.detail).toBe("14:30");
-    expect(options.find((o) => o.token === "title")?.detail).toBe("the new note's title");
+    expect(options.find((o) => o.token === "title")?.detail).toBe("the new file's title");
   });
 
   it("offers year, month, day, weekday and the other date parts with today's value", () => {

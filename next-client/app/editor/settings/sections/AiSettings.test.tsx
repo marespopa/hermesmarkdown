@@ -120,7 +120,7 @@ describe("AiSettings", () => {
 
   it("keeps Browser agents off by default and separate from AI features", () => {
     const store = renderWith();
-    const browserAgents = screen.getByRole("switch", { name: "Let browser agents read notes" });
+    const browserAgents = screen.getByRole("switch", { name: "Let browser agents read files" });
     expect(browserAgents).toHaveAttribute("aria-checked", "false");
     expect(screen.getByText(/doesn't offer them yet/)).toBeInTheDocument();
 
@@ -144,10 +144,10 @@ describe("AiSettings", () => {
 
   it("offers letting browser agents change notes only once they may read, off by default", () => {
     const store = renderWith();
-    expect(screen.queryByRole("switch", { name: "Let browser agents change notes" })).toBeNull();
+    expect(screen.queryByRole("switch", { name: "Let browser agents change files" })).toBeNull();
 
-    fireEvent.click(screen.getByRole("switch", { name: "Let browser agents read notes" }));
-    const writes = screen.getByRole("switch", { name: "Let browser agents change notes" });
+    fireEvent.click(screen.getByRole("switch", { name: "Let browser agents read files" }));
+    const writes = screen.getByRole("switch", { name: "Let browser agents change files" });
     expect(writes).toHaveAttribute("aria-checked", "false");
 
     fireEvent.click(writes);

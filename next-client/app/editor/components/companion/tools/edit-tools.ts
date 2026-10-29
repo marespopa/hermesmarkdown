@@ -54,7 +54,7 @@ export interface CodeBlockTarget {
 // language and first line; the fences stay as they are.
 export function replaceCodeBlock(doc: string, target: CodeBlockTarget, code: string): EditResult {
   const blocks = codeBlocks(doc);
-  if (!blocks.length) return { ok: false, reason: "The note has no fenced code blocks." };
+  if (!blocks.length) return { ok: false, reason: "The file has no fenced code blocks." };
   let matches = blocks;
   if (target.index !== undefined) matches = blocks.filter((block) => block.index === target.index);
   else {
@@ -64,7 +64,7 @@ export function replaceCodeBlock(doc: string, target: CodeBlockTarget, code: str
   if (matches.length !== 1) {
     return {
       ok: false,
-      reason: `${matches.length === 0 ? "No" : matches.length} code block${matches.length === 1 ? "" : "s"} match; the note has ${blocks.length} (index 0–${blocks.length - 1}). Pick one by index. Nothing was changed.`,
+      reason: `${matches.length === 0 ? "No" : matches.length} code block${matches.length === 1 ? "" : "s"} match; the file has ${blocks.length} (index 0–${blocks.length - 1}). Pick one by index. Nothing was changed.`,
     };
   }
   const block = matches[0];

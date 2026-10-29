@@ -168,7 +168,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       }}
     >
       {/* No toolbar (desktop): a quiet header at the pane's top left, the
-          note's folder and name. A click on the name renames the note in
+          file's folder and name. A click on the name renames the file in
           place; a right-click opens its menu. The command palette's SearchPill
           sits in the window's top-right corner, and Show sidebar sits in the
           top-left one while the sidebar is hidden (EditorShell). It floats

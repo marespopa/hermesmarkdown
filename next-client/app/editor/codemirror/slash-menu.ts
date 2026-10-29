@@ -313,7 +313,7 @@ export function createSlashMenuSource(callbacksRef: { current: SlashMenuCallback
     const from = line.from + slashIndex;
     const fileOptions: Completion[] = embedFiles.map((path) => ({
       label: path.split("/").pop()!.replace(/\.md$/, ""),
-      detail: path.includes("/") ? `Embed · ${path.split("/").slice(0, -1).join("/")}` : "Embed note",
+      detail: path.includes("/") ? `Embed · ${path.split("/").slice(0, -1).join("/")}` : "Embed file",
       apply: (view, _completion, applyFrom, applyTo) => {
         const insert = `/${path}`;
         view.dispatch({

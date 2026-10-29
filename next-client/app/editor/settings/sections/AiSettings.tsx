@@ -287,7 +287,7 @@ export default function AiSettings() {
           {aiProvider === "claude" && (
             <SettingItem
               label="Let the companion search the web"
-              description="Claude can look things up online while it answers, and lists the pages it used. Searches are billed on your key, and what it searches for can quote your notes. It must also be allowed in your Anthropic Console."
+              description="Claude can look things up online while it answers, and lists the pages it used. Searches are billed on your key, and what it searches for can quote your files. It must also be allowed in your Anthropic Console."
               control={<Toggle variant="soft" active={webSearchEnabled} onChange={setWebSearchEnabled} label="Let the companion search the web" />}
             />
           )}
@@ -303,19 +303,19 @@ export default function AiSettings() {
 
       <SettingGroup title="Browser agents">
         <SettingItem
-          label="Let browser agents read notes"
+          label="Let browser agents read files"
           description={
             webMcpSupported
-              ? "AI agents built into this browser can search your notes, read one and list open tasks (WebMCP). Private notes stay hidden, and nothing is written unless you allow it below. No key needed."
+              ? "AI agents built into this browser can search your files, read one and list open tasks (WebMCP). Private files stay hidden, and nothing is written unless you allow it below. No key needed."
               : "For AI agents built into the browser (WebMCP). This browser doesn't offer them yet."
           }
-          control={<Toggle variant="soft" active={webMcpEnabled} onChange={setWebMcpEnabled} label="Let browser agents read notes" />}
+          control={<Toggle variant="soft" active={webMcpEnabled} onChange={setWebMcpEnabled} label="Let browser agents read files" />}
         />
         {webMcpEnabled && (
           <SettingItem
-            label="Let browser agents change notes"
-            description="They can also edit and create notes and files, make folders, rename and move them, and save templates, as the AI companion does. Never the Trash or private notes. Each change can be undone from its toast or with ⌘Z in Files."
-            control={<Toggle variant="soft" active={webMcpWritesEnabled} onChange={setWebMcpWritesEnabled} label="Let browser agents change notes" />}
+            label="Let browser agents change files"
+            description="They can also edit and create files, make folders, rename and move them, and save templates, as the AI companion does. Never the Trash or private files. Each change can be undone from its toast or with ⌘Z in Files."
+            control={<Toggle variant="soft" active={webMcpWritesEnabled} onChange={setWebMcpWritesEnabled} label="Let browser agents change files" />}
           />
         )}
       </SettingGroup>

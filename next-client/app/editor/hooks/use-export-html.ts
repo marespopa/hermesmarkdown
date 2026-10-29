@@ -50,7 +50,7 @@ export function useExportHtml() {
       toast.success(`Downloaded ${name}`);
     } catch (err) {
       console.warn("Export as HTML failed:", err);
-      toast.error("Couldn't export the note as HTML");
+      toast.error("Couldn't export the file as HTML");
     } finally {
       busy.current = false;
     }

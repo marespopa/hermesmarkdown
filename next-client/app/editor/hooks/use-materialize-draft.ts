@@ -72,7 +72,7 @@ export function useMaterializeDraft({ scanVault, indexVaultTags }: UseMaterializ
         return path;
       } catch (err: any) {
         console.warn("Failed to save draft:", err?.message || err);
-        toast.error("Couldn't save the note to the vault. Your text is kept in this draft.");
+        toast.error("Couldn't save the file to the vault. Your text is kept in this draft.");
         return null;
       } finally {
         inFlight = null;

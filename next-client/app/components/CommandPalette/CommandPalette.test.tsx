@@ -974,8 +974,8 @@ describe("CommandPalette", () => {
       await search("md");
       const row = screen.getByRole("option", { name: /Payroll\.md/ });
       expect(row).toHaveAccessibleName(/\(private\)/);
-      expect(within(row).getByLabelText("Private note")).toBeInTheDocument();
-      expect(within(screen.getByRole("option", { name: /Planning\.md/ })).queryByLabelText("Private note")).toBeNull();
+      expect(within(row).getByLabelText("Private file")).toBeInTheDocument();
+      expect(within(screen.getByRole("option", { name: /Planning\.md/ })).queryByLabelText("Private file")).toBeNull();
     });
 
     it("leaves private files out of search, #tag, recent and pinned rows in hidden mode", async () => {

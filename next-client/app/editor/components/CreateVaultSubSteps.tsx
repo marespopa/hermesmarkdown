@@ -65,7 +65,7 @@ export default function CreateVaultSubSteps(props: CreateVaultProps) {
         <h2 className="text-ui-title-3 font-bold">Name Your Vault</h2>
         <p className="text-ui-footnote opacity-60 px-4">
           {inBrowser
-            ? "Notes stay in this browser's private storage, not as files on disk. Export the vault now and then as a backup."
+            ? "Files stay in this browser's private storage, not as files on disk. Export the vault now and then as a backup."
             : "Choose a name and pick where to create the folder."}
         </p>
       </div>

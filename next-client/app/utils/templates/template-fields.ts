@@ -19,7 +19,7 @@ const PROMPT_PREFIX = "prompt:";
 const TOKEN_LABELS: Record<TemplateToken | LegacyTemplateToken, string> = {
   date: "Today's date",
   time: "Current time",
-  title: "Note title",
+  title: "File title",
   clipboard: "Clipboard",
   selection: "Selected text",
   cursor: "Start typing here",
@@ -130,7 +130,7 @@ export function templateFieldOptions(doc: string, now: Date): TemplateFieldOptio
       token: "blank",
       insert: "",
       detail: "Tab jumps to it",
-      info: "Stays in the new note as a highlighted blank; Tab jumps between blanks.",
+      info: "Stays in the new file as a highlighted blank; Tab jumps between blanks.",
       ask: "blank" as const,
     },
     ...tokens,

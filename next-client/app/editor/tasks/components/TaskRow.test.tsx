@@ -38,7 +38,7 @@ describe("TaskRow", () => {
     renderRow(task);
     expect(screen.getByText(SECRET)).toBeInTheDocument();
     expect(screen.getByText("#money")).toBeInTheDocument();
-    expect(screen.queryByLabelText("Private note")).toBeNull();
+    expect(screen.queryByLabelText("Private file")).toBeNull();
   });
 
   it("masks a private task's text and tags but still toggles and navigates", () => {
@@ -48,7 +48,7 @@ describe("TaskRow", () => {
     expect(screen.queryByText("#money")).toBeNull();
     expect(screen.getByText(MASKED_TEXT)).toBeInTheDocument();
     expect(screen.getByText("Private task")).toBeInTheDocument();
-    expect(screen.getByLabelText("Private note")).toBeInTheDocument();
+    expect(screen.getByLabelText("Private file")).toBeInTheDocument();
     expect(screen.getByText("Payroll")).toBeInTheDocument();
     expect(screen.getByText(/2026-10-10/)).toBeInTheDocument();
 
@@ -87,7 +87,7 @@ describe("TaskRow", () => {
   it("opens its note from the menu and on a double-click, but not from the ring", () => {
     const handlers = renderRow(task);
     fireEvent.click(screen.getByRole("button", { name: "Change status" }));
-    fireEvent.click(screen.getByRole("menuitem", { name: "Open Note" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Open File" }));
     expect(handlers.onNavigate).toHaveBeenCalledTimes(1);
 
     fireEvent.doubleClick(screen.getByText("Due: 2026-10-10").closest(".group")!);

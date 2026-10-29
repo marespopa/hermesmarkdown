@@ -68,7 +68,7 @@ export default function TagsPane({ onNavigate }: TagsPaneProps) {
         ))}
       </ul>
       {tree.length === 0 ? (
-        <p className="px-3 text-ui-footnote text-fg-muted">No tags yet. Add one anywhere in a note, like <code>#idea</code>.</p>
+        <p className="px-3 text-ui-footnote text-fg-muted">No tags yet. Add one anywhere in a file, like <code>#idea</code>.</p>
       ) : (
         <ul aria-label="Tags">
           {tree.map((node) => <TagRow key={node.path} node={node} depth={0} onNavigate={onNavigate} />)}

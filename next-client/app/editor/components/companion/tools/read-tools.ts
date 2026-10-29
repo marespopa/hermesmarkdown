@@ -134,8 +134,8 @@ export interface ActiveNote {
 
 // get_active_note's answer.
 export function activeNoteOutput({ path, selection, codeBlock, isPrivate }: ActiveNote): string {
-  if (!path) return "No note is open in the editor.";
-  if (isPrivate) return `The open note (${path}) is ${PRIVATE_HIDDEN}.`;
+  if (!path) return "No file is open in the editor.";
+  if (isPrivate) return `The open file (${path}) is ${PRIVATE_HIDDEN}.`;
   const parts = [`Open note: ${path}`];
   parts.push(selection.trim()
     ? `--- SELECTED TEXT ---\n${capText(selection)}\n--- END SELECTED TEXT ---`
@@ -164,10 +164,10 @@ export function companionToolActivity(name: string, input: Record<string, unknow
   if (name === "git_diff") return `Read the changes${input.path ? ` in ${String(input.path)}` : ""}${suffix}`;
   if (name === "write_file") return `Wrote ${String(input.path ?? "a file")}${suffix}`;
   if (name === "update_plan") return `Updated the plan${suffix}`;
-  if (name === "get_active_note") return `Looked at the open note${suffix}`;
+  if (name === "get_active_note") return `Looked at the open file${suffix}`;
   if (name === "load_skill") return `Loaded the skill ${String(input.name ?? "")}${suffix}`;
   if (name === "edit_file") return `Edited ${String(input.path ?? "a file")}${suffix}`;
-  if (name === "edit_code_block") return `Edited code in ${String(input.path ?? "a note")}${suffix}`;
+  if (name === "edit_code_block") return `Edited code in ${String(input.path ?? "a file")}${suffix}`;
   if (name === "create_file") return `Created ${String(input.path ?? "a file")}${suffix}`;
   if (name === "create_folder") return `Created the folder ${String(input.path ?? "")}${suffix}`;
   if (name === "rename") return `Renamed ${String(input.path ?? "an item")} to ${String(input.newName ?? "…")}${suffix}`;
