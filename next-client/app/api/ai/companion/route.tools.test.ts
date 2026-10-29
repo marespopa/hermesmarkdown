@@ -43,4 +43,19 @@ describe('AI companion route, end to end with a model', () => {
     expect(text).toContain('"type":"tool-input-available"');
     expect(text).toContain('"toolName":"read_file"');
   });
+
+  it('omits vault-mutating tools for a planning turn', async () => {
+    const { POST } = await import('./route');
+    const response = await POST(new Request('http://localhost/api/ai/companion', {
+      method: 'POST',
+      body: JSON.stringify({
+        provider: 'claude', apiKey: 'k', modelKey: 'sonnet-5', system: 'Make a plan', planning: true,
+        messages: [{ id: 'u1', role: 'user', parts: [{ type: 'text', text: 'Plan the roadmap' }] }],
+      }),
+    }));
+    await response.text();
+    const tools = seen.tools?.map((tool) => tool.name) ?? [];
+    expect(tools).toEqual(expect.arrayContaining(['read_file', 'search_files', 'update_plan']));
+    expect(tools).not.toEqual(expect.arrayContaining(['edit_file', 'write_file', 'create_file', 'rename', 'move', 'trash']));
+  });
 });

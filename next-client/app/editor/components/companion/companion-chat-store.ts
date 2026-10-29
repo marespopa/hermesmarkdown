@@ -18,6 +18,7 @@ const MAX_SAVED_CHARS = 1_500_000;
 
 export interface CompanionHandlers {
   system: string;
+  planning?: boolean;
   // The model Auto chose for the current turn (use-companion-chat.ts); unset
   // when a model is picked, so its tool rounds follow the same choice.
   modelOverride?: string;
@@ -96,7 +97,12 @@ export function createCompanionChat({ messages = [], fetch }: { messages?: Compa
       fetch: withLocalOllama(withReadableErrors(fetch), isLocalBaseUrl),
       // Read fresh for each request: the key, provider and model never leave
       // the browser except to this route.
-      body: () => ({ ...getAIConfig(companionHandlers.modelOverride), system: companionHandlers.system, webSearch: isWebSearchEnabled() }),
+      body: () => ({
+        ...getAIConfig(companionHandlers.modelOverride),
+        system: companionHandlers.system,
+        webSearch: isWebSearchEnabled(),
+        planning: companionHandlers.planning === true,
+      }),
       // Older turns go trimmed (forModel); the thread itself keeps them whole.
       prepareSendMessagesRequest: ({ id, messages, body, trigger, messageId }) => ({
         body: { ...body, id, messages: forModel(messages), trigger, messageId },

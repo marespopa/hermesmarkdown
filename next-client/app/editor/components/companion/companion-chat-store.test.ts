@@ -51,12 +51,13 @@ async function until(check: () => void, timeout = 2000) {
   }
 }
 
-type SentBody = { messages: { role: string; parts: { type: string; state?: string; output?: unknown }[] }[]; provider: string; webSearch: boolean };
+type SentBody = { messages: { role: string; parts: { type: string; state?: string; output?: unknown }[] }[]; provider: string; webSearch: boolean; planning?: boolean };
 
 describe("the companion's chat loop", () => {
   afterEach(() => {
     companionHandlers.runToolCall = async () => "The tools aren't ready yet. Try again.";
     companionHandlers.modelOverride = undefined;
+    companionHandlers.planning = undefined;
   });
 
   it("sends the model Auto chose for the turn, else the picked one", async () => {
@@ -74,6 +75,17 @@ describe("the companion's chat loop", () => {
 
     expect(JSON.parse(fetch.mock.calls[0][1].body as string).modelKey).toBe("haiku-4-5");
     expect(JSON.parse(fetch.mock.calls[1][1].body as string).modelKey).toBe("sonnet-5");
+  });
+
+  it("sends the planning flag for planning-only turns", async () => {
+    const fetch = vi.fn().mockResolvedValue(textReply("Here is the plan."));
+    const chat = createCompanionChat({ fetch });
+    companionHandlers.planning = true;
+
+    await chat.sendMessage({ text: "Plan the migration" });
+    await until(() => expect(chat.status).toBe("ready"));
+
+    expect((JSON.parse(fetch.mock.calls[0][1].body as string) as SentBody).planning).toBe(true);
   });
 
   it("runs a streamed tool call in the browser and sends its result back for the answer", async () => {

@@ -191,3 +191,10 @@ export const COMPANION_TOOL_NAMES = Object.keys(COMPANION_TOOL_DEFS) as Companio
 export const COMPANION_WRITE_TOOL_NAMES: CompanionToolName[] = [
   'edit_file', 'write_file', 'edit_code_block', 'create_file', 'create_folder', 'rename', 'move', 'create_template',
 ];
+
+// All vault-mutating tools. Planning turns omit these from the server's tool
+// contract, while update_plan remains available to render the checklist.
+export const COMPANION_MUTATING_TOOL_NAMES: CompanionToolName[] = [
+  ...COMPANION_WRITE_TOOL_NAMES,
+  'trash',
+];

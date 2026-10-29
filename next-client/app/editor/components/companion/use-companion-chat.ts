@@ -160,18 +160,21 @@ export function useCompanionChat() {
     const command = parseCompanionCommand(text);
     if (command?.kind === "new") return newChat();
     if (command?.kind === "compact") return compact(command.focus);
+    const planning = command?.kind === "plan";
     // A message starting with a skill's /command carries the skill; other
     // skills the model loads itself (load_skill).
     const skill = await commandSkill(text);
     companionHandlers.system = buildCompanionSystemPrompt({
       hasVault: !!store.get(atom_vaultHandle),
       webSearch: isWebSearchEnabled() && store.get(atom_aiProvider) === "claude",
+      planning,
       skills: skillList(),
     });
     clearError();
     const auto = autoChoice(text, context);
     companionHandlers.modelOverride = auto?.model;
-    await sendMessage(userTurn(text, context, skill ?? undefined, auto ?? undefined));
+    companionHandlers.planning = planning;
+    await sendMessage(userTurn(planning ? command.request || "Write an implementation plan for the current context." : text, context, skill ?? undefined, auto ?? undefined));
   }, [skillList, commandSkill, store, sendMessage, clearError, newChat, compact, autoChoice]);
 
   const errorText = error ? beautifyAIError(error.message || "The AI request failed.") : null;

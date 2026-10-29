@@ -40,6 +40,9 @@ ${NOTE_CALC_GUIDE}`;
 // Added when the user lets Claude search the web (Settings → AI Features).
 export const WEB_SEARCH_NOTE = "\nYou can search the web with web_search. Use it only when the answer needs current or outside information the notes don't have, and don't put the user's private details in a search. When you use what you found, say so; the pages are listed under your reply.";
 
+export const PLANNING_NOTE = `
+This turn is planning-only. Read and search files as needed, then call update_plan with a concise, ordered implementation checklist. Do not change, create, move, rename or trash files: those tools are unavailable while planning. State any essential ambiguity as one focused question. When the checklist is complete, ask whether the user wants it saved as a Markdown plan file in the vault, and offer to implement it after they answer.`;
+
 // The skills load_skill can load, one per line: command and when to use it.
 export function skillListBlock(skills: SkillListing[]): string {
   if (!skills.length) return "";
@@ -47,10 +50,16 @@ export function skillListBlock(skills: SkillListing[]): string {
   return `\nSkills you can load:\n${lines.join("\n")}`;
 }
 
-export function buildCompanionSystemPrompt({ hasVault, webSearch = false, skills = [] }: { hasVault: boolean; webSearch?: boolean; skills?: SkillListing[] }): string {
+export function buildCompanionSystemPrompt({ hasVault, webSearch = false, planning = false, skills = [] }: {
+  hasVault: boolean;
+  webSearch?: boolean;
+  planning?: boolean;
+  skills?: SkillListing[];
+}): string {
   const parts = [COMPANION_PROMPT];
   if (!hasVault) parts.push("\nNo vault is open, so only the note in the editor can be read (get_active_note).");
   if (webSearch) parts.push(WEB_SEARCH_NOTE);
+  if (planning) parts.push(PLANNING_NOTE);
   const list = skillListBlock(skills);
   if (list) parts.push(list);
   return parts.join("\n");

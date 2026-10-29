@@ -19,16 +19,16 @@ const nextConfig = {
             key: "Content-Security-Policy",
             // Next and the theme bootstrap use inline scripts, so script-src
             // allows 'unsafe-inline' (the policy's job is images, frames and
-            // objects). connect-src is open to https and local http because AI
-            // providers, including a user-set Ollama URL, are reached from the
-            // browser. Workers are bundled (same origin); print frames are blob:.
+            // objects). connect-src admits HTTPS and HTTP because local Ollama
+            // can run on a user-selected LAN address as well as loopback.
+            // Workers are bundled (same origin); print frames are blob:.
             value: [
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ""}`,
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' blob: data:",
               "font-src 'self' data:",
-              "connect-src 'self' https: http://localhost:* http://127.0.0.1:* blob: data:",
+              "connect-src 'self' https: http: blob: data:",
               "worker-src 'self' blob:",
               "frame-src 'self' blob:",
               "object-src 'none'",
