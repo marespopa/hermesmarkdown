@@ -19,7 +19,6 @@ import { useRecentVaultTracker } from "../hooks/use-recent-vaults";
 import BrowserVaultDialog from "./BrowserVaultDialog";
 import RecentVaultsDialog from "./RecentVaultsDialog";
 import NewVaultDialog from "./NewVaultDialog";
-import Button from "@/app/components/Button";
 import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 import PaneToolbarButton from "./PaneToolbarButton";
 import CopyContentButton from "./CopyContentButton";

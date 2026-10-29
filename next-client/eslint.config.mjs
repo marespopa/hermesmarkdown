@@ -34,7 +34,7 @@ export default tseslint.config(
       "react-hooks/preserve-manual-memoization": "off",
 
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
       "@typescript-eslint/no-empty-object-type": "warn",
       "@typescript-eslint/no-wrapper-object-types": "warn",
 

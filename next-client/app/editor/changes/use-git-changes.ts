@@ -117,6 +117,8 @@ export function useGitChanges(vault: FileSystemDirectoryHandle | null, enabled: 
   useEffect(() => {
     start();
     return () => {
+      // A counter, not a DOM node: cleanup must bump the live value.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       token.current++;
       running.current?.cancel();
       running.current = null;

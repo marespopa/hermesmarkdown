@@ -14,7 +14,7 @@ import { SIDEBAR_ICON_CLASS, sidebarItemClass } from "../components/sidebar/side
 import { formatModified } from "../components/vault-tree/list-columns";
 import { editorFileHref, FILTER_PARAM, replaceUrlParam, TAG_PARAM } from "../utils/editor-url";
 import TagHeading from "./TagHeading";
-import { NOTE_FILTER_LABELS, NOTE_FILTERS, noteHasTag, noteMatchesFilter, type NoteFilter } from "./tag-index";
+import { NOTE_FILTER_LABELS, NOTE_FILTERS, noteHasTag, noteMatchesFilter } from "./tag-index";
 import { useTagIndex } from "./use-tag-index";
 
 // Tags: every tag in the vault with how many notes carry it, and the notes

@@ -119,8 +119,9 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   });
   const { csvConfirmRef, pasteImageRef } = useEditorPasteHandlers();
 
-  const onWikiLinkClick = useCallback((name: string) => props.onWikiLinkClick?.(name), [props.onWikiLinkClick]);
-  const onFileLinkClick = useCallback((href: string) => props.onFileLinkClick?.(href), [props.onFileLinkClick]);
+  const { onWikiLinkClick: wikiLinkClick, onFileLinkClick: fileLinkClick } = props;
+  const onWikiLinkClick = useCallback((name: string) => wikiLinkClick?.(name), [wikiLinkClick]);
+  const onFileLinkClick = useCallback((href: string) => fileLinkClick?.(href), [fileLinkClick]);
   const features = useCodeMirrorFeatures({ viewRef, editorView, containerRef, onWikiLinkClick, onFileLinkClick });
   const { openPillLink, dateMatch, setIsDateExpanded, onCursorActivity } = features;
 

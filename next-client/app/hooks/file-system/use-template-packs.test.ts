@@ -2,7 +2,6 @@ import React from "react";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore, Provider } from "jotai";
-import toast from "react-hot-toast";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { sanitizePackName, useTemplatePacks } from "./use-template-packs";
 
