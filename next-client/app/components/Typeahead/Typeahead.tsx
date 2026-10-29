@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo, KeyboardEvent } from "react";
+import React, { useState, useRef, useEffect, KeyboardEvent } from "react";
 import Input from "../Input";
 import Portal from "../Portal";
 
@@ -15,7 +15,6 @@ interface TypeaheadProps {
   className?: string;
   inputClassName?: string;
   allowMultiple?: boolean;
-  maxResults?: number;
   autoFocus?: boolean;
   onOptionSelect?: (option: string) => void;
   onDismiss?: () => void;
@@ -32,7 +31,6 @@ export default function Typeahead({
   className,
   inputClassName,
   allowMultiple = false,
-  maxResults = Number.POSITIVE_INFINITY,
   autoFocus,
   onOptionSelect,
   onDismiss,
@@ -46,21 +44,15 @@ export default function Typeahead({
   const currentSearchTerm = allowMultiple
     ? value.split(",").pop()?.trim() || ""
     : value;
-  const filteredOptions = useMemo(() => {
-    const resultLimit = Number.isFinite(maxResults) ? Math.max(1, Math.floor(maxResults)) : Number.POSITIVE_INFINITY;
-    const searchTerm = currentSearchTerm.toLowerCase();
-    const selected = allowMultiple
-      ? new Set(value.split(",").map((item) => item.trim()).filter(Boolean))
-      : null;
-    const matches: string[] = [];
-    for (const option of options) {
-      if (option.toLowerCase().includes(searchTerm) && (!selected || !selected.has(option))) {
-        matches.push(option);
-        if (matches.length === resultLimit) break;
-      }
-    }
-    return matches;
-  }, [allowMultiple, currentSearchTerm, maxResults, options, value]);
+
+  // Filter options based on current search term, exclude already selected tags if multiple
+  const filteredOptions = options.filter((opt) => {
+    const matchesSearch = opt.toLowerCase().includes(currentSearchTerm.toLowerCase());
+    if (!allowMultiple) return matchesSearch;
+
+    const selectedTags = value.split(",").map((v) => v.trim()).filter(Boolean);
+    return matchesSearch && !selectedTags.includes(opt);
+  });
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

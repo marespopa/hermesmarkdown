@@ -90,21 +90,4 @@ describe("Typeahead", () => {
     expect(screen.queryByText("work")).not.toBeInTheDocument();
   });
 
-  it("limits rendered results when a maximum is supplied", () => {
-    render(
-      <Typeahead
-        name="model"
-        value=""
-        onChange={vi.fn()}
-        options={["model-1", "model-2", "model-3"]}
-        maxResults={2}
-      />,
-    );
-
-    fireEvent.focus(screen.getByRole("textbox"));
-
-    expect(screen.getByText("model-1")).toBeInTheDocument();
-    expect(screen.getByText("model-2")).toBeInTheDocument();
-    expect(screen.queryByText("model-3")).not.toBeInTheDocument();
-  });
 });

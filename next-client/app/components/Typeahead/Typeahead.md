@@ -25,7 +25,6 @@ import Typeahead from "@/app/components/Typeahead";
 | onChange | `(val: string) => void` |  | Change handler |
 | options | `string[]` |  | Suggestions |
 | allowMultiple? | `boolean` | `false` | Comma-separated values |
-| maxResults? | `number` | Unlimited | Caps rendered matches; the companion model picker uses 50 to stay responsive for large provider lists. |
 | onOptionSelect? / onDismiss? | handlers |  | Selection / escape |
 | label? / ariaLabel? / placeholder? / autoFocus? |  |  | Passed through to `Input` |
 | className? / inputClassName? |  |  | Layout and field-style overrides passed through to `Input` |

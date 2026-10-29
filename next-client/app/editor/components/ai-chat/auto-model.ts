@@ -5,7 +5,7 @@ import type { AIProvider } from "@/app/atoms/ai-atoms";
 // choice never delays a send.
 export type Tier = "fast" | "balanced" | "deep";
 export const AUTO_MODEL_ID = "auto";
-export const AUTO_MODEL_LABEL = "Auto (picks by task)";
+export const AUTO_MODEL_LABEL = "Auto";
 
 // Tunable in one place.
 export const LONG_PROMPT_CHARS = 600;

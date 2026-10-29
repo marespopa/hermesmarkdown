@@ -126,7 +126,7 @@ describe("CompanionPanel", () => {
     setup();
     const field = screen.getByRole("textbox", { name: "Model" });
     fireEvent.focus(field);
-    expect(screen.getAllByRole("listitem")[0]).toHaveTextContent("Auto");
+    expect(screen.getAllByRole("listitem")[0]).toHaveTextContent(/^Auto$/);
     fireEvent.click(screen.getByText("Auto"));
     expect(setModel).toHaveBeenCalledWith("auto");
   });
