@@ -31,7 +31,7 @@ export function guardFilePath(input: string): GuardedPath {
   const { path } = folder;
   if (!path) return { ok: false, reason: "Name a file, not the vault's top level." };
   if (!isMarkdownPath(path) && !isPlainTextPath(path)) {
-    return { ok: false, reason: `${path} isn't a note or a text file the AI can read.` };
+    return { ok: false, reason: `${path} isn't a file or a text file the AI can read.` };
   }
   return { ok: true, path };
 }

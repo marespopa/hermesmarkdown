@@ -12,16 +12,16 @@ describe("clipCode", () => {
 });
 
 describe("imageUrlFor", () => {
-  it("makes a new URL only when the file changed, revoking the old one", () => {
+  it("makes a new URL only when the file changed, revoking the old one", async () => {
     let n = 0;
     const createObjectURL = vi.fn(() => `blob:${++n}`);
     const revokeObjectURL = vi.fn();
     Object.assign(URL, { createObjectURL, revokeObjectURL });
     const file = (lastModified: number) => ({ lastModified } as File);
 
-    const first = imageUrlFor({ path: "assets/chart.png", file: file(1) });
-    expect(imageUrlFor({ path: "assets/chart.png", file: file(1) })).toBe(first);
-    const second = imageUrlFor({ path: "assets/chart.png", file: file(2) });
+    const first = await imageUrlFor({ path: "assets/chart.png", file: file(1) });
+    expect(await imageUrlFor({ path: "assets/chart.png", file: file(1) })).toBe(first);
+    const second = await imageUrlFor({ path: "assets/chart.png", file: file(2) });
     expect(second).not.toBe(first);
     expect(revokeObjectURL).toHaveBeenCalledWith(first);
   });

@@ -262,7 +262,7 @@ describe("buildEditorCommands", () => {
     const flatten = (list: Command[]): Command[] => list.flatMap((item) => [item, ...flatten(item.subcommands ?? [])]);
     const command = (id: string) => flatten(commands).find((candidate) => candidate.id === id);
 
-    expect(command("format-bold")?.disabledReason).toBe("Open and focus a note first");
+    expect(command("format-bold")?.disabledReason).toBe("Open and focus a file first");
     expect(command("ai-menu")?.disabledReason).toBe("Add an API key in Settings → AI Features");
 
     command("save-file")?.action();
@@ -337,14 +337,14 @@ describe("buildEditorCommands", () => {
   it("toggles the session reveal and clears per-note reveals when turned off", () => {
     const off = createContext({ revealAllPrivate: false });
     const showAll = buildEditorCommands(off).find((command) => command.id === "reveal-private-session");
-    expect(showAll?.label).toBe("Show all private notes this session");
+    expect(showAll?.label).toBe("Show all private files this session");
     showAll?.action();
     expect(off.setRevealAllPrivate).toHaveBeenCalledWith(true);
     expect(off.setRevealedPrivatePaths).not.toHaveBeenCalled();
 
     const on = createContext({ revealAllPrivate: true });
     const hideAgain = buildEditorCommands(on).find((command) => command.id === "reveal-private-session");
-    expect(hideAgain?.label).toBe("Hide private notes again");
+    expect(hideAgain?.label).toBe("Hide private files again");
     hideAgain?.action();
     expect(on.setRevealAllPrivate).toHaveBeenCalledWith(false);
     expect(on.setRevealedPrivatePaths).toHaveBeenCalledWith(new Set());

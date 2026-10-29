@@ -43,7 +43,7 @@ const SECTIONS = {
   blocks: { name: "Basic blocks", rank: 0 },
   insert: { name: "Insert", rank: 1 },
   templates: { name: "Templates", rank: 2 },
-  note: { name: "Note", rank: 3 },
+  note: { name: "File", rank: 3 },
   ai: { name: "AI", rank: 4 },
 } satisfies Record<string, CompletionSection>;
 

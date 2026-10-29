@@ -6,7 +6,7 @@ export const editorWorkspaceItems: Subsection[] = [
   {
     id: "tasks-page",
     title: "Tasks page",
-    lead: "A vault-wide checklist — every checkbox task across every note, on a Board or in four lists: Now, Today, Upcoming and All.",
+    lead: "A vault-wide checklist — every checkbox task across every file, on a Board or in four lists: Now, Today, Upcoming and All.",
     keywords:
       "task tasks checkbox status todo in progress hold blocked done cancelled aggregate due date priority tags filter now today upcoming overdue smart list swipe started done date stamp files board kanban columns drag",
     body: (
@@ -52,7 +52,7 @@ export const editorWorkspaceItems: Subsection[] = [
             { label: "Now", value: "In Progress, then Up Next: the next five to-dos by due date" },
             { label: "Today", value: "Overdue, then due today" },
             { label: "Upcoming", value: "Later due dates, one section per day" },
-            { label: "All", value: "Every task, grouped by status or by note" },
+            { label: "All", value: "Every task, grouped by status or by file" },
           ]}
         />
         <p>
@@ -60,15 +60,15 @@ export const editorWorkspaceItems: Subsection[] = [
           the page remembers the last one. Now, Today and Upcoming list only open tasks (to do, in
           progress, on hold). Type in the search field to filter by text, or type <code>#</code> to
           pick a tag; picked tags show as chips under the field, and a task must carry every one.
-          Search and tags apply to every list. In All, the ⋯ menu groups by status or by note and
-          sorts by due date, priority, status, note or title, ascending or descending.
+          Search and tags apply to every list. In All, the ⋯ menu groups by status or by file and
+          sorts by due date, priority, status, file or title, ascending or descending.
         </p>
         <p>
           Click a task&apos;s status ring to move it on, as in the editor: To Do → In Progress →
           Done → To Do (on hold resumes, cancelled reopens). For any other status, right-click the ring (long-press on touch) or use the ⋯ button at the end of
           the row. The change writes straight back to the source line in the file, no need to open
-          it first. To open its note at that line, click the task text, double-click the row, or
-          choose <strong>Open Note</strong> from the same menu.
+          it first. To open its file at that line, click the task text, double-click the row, or
+          choose <strong>Open File</strong> from the same menu.
         </p>
         <p>
           On the Board, drag a card to another column to give it that status; it moves at once.
@@ -99,20 +99,20 @@ export const editorWorkspaceItems: Subsection[] = [
   {
     id: "tags-page",
     title: "Tags page",
-    lead: "Every tag in your vault, how many notes carry it, and those notes, newest first.",
+    lead: "Every tag in your vault, how many files carry it, and those files, newest first.",
     keywords: "tags tag page hashtag #tag count notes pin tag sidebar frontmatter tags privacy",
     body: (
       <>
         <p>
           Open <strong>Tags</strong> from the sidebar, or run <strong>Open Tags</strong> from the command
-          palette. A tag is an inline <code>#tag</code> in a note, or one listed under <code>tags:</code>{" "}
-          in its frontmatter. The page lists every tag with how many notes carry it; pick one to see those
-          notes, the most recently changed first, and click a note to open it.
+          palette. A tag is an inline <code>#tag</code> in a file, or one listed under <code>tags:</code>{" "}
+          in its frontmatter. The page lists every tag with how many files carry it; pick one to see those
+          files, the most recently changed first, and click a file to open it.
         </p>
         <p>
           The tag you pick is in the address (<code>/editor/tags?tag=release</code>), so a refresh or a
           link lands on it. <strong>Pin</strong> beside its name keeps it in the sidebar. With Privacy Mode
-          on, private notes are left out of the counts as well as the list.
+          on, private files are left out of the counts as well as the list.
         </p>
       </>
     ),
@@ -139,14 +139,14 @@ tags: []
           chevron in the margin by the opening <code>---</code>: it folds the whole block into one
           line showing just its <code>title</code> (its <code>name</code> when there is no title)
           and its <code>tags</code> as pills; click that line to unfold it. Folding or unfolding
-          moves the cursor to the top of the note, so the page stays where it is. With the caret inside,
-          Ctrl/Cmd+Shift+. folds or unfolds it too. The note keeps it folded while you switch away
+          moves the cursor to the top of the file, so the page stays where it is. With the caret inside,
+          Ctrl/Cmd+Shift+. folds or unfolds it too. The file keeps it folded while you switch away
           and back during the visit.
         </p>
         <p>
           Typing inside the frontmatter offers what your vault already uses: keys at the start of a
           line (<code>ti</code> → <code>title</code>), your tags inside <code>tags: [ ]</code> or a{" "}
-          <code>- </code> list, and values other notes repeat, like <code>status: draft</code>. Nothing
+          <code>- </code> list, and values other files repeat, like <code>status: draft</code>. Nothing
           is inserted until you pick an option.
         </p>
       </>
@@ -182,7 +182,7 @@ tags: []
         <Code>{`> [!note] Outer
 > > [!tip] Inner
 > > Inside the tip.
-> Back in the note.`}</Code>
+> Back in the file.`}</Code>
         <p>The type is case-insensitive and any word works, but these have dedicated colors and icons:</p>
         <KV
           rows={[
@@ -242,17 +242,17 @@ tags: []
             { label: "Plain text", value: "Files by name or path" },
             { label: "#", value: "All unique vault tags; choose one to filter Files" },
             { label: ">", value: "Commands by name, description, category, or keyword" },
-            { label: "!", value: "Tasks; choose one to open its note at the source line" },
-            { label: "@", value: "Headings in the active note; choose one to place it at the top" },
+            { label: "!", value: "Tasks; choose one to open its file at the source line" },
+            { label: "@", value: "Headings in the active file; choose one to place it at the top" },
             { label: "/", value: "File text across the vault (code files too, with Search Code Files on); choose a line to open it at that match" },
-            { label: "~", value: "Your templates; Enter inserts one into the note, CTRL/CMD+Enter starts a new note from it" },
+            { label: "~", value: "Your templates; Enter inserts one into the file, CTRL/CMD+Enter starts a new file from it" },
           ]}
         />
         <p>
           Text search ignores case and finds files that contain every word you type, in any
           order (at least 2 characters; no fuzzy matching). Frontmatter isn&apos;t searched; code
           blocks are. Exact phrases rank first, and each file shows up to three matching lines.
-          Private notes never appear in text results, whatever the Privacy Mode. Right after
+          Private files never appear in text results, whatever the Privacy Mode. Right after
           a vault opens, a footnote shows how many files are still being indexed.
         </p>
         <p>
@@ -263,19 +263,19 @@ tags: []
           too long is stopped, and the palette says so.
         </p>
         <p>
-          <strong>Replace in Files</strong> changes a text across many notes at once. Open it from the
+          <strong>Replace in Files</strong> changes a text across many files at once. Open it from the
           palette (<strong>Replace in Files…</strong>), or click the <strong>Replace…</strong> chip at
           the foot of the palette while searching with <code>/</code>: it opens the page with your
           search filled in. Type what to find and what to replace it with; <strong>Match case</strong>,{" "}
           <strong>Whole word</strong> and <strong>Regex</strong> narrow or widen the search, and with
           Regex on <code>$1</code>, <code>$&lt;name&gt;</code> and <code>$&amp;</code> in the
-          replacement stand for what the pattern captured. Notes are searched whole, frontmatter
+          replacement stand for what the pattern captured. Files are searched whole, frontmatter
           included; turn on <strong>Include code files</strong> to change code and text files too.
           The page lists every match as before and after. Uncheck a match, or a whole file, to leave
           it as it is, then press <strong>Replace</strong>. A file you edited since the preview is
           skipped and reported rather than overwritten. Afterwards <strong>Undo</strong> (in the
           message, and on the page) puts back every file that still holds the replaced text. Private
-          notes, the Trash and board drawings are never changed.
+          files, the Trash and board drawings are never changed.
         </p>
         <p>
           The palette&apos;s footer lists these modes as chips (Tags, Tasks, Headings, Text, Templates,
@@ -299,14 +299,14 @@ tags: []
             { label: "Files", value: "New File, Open File from Disk…, Export as Markdown (always a .md download, never a save), Copy Contents, Rename / Duplicate / Move / Delete File" },
             { label: "Folders", value: "New folder (one level at a time)" },
             { label: "Editing", value: "Undo, redo, focus, formatting, tasks, and templates" },
-            { label: "AI", value: "Ask AI (CTRL/CMD+J): opens the AI companion with the note and selection" },
+            { label: "AI", value: "Ask AI (CTRL/CMD+J): opens the AI companion with the file and selection" },
           ]}
         />
         <KV
           rows={[
             { label: "Pin File", value: "Keep the file first in the palette and in Files" },
-            { label: "Export as PDF", value: "Print the note, or save it as a PDF" },
-            { label: "Export as HTML", value: "Download the note as a standalone web page" },
+            { label: "Export as PDF", value: "Print the file, or save it as a PDF" },
+            { label: "Export as HTML", value: "Download the file as a standalone web page" },
             { label: "Show Files", value: "CTRL/CMD+SHIFT+E" },
             { label: "Open Tasks", value: "—" },
             { label: "Open Templates", value: "Your templates, New template and examples" },

@@ -52,7 +52,7 @@ export default function GitChangesToggleButton({ className = "" }: { className?:
       : []),
     // An icon on every row, so the labels share one column after the check's.
     {
-      label: "Git Changes in Note",
+      label: "Git Changes in File",
       icon: <TbFileDiff size={15} />,
       checked: showGitChanges,
       divider: true,

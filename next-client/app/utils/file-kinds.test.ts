@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isMarkdownPath, isPlainTextPath } from "./file-kinds";
+import { isImagePath, isMarkdownPath, isPlainTextPath } from "./file-kinds";
 
 describe("file kinds", () => {
   it("tells notes from other text files by extension", () => {
@@ -20,5 +20,14 @@ describe("file kinds", () => {
     for (const path of ["photo.png", "doc.pdf", "bin/server", ".DS_Store", ".hermesmarkdown/trash/old.yaml"]) {
       expect(isPlainTextPath(path)).toBe(false);
     }
+  });
+
+  it("treats images, SVG included, as pictures rather than text", () => {
+    for (const path of ["photo.png", "a/b/diagram.SVG", "pic.jpeg", "x.webp"]) {
+      expect(isImagePath(path)).toBe(true);
+      expect(isPlainTextPath(path)).toBe(false);
+    }
+    expect(isImagePath("notes/plan.md")).toBe(false);
+    expect(isImagePath("doc.pdf")).toBe(false);
   });
 });

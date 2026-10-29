@@ -20,7 +20,7 @@ export type NoteFilter = "all" | "untagged" | "todo" | "today" | "archive";
 export const NOTE_FILTERS: NoteFilter[] = ["all", "untagged", "todo", "today", "archive"];
 
 export const NOTE_FILTER_LABELS: Record<NoteFilter, string> = {
-  all: "All Notes", untagged: "Untagged", todo: "Todo", today: "Today", archive: "Archive",
+  all: "All Files", untagged: "Untagged", todo: "Todo", today: "Today", archive: "Archive",
 };
 
 export interface TagIndex {

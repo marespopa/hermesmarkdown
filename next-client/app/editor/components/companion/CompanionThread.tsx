@@ -48,7 +48,7 @@ export default function CompanionThread({ messages, activities, status, compacti
     <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 py-3" aria-live="polite">
       {messages.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center">
-          <p className="text-ui-footnote text-fg-muted">Ask about your notes and files.</p>
+          <p className="text-ui-footnote text-fg-muted">Ask about your files.</p>
           <p className="text-ui-caption text-fg-faint">Type @ to add a file, a folder or the whole vault.</p>
         </div>
       ) : (

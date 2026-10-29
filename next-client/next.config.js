@@ -1,5 +1,7 @@
 const { version } = require("./package.json");
 
+const isDev = process.env.NODE_ENV !== "production";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Versions the service worker's cache (see public/sw.js).
@@ -10,6 +12,31 @@ const nextConfig = {
   // The service worker must always be revalidated so updates reach users.
   async headers() {
     return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            // Next and the theme bootstrap use inline scripts, so script-src
+            // allows 'unsafe-inline' (the policy's job is images, frames and
+            // objects). connect-src is open to https and local http because AI
+            // providers, including a user-set Ollama URL, are reached from the
+            // browser. Workers are bundled (same origin); print frames are blob:.
+            value: [
+              "default-src 'self'",
+              `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ""}`,
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' blob: data:",
+              "font-src 'self' data:",
+              "connect-src 'self' https: http://localhost:* http://127.0.0.1:* blob: data:",
+              "worker-src 'self' blob:",
+              "frame-src 'self' blob:",
+              "object-src 'none'",
+              "base-uri 'self'",
+            ].join("; "),
+          },
+        ],
+      },
       {
         source: "/sw.js",
         headers: [

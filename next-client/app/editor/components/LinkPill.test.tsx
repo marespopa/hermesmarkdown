@@ -30,14 +30,14 @@ describe("LinkPill", () => {
   it("edits a file link like a URL link and opens it as a note", () => {
     const { onOpen } = renderPill("file");
     expect(screen.getByTitle("Edit link")).toBeInTheDocument();
-    fireEvent.click(screen.getByTitle(/Open note/));
+    fireEvent.click(screen.getByTitle(/Open file/));
     expect(onOpen).toHaveBeenCalled();
   });
 
   it("offers only Open on a wikilink, whose text is edited in place", () => {
     const { onOpen } = renderPill("wiki");
     expect(screen.queryByTitle("Edit link")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByTitle(/Open note/));
+    fireEvent.click(screen.getByTitle(/Open file/));
     expect(onOpen).toHaveBeenCalled();
   });
 });

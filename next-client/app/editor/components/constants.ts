@@ -137,7 +137,7 @@ export interface Template {
 
 export const TEMPLATES: Template[] = [
   { label: "Link", icon: "🔗", description: "Insert a hyperlink", aliases: ["url", "href", "hyperlink"], content: LINK_EDITOR_SENTINEL },
-  { label: "WikiLink", icon: "[[", description: "Link to another note", aliases: ["wiki", "backlink", "note link"], content: WIKILINK_EDITOR_SENTINEL },
+  { label: "WikiLink", icon: "[[", description: "Link to another file", aliases: ["wiki", "backlink", "file link"], content: WIKILINK_EDITOR_SENTINEL },
   { label: "Date", icon: "📅", description: "Pick a date from the calendar", aliases: ["today", "calendar", "day"], content: DATE_EDITOR_SENTINEL },
   { label: "Task", icon: "☑️", description: "Create a checklist task with status, due date, and tags", aliases: ["due", "status"], content: TASK_EDITOR_SENTINEL },
   { label: "Table", icon: "⊞", description: "Insert a Markdown table", aliases: ["grid", "tbl"], content: TABLE_DIALOG_SENTINEL },
@@ -159,7 +159,7 @@ export const TEMPLATES: Template[] = [
   {
     label: "Embed file",
     icon: "⧉",
-    description: "Show a note, table, image or code file here, read-only",
+    description: "Show a file, table, image or code file here, read-only",
     aliases: ["embed", "transclude", "include"],
     content: EMBED_FILE_SENTINEL,
     embedOnly: true,
@@ -212,7 +212,7 @@ export const TEMPLATES: Template[] = [
   {
     label: "Save as template",
     icon: "⇪",
-    description: "Save this note as a template you can start other notes from",
+    description: "Save this file as a template you can start other files from",
     content: SAVE_AS_TEMPLATE_SENTINEL,
     saveTemplateOnly: true,
   },
@@ -220,7 +220,7 @@ export const TEMPLATES: Template[] = [
   {
     label: "Ask AI",
     icon: "✨",
-    description: "Open the AI panel with the current note and selection",
+    description: "Open the AI panel with the current file and selection",
     aliases: ["ai", "chat", "ask"],
     content: AI_CHAT_SENTINEL,
     aiOnly: true,

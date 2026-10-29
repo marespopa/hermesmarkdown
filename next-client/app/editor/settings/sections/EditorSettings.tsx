@@ -46,14 +46,14 @@ export default function EditorSettings() {
         />
         <SettingItem
           label="Word Count"
-          description="Show the note's word count faintly in the corner of the editor. It steps aside while you type."
+          description="Show the file's word count faintly in the corner of the editor. It steps aside while you type."
           control={<Toggle variant="soft" active={showWordCount} onChange={setShowWordCount} label="Word count" />}
         />
       </SettingGroup>
       <SettingGroup title="View">
         <SettingItem
           label="Outline"
-          description={`Show the note's headings in the editor's bottom-right corner, the section you're reading marked; click one to jump there. ${formatShortcut("M", { shift: true })} turns it on or off.`}
+          description={`Show the file's headings in the editor's bottom-right corner, the section you're reading marked; click one to jump there. ${formatShortcut("M", { shift: true })} turns it on or off.`}
           control={<Toggle variant="soft" active={showOutline} onChange={setShowOutline} label="Outline" />}
         />
       </SettingGroup>

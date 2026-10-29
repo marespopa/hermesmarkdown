@@ -31,7 +31,7 @@ const EXAMPLES: Example[] = [
     key: t.path,
     preset: { kind: "note" as const, from: `example:${t.path}` as const },
     name: t.name,
-    kind: "Note",
+    kind: "File",
     description: t.description ?? "",
     icon: <TemplateIcon name={t.name} size={16} className="text-fg-muted" />,
   })),

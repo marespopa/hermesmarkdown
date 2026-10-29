@@ -33,9 +33,9 @@ function renderDialog(props: Partial<React.ComponentProps<typeof WikiLinkDialog>
 describe("WikiLinkDialog, From template", () => {
   it("preselects the template the name points to, carrying over the typed name", () => {
     renderDialog();
-    fireEvent.change(screen.getByLabelText("Search existing notes"), { target: { value: "Meeting notes 2026-10-05" } });
+    fireEvent.change(screen.getByLabelText("Search existing files"), { target: { value: "Meeting notes 2026-10-05" } });
     fireEvent.click(screen.getByRole("tab", { name: "From template" }));
-    expect(screen.getByLabelText("New note name")).toHaveValue("Meeting notes 2026-10-05");
+    expect(screen.getByLabelText("New file name")).toHaveValue("Meeting notes 2026-10-05");
     expect(screen.getByRole("radio", { name: /Meeting notes/ })).toHaveAttribute("aria-checked", "true");
     expect(screen.getByText("Suggested")).toBeInTheDocument();
   });
@@ -43,7 +43,7 @@ describe("WikiLinkDialog, From template", () => {
   it("creates from the chosen template and links the new note", async () => {
     const { onConfirm, onCreateFromTemplate } = renderDialog();
     fireEvent.click(screen.getByRole("tab", { name: "From template" }));
-    fireEvent.change(screen.getByLabelText("New note name"), { target: { value: "Login" } });
+    fireEvent.change(screen.getByLabelText("New file name"), { target: { value: "Login" } });
     expect(screen.getByRole("button", { name: "Create from template and link" })).toBeDisabled();
     fireEvent.click(screen.getByRole("radio", { name: /Spec/ }));
     fireEvent.click(screen.getByRole("button", { name: "Create from template and link" }));

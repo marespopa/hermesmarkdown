@@ -171,7 +171,7 @@ export default function CompanionComposer({ request, isBusy, onSend, onStop }: C
             detectMention(e.target.value, e.target.selectionStart ?? e.target.value.length);
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Ask about your notes…"
+          placeholder="Ask about your files…"
           rows={1}
           className="!my-0 min-w-0 flex-1"
           textareaClassName="!min-h-11 !resize-none custom-scrollbar"

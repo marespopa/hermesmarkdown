@@ -20,9 +20,9 @@ export const templatesPageItem: Subsection = {
       </p>
       <h4 className={h4}>New template</h4>
       <p>
-        <strong>New template</strong> asks three things: a <strong>Note</strong> or a{" "}
+        <strong>New template</strong> asks three things: a <strong>File</strong> or a{" "}
         <strong>Folder</strong> template, its name, and what it starts from: blank, an example, or for a
-        folder template a folder you already have. A note template can go in a pack: one of yours, or
+        folder template a folder you already have. A file template can go in a pack: one of yours, or
         a new one you name right there. A folder template can ask for the new folder&apos;s name each
         time you use it. The template opens as soon as it&apos;s made, so you can shape it.
         Nothing you have is ever replaced.
@@ -33,8 +33,8 @@ export const templatesPageItem: Subsection = {
         it, like <code>_templates/Work/</code>; templates directly in <code>_templates/</code> are listed
         first, under <strong>Not in a pack</strong>. <strong>Edit</strong> opens a template itself; changes
         apply the next time you use it. <strong>Delete</strong> moves it to the Trash, with Undo. To use
-        a template, type <code>/template</code> in a note, pick one from an empty note&apos;s buttons, or
-        from a link to a note that doesn&apos;t exist yet.
+        a template, type <code>/template</code> in a file, pick one from an empty file&apos;s buttons, or
+        from a link to a file that doesn&apos;t exist yet.
       </p>
       <p>
         Each pack has <strong>New</strong> (New template, already set to that pack),{" "}
@@ -59,7 +59,7 @@ export const templatesPageItem: Subsection = {
       <p>
         <strong>Start from this</strong> opens New template on that example, so the template you get
         is your own copy to change. The examples also work as they are, without copying: from{" "}
-        <code>/template</code> and an empty note&apos;s buttons, and from{" "}
+        <code>/template</code> and an empty file&apos;s buttons, and from{" "}
         <strong>New from folder template…</strong>.
       </p>
     </>

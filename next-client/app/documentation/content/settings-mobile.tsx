@@ -42,7 +42,7 @@ export const settingsGroup: Group = {
             ]}
           />
           <Callout type="note">
-            Quattro is the default for writing: proportional, so a note reads like a page of a
+            Quattro is the default for writing: proportional, so a file reads like a page of a
             book. Geist Mono gives an even, typewriter-like rhythm, and Duospace keeps that
             rhythm while giving wide letters like m and w more room, so lines lose a
             monospace&apos;s gaps. Text sizes follow Apple&apos;s Dynamic Type steps, 15 to 23px.
@@ -63,9 +63,9 @@ export const settingsGroup: Group = {
             ]}
           />
           <p>
-            New drafts are saved there, and so are notes made from a template or a link that
+            New drafts are saved there, and so are files made from a template or a link that
             names no folder. It lives under <strong>Settings → Files</strong>; a folder that
-            doesn&apos;t exist yet is created the first time a note is saved there.
+            doesn&apos;t exist yet is created the first time a file is saved there.
           </p>
           <p>
             Templates are in <code>_templates/</code> at the root of your vault, made the

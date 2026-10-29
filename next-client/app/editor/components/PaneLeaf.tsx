@@ -2,6 +2,7 @@
 
 import React from "react";
 import { PanelLeaf } from "@/app/types/workspace";
+import ImageViewer from "./ImageViewer";
 import MarkdownEditor from "./MarkdownEditor";
 import PrivateNoteGate from "./PrivateNoteGate";
 import TabContextMenu from "./TabContextMenu";
@@ -32,6 +33,7 @@ import { EDITOR_CORNER_WIDTH } from "./CopyContentButton";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
 import { atom_autosaveMode, atom_saveRequested, AUTOSAVE_DELAY, atom_sidebarOpen, atom_openingFilePath, atom_fullWidth } from "@/app/atoms/ui-atoms";
 import { NoteSheetSkeleton } from "./EditorSkeleton";
+import { isImagePath } from "@/app/utils/file-kinds";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -166,7 +168,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       }}
     >
       {/* No toolbar (desktop): a quiet header at the pane's top left, the
-          note's folder and name. A click on the name renames the note in
+          file's folder and name. A click on the name renames the file in
           place; a right-click opens its menu. The command palette's SearchPill
           sits in the window's top-right corner, and Show sidebar sits in the
           top-left one while the sidebar is hidden (EditorShell). It floats
@@ -243,6 +245,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 content={content}
                 onEditAsMarkdown={() => toggleBoardMarkdown(filePath)}
               />
+            ) : leaf.activeFilePath && isImagePath(leaf.activeFilePath) ? (
+              <ImageViewer path={leaf.activeFilePath} />
             ) : (
               <MarkdownEditor
                 value={content}

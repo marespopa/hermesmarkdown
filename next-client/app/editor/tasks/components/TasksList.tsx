@@ -169,7 +169,7 @@ export default function TasksList({ onFileSelect }: TasksListProps) {
       }
     }
     if (!handle) {
-      toast.error("Couldn't find this task's note");
+      toast.error("Couldn't find this task's file");
       return;
     }
     onFileSelect(handle, task.path, task.line);

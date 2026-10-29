@@ -15,6 +15,12 @@ import { guardFilePath, guardFolderPath } from "./tools/path-guard";
 import { useCompanionOrganise } from "./use-companion-organise";
 import { useCompanionWrites } from "./use-companion-writes";
 import type { FindReplace } from "./tools/edit-tools";
+import { startChangesScan } from "@/app/services/git-changes-client";
+import { loadYaml } from "@/app/utils/load-yaml";
+import { createLinkResolver } from "@/app/utils/note-links/link-resolver";
+import { checkFileOutput } from "./tools/check-tools";
+import { gitDiffOutput, gitStatusOutput } from "./tools/git-tools";
+import { findFilesOutput, globMatcher, matchesIn, planOutput, searchFilesOutput, searchMatcher, searchablePaths, SEARCH_DEFAULT_LIMIT, SEARCH_MAX_FILES, type SearchMatch } from "./tools/search-tools";
 import { activeNoteOutput, codeBlockAt, companionToolActivity, listFolderOutput, readFileOutput } from "./tools/read-tools";
 
 const NO_VAULT = "No vault is open, so there are no files to look at. Ask the user to open a folder.";
@@ -26,8 +32,8 @@ const stringList = (value: unknown) => (Array.isArray(value) ? value.map(String)
 
 // Runs the companion's tool calls in the browser: the note tools through
 // useNoteTools, the vault and editor read tools (list_folder, read_file,
-// get_active_note) here, behind the path guard, load_skill through
-// useChatSkills, the writes (edit_file,
+// get_active_note, search_files, find_files, check_file, git_status, git_diff, update_plan) here, behind the path guard, load_skill through
+// useChatSkills, the writes (edit_file, write_file,
 // edit_code_block, create_file, create_folder, create_template) through
 // useCompanionWrites and the organising tools (rename, move, trash) through
 // useCompanionOrganise, recorded in the turn's undo group (`turnId`, the id
@@ -89,7 +95,77 @@ export function useCompanionTools() {
         } catch (err) {
           console.warn("Companion: couldn't read", guarded.path, err);
         }
-        return { output: readFileOutput(guarded.path, note, text), activity: activity(text === null ? "not found" : "") };
+        return { output: readFileOutput(guarded.path, note, text, Number(input.startLine) || undefined, Number(input.lineCount) || undefined), activity: activity(text === null ? "not found" : "") };
+      }
+      if (toolName === "search_files") {
+        if (!store.get(atom_vaultHandle)) return { output: NO_VAULT, activity: activity() };
+        const query = String(input.query ?? "");
+        const matcher = query ? searchMatcher(query, input.regex === true) : null;
+        if (!matcher) return { output: query ? `"${query}" isn't a valid regular expression.` : "Say what to search for.", activity: activity("refused") };
+        const folder = guardFolderPath(String(input.folder ?? ""));
+        if (!folder.ok) return { output: folder.reason, activity: activity("refused") };
+        const limit = Math.min(100, Math.max(1, Number(input.limit) || SEARCH_DEFAULT_LIMIT));
+        const all = searchablePaths(store.get(atom_fileMetadata), store.get(atom_vaultTextFiles).map((file) => file.path), folder.path);
+        const paths = all.slice(0, SEARCH_MAX_FILES);
+        const hits: SearchMatch[] = [];
+        let scanned = 0;
+        for (const path of paths) {
+          if (hits.length >= limit) break;
+          scanned++;
+          try {
+            hits.push(...matchesIn(path, await readCurrentText(path), matcher, limit - hits.length));
+          } catch {
+            // Unreadable files are skipped.
+          }
+        }
+        const output = searchFilesOutput(query, hits, { limit, truncated: scanned < all.length && hits.length < limit, scanned });
+        return { output, activity: activity(`${hits.length} found`) };
+      }
+      if (toolName === "find_files") {
+        if (!store.get(atom_vaultHandle)) return { output: NO_VAULT, activity: activity() };
+        const pattern = String(input.pattern ?? "").trim();
+        if (!pattern) return { output: "Say which file names to look for.", activity: activity("refused") };
+        const limit = Math.min(200, Math.max(1, Number(input.limit) || 50));
+        const matches = globMatcher(pattern);
+        const found = searchablePaths(store.get(atom_fileMetadata), store.get(atom_vaultTextFiles).map((file) => file.path), "").filter(matches);
+        return { output: findFilesOutput(pattern, found, limit), activity: activity(`${found.length} found`) };
+      }
+      if (toolName === "check_file") {
+        if (!store.get(atom_vaultHandle)) return { output: NO_VAULT, activity: activity() };
+        const guarded = guardFilePath(String(input.path ?? ""));
+        if (!guarded.ok) return { output: guarded.reason, activity: activity("refused") };
+        const meta = store.get(atom_fileMetadata);
+        if (isPrivateFrontmatter(meta[guarded.path]?.frontmatter)) return { output: readFileOutput(guarded.path, meta[guarded.path], null), activity: activity("private") };
+        let text: string | null = null;
+        try {
+          text = await readCurrentText(guarded.path);
+        } catch (err) {
+          console.warn("Companion: couldn't read", guarded.path, err);
+        }
+        if (text === null) return { output: readFileOutput(guarded.path, undefined, null), activity: activity("not found") };
+        if (isPrivateContent(text) && guarded.path.endsWith(".md")) return { output: readFileOutput(guarded.path, undefined, text), activity: activity("private") };
+        const resolver = createLinkResolver(meta);
+        const output = await checkFileOutput(guarded.path, text, { load: await loadYaml(), linkExists: (name) => !!resolver.resolve(name, guarded.path) });
+        return { output, activity: activity(output.includes("no syntax problems") ? "ok" : "problems") };
+      }
+      if (toolName === "git_status" || toolName === "git_diff") {
+        const vault = store.get(atom_vaultHandle);
+        if (!vault) return { output: NO_VAULT, activity: activity() };
+        const meta = store.get(atom_fileMetadata);
+        const isPrivatePath = (path: string) => isPrivateFrontmatter(meta[path]?.frontmatter);
+        const result = await startChangesScan(vault, () => {}).result;
+        const output = toolName === "git_status"
+          ? gitStatusOutput(result, isPrivatePath)
+          : gitDiffOutput(result, String(input.path ?? "").replace(/^\/+|\/+$/g, ""), isPrivatePath);
+        return { output, activity: activity() };
+      }
+      if (toolName === "update_plan") {
+        const { output, detail } = planOutput(input.steps);
+        return { output, activity: activity(detail) };
+      }
+      if (toolName === "write_file") {
+        const { output, detail } = await writes.writeFile(turnId, String(input.path ?? ""), String(input.content ?? ""));
+        return { output, activity: activity(detail) };
       }
       if (toolName === "load_skill") {
         const name = String(input.name ?? "");

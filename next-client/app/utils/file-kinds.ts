@@ -6,7 +6,7 @@
 const TEXT_FILE_EXTENSIONS = new Set([
   "txt", "text", "log",
   "json", "jsonc", "yaml", "yml", "toml", "ini", "cfg", "conf", "csv", "tsv", "xml",
-  "js", "mjs", "cjs", "jsx", "ts", "tsx", "css", "scss", "less", "html", "htm", "svg",
+  "js", "mjs", "cjs", "jsx", "ts", "tsx", "css", "scss", "less", "html", "htm",
   "py", "rb", "go", "rs", "java", "kt", "swift", "c", "h", "cpp", "hpp", "cs", "php", "lua",
   "sh", "bash", "zsh", "fish", "sql", "r", "pl", "ex", "exs", "dart", "vue", "svelte",
   "mdx", "rst", "adoc", "properties", "gradle", "graphql", "gql", "proto", "tf", "hcl", "nix",
@@ -32,6 +32,20 @@ const extensionOf = (path: string) => {
 
 export function isMarkdownPath(path: string): boolean {
   return extensionOf(path) === "md";
+}
+
+// An SVG is an image, but also a document that can carry script, so it is
+// sanitised before it is shown (app/utils/sanitize-svg.ts).
+export function isSvgPath(path: string): boolean {
+  return extensionOf(path) === "svg";
+}
+
+const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "gif", "webp", "avif", "bmp", "ico", "svg"]);
+
+// An image file (SVG included): listed in Files and opened as a picture, never
+// read as text, indexed or saved.
+export function isImagePath(path: string): boolean {
+  return IMAGE_EXTENSIONS.has(extensionOf(path));
 }
 
 // A text file that isn't a note. The vault's own data folder (`.hermesmarkdown/`) is

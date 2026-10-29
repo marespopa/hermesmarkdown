@@ -91,7 +91,7 @@ export default function WhatIsHermesMd() {
                 you open, whether that&apos;s an Obsidian vault, a docs folder, or a plain notes directory.
               </p>
               <div className="p-5 border border-black/5 dark:border-white/5 rounded-xl bg-neutral-50/50 dark:bg-neutral-900/30 text-sm leading-relaxed">
-                <span className="block text-ui-footnote uppercase tracking-[0.2em] font-bold mb-2 opacity-60">Note</span>
+                <span className="block text-ui-footnote uppercase tracking-[0.2em] font-bold mb-2 opacity-60">File</span>
                 Hermes Agent (NousResearch) and HermesMarkdown are unrelated projects that happen to share
                 the Hermes name. If you landed here looking for SOUL.md, memory.md, or plan-mode setup, this
                 isn&apos;t that — you likely want Hermes Agent&apos;s own documentation.
@@ -109,12 +109,12 @@ export default function WhatIsHermesMd() {
                 HermesMarkdown doesn&apos;t generate agent memory or context files. Your vault is plain
                 Markdown, so any AI tool that reads files can read it as-is — and you can keep your own{" "}
                 <InlineCode>AGENTS.md</InlineCode> or <InlineCode>CLAUDE.md</InlineCode> in the vault and
-                edit it like any other note.
+                edit it like any other file.
               </p>
               <ul className="space-y-3 list-disc list-outside pl-5 marker:text-sage">
                 <li>
                   Frontmatter such as <InlineCode>title</InlineCode> and <InlineCode>tags</InlineCode> stays
-                  in each file, where agents can skim it without opening every note body.
+                  in each file, where agents can skim it without opening every file body.
                 </li>
                 <li>
                   Dotfiles and <InlineCode>_</InlineCode>-prefixed files (for example agent skill files)

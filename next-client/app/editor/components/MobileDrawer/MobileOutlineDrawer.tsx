@@ -47,7 +47,7 @@ function OutlineBody({ view, filePath, onJump }: { view: EditorView | null; file
     flashLine(view, from);
   };
 
-  if (!view) return <p className="px-4 py-3 text-ui-footnote text-fg-muted">Open a note to see its outline.</p>;
+  if (!view) return <p className="px-4 py-3 text-ui-footnote text-fg-muted">Open a file to see its outline.</p>;
   return (
     <>
       <section aria-label="Metrics" className="shrink-0 border-b border-edge-subtle p-3">
@@ -60,7 +60,7 @@ function OutlineBody({ view, filePath, onJump }: { view: EditorView | null; file
       </section>
       <nav aria-label="Outline" className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
         {headings.length === 0 ? (
-          <p className="px-2 py-1 text-ui-footnote text-fg-muted">No headings in this note.</p>
+          <p className="px-2 py-1 text-ui-footnote text-fg-muted">No headings in this file.</p>
         ) : (
           headings.map((heading, index) => (
             <Button

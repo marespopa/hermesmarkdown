@@ -61,8 +61,8 @@ describe("useRenameItem link updates", () => {
     const first = await setup();
     rewriteLinks.mockResolvedValue({ updated: 2, failed: 1 });
     await first.rename();
-    expect(toast.success).toHaveBeenCalledWith("Updated links in 2 notes");
-    expect(toast.error).toHaveBeenCalledWith("Couldn't update links in 1 note");
+    expect(toast.success).toHaveBeenCalledWith("Updated links in 2 files");
+    expect(toast.error).toHaveBeenCalledWith("Couldn't update links in 1 file");
 
     vi.mocked(toast.success).mockClear();
     const second = await setup();

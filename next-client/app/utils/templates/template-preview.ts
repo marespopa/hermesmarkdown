@@ -30,7 +30,7 @@ export function templateSummary(raw: string): string {
   if (usesToken(content, "date")) parts.push("Today's date");
   const questions = extractPromptLabels(content);
   if (questions.length > 0) parts.push(`Asks ${questions.join(", ")}`);
-  return parts.join(" • ") || "Plain note";
+  return parts.join(" • ") || "Plain file";
 }
 
 export interface PreviewSegment {

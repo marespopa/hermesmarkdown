@@ -83,7 +83,7 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     { id: "task-status-todo", label: "Task: Reset to To Do", category: "Tasks" as const, keywords: "reopen open [ ]", action: () => runEditorCommand(setTaskStatusOnCurrentLine("todo")) },
   ].map((command) => ({
     ...command,
-    disabledReason: activeEditorView ? undefined : "Open and focus a note first",
+    disabledReason: activeEditorView ? undefined : "Open and focus a file first",
   }));
 
   // The vault Template and Template field entries are slash-menu only (they
@@ -98,7 +98,7 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
       category: "Editor",
       keywords: `template markdown ${template.label}`,
       closeFirst: true,
-      disabledReason: activeEditorView ? undefined : "Open and focus a note first",
+      disabledReason: activeEditorView ? undefined : "Open and focus a file first",
       action: () => {
         document.dispatchEvent(new CustomEvent("hermes:insert-template", {
           detail: { label: template.label },

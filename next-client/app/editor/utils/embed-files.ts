@@ -3,7 +3,12 @@
 // a new image URL) when it changed, so asking again is cheap.
 import { resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
 import type { FileMetadata } from "@/app/atoms/metadata";
+import { isSvgPath } from "@/app/utils/file-kinds";
+import { sanitizeSvg } from "@/app/utils/sanitize-svg";
 import { fileCandidatePaths, type EmbedRef } from "./note-embeds";
+
+// The editor's SVG path uses the same sanitiser (hooks/use-note-embeds.ts).
+export { sanitizeSvg };
 
 const MAX_CACHED = 50;
 const texts = new Map<string, { modified: number; text: string }>();
@@ -58,11 +63,15 @@ export async function locateVaultFile(
 /** The text of a located file, cached by modified time. */
 export const readLocatedText = (located: { path: string; file: File }) => textOf(located.path, located.file);
 
-/** An object URL for a located image, made again only when the file changed. */
-export function imageUrlFor({ path, file }: { path: string; file: File }): string {
+/** An object URL for a located image, made again only when the file changed.
+ *  An SVG goes through sanitizeSvg first, and null means its bytes weren't safe
+ *  to show. The cached URL is still a URL (a blob: either way), so a re-read
+ *  of the same file costs nothing. */
+export async function imageUrlFor({ path, file }: { path: string; file: File }): Promise<string | null> {
   const cached = urls.get(path);
   if (cached && cached.modified === file.lastModified) return cached.url;
-  const url = URL.createObjectURL(file);
+  const url = isSvgPath(path) ? await sanitizeSvg(file) : URL.createObjectURL(file);
+  if (!url) return null;
   remember(urls, path, { modified: file.lastModified, url }, (old) => URL.revokeObjectURL(old.url));
   return url;
 }

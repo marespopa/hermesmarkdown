@@ -31,7 +31,7 @@ export function useDownloadCompiled() {
   const veiled = (isPrivateContent(content) || isPrivateFrontmatter(metadata[path]?.frontmatter))
     && !revealAll && !revealed.has(path);
   const hasEmbeds = /^[ \t]*(?:!\[\[|\/[^\s/])/m.test(content) && findEmbeds(content).length > 0;
-  const disabledReason = !hasEmbeds ? "The note has no embeds" : veiled ? VEILED_REASON : undefined;
+  const disabledReason = !hasEmbeds ? "The file has no embeds" : veiled ? VEILED_REASON : undefined;
 
   const download = useCallback(async () => {
     if (busy.current || disabledReason) return;
@@ -42,7 +42,7 @@ export function useDownloadCompiled() {
       toast.success(`Downloaded ${name}`);
     } catch (err) {
       console.warn("Export as Compiled Markdown failed:", err);
-      toast.error("Couldn't compile the note");
+      toast.error("Couldn't compile the file");
     } finally {
       busy.current = false;
     }

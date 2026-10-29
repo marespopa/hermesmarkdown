@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { NOTE_TOOL_DEFS } from './note-tool-defs';
 
 // The AI companion's tools: the note tools (search_notes, read_note,
-// list_open_tasks), the vault and editor read tools, load_skill, the edits,
+// list_open_tasks), the vault and editor read tools (list_folder, read_file,
+// search_files, find_files, check_file), git_status and git_diff, update_plan, load_skill, the edits,
 // the organising tools and create_template. Sent to the model
 // without `execute` (app/api/ai/companion/companion-tools.ts) and run in the
 // browser (app/editor/components/companion/use-companion-tools.ts).
@@ -23,6 +24,61 @@ export const COMPANION_TOOL_DEFS = {
       "Read one file of the user's vault in full by its vault-relative path: a note (.md) or a code or text file. Use list_folder or search_notes to find paths; never guess them.",
     inputSchema: z.object({
       path: z.string().min(1).describe('Vault-relative path, e.g. "Projects/Roadmap.md" or "scripts/build.py"'),
+      startLine: z.number().int().min(1).optional().describe('First line to read (default 1); a long file ends with the startLine to ask for next'),
+      lineCount: z.number().int().min(1).max(2000).optional().describe('How many lines to read (default: as many as fit)'),
+    }),
+  },
+  search_files: {
+    title: 'Search files',
+    description:
+      "Find text inside the vault's files, code and text files as well as notes: each match comes back with its path, line number and line. Use it to locate a function, a name or a setting before reading or editing. Searches the exact text (any case) or, with regex, a JavaScript regular expression. Limit it to a folder with `folder`.",
+    inputSchema: z.object({
+      query: z.string().min(1).describe('Text to look for, or a regular expression when regex is true'),
+      regex: z.boolean().optional().describe('Treat query as a JavaScript regular expression (default false)'),
+      folder: z.string().optional().describe('Only search this vault-relative folder, e.g. "src"'),
+      limit: z.number().int().min(1).max(100).optional().describe('Most matches to return (default 30)'),
+    }),
+  },
+  find_files: {
+    title: 'Find files',
+    description:
+      "Find files in the vault by name, anywhere in its folders. The pattern is a glob: * matches within a folder name, ** across folders, ? one character; a pattern without a / is matched against file names only. Examples: \"*.test.ts\", \"src/**/*.tsx\", \"config*\". Use search_files to find text inside files.",
+    inputSchema: z.object({
+      pattern: z.string().min(1).describe('Glob, e.g. "*.test.ts" or "src/**/index.ts"'),
+      limit: z.number().int().min(1).max(200).optional().describe('Most paths to return (default 50)'),
+    }),
+  },
+  check_file: {
+    title: 'Check file',
+    description:
+      "Check one file for syntax problems, after you write it or when asked: JSON and YAML are parsed, code files go through a language parser (JavaScript, TypeScript, CSS, HTML, Python, Rust, Go, Java, PHP, SQL and more), and a note's frontmatter, unclosed code fences, [[links]] that match no file and fenced code are checked. Syntax only: it can't check types, imports or behaviour, and you can't run tests, so say that the user should.",
+    inputSchema: z.object({
+      path: z.string().min(1).describe('Vault-relative path of the file to check'),
+    }),
+  },
+  git_status: {
+    title: 'Git status',
+    description:
+      "Which files of the vault differ from the last commit (git HEAD) and how many lines changed in each. Read only: you can't commit, push or stage; the user does that in their terminal. Say so if asked, and name the files they would commit.",
+    inputSchema: z.object({}),
+  },
+  git_diff: {
+    title: 'Git diff',
+    description:
+      "The line changes of files since the last commit (git HEAD), as diff hunks: one file or folder with `path`, or every changed file without it. Use it to review what has changed, including your own edits this turn. Read only.",
+    inputSchema: z.object({
+      path: z.string().optional().describe('Vault-relative file or folder; leave out for every changed file'),
+    }),
+  },
+  update_plan: {
+    title: 'Update plan',
+    description:
+      "Keep a checklist of the steps of a multi-step job, such as a coding plan. Send the whole list each time with each step's status: pending, in_progress (one at a time) or done. Call it when you start a plan and as each step finishes, so the user sees progress. It changes no files.",
+    inputSchema: z.object({
+      steps: z.array(z.object({
+        text: z.string().min(1).describe('The step, in a few words'),
+        status: z.enum(['pending', 'in_progress', 'done']),
+      })).min(1).describe('Every step of the plan, in order'),
     }),
   },
   get_active_note: {
@@ -49,6 +105,15 @@ export const COMPANION_TOOL_DEFS = {
         find: z.string().min(1).describe('Exact text now in the file; must match exactly once'),
         replace: z.string().describe('The text to put in its place ("" deletes it)'),
       })).min(1).describe('Applied in order'),
+    }),
+  },
+  write_file: {
+    title: 'Write file',
+    description:
+      "Replace a file's whole text, or create it (with its folders) when it doesn't exist. Use it to rewrite a file or when most of it changes; for a few changes use edit_file. Give the complete new text: whatever you leave out is gone. The change is saved at once and the user can undo the whole turn.",
+    inputSchema: z.object({
+      path: z.string().min(1).describe('Vault-relative path, e.g. "src/index.ts"'),
+      content: z.string().describe("The file's complete new text"),
     }),
   },
   edit_code_block: {
@@ -124,5 +189,5 @@ export const COMPANION_TOOL_NAMES = Object.keys(COMPANION_TOOL_DEFS) as Companio
 // write switch (hooks/use-webmcp-tools.ts). trash isn't offered there: it
 // asks on a card in the companion's thread.
 export const COMPANION_WRITE_TOOL_NAMES: CompanionToolName[] = [
-  'edit_file', 'edit_code_block', 'create_file', 'create_folder', 'rename', 'move', 'create_template',
+  'edit_file', 'write_file', 'edit_code_block', 'create_file', 'create_folder', 'rename', 'move', 'create_template',
 ];

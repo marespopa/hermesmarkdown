@@ -63,8 +63,8 @@ describe("useMoveItem link updates", () => {
     const linked = await setup();
     rewriteLinks.mockResolvedValue({ updated: 3, failed: 2 });
     await linked.move();
-    expect(toast.success).toHaveBeenCalledWith("Moved Old.md to dest · updated links in 3 notes");
-    expect(toast.error).toHaveBeenCalledWith("Couldn't update links in 2 notes");
+    expect(toast.success).toHaveBeenCalledWith("Moved Old.md to dest · updated links in 3 files");
+    expect(toast.error).toHaveBeenCalledWith("Couldn't update links in 2 files");
   });
 
   it("still rescans when the rewrite throws", async () => {

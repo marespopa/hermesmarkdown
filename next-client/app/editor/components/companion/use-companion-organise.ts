@@ -58,7 +58,7 @@ export function useCompanionOrganise() {
         return { ok: false, result: { output: `${guarded.path} doesn't exist. Check the path with list_folder.`, detail: "not found" } };
       }
       if (await isPrivateItem(guarded.path, handle.kind)) {
-        const what = handle.kind === "directory" ? "holds a note that is" : "is";
+        const what = handle.kind === "directory" ? "holds a file that is" : "is";
         return { ok: false, result: { output: `${guarded.path} ${what} ${PRIVATE_HIDDEN}, so it stays where it is.`, detail: "private" } };
       }
       items.push({ path: guarded.path, handle });

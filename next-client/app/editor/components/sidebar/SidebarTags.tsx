@@ -103,7 +103,7 @@ export default function SidebarTags() {
       )}
       <SidebarSection title="Tags">
         {tree.length === 0 ? (
-          <p className="px-2 py-1 text-ui-caption text-fg-muted">No tags yet. Add one anywhere in a note, like #idea.</p>
+          <p className="px-2 py-1 text-ui-caption text-fg-muted">No tags yet. Add one anywhere in a file, like #idea.</p>
         ) : (
           <div role="tree" aria-label="Tags">
             {tree.map((node) => <TagRow key={node.path} {...rowProps} node={node} depth={0} />)}

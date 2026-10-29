@@ -1,6 +1,6 @@
 {
   "name": "hermesmarkdown",
-  "version": "6.51.1",
+  "version": "6.51.2",
   "private": true,
   "scripts": {
     "dev": "node scripts/copy-excalidraw-assets.mjs && next dev --port 3000",
@@ -36,10 +36,12 @@
     "@tailwindcss/typography": "^0.5.20",
     "@tanstack/react-virtual": "^3.14.21",
     "@testing-library/jest-dom": "^6.6.2",
+    "@types/dompurify": "^3.2.0",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "ai": "^6.0.309",
     "autoprefixer": "^10.6.1",
+    "dompurify": "^3.4.17",
     "fflate": "^0.8.2",
     "gpt-tokenizer": "4.0.3",
     "ignore": "7.0.5",

@@ -14,9 +14,12 @@ vi.mock("../ai-chat/use-chat-skills", () => ({ useChatSkills: () => ({ loadSkill
 const readCurrentText = vi.fn();
 vi.mock("@/app/hooks/file-system/use-note-buffer", () => ({ useNoteBuffer: () => ({ readCurrentText }) }));
 const editFile = vi.fn();
+const writeFile = vi.fn();
+const scanResult = vi.fn();
+vi.mock("@/app/services/git-changes-client", () => ({ startChangesScan: () => ({ result: scanResult(), cancel: vi.fn() }) }));
 const createTemplate = vi.fn();
 vi.mock("./use-companion-writes", () => ({
-  useCompanionWrites: () => ({ editFile, editCodeBlock: vi.fn(), createFile: vi.fn(), createFolder: vi.fn(), createTemplate, undoTurn: vi.fn() }),
+  useCompanionWrites: () => ({ editFile, writeFile, editCodeBlock: vi.fn(), createFile: vi.fn(), createFolder: vi.fn(), createTemplate, undoTurn: vi.fn() }),
 }));
 const move = vi.fn();
 const trash = vi.fn();
@@ -144,5 +147,87 @@ describe("useCompanionTools", () => {
 
     expect(createTemplate).toHaveBeenCalledWith("turn-1", "RFC", "# {{titl}}");
     expect(result.output).toMatch(/wasn't saved/);
+  });
+
+  it("searches files, skipping private notes", async () => {
+    readCurrentText.mockImplementation(async (path: string) => (path === "Projects/build.py" ? "import os\nbuild()" : "nothing here"));
+    const tools = setup();
+
+    const result = await tools.runTool({ toolName: "search_files", input: { query: "BUILD" } });
+
+    expect(result.output).toContain("Projects/build.py:2: build()");
+    expect(readCurrentText).not.toHaveBeenCalledWith("Projects/Budget.md");
+  });
+
+  it("refuses a regex that doesn't parse", async () => {
+    const tools = setup();
+
+    const result = await tools.runTool({ toolName: "search_files", input: { query: "(", regex: true } });
+
+    expect(result.output).toContain("isn't a valid regular expression");
+  });
+
+  it("reads a range of a long file", async () => {
+    readCurrentText.mockResolvedValue("a\nb\nc\nd");
+    const tools = setup();
+
+    const result = await tools.runTool({ toolName: "read_file", input: { path: "Projects/build.py", startLine: 2, lineCount: 2 } });
+
+    expect(result.output).toContain("b\nc\n[lines 2–3 of 4; call read_file with startLine 4 for the rest]");
+  });
+
+  it("writes a whole file in the turn's group", async () => {
+    writeFile.mockResolvedValue({ output: "Saved src/a.ts (rewritten).", detail: "rewritten" });
+    const tools = setup();
+
+    const result = await tools.runTool({ toolName: "write_file", input: { path: "src/a.ts", content: "x" } }, "turn-1");
+
+    expect(writeFile).toHaveBeenCalledWith("turn-1", "src/a.ts", "x");
+    expect(result.activity).toBe("Wrote src/a.ts · rewritten");
+  });
+
+  it("answers the plan back with its progress", async () => {
+    const tools = setup();
+
+    const result = await tools.runTool({ toolName: "update_plan", input: { steps: [{ text: "Add types", status: "done" }, { text: "Wire it", status: "in_progress" }] } });
+
+    expect(result.output).toBe("Plan, 1 of 2 done:\n[x] Add types\n[~] Wire it");
+  });
+
+  it("finds files by name pattern, never private notes", async () => {
+    const tools = setup();
+
+    const byName = await tools.runTool({ toolName: "find_files", input: { pattern: "*.py" } });
+    const byPath = await tools.runTool({ toolName: "find_files", input: { pattern: "Projects/**/*.md" } });
+
+    expect(byName.output).toBe("1 file matches:\nProjects/build.py");
+    expect(byPath.output).toContain("Projects/Roadmap.md");
+    expect(byPath.output).not.toContain("Budget");
+  });
+
+  it("answers git_status and git_diff from the changes scan", async () => {
+    scanResult.mockReturnValue(Promise.resolve({
+      status: "ok",
+      commit: "abcdef1234",
+      files: [{ path: "Projects/build.py", status: "modified", added: 1, removed: 1, diff: { kind: "text", lines: ["b"], changes: [{ oldStart: 1, removed: ["a"], newStart: 1, newCount: 1 }] } }],
+    }));
+    const tools = setup();
+
+    const status = await tools.runTool({ toolName: "git_status", input: {} });
+    const diff = await tools.runTool({ toolName: "git_diff", input: { path: "Projects" } });
+
+    expect(status.output).toContain("M Projects/build.py (+1 −1)");
+    expect(diff.output).toContain("@@ -1,1 +1,1 @@\n-a\n+b");
+  });
+
+  it("checks a file's syntax, never a private note", async () => {
+    readCurrentText.mockResolvedValue('{"a": }');
+    const tools = setup();
+
+    const broken = await tools.runTool({ toolName: "check_file", input: { path: "Projects/build.json" } });
+    const secret = await tools.runTool({ toolName: "check_file", input: { path: "Projects/Budget.md" } });
+
+    expect(broken.output).toContain("1 problem");
+    expect(secret.output).toContain("private (hidden)");
   });
 });

@@ -32,7 +32,8 @@ export async function renderNote(
   text: string,
   notePath: string,
   vaultHandle: FileSystemDirectoryHandle | null | undefined,
-  imageUrl: (file: File) => Promise<string>,
+  // `path` is the vault path, so the callback can treat an SVG differently.
+  imageUrl: (file: File, path: string) => Promise<string>,
   options: { openDetails?: boolean } = {},
 ): Promise<RenderedNote> {
   const images = new Map<string, string>();
@@ -42,7 +43,7 @@ export async function renderNote(
       if (!imagePath || images.has(src)) continue;
       try {
         const file = await (await resolveFileHandleAtPath(vaultHandle, imagePath)).getFile();
-        images.set(src, await imageUrl(file));
+        images.set(src, await imageUrl(file, imagePath));
       } catch {
         // Missing image: its alt text shows instead.
       }

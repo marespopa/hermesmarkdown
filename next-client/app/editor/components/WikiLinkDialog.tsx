@@ -205,7 +205,7 @@ export default function WikiLinkDialog({
               onClick={() => setMode("existing")}
               className="h-9 rounded-lg"
             >
-              Existing note
+              Existing file
             </Button>
             <Button variant="segment"
               role="tab"
@@ -213,7 +213,7 @@ export default function WikiLinkDialog({
               onClick={() => setMode("new")}
               className="h-9 rounded-lg"
             >
-              New note
+              New file
             </Button>
             {showTemplateTab && (
               <Button variant="segment"
@@ -232,12 +232,12 @@ export default function WikiLinkDialog({
           <>
             <Input
               name="wiki-search"
-              label="Search existing notes"
+              label="Search existing files"
               value={search}
               handleChange={(e) => setSearch(e.target.value)}
               onKeyDown={handleKeyDown}
               autoFocus
-              placeholder="Search notes..."
+              placeholder="Search files..."
               className="my-0"
             />
 
@@ -271,7 +271,7 @@ export default function WikiLinkDialog({
               ))}
               {filteredItems.length === 0 && search && (
                 <div className="px-3 py-2 text-ui-footnote text-stone italic">
-                  No matching note
+                  No matching file
                 </div>
               )}
             </div>
@@ -280,7 +280,7 @@ export default function WikiLinkDialog({
           <div className="flex flex-col gap-2">
             <Input
               name="wiki-template-note-name"
-              label="New note name"
+              label="New file name"
               value={templateNoteName}
               handleChange={(e) => setTemplateNoteName(e.target.value)}
               onKeyDown={(e) => {
@@ -334,7 +334,7 @@ export default function WikiLinkDialog({
           <div className="flex flex-col gap-2">
             <Input
               name="wiki-new-file-name"
-              label="New note filename"
+              label="New file filename"
               value={newFileName}
               handleChange={(e) => setNewFileName(e.target.value)}
               placeholder="Filename"
@@ -365,7 +365,7 @@ export default function WikiLinkDialog({
               onClick={() => onConfirm(filteredItems[selectedIndex]?.path || search)}
               isDisabled={!search && filteredItems.length === 0}
             >
-              Link note
+              Link file
             </Button>
           )}
         </div>

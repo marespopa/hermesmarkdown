@@ -68,7 +68,7 @@ describe("createSlashMenuSource", () => {
     expect(all[0].label).toBe("Text");
     expect(section("Heading 1")).toBe("Basic blocks");
     expect(section("Link")).toBe("Insert");
-    expect(section("Frontmatter")).toBe("Note");
+    expect(section("Frontmatter")).toBe("File");
     expect(getResult("/head").result?.options.every((option) => option.section === undefined)).toBe(true);
   });
 

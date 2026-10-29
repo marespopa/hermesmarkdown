@@ -58,7 +58,7 @@ export function lintTemplate(raw: string): string[] {
   if (emptyPrompt) warnings.push("A question field ({{prompt:}}) has no question.");
   if (cursors > 1) warnings.push("\"Start typing here\" ({{cursor}}) appears more than once; only the first counts.");
   for (const key of Object.keys(parseFmFields(raw))) {
-    if (RETIRED_KEYS.has(key)) warnings.push(`"${key}" is no longer used: a template only gives a note its text. You can delete it.`);
+    if (RETIRED_KEYS.has(key)) warnings.push(`"${key}" is no longer used: a template only gives a file its text. You can delete it.`);
   }
   return warnings;
 }
@@ -66,7 +66,7 @@ export function lintTemplate(raw: string): string[] {
 export const TOKEN_DESCRIPTIONS: Record<(typeof TEMPLATE_TOKENS)[number], string> = {
   date: "today, YYYY-MM-DD",
   time: "now, HH:mm (24 h)",
-  title: "the new note's title",
+  title: "the new file's title",
   year: "this year, YYYY",
   month: "this month's number, MM",
   day: "today's day of the month, DD",
@@ -78,8 +78,8 @@ export const TOKEN_DESCRIPTIONS: Record<(typeof TEMPLATE_TOKENS)[number], string
   quarter: "this quarter, Q1-Q4",
   slug: "the title in kebab-case, for file names and links",
   clipboard: "the clipboard text",
-  selection: "the text selected when the template is inserted (empty for new notes)",
-  cursor: "where the caret goes after the note opens (removed from the text)",
+  selection: "the text selected when the template is inserted (empty for new files)",
+  cursor: "where the caret goes after the file opens (removed from the text)",
 };
 
 // Markdown description of the template grammar, built from TEMPLATE_TOKENS so
@@ -90,7 +90,7 @@ export const TEMPLATE_SYNTAX_GUIDE = [
   "- {{prompt:Label}}: asks the user for a value labelled Label; every occurrence of the same label gets the same answer.",
   "- {{date:FORMAT}} formats the date: YYYY YY MMMM MMM MM M dddd ddd DD D HH H mm ss, ww (ISO week, 01-53), GGGG (the ISO week's year), Q (quarter, 1-4), [literal text]. E.g. {{date:dddd, D MMMM}}, {{date:GGGG-[W]ww}} (this week's name, 2026-W42), {{date:YYYY-MM}} (this month's), {{date:YYYY-[Q]Q}} (this quarter's). {{time:HH:mm}} takes a format too.",
   "- {{date+1d}} / {{date-2w}} / {{date+1m}} / {{date+1y}}: date math (days, weeks, months, years); combine with a format: {{date+1d:dddd}}, or {{date-1w:GGGG-[W]ww}} for last week's name.",
-  "- Any other {{name}} (letters, digits, underscores), e.g. {{task_1}}, stays in the created note as a blank to fill in; Tab jumps between blanks.",
+  "- Any other {{name}} (letters, digits, underscores), e.g. {{task_1}}, stays in the created file as a blank to fill in; Tab jumps between blanks.",
   "No scripting, conditionals or loops.",
-  "Frontmatter keys are copied into the note, with tokens expanded. A template never decides a note's name or folder.",
+  "Frontmatter keys are copied into the file, with tokens expanded. A template never decides a file's name or folder.",
 ].join("\n");

@@ -5,7 +5,7 @@ import { useAtomValue } from "jotai";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_vaultFiles, atom_vaultFolderPaths, atom_vaultKey, atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
 import { atom_vaultTreeListedKey, atom_vaultTreeSnapshot } from "@/app/atoms/tree-snapshot-atoms";
-import { isPlainTextPath } from "@/app/utils/file-kinds";
+import { isImagePath, isPlainTextPath } from "@/app/utils/file-kinds";
 import { atom_pendingTreePaths } from "@/app/atoms/pending-tree-atoms";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 
@@ -62,7 +62,7 @@ export function useVaultFileSearch({ selectedTags, panel, rememberedTree = false
   // from .hermesmarkdown/ while hidden files are shown (see collectVaultFiles), so
   // let those through too rather than assuming every entry is markdown.
   const isVisibleFile = useCallback((path: string) =>
-    path.endsWith(".md") || isPlainTextPath(path) || (showHiddenFiles && path.startsWith(".hermesmarkdown/")),
+    path.endsWith(".md") || isPlainTextPath(path) || isImagePath(path) || (showHiddenFiles && path.startsWith(".hermesmarkdown/")),
   [showHiddenFiles]);
 
   // Unfiltered — every visible file in the vault, ignoring search/tag filters.
@@ -75,7 +75,7 @@ export function useVaultFileSearch({ selectedTags, panel, rememberedTree = false
     if (hasMetadata) {
       // Text files come from their own list only, once each.
       const notes = Object.values(fileMetadata)
-        .filter((m) => isVisibleFile(m.path) && !isPlainTextPath(m.path) && !isHiddenPath(m.path))
+        .filter((m) => isVisibleFile(m.path) && !isPlainTextPath(m.path) && !isImagePath(m.path) && !isHiddenPath(m.path))
         .map((m) => ({ name: m.name, kind: "file" as const, handle: m.handle, path: m.path }));
       const others = textFiles
         .filter((f) => !isHiddenPath(f.path))

@@ -56,7 +56,7 @@ export function useNoteTools() {
         try {
           text = await readCurrentText(usable.path);
         } catch (err) {
-          console.warn("Note tools: couldn't read", usable.path, err);
+          console.warn("File tools: couldn't read", usable.path, err);
         }
       }
       return { output: readNoteOutput(name, usable, text), activity: toolActivity(toolName, input) };

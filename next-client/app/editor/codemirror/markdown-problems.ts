@@ -60,7 +60,7 @@ export function unclosedBlockProblems(state: EditorState): MarkdownProblem[] {
         problems.push({
           line: first,
           anchorLine: first,
-          message: `The code block on line ${first} is never closed, so the rest of the note reads as code.`,
+          message: `The code block on line ${first} is never closed, so the rest of the file reads as code.`,
         });
       }
       return false;

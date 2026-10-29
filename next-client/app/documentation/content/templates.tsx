@@ -9,20 +9,20 @@ export const templatesItems: Subsection[] = [
   {
     id: "templates",
     title: "Templates",
-    lead: "A template is a note you start other notes from. Fields like Today's date or Ask: Owner fill in each time you use it.",
+    lead: "A template is a file you start other files from. Fields like Today's date or Ask: Owner fill in each time you use it.",
     keywords: "template templates year month day weekday month name week number quarter slug save as template edit template blank tab fill in date format date math tomorrow selection quick start empty note preview tpl snippet log entry timestamp token field add field placeholder prompt question ask cursor clipboard date new note missing link folder new notes go where name clash already exists new template create template week name weekly monthly quarterly yearly iso week quarter pack packs folder template scaffold structure",
     body: (
       <>
         <h4 className={h4}>Make a template</h4>
         <p>
           Run <strong>New template…</strong> from the command palette, or press{" "}
-          <strong>New template</strong> on the Templates page. Pick a note or a folder template, give it
+          <strong>New template</strong> on the Templates page. Pick a file or a folder template, give it
           a name, and start blank or from an example; it opens so you can add what you need. Nothing is
           overwritten. See the <TextLink href="#templates-page">Templates page</TextLink>.
         </p>
         <p>
-          Or turn a note you already like into one: run <strong>Save as template…</strong> from the
-          command palette, or type <code>/save-template</code> in the note. Only a name is asked,
+          Or turn a file you already like into one: run <strong>Save as template…</strong> from the
+          command palette, or type <code>/save-template</code> in the file. Only a name is asked,
           prefilled from the note&apos;s first heading. The note is copied into{" "}
           <code>_templates/</code> as a plain <code>.md</code> file.
         </p>
@@ -43,7 +43,7 @@ export const templatesItems: Subsection[] = [
             { label: "Ask a question…", value: "Asks you each time, e.g. Owner. Questions you already ask are listed first, so reusing one fills in the same answer" },
             { label: "Today's date", value: "2026-10-05; any format, see below" },
             { label: "Current time", value: "14:30" },
-            { label: "Note title", value: "The new note's title" },
+            { label: "File title", value: "The new file's title" },
             { label: "Year, Month number, Day of the month", value: "2026, 10, 05" },
             { label: "Day name, Month name", value: "Monday, October; short forms Mon, Oct" },
             { label: "Week number, Quarter", value: "41, Q4" },
@@ -55,7 +55,7 @@ export const templatesItems: Subsection[] = [
             { label: "Yesterday's date", value: "2026-10-04" },
             { label: "Long date", value: "Monday, 5 October 2026" },
             { label: "This week's name", value: "2026-W41" },
-            { label: "Blank to fill in…", value: "Stays in the new note as a highlighted blank, e.g. Task 1" },
+            { label: "Blank to fill in…", value: "Stays in the new file as a highlighted blank, e.g. Task 1" },
           ]}
         />
         <p>
@@ -65,45 +65,45 @@ export const templatesItems: Subsection[] = [
         </p>
         <h4 className={h4}>Fill in the blanks</h4>
         <p>
-          Blanks left by a template show as grey boxes in the new note. Press <strong>Tab</strong>{" "}
+          Blanks left by a template show as grey boxes in the new file. Press <strong>Tab</strong>{" "}
           to select the next one and type to replace it, or <strong>Shift+Tab</strong> to go back.
           Clicking a blank selects it too. When none are left, you&apos;ll see{" "}
-          <strong>Template ready ✦</strong>. Press Esc to use Tab normally again in that note.
+          <strong>Template ready ✦</strong>. Press Esc to use Tab normally again in that file.
         </p>
-        <h4 className={h4}>Where new notes go</h4>
+        <h4 className={h4}>Where new files go</h4>
         <p>
-          A template only gives a note its text. A note made from a link is named by the link and goes
+          A template only gives a file its text. A file made from a link is named by the link and goes
           in the link&apos;s folder if it has one (<code>[[rfcs/auth-spec]]</code> goes in{" "}
           <code>rfcs/</code>), else in your New Files folder.
         </p>
         <Callout type="note">
-          If a note with that name is already in that folder, it opens (or is linked) as it is. Nothing
+          If a file with that name is already in that folder, it opens (or is linked) as it is. Nothing
           is overwritten, and no <code>name (1)</code> copy is made.
         </Callout>
         <h4 className={h4}>Use a template</h4>
         <ul>
           <li>
-            <strong>An empty note</strong> shows your templates as small buttons under the first line;
-            click one to fill the note. With no templates yet, the built-in examples (meeting notes and a
+            <strong>An empty file</strong> shows your templates as small buttons under the first line;
+            click one to fill the file. With no templates yet, the built-in examples (meeting notes and a
             project brief) are offered instead, and <strong>New template</strong> makes your own.
           </li>
           <li>
-            <strong><code>/template</code></strong> in a note inserts a template where you&apos;re
+            <strong><code>/template</code></strong> in a file inserts a template where you&apos;re
             typing. Click a template to preview it, then <strong>Use template</strong>, or press ⌘1–⌘9
             (Ctrl+1–9).
           </li>
           <li>
-            <strong>Links:</strong> clicking a link to a note that doesn&apos;t exist yet, or the{" "}
+            <strong>Links:</strong> clicking a link to a file that doesn&apos;t exist yet, or the{" "}
             <strong>From template</strong> tab when adding a link, lets you pick a template or a blank
-            note. The template the name points to comes first: one named after the folder (
+            file. The template the name points to comes first: one named after the folder (
             <code>rfcs/</code> → <code>rfc</code>), one whose name starts it (&quot;Meeting notes
             2026-10-05&quot;), or your journal for a date.
           </li>
         </ul>
         <h4 className={h4}>Folder templates</h4>
         <p>
-          A folder template creates a whole set of notes at once, such as a project with its folders and
-          starter notes. Make one with <strong>New template</strong> (choose <strong>Folder</strong>), or
+          A folder template creates a whole set of files at once, such as a project with its folders and
+          starter files. Make one with <strong>New template</strong> (choose <strong>Folder</strong>), or
           by hand: add a folder to <code>_templates/</code> and put{" "}
           <code>scaffold: true</code> in the frontmatter of its <code>README.md</code>. Everything in the
           folder is copied: notes, other files and empty subfolders. The README is copied too, without the{" "}
@@ -165,12 +165,12 @@ export const templatesItems: Subsection[] = [
             { label: "This month", value: "{{date:YYYY-MM}} → 2026-10" },
             { label: "This quarter", value: "{{date:YYYY-[Q]Q}} → 2026-Q4" },
             { label: "This year", value: "{{date:YYYY}} → 2026" },
-            { label: "Last week's note", value: "[[{{date-1w:GGGG-[W]ww}}]]" },
+            { label: "Last week's file", value: "[[{{date-1w:GGGG-[W]ww}}]]" },
           ]}
         />
         <p>
-          Use these in headings and links, for example in weekly, monthly or yearly notes. Frontmatter
-          lines (author, status, …) are copied into each new note. Templates stay out of the Tasks
+          Use these in headings and links, for example in weekly, monthly or yearly files. Frontmatter
+          lines (author, status, …) are copied into each new file. Templates stay out of the Tasks
           page. The AI companion can write templates for you; see{" "}
           <TextLink href="#ai-templates">AI templates</TextLink>.
         </p>

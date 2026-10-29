@@ -24,22 +24,22 @@ export default function PrivateNoteVeil({ title, isActivePane, onShowNote, onSho
   return (
     <div className="flex h-full items-center justify-center p-6" data-testid="private-note-veil">
       <section
-        aria-label="Private note"
+        aria-label="Private file"
         className="flex w-full max-w-sm flex-col items-center gap-4 rounded-xl border border-edge bg-surface p-6 text-center"
       >
         <div className="flex flex-col items-center gap-1.5">
           <span className="flex items-center gap-1.5 text-ui-footnote font-medium text-fg-muted">
             <PrivateBadge />
-            Private note
+            Private file
           </span>
           <h2 className="max-w-full truncate text-ui-body font-semibold text-fg">{title}</h2>
         </div>
         <div className="flex w-full flex-col gap-2">
           <Button ref={showNoteRef} variant="secondary" onClick={onShowNote} className="min-h-11 w-full">
-            Show note
+            Show file
           </Button>
           <Button variant="tertiary" onClick={onShowAll} className="min-h-11 w-full">
-            Show all private notes this session
+            Show all private files this session
           </Button>
         </div>
       </section>

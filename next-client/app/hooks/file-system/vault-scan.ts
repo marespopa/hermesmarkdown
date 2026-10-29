@@ -1,5 +1,5 @@
 import { isTrashPath } from "@/app/services/vault-trash";
-import { isPlainTextPath } from "@/app/utils/file-kinds";
+import { isImagePath, isPlainTextPath } from "@/app/utils/file-kinds";
 import { VAULT_DATA_DIR } from "@/app/services/vault-data-dir";
 
 // Pure vault-walking helpers used by use-vault-manager.ts: directory listing,
@@ -97,7 +97,7 @@ const WALK_CONCURRENCY = 8;
 // A text file the file views list (isPlainTextPath): never a secret, and
 // not a dotfile unless hidden files are shown.
 function isListedTextFile(name: string, path: string, includeHidden: boolean): boolean {
-  return isPlainTextPath(path) && !isSecretFile(name) && (includeHidden || !name.startsWith("."));
+  return (isPlainTextPath(path) || isImagePath(path)) && !isSecretFile(name) && (includeHidden || !name.startsWith("."));
 }
 
 export function isSecretFile(name: string): boolean {

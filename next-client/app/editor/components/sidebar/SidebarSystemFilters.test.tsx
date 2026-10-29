@@ -36,7 +36,7 @@ describe("SidebarSystemFilters", () => {
   it("lists the five filters with their counts", () => {
     setup();
     const row = (name: string) => screen.getByRole("button", { name: new RegExp(`^${name}`) });
-    expect(row("All Notes").textContent).toContain("2");
+    expect(row("All Files").textContent).toContain("2");
     expect(row("Untagged").textContent).toContain("1");
     expect(row("Today").textContent).toContain("1");
     expect(row("Archive").textContent).toContain("1");

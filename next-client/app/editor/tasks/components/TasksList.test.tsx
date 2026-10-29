@@ -153,6 +153,6 @@ describe("TasksList opening a task's note", () => {
       fireEvent.click(screen.getByText("Ship report"));
     });
     expect(onFileSelect).not.toHaveBeenCalled();
-    expect(toastError).toHaveBeenCalledWith("Couldn't find this task's note");
+    expect(toastError).toHaveBeenCalledWith("Couldn't find this task's file");
   });
 });

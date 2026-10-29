@@ -9,7 +9,7 @@ export type PerfMeasure = "note-open" | "keystroke" | "notes-persist" | "sidebar
 export const PERF_MEASURES: { name: PerfMeasure; label: string }[] = [
   { name: "note-open", label: "Open → text" },
   { name: "keystroke", label: "Key → paint" },
-  { name: "notes-persist", label: "Notes write" },
+  { name: "notes-persist", label: "Files write" },
   { name: "sidebar-tree", label: "Start → tree" },
   { name: "palette-open", label: "Palette → paint" },
 ];

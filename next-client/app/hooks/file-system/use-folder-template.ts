@@ -90,7 +90,7 @@ export function useFolderTemplate({ scanVault, indexVaultTags, openFile }: UseFo
       // Rows turn real and the busy mark goes together.
       clear();
     }
-    toast.success(`Created ${topPath}: ${plan.noteCount} ${plan.noteCount === 1 ? "note" : "notes"}`);
+    toast.success(`Created ${topPath}: ${plan.noteCount} ${plan.noteCount === 1 ? "file" : "files"}`);
     const readme = plan.entries.find((e) => e.isRootReadme);
     if (readme && result.rootReadme) {
       const path = prefix(readme.path);

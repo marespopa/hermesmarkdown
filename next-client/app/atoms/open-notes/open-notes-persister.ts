@@ -138,7 +138,7 @@ export class OpenNotesPersister {
         return files;
       },
       (err) => {
-        console.warn("Open notes: IndexedDB unavailable, keeping them in localStorage:", err);
+        console.warn("Open files: IndexedDB unavailable, keeping them in localStorage:", err);
         this.mode = "legacy";
         return null;
       },
@@ -257,7 +257,7 @@ export class OpenNotesPersister {
       reportRecoveryIssue({ kind: "storage-full" });
       return;
     }
-    console.warn("Open notes: IndexedDB write failed, keeping them in localStorage:", err);
+    console.warn("Open files: IndexedDB write failed, keeping them in localStorage:", err);
     this.mode = "legacy";
     if (this.latest) this.legacy.setItem(LEGACY_KEY, this.latest);
   }
@@ -292,7 +292,7 @@ export class OpenNotesPersister {
     try {
       await this.backend!.write(changes);
     } catch (err) {
-      console.warn("Open notes: couldn't move them to IndexedDB, keeping localStorage:", err);
+      console.warn("Open files: couldn't move them to IndexedDB, keeping localStorage:", err);
       return;
     }
     this.writeMeta(value);

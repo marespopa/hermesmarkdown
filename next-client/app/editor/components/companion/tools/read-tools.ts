@@ -55,13 +55,37 @@ export function listFolderOutput(path: string, page: number, { notes, textFiles,
   return `${where} holds ${childFolders.length} folder${childFolders.length === 1 ? "" : "s"} and ${childFiles.length} file${childFiles.length === 1 ? "" : "s"}:\n${shown.join("\n")}${more}`;
 }
 
-// A file's text for read_file, capped, or why it can't be read.
-export function readFileOutput(path: string, note: FileMetadata | undefined, text: string | null): string {
+// The lines of `text` from `startLine`, at most `lineCount` of them and
+// FILE_CHAR_LIMIT characters; a cut says which lines it showed and the
+// startLine that carries on. Lines carry no numbers: the model would paste
+// them into edit_file's `find`.
+export function readLines(text: string, startLine = 1, lineCount = Infinity): string {
+  const lines = text.split("\n");
+  const first = Math.min(Math.max(1, Math.floor(startLine) || 1), lines.length);
+  if (first === 1 && lines.length <= lineCount && text.length <= FILE_CHAR_LIMIT) return text;
+  const shown: string[] = [];
+  let cut = false;
+  let size = 0;
+  for (let i = first - 1; i < lines.length && shown.length < lineCount; i++) {
+    if (shown.length && size + lines[i].length + 1 > FILE_CHAR_LIMIT) break;
+    if (lines[i].length > FILE_CHAR_LIMIT) cut = true;
+    shown.push(lines[i].slice(0, FILE_CHAR_LIMIT));
+    size += lines[i].length + 1;
+  }
+  const last = first + shown.length - 1;
+  const more = last < lines.length ? `; call read_file with startLine ${last + 1} for the rest` : "";
+  const long = cut ? "; a line longer than the limit was cut" : "";
+  return `${shown.join("\n")}\n[lines ${first}–${last} of ${lines.length}${more}${long}]`;
+}
+
+// A file's text for read_file, a range of it when asked or when it is long,
+// or why it can't be read.
+export function readFileOutput(path: string, note: FileMetadata | undefined, text: string | null, startLine?: number, lineCount?: number): string {
   if (note && isPrivateFrontmatter(note.frontmatter)) return `${path} is ${PRIVATE_HIDDEN}. Ask the user to open it.`;
   if (text === null) return `${path} couldn't be read. Check the path with list_folder.`;
   if (isMarkdownPath(path) && isPrivateContent(text)) return `${path} is ${PRIVATE_HIDDEN}. Ask the user to open it.`;
   const readable = isMarkdownPath(path) ? boardTextForReading(text) : text;
-  return `--- FILE: ${path} ---\n${capText(readable)}\n--- END FILE ---`;
+  return `--- FILE: ${path} ---\n${readLines(readable, startLine, lineCount)}\n--- END FILE ---`;
 }
 
 export interface CodeBlock {
@@ -110,8 +134,8 @@ export interface ActiveNote {
 
 // get_active_note's answer.
 export function activeNoteOutput({ path, selection, codeBlock, isPrivate }: ActiveNote): string {
-  if (!path) return "No note is open in the editor.";
-  if (isPrivate) return `The open note (${path}) is ${PRIVATE_HIDDEN}.`;
+  if (!path) return "No file is open in the editor.";
+  if (isPrivate) return `The open file (${path}) is ${PRIVATE_HIDDEN}.`;
   const parts = [`Open note: ${path}`];
   parts.push(selection.trim()
     ? `--- SELECTED TEXT ---\n${capText(selection)}\n--- END SELECTED TEXT ---`
@@ -133,10 +157,17 @@ export function companionToolActivity(name: string, input: Record<string, unknow
   const suffix = detail ? ` · ${detail}` : "";
   if (name === "list_folder") return `Listed ${String(input.path ?? "") || "the vault"}${suffix}`;
   if (name === "read_file") return `Read ${String(input.path ?? "a file")}${suffix}`;
-  if (name === "get_active_note") return `Looked at the open note${suffix}`;
+  if (name === "search_files") return `Searched files for “${String(input.query ?? "")}”${suffix}`;
+  if (name === "find_files") return `Found files named ${String(input.pattern ?? "")}${suffix}`;
+  if (name === "check_file") return `Checked ${String(input.path ?? "a file")}${suffix}`;
+  if (name === "git_status") return `Checked what changed since the last commit${suffix}`;
+  if (name === "git_diff") return `Read the changes${input.path ? ` in ${String(input.path)}` : ""}${suffix}`;
+  if (name === "write_file") return `Wrote ${String(input.path ?? "a file")}${suffix}`;
+  if (name === "update_plan") return `Updated the plan${suffix}`;
+  if (name === "get_active_note") return `Looked at the open file${suffix}`;
   if (name === "load_skill") return `Loaded the skill ${String(input.name ?? "")}${suffix}`;
   if (name === "edit_file") return `Edited ${String(input.path ?? "a file")}${suffix}`;
-  if (name === "edit_code_block") return `Edited code in ${String(input.path ?? "a note")}${suffix}`;
+  if (name === "edit_code_block") return `Edited code in ${String(input.path ?? "a file")}${suffix}`;
   if (name === "create_file") return `Created ${String(input.path ?? "a file")}${suffix}`;
   if (name === "create_folder") return `Created the folder ${String(input.path ?? "")}${suffix}`;
   if (name === "rename") return `Renamed ${String(input.path ?? "an item")} to ${String(input.newName ?? "…")}${suffix}`;

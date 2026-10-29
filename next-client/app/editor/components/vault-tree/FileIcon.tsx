@@ -4,9 +4,9 @@ import React, { useMemo } from "react";
 import { useAtomValue } from "jotai";
 import { selectAtom } from "jotai/utils";
 import type { IconType } from "react-icons";
-import { HiOutlineBookmark, HiOutlineBriefcase, HiOutlineCheckCircle, HiOutlineCode, HiOutlineDocumentText, HiOutlineUserGroup } from "react-icons/hi";
+import { HiOutlineBookmark, HiOutlineBriefcase, HiOutlineCheckCircle, HiOutlineCode, HiOutlineDocumentText, HiOutlinePhotograph, HiOutlineUserGroup } from "react-icons/hi";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { isPlainTextPath } from "@/app/utils/file-kinds";
+import { isImagePath, isPlainTextPath } from "@/app/utils/file-kinds";
 import { noteTypeOf } from "@/app/utils/note-type";
 
 const TYPE_ICONS: Record<string, IconType> = {
@@ -23,7 +23,7 @@ const TYPE_ICONS: Record<string, IconType> = {
 export default function FileIcon({ path }: { path: string }) {
   const typeAtom = useMemo(() => selectAtom(atom_fileMetadata, (metadata) => noteTypeOf(metadata[path])), [path]);
   const type = useAtomValue(typeAtom);
-  return renderIcon((type && TYPE_ICONS[type]) || (isPlainTextPath(path) ? HiOutlineCode : HiOutlineDocumentText), type);
+  return renderIcon((type && TYPE_ICONS[type]) || (isImagePath(path) ? HiOutlinePhotograph : isPlainTextPath(path) ? HiOutlineCode : HiOutlineDocumentText), type);
 }
 
 // Called, not rendered as a component chosen during render (react-hooks/static-components).

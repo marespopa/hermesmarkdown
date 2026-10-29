@@ -87,7 +87,7 @@ export default function TemplatesPage() {
             <div>
               <h1 className="text-ui-title-2 font-semibold tracking-tight">Templates</h1>
               <p className="mt-1 text-ui-footnote text-fg-muted">
-                Make your own: a note to start new notes from, or a whole folder of notes. Each one is a plain file
+                Make your own: a file to start new files from, or a whole folder of files. Each one is a plain file
                 in <code>{folder}/</code> you can change any time.
               </p>
             </div>

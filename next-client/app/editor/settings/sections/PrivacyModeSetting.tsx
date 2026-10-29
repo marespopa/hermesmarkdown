@@ -20,7 +20,7 @@ export default function PrivacyModeSetting() {
     <SettingGroup title="Privacy">
       <SettingItem
         label="Privacy Mode"
-        description="How private notes appear in pinned notes, quick open and Tasks: masked (title and a lock, no preview or task text) or left out. A note is private when its frontmatter has private: true or a private tag. Files and tabs still show file names."
+        description="How private files appear in pinned files, quick open and Tasks: masked (title and a lock, no preview or task text) or left out. A file is private when its frontmatter has private: true or a private tag. Files and tabs still show file names."
         layout="stack"
         control={
           <SegmentedControl

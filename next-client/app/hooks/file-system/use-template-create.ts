@@ -138,7 +138,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     }
     const parsed = parseMissingLink(link);
     if (!parsed) {
-      toast.error(`Can't create a note named "${shown}"`);
+      toast.error(`Can't create a file named "${shown}"`);
       return;
     }
     const folder = parsed.folder ?? newNotesFolder();
@@ -212,7 +212,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     if (!vaultHandle) return null;
     const parsed = parseMissingLink(name);
     if (!parsed) {
-      toast.error(`Can't create a note named "${name.trim()}"`);
+      toast.error(`Can't create a file named "${name.trim()}"`);
       return null;
     }
     const folder = parsed.folder ?? newNotesFolder();
@@ -242,11 +242,11 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   // New Files folder (or the name's own folder) and opens it. A note of that
   // name already there opens unchanged. Resolves to its path, or null.
   const createNoteFromTemplate = useCallback(async (entry: TemplateEntry): Promise<string | null> => {
-    const name = await dialog.prompt("Name the new note", entry.name, "New note from template");
+    const name = await dialog.prompt("Name the new file", entry.name, "New file from template");
     if (typeof name !== "string" || !name.trim()) return null;
     const parsed = parseMissingLink(name);
     if (!parsed) {
-      toast.error(`Can't create a note named "${name.trim()}"`);
+      toast.error(`Can't create a file named "${name.trim()}"`);
       return null;
     }
     const expanded = await linkedNoteText(entry, parsed.baseName);

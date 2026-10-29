@@ -31,7 +31,7 @@ export const editorWritingItems: Subsection[] = [
           their text. CTRL+Click a date to open the date picker.
         </p>
         <p>
-          Press <strong>CTRL/CMD+F</strong> to find and replace in the note, with match case,
+          Press <strong>CTRL/CMD+F</strong> to find and replace in the file, with match case,
           whole word and regex options. CTRL/CMD+ALT+1…6 turns the line into a heading (press
           it again to remove it), CTRL/CMD+ALT+K wraps the selection as a link and
           CTRL/CMD+ALT+C wraps it in a code block, or removes the block around the caret.
@@ -62,7 +62,7 @@ export const editorWritingItems: Subsection[] = [
             { label: "..tomorrow · ..yesterday", value: "Relative dates" },
             { label: "{iso} · {unix} · {day} · {week} · ..log", value: "Timestamps & log prefix" },
             { label: "{todo} · {done} · {table}", value: "Task line / starter table" },
-            { label: "{check} {error} {idea} {warn} {fix} {bug} {star} {note} {question} {info} {pin} {link} {fire} {rocket} {party} {target} {lock} {key}", value: "Emoji" },
+            { label: "{check} {error} {idea} {warn} {fix} {bug} {star} {file} {question} {info} {pin} {link} {fire} {rocket} {party} {target} {lock} {key}", value: "Emoji" },
             { label: "calc(2*21)=", value: "Inline calculation" },
           ]}
         />
@@ -87,7 +87,7 @@ export const editorWritingItems: Subsection[] = [
         <p>
           Turn on Vim mode under Settings → Editor
           (or the <strong>Toggle Vim Mode</strong> command). Outside Insert mode, a small pill at the
-          bottom right of the note shows the current mode and any keys of a command you haven&apos;t
+          bottom right of the file shows the current mode and any keys of a command you haven&apos;t
           finished. Typing <code>:</code> or <code>/</code> opens the command line in that pill.
         </p>
         <Callout type="tip">
@@ -123,7 +123,7 @@ export const editorWritingItems: Subsection[] = [
           <code>CTRL/CMD+\</code>); the page takes its room, and it stays that way across reloads. The
           sidebar stays open until you close it; turn on{" "}
           <strong>Close Sidebar While Writing</strong> (Settings → Editor) to have it put away as soon
-          as you type in a note.
+          as you type in a file.
         </p>
         <p>
           At the strongest level, the current paragraph is the run of non-blank lines around the
@@ -133,7 +133,7 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <p>
           Turn on <strong>Word Count</strong> in Settings → Editor (or run{" "}
-          <strong>Toggle Word Count</strong>) to show the note&apos;s word count faintly in the
+          <strong>Toggle Word Count</strong>) to show the file&apos;s word count faintly in the
           bottom-left corner of the editor. It steps aside while you type and comes back when you
           pause or move the mouse. Frontmatter and Markdown marks on their own, like{" "}
           <code>#</code> or <code>-</code>, aren&apos;t counted.
@@ -170,8 +170,8 @@ export const editorWritingItems: Subsection[] = [
             { label: "1. Numbered item", value: "Stays as typed, the number faint" },
             { label: "> [!note] Title", value: "Shown as a rounded, tinted card; the > and [!note] show on the caret's line, so edit the type in place" },
             { label: "> ## Heading, > - item, > | table |", value: "Inside a callout, headings, lists, tasks, tables, code and quotes look as they do outside it" },
-            { label: "> [!note]- Title", value: "Starts collapsed when the note opens (+ starts expanded); folding with the chevron writes the sign for you" },
-            { label: "# Heading (fold)", value: "Hover a heading for a chevron in the margin: it folds everything under it up to the next heading of the same or a higher level, and a … marks the fold. Ctrl/Cmd+Shift+. folds or unfolds the caret's section, Ctrl/Cmd+Shift+, unfolds every section. Folds aren't saved in the note; a note keeps them while you switch away and back during the visit" },
+            { label: "> [!note]- Title", value: "Starts collapsed when the file opens (+ starts expanded); folding with the chevron writes the sign for you" },
+            { label: "# Heading (fold)", value: "Hover a heading for a chevron in the margin: it folds everything under it up to the next heading of the same or a higher level, and a … marks the fold. Ctrl/Cmd+Shift+. folds or unfolds the caret's section, Ctrl/Cmd+Shift+, unfolds every section. Folds aren't saved in the file; a file keeps them while you switch away and back during the visit" },
             { label: "<details><summary>Title</summary> … </details>", value: "Folds like a callout: the summary stays, the body folds. Starts collapsed unless the tag says open; the chevron writes open for you" },
             { label: "```js … ```", value: "Fences stay as typed, language included" },
             { label: "#tag, 2026-10-08", value: "Stay chips while you edit them" },
@@ -241,7 +241,7 @@ export const editorWritingItems: Subsection[] = [
             { label: "Cell & range", value: "=B2 · =SUM(B2:B5) · =AVERAGE(B2:D2)" },
             { label: "Functions", value: "SUM, AVERAGE, COUNT, COUNTA, MIN, MAX, ROUND, ABS, IF, AND, OR, NOT, CONCAT" },
             { label: "Another table", value: "=SUM(Income!B) — named by the heading above it" },
-            { label: "Another note", value: "=[[Budget]]!B5 · =[[Budget#Income]]!B5" },
+            { label: "Another file", value: "=[[Budget]]!B5 · =[[Budget#Income]]!B5" },
           ]}
         />
         <p>
@@ -262,8 +262,8 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <Callout type="note">
           Formulas are stored as plain text in the Markdown file (<code>| =SUM(B2:B5) |</code>),
-          so other Markdown apps show the formula, not the result. References to other notes read
-          those notes when you open this one and refresh when you return to it.
+          so other Markdown apps show the formula, not the result. References to other files read
+          those files when you open this one and refresh when you return to it.
         </Callout>
         <p>
           AI features know this syntax too. See{" "}
@@ -275,14 +275,14 @@ export const editorWritingItems: Subsection[] = [
   {
     id: "inline-calculator",
     title: "Inline calculator",
-    lead: "Type math into any note and see the answer at the end of the line, with named values you can reuse further down.",
+    lead: "Type math into any file and see the answer at the end of the line, with named values you can reuse further down.",
     keywords: "calculator math calc sum total budget estimate variables named values percent of arithmetic numbers",
     body: (
       <>
         <p>
           Write an expression on its own line and its result appears in faint text at the end of
           that line. Give a value a name with <code>name = …</code> and use it on any later line of
-          the same note. Names can be several words and ignore case, so <code>Monthly rent</code>{" "}
+          the same file. Names can be several words and ignore case, so <code>Monthly rent</code>{" "}
           and <code>monthly rent</code> are the same value. In this example you type the left side;
           the editor adds the <code>= …</code> results:
         </p>
@@ -312,8 +312,8 @@ rent + utilities + 15%    = 1587`}</Code>
           isn&apos;t defined above it, it simply shows no result.
         </p>
         <Callout type="note">
-          Results are only displayed. Your file holds exactly what you typed, so the note stays plain
-          Markdown. To write a result into the note instead, use the <code>calc(2*21)=</code>{" "}
+          Results are only displayed. Your file holds exactly what you typed, so the file stays plain
+          Markdown. To write a result into the file instead, use the <code>calc(2*21)=</code>{" "}
           shortcode, which works in table cells too.
         </Callout>
       </>
@@ -322,7 +322,7 @@ rent + utilities + 15%    = 1587`}</Code>
   {
     id: "code-diagrams",
     title: "Code, diagrams & math",
-    lead: "Fenced code blocks get real syntax highlighting, and Mermaid diagrams and LaTeX math render right in the note.",
+    lead: "Fenced code blocks get real syntax highlighting, and Mermaid diagrams and LaTeX math render right in the file.",
     keywords: "code block syntax highlighting language mermaid diagram latex math katex formula equation format prettier",
     body: (
       <>
@@ -368,7 +368,7 @@ graph TD
   {
     id: "boards",
     title: "Boards",
-    lead: "Sketch on an infinite canvas: freehand, shapes, arrows and text, saved inside a Markdown note.",
+    lead: "Sketch on an infinite canvas: freehand, shapes, arrows and text, saved inside a Markdown file.",
     keywords: "board canvas drawing sketch whiteboard draw diagram shapes arrows",
     body: (
       <>
@@ -377,16 +377,16 @@ graph TD
           for the board&apos;s name, creates <code>Sprint plan.board.md</code> (for a board named
           Sprint plan) in your New Files folder and opens it as a canvas.
           If the name is taken you get <code>Sprint plan (1).board.md</code>.
-          To link a new board from the note you&apos;re writing, type <code>/board</code>: it asks for
-          the name, creates the board without leaving the note and inserts a link to it (a board
+          To link a new board from the file you&apos;re writing, type <code>/board</code>: it asks for
+          the name, creates the board without leaving the file and inserts a link to it (a board
           that already has that name is linked as it is).
           You can also start one from an empty note: click the <strong>Board</strong> pill under the
           first line (from a fresh, unsaved note it asks for a name and creates a new board file), or pick{" "}
-          <strong>Board</strong> when a missing link asks how to create its note.
+          <strong>Board</strong> when a missing link asks how to create its file.
         </p>
         <p>
-          A board is still a Markdown note. The drawing is stored in a fenced block, so you can write
-          a caption above it, add <code>[[links]]</code> and tags, and it syncs like any other note.
+          A board is still a Markdown file. The drawing is stored in a fenced block, so you can write
+          a caption above it, add <code>[[links]]</code> and tags, and it syncs like any other file.
           Drawing changes are saved automatically, like text.
         </p>
         <KV
@@ -427,9 +427,9 @@ graph TD
         </p>
         <p>
           A link can also point to another note by its path, such as{" "}
-          <code>[Editor](./app/editor/README.md)</code>. The path starts from the note&apos;s own
+          <code>[Editor](./app/editor/README.md)</code>. The path starts from the file&apos;s own
           folder (<code>../</code> goes up one, a leading <code>/</code> starts at the vault&apos;s
-          root), and opening it opens that note here. A path that isn&apos;t in the vault says so
+          root), and opening it opens that file here. A path that isn&apos;t in the vault says so
           and creates nothing.
         </p>
       </>
@@ -438,25 +438,25 @@ graph TD
   {
     id: "wikilinks",
     title: "Wikilinks",
-    lead: "Link notes to each other with [[Note name]] — type [[ and pick a note.",
+    lead: "Link files to each other with [[Note name]] — type [[ and pick a file.",
     keywords: "wikilink wiki link backlink note [[ connect linked from unlinked mentions rename",
     body: (
       <>
         <p>
           Type <code>[[</code> (or <code>/wikilink</code> in the slash menu) to open the WikiLink
-          dialog, then search your vault and pick a note — or switch to creating a new note, which
+          dialog, then search your vault and pick a file — or switch to creating a new file, which
           is created and linked in one step. The link is written as plain{" "}
           <code>[[Note name]]</code> text, compatible with other Markdown apps that support
           wikilinks.
         </p>
         <p>
-          <code>CTRL+Click</code> a wikilink to open the note. A link to
+          <code>CTRL+Click</code> a wikilink to open the file. A link to
           a note that doesn&apos;t exist yet creates it, after you confirm or pick a template; see{" "}
           <TextLink href="#templates">Templates</TextLink>.
         </p>
         <p>
-          Renaming or moving a note, or renaming a folder, updates the wikilinks that would
-          otherwise break, in open and closed notes alike, and undoing the rename or move puts the
+          Renaming or moving a file, or renaming a folder, updates the wikilinks that would
+          otherwise break, in open and closed files alike, and undoing the rename or move puts the
           links back.
         </p>
       </>
@@ -464,49 +464,49 @@ graph TD
   },
   {
     id: "embeds",
-    title: "Embedding notes and files",
-    lead: "Show another note, a CSV table, an image or a code file inside this one: ![[Note name]] or /path on a line of its own.",
+    title: "Embedding files",
+    lead: "Show another file, a CSV table, an image or a code file inside this one: ![[Note name]] or /path on a line of its own.",
     keywords: "embed embed file command transclude transclusion include note section heading ![[ csv table image picture code file slash compile book chapters",
     body: (
       <>
         <p>
-          Put <code>![[Note name]]</code> on a line of its own and the note&apos;s text shows
+          Put <code>![[Note name]]</code> on a line of its own and the file&apos;s text shows
           right under it, read-only. The line stays as you typed it. Add a heading to show only
           that section: <code>![[Roadmap#Q3 goals]]</code> shows the Q3 goals heading and
           everything under it, up to the next heading of the same level.
         </p>
         <p>
-          A line holding only a slash and a file name works too, and not only for notes:
+          A line holding only a slash and a file name works too, and not only for files:
         </p>
         <KV
           rows={[
-            { label: "/Chapter 1.md", value: "The note's text" },
+            { label: "/Chapter 1.md", value: "The file's text" },
             { label: "/data/sales.csv", value: "A table; the first row is the header" },
             { label: "/assets/chart.png", value: "The image (png, jpg, gif, webp, svg, avif)" },
             { label: "/scripts/auth.ts", value: "The code with syntax colours (most languages, plus txt and log); long files show their first 400 lines" },
           ]}
         />
         <p>
-          A file path is looked up next to the note first, then from the vault root. Start a line
-          with <code>/</code> and type the start of a note&apos;s name: the rest of the best match
+          A file path is looked up next to the file first, then from the vault root. Start a line
+          with <code>/</code> and type the start of a file&apos;s name: the rest of the best match
           appears in faded text, and <code>Tab</code> (or <code>→</code>) accepts it. The slash
           menu also lists matching notes; picking one writes its path for you. Or type{" "}
           <code>/embed</code> anywhere and pick <strong>Embed file</strong>: it puts a{" "}
           <code>/</code> on a line of its own (splitting the line if you were mid-sentence) and
-          opens the menu there, so you can choose a note or type a file&apos;s path.
+          opens the menu there, so you can choose a file or type a file&apos;s path.
         </p>
         <p>
-          Embeds stay current: a note open in the editor shows its unsaved edits, and other files are
+          Embeds stay current: a file open in the editor shows its unsaved edits, and other files are
           checked again whenever you come back to the window, so a CSV you just changed in a
-          spreadsheet app shows its new rows. Click a note&apos;s name above its embed to open it.
-          Private notes stay hidden until you show them, and a board shows its caption.
+          spreadsheet app shows its new rows. Click a file&apos;s name above its embed to open it.
+          Private files stay hidden until you show them, and a board shows its caption.
         </p>
         <p>
           To build one document from many, such as a book whose main note holds only{" "}
           <code>/01-introduction.md</code>, <code>/02-analysis.md</code> and so on, use{" "}
           <strong>Export as PDF</strong> or <strong>Export as Compiled Markdown</strong>: every
-          embed is filled in, embeds inside embedded notes too, CSV files become tables, code
-          files code blocks, and images keep working. A note that would end up inside itself is
+          embed is filled in, embeds inside embedded files too, CSV files become tables, code
+          files code blocks, and images keep working. A file that would end up inside itself is
           left as its line, so nothing loops.
         </p>
       </>
@@ -543,7 +543,7 @@ graph TD
             { label: "Table", value: "Starter table" },
             { label: "Code · Mermaid", value: "Fenced code / diagram block" },
             { label: "Board", value: "Name a new drawing board and link it at the caret (with a vault open)" },
-            { label: "A note's name", value: "At the start of a line, matching notes are offered to embed as /path.md" },
+            { label: "A file's name", value: "At the start of a line, matching files are offered to embed as /path.md" },
             { label: "Callout · Collapse", value: "Callout / collapsed callout" },
             { label: "Frontmatter", value: "Insert or reveal the YAML block" },
             { label: "Template (/template, /tpl)", value: "Insert a template from your vault" },

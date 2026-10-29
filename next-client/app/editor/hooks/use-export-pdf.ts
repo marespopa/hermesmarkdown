@@ -8,6 +8,8 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { atom_revealAllPrivate, atom_revealedPrivatePaths } from "@/app/atoms/privacy-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useRegisterCommand } from "@/app/components/CommandPalette/CommandPaletteContext";
+import { isSvgPath } from "@/app/utils/file-kinds";
+import { sanitizeSvg } from "@/app/utils/sanitize-svg";
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import { printDate } from "@/app/utils/print/print-settings";
 import { atom_pdfSettings } from "@/app/atoms/print-atoms";
@@ -17,7 +19,7 @@ import { useCompileEmbeds } from "./use-embed-reader";
 import { printDocument, printHtml } from "../utils/print-note";
 import { renderNote } from "../utils/render-note";
 
-export const VEILED_REASON = "Show the note first: it's marked private";
+export const VEILED_REASON = "Show the file first: it's marked private";
 
 // Moved to utils/note-embeds.ts; kept here for existing imports.
 export { vaultImagePath };
@@ -33,7 +35,7 @@ export function useExportDisabledReason(): string | undefined {
   const path = activeFilePath ?? "draft";
   const isPrivate = isPrivateContent(content) || isPrivateFrontmatter(metadata[path]?.frontmatter);
   const veiled = isPrivate && !revealAll && !revealed.has(path);
-  return !content.trim() ? "The note is empty" : veiled ? VEILED_REASON : undefined;
+  return !content.trim() ? "The file is empty" : veiled ? VEILED_REASON : undefined;
 }
 
 // A rendered note waiting in the export dialog. `urls` are its images'
@@ -84,7 +86,13 @@ export function useExportPdf() {
       // Embed lines print what they embed, nested embeds included; private
       // and unreadable files keep their lines.
       const text = await compileEmbeds(store.get(atom_content), notePath);
-      const { title: h1, body } = await renderNote(text, notePath, store.get(atom_vaultHandle), async (file) => {
+      const { title: h1, body } = await renderNote(text, notePath, store.get(atom_vaultHandle), async (file, path) => {
+        if (isSvgPath(path)) {
+          const url = await sanitizeSvg(file);
+          if (!url) throw new Error("SVG failed to sanitise");
+          urls.push(url);
+          return url;
+        }
         const url = URL.createObjectURL(file);
         urls.push(url);
         return url;
@@ -94,7 +102,7 @@ export function useExportPdf() {
     } catch (err) {
       console.warn("Export as PDF failed:", err);
       revoke(urls);
-      toast.error("Couldn't export the note as PDF");
+      toast.error("Couldn't export the file as PDF");
     } finally {
       busy.current = false;
     }
@@ -113,7 +121,7 @@ export function useExportPdf() {
     } catch (err) {
       console.warn("Export as PDF failed:", err);
       revoke(job.urls);
-      toast.error("Couldn't export the note as PDF");
+      toast.error("Couldn't export the file as PDF");
     }
   }, [job, setJob, store]);
 

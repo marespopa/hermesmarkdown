@@ -69,7 +69,7 @@ describe("BrowserVaultDialog", () => {
     renderDialog();
     await screen.findByText("Notes");
 
-    fireEvent.change(screen.getByPlaceholderText("My notes"), { target: { value: "Journal" } });
+    fireEvent.change(screen.getByPlaceholderText("My files"), { target: { value: "Journal" } });
     fireEvent.click(screen.getByRole("button", { name: "Create" }));
 
     await waitFor(() => expect(createBrowserVault).toHaveBeenCalledWith("Journal"));

@@ -38,7 +38,7 @@ describe("RecoveryBanner", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Hermes lost access to the vault. Your edits are held in memory.");
     fireEvent.click(screen.getByRole("button", { name: "Grant access again" }));
     expect(actions.regrantAccess).toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Export note as .md" }));
+    fireEvent.click(screen.getByRole("button", { name: "Export file as .md" }));
     expect(actions.exportNote).toHaveBeenCalled();
   });
 

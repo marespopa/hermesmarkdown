@@ -49,7 +49,7 @@ function openDb(): Promise<IDBDatabase> {
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
-    request.onblocked = () => reject(new Error("Open notes database blocked"));
+    request.onblocked = () => reject(new Error("Open files database blocked"));
   });
   // A failed open is retried next time rather than cached.
   dbPromise.catch(() => {
@@ -101,7 +101,7 @@ export const indexedDbBackend: OpenNotesBackend = {
       });
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
-      tx.onabort = () => reject(tx.error ?? new Error("Open notes write aborted"));
+      tx.onabort = () => reject(tx.error ?? new Error("Open files write aborted"));
     });
   },
 };
