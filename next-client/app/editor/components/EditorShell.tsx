@@ -3,6 +3,7 @@
 import React, { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { usePathname } from "next/navigation";
+import { HiOutlineChatAlt2 } from "react-icons/hi";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import { atom_isAiConfigured, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { atom_companionOpen, atom_companionWidth } from "@/app/atoms/companion-atoms";
@@ -131,6 +132,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
     "--content-left": `${hasSidebar && sidebarOpen ? sidebarWidth : 0}px`,
     // The open companion's room; on mobile it is a sheet over the page.
     "--content-right": `${hasCompanion && !isMobileChrome && companionOpen ? companionWidth : 0}px`,
+    "--companion-toggle-room": `${hasCompanion && !isMobileChrome && !companionOpen ? 56 : 0}px`,
   } as CSSProperties;
 
   return (
@@ -157,6 +159,18 @@ export default function EditorShell({ children }: { children: ReactNode }) {
           />
         </div>
       )}
+      {hasCompanion && !isMobileChrome && !companionOpen && (
+        <div className={`${PANE_SECTION_CLASS} fixed top-1.5 right-2 !ml-0 z-30`}>
+          <PaneToolbarButton
+            icon={<HiOutlineChatAlt2 size={PANE_ICON_SIZE} />}
+            label="AI Companion"
+            tooltip="Open AI companion"
+            shortcut={formatShortcut("J")}
+            tooltipPosition="bottom-end"
+            onClick={() => setCompanionOpen(true)}
+          />
+        </div>
+      )}
       {hasSidebar && onEditor && (
         // The way into the command palette, the center of the app: every
         // note and command (as Ctrl/Cmd+K). Placed as in ShellPage's title
@@ -164,7 +178,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
         // Copy Contents sits just left of it, the outline toggle left of that,
         // and the Git Changes toggle left of the outline toggle.
         <div
-          style={{ right: "calc(var(--content-right, 0px) + 2rem)" }}
+          style={{ right: "calc(var(--content-right, 0px) + var(--companion-toggle-room, 0px) + 2rem)" }}
           className="fixed top-1.5 z-30 flex items-center gap-1.5 transition-[right] duration-layout ease-layout motion-reduce:transition-none"
         >
           <GitChangesToggleButton />

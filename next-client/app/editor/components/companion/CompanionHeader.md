@@ -1,10 +1,9 @@
 # CompanionHeader
 
-Description: The companion's title bar (`PANE_HEADER_HEIGHT`, level with the pages' and the sidebar's): "AI Companion", the model (`useChatModels`, shared with Settings) as a compact typeahead. It shows the selected model as its placeholder, filters names as the user types, and lists **Auto** first so a long provider model list never becomes an oversized menu. New chat (`HiOutlinePencilAlt`, the compose icon, as `/new`; disabled with an empty thread) and Close follow. Summarizing has no button: it is `/compact` (or `/summarize`), listed by the composer's `/` menu.
+Description: The companion's title bar (`PANE_HEADER_HEIGHT`, level with the pages' and the sidebar's): "AI Companion", the selected model (`useChatModels`, shared with Settings) as the same compact text button as trunk. Clicking it swaps the button for a typeahead in the same position; it filters names as the user types, and lists **Auto** first so a long provider model list never becomes an oversized menu. Its only other action is `VscLayoutSidebarRight`, which collapses the trailing panel; its collapsed-state chat toggle is in `EditorShell`. Summarizing is a command (`/compact` or `/summarize`), listed by the composer's `/` menu.
 
 ## Props
 | Prop | Type | Description |
 |---|---|---|
 | open | `boolean` | Loads the model list on first open |
-| onNewChat / onClose | `() => void` | Clear the thread / hide the panel |
-| canStartOver | `boolean` | Enables New chat |
+| onClose | `() => void` | Hides the panel |

@@ -40,7 +40,7 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
             className="absolute top-4 right-4 z-20"
             aria-label="Close Menu"
           >
-            <IoClose size={20} className="text-neutral-600 dark:text-neutral-300" />
+            <IoClose size={20} aria-hidden="true" />
           </Button>
 
           <div className="pt-16 px-6 pb-6 flex flex-col gap-3">

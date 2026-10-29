@@ -6,7 +6,7 @@ The AI companion: one AI in the app. A panel docked on the window's trailing edg
 |---|---|
 | [CompanionPanel](CompanionPanel.md) | The panel: header, thread, composer, the resize handle; a full-height sheet on mobile. |
 | [SlashMenu](SlashMenu.md) | The `/` menu above the input: the companion's commands and the skills. |
-| [CompanionHeader](CompanionHeader.md) | Title, model picker, New chat, Close. |
+| [CompanionHeader](CompanionHeader.md) | Title, model picker, Close. |
 | [CompanionThread](CompanionThread.md) | The conversation, with a turn summary under each reply that changed files. |
 | [CompanionMessage](CompanionMessage.md) | One message: Markdown text, tool chips, Copy. |
 | [ToolActivityChip](ToolActivityChip.md) | One tool call as a quiet line (spinner after 300 ms); shown for finished and failed calls only behind "Show N steps". |

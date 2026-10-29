@@ -1,6 +1,6 @@
 # DialogModal
 
-Description: Modal dialog shell (built on `OverlayPanel`), plus `GlobalDialog`, the app-wide alert/confirm/prompt/select/new-file dialog driven by an atom. A select dialog's choices render through `SelectOptionList`: past six options it adds a filter field (typing narrows the list, ↑/↓ pick, Return chooses) and the list scrolls within the dialog. While the on-screen keyboard is open and overlays the page rather than resizing it (iOS Safari), every dialog ends above it (`OverlayPanel`) and its height is capped to the visible area (`useKeyboardInset`), so fields and buttons stay in view.
+Description: Modal dialog shell (built on `OverlayPanel`), plus `GlobalDialog`, the app-wide alert/confirm/prompt/select/new-file dialog driven by an atom. A select dialog's choices render through `SelectOptionList`: past six options it adds a filter field (typing narrows the list, ↑/↓ pick, Return chooses) and the list scrolls within the dialog. The default close control is the shared round `Button` close treatment with the `IoClose` glyph. While the on-screen keyboard is open and overlays the page rather than resizing it (iOS Safari), every dialog ends above it (`OverlayPanel`) and its height is capped to the visible area (`useKeyboardInset`), so fields and buttons stay in view.
 
 ## Local State & Storage
 - State: `DialogModal` is controlled. `GlobalDialog` reads `atom_globalDialog` (ui-atoms) and `atom_fileMetadata` (for tag suggestions), and holds its input in local useState.

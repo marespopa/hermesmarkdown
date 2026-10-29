@@ -20,6 +20,8 @@ One floating line above the editor content while something keeps notes from bein
 
 The issue clears itself when the next save or health check succeeds. **Clear cache** clears the vault metadata caches (`clearAllMetadataCaches`), the one thing Hermes stores that it can rebuild; vaults are indexed again on their next open.
 
+Dismissible notices use the shared compact `Button` close treatment and `IoClose` glyph.
+
 ## Logic
 
 Button handlers come from `editor/hooks/use-recovery-actions.ts`. Export goes through `downloadMarkdown` and never touches the vault or the note's saved state.

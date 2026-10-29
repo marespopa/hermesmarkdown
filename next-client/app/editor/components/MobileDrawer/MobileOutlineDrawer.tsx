@@ -3,7 +3,7 @@
 import React, { useCallback, useMemo } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { EditorView } from "@codemirror/view";
-import { HiOutlineX } from "react-icons/hi";
+import { IoClose } from "react-icons/io5";
 import { atom_workspaceLayout } from "@/app/atoms/atoms";
 import { atom_mobileOutlineOpen } from "@/app/atoms/mobile-drawer-atoms";
 import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
@@ -106,7 +106,7 @@ export default function MobileOutlineDrawer() {
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-edge-subtle px-4 py-2.5">
           <h2 id="mobile-outline-title" className="text-ui-subhead font-semibold">Outline</h2>
           <Button variant="close" onClick={close} aria-label="Close outline" title="Close">
-            <HiOutlineX size={16} aria-hidden="true" />
+            <IoClose size={20} aria-hidden="true" />
           </Button>
         </div>
         <OutlineBody view={view} filePath={filePath} onJump={close} />

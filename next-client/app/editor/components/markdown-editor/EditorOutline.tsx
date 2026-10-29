@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { EditorView } from "@codemirror/view";
 import { useSetAtom } from "jotai";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { HiX } from "react-icons/hi";
+import { IoClose } from "react-icons/io5";
 import { atom_showOutline } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import { useOutlineHeadings } from "./use-outline-headings";
@@ -171,14 +171,14 @@ export default function EditorOutline({ view, scrollerRef, text, isCode = false,
       >
         {/* On the corner, clear of the rows. */}
         <Button
-          variant="unstyled"
+          variant="close"
           aria-label="Close outline"
           title="Close outline"
           onMouseDown={(event: React.MouseEvent) => event.preventDefault()}
           onClick={() => setShowOutline(false)}
-          className="absolute -top-2 -right-2 z-10 flex h-5 w-5 items-center justify-center rounded-full border border-edge bg-surface text-fg-muted shadow-sm opacity-0 transition-opacity hover:text-fg group-hover/outline:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+          className="absolute -top-2 -right-2 z-10 !h-5 !w-5 shadow-sm opacity-0 group-hover/outline:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
         >
-          <HiX size={11} aria-hidden="true" />
+          <IoClose size={16} aria-hidden="true" />
         </Button>
         <div ref={listRef} className="relative flex max-h-60 flex-col gap-px overflow-y-auto p-1">
           {virtualize ? (

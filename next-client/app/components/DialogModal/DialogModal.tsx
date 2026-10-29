@@ -67,10 +67,7 @@ const DialogModal = ({
           className="absolute top-4 right-4 z-20"
           aria-label="Close modal"
         >
-          <IoClose
-            size={20}
-            className="text-neutral-600 dark:text-neutral-300"
-          />
+          <IoClose size={20} aria-hidden="true" />
         </Button>
       )}
 

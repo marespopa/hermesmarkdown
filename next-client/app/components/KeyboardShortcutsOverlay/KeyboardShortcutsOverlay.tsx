@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useAtom } from "jotai";
-import { HiOutlineX } from "react-icons/hi";
+import { IoClose } from "react-icons/io5";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import { atom_keyboardShortcutsOpen } from "@/app/atoms/ui-atoms";
 import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
@@ -133,7 +133,7 @@ export default function KeyboardShortcutsOverlay() {
           onClick={close}
           aria-label="Close"
         >
-          <HiOutlineX size={isMobileChrome ? 20 : 18} />
+          <IoClose size={20} aria-hidden="true" />
         </Button>
       </div>
       <div role="tablist" aria-label="Shortcut categories" className="shrink-0 flex items-center gap-1 px-2 pt-2 border-b border-b-edge overflow-x-auto overflow-y-hidden">

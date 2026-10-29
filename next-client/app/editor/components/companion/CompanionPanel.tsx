@@ -51,9 +51,7 @@ export default function CompanionPanel({ sheet = false }: { sheet?: boolean }) {
     >
       <CompanionHeader
         open={open}
-        onNewChat={chat.newChat}
         onClose={() => setOpen(false)}
-        canStartOver={chat.messages.length > 0 || !!chat.errorText}
       />
       <CompanionThread
         messages={chat.messages}

@@ -17,7 +17,8 @@ import { EditorView } from "@codemirror/view";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { HiOutlineChevronLeft, HiOutlineX } from "react-icons/hi";
+import { HiOutlineChevronLeft } from "react-icons/hi";
+import { IoClose } from "react-icons/io5";
 import { fuzzyMatch, matchCommand, matchFile } from "./command-search";
 import { type Command, useCommandPalette } from "./CommandPaletteContext";
 import PaletteFooter from "./PaletteFooter";
@@ -353,7 +354,7 @@ export default function CommandPalette() {
       onClear={() => { setQuery(""); inputRef.current?.focus(); }}
     >
       {menu && <Button variant="icon" onClick={() => { setMenuPath((path) => path.slice(0, -1)); inputRef.current?.focus(); }} aria-label="Back" title="Back (Backspace)" className="!h-7 !w-7 shrink-0 -order-1 -ml-2 -mr-1"><HiOutlineChevronLeft size={16} /></Button>}
-      {isMobileChrome && <Button variant="icon" onClick={close} aria-label="Close" className="shrink-0"><HiOutlineX size={20} /></Button>}
+      {isMobileChrome && <Button variant="close" onClick={close} aria-label="Close" className="shrink-0"><IoClose size={20} aria-hidden="true" /></Button>}
     </PaletteSearchBar>
     <div id="command-palette-results" role="listbox" aria-label="Command palette results" className="flex-1 min-h-0 overflow-x-hidden overflow-y-auto" style={{ fontFamily }}>
       {rows.length === 0 && !query && !scope && (

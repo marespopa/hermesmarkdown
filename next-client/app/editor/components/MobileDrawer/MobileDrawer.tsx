@@ -3,7 +3,8 @@
 import React, { useCallback } from "react";
 import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
-import { HiOutlineCog, HiOutlineX } from "react-icons/hi";
+import { HiOutlineCog } from "react-icons/hi";
+import { IoClose } from "react-icons/io5";
 import { atom_mobileDrawerOpen, atom_mobileDrawerTab, type MobileDrawerTab } from "@/app/atoms/mobile-drawer-atoms";
 import Button, { SEGMENT_TRACK_CLASS } from "@/app/components/Button";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
@@ -63,7 +64,7 @@ export default function MobileDrawer() {
             ))}
           </div>
           <Button variant="close" onClick={close} aria-label="Close navigation" title="Close">
-            <HiOutlineX size={16} aria-hidden="true" />
+            <IoClose size={20} aria-hidden="true" />
           </Button>
         </div>
         <div data-scroll-root className="min-h-0 flex-1 overflow-y-auto overscroll-contain">

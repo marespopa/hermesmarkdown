@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import Button from "@/app/components/Button/Button.component";
 import Input from "@/app/components/Input";
-import { FiX } from "react-icons/fi";
+import { IoClose } from "react-icons/io5";
 
 type Props = {
   isVisible: boolean;
@@ -79,7 +79,7 @@ export default function Toast({
             aria-label="Dismiss"
             tabIndex={2}
           >
-            <FiX size={14} />
+            <IoClose size={20} aria-hidden="true" />
           </Button>
         </div>
         {hasNameField && (
@@ -109,4 +109,3 @@ export default function Toast({
     </div>
   );
 }
-

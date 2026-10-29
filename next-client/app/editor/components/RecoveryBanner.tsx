@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { atom, useAtomValue, useSetAtom } from "jotai";
 import { HiOutlineExclamation } from "react-icons/hi";
-import { FiX } from "react-icons/fi";
+import { IoClose } from "react-icons/io5";
 import { atom_activeFilePath, atom_content, atom_vaultName } from "@/app/atoms/atoms";
 import { atom_recoveryIssue, LARGE_NOTE_CHARS, type RecoveryIssue } from "@/app/atoms/recovery-atoms";
 import Button from "@/app/components/Button";
@@ -80,7 +80,7 @@ export default function RecoveryBanner() {
         ))}
         {onDismiss && (
           <Button variant="close" aria-label="Dismiss" className="!w-6 !h-6 -mr-1" onClick={onDismiss}>
-            <FiX size={14} />
+            <IoClose size={16} aria-hidden="true" />
           </Button>
         )}
       </div>
