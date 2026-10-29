@@ -16,6 +16,9 @@ import { useCompanionOrganise } from "./use-companion-organise";
 import { useCompanionWrites } from "./use-companion-writes";
 import type { FindReplace } from "./tools/edit-tools";
 import { startChangesScan } from "@/app/services/git-changes-client";
+import { loadYaml } from "@/app/utils/load-yaml";
+import { createLinkResolver } from "@/app/utils/note-links/link-resolver";
+import { checkFileOutput } from "./tools/check-tools";
 import { gitDiffOutput, gitStatusOutput } from "./tools/git-tools";
 import { findFilesOutput, globMatcher, matchesIn, planOutput, searchFilesOutput, searchMatcher, searchablePaths, SEARCH_DEFAULT_LIMIT, SEARCH_MAX_FILES, type SearchMatch } from "./tools/search-tools";
 import { activeNoteOutput, codeBlockAt, companionToolActivity, listFolderOutput, readFileOutput } from "./tools/read-tools";
@@ -29,7 +32,7 @@ const stringList = (value: unknown) => (Array.isArray(value) ? value.map(String)
 
 // Runs the companion's tool calls in the browser: the note tools through
 // useNoteTools, the vault and editor read tools (list_folder, read_file,
-// get_active_note, search_files, find_files, git_status, git_diff, update_plan) here, behind the path guard, load_skill through
+// get_active_note, search_files, find_files, check_file, git_status, git_diff, update_plan) here, behind the path guard, load_skill through
 // useChatSkills, the writes (edit_file, write_file,
 // edit_code_block, create_file, create_folder, create_template) through
 // useCompanionWrites and the organising tools (rename, move, trash) through
@@ -126,6 +129,24 @@ export function useCompanionTools() {
         const matches = globMatcher(pattern);
         const found = searchablePaths(store.get(atom_fileMetadata), store.get(atom_vaultTextFiles).map((file) => file.path), "").filter(matches);
         return { output: findFilesOutput(pattern, found, limit), activity: activity(`${found.length} found`) };
+      }
+      if (toolName === "check_file") {
+        if (!store.get(atom_vaultHandle)) return { output: NO_VAULT, activity: activity() };
+        const guarded = guardFilePath(String(input.path ?? ""));
+        if (!guarded.ok) return { output: guarded.reason, activity: activity("refused") };
+        const meta = store.get(atom_fileMetadata);
+        if (isPrivateFrontmatter(meta[guarded.path]?.frontmatter)) return { output: readFileOutput(guarded.path, meta[guarded.path], null), activity: activity("private") };
+        let text: string | null = null;
+        try {
+          text = await readCurrentText(guarded.path);
+        } catch (err) {
+          console.warn("Companion: couldn't read", guarded.path, err);
+        }
+        if (text === null) return { output: readFileOutput(guarded.path, undefined, null), activity: activity("not found") };
+        if (isPrivateContent(text) && guarded.path.endsWith(".md")) return { output: readFileOutput(guarded.path, undefined, text), activity: activity("private") };
+        const resolver = createLinkResolver(meta);
+        const output = await checkFileOutput(guarded.path, text, { load: await loadYaml(), linkExists: (name) => !!resolver.resolve(name, guarded.path) });
+        return { output, activity: activity(output.includes("no syntax problems") ? "ok" : "problems") };
       }
       if (toolName === "git_status" || toolName === "git_diff") {
         const vault = store.get(atom_vaultHandle);

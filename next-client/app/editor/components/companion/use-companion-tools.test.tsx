@@ -219,4 +219,15 @@ describe("useCompanionTools", () => {
     expect(status.output).toContain("M Projects/build.py (+1 −1)");
     expect(diff.output).toContain("@@ -1,1 +1,1 @@\n-a\n+b");
   });
+
+  it("checks a file's syntax, never a private note", async () => {
+    readCurrentText.mockResolvedValue('{"a": }');
+    const tools = setup();
+
+    const broken = await tools.runTool({ toolName: "check_file", input: { path: "Projects/build.json" } });
+    const secret = await tools.runTool({ toolName: "check_file", input: { path: "Projects/Budget.md" } });
+
+    expect(broken.output).toContain("1 problem");
+    expect(secret.output).toContain("private (hidden)");
+  });
 });

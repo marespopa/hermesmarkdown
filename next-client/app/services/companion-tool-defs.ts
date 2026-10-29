@@ -3,7 +3,7 @@ import { NOTE_TOOL_DEFS } from './note-tool-defs';
 
 // The AI companion's tools: the note tools (search_notes, read_note,
 // list_open_tasks), the vault and editor read tools (list_folder, read_file,
-// search_files, find_files), git_status and git_diff, update_plan, load_skill, the edits,
+// search_files, find_files, check_file), git_status and git_diff, update_plan, load_skill, the edits,
 // the organising tools and create_template. Sent to the model
 // without `execute` (app/api/ai/companion/companion-tools.ts) and run in the
 // browser (app/editor/components/companion/use-companion-tools.ts).
@@ -46,6 +46,14 @@ export const COMPANION_TOOL_DEFS = {
     inputSchema: z.object({
       pattern: z.string().min(1).describe('Glob, e.g. "*.test.ts" or "src/**/index.ts"'),
       limit: z.number().int().min(1).max(200).optional().describe('Most paths to return (default 50)'),
+    }),
+  },
+  check_file: {
+    title: 'Check file',
+    description:
+      "Check one file for syntax problems, after you write it or when asked: JSON and YAML are parsed, code files go through a language parser (JavaScript, TypeScript, CSS, HTML, Python, Rust, Go, Java, PHP, SQL and more), and a note's frontmatter, unclosed code fences, [[links]] that match no file and fenced code are checked. Syntax only: it can't check types, imports or behaviour, and you can't run tests, so say that the user should.",
+    inputSchema: z.object({
+      path: z.string().min(1).describe('Vault-relative path of the file to check'),
     }),
   },
   git_status: {
