@@ -111,6 +111,18 @@ export default function EditorShell({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [hasCompanion, onEditor, setCompanionOpen]);
 
+  // F1 opens the documentation in a new tab, as the palette command does,
+  // so the note stays where it is.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "F1" || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      window.open("/documentation", "_blank", "noopener");
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   useEffect(() => {
     if (!hasSidebar) return;
     const onKeyDown = (event: KeyboardEvent) => {
