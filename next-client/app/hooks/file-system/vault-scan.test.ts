@@ -51,9 +51,9 @@ describe("collectVaultFiles", () => {
     ]);
   });
 
-  it("lists text files that aren't notes apart, never as notes and never secrets", async () => {
+  it("lists text and image files that aren't notes apart, never as notes and never secrets", async () => {
     const result = await collectVaultFiles((await makeVault()).asHandle(), false);
-    expect(result.textFiles.map((f) => f.path).sort()).toEqual(["data.json", "notes/app.tsx"]);
+    expect(result.textFiles.map((f) => f.path).sort()).toEqual(["data.json", "notes/app.tsx", "notes/image.png"]);
     expect(paths(result)).not.toContain("data.json");
   });
 
