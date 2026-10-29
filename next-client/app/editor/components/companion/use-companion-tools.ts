@@ -15,7 +15,9 @@ import { guardFilePath, guardFolderPath } from "./tools/path-guard";
 import { useCompanionOrganise } from "./use-companion-organise";
 import { useCompanionWrites } from "./use-companion-writes";
 import type { FindReplace } from "./tools/edit-tools";
-import { matchesIn, planOutput, searchFilesOutput, searchMatcher, searchablePaths, SEARCH_DEFAULT_LIMIT, SEARCH_MAX_FILES, type SearchMatch } from "./tools/search-tools";
+import { startChangesScan } from "@/app/services/git-changes-client";
+import { gitDiffOutput, gitStatusOutput } from "./tools/git-tools";
+import { findFilesOutput, globMatcher, matchesIn, planOutput, searchFilesOutput, searchMatcher, searchablePaths, SEARCH_DEFAULT_LIMIT, SEARCH_MAX_FILES, type SearchMatch } from "./tools/search-tools";
 import { activeNoteOutput, codeBlockAt, companionToolActivity, listFolderOutput, readFileOutput } from "./tools/read-tools";
 
 const NO_VAULT = "No vault is open, so there are no files to look at. Ask the user to open a folder.";
@@ -27,7 +29,7 @@ const stringList = (value: unknown) => (Array.isArray(value) ? value.map(String)
 
 // Runs the companion's tool calls in the browser: the note tools through
 // useNoteTools, the vault and editor read tools (list_folder, read_file,
-// get_active_note, search_files, update_plan) here, behind the path guard, load_skill through
+// get_active_note, search_files, find_files, git_status, git_diff, update_plan) here, behind the path guard, load_skill through
 // useChatSkills, the writes (edit_file, write_file,
 // edit_code_block, create_file, create_folder, create_template) through
 // useCompanionWrites and the organising tools (rename, move, trash) through
@@ -115,6 +117,26 @@ export function useCompanionTools() {
         }
         const output = searchFilesOutput(query, hits, { limit, truncated: scanned < all.length && hits.length < limit, scanned });
         return { output, activity: activity(`${hits.length} found`) };
+      }
+      if (toolName === "find_files") {
+        if (!store.get(atom_vaultHandle)) return { output: NO_VAULT, activity: activity() };
+        const pattern = String(input.pattern ?? "").trim();
+        if (!pattern) return { output: "Say which file names to look for.", activity: activity("refused") };
+        const limit = Math.min(200, Math.max(1, Number(input.limit) || 50));
+        const matches = globMatcher(pattern);
+        const found = searchablePaths(store.get(atom_fileMetadata), store.get(atom_vaultTextFiles).map((file) => file.path), "").filter(matches);
+        return { output: findFilesOutput(pattern, found, limit), activity: activity(`${found.length} found`) };
+      }
+      if (toolName === "git_status" || toolName === "git_diff") {
+        const vault = store.get(atom_vaultHandle);
+        if (!vault) return { output: NO_VAULT, activity: activity() };
+        const meta = store.get(atom_fileMetadata);
+        const isPrivatePath = (path: string) => isPrivateFrontmatter(meta[path]?.frontmatter);
+        const result = await startChangesScan(vault, () => {}).result;
+        const output = toolName === "git_status"
+          ? gitStatusOutput(result, isPrivatePath)
+          : gitDiffOutput(result, String(input.path ?? "").replace(/^\/+|\/+$/g, ""), isPrivatePath);
+        return { output, activity: activity() };
       }
       if (toolName === "update_plan") {
         const { output, detail } = planOutput(input.steps);

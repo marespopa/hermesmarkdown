@@ -3,7 +3,7 @@ import { NOTE_TOOL_DEFS } from './note-tool-defs';
 
 // The AI companion's tools: the note tools (search_notes, read_note,
 // list_open_tasks), the vault and editor read tools (list_folder, read_file,
-// search_files), update_plan, load_skill, the edits,
+// search_files, find_files), git_status and git_diff, update_plan, load_skill, the edits,
 // the organising tools and create_template. Sent to the model
 // without `execute` (app/api/ai/companion/companion-tools.ts) and run in the
 // browser (app/editor/components/companion/use-companion-tools.ts).
@@ -37,6 +37,29 @@ export const COMPANION_TOOL_DEFS = {
       regex: z.boolean().optional().describe('Treat query as a JavaScript regular expression (default false)'),
       folder: z.string().optional().describe('Only search this vault-relative folder, e.g. "src"'),
       limit: z.number().int().min(1).max(100).optional().describe('Most matches to return (default 30)'),
+    }),
+  },
+  find_files: {
+    title: 'Find files',
+    description:
+      "Find files in the vault by name, anywhere in its folders. The pattern is a glob: * matches within a folder name, ** across folders, ? one character; a pattern without a / is matched against file names only. Examples: \"*.test.ts\", \"src/**/*.tsx\", \"config*\". Use search_files to find text inside files.",
+    inputSchema: z.object({
+      pattern: z.string().min(1).describe('Glob, e.g. "*.test.ts" or "src/**/index.ts"'),
+      limit: z.number().int().min(1).max(200).optional().describe('Most paths to return (default 50)'),
+    }),
+  },
+  git_status: {
+    title: 'Git status',
+    description:
+      "Which files of the vault differ from the last commit (git HEAD) and how many lines changed in each. Read only: you can't commit, push or stage; the user does that in their terminal. Say so if asked, and name the files they would commit.",
+    inputSchema: z.object({}),
+  },
+  git_diff: {
+    title: 'Git diff',
+    description:
+      "The line changes of files since the last commit (git HEAD), as diff hunks: one file or folder with `path`, or every changed file without it. Use it to review what has changed, including your own edits this turn. Read only.",
+    inputSchema: z.object({
+      path: z.string().optional().describe('Vault-relative file or folder; leave out for every changed file'),
     }),
   },
   update_plan: {

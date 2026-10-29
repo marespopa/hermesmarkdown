@@ -49,6 +49,22 @@ export function matchesIn(path: string, text: string, matches: (line: string) =>
   return found;
 }
 
+// A glob as a test on a path: ** crosses folders (**/ also matches none), * stays in one, ? is one
+// character; with no / in the pattern only the file's name is tested.
+export function globMatcher(pattern: string): (path: string) => boolean {
+  const source = pattern.replace(/^\.?\//, "").split("**/").map((chunk) => chunk.split("**").map((part) => part
+    .replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, "[^/]*").replace(/\?/g, "[^/]")).join(".*")).join("(?:.*/)?");
+  const regex = new RegExp(`^${source}$`, "i");
+  const byName = !pattern.includes("/");
+  return (path) => regex.test(byName ? path.slice(path.lastIndexOf("/") + 1) : path);
+}
+
+export function findFilesOutput(pattern: string, paths: string[], limit: number): string {
+  if (!paths.length) return `No file matches "${pattern}".`;
+  const shown = paths.slice(0, limit).join("\n");
+  return `${paths.length} file${paths.length === 1 ? "" : "s"} match${paths.length === 1 ? "es" : ""}:\n${shown}${paths.length > limit ? `\n[${paths.length - limit} more; narrow the pattern]` : ""}`;
+}
+
 export function searchFilesOutput(query: string, hits: SearchMatch[], { limit, truncated, scanned }: { limit: number; truncated: boolean; scanned: number }): string {
   if (!hits.length) return `No file has "${query}"${truncated ? ` in the ${scanned} files searched; the vault is bigger, so narrow it with folder` : ""}.`;
   const lines = hits.map(({ path, line, text }) => `${path}:${line}: ${text}`);

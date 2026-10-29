@@ -15,6 +15,8 @@ const readCurrentText = vi.fn();
 vi.mock("@/app/hooks/file-system/use-note-buffer", () => ({ useNoteBuffer: () => ({ readCurrentText }) }));
 const editFile = vi.fn();
 const writeFile = vi.fn();
+const scanResult = vi.fn();
+vi.mock("@/app/services/git-changes-client", () => ({ startChangesScan: () => ({ result: scanResult(), cancel: vi.fn() }) }));
 const createTemplate = vi.fn();
 vi.mock("./use-companion-writes", () => ({
   useCompanionWrites: () => ({ editFile, writeFile, editCodeBlock: vi.fn(), createFile: vi.fn(), createFolder: vi.fn(), createTemplate, undoTurn: vi.fn() }),
@@ -190,5 +192,31 @@ describe("useCompanionTools", () => {
     const result = await tools.runTool({ toolName: "update_plan", input: { steps: [{ text: "Add types", status: "done" }, { text: "Wire it", status: "in_progress" }] } });
 
     expect(result.output).toBe("Plan, 1 of 2 done:\n[x] Add types\n[~] Wire it");
+  });
+
+  it("finds files by name pattern, never private notes", async () => {
+    const tools = setup();
+
+    const byName = await tools.runTool({ toolName: "find_files", input: { pattern: "*.py" } });
+    const byPath = await tools.runTool({ toolName: "find_files", input: { pattern: "Projects/**/*.md" } });
+
+    expect(byName.output).toBe("1 file matches:\nProjects/build.py");
+    expect(byPath.output).toContain("Projects/Roadmap.md");
+    expect(byPath.output).not.toContain("Budget");
+  });
+
+  it("answers git_status and git_diff from the changes scan", async () => {
+    scanResult.mockReturnValue(Promise.resolve({
+      status: "ok",
+      commit: "abcdef1234",
+      files: [{ path: "Projects/build.py", status: "modified", added: 1, removed: 1, diff: { kind: "text", lines: ["b"], changes: [{ oldStart: 1, removed: ["a"], newStart: 1, newCount: 1 }] } }],
+    }));
+    const tools = setup();
+
+    const status = await tools.runTool({ toolName: "git_status", input: {} });
+    const diff = await tools.runTool({ toolName: "git_diff", input: { path: "Projects" } });
+
+    expect(status.output).toContain("M Projects/build.py (+1 −1)");
+    expect(diff.output).toContain("@@ -1,1 +1,1 @@\n-a\n+b");
   });
 });
