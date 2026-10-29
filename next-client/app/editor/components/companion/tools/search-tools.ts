@@ -60,11 +60,16 @@ export type PlanStep = { text: string; status: "pending" | "in_progress" | "done
 
 const MARK = { pending: "[ ]", in_progress: "[~]", done: "[x]" } as const;
 
-// update_plan's answer (the list back to the model) and its chip's detail.
-export function planOutput(raw: unknown): { output: string; detail: string } {
-  const steps: PlanStep[] = (Array.isArray(raw) ? raw : [])
+// The steps of an update_plan call's input, malformed ones dropped.
+export function parsePlanSteps(raw: unknown): PlanStep[] {
+  return (Array.isArray(raw) ? raw : [])
     .map((step) => ({ text: String(step?.text ?? "").trim(), status: step?.status === "done" || step?.status === "in_progress" ? step.status : "pending" }) as PlanStep)
     .filter((step) => step.text);
+}
+
+// update_plan's answer (the list back to the model) and its chip's detail.
+export function planOutput(raw: unknown): { output: string; detail: string } {
+  const steps = parsePlanSteps(raw);
   if (!steps.length) return { output: "The plan had no steps. Send each step with its status.", detail: "empty" };
   const done = steps.filter((step) => step.status === "done").length;
   return {

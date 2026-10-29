@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { UIMessage } from "ai";
-import { foldDoneTools, forModel, FULL_TURNS, LEFT_OUT, userTurn } from "./companion-messages";
+import { forModel, FULL_TURNS, KEEP_ROUNDS, LEFT_OUT, replyItems, TRIM_BLOCK, userTurn } from "./companion-messages";
 
 const noContext = { path: null, selection: "", vaultRefs: [], attachments: [] };
 const long = "x".repeat(3_000);
@@ -79,18 +79,68 @@ describe("forModel", () => {
   });
 });
 
-describe("foldDoneTools", () => {
-  const tool = (id: string, state: string) => ({ type: "tool-read_file", toolCallId: id, state, input: {} }) as unknown as UIMessage["parts"][number];
-  const text = { type: "text" as const, text: "hi" };
+describe("forModel in a long turn", () => {
+  const round = (n: number): UIMessage["parts"] => [
+    { type: "step-start" },
+    { type: "tool-read_file", toolCallId: `r${n}`, state: "output-available", input: { path: "a" }, output: long },
+    { type: "tool-write_file", toolCallId: `w${n}`, state: "output-available", input: { path: "a", content: long }, output: "Saved." },
+  ] as unknown as UIMessage["parts"];
+  const turn = (rounds: number): UIMessage[] => [
+    user("u1", "do the plan"),
+    { id: "a1", role: "assistant", parts: Array.from({ length: rounds }, (_, n) => round(n)).flat() },
+  ];
 
-  it("folds a run of finished calls into one item", () => {
-    const items = foldDoneTools([tool("a", "output-available"), tool("b", "output-available"), text]);
-    expect(items).toHaveLength(2);
-    expect("done" in items[0] && items[0].done.map((v) => v.toolCallId)).toEqual(["a", "b"]);
+  it("sends a turn of few rounds whole", () => {
+    const messages = turn(KEEP_ROUNDS + TRIM_BLOCK - 1);
+    expect(forModel(messages)).toBe(messages);
   });
 
-  it("keeps running and failed calls on their own and splits runs around them", () => {
-    const items = foldDoneTools([tool("a", "output-available"), tool("b", "input-available"), tool("c", "output-error"), tool("d", "output-available")]);
-    expect(items.map((item) => ("done" in item ? "done" : "part"))).toEqual(["done", "part", "part", "done"]);
+  it("leaves out the old rounds' long results and written text, a block at a time", () => {
+    const messages = turn(KEEP_ROUNDS + TRIM_BLOCK);
+    const sent = forModel(messages)[1].parts as unknown as { toolCallId?: string; output?: string; input?: { content?: string } }[];
+
+    const firstRead = sent.find((part) => part.toolCallId === "r0")!;
+    const firstWrite = sent.find((part) => part.toolCallId === "w0")!;
+    expect(firstRead.output).toBe(LEFT_OUT);
+    expect(firstWrite.input?.content).toBe(LEFT_OUT);
+    const newest = sent.find((part) => part.toolCallId === `r${KEEP_ROUNDS + TRIM_BLOCK - 1}`)!;
+    expect(newest.output).toBe(long);
+    // The saved thread is untouched.
+    expect((messages[1].parts[1] as unknown as { output: string }).output).toBe(long);
+  });
+
+  it("always keeps the plan's answer", () => {
+    const planned: UIMessage = {
+      id: "a1",
+      role: "assistant",
+      parts: [
+        { type: "step-start" },
+        { type: "tool-update_plan", toolCallId: "p", state: "output-available", input: {}, output: long },
+        ...Array.from({ length: KEEP_ROUNDS + TRIM_BLOCK }, (_, n) => round(n)).flat(),
+      ] as unknown as UIMessage["parts"],
+    };
+    const sent = forModel([user("u1", "go"), planned])[1].parts[1] as unknown as { output: string };
+    expect(sent.output).toBe(long);
+  });
+});
+
+describe("replyItems", () => {
+  const tool = (id: string, state: string, name = "read_file", input: unknown = {}) => ({ type: `tool-${name}`, toolCallId: id, state, input }) as unknown as UIMessage["parts"][number];
+  const text = { type: "text" as const, text: "Adding the types." };
+  const plan = (id: string, status: string) => tool(id, "output-available", "update_plan", { steps: [{ text: "Types", status }, { text: "Wire", status: "pending" }] });
+
+  it("keeps text, hides finished and failed calls, keeps running ones", () => {
+    const { items, hidden } = replyItems([text, tool("a", "output-available"), tool("b", "output-error"), tool("c", "input-available")]);
+
+    expect(items.map((item) => ("tool" in item ? "tool" : "plan" in item ? "plan" : "text"))).toEqual(["text", "tool"]);
+    expect(hidden.map((view) => view.toolCallId)).toEqual(["a", "b"]);
+  });
+
+  it("shows the plan once, at its first call, with the latest steps", () => {
+    const { items, hidden } = replyItems([plan("p1", "in_progress"), tool("a", "output-available"), text, plan("p2", "done")]);
+
+    expect(items).toHaveLength(2);
+    expect(items[0]).toEqual({ plan: [{ text: "Types", status: "done" }, { text: "Wire", status: "pending" }] });
+    expect(hidden.map((view) => view.toolCallId)).toEqual(["a"]);
   });
 });

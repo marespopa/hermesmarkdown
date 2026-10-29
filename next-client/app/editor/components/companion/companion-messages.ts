@@ -1,14 +1,17 @@
 import type { FileUIPart, TextUIPart, UIMessage } from "ai";
 import type { Tier } from "../ai-chat/auto-model";
 import type { Attachment, VaultRef } from "../ai-chat/chat-helpers";
+import { parsePlanSteps, type PlanStep } from "./tools/search-tools";
 
 // The companion thread's messages: what a user turn sends (their words, then
 // the context chips as a second text part, then images), what of the thread
 // is sent to the model, how the tool loop is capped, and how a message's
 // parts read back for display.
 
-// A turn makes at most this many rounds of tool calls before it stops.
-export const MAX_TOOL_ROUNDS = 60;
+// A turn makes at most this many rounds of tool calls before it stops. A long
+// plan gets there because the turn's own old results are left out of the
+// request (trimLongTurn), so its size stays flat.
+export const MAX_TOOL_ROUNDS = 200;
 
 // Shown under a sent message: the labels of the context it carried.
 // `summary` marks the message a compacted thread starts with
@@ -81,6 +84,20 @@ export const FULL_TURNS = 6;
 const LONG_PART_CHARS = 2_000;
 export const LEFT_OUT = "(Left out of this earlier turn to save space; read it again if you need it.)";
 
+// A tool part with its long result, and the long text a write sent, left out.
+// update_plan's answer is the model's place in the plan: always kept.
+function trimToolPart<P extends { type: string }>(part: P): P {
+  const tool = part as unknown as { type: string; state?: string; input?: Record<string, unknown>; output?: unknown };
+  if (!isToolPart(part)) return part;
+  let next = tool;
+  if (tool.state === "output-available" && typeof tool.output === "string" && tool.output.length > LONG_PART_CHARS && tool.type !== "tool-update_plan") {
+    next = { ...next, output: LEFT_OUT };
+  }
+  const content = tool.input?.content;
+  if (typeof content === "string" && content.length > LONG_PART_CHARS) next = { ...next, input: { ...tool.input, content: LEFT_OUT } };
+  return next === tool ? part : (next as unknown as P);
+}
+
 function trimOld<M extends UIMessage>(message: M): M {
   let typedSeen = false;
   const parts = message.parts.flatMap((part): M["parts"] => {
@@ -90,22 +107,40 @@ function trimOld<M extends UIMessage>(message: M): M {
       typedSeen = true;
       return [keep ? part : { ...part, text: LEFT_OUT }];
     }
-    const tool = part as { type: string; state?: string; output?: unknown };
-    if (isToolPart(part) && tool.state === "output-available" && typeof tool.output === "string" && tool.output.length > LONG_PART_CHARS) {
-      return [{ ...part, output: LEFT_OUT } as typeof part];
-    }
-    return [part];
+    return [trimToolPart(part)];
   });
   return { ...message, parts } as M;
 }
 
+// Inside the turn running now, the newest KEEP_ROUNDS rounds are sent whole
+// and the older ones trimmed. The cut moves a TRIM_BLOCK of rounds at a time,
+// so the request's start stays the same between jumps and the provider's
+// cache keeps holding.
+export const KEEP_ROUNDS = 10;
+export const TRIM_BLOCK = 10;
+
+function trimLongTurn<M extends UIMessage>(message: M): M {
+  if (message.role !== "assistant") return message;
+  const starts = message.parts.flatMap((part, index) => (part.type === "step-start" ? [index] : []));
+  const cutStep = Math.floor(Math.max(0, starts.length - KEEP_ROUNDS) / TRIM_BLOCK) * TRIM_BLOCK;
+  if (cutStep <= 0) return message;
+  const cut = starts[cutStep];
+  const parts = message.parts.map((part, index) => (index < cut ? trimToolPart(part) : part));
+  return parts.some((part, index) => part !== message.parts[index]) ? ({ ...message, parts } as M) : message;
+}
+
 // The thread as the next request sends it: the last FULL_TURNS user turns
-// and their replies as they are, older turns trimmed.
+// and their replies as they are, older turns trimmed, and the old rounds of
+// a long turn in progress.
 export function forModel<M extends UIMessage>(messages: M[]): M[] {
   const starts = messages.flatMap((message, index) => (message.role === "user" ? [index] : []));
-  if (starts.length <= FULL_TURNS) return messages;
-  const cutoff = starts[starts.length - FULL_TURNS];
-  return messages.map((message, index) => (index < cutoff ? trimOld(message) : message));
+  const cutoff = starts.length > FULL_TURNS ? starts[starts.length - FULL_TURNS] : 0;
+  const last = messages.length - 1;
+  const result = messages.map((message, index) => {
+    const base = index < cutoff ? trimOld(message) : message;
+    return index === last ? trimLongTurn(base) : base;
+  });
+  return result.some((message, index) => message !== messages[index]) ? result : messages;
 }
 
 // Rounds of tool calls in the reply so far (each round starts a step).
@@ -166,25 +201,39 @@ export interface ToolPartView {
   input: Record<string, unknown>;
 }
 
-export type PartItem = { part: UIMessage["parts"][number]; index: number } | { done: ToolPartView[] };
+export type PartItem =
+  | { part: UIMessage["parts"][number]; index: number }
+  | { plan: PlanStep[] }
+  | { tool: ToolPartView };
 
-// A reply's parts with each run of two or more finished tool calls folded
-// into one item, so a many-step turn reads as a line, not a stack. Running
-// and failed calls, and text, stay as they are.
-export function foldDoneTools(parts: UIMessage["parts"]): PartItem[] {
+// A reply's parts as the thread shows them: text, the plan (one checklist, at
+// the first update_plan call, with the latest steps) and calls still waiting
+// or running (a trash call asks the user). Finished and failed calls are
+// debugging detail: they come back in `hidden`, shown on request.
+export function replyItems(parts: UIMessage["parts"]): { items: PartItem[]; hidden: ToolPartView[] } {
   const items: PartItem[] = [];
+  const hidden: ToolPartView[] = [];
+  let plan: PlanStep[] | null = null;
+  let planAt = -1;
   parts.forEach((part, index) => {
     const view = toolPartView(part);
-    const last = items[items.length - 1];
-    if (view?.state === "done" && last && "done" in last) {
-      last.done.push(view);
-    } else if (view?.state === "done") {
-      items.push({ done: [view] });
-    } else {
+    if (!view) {
       items.push({ part, index });
+    } else if (view.toolName === "update_plan") {
+      const steps = parsePlanSteps(view.input.steps);
+      if (steps.length) plan = steps;
+      if (planAt < 0) {
+        planAt = items.length;
+        items.push({ plan: [] });
+      }
+    } else if (view.state === "running") {
+      items.push({ tool: view });
+    } else {
+      hidden.push(view);
     }
   });
-  return items;
+  if (planAt >= 0) items[planAt] = plan ? { plan } : { plan: [] };
+  return { items: items.filter((item) => !("plan" in item) || item.plan.length), hidden };
 }
 
 // A tool part of an assistant message, for its chip; null for other parts.

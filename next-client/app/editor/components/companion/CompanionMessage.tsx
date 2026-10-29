@@ -5,7 +5,8 @@ import { useAtomValue } from "jotai";
 import { HiOutlineCheck, HiOutlineDocumentDuplicate } from "react-icons/hi";
 import Button from "@/app/components/Button";
 import TextLink from "@/app/components/TextLink";
-import { foldDoneTools, toolPartView, typedText, type CompanionMessage as Message } from "./companion-messages";
+import { replyItems, typedText, type CompanionMessage as Message } from "./companion-messages";
+import PlanCard from "./PlanCard";
 import ToolActivityChip from "./ToolActivityChip";
 import TrashConfirmCard from "./TrashConfirmCard";
 import { atom_trashRequests } from "./trash-confirm";
@@ -16,14 +17,16 @@ import { replyToHtml } from "./reply-html";
 // the summary a compacted thread starts with (/compact) shows as a quiet
 // card.
 // An assistant turn shows its parts in order: text rendered as Markdown
-// (reply-html.ts; web links open in a new tab), and a chip for each tool
-// call (a trash call waiting for the user's answer shows its
-// TrashConfirmCard instead; a run of finished calls folds into "N steps
-// done"; a running call is left to the thread's working line while `working`),
+// (reply-html.ts; web links open in a new tab), the plan as one PlanCard,
+// and a trash call waiting for the user's answer as its TrashConfirmCard.
+// Finished and failed tool calls are debugging detail, left behind a quiet
+// "Show N steps"; a running call is left to the thread's working line while
+// `working`,
 // then the pages a web search drew on as links. Its Markdown can be copied: the latest reply always shows Copy,
 // earlier ones on hover or keyboard focus.
 export default function CompanionMessage({ message, activities, latest = false, working = false, autoModel }: { message: Message; activities: Record<string, string>; latest?: boolean; working?: boolean; autoModel?: string }) {
   const [copied, setCopied] = useState(false);
+  const [showSteps, setShowSteps] = useState(false);
   const trashRequests = useAtomValue(atom_trashRequests);
   useEffect(() => {
     if (!copied) return;
@@ -68,29 +71,29 @@ export default function CompanionMessage({ message, activities, latest = false, 
     .join("\n\n")
     .trim();
 
+  const { items, hidden } = replyItems(message.parts);
+
   return (
     <div className="group flex flex-col gap-1.5">
-      {foldDoneTools(message.parts).map((item) => {
-        if ("done" in item) {
-          const [first] = item.done;
-          // One call keeps its own line; a run of them folds into a count.
-          return item.done.length === 1 ? (
-            <ToolActivityChip key={first.toolCallId} view={first} activity={activities[first.toolCallId]} />
-          ) : (
-            <ToolActivityChip key={first.toolCallId} view={first} activity={`${item.done.length} steps done`} />
-          );
+      {items.map((item) => {
+        if ("plan" in item) return <PlanCard key="plan" steps={item.plan} />;
+        if ("tool" in item) {
+          const view = item.tool;
+          if (trashRequests[view.toolCallId]) return <TrashConfirmCard key={view.toolCallId} toolCallId={view.toolCallId} />;
+          // The thread's working line already names the call in flight.
+          return working ? null : <ToolActivityChip key={view.toolCallId} view={view} activity={activities[view.toolCallId]} />;
         }
         const { part, index } = item;
-        if (part.type === "text") {
-          return part.text.trim() ? <ReplyText key={index} markdown={part.text} /> : null;
-        }
-        const view = toolPartView(part);
-        if (!view) return null;
-        if (trashRequests[view.toolCallId]) return <TrashConfirmCard key={view.toolCallId} toolCallId={view.toolCallId} />;
-        // The thread's working line already names the call in flight.
-        if (working && view.state === "running") return null;
-        return <ToolActivityChip key={view.toolCallId} view={view} activity={activities[view.toolCallId]} />;
+        return part.type === "text" && part.text.trim() ? <ReplyText key={index} markdown={part.text} /> : null;
       })}
+      {hidden.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <Button variant="unstyled" className="self-start text-ui-caption text-fg-faint hover:text-fg-muted" aria-expanded={showSteps} onClick={() => setShowSteps((open) => !open)}>
+            {showSteps ? "Hide" : "Show"} {hidden.length} step{hidden.length === 1 ? "" : "s"}
+          </Button>
+          {showSteps && hidden.map((view) => <ToolActivityChip key={view.toolCallId} view={view} activity={activities[view.toolCallId]} />)}
+        </div>
+      )}
       {sources.length > 0 && (
         <div className="flex flex-col gap-0.5 pt-0.5">
           <p className="text-ui-caption text-fg-faint">Sources</p>
