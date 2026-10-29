@@ -33,7 +33,7 @@ describe("useVaultGitBranch", () => {
     mocks.openRepo.mockResolvedValue(null);
     const { result } = renderHook(() => useVaultGitBranch(vault));
     await waitFor(() => expect(mocks.openRepo).toHaveBeenCalledWith(vault));
-    expect(result.current).toBeNull();
+    await waitFor(() => expect(result.current).toBeNull());
     expect(mocks.readBranchName).not.toHaveBeenCalled();
   });
 });

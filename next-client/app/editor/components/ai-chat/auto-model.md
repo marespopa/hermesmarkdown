@@ -1,6 +1,6 @@
 # auto-model
 
-Description: Auto is the default value of `atom_selectedAiModel` (`"auto"`, `AUTO_MODEL_ID`). It is the first choice in Settings → AI ("Auto (picks by task)") and in the companion's model menu. The companion picks a model for each message from how hard it looks; the choice is synchronous, with no extra request.
+Description: Auto is the default value of `atom_selectedAiModel` (`"auto"`, `AUTO_MODEL_ID`). It is the first choice in Settings → AI and in the companion's model menu. The companion picks a model for each message from how hard it looks; the choice is synchronous, with no extra request.
 
 ## Exports
 | Name | Description |

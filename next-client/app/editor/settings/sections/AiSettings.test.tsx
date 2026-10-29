@@ -62,7 +62,7 @@ describe("AiSettings", () => {
     });
     const select = screen.getByRole("combobox", { name: "Model" });
     expect(select).not.toBeDisabled();
-    expect((select as HTMLSelectElement).options[0]).toHaveTextContent("Auto (picks by task)");
+    expect((select as HTMLSelectElement).options[0]).toHaveTextContent("Auto");
     expect(store.get(atom_selectedAiModel)).toBe("auto");
 
     await screen.findByRole("option", { name: "Claude Sonnet 5" });

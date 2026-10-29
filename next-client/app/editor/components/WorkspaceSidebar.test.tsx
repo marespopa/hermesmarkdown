@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createStore, Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { atom_activePaneId, atom_openFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesRevealPath, atom_newNoteRequested, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesRevealPath, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { seedPins } from "@/app/atoms/pin-atoms.test-utils";
@@ -71,7 +71,6 @@ const HydrateAtoms = ({ initialValues, children }: { initialValues: any; childre
 
 const ActivePane = () => <output data-testid="active-pane">{useAtomValue(atom_activePaneId)}</output>;
 const FocusRequest = () => <output data-testid="focus-request">{String(useAtomValue(atom_filesFocusRequested))}</output>;
-const NewNoteRequest = () => <output data-testid="new-note">{String(useAtomValue(atom_newNoteRequested))}</output>;
 
 const left = { id: "left", openFilePaths: ["a.md"], activeFilePath: "a.md", isPinned: false };
 
@@ -96,7 +95,6 @@ const renderSidebar = (open = true, descriptor: unknown = null, focusRequested =
         <WorkspaceSidebar />
         <ActivePane />
         <FocusRequest />
-        <NewNoteRequest />
       </HydrateAtoms>
     </Provider>
   );
@@ -199,14 +197,14 @@ describe("WorkspaceSidebar", () => {
     expect(screen.queryByTestId("file-tree")).not.toBeInTheDocument();
   });
 
-  it("is the library: the vault and Files, with no Open Notes or Outline; the rest is the palette's, but Settings and Help", () => {
+  it("is the library: the vault and Files, with no Open Notes or Outline; Settings and Documentation stay in the header", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar(true, null, false, { "a.md": { fileName: "a.md", content: "# Plan", lastSavedContent: "" } });
 
     expect(screen.getByRole("region", { name: "Files" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Settings" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Help" })).toBeInTheDocument();
-    for (const name of ["Home", "All Files", "Tags", "Tasks", "Templates", "Trash", "Export", "Documentation"]) {
+    expect(screen.getByRole("link", { name: "Documentation" })).toHaveAttribute("href", "/documentation");
+    for (const name of ["Home", "All Files", "Tags", "Tasks", "Templates", "Trash", "Export", "Help"]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
     }
     for (const name of ["Pinned", "Recent", "Open Notes", "Outline", "Linked from"]) {
@@ -347,17 +345,23 @@ describe("WorkspaceSidebar", () => {
     localStorage.removeItem("closeSidebarWhileWriting");
   });
 
-  it("asks the editor for a new note, from any route", () => {
+  it("creates a file from the Files menu on any route", () => {
+    const vault = { name: "Notes" };
+    fileSystem.vaultHandle = vault;
+    fileSystem.createNewFile.mockClear();
     renderSidebar();
-    fireEvent.click(screen.getByRole("button", { name: "New file" }));
-    expect(screen.getByTestId("new-note")).toHaveTextContent("true");
+    fireEvent.click(screen.getByRole("button", { name: "Files options" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New File" }));
+    expect(fileSystem.createNewFile).toHaveBeenCalledWith(vault);
     expect(navigation.push).not.toHaveBeenCalled();
     cleanup();
 
     navigation.pathname = "/editor/tasks";
     renderSidebar();
-    fireEvent.click(screen.getByRole("button", { name: "New file" }));
-    expect(navigation.push).toHaveBeenCalledWith("/editor");
+    fireEvent.click(screen.getByRole("button", { name: "Files options" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "New File" }));
+    expect(fileSystem.createNewFile).toHaveBeenCalledTimes(2);
+    expect(navigation.push).not.toHaveBeenCalled();
   });
 
   it("has no search of its own, only the Files search: searching notes is the command palette's", () => {
@@ -368,7 +372,7 @@ describe("WorkspaceSidebar", () => {
 
   it("hides on Escape inside it", () => {
     renderSidebar();
-    fireEvent.keyDown(screen.getByRole("button", { name: "New file" }), { key: "Escape" });
+    fireEvent.keyDown(screen.getByRole("button", { name: "Settings" }), { key: "Escape" });
     expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
   });
 
