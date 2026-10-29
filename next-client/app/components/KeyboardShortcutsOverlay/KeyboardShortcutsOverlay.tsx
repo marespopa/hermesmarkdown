@@ -38,6 +38,7 @@ function getShortcutGroups(): ShortcutGroup[] {
         ...PAGE_SHORTCUTS.map((shortcut) => ({ label: `Open ${shortcut.label}`, keys: formatPageShortcut(shortcut) })),
         { label: "Show / hide sidebar", keys: `${formatShortcut("\\")}, ${formatShortcut("S", { alt: true })} or ${mac ? "⌃[" : "Ctrl+["}` },
         { label: "Keyboard shortcuts", keys: formatShortcut("?") },
+        { label: "Open documentation", keys: "F1" },
         { label: "Sentence focus on / off", keys: formatShortcut("F", { alt: true }) },
         { label: "Outline on / off", keys: formatShortcut("M", { shift: true }) },
         { label: "Ask AI (AI features on)", keys: formatShortcut("J") },

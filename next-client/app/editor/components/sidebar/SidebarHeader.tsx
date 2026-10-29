@@ -9,7 +9,6 @@ import { atom_vaultName } from "@/app/atoms/vault-atoms";
 import Button from "@/app/components/Button";
 import { formatShortcut } from "@/app/utils/platform";
 import { PANE_HEADER_HEIGHT, PANE_ICON_SIZE } from "../pane-header-classes";
-import DocumentationLink from "../DocumentationLink";
 import PaneToolbarButton from "../PaneToolbarButton";
 import PinIconPopover from "../PinIconPopover";
 import TabContextMenu from "../TabContextMenu";
@@ -20,7 +19,7 @@ import { useVaultMenuItems } from "../../hooks/use-vault-menu-items";
 // (its emoji, else a quiet vault glyph that turns into a smiley on hover; a
 // click opens the emoji picker), the vault switcher (the open vault's
 // name; its menu lists the pinned vaults, then Open / Create Vault and Recent
-// Vaults…, as the pane title's crumb does), Documentation, Settings, and the
+// Vaults…, as the pane title's crumb does), Settings, and the
 // button that hides the sidebar (the toolbar shows it again).
 export default function SidebarHeader({ onHide }: { onHide: () => void }) {
   const router = useRouter();
@@ -80,7 +79,6 @@ export default function SidebarHeader({ onHide }: { onHide: () => void }) {
           <HiChevronDown size={12} aria-hidden="true" className="shrink-0 text-fg-faint" />
         </Button>
       </div>
-      <DocumentationLink compact />
       <PaneToolbarButton
         icon={<HiOutlineCog size={PANE_ICON_SIZE} />}
         label="Settings"

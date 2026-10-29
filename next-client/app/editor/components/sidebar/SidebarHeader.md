@@ -7,7 +7,7 @@ Description: The sidebar's top bar, at the top: the open vault's **icon** (its e
 - Persistence: None.
 
 ## Dependencies
-- Core: `DocumentationLink`, `PaneToolbarButton`, `TabContextMenu`, `PinIconPopover`, `useVaultMenuItems`, `useRecentVaults` (`openVaultEntry`, `setRecentVaultIcon`), `atom_vaultName`, and `next/navigation`.
+- Core: `PaneToolbarButton`, `TabContextMenu`, `PinIconPopover`, `useVaultMenuItems`, `useRecentVaults` (`openVaultEntry`, `setRecentVaultIcon`), `atom_vaultName`, and `next/navigation`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage
