@@ -4,6 +4,11 @@ Description: CodeMirror 6 Markdown editor for one pane. It adds inline pills and
 
 A text file that isn't a note (`utils/file-kinds.ts`: code, JSON, YAML, CSV, plain text…) opens in the same editor as plain text (`codemirror/plain-text-extensions.ts`, chosen from `filePath` when the view is created; the editor is remounted per file): highlighted by its language (matched from the file name in `@codemirror/language-data`, loaded before the view), in the code font, with none of a note's Markdown rendering, slash menu, shortcodes, wikilinks, tables or Markdown paste, and Tab indents. Such files are never indexed.
 
+Pending Companion proposals add a quiet dashed highlight to the source ranges
+they would replace (`codemirror/proposal-feedback.ts`). The active walkthrough
+hunk uses a stronger highlight and scrolls into view from Companion. The editor
+remains fully editable; review and the explicit apply action stay in Companion.
+
 ## Local State & Storage
 - State: `atom_activeEditorView`, `atom_isEditorFocused`, `atom_fileMetadata` (to resolve cross-note formula refs), `atom_wordWrap`, `atom_lineNumbers`, `atom_showWordCount`, `atom_vimMode`, `atom_focusMode` (`"dim"` turns on flow mode at the paragraph level, `"sentence"` at the sentence level), `atom_headingFolds` (in memory, this visit), `atom_vaultHandle`, `atom_currentDirectoryHandle`, `atom_pendingScrollTarget`, `atom_isAiConfigured`, `atom_aiBuilderRequest`. Pill and dialog state is local useState.
 - Persistence: Editor preferences live in `localStorage` (`wordWrap`, `lineNumbers`, `vimMode`, `focusMode`). Pasted images are written into the local vault through the File System Access API (`savePastedImage`).
@@ -33,6 +38,10 @@ import MarkdownEditor from "./MarkdownEditor";
 | onWikiLinkClick? | `(name: string) => void` |  | `[[link]]` navigation (`PaneLeaf` passes `openOrCreateLink`, which also creates missing notes) |
 | onFileLinkClick? | `(href: string) => void` |  | Markdown links to a vault path, `[Editor](./app/editor/README.md)` (`PaneLeaf` passes `openFileLink` with the note's path; a missing file is reported, never created). Ctrl/Cmd+click, the link pill and table cells' rendered links all reach it |
 | isActivePane? | `boolean` |  | Pane context |
+
+## Performance
+- `noteEmbedsExtension` keeps the validated embed references in CodeMirror state. `useNoteEmbeds` reuses that field, so ordinary typing in a note with embeds does not rescan the entire document; edits to embed or code-fence lines refresh it.
+- Rendered Mermaid/math previews and `<details>` marks map through unrelated edits. They rescan only when an edit can alter their source, structural markers, or boundaries.
 
 ## The active-view hook
 - Active-view registration (claim on create/activation, release on unmount) lives in `hooks/use-active-editor-view.ts`, `useActiveEditorView(viewRef, { isActivePane, enabled })`.

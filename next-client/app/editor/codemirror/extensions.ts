@@ -79,6 +79,7 @@ export interface BuildExtensionsOptions {
   filePath?: string;
   /** Its language (highlighting only), loaded by the caller from the file name. */
   codeLanguage?: Extension | null;
+  proposalFeedback?: Extension;
 }
 
 // A file's line-number gutters with the Line Numbers setting `on`: notes
@@ -92,6 +93,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
   if (opts.plainText) return buildPlainTextExtensions(opts);
   const extensions: Extension[] = [
     keystrokeLatency,
+    opts.proposalFeedback ?? [],
     editorTheme(),
     opts.wordWrapCompartment.of(opts.wordWrap ? EditorView.lineWrapping : []),
     opts.lineNumbersCompartment.of(opts.lineNumbers ? editorLineNumbers() : []),

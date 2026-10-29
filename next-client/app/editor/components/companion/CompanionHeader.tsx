@@ -26,7 +26,8 @@ export default function CompanionHeader({ open, onClose }: CompanionHeaderProps)
   const modelName = selectedAiModel === AUTO_MODEL_ID
     ? AUTO_MODEL_LABEL
     : modelOptions.find((model) => model.id === selectedAiModel)?.name ?? selectedAiModel;
-  const modelNames = [AUTO_MODEL_LABEL, ...modelOptions.map((model) => model.name)];
+  // Two models can share a display name; the picker lists it once (a name picks the first).
+  const modelNames = [...new Set([AUTO_MODEL_LABEL, ...modelOptions.map((model) => model.name)])];
 
   return (
     <header className={`flex shrink-0 items-center gap-1 border-b border-edge-subtle pl-4 pr-3 ${PANE_HEADER_HEIGHT}`}>

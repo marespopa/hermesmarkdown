@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 import { useAtomValue } from "jotai";
 import { HiOutlineCheck, HiOutlineDocumentDuplicate } from "react-icons/hi";
 import Button from "@/app/components/Button";
@@ -24,7 +24,7 @@ import { replyToHtml } from "./reply-html";
 // `working`,
 // then the pages a web search drew on as links. Its Markdown can be copied: the latest reply always shows Copy,
 // earlier ones on hover or keyboard focus.
-export default function CompanionMessage({ message, activities, latest = false, working = false, autoModel }: { message: Message; activities: Record<string, string>; latest?: boolean; working?: boolean; autoModel?: string }) {
+function CompanionMessage({ message, activities, latest = false, working = false, autoModel }: { message: Message; activities: Record<string, string>; latest?: boolean; working?: boolean; autoModel?: string }) {
   const [copied, setCopied] = useState(false);
   const [showSteps, setShowSteps] = useState(false);
   const trashRequests = useAtomValue(atom_trashRequests);
@@ -141,3 +141,6 @@ function ReplyText({ markdown }: { markdown: string }) {
     />
   );
 }
+
+// Earlier messages don't change while a reply streams: skip their re-render per token.
+export default memo(CompanionMessage);

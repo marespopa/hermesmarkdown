@@ -22,6 +22,8 @@ interface SelectionToolbarProps {
   placement: "above" | "docked";
   /** Opens the AI companion with the selection. Omit to hide Ask AI (AI not configured). */
   onAsk?: () => void;
+  /** Sends a selected-text rewrite request to the review-first Companion flow. */
+  onTransform?: () => void;
   isAiLoading?: boolean;
 }
 
@@ -40,7 +42,7 @@ const FORMAT_BUTTON_CLASS =
 // block-type menu, Bold, Italic, Link, and Ask AI when AI is configured. Shared
 // by desktop (over the selection) and mobile (docked above the keyboard);
 // hides when the selection collapses or the editor loses focus.
-export default function SelectionToolbar({ placement, onAsk, isAiLoading = false }: SelectionToolbarProps) {
+export default function SelectionToolbar({ placement, onAsk, onTransform, isAiLoading = false }: SelectionToolbarProps) {
   const view = useAtomValue(atom_activeEditorView);
   const viewRef = useRef(view);
   viewRef.current = view;
@@ -154,6 +156,17 @@ export default function SelectionToolbar({ placement, onAsk, isAiLoading = false
                 <HiOutlineChatAlt2 size={13} />
                 Ask AI
               </Button>
+              {onTransform && (
+                <Button
+                  variant="unstyled"
+                  onPointerDown={keepFocus}
+                  onMouseDown={keepFocus}
+                  onClick={onTransform}
+                  className="flex h-7 items-center rounded-lg px-2 text-ui-caption font-medium text-fg hover:bg-fill transition-colors"
+                >
+                  Rewrite
+                </Button>
+              )}
             </>
           )}
         </div>

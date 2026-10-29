@@ -283,6 +283,10 @@ export default function LiteEditor() {
         <SelectionToolbar
           placement={isMobileChrome ? "docked" : "above"}
           onAsk={isAiConfigured ? openCompanion : undefined}
+          onTransform={isAiConfigured ? () => openCompanion({
+            prompt: "Rewrite the selected text for clarity. Use edit_file to propose the change for review; do not make any direct write.",
+            autoSend: true,
+          }) : undefined}
         />
       </div>
     </ErrorBoundary>

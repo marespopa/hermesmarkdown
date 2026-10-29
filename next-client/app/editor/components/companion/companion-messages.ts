@@ -191,6 +191,23 @@ export function shouldContinue({ messages }: { messages: UIMessage[] }): boolean
   return lastStepAnswered(messages) && toolRounds(messages) < MAX_TOOL_ROUNDS;
 }
 
+// A reply that ends on a line announcing the next step ("Let me check the
+// code.") instead of taking it: after tool calls, its last step is text only
+// and its last sentence says what it is about to do. Some models stop there;
+// the chat hook sends one "continue" so the user doesn't have to.
+const INTENT = /^(let me|let's|i'll|i will|i'm going to|i am going to|now,? i|next,? i|now let me|first,? i)\b/i;
+export function stalledOnIntent(messages: UIMessage[]): boolean {
+  const last = messages[messages.length - 1];
+  if (last?.role !== "assistant" || toolRounds(messages) < 1) return false;
+  const start = last.parts.map((part) => part.type).lastIndexOf("step-start");
+  const step = last.parts.slice(start + 1);
+  if (step.some(isToolPart)) return false;
+  const text = step.filter((part): part is TextUIPart => part.type === "text").map((part) => part.text).join("").trim();
+  if (!text || text.endsWith("?")) return false;
+  const sentence = text.split(/(?<=[.!:…])\s+|\n+/).filter(Boolean).pop() ?? "";
+  return /[:…]$|\.\.\.$/.test(text) || INTENT.test(sentence.trim());
+}
+
 // The turn stopped at the cap: the reply ends with answered tool calls.
 export function stoppedAtCap(messages: UIMessage[]): boolean {
   return lastStepAnswered(messages) && toolRounds(messages) >= MAX_TOOL_ROUNDS;

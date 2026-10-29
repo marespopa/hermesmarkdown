@@ -12,6 +12,8 @@ import { buildLiveMarkerDecorations, liveMarkers } from "./live-markers";
 import { buildSyntaxRevealDecorations, revealAt, syntaxReveal } from "./syntax-reveal";
 import { collectTableDisplayMatches, tableDisplayExtension, tableDisplayField } from "./table-display";
 import { tagPillPlugin } from "./tag-pills";
+import { collectRenderedBlocks, renderedBlockExtension } from "./rendered-block";
+import { findDetailsBlocks } from "@/app/utils/details-blocks";
 
 // How the editor's per-edit work grows with the note: `corepack yarn bench`
 // (not part of `test` or CI; results print as a table per note size). Each size runs the same note shape: frontmatter,
@@ -50,11 +52,30 @@ function section(n: number): string {
     `const total = ${n};`,
     "```",
     "",
+    "<details>",
+    "<summary>Benchmark details</summary>",
+    "",
+    "Hidden notes",
+    "",
+    "</details>",
+    "",
   ].join("\n");
 }
 
 function makeNote(lines: number): string {
-  const head = "---\ntitle: Benchmark note\nstatus: draft\ntags: work, ideas\n---\n\n";
+  const head = [
+    "---",
+    "title: Benchmark note",
+    "status: draft",
+    "tags: work, ideas",
+    "---",
+    "",
+    "```mermaid",
+    "graph TD",
+    "  A --> B",
+    "```",
+    "",
+  ].join("\n");
   const parts: string[] = [];
   let count = 0;
   for (let n = 1; count < lines; n++) {
@@ -75,6 +96,7 @@ const extensions = [
   liveMarkers,
   syntaxReveal,
   tableDisplayExtension,
+  renderedBlockExtension,
 ];
 
 const views: EditorView[] = [];
@@ -146,6 +168,12 @@ for (const lines of [2_000, 20_000]) {
       }),
       bench("tables: find and parse every table", () => {
         collectTableDisplayMatches(state);
+      }),
+      bench("rendered blocks: find every Mermaid or math block", () => {
+        collectRenderedBlocks(state);
+      }),
+      bench("details: find every <details> block", () => {
+        findDetailsBlocks(doc);
       }),
       bench("live markers: decorate one screen", () => {
         buildLiveMarkerDecorations(state, lastScreen);

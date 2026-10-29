@@ -1,5 +1,5 @@
 import { Decoration, type DecorationSet, type EditorView, ViewPlugin, type ViewUpdate } from "@codemirror/view";
-import type { EditorState, Range, Text } from "@codemirror/state";
+import type { EditorState, Range, Text, Transaction } from "@codemirror/state";
 import { findDetailsBlocks, REGEX_DETAILS_OPEN_ATTR, type DetailsBlock } from "@/app/utils/details-blocks";
 import { FADED } from "./highlight-inline";
 import { activeLines } from "./syntax-reveal";
@@ -24,6 +24,9 @@ export interface DetailsFoldRange {
 }
 
 const blocksByDoc = new WeakMap<Text, DetailsBlock[]>();
+const DETAILS_STRUCTURE = /<\/?(?:details|summary)\b|`{3,}|~{3,}|^ {0,3}(?:>|---)/i;
+const MAX_CHECKED_LINES = 500;
+type DetailsUpdate = Pick<Transaction, "changes" | "startState" | "state">;
 
 /** Blocks for a doc, scanned once per `Text` however many extensions ask. */
 export function detailsBlocksOf(doc: Text): DetailsBlock[] {
@@ -33,6 +36,55 @@ export function detailsBlocksOf(doc: Text): DetailsBlock[] {
     blocksByDoc.set(doc, blocks);
   }
   return blocks;
+}
+
+function touchesDetailsStructure(transaction: DetailsUpdate, blocks: readonly DetailsBlock[]): boolean {
+  const checkLines = (doc: Text, from: number, to: number) => {
+    const first = doc.lineAt(from).number;
+    const last = doc.lineAt(to).number;
+    if (last - first > MAX_CHECKED_LINES) return true;
+    for (let line = first; line <= last; line++) if (DETAILS_STRUCTURE.test(doc.line(line).text)) return true;
+    return false;
+  };
+  let touched = false;
+  transaction.changes.iterChangedRanges((fromA, toA, fromB, toB) => {
+    if (touched) return;
+    touched = blocks.some((block) => transaction.changes.touchesRange(block.openFrom, block.closeTo))
+      || checkLines(transaction.startState.doc, fromA, toA)
+      || checkLines(transaction.state.doc, fromB, toB);
+  });
+  return touched;
+}
+
+export function mapDetailsBlocks(blocks: readonly DetailsBlock[], transaction: DetailsUpdate): DetailsBlock[] {
+  const start = (pos: number) => transaction.changes.mapPos(pos, 1);
+  const end = (pos: number) => transaction.changes.mapPos(pos, -1);
+  const line = (pos: number) => transaction.state.doc.lineAt(pos).number - 1;
+  return blocks.map((block) => {
+    const openFrom = start(block.openFrom);
+    const headerLineEnd = end(block.headerLineEnd);
+    const closeFrom = start(block.closeFrom);
+    return {
+      ...block,
+      openLine: line(openFrom),
+      openFrom,
+      openTagTo: end(block.openTagTo),
+      headerLine: line(headerLineEnd),
+      headerLineEnd,
+      summary: block.summary && {
+        ...block.summary,
+        tagFrom: start(block.summary.tagFrom),
+        textFrom: start(block.summary.textFrom),
+        textTo: end(block.summary.textTo),
+        tagTo: end(block.summary.tagTo),
+      },
+      bodyFrom: start(block.bodyFrom),
+      closeLine: line(closeFrom),
+      closeFrom,
+      closeTo: end(block.closeTo),
+      closeLineEnd: end(block.closeLineEnd),
+    };
+  });
 }
 
 /** Foldable sections: those whose closing line comes after the header line. */
@@ -87,9 +139,10 @@ export function buildDetailsMarkDecorations(
   state: EditorState,
   active: Set<number>,
   visibleRanges: readonly { from: number; to: number }[] = [{ from: 0, to: state.doc.length }],
+  blocks = detailsBlocksOf(state.doc),
 ): DecorationSet {
   const ranges: Range<Decoration>[] = [];
-  for (const b of detailsBlocksOf(state.doc)) {
+  for (const b of blocks) {
     if (!visibleRanges.some((v) => b.openFrom <= v.to && b.closeTo >= v.from)) continue;
     const headerActive = active.has(b.headerLine + 1);
     const tag = (from: number, to: number) => {
@@ -112,17 +165,25 @@ export function buildDetailsMarkDecorations(
 export const detailsMarks = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
+    blocks: DetailsBlock[];
 
     constructor(view: EditorView) {
-      this.decorations = buildDetailsMarkDecorations(view.state, activeLines(view.state, view.hasFocus), view.visibleRanges);
+      this.blocks = detailsBlocksOf(view.state.doc);
+      this.decorations = buildDetailsMarkDecorations(view.state, activeLines(view.state, view.hasFocus), view.visibleRanges, this.blocks);
     }
 
     update(update: ViewUpdate) {
+      if (update.docChanged) {
+        this.blocks = touchesDetailsStructure(update, this.blocks)
+          ? detailsBlocksOf(update.state.doc)
+          : mapDetailsBlocks(this.blocks, update);
+      }
       if (update.docChanged || update.selectionSet || update.viewportChanged || update.focusChanged) {
         this.decorations = buildDetailsMarkDecorations(
           update.state,
           activeLines(update.state, update.view.hasFocus),
           update.view.visibleRanges,
+          this.blocks,
         );
       }
     }

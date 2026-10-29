@@ -10,6 +10,7 @@ import type { WikiLinkTriggerCallback } from "../codemirror/wikilink-trigger";
 import { flowMode as flowModeExtension, type FlowLevel } from "../codemirror/flow-mode";
 import { invisibles } from "../codemirror/invisibles";
 import { gitChanges } from "../codemirror/git-changes";
+import { proposalFeedback, proposalFeedbackTheme, type ProposalRange } from "../codemirror/proposal-feedback";
 import { changedRange } from "@/app/utils/text-diff";
 import { isPlainTextPath } from "@/app/utils/file-kinds";
 import { noteTyped } from "@/app/hooks/file-system/note-prefetch";
@@ -38,6 +39,7 @@ interface UseCodeMirrorEditorOptions {
   onViewCreated?: (view: EditorView) => void;
   /** The open file: a text file that isn't a note opens as plain text, highlighted by its name. */
   filePath?: string;
+  proposalRanges?: ProposalRange[];
 }
 
 // Owns the CodeMirror 6 EditorView lifecycle: mounts it into containerRef,
@@ -70,6 +72,7 @@ export function useCodeMirrorEditor({
   pasteImageRef,
   onViewCreated,
   filePath,
+  proposalRanges = [],
 }: UseCodeMirrorEditorOptions) {
   // Fixed for the view's life: the editor is remounted for each file (PaneLeaf).
   const plainText = !!filePath && isPlainTextPath(filePath);
@@ -91,6 +94,7 @@ export function useCodeMirrorEditor({
   const gitChangesCompartmentRef = useRef<Compartment | null>(null);
   const vimModeCompartmentRef = useRef<Compartment | null>(null);
   const flowModeCompartmentRef = useRef<Compartment | null>(null);
+  const proposalFeedbackCompartmentRef = useRef<Compartment | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -119,6 +123,7 @@ export function useCodeMirrorEditor({
       const gitChangesCompartment = new Compartment();
       const vimModeCompartment = new Compartment();
       const flowModeCompartment = new Compartment();
+      const proposalFeedbackCompartment = new Compartment();
       wordWrapCompartmentRef.current = wordWrapCompartment;
       lineNumbersCompartmentRef.current = lineNumbersCompartment;
       lineGuttersRef.current = (on) => extensionsModule.lineNumberGutters(plainText, !!codeLanguage, on);
@@ -126,6 +131,7 @@ export function useCodeMirrorEditor({
       gitChangesCompartmentRef.current = gitChangesCompartment;
       vimModeCompartmentRef.current = vimModeCompartment;
       flowModeCompartmentRef.current = flowModeCompartment;
+      proposalFeedbackCompartmentRef.current = proposalFeedbackCompartment;
 
       const state = EditorState.create({
         doc: value,
@@ -154,6 +160,7 @@ export function useCodeMirrorEditor({
           plainText,
           filePath,
           codeLanguage,
+          proposalFeedback: proposalFeedbackCompartment.of([proposalFeedbackTheme, CodeMirrorView.decorations.of(proposalFeedback(proposalRanges, value.length))]),
         }),
       });
 
@@ -255,6 +262,13 @@ export function useCodeMirrorEditor({
     if (!view || !compartment || plainText) return;
     view.dispatch({ effects: compartment.reconfigure(flowMode ? flowModeExtension(flowMode) : []) });
   }, [flowMode, plainText, viewRef]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    const compartment = proposalFeedbackCompartmentRef.current;
+    if (!view || !compartment) return;
+    view.dispatch({ effects: compartment.reconfigure([proposalFeedbackTheme, CodeMirrorView.decorations.of(proposalFeedback(proposalRanges, view.state.doc.length))]) });
+  }, [proposalRanges, viewRef]);
 
   // Keep the view in sync when `value` changes for a reason other than
   // the user typing in it (e.g. external file reload, undo outside CM6,

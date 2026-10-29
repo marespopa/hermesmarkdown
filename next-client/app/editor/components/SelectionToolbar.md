@@ -1,6 +1,6 @@
 # SelectionToolbar
 
-Description: Floating toolbar shown on a text selection in the active CodeMirror editor, on desktop and mobile alike. It has a **Turn into** menu ([BlockTypeMenu](BlockTypeMenu.md)) naming the current line's type, then Bold, Italic, Link, and **Ask AI** (opens AI Chat with the selection) when AI is configured. On desktop it sits above the selection; on touch screens it docks at the bottom of the screen, above the keyboard, clear of the selection handles and the browser's own Copy/Paste bar. It hides when the selection collapses or the editor loses focus.
+Description: Floating toolbar shown on a text selection in the active CodeMirror editor, on desktop and mobile alike. It has a **Turn into** menu ([BlockTypeMenu](BlockTypeMenu.md)) naming the current line's type, then Bold, Italic, Link, and **Ask AI** (opens AI Chat with the selection) when AI is configured. **Rewrite** submits a selected-text transformation request directly to Companion's review-first proposal flow; it never edits the note immediately. On desktop it sits above the selection; on touch screens it docks at the bottom of the screen, above the keyboard, clear of the selection handles and the browser's own Copy/Paste bar. It hides when the selection collapses or the editor loses focus.
 
 ## Local State & Storage
 - State: `atom_activeEditorView`; toolbar position (useState), recomputed in a `requestAnimationFrame` on `selectionchange`, key/mouse up, resize and scroll, from `EditorView.coordsAtPos` (desktop); `useKeyboardInset` lifts the docked toolbar clear of the keyboard where the browser doesn't resize the page.
@@ -26,6 +26,7 @@ import SelectionToolbar from "./components/SelectionToolbar";
 |---|---|---|---|
 | placement | `"above" \| "docked"` |  | Over the selection, or docked at the bottom above the keyboard |
 | onAsk | `() => void` | — | Opens AI Chat with the selection; omit to hide Ask AI |
+| onTransform | `() => void` | — | Sends a selected-text rewrite request to the review-first Companion flow |
 | isAiLoading | `boolean` | `false` | Hides Ask AI while an AI request runs |
 
 ## Logic

@@ -30,6 +30,14 @@ const createPlan = vi.fn();
 vi.mock("./use-companion-writes", () => ({
   useCompanionWrites: () => ({ editFile, writeFile, editCodeBlock: vi.fn(), createFile: vi.fn(), createPlan, createFolder: vi.fn(), createTemplate, undoTurn: vi.fn() }),
 }));
+const proposalEditFile = vi.fn();
+const proposalWriteFile = vi.fn();
+const proposalEditCodeBlock = vi.fn();
+const proposalCreateFile = vi.fn();
+const proposalCreateTemplate = vi.fn();
+vi.mock("./use-companion-proposals", () => ({
+  useCompanionProposals: () => ({ editFile: proposalEditFile, writeFile: proposalWriteFile, createFile: proposalCreateFile, createTemplate: proposalCreateTemplate, editCodeBlock: proposalEditCodeBlock }),
+}));
 const move = vi.fn();
 const trash = vi.fn();
 vi.mock("./use-companion-organise", () => ({ useCompanionOrganise: () => ({ rename: vi.fn(), move, trash }) }));
@@ -123,13 +131,26 @@ describe("useCompanionTools", () => {
   });
 
   it("hands edits to the writes under the turn", async () => {
-    editFile.mockResolvedValue({ output: "Saved Projects/Roadmap.md (1 edit).", detail: "1 edit" });
+    proposalEditFile.mockResolvedValue({ output: "Proposed Projects/Roadmap.md (1 edit). Review it before applying.", detail: "1 edit" });
     const edits = [{ find: "Q3", replace: "Q4" }];
 
     const result = await setup().runTool({ toolName: "edit_file", input: { path: "Projects/Roadmap.md", edits } }, "turn-1");
 
-    expect(editFile).toHaveBeenCalledWith("turn-1", "Projects/Roadmap.md", edits);
+    expect(proposalEditFile).toHaveBeenCalledWith("turn-1", "Projects/Roadmap.md", edits, expect.objectContaining({ summary: undefined }));
     expect(result.activity).toBe("Edited Projects/Roadmap.md · 1 edit");
+  });
+
+  it("passes concise proposal walkthrough details to an edit", async () => {
+    proposalEditFile.mockResolvedValue({ output: "Proposed", detail: "proposed" });
+    const tools = setup();
+    await tools.runTool({ toolName: "edit_file", input: {
+      path: "Projects/Roadmap.md", edits: [{ find: "Q3", replace: "Q4" }],
+      summary: "Clarify the quarter", explanation: "Matches the current plan", impact: "low",
+    } }, "turn-1");
+
+    expect(proposalEditFile).toHaveBeenLastCalledWith("turn-1", "Projects/Roadmap.md", expect.any(Array), {
+      summary: "Clarify the quarter", explanation: "Matches the current plan", impact: "low",
+    });
   });
 
   it("answers a read error as the tool's result", async () => {
@@ -155,21 +176,21 @@ describe("useCompanionTools", () => {
   });
 
   it("hands create_template its name and body", async () => {
-    createTemplate.mockResolvedValue({ output: "The template wasn't saved. Fix these…", detail: "needs fixes" });
+    proposalCreateTemplate.mockResolvedValue({ output: "Proposed template _templates/RFC.md.", detail: "proposed" });
 
     const result = await setup().runTool({ toolName: "create_template", input: { name: "RFC", body: "# {{titl}}" } }, "turn-1");
 
-    expect(createTemplate).toHaveBeenCalledWith("turn-1", "RFC", "# {{titl}}");
-    expect(result.output).toMatch(/wasn't saved/);
+    expect(proposalCreateTemplate).toHaveBeenCalledWith("turn-1", "_templates/RFC.md", "RFC", "# {{titl}}", expect.any(Object));
+    expect(result.output).toMatch(/Proposed/);
   });
 
   it("hands create_plan to the non-overwriting plan writer", async () => {
-    createPlan.mockResolvedValue({ output: "Created plans/Companion flow.md.", detail: "" });
+    proposalCreateFile.mockResolvedValue({ output: "Proposed creating plans/Companion flow.md.", detail: "proposed" });
 
     const result = await setup().runTool({ toolName: "create_plan", input: { path: "plans/Companion flow.md", content: "# Companion flow" } }, "turn-1");
 
-    expect(createPlan).toHaveBeenCalledWith("turn-1", "plans/Companion flow.md", "# Companion flow");
-    expect(result.output).toBe("Created plans/Companion flow.md.");
+    expect(proposalCreateFile).toHaveBeenCalledWith("turn-1", "plans/Companion flow.md", "# Companion flow", "plan", expect.any(Object));
+    expect(result.output).toMatch(/Proposed/);
   });
 
   it("searches files, skipping private notes", async () => {
@@ -200,13 +221,13 @@ describe("useCompanionTools", () => {
   });
 
   it("writes a whole file in the turn's group", async () => {
-    writeFile.mockResolvedValue({ output: "Saved src/a.ts (rewritten).", detail: "rewritten" });
+    proposalWriteFile.mockResolvedValue({ output: "Proposed a rewrite of src/a.ts. Review it before applying.", detail: "proposed" });
     const tools = setup();
 
     const result = await tools.runTool({ toolName: "write_file", input: { path: "src/a.ts", content: "x" } }, "turn-1");
 
-    expect(writeFile).toHaveBeenCalledWith("turn-1", "src/a.ts", "x");
-    expect(result.activity).toBe("Wrote src/a.ts · rewritten");
+    expect(proposalWriteFile).toHaveBeenCalledWith("turn-1", "src/a.ts", "x", expect.any(Object));
+    expect(result.activity).toBe("Wrote src/a.ts · proposed");
   });
 
   it("answers the plan back with its progress", async () => {

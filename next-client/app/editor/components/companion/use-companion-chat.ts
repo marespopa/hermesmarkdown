@@ -22,7 +22,7 @@ import { cancelProjectCheck, companionChat, companionHandlers, saveThread } from
 import { cancelPendingProjectCheckApproval } from "./project-check-approval";
 import { atom_projectCheckUiState } from "@/app/atoms/companion-atoms";
 import { buildCompanionSystemPrompt } from "./companion-prompt";
-import { userTurn, type CompanionContext } from "./companion-messages";
+import { stalledOnIntent, userTurn, type CompanionContext } from "./companion-messages";
 import { declineAllTrash } from "./trash-confirm";
 import { useCompanionTools } from "./use-companion-tools";
 
@@ -56,6 +56,17 @@ export function useCompanionChat() {
   useEffect(() => {
     if (status === "error") { cancelPendingProjectCheckApproval(store); cancelProjectCheck(); }
   }, [status, store]);
+
+  // A turn that stopped on "Let me…" gets one "continue" (per turn) instead
+  // of leaving the user to type it.
+  const nudgedAt = useRef<string | null>(null);
+  useEffect(() => {
+    if (status !== "ready" || !stalledOnIntent(messages)) return;
+    const turnId = messages[messages.length - 1].id;
+    if (nudgedAt.current === turnId) return;
+    nudgedAt.current = turnId;
+    void sendMessage({ text: "continue" });
+  }, [status, messages, sendMessage]);
 
   // A summary is being written; the thread stays until it's back.
   const [compacting, setCompacting] = useState(false);
@@ -159,7 +170,7 @@ export function useCompanionChat() {
     const options = live.length ? live : provider === "claude" ? FALLBACK_CLAUDE_MODELS : provider === "gemini" ? FALLBACK_GEMINI_MODELS : [];
     const contextChars = context.selection.length + context.vaultRefs.reduce((n, ref) => n + ref.content.length, 0)
       + context.attachments.reduce((n, a) => n + (a.isImage ? 0 : a.data.length), 0);
-    const tier = pickTier({ prompt: text, contextChars, hasAttachments: context.attachments.length > 0, retries });
+    const tier = pickTier({ prompt: text, contextChars, hasAttachments: context.attachments.length > 0, retries, maxTier: "balanced" });
     const model = resolveAutoModel(provider, tier, options);
     if (process.env.NODE_ENV === "development") console.debug("[auto-model]", { tier, model, retries });
     return model ? { model, name: options.find((m) => m.id === model)?.name ?? model, tier } : null;

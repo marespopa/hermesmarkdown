@@ -75,11 +75,14 @@ describe("SelectionToolbar", () => {
 
   it("offers Ask AI when configured, except while a request runs", async () => {
     const onAsk = vi.fn();
+    const onTransform = vi.fn();
     const v = makeView("ask about this", 0, 3);
-    const { rerender } = renderToolbar(v, { onAsk });
+    const { rerender } = renderToolbar(v, { onAsk, onTransform });
 
     fireEvent.click(await screen.findByText("Ask AI"));
     expect(onAsk).toHaveBeenCalled();
+    fireEvent.click(screen.getByText("Rewrite"));
+    expect(onTransform).toHaveBeenCalled();
 
     const store = createStore();
     store.set(atom_activeEditorView, v);

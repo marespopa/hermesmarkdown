@@ -1,6 +1,5 @@
 ---
 title: "Product Requirement Document (PRD): Glance for Hermes Markdown"
-datestring: "2026-10-27"
 tags: [product, feature, markdown]
 status: "draft"
 ---

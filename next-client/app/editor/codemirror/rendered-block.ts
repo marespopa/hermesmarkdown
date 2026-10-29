@@ -1,5 +1,5 @@
 import { syntaxTree } from "@codemirror/language";
-import { EditorState, Extension, Range, StateEffect, StateField } from "@codemirror/state";
+import { EditorState, Extension, Range, StateEffect, StateField, type Transaction } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
 import {
   currentRenderTheme,
@@ -35,6 +35,8 @@ const MERMAID_INFO = new Set(["mermaid"]);
 const MATH_INFO = new Set(["math", "latex", "tex", "katex"]);
 const CODE_NODES = new Set(["FencedCode", "CodeBlock", "HTMLBlock", "CommentBlock"]);
 const CLOSING_FENCE = /^\s*(`{3,}|~{3,})\s*$/;
+const RENDERED_BLOCK_MARKER = /`{3,}|~{3,}|\$\$/;
+const MAX_CHECKED_LINES = 500;
 
 function collectFences(state: EditorState, found: RenderedBlockMatch[]) {
   const { doc } = state;
@@ -214,6 +216,40 @@ function buildState(state: EditorState, theme: RenderedBlockTheme): RenderedBloc
   return { theme, matches, decorations: Decoration.set(ranges, true) };
 }
 
+function touchesRenderedBlock(transaction: Transaction, matches: readonly RenderedBlockMatch[]): boolean {
+  const checkLines = (doc: EditorState["doc"], from: number, to: number) => {
+    const first = doc.lineAt(from).number;
+    const last = doc.lineAt(to).number;
+    if (last - first > MAX_CHECKED_LINES) return true;
+    for (let line = first; line <= last; line++) if (RENDERED_BLOCK_MARKER.test(doc.line(line).text)) return true;
+    return false;
+  };
+  let touched = false;
+  transaction.changes.iterChangedRanges((fromA, toA, fromB, toB) => {
+    if (touched) return;
+    const intersectsBlock = matches.some((match) => {
+      const first = transaction.startState.doc.lineAt(match.from).from;
+      const last = transaction.startState.doc.lineAt(match.to).to;
+      return transaction.changes.touchesRange(first, last);
+    });
+    touched = intersectsBlock
+      || checkLines(transaction.startState.doc, fromA, toA)
+      || checkLines(transaction.newDoc, fromB, toB);
+  });
+  return touched;
+}
+
+function mapMatch(match: RenderedBlockMatch, transaction: Transaction): RenderedBlockMatch {
+  const map = (pos: number) => transaction.changes.mapPos(pos);
+  return {
+    ...match,
+    from: map(match.from),
+    to: map(match.to),
+    bodyFrom: map(match.bodyFrom),
+    bodyTo: map(match.bodyTo),
+  };
+}
+
 export const renderedBlockField = StateField.define<RenderedBlockState>({
   create: (state) => buildState(state, currentRenderTheme()),
   update(value, transaction) {
@@ -225,6 +261,13 @@ export const renderedBlockField = StateField.define<RenderedBlockState>({
       && syntaxTree(transaction.startState) === syntaxTree(transaction.state)
     ) {
       return value;
+    }
+    if (theme === value.theme && transaction.docChanged && !touchesRenderedBlock(transaction, value.matches)) {
+      return {
+        ...value,
+        matches: value.matches.map((match) => mapMatch(match, transaction)),
+        decorations: value.decorations.map(transaction.changes),
+      };
     }
     return buildState(transaction.state, theme);
   },

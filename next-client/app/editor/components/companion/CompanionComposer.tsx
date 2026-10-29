@@ -87,10 +87,9 @@ export default function CompanionComposer({ request, isBusy, onSend, onStop }: C
 
   const canSend = !isBusy && (input.trim().length > 0 || attachments.length > 0 || !!selection.trim());
 
-  const send = async () => {
-    if (!canSend) return;
-    const text = input.trim();
-    const context: CompanionContext = { path, selection, vaultRefs, attachments };
+  const send = async (text = input.trim(), initialContext?: CompanionContext) => {
+    const context: CompanionContext = initialContext ?? { path, selection, vaultRefs, attachments };
+    if (!text && !context.attachments.length && !context.selection.trim()) return;
     // The field empties at once; @tokens typed straight through resolve after.
     setInput("");
     setAttachments([]);
@@ -100,6 +99,13 @@ export default function CompanionComposer({ request, isBusy, onSend, onStop }: C
     const typedRefs = await resolveMentionRefs(text, context.vaultRefs, fileMetadata, vaultHandle);
     onSend(text, { ...context, vaultRefs: [...context.vaultRefs, ...typedRefs] });
   };
+
+  useEffect(() => {
+    if (!request?.autoSend || !request.prompt) return;
+    void send(request.prompt, { path: request.path, selection: request.selection, vaultRefs: [], attachments: [] });
+    // A request sequence is unique; avoid resending when composer state changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seq]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (mention && mentionOptions.length > 0) {

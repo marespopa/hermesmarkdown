@@ -53,6 +53,7 @@ import { useVimStatus } from "../hooks/use-vim-status";
 import TemplateStrip from "./TemplateStrip";
 import EmptyNoteTemplates from "./EmptyNoteTemplates";
 import { useTemplateNote } from "../hooks/use-template-note";
+import { atom_companionProposals } from "@/app/atoms/companion-atoms";
 
 interface MarkdownEditorProps {
   value: string;
@@ -92,6 +93,12 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const isVaultPending = useAtomValue(atom_isVaultPending);
   const gitEnabled = showGitChanges && isDiskVault && !isVaultPending && filePath !== "draft";
   const [editorView, setEditorView] = useState<EditorView | null>(null);
+  const proposals = useAtomValue(atom_companionProposals);
+  const proposalRanges = React.useMemo(() => proposals
+    .filter((proposal) => proposal.path === filePath)
+    .flatMap((proposal) => proposal.hunks.flatMap((hunk, index) => hunk.status === "pending"
+      ? [{ from: hunk.from, to: hunk.to, insert: hunk.insert, active: index === proposal.activeHunkIndex }]
+      : [])), [proposals, filePath]);
 
   const editorValue = props.value;
   const editorOnChange = useCallback((newVal: string) => {
@@ -253,6 +260,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     pasteImageRef,
     onViewCreated: handleViewCreated,
     filePath,
+    proposalRanges,
   });
   useGitBaseline({ viewRef, vaultHandle, filePath, enabled: gitEnabled });
   useVerifyingReadOnly(editorView, filePath);

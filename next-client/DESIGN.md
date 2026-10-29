@@ -19,24 +19,24 @@ Surfaces are neutral; the two accents (clay and moss) are used for interactive a
 
 These change between light and dark mode. Always prefer these over static colors for any surface, text, or border that appears in both modes.
 
-| Token | CSS var | Light | Dark | Usage |
-|---|---|---|---|---|
-| `bg-surface` | `--surface` | `#FAF9F7` | `#211E1B` | Editor / page background |
-| `bg-surface-raised` | `--surface-raised` | `#F2F1EE` | `#2A2622` | Elevated cards, panels |
-| `bg-chrome` | `--chrome` | `#F0EFEC` | `#181614` | Tab bar, file indicator, palette footer |
-| `bg-overlay` | `--overlay` | `#FCFAF6` | `#2A2622` | Modals, popovers, command palette — never the page color: lighter in light themes, the raised gray in dark ones |
-| `bg-input-bg` | `--input-bg` | `#FFFFFF` | `#1C1A17` | A select's option list. Fields themselves take `bg-fill` (see Controls) |
-| `bg-fill` | `--fill` | `--fg` at 7% | `--fg` at 11% | The gray control fill: gray buttons, fields, segmented tracks, tags, the round close button, hover on plain controls |
-| `bg-fill-hover` / `bg-fill-press` | `--fill-hover` / `--fill-press` | +4% / +8% | +4% / +8% | The next steps of the fill: hover and press on filled controls, a switch's off track |
-| `border-edge` | `--border` | `#DEDCD7` | `#3D3833` | Visible borders |
-| `border-edge-subtle` | `--border-subtle` | `rgba(60,56,50,0.10)` | `rgba(214,207,198,0.10)` | Hairline / ghost borders |
-| `text-fg` | `--fg` | `#2A2825` | `#ECE7E0` | Primary text |
-| `text-fg-muted` | `--fg-muted` | `#5E5B56` | `#A8A199` | Secondary / supporting text |
-| `text-fg-faint` | `--fg-faint` | `#6D6B67` | `#948F87` | Placeholders, hints, tertiary labels |
-| `accent` | `--clay` | `#A2563E` | `#D88B68` | Primary accent — active states, focus, unsaved dot |
-| `accent-hover` | `--clay` | same as `accent` | same as `accent` | Alias; no distinct hover value today |
-| `sage` | `--moss` | `#626F54` | `#8FA178` | Secondary accent — icons, muted interactive |
-| `sage-hover` | `--moss-hover` | `#5C6A4E` | `#A3B58C` | Hover / active state for sage buttons |
+| Token                             | CSS var                         | Light                 | Dark                     | Usage                                                                                                                |
+| :-------------------------------- | :------------------------------ | :-------------------- | :----------------------- | :------------------------------------------------------------------------------------------------------------------- |
+| `bg-surface`                      | `--surface`                     | `#FAF9F7`             | `#211E1B`                | Editor / page background                                                                                             |
+| `bg-surface-raised`               | `--surface-raised`              | `#F2F1EE`             | `#2A2622`                | Elevated cards, panels                                                                                               |
+| `bg-chrome`                       | `--chrome`                      | `#F0EFEC`             | `#181614`                | Tab bar, file indicator, palette footer                                                                              |
+| `bg-overlay`                      | `--overlay`                     | `#FCFAF6`             | `#2A2622`                | Modals, popovers, command palette — never the page color: lighter in light themes, the raised gray in dark ones      |
+| `bg-input-bg`                     | `--input-bg`                    | `#FFFFFF`             | `#1C1A17`                | A select's option list. Fields themselves take `bg-fill` (see Controls)                                              |
+| `bg-fill`                         | `--fill`                        | `--fg` at 7%          | `--fg` at 11%            | The gray control fill: gray buttons, fields, segmented tracks, tags, the round close button, hover on plain controls |
+| `bg-fill-hover` / `bg-fill-press` | `--fill-hover` / `--fill-press` | +4% / +8%             | +4% / +8%                | The next steps of the fill: hover and press on filled controls, a switch's off track                                 |
+| `border-edge`                     | `--border`                      | `#DEDCD7`             | `#3D3833`                | Visible borders                                                                                                      |
+| `border-edge-subtle`              | `--border-subtle`               | `rgba(60,56,50,0.10)` | `rgba(214,207,198,0.10)` | Hairline / ghost borders                                                                                             |
+| `text-fg`                         | `--fg`                          | `#2A2825`             | `#ECE7E0`                | Primary text                                                                                                         |
+| `text-fg-muted`                   | `--fg-muted`                    | `#5E5B56`             | `#A8A199`                | Secondary / supporting text                                                                                          |
+| `text-fg-faint`                   | `--fg-faint`                    | `#6D6B67`             | `#948F87`                | Placeholders, hints, tertiary labels                                                                                 |
+| `accent`                          | `--clay`                        | `#A2563E`             | `#D88B68`                | Primary accent — active states, focus, unsaved dot                                                                   |
+| `accent-hover`                    | `--clay`                        | same as `accent`      | same as `accent`         | Alias; no distinct hover value today                                                                                 |
+| `sage`                            | `--moss`                        | `#626F54`             | `#8FA178`                | Secondary accent — icons, muted interactive                                                                          |
+| `sage-hover`                      | `--moss-hover`                  | `#5C6A4E`             | `#A3B58C`                | Hover / active state for sage buttons                                                                                |
 
 `sage-subtle`, `sage-light` and `sage-dark` still exist for backwards compatibility but all resolve to `var(--moss)` — they are **not** distinct shades. Use `sage` with an opacity modifier (`bg-sage/10`, `ring-sage/20`) instead.
 

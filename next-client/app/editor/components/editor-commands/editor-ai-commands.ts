@@ -29,6 +29,7 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     isAiConfigured,
     runEditorCommand,
     setAiBuilderRequest,
+    openCompanion,
     requestCompanionAction,
   } = context;
 
@@ -111,6 +112,7 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
   // or replace the thread with its summary (as /new and /compact). With AI
   // Features off, there are none.
   const noKey = isAiConfigured ? undefined : "Add an API key in Settings → AI Features";
+  const hasSelection = !!activeEditorView && activeEditorView.state.selection.main.from !== activeEditorView.state.selection.main.to;
   const aiMenu: Command[] = !isAiEnabled ? [] : [{
     id: "ai-menu",
     label: "Ask AI",
@@ -120,6 +122,17 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     keywords: "ai assistant chat prompt ask companion rewrite improve summarize edit",
     disabledReason: noKey,
     action: () => setAiBuilderRequest((value) => value + 1),
+  }, {
+    id: "ai-rewrite-selection",
+    label: "Rewrite selected text with AI",
+    description: "Creates a reviewable proposal; it does not edit the note immediately",
+    category: "AI",
+    keywords: "ai rewrite transform improve selection proposal review",
+    disabledReason: noKey ?? (hasSelection ? undefined : "Select text in the editor first"),
+    action: () => openCompanion({
+      prompt: "Rewrite the selected text for clarity. Use edit_file to propose the change for review; do not make any direct write.",
+      autoSend: true,
+    }),
   }, {
     id: "ai-new-chat",
     label: "New AI chat",

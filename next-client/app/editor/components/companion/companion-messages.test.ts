@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { UIMessage } from "ai";
-import { forModel, FULL_TURNS, KEEP_ROUNDS, LEFT_OUT, replyItems, TRIM_BLOCK, userTurn } from "./companion-messages";
+import { forModel, FULL_TURNS, KEEP_ROUNDS, LEFT_OUT, replyItems, stalledOnIntent, TRIM_BLOCK, userTurn } from "./companion-messages";
 
 const noContext = { path: null, selection: "", vaultRefs: [], attachments: [] };
 const long = "x".repeat(3_000);
@@ -142,5 +142,19 @@ describe("replyItems", () => {
     expect(items).toHaveLength(2);
     expect(items[0]).toEqual({ plan: [{ text: "Types", status: "done" }, { text: "Wire", status: "pending" }] });
     expect(hidden.map((view) => view.toolCallId)).toEqual(["a"]);
+  });
+});
+
+describe("stalledOnIntent", () => {
+  const assistant = (parts: UIMessage["parts"]): UIMessage => ({ id: "a1", role: "assistant", parts });
+  const call = { type: "tool-read_file", toolCallId: "t1", state: "output-available", input: {}, output: "" } as UIMessage["parts"][number];
+  it("flags a text-only last step that announces the next step after tool calls", () => {
+    expect(stalledOnIntent([assistant([{ type: "step-start" }, call, { type: "step-start" }, { type: "text", text: "Let me check what's in the codebase." }])])).toBe(true);
+  });
+  it("ignores an answer, a question, a reply with no tool calls and a step that calls a tool", () => {
+    expect(stalledOnIntent([assistant([{ type: "step-start" }, call, { type: "step-start" }, { type: "text", text: "The plan is done." }])])).toBe(false);
+    expect(stalledOnIntent([assistant([{ type: "step-start" }, call, { type: "step-start" }, { type: "text", text: "Let me know which one?" }])])).toBe(false);
+    expect(stalledOnIntent([assistant([{ type: "step-start" }, { type: "text", text: "Let me check." }])])).toBe(false);
+    expect(stalledOnIntent([assistant([{ type: "step-start" }, call, { type: "step-start" }, { type: "text", text: "Let me check." }, call])])).toBe(false);
   });
 });

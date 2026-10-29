@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EditorView } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { codeFolding } from "@codemirror/language";
-import { buildDetailsMarkDecorations, detailsFoldRanges, setDetailsOpen } from "./details-fold";
+import { buildDetailsMarkDecorations, detailsBlocksOf, detailsFoldRanges, mapDetailsBlocks, setDetailsOpen } from "./details-fold";
 
 const makeState = (doc: string) => EditorState.create({ doc, extensions: [codeFolding()] });
 const makeView = (doc: string) => new EditorView({ state: makeState(doc) });
@@ -22,6 +22,20 @@ describe("detailsFoldRanges", () => {
   it("starts open sections expanded and skips one-line blocks", () => {
     expect(detailsFoldRanges(makeState(section.replace("<details>", "<details open>")).doc)[0].initiallyCollapsed).toBe(false);
     expect(detailsFoldRanges(makeState("<details><summary>A</summary>x</details>").doc)).toEqual([]);
+  });
+});
+
+describe("mapped details blocks", () => {
+  it("moves cached offsets and line numbers through unrelated edits", () => {
+    const state = makeState(section);
+    const transaction = state.update({ changes: { from: 0, insert: "Before\n" } });
+    const [block] = mapDetailsBlocks(detailsBlocksOf(state.doc), transaction);
+
+    expect(block.openLine).toBe(1);
+    expect(block.headerLine).toBe(2);
+    expect(block.closeLine).toBe(6);
+    expect(transaction.newDoc.sliceString(block.openFrom, block.closeTo)).toContain("<details>");
+    expect(transaction.newDoc.sliceString(block.openFrom, block.closeTo)).toContain("</details>");
   });
 });
 

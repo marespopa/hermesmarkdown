@@ -24,7 +24,12 @@ export interface AutoSignals {
   retries: number;
   // A command that always runs at one tier wins over the score.
   fixedTier?: Tier;
+  // The slowest tier allowed. An agentic turn pays a model's latency on
+  // every tool round, so the companion keeps Auto off the deep tier.
+  maxTier?: Tier;
 }
+
+const TIERS: Tier[] = ["fast", "balanced", "deep"];
 
 export function scoreTask({ prompt, contextChars, hasAttachments, retries }: AutoSignals): number {
   let score = 0;
@@ -39,10 +44,9 @@ export function scoreTask({ prompt, contextChars, hasAttachments, retries }: Aut
 export function pickTier(signals: AutoSignals): Tier {
   if (signals.fixedTier) return signals.fixedTier;
   const score = scoreTask(signals);
-  return score >= DEEP_SCORE ? "deep" : score >= BALANCED_SCORE ? "balanced" : "fast";
+  const tier: Tier = score >= DEEP_SCORE ? "deep" : score >= BALANCED_SCORE ? "balanced" : "fast";
+  return signals.maxTier && TIERS.indexOf(tier) > TIERS.indexOf(signals.maxTier) ? signals.maxTier : tier;
 }
-
-const TIERS: Tier[] = ["fast", "balanced", "deep"];
 
 // Kept in step with FALLBACK_*_MODELS (chat-helpers.ts) and providers.ts.
 const FIXED_MODELS: Record<"claude" | "gemini", Record<Tier, string>> = {

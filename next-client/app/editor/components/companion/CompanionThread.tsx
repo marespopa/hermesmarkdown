@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { MAX_TOOL_ROUNDS, stoppedAtCap, toolPartView, type CompanionMessage as Message } from "./companion-messages";
 import CompanionMessage from "./CompanionMessage";
 import { DelayedSpinner } from "./ToolActivityChip";
@@ -10,6 +10,7 @@ import { useStore, useAtomValue } from "jotai";
 import { atom_projectCheckUiState } from "@/app/atoms/companion-atoms";
 import ProjectCheckApproval from "./ProjectCheckApproval";
 import { answerProjectCheckApproval } from "./project-check-approval";
+import ProposalReview from "./ProposalReview";
 
 // What the call in flight is doing, from the newest reply; null when none is.
 function runningToolLabel(messages: Message[], activities: Record<string, string>): string | null {
@@ -20,6 +21,22 @@ function runningToolLabel(messages: Message[], activities: Record<string, string
     if (view?.state === "running") return activities[view.toolCallId] ?? companionToolActivity(view.toolName, view.input);
   }
   return null;
+}
+
+const STALL_HINT_SECONDS = 8;
+
+// Seconds since the thread last changed, while busy (0 otherwise): a model
+// that is thinking or a request that stalled shows no tokens, only this.
+function useQuietSeconds(busy: boolean, messages: Message[]): number {
+  const [quiet, setQuiet] = useState(0);
+  useEffect(() => {
+    setQuiet(0);
+    if (!busy) return;
+    const started = Date.now();
+    const timer = setInterval(() => setQuiet(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(timer);
+  }, [busy, messages]);
+  return quiet;
 }
 
 interface CompanionThreadProps {
@@ -41,12 +58,18 @@ export default function CompanionThread({ messages, activities, status, compacti
   const store = useStore();
   const projectCheck = useAtomValue(atom_projectCheckUiState);
   useEffect(() => {
-    bottomRef.current?.scrollIntoView?.({ block: "end" });
+    // At most once per frame, however fast tokens arrive.
+    const frame = requestAnimationFrame(() => bottomRef.current?.scrollIntoView?.({ block: "end" }));
+    return () => cancelAnimationFrame(frame);
   }, [messages, status, compacting, errorText]);
 
   // Busy from send to finish, between tool rounds too: one line says so.
   const working = status === "submitted" || status === "streaming" || compacting;
-  const workingLabel = compacting ? "Summarizing the conversation…" : runningToolLabel(messages, activities) ?? "Working…";
+  const quiet = useQuietSeconds(working, messages);
+  const model = messages.findLast((message) => message.role === "user")?.metadata?.auto?.name;
+  // Nothing has streamed for a while: say what is awaited and for how long.
+  const waiting = quiet >= STALL_HINT_SECONDS ? `Waiting for ${model ?? "the model"}… ${quiet}s` : "Working…";
+  const workingLabel = compacting ? "Summarizing the conversation…" : runningToolLabel(messages, activities) ?? waiting;
   const capped = status === "ready" && stoppedAtCap(messages);
   const lastReply = messages.findLastIndex((message) => message.role === "assistant");
 
@@ -85,6 +108,7 @@ export default function CompanionThread({ messages, activities, status, compacti
           {errorText && (
             <p role="alert" className="text-ui-caption text-danger whitespace-pre-wrap">{errorText}</p>
           )}
+          <ProposalReview />
         </div>
       )}
       {projectCheck && <ProjectCheckApproval state={projectCheck} onApprove={() => answerProjectCheckApproval(store, true)} onDeny={() => answerProjectCheckApproval(store, false)} />}

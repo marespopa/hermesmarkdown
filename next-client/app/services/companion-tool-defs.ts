@@ -2,6 +2,12 @@ import { z } from 'zod';
 import { NOTE_TOOL_DEFS } from "./note-tool-defs";
 import { PROJECT_CHECK_IDS } from "./project-checks";
 
+const PROPOSAL_DETAILS = {
+  summary: z.string().max(240).optional().describe("Concise user-facing summary of the proposal; never include private reasoning"),
+  explanation: z.string().max(400).optional().describe("Concise user-facing rationale for the change; never provide chain-of-thought"),
+  impact: z.enum(["low", "medium", "high"]).optional().describe("User-facing impact level for review: low, medium, or high"),
+};
+
 // The AI companion's tools: the note tools (search_notes, read_note,
 // list_open_tasks), the vault and editor read tools (list_folder, read_file,
 // search_files, find_files, check_file), git_status and git_diff, update_plan, load_skill, the edits,
@@ -106,52 +112,57 @@ export const COMPANION_TOOL_DEFS = {
   edit_file: {
     title: 'Edit file',
     description:
-      "Change a note or code file in place: each edit replaces one exact piece of its current text. Read the file first and quote `find` exactly, with enough around it to match only once. The change is saved at once and shows in the editor; the user can undo the whole turn.",
+      "Propose changes to a note or code file: each edit replaces one exact piece of its current text. Read the file first and quote `find` exactly, with enough around it to match only once. Nothing is written until the user accepts hunks and explicitly applies the proposal.",
     inputSchema: z.object({
       path: z.string().min(1).describe('Vault-relative path of the file to change'),
       edits: z.array(z.object({
         find: z.string().min(1).describe('Exact text now in the file; must match exactly once'),
         replace: z.string().describe('The text to put in its place ("" deletes it)'),
       })).min(1).describe('Applied in order'),
+      ...PROPOSAL_DETAILS,
     }),
   },
   write_file: {
     title: 'Write file',
     description:
-      "Replace a file's whole text, or create it (with its folders) when it doesn't exist. Use it to rewrite a file or when most of it changes; for a few changes use edit_file. Give the complete new text: whatever you leave out is gone. The change is saved at once and the user can undo the whole turn.",
+      "Propose replacing a file's whole text, or creating it when it doesn't exist. Use it to rewrite a file or when most of it changes; for a few changes use edit_file. Give the complete new text: whatever you leave out is gone. Nothing is written until the user explicitly applies accepted hunks.",
     inputSchema: z.object({
       path: z.string().min(1).describe('Vault-relative path, e.g. "src/index.ts"'),
       content: z.string().describe("The file's complete new text"),
+      ...PROPOSAL_DETAILS,
     }),
   },
   edit_code_block: {
     title: 'Edit code block',
     description:
-      "Replace the code inside one fenced code block of a note (the fences stay). Pick the block by its index (0 is the note's first; get_active_note gives the one at the cursor) or by its language and first line.",
+      "Propose replacing the code inside one fenced code block of a note (the fences stay). Pick the block by its index (0 is the note's first; get_active_note gives the one at the cursor). Nothing is written until the user explicitly applies accepted hunks.",
     inputSchema: z.object({
       path: z.string().min(1).describe('Vault-relative path of the note'),
       index: z.number().int().min(0).optional().describe("The block's index in the note"),
       lang: z.string().optional().describe("The block's language, e.g. python"),
       firstLine: z.string().optional().describe("The block's current first line of code"),
       code: z.string().describe('The new code for the block'),
+      ...PROPOSAL_DETAILS,
     }),
   },
   create_file: {
     title: 'Create file',
     description:
-      "Create a new note (.md) or code file at a vault-relative path, with its folders. Never overwrites: if the path is taken, it says so. A note gets frontmatter with its title and created date unless its content already sets them; add any other fields (tags, status) in a frontmatter block at the top. The user can undo the whole turn.",
+      "Propose a new note (.md) or code file at a vault-relative path, with its folders. Never overwrites: if the path is taken, it says so. A note gets frontmatter with its title and created date when applied. Nothing is written until the user explicitly applies accepted hunks.",
     inputSchema: z.object({
       path: z.string().min(1).describe('Vault-relative path, e.g. "Projects/Launch plan.md"'),
       content: z.string().describe("The file's text"),
+      ...PROPOSAL_DETAILS,
     }),
   },
   create_plan: {
     title: 'Create plan',
     description:
-      "Create a new Markdown plan at a vault-relative path. Use this when the user explicitly asks for a new plan file: after at most one folder listing to choose a destination, create it before further research. Never overwrites. It adds standard plan frontmatter (title, created date, type: plan and status: draft) unless the supplied content already sets those fields.",
+      "Propose a new Markdown plan at a vault-relative path. Use this when the user explicitly asks for a new plan file. It adds standard plan frontmatter when applied. Nothing is written until the user explicitly applies accepted hunks.",
     inputSchema: z.object({
       path: z.string().min(1).describe('Vault-relative Markdown path, e.g. "plans/Improve companion flow.md"'),
       content: z.string().describe("The plan's Markdown body, optionally with frontmatter"),
+      ...PROPOSAL_DETAILS,
     }),
   },
   create_folder: {
@@ -191,10 +202,11 @@ export const COMPANION_TOOL_DEFS = {
   create_template: {
     title: 'Create template',
     description:
-      "Save a new note template in the vault's templates folder, where the template picker finds it. The body is checked first: if it has problems, nothing is saved and they come back to fix. Never replaces a template; change one with edit_file.",
+      "Propose a new note template in the vault's templates folder. Nothing is saved until the user explicitly applies accepted hunks; an existing template is never replaced.",
     inputSchema: z.object({
       name: z.string().min(1).describe('Short template name, e.g. "Meeting notes" (no folders)'),
       body: z.string().min(1).describe("The template's text, with its fields, e.g. {{title}}, {{date}}, {{prompt:Owner}}, {{cursor}}"),
+      ...PROPOSAL_DETAILS,
     }),
   },
 };

@@ -58,8 +58,8 @@ export async function POST(req: Request) {
     // A turn stopped mid tool call leaves a call with no result; it is dropped.
     const modelMessages = await convertToModelMessages(messages, { tools, ignoreIncompleteToolCalls: true });
     const result = provider === 'gemini' || provider === 'ollama'
-      ? streamText({ model, tools, messages: foldSystem(system, modelMessages) })
-      : streamText({ model, tools, messages: withPromptCache(system, modelMessages) });
+      ? streamText({ model, tools, messages: foldSystem(system, modelMessages), abortSignal: req.signal, maxRetries: 1 })
+      : streamText({ model, tools, messages: withPromptCache(system, modelMessages), abortSignal: req.signal, maxRetries: 1 });
 
     return withKeepAlive(result.toUIMessageStreamResponse({
       // Web search results' pages, shown as links under the reply.
