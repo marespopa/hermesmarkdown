@@ -5,7 +5,12 @@ import Button from "@/app/components/Button";
 import { formatCount } from "@/app/components/CountBadge";
 import { expandReplacement, type ReplaceMatch } from "@/app/workers/replace-search";
 import type { ReplaceFileResult } from "@/app/workers/text-grep-protocol";
-import { ADD_ROW, CODE_FONT, DEL_ROW } from "../../changes/diff-classes";
+
+// Tint of a match's old and new text: the old one struck through on the danger
+// colour, the new one on the done colour.
+const ADD_ROW = "bg-[color-mix(in_srgb,var(--task-done)_22%,transparent)]";
+const DEL_ROW = "bg-[color-mix(in_srgb,var(--danger)_16%,transparent)] text-fg-muted";
+const CODE_FONT = "[font-family:var(--font-code)]";
 
 export type FileState = "replacing" | "replaced" | "skipped" | "failed";
 

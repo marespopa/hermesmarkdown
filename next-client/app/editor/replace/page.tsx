@@ -9,7 +9,7 @@ import LoadingBar from "@/app/components/LoadingBar";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { isReplaceAvailable } from "@/app/services/replace-client";
 import ShellPage from "../components/ShellPage";
-import { useOpenChange } from "../changes/use-open-change";
+import { useOpenMatch } from "./use-open-match";
 import { FIND_PARAM, readUrlParam, REGEX_PARAM, replaceUrlParam } from "../utils/editor-url";
 import ReplaceFileSection, { type FileState } from "./components/ReplaceFileSection";
 import ReplaceForm from "./components/ReplaceForm";
@@ -41,7 +41,7 @@ export default function ReplacePage() {
   const sorted = useMemo(() => [...preview.files].sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0)), [preview.files]);
   const selection = useReplaceSelection(sorted, preview.scanKey);
   const { apply, undo } = useApplyReplace();
-  const openChange = useOpenChange();
+  const openChange = useOpenMatch();
   const openAt = useCallback((path: string, line: number, column: number) => void openChange(path, line, column), [openChange]);
 
   // `?find=` and `?regex=1` prefill once, over the remembered options; `find` then stays in the URL.

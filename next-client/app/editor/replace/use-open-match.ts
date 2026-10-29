@@ -8,8 +8,8 @@ import { atom_pendingScrollTarget, resolveFileHandleAtPath } from "@/app/atoms/a
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { editorFileHref } from "../utils/editor-url";
 
-/** Opens a changed file in the editor at a line (the Tasks page's steps). */
-export function useOpenChange() {
+/** Opens a file in the editor at a match's line and column. */
+export function useOpenMatch() {
   const router = useRouter();
   const { vaultHandle, openFile } = useFileSystem();
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
