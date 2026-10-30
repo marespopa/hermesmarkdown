@@ -12,9 +12,9 @@ describe("buildCompanionSystemPrompt", () => {
     expect(buildCompanionSystemPrompt({ hasVault: true })).toBe(COMPANION_PROMPT);
   });
 
-  it("treats a requested file as a proposal the user applies", () => {
+  it("creates a requested file and says it can be undone", () => {
     expect(COMPANION_PROMPT).toContain("create or save a file is a deliverable");
-    expect(COMPANION_PROMPT).toContain("Nothing is written until the user reviews the proposal");
+    expect(COMPANION_PROMPT).toContain("saved at once and the user can undo it");
   });
 
   it("says when no vault is open", () => {
