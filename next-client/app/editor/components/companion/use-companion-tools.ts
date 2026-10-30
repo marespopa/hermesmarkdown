@@ -4,7 +4,6 @@ import { useCallback } from "react";
 import { useStore } from "jotai";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_templatesFolder } from "@/app/atoms/template-atoms";
 import { atom_activeEditorView } from "@/app/atoms/ui-atoms";
 import { atom_vaultFolderPaths, atom_vaultHandle, atom_vaultTextFiles } from "@/app/atoms/vault-atoms";
 import { useNoteBuffer } from "@/app/hooks/file-system/use-note-buffer";
@@ -14,11 +13,9 @@ import { useNoteTools, type NoteToolResult } from "../ai-chat/use-note-tools";
 import { guardFilePath, guardFolderPath } from "./tools/path-guard";
 import { useCompanionOrganise } from "./use-companion-organise";
 import { useCompanionWrites } from "./use-companion-writes";
-import { useCompanionProposals, type ProposalDetails } from "./use-companion-proposals";
 import type { FindReplace } from "./tools/edit-tools";
 import { findFilesOutput, globMatcher, matchesIn, searchFilesOutput, searchMatcher, searchablePaths, SEARCH_DEFAULT_LIMIT, SEARCH_MAX_FILES, type SearchMatch } from "./tools/search-tools";
 import { activeNoteOutput, codeBlockAt, companionToolActivity, listFolderOutput, readFileOutput } from "./tools/read-tools";
-import { sanitizeTemplateFileName } from "@/app/utils/templates/template-registry";
 
 const NO_VAULT = "No vault is open, so there are no files to look at. Ask the user to open a folder.";
 
@@ -26,11 +23,6 @@ const NO_VAULT = "No vault is open, so there are no files to look at. Ask the us
 export type CompanionToolCall = { toolName: string; input: unknown; toolCallId?: string };
 
 const stringList = (value: unknown) => (Array.isArray(value) ? value.map(String) : []);
-const proposalDetails = (input: Record<string, unknown>): ProposalDetails => ({
-  summary: typeof input.summary === "string" ? input.summary : undefined,
-  explanation: typeof input.explanation === "string" ? input.explanation : undefined,
-  impact: input.impact === "low" || input.impact === "medium" || input.impact === "high" ? input.impact : "low",
-});
 
 // Runs the companion's tool calls in the browser: the note tools through
 // useNoteTools, the vault and editor read tools (list_folder, read_file,
@@ -47,7 +39,6 @@ export function useCompanionTools() {
   const { runTool: runNoteTool } = useNoteTools();
   const { readCurrentText } = useNoteBuffer();
   const writes = useCompanionWrites();
-  const proposals = useCompanionProposals();
   const organise = useCompanionOrganise();
 
   const runTool = useCallback(async ({ toolName, input: rawInput, toolCallId = "" }: CompanionToolCall, turnId = "turn"): Promise<NoteToolResult> => {
@@ -134,11 +125,11 @@ export function useCompanionTools() {
       }
       if (toolName === "edit_file") {
         const edits = Array.isArray(input.edits) ? (input.edits as FindReplace[]) : [];
-        const { output, detail } = await proposals.editFile(turnId, String(input.path ?? ""), edits, proposalDetails(input));
+        const { output, detail } = await writes.editFile(turnId, String(input.path ?? ""), edits);
         return { output, activity: activity(detail) };
       }
       if (toolName === "create_file") {
-        const { output, detail } = await proposals.createFile(turnId, String(input.path ?? ""), String(input.content ?? ""), proposalDetails(input));
+        const { output, detail } = await writes.createFile(turnId, String(input.path ?? ""), String(input.content ?? ""));
         return { output, activity: activity(detail) };
       }
       if (toolName === "create_folder") {
@@ -146,10 +137,7 @@ export function useCompanionTools() {
         return { output, activity: activity(detail) };
       }
       if (toolName === "create_template") {
-        const folder = store.get(atom_templatesFolder).folder;
-        const name = sanitizeTemplateFileName(String(input.name ?? ""));
-        const path = folder ? `${folder}/${name}` : name;
-        const { output, detail } = await proposals.createTemplate(turnId, path, String(input.name ?? ""), String(input.body ?? ""), proposalDetails(input));
+        const { output, detail } = await writes.createTemplate(turnId, String(input.name ?? ""), String(input.body ?? ""));
         return { output, activity: activity(detail) };
       }
       if (toolName === "rename") {
@@ -169,7 +157,7 @@ export function useCompanionTools() {
       console.warn("Companion: tool failed", toolName, err);
       return { output: `${toolName} failed: ${err instanceof Error ? err.message : String(err)}`, activity: activity("failed") };
     }
-  }, [store, runNoteTool, readCurrentText, writes, proposals, organise]);
+  }, [store, runNoteTool, readCurrentText, writes, organise]);
 
   return { runTool, undoTurn: writes.undoTurn };
 }
