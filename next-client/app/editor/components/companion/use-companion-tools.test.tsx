@@ -12,15 +12,10 @@ vi.mock("../ai-chat/use-note-tools", () => ({ useNoteTools: () => ({ runTool: ru
 const readCurrentText = vi.fn();
 vi.mock("@/app/hooks/file-system/use-note-buffer", () => ({ useNoteBuffer: () => ({ readCurrentText }) }));
 const editFile = vi.fn();
+const createFile = vi.fn();
 const createTemplate = vi.fn();
 vi.mock("./use-companion-writes", () => ({
-  useCompanionWrites: () => ({ editFile, writeFile: vi.fn(), createFile: vi.fn(), createFolder: vi.fn(), createTemplate, undoTurn: vi.fn() }),
-}));
-const proposalEditFile = vi.fn();
-const proposalCreateFile = vi.fn();
-const proposalCreateTemplate = vi.fn();
-vi.mock("./use-companion-proposals", () => ({
-  useCompanionProposals: () => ({ editFile: proposalEditFile, createFile: proposalCreateFile, createTemplate: proposalCreateTemplate }),
+  useCompanionWrites: () => ({ editFile, writeFile: vi.fn(), createFile, createFolder: vi.fn(), createTemplate, undoTurn: vi.fn() }),
 }));
 const move = vi.fn();
 const trash = vi.fn();
@@ -96,26 +91,13 @@ describe("useCompanionTools", () => {
   });
 
   it("hands edits to the writes under the turn", async () => {
-    proposalEditFile.mockResolvedValue({ output: "Proposed Projects/Roadmap.md (1 edit). Review it before applying.", detail: "1 edit" });
+    editFile.mockResolvedValue({ output: "Saved Projects/Roadmap.md (1 edit).", detail: "1 edit" });
     const edits = [{ find: "Q3", replace: "Q4" }];
 
     const result = await setup().runTool({ toolName: "edit_file", input: { path: "Projects/Roadmap.md", edits } }, "turn-1");
 
-    expect(proposalEditFile).toHaveBeenCalledWith("turn-1", "Projects/Roadmap.md", edits, expect.objectContaining({ summary: undefined }));
+    expect(editFile).toHaveBeenCalledWith("turn-1", "Projects/Roadmap.md", edits);
     expect(result.activity).toBe("Edited Projects/Roadmap.md · 1 edit");
-  });
-
-  it("passes concise proposal walkthrough details to an edit", async () => {
-    proposalEditFile.mockResolvedValue({ output: "Proposed", detail: "proposed" });
-    const tools = setup();
-    await tools.runTool({ toolName: "edit_file", input: {
-      path: "Projects/Roadmap.md", edits: [{ find: "Q3", replace: "Q4" }],
-      summary: "Clarify the quarter", explanation: "Matches the current plan", impact: "low",
-    } }, "turn-1");
-
-    expect(proposalEditFile).toHaveBeenLastCalledWith("turn-1", "Projects/Roadmap.md", expect.any(Array), {
-      summary: "Clarify the quarter", explanation: "Matches the current plan", impact: "low",
-    });
   });
 
   it("answers a read error as the tool's result", async () => {
@@ -141,21 +123,21 @@ describe("useCompanionTools", () => {
   });
 
   it("hands create_template its name and body", async () => {
-    proposalCreateTemplate.mockResolvedValue({ output: "Proposed template _templates/RFC.md.", detail: "proposed" });
+    createTemplate.mockResolvedValue({ output: "Saved the template _templates/RFC.md.", detail: "" });
 
     const result = await setup().runTool({ toolName: "create_template", input: { name: "RFC", body: "# {{titl}}" } }, "turn-1");
 
-    expect(proposalCreateTemplate).toHaveBeenCalledWith("turn-1", "_templates/RFC.md", "RFC", "# {{titl}}", expect.any(Object));
-    expect(result.output).toMatch(/Proposed/);
+    expect(createTemplate).toHaveBeenCalledWith("turn-1", "RFC", "# {{titl}}");
+    expect(result.output).toMatch(/Saved/);
   });
 
-  it("hands create_file to the non-overwriting proposal", async () => {
-    proposalCreateFile.mockResolvedValue({ output: "Proposed creating Notes/Launch.md.", detail: "proposed" });
+  it("hands create_file to the non-overwriting create", async () => {
+    createFile.mockResolvedValue({ output: "Created Notes/Launch.md.", detail: "" });
 
     const result = await setup().runTool({ toolName: "create_file", input: { path: "Notes/Launch.md", content: "# Launch" } }, "turn-1");
 
-    expect(proposalCreateFile).toHaveBeenCalledWith("turn-1", "Notes/Launch.md", "# Launch", expect.any(Object));
-    expect(result.output).toMatch(/Proposed/);
+    expect(createFile).toHaveBeenCalledWith("turn-1", "Notes/Launch.md", "# Launch");
+    expect(result.output).toMatch(/Created/);
   });
 
   it("searches files, skipping private notes", async () => {
