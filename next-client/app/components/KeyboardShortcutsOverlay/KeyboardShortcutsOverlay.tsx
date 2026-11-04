@@ -25,8 +25,8 @@ function getShortcutGroups(): ShortcutGroup[] {
     {
       title: "General",
       shortcuts: [
-        { label: "Quick switcher", keys: `${formatShortcut("K")} / ${formatShortcut("P")}` },
-        { label: "Command palette", keys: `${formatShortcut("K", { shift: true })} / ${formatShortcut("P", { shift: true })}` },
+        { label: "Quick switcher", keys: `Shift Shift / ${formatShortcut("P")}` },
+        { label: "Command palette", keys: formatShortcut("P", { shift: true }) },
         { label: "Search file text", keys: formatShortcut("F", { shift: true }) },
         { label: "Open pinned item 1–9", keys: `${formatShortcut("1")}–9` },
         { label: "Back to the previous file", keys: formatShortcut("0") },

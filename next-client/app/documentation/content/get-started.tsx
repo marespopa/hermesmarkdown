@@ -250,17 +250,17 @@ export const getStartedGroup: Group = {
             autosave is about to save, and shows only if a save runs late or fails. Hover the dot for the save
             button and click it to save, or to try again. Click the name to rename the file in
             place: press <code>Enter</code> or click away to keep the new name, <code>Esc</code> to back out. The
-            search bar in the top-right corner (or <code>CTRL/CMD+K</code>) opens the command palette, where every file
+            search bar in the top-right corner (or <code>CTRL/CMD+P</code>) opens the command palette, where every file
             and command is: Save, Copy Contents, Export as PDF or HTML, Pin File, Settings, Documentation, Ask AI and the rest.
             The editor keeps up to 20 files
             open behind the one in front; switch between them from the command palette
-            (<code>CTRL/CMD+K</code>). Opening another closes the one you looked at least recently, never one
+            (<code>CTRL/CMD+P</code>). Opening another closes the one you looked at least recently, never one
             with unsaved changes. Click the file&apos;s name at the top, or right-click it, for its menu: Copy Contents, Pin File, Rename…, Move
             to Trash, and Close, Close Others or Close All. While the sidebar is hidden, its button sits in the top-left corner.
           </p>
           <p>
             <strong>Search</strong> is the way around: the search bar in the editor&apos;s top-right corner, the same one at
-            the top of every page, or <code>CTRL/CMD+K</code> anywhere, opens the command palette to find a file, run a command or go to
+            the top of every page, or <code>CTRL/CMD+P</code> anywhere (or press Shift twice), opens the command palette to find a file, run a command or go to
             a page: Home, All Files, Tags, Tasks, Templates, Trash or Settings. <code>CTRL/CMD+SHIFT+F</code>{" "}
             searches the text of your files. Every page has{" "}
             <strong>← Editor</strong> at the top left to come back to the file you were on.
@@ -306,8 +306,8 @@ export const getStartedGroup: Group = {
             rows={[
               { label: "Sidebar", value: "Show: Sidebar button at the top left / Hide: button in the sidebar's header or Escape / CTRL/CMD+\\ or CTRL/CMD+ALT+S" },
               { label: "Show Files", value: "The sidebar's Files (full screen on a phone) / CTRL/CMD+SHIFT+E" },
-              { label: "Quick switcher", value: "CTRL/CMD+K or CTRL/CMD+P" },
-              { label: "Command palette", value: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },
+              { label: "Quick switcher", value: "CTRL/CMD+P or SHIFT SHIFT" },
+              { label: "Command palette", value: "CTRL/CMD+SHIFT+P" },
               { label: "Search file text", value: "CTRL/CMD+SHIFT+F" },
               { label: "Palette modes", value: "# vault tags · > commands · ! tasks · @ current-note headings · / file text" },
               { label: "Commands on or off", value: "The > button in the search field" },

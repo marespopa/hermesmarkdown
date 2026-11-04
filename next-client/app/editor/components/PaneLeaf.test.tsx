@@ -295,7 +295,7 @@ describe("PaneLeaf Tab Indicators", () => {
     expect(screen.getByRole("button", { name: /New File/ })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Open File" })).toBeInTheDocument();
     const commandButton = screen.getByRole("button", { name: /Browse all commands/ });
-    expect(commandButton).toHaveTextContent(formatShortcut("K", { shift: true }));
+    expect(commandButton).toHaveTextContent(formatShortcut("P", { shift: true }));
   });
   it("closes a note with unsaved changes from its title's menu", () => {
     render(

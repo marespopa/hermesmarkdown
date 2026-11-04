@@ -12,7 +12,7 @@ Description: One toolbar button in the pane header: an icon only. The tooltip na
 
 ## Quick Usage
 ```tsx
-<PaneToolbarButton icon={<HiOutlineSearch size={16} />} label="Search" aria-label="Command palette" shortcut="⌘K" onClick={open} />
+<PaneToolbarButton icon={<HiOutlineSearch size={16} />} label="Search" aria-label="Command palette" shortcut="⌘P" onClick={open} />
 ```
 
 ## Props Overview

@@ -129,7 +129,7 @@ describe("CommandPalette", () => {
 
   it("clears the search input without closing the palette", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
     const input = await screen.findByRole("combobox");
     fireEvent.change(input, { target: { value: "draft" } });
@@ -145,7 +145,7 @@ describe("CommandPalette", () => {
 
   it("remains mounted until its exit animation finishes", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     await screen.findByRole("combobox");
 
     vi.useFakeTimers();
@@ -165,7 +165,7 @@ describe("CommandPalette", () => {
 
   it("opens on the top-level menu, without Show Files", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
     expect(await screen.findByRole("option", { name: /Search in Files…/ })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: /New file/ })).toBeInTheDocument();
@@ -176,7 +176,7 @@ describe("CommandPalette", () => {
 
   it("keeps Settings and the theme out of the footer: the footer is the modes and the version", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
     const footer = (await screen.findByText(`v${version}`)).closest("footer")!;
     expect(within(footer).queryByRole("button", { name: "Settings" })).not.toBeInTheDocument();
@@ -201,7 +201,7 @@ describe("CommandPalette", () => {
 
   it("offers quick-query tips when a search has no matches", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
     const input = await screen.findByRole("combobox");
     fireEvent.change(input, { target: { value: "no-match" } });
@@ -211,17 +211,55 @@ describe("CommandPalette", () => {
     expect(screen.getByText("🪴")).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("opens command mode from Ctrl/Cmd+Shift+K", async () => {
+  it("opens command mode from Ctrl/Cmd+Shift+P", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true, shiftKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true, shiftKey: true });
 
     expect(await screen.findByRole("combobox")).toHaveValue(">");
     expect(screen.getByRole("listbox")).toHaveTextContent("Test command");
   });
 
+  it("no longer opens from Ctrl/Cmd+K, with or without Shift", () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "k", ctrlKey: true, shiftKey: true });
+
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+  });
+
+  it("opens from a double Shift, like Ctrl/Cmd+P", async () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "Shift" });
+    fireEvent.keyUp(document, { key: "Shift" });
+    fireEvent.keyDown(document, { key: "Shift" });
+    fireEvent.keyUp(document, { key: "Shift" });
+
+    expect(await screen.findByRole("combobox")).toHaveValue("");
+  });
+
+  it("does not open from a double Shift with another key in between", () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "Shift" });
+    fireEvent.keyUp(document, { key: "Shift" });
+    fireEvent.keyDown(document, { key: "a" });
+    fireEvent.keyDown(document, { key: "Shift" });
+    fireEvent.keyUp(document, { key: "Shift" });
+
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+  });
+
+  it("does not open from a held (repeating) Shift", () => {
+    renderPalette();
+    fireEvent.keyDown(document, { key: "Shift" });
+    fireEvent.keyUp(document, { key: "Shift" });
+    fireEvent.keyDown(document, { key: "Shift", repeat: true });
+
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+  });
+
   it("prioritizes frequently used commands in empty command mode", async () => {
     renderPalette([[atom_commandUseCounts, { "test-command": 3, "new-file": 1 }]]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true, shiftKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true, shiftKey: true });
 
     await screen.findByRole("combobox");
     expect(screen.getAllByRole("option")[0]).toHaveAccessibleName(/Test command/);
@@ -229,7 +267,7 @@ describe("CommandPalette", () => {
 
   it("prioritizes a command label over keyword-only matches", async () => {
     renderPalette([], <RankingCommands />);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true, shiftKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true, shiftKey: true });
 
     const input = await screen.findByRole("combobox");
     fireEvent.change(input, { target: { value: "> Switch" } });
@@ -239,7 +277,7 @@ describe("CommandPalette", () => {
 
   it("cycles command results with Tab and arrow keys", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
     fireEvent.change(input, { target: { value: ">" } });
 
@@ -258,7 +296,7 @@ describe("CommandPalette", () => {
 
   it("keeps the mode in the query, its footer chip lit", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
     fireEvent.change(input, { target: { value: "#plan" } });
@@ -282,7 +320,7 @@ describe("CommandPalette", () => {
 
   it("Show Files on desktop shows the sidebar's Files tree instead of navigating", async () => {
     const store = renderPaletteWithStore();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
     fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">show files" } });
     fireEvent.click(screen.getByRole("option", { name: /Show Files/ }));
@@ -295,7 +333,7 @@ describe("CommandPalette", () => {
   it("Show Files from outside the editor comes back to it", async () => {
     pathname = "/documentation";
     const store = renderPaletteWithStore();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
     fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">show files" } });
     fireEvent.click(screen.getByRole("option", { name: /Show Files/ }));
@@ -306,7 +344,7 @@ describe("CommandPalette", () => {
   it("Show Files on mobile opens the navigation drawer on Files", async () => {
     isMobileChrome = true;
     const store = renderPaletteWithStore();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
     fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">show files" } });
     fireEvent.click(screen.getByRole("option", { name: /Show Files/ }));
@@ -317,7 +355,7 @@ describe("CommandPalette", () => {
 
   it("lists Show Files once", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">files" } });
 
     expect(screen.getAllByRole("option", { name: /Show Files/ })).toHaveLength(1);
@@ -336,7 +374,7 @@ describe("CommandPalette", () => {
         },
       }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
     fireEvent.change(input, { target: { value: "road" } });
 
@@ -358,7 +396,7 @@ describe("CommandPalette", () => {
         },
       }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
     fireEvent.change(input, { target: { value: "#planning" } });
 
@@ -377,7 +415,7 @@ describe("CommandPalette", () => {
         },
       }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
     fireEvent.change(input, { target: { value: "#plan" } });
     const option = screen.getByRole("option", { name: /Roadmap.md/ });
@@ -398,7 +436,7 @@ describe("CommandPalette", () => {
       [atom_recentFilePaths, ["Projects/Roadmap.md"]],
       [atom_commandUseCounts, { "test-command": 3 }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
     expect(await screen.findByRole("option", { name: "Roadmap.md Projects" })).toBeInTheDocument();
     const options = screen.getAllByRole("option");
@@ -420,7 +458,7 @@ describe("CommandPalette", () => {
         },
       }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
     fireEvent.change(input, { target: { value: "road" } });
 
@@ -443,7 +481,7 @@ describe("CommandPalette", () => {
         },
       }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
     fireEvent.change(input, { target: { value: "road" } });
     fireEvent.contextMenu(screen.getByRole("option"));
@@ -462,7 +500,7 @@ describe("CommandPalette", () => {
         },
       }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
     fireEvent.change(input, { target: { value: "road" } });
     fireEvent.keyDown(input, { key: "d", ctrlKey: true });
@@ -480,7 +518,7 @@ describe("CommandPalette", () => {
         },
       }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
     fireEvent.change(input, { target: { value: "road" } });
     fireEvent.keyDown(input, { key: "Enter", ctrlKey: true });
@@ -516,7 +554,7 @@ describe("CommandPalette", () => {
         },
       }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
     fireEvent.change(input, { target: { value: "#plan" } });
@@ -542,7 +580,7 @@ describe("CommandPalette", () => {
         },
       }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
     fireEvent.change(input, { target: { value: "road" } });
@@ -569,7 +607,7 @@ describe("CommandPalette", () => {
         },
       }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
     fireEvent.change(input, { target: { value: "#plan" } });
@@ -596,7 +634,7 @@ describe("CommandPalette", () => {
         },
       }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
     fireEvent.change(input, { target: { value: "#plan #work" } });
@@ -638,7 +676,7 @@ describe("CommandPalette", () => {
         },
       }],
     ]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
     fireEvent.change(input, { target: { value: "!ship" } });
@@ -668,7 +706,7 @@ describe("CommandPalette", () => {
       focus,
     };
     renderPalette([[atom_activeEditorView, activeEditorView]]);
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
     fireEvent.change(input, { target: { value: "@deploy" } });
@@ -698,7 +736,7 @@ describe("CommandPalette", () => {
         </CommandPaletteProvider>
       </Provider>,
     );
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     fireEvent.click(await screen.findByRole("option", { name: /Insert template…/ }));
 
     await waitFor(() => expect(action).toHaveBeenCalledOnce());
@@ -720,7 +758,7 @@ describe("CommandPalette", () => {
         </CommandPaletteProvider>
       </Provider>,
     );
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     await screen.findByRole("option", { name: /Search in Files…/ });
 
     expect(screen.getAllByRole("option").map((option) => option.getAttribute("aria-label"))).toEqual([
@@ -731,7 +769,7 @@ describe("CommandPalette", () => {
 
   it("Search in Files… switches to note text search without closing", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     fireEvent.click(await screen.findByRole("option", { name: /Search in Files…/ }));
 
     expect(screen.getByRole("combobox")).toHaveValue("/");
@@ -773,7 +811,7 @@ describe("CommandPalette", () => {
 
     it("is in the top-level menu and opens in place, showing what each mode does", async () => {
       renderWithMenu();
-      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
       fireEvent.click(await screen.findByRole("option", { name: /Ask or Edit with AI…/ }));
 
       const input = screen.getByRole("combobox");
@@ -808,7 +846,7 @@ describe("CommandPalette", () => {
 
   it("enters a mode from its footer chip, as its prefix would, and leaves it on a second click", async () => {
     renderPalette();
-    fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+    fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
     fireEvent.click(screen.getByRole("button", { name: "Commands" }));
@@ -833,7 +871,7 @@ describe("CommandPalette", () => {
       const inserted = vi.fn();
       document.addEventListener("hermes:insert-vault-template", inserted);
       renderPalette([[atom_fileMetadata, templateFiles], [atom_activeEditorView, {} as never]]);
-      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
       fireEvent.change(await screen.findByRole("combobox"), { target: { value: "~" } });
 
       expect(screen.getByRole("option", { name: "Daily Journal" })).toBeInTheDocument();
@@ -849,7 +887,7 @@ describe("CommandPalette", () => {
 
     it("says so when the vault has no templates", async () => {
       renderPalette();
-      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
       fireEvent.click(await screen.findByRole("button", { name: "Templates" }));
 
       expect(screen.getByText("No templates yet. Open Templates to add one or a pack.")).toBeInTheDocument();
@@ -873,7 +911,7 @@ describe("CommandPalette", () => {
     it("offers to create a note named after the query and runs it", async () => {
       const onCreate = vi.fn().mockResolvedValue(undefined);
       renderWithCreate(onCreate);
-      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
       const input = await screen.findByRole("combobox");
       fireEvent.change(input, { target: { value: "Trip ideas" } });
@@ -886,7 +924,7 @@ describe("CommandPalette", () => {
       renderWithCreate(vi.fn(), [[atom_fileMetadata, {
         "Trip ideas.md": { path: "Trip ideas.md", name: "Trip ideas.md", tags: [], links: [], frontmatter: {}, modifiedAt: 0, wordCount: 0, tasks: [], handle: {} },
       }]]);
-      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
       fireEvent.change(await screen.findByRole("combobox"), { target: { value: "trip ideas" } });
       expect(screen.queryByRole("option", { name: /Create/ })).not.toBeInTheDocument();
@@ -894,7 +932,7 @@ describe("CommandPalette", () => {
 
     it("isn't offered in command mode or without a handler", async () => {
       renderWithCreate(vi.fn());
-      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
       fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">new" } });
       expect(screen.queryByRole("option", { name: /Create/ })).not.toBeInTheDocument();
     });
@@ -926,7 +964,7 @@ describe("CommandPalette", () => {
       document.body.appendChild(anchor);
 
       renderPalette();
-      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
       expect(await screen.findByRole("combobox")).toBeInTheDocument();
       expect(startViewTransition).toHaveBeenCalledTimes(1);
@@ -942,7 +980,7 @@ describe("CommandPalette", () => {
       (document as any).startViewTransition = startViewTransition;
 
       renderPalette();
-      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
       expect(await screen.findByRole("combobox")).toBeInTheDocument();
       expect(startViewTransition).not.toHaveBeenCalled();
@@ -957,7 +995,7 @@ describe("CommandPalette", () => {
       addAnchor();
 
       renderPalette();
-      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
       expect(await screen.findByRole("combobox")).toBeInTheDocument();
       expect(startViewTransition).not.toHaveBeenCalled();
@@ -974,7 +1012,7 @@ describe("CommandPalette", () => {
       process.on("unhandledRejection", unhandled);
 
       renderPalette();
-      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
 
       expect(await screen.findByRole("combobox")).toBeInTheDocument();
       await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)); });
@@ -1001,7 +1039,7 @@ describe("CommandPalette", () => {
     };
 
     async function search(value: string) {
-      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
       fireEvent.change(await screen.findByRole("combobox"), { target: { value } });
     }
 
@@ -1022,7 +1060,7 @@ describe("CommandPalette", () => {
         ...pinnedNotes("Payroll.md"),
         [atom_recentFilePaths, ["Payroll.md", "Planning.md"]],
       ]);
-      fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
       const input = await screen.findByRole("combobox");
       expect(screen.getByRole("listbox")).toHaveTextContent("Planning.md");
       expect(screen.getByRole("listbox")).not.toHaveTextContent("Payroll");

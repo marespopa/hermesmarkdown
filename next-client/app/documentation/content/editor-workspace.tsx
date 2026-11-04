@@ -222,7 +222,8 @@ tags: []
     body: (
       <>
         <p>
-          Open it anywhere with <code>CTRL/CMD+K</code> (files) or <code>CTRL/CMD+SHIFT+P</code>{" "}
+          Open it anywhere with <code>CTRL/CMD+P</code> (files; pressing Shift twice opens it the same way) or{" "}
+          <code>CTRL/CMD+SHIFT+P</code> (commands).
           (commands). On mobile, tap the active-file bar. The palette opens in Quick Open mode,
           where plain text searches file names and paths. To search inside files, start with{" "}
           <code>/</code> or press <code>CTRL/CMD+SHIFT+F</code>.

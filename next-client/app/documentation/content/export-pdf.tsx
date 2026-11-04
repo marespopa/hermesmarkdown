@@ -10,7 +10,7 @@ export const exportPdfItem: Subsection = {
     <>
       <p>
         Run <strong>Export as PDF</strong> from the command palette (the button at the top
-        of the page, or <code>CTRL/CMD+K</code>). A dialog shows the page setup and a preview of
+        of the page, or <code>CTRL/CMD+P</code>). A dialog shows the page setup and a preview of
         the pages. <strong>Save as PDF…</strong> opens your browser&apos;s print dialog;
         choose <strong>Save as PDF</strong> as the destination (on iPhone and iPad, share the
         preview or save it to Files).
@@ -58,7 +58,7 @@ export const exportHtmlItem: Subsection = {
     <>
       <p>
         Run <strong>Export as HTML</strong> from the command palette (the button at the top
-        of the page, or <code>CTRL/CMD+K</code>). The file downloads as a single <code>.html</code>{" "}
+        of the page, or <code>CTRL/CMD+P</code>). The file downloads as a single <code>.html</code>{" "}
         file named after it, ready to open in any browser, send, or put on a website.
       </p>
       <KV

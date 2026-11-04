@@ -26,7 +26,7 @@ Description: The one frame around every /editor route (`app/editor/layout.tsx`, 
 Once AI is set up (`atom_isAiConfigured`) and the vault is unlocked, the shell mounts [CompanionPanel](companion/CompanionPanel.md) on the trailing edge (a sheet on mobile) and sets `--content-right` to its width while it's open, so the editor page, every ShellPage, the corner buttons and RecoveryBanner stop short of it. While the desktop panel is collapsed, a fixed right-edge chat toggle opens it; `--companion-toggle-room` keeps the editor's and pages' header controls clear of that toggle.
 
 ## Settings and shell commands
-Settings (`/editor/settings`) is a page of its own: the shell mounts neither the sidebar nor the AI companion there (`--content-left` and `--content-right` are 0, ShellPage takes the plain edge room). On every other route [ShellCommands](ShellCommands.md) registers **Show / Hide Sidebar** and, once AI is set up, **Show / Hide AI Companion**, so they work with no note open. Ctrl/Cmd+K is the palette provider's own document listener and works on every route.
+Settings (`/editor/settings`) is a page of its own: the shell mounts neither the sidebar nor the AI companion there (`--content-left` and `--content-right` are 0, ShellPage takes the plain edge room). On every other route [ShellCommands](ShellCommands.md) registers **Show / Hide Sidebar** and, once AI is set up, **Show / Hide AI Companion**, so they work with no note open. Ctrl/Cmd+P (and double-Shift) is the palette provider's own document listener and works on every route.
 
 
 On the pages (every route but the editor and Settings) Ctrl/Cmd+J opens and closes the companion from the shell; on the editor `useEditorShortcuts` handles it, bringing the note and its selection.

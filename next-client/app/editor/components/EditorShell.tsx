@@ -179,7 +179,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
       )}
       {hasSidebar && onEditor && (
         // The way into the command palette, the center of the app: every
-        // note and command (as Ctrl/Cmd+K). Placed as in ShellPage's title
+        // note and command (as Ctrl/Cmd+P). Placed as in ShellPage's title
         // bar, so it stays put moving between the editor and the pages.
         // Copy Contents sits just left of it, the outline toggle left of that.
         <div

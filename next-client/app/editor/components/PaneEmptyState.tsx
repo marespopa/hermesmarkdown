@@ -120,7 +120,7 @@ export default function PaneEmptyState({ onLoadDraft }: PaneEmptyStateProps) {
           <HiOutlineDotsHorizontal size={16} />
           Browse all commands
           <span className="rounded border border-edge bg-paper-light px-1.5 py-0.5 font-mono text-ui-micro dark:bg-paper-dark">
-            {formatShortcut("K", { shift: true })}
+            {formatShortcut("P", { shift: true })}
           </span>
         </Button>
       </div>
