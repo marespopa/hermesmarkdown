@@ -155,7 +155,8 @@ export const formatKeymap: readonly KeyBinding[] = [
   { key: "Mod-Shift-7", run: toggleBlockType("numbered"), preventDefault: true },
   { key: "Mod-Shift-8", run: toggleBlockType("bullet"), preventDefault: true },
   { key: "Mod-Shift-9", run: toggleBlockType("quote"), preventDefault: true },
-  // Mod-k opens the quick switcher; Mod-Shift-l is searchKeymap's select all matches.
+  // The quick switcher is Ctrl/Cmd+P (or a double Shift), not Mod-k; Mod-Alt-k
+  // stays the Link binding. Mod-Shift-l is searchKeymap's select all matches.
   { key: "Mod-Alt-k", run: wrapAsLink, preventDefault: true },
   { key: "Mod-Alt-c", run: toggleCodeBlock, preventDefault: true },
   { key: "Mod-Shift-i", run: insertTable, preventDefault: true },

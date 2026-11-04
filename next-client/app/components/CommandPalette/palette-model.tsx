@@ -14,7 +14,7 @@ export const MAX_VISIBLE_ROWS = 12;
 // Shared by the palette input (when notes can be created) and the search
 // pill (SearchPill) that morphs into it.
 export const SEARCH_OR_CREATE_PLACEHOLDER = "Search or create a file…";
-// A key cap: the toolbar pill's ⌘K, row shortcuts and the footer's hints.
+// A key cap: the toolbar pill's ⌘P, row shortcuts and the footer's hints.
 export const SEARCH_KBD_CLASS = "hidden shrink-0 rounded border border-edge px-1.5 py-0.5 font-mono text-ui-micro text-fg-muted sm:inline";
 // The palette's own field: the panel's top edge, not a pill inside it.
 export const PALETTE_FIELD_CLASS = "flex h-14 shrink-0 items-center gap-3 border-b border-edge-subtle bg-input-bg dark:bg-transparent pl-5 pr-3 font-sans";

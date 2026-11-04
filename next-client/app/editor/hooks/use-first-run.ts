@@ -56,7 +56,7 @@ export function useFirstRun(isMobileChrome: boolean) {
     showHintToast(
       isMobileChrome
         ? "Tap the menu button anytime to open the command palette."
-        : `Press ${formatShortcut("k")} anytime to open the command palette.`,
+        : `Press ${formatShortcut("p")} (or Shift twice) anytime to open the command palette.`,
     );
   }, [firstRun, isVaultRestoring, isMobileChrome, setHasCompleted, setRenderedFontSize, setFullWidth]);
 }

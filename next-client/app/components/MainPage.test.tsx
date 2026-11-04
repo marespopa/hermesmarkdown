@@ -38,7 +38,7 @@ describe("MainPage", () => {
     expect(screen.queryByTestId("command-palette")).toBeNull();
 
     await act(async () => {
-      fireEvent.keyDown(document, { key: "k", metaKey: true });
+      fireEvent.keyDown(document, { key: "p", metaKey: true });
     });
     expect(await screen.findByTestId("command-palette")).toBeTruthy();
   });

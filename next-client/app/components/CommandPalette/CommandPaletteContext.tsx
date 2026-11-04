@@ -5,6 +5,7 @@ import { flushSync } from "react-dom";
 import { useAtom } from "jotai";
 import { atom_commandUseCounts, atom_recentCommandIds } from "@/app/atoms/ui-atoms";
 import { startPerf } from "@/app/utils/perf/perf-metrics";
+import { createDoubleShiftTracker } from "./palette-shortcuts";
 
 export type Command = {
   id: string;
@@ -171,21 +172,38 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
     setCommandUseCounts((previous) => ({ ...previous, [id]: (previous[id] ?? 0) + 1 }));
   }, [setCommandUseCounts, setRecentCommandIds]);
 
+  // Read through a ref, so the key listeners below aren't re-bound on every
+  // open/close, and a double-Shift while the palette is open is a no-op.
+  const isOpenRef = useRef(isOpen);
+  isOpenRef.current = isOpen;
+
   useEffect(() => {
+    // Ctrl/Cmd+P is the quick switcher, Ctrl/Cmd+Shift+P the command
+    // palette, and a double-Shift (below) the palette again. Mod-k binds
+    // nothing: the key is left free, as in VS Code. Alt combos belong to
+    // other shortcuts (Ctrl/Cmd+Alt+S shows the sidebar).
+    const doubleShift = createDoubleShiftTracker(() => {
+      if (!isOpenRef.current) open();
+    });
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
-      // Alt combos belong to other shortcuts (Ctrl/Cmd+Alt+S shows the sidebar).
       const hasPrimaryModifier = (e.ctrlKey || e.metaKey) && !e.altKey;
-      if (hasPrimaryModifier && e.shiftKey && (key === "k" || key === "p")) {
+      if (hasPrimaryModifier && e.shiftKey && key === "p") {
         e.preventDefault();
         open(">");
-      } else if (hasPrimaryModifier && !e.shiftKey && (key === "k" || key === "p")) {
+      } else if (hasPrimaryModifier && key === "p") {
         e.preventDefault();
         open();
       }
+      doubleShift.keydown(e);
     };
+    const handleKeyUp = (e: KeyboardEvent) => doubleShift.keyup(e);
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener("keyup", handleKeyUp);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keyup", handleKeyUp);
+    };
   }, [open]);
 
   const commands = useMemo(

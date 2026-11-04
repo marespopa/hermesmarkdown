@@ -28,10 +28,10 @@ const NO_TAGS: string[] = [];
 // header), the smart filters (All Notes, Untagged, Todo, Today, Archive)
 // above either; at its foot, Settings and Help (Documentation,
 // Keyboard Shortcuts), always at hand.
-// Switching between open notes is the palette's (Ctrl/Cmd+K), and the note's
+// Switching between open notes is the palette's (Ctrl/Cmd+P), and the note's
 // outline is the editor's optional one (Ctrl/Cmd+Shift+M, EditorOutline).
 // Everything else (Home, All Files, Tasks, Templates, Trash, Export,
-// search) is the command palette's (Ctrl/Cmd+K,
+// search) is the command palette's (Ctrl/Cmd+P,
 // SearchPill) or the toolbar's More menu. A plain panel in the chrome colour with a hairline
 // edge; it takes room, pushing the page over (EditorShell), and slides out
 // when hidden. It stays open until you close it (`atom_sidebarOpen`: its

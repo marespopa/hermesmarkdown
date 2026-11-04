@@ -29,12 +29,12 @@ export default function SearchPill({ className = "" }: { className?: string }) {
         variant="unstyled"
         onClick={() => open()}
         aria-label={SEARCH_OR_CREATE_PLACEHOLDER}
-        aria-keyshortcuts="Control+K Meta+K"
+        aria-keyshortcuts="Control+P Meta+P"
         className="flex h-8 min-w-0 flex-1 items-center gap-2 rounded-lg pl-3 pr-1.5 text-left text-ui-footnote text-fg-faint transition-colors hover:text-fg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage"
       >
         <HiOutlineSearch size={14} aria-hidden="true" className="shrink-0 text-fg-muted" />
         <span className="flex-1 min-w-0 truncate">{SEARCH_OR_CREATE_PLACEHOLDER}</span>
-        <kbd className={SEARCH_KBD_CLASS}>{formatShortcut("K")}</kbd>
+        <kbd className={SEARCH_KBD_CLASS}>{formatShortcut("P")}</kbd>
       </Button>
     </div>
   );

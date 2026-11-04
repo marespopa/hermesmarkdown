@@ -87,8 +87,8 @@ export const keyboardShortcutsItem: Subsection = {
         {
           context: "Command Palette",
           rows: [
-            { label: "Open Quick Switcher", shortcut: "CTRL/CMD+K or CTRL/CMD+P" },
-            { label: "Open Command Palette", shortcut: "CTRL/CMD+SHIFT+K or CTRL/CMD+SHIFT+P" },
+            { label: "Open Quick Switcher", shortcut: "CTRL/CMD+P or SHIFT SHIFT" },
+            { label: "Open Command Palette", shortcut: "CTRL/CMD+SHIFT+P" },
             { label: "Search file text", shortcut: "CTRL/CMD+SHIFT+F" },
             { label: "Filter", shortcut: "Keep typing" },
             { label: "Switch between files and commands", shortcut: "CLICK >" },

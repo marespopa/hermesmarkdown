@@ -70,7 +70,7 @@ function renderPalette(values: any[] = []) {
 }
 
 async function type(value: string) {
-  fireEvent.keyDown(document, { key: "k", ctrlKey: true });
+  fireEvent.keyDown(document, { key: "p", ctrlKey: true });
   const input = await screen.findByRole("combobox");
   fireEvent.change(input, { target: { value } });
   return input;

@@ -126,7 +126,7 @@ export const vaultGroup: Group = {
             <code>.env</code> files are never listed.
           </p>
           <p>
-            Quick Open (<code>CTRL/CMD+K</code>) finds them by name. To create one, type its name with
+            Quick Open (<code>CTRL/CMD+P</code>) finds them by name. To create one, type its name with
             the extension (<code>util.ts</code>) in <strong>New File</strong>; renaming a file to a code
             file name drops <code>.md</code>.
           </p>
