@@ -34,6 +34,7 @@ vi.mock('../base-url', async (importOriginal) => {
 vi.mock('ai', () => ({
   streamText: (...args: unknown[]) => streamTextMock(...args),
   convertToModelMessages: (...args: unknown[]) => convertMock(...args),
+  smoothStream: () => 'smooth',
 }));
 
 const uiMessages = [{ id: 'm1', role: 'user', parts: [{ type: 'text', text: 'Rename the roadmap note' }] }];
