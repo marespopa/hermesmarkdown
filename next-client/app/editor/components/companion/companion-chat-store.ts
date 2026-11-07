@@ -76,10 +76,13 @@ export function withReadableErrors(fetchImpl?: typeof globalThis.fetch): typeof 
     const text = await response.text();
     if (!/^\s*<(!doctype|html)/i.test(text)) return new Response(text, { status: response.status });
     const title = text.match(/<title>([^<]*)<\/title>/i)?.[1]?.trim() || "error page";
+    if (response.status === 413) {
+      return new Response("The request is too large for the server. Type /compact to shrink this chat, or /new to start a fresh one, and avoid attaching very large files.", { status: 413 });
+    }
     const timedOut = response.status === 504 || /timeout/i.test(title);
     const message = timedOut
       ? `The server stopped waiting for the AI's answer (${title}, ${response.status}). Send the message again, or ask for a smaller step.`
-      : `The AI request failed (${title}, ${response.status}). Try again.`;
+      : `The AI request failed (${title}, ${response.status}). Try again; if it keeps failing, type /new to start a fresh chat.`;
     return new Response(message, { status: response.status });
   };
 }
