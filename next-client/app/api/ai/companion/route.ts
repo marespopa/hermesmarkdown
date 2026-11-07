@@ -1,4 +1,4 @@
-import { convertToModelMessages, streamText, type UIMessage } from 'ai';
+import { convertToModelMessages, smoothStream, streamText, type UIMessage } from 'ai';
 import { createAIModel } from '../providers';
 import { BaseUrlError, validateBaseUrl } from '../base-url';
 import { errorMessage, errorStatus, sanitizeMessage } from '../errors';
@@ -17,6 +17,9 @@ import { withKeepAlive } from './keep-alive';
 // prompt and thread for its prompt cache (withPromptCache).
 // Long replies (thinking, web search) outlast a host's default function limit.
 export const maxDuration = 300;
+
+// Providers send text in bursts; word by word at an even pace reads smoother.
+const SMOOTH = smoothStream({ chunking: 'word', delayInMs: 12 });
 
 export async function POST(req: Request) {
   try {
@@ -52,8 +55,8 @@ export async function POST(req: Request) {
     // A turn stopped mid tool call leaves a call with no result; it is dropped.
     const modelMessages = await convertToModelMessages(messages, { tools, ignoreIncompleteToolCalls: true });
     const result = provider === 'gemini' || provider === 'ollama'
-      ? streamText({ model, tools, messages: foldSystem(system, modelMessages), abortSignal: req.signal, maxRetries: 1 })
-      : streamText({ model, tools, messages: withPromptCache(system, modelMessages), abortSignal: req.signal, maxRetries: 1 });
+      ? streamText({ model, tools, messages: foldSystem(system, modelMessages), abortSignal: req.signal, maxRetries: 1, experimental_transform: SMOOTH })
+      : streamText({ model, tools, messages: withPromptCache(system, modelMessages), abortSignal: req.signal, maxRetries: 1, experimental_transform: SMOOTH });
 
     return withKeepAlive(result.toUIMessageStreamResponse({
       // Web search results' pages, shown as links under the reply.

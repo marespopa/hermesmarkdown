@@ -50,7 +50,7 @@ export function useCompanionChat() {
     };
   }, [runTool, setActivities]);
 
-  const { messages, sendMessage, status, stop, setMessages, error, clearError } = useChat({ chat: companionChat() });
+  const { messages, sendMessage, status, stop, setMessages, error, clearError } = useChat({ chat: companionChat(), experimental_throttle: 50 });
 
   // A turn that stopped on "Let me…" gets one "continue" (per turn) instead
   // of leaving the user to type it.
