@@ -12,7 +12,9 @@ export const sanitizeMessage = (message: string): string => {
 // or anything else.
 export const errorStatus = (message: string): number => {
   const lowerMessage = message.toLowerCase();
-  return lowerMessage.includes("high demand") || lowerMessage.includes("overloaded") || lowerMessage.includes("529")
+  return lowerMessage.includes("too long") || lowerMessage.includes("too large") || lowerMessage.includes("context length")
+    ? 413
+    : lowerMessage.includes("high demand") || lowerMessage.includes("overloaded") || lowerMessage.includes("529")
     ? 503
     : lowerMessage.includes("rate limit") || lowerMessage.includes("429")
     ? 429

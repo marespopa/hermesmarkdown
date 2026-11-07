@@ -66,7 +66,23 @@ export const isWebSearchEnabled = () => getFromStorage("hermes_ai_web_search") =
 
 export const beautifyAIError = (error: string) => {
   const lowerError = error.toLowerCase();
-  
+
+  // Checked first: a too-long request is the usual cause of a sudden failure
+  // in a long chat or with a big file attached.
+  if (
+    lowerError.includes("prompt is too long") ||
+    lowerError.includes("context length") ||
+    lowerError.includes("context window") ||
+    lowerError.includes("maximum context") ||
+    lowerError.includes("too many tokens") ||
+    lowerError.includes("input token count") ||
+    lowerError.includes("payload too large") ||
+    lowerError.includes("request entity too large") ||
+    lowerError.includes("request_too_large")
+  ) {
+    return "This chat has grown too long for the model. Type /compact to shrink it, or /new to start a fresh chat. A large attached file or reference can cause this too.";
+  }
+
   if (lowerError.includes("quota exceeded") || lowerError.includes("exceeded your current quota")) {
     const retryMatch = error.match(/retry in ([\d.]+)s/i);
     const retryText = retryMatch ? ` Please try again in about ${Math.ceil(parseFloat(retryMatch[1]))} seconds.` : "";

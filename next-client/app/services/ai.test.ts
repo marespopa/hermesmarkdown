@@ -12,6 +12,16 @@ describe("beautifyAIError", () => {
   });
 });
 
+describe("beautifyAIError for long chats", () => {
+  it.each([
+    "prompt is too long: 215000 tokens > 200000 maximum",
+    "This model's maximum context length is 131072 tokens",
+    "Request Entity Too Large",
+  ])("points to /compact and /new: %s", (raw) => {
+    expect(beautifyAIError(raw)).toMatch(/\/compact.*\/new/);
+  });
+});
+
 describe("beautifyAIError for Ollama", () => {
   it("explains a model outside the plan, keeps Ollama's suggestion and drops the ref", () => {
     const raw = "this model is not included in your free usage, add usage credits to pay as you go: https://ollama.com/settings or upgrade for included usage: https://ollama.com/upgrade. Try gemma4:31b-cloud, which is in the Free plan. (ref: dde41ccf)";
