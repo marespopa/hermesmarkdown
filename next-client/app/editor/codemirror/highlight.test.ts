@@ -281,6 +281,44 @@ describe("computeMarkdownDecorations", () => {
     expect(decos.some((d) => d.from === nameFrom && d.to === doc.indexOf("]]") && d.class.includes("underline"))).toBe(true);
   });
 
+  describe("@mentions", () => {
+    const mentionMarks = (doc: string) =>
+      decorationsFor(doc).filter((d) => d.class.includes("text-sage"));
+
+    it("marks @Name in running text", () => {
+      const doc = "hi @Name there";
+      const from = doc.indexOf("@");
+      expect(mentionMarks(doc).some((d) => d.from === from && d.to === from + 5)).toBe(true);
+    });
+
+    it("marks at line start, after a bracket, and stops before punctuation", () => {
+      for (const doc of ["@Name later", "(@Name)", "ask @Name, then"]) {
+        const from = doc.indexOf("@");
+        expect(mentionMarks(doc).some((d) => d.from === from && d.to === from + 5)).toBe(true);
+      }
+    });
+
+    it("keeps _ and - inside one mention", () => {
+      for (const name of ["@name_surname", "@name-surname"]) {
+        const doc = `ping ${name} now`;
+        const from = doc.indexOf("@");
+        expect(mentionMarks(doc).some((d) => d.from === from && d.to === from + name.length)).toBe(true);
+      }
+    });
+
+    it("leaves emails alone", () => {
+      expect(mentionMarks("write to ana@example.com today")).toEqual([]);
+    });
+
+    it("leaves inline code alone", () => {
+      expect(mentionMarks("use `@Name` literally")).toEqual([]);
+    });
+
+    it("leaves date annotations alone", () => {
+      expect(mentionMarks("- [ ] Pay @due(2026-01-01)")).toEqual([]);
+    });
+  });
+
   it("draws a --- between blocks as a horizontal rule", () => {
     const doc = "Intro\n\n---\n\nNext";
     const decos = decorationsFor(doc);
