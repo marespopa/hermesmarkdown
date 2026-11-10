@@ -2,6 +2,7 @@ import {
   REGEX_CODE_INLINE,
   REGEX_WIKILINK,
   REGEX_LINK,
+  REGEX_MENTION,
   REGEX_BOLD,
   REGEX_ITALIC,
   REGEX_STRIKETHROUGH,
@@ -50,6 +51,15 @@ export function processInline(ranges: MarkRange[], label: string, base: number) 
       push(i, i + open.length, FADED_MARK);
       push(i + open.length, i + open.length + inner.length, "cm-inline-code");
       push(i + open.length + inner.length, i + full.length, FADED_MARK);
+    }
+  }
+
+  if (label.includes("@")) {
+    const codeSpans = [...label.matchAll(REGEX_CODE_INLINE)].map((c) => [c.index!, c.index! + c[0].length]);
+    for (const m of label.matchAll(REGEX_MENTION)) {
+      const from = m.index! + m[1].length;
+      if (codeSpans.some(([a, b]) => from >= a && from < b)) continue;
+      push(from, from + m[2].length, "text-sage dark:text-sage");
     }
   }
 

@@ -11,6 +11,9 @@ export const REGEX_DATE_DONE = /@done\(\d{4}-\d{2}-\d{2}\)/g;
 export const REGEX_CODE_INLINE = /(`)(.*?)(`)/g;
 export const REGEX_WIKILINK = /\[\[([^\]]+)\]\]/g;
 export const REGEX_HASHTAG = /(^|\s)(#(?=[^#\s/]*[a-zA-Z])(?:[\w-]+(?:\/[\w-]+)*))(?=\s|$)/gim;
+// A mention, `@Name`: the @ starts the line or follows whitespace/punctuation
+// (so `a@b.com` is no mention), and `@due(…)`-style annotations are left out.
+export const REGEX_MENTION = /(^|[\s([{"'>,;:!?])(@[\w-]+)(?![\w-]*\()/g;
 export const REGEX_LINK = /(\[)([^\]]+)(\]\()([^)]+)(\))/g;
 export const REGEX_BOLD = /(\*\*|__)(.*?)\1/g;
 export const REGEX_ITALIC = /(\*|_)(.*?)\1/g;
