@@ -283,7 +283,7 @@ describe("computeMarkdownDecorations", () => {
 
   describe("@mentions", () => {
     const mentionMarks = (doc: string) =>
-      decorationsFor(doc).filter((d) => d.class.includes("text-sage"));
+      decorationsFor(doc).filter((d) => d.class.includes("text-mention"));
 
     it("marks @Name in running text", () => {
       const doc = "hi @Name there";
