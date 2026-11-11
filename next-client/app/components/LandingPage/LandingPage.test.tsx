@@ -84,6 +84,10 @@ describe("LandingPage", () => {
       "href",
       "/markdown-editor",
     );
+    expect(screen.getByRole("link", { name: "free Markdown tools" })).toHaveAttribute(
+      "href",
+      "/tools",
+    );
   });
 
   it("opens the editor from the primary action", () => {

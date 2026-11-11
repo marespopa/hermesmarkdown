@@ -12,10 +12,10 @@ vi.mock("next/link", () => ({
 
 describe("TextLink", () => {
   it("routes site paths through next/link", () => {
-    render(<TextLink href="/documentation">docs page</TextLink>);
-    const link = screen.getByRole("link", { name: "docs page" });
+    render(<TextLink href="/tools">tools page</TextLink>);
+    const link = screen.getByRole("link", { name: "tools page" });
     expect(link).toHaveAttribute("data-next-link");
-    expect(link).toHaveAttribute("href", "/documentation");
+    expect(link).toHaveAttribute("href", "/tools");
     expect(link).not.toHaveAttribute("target");
   });
 

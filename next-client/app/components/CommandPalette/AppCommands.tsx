@@ -82,6 +82,23 @@ export default function AppCommands() {
     action: sendFeedback,
   });
 
+  // The free tools are their own site area, not part of writing: offered
+  // everywhere but the editor.
+  useRegisterCommand(
+    inEditor
+      ? null
+      : {
+          id: "open-tools",
+          label: "Open Free Tools",
+          description: "Table generator, Mermaid, tokenizer, token cost and more",
+          category: "Navigation",
+          opens: "page",
+          keywords: "tools markdown table generator mermaid tokenizer token cost calculator price cleaner converter html",
+          disabledReason: pathname === "/tools" ? "Already viewing the tools" : undefined,
+          action: () => router.push("/tools"),
+        },
+  );
+
   // The editor's pages, from any route: the palette is the way around (the
   // sidebar holds only the vault's files and the note's outline). On the
   // editor itself Tasks and Templates come from its own commands, so they
