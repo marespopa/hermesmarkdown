@@ -15,16 +15,13 @@ const SITE_DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
-  title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
+  title: "HermesMarkdown — A Markdown Editor in Your Browser, Offline and Private",
   description: SITE_DESCRIPTION,
   applicationName: "HermesMarkdown",
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   keywords: [
-    "context engineering",
-    "context engineering for notes",
     "local-first markdown editor",
     "markdown editor for engineers",
-    "AI-readable notes",
     "wikilinks",
     "offline markdown editor",
     "markdown editor pwa",
@@ -32,7 +29,6 @@ export const metadata: Metadata = {
     "privacy-focused editor",
     "no-cloud notes",
     "distraction-free editor",
-    "RAG knowledge base",
   ],
   manifest: "/manifest.json",
   // Home-screen install on iOS: full-screen, with its own name.
@@ -44,7 +40,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
   openGraph: {
-    title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
+    title: "HermesMarkdown — A Markdown Editor in Your Browser, Offline and Private",
     description: SITE_DESCRIPTION,
     url: "https://hermesmarkdown.com",
     siteName: "HermesMarkdown",
@@ -53,7 +49,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
+    title: "HermesMarkdown — A Markdown Editor in Your Browser, Offline and Private",
     description: SITE_DESCRIPTION,
     images: ["/assets/og-image.jpg"],
   },

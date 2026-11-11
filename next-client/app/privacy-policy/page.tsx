@@ -59,9 +59,14 @@ export default function PrivacyPolicy() {
             <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">Data Collection & Storage</h2>
             <h3 className="text-ui-title-3 font-semibold">User Content (Markdown Files)</h3>
             <p>
-              HermesMarkdown does not store, transmit, or have access to your Markdown files, notes, or vaults. When you open a local folder as a Vault, the application interacts with your file system directly through your browser&apos;s File System Access API. Your content never leaves your machine.
+              HermesMarkdown does not store, transmit, or have access to your Markdown files, notes, or vaults. When you open a local folder as a Vault, the application interacts with your file system directly through your browser&apos;s File System Access API. Your content never leaves your machine, except for text you send to an AI provider (see AI Features below).
             </p>
             
+            <h3 className="text-ui-title-3 font-semibold">AI Features (Optional)</h3>
+            <p>
+              AI is off until you add your own API key. The key is kept in your browser. When you use an AI feature, the text you send and your key pass through the HermesMarkdown server, which forwards them to the provider you chose (Anthropic, Google or another) for that one request. HermesMarkdown does not store the text, the reply or the key. A local Ollama model is called straight from your browser, with no request to our server. The provider handles your text under its own terms.
+            </p>
+
             <h3 className="text-ui-title-3 font-semibold">Local Storage</h3>
             <p>
               We use <code>localStorage</code> and <code>IndexedDB</code> within your browser to store application settings (like theme, font, and editor preferences) and to maintain the list of Vault handles you have authorized. This data is local to your browser and is not synchronized with any external database.

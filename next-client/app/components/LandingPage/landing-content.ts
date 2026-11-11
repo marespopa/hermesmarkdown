@@ -56,6 +56,14 @@ export const LANDING_FAQ: LandingFaq[] = [
     a: "In a vault you choose: a folder of Markdown files on your disk or a browser vault kept in your browser's own storage. Files are never uploaded to a HermesMarkdown server.",
   },
   {
+    q: "What if my browser clears its data?",
+    a: "A folder on your disk is unaffected, because the files live in the folder. A browser vault lives in browser storage, which the browser may clear when space runs low or when you clear site data, so keep a copy: export the vault as a zip from the command palette.",
+  },
+  {
+    q: "What happens to my text when I use AI?",
+    a: "AI is off until you add your own API key. The key stays in your browser. When you ask for something, the text you send and your key pass through the HermesMarkdown server to Anthropic, Google or your chosen provider for that single request. HermesMarkdown does not store either. A local Ollama model is called straight from your browser.",
+  },
+  {
     q: "Does it work offline?",
     a: "Yes. Install it as an app from your browser and it keeps working without a connection. Only the optional AI features need the network.",
   },

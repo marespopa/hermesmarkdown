@@ -11,6 +11,7 @@ import { atom_isVaultPending, atom_isVaultRestoring } from "@/app/atoms/vault-at
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
 import { useVaultPins } from "@/app/hooks/use-vault-pins";
 import { useVaultSync } from "@/app/hooks/use-vault-sync";
+import { useLaunchFiles } from "@/app/hooks/file-system/use-launch-files";
 import { useVaultTreeSnapshot } from "@/app/hooks/use-vault-tree-snapshot";
 import { PageShortcuts } from "@/app/components/CommandPalette/use-page-shortcuts";
 import { formatShortcut } from "@/app/utils/platform";
@@ -86,6 +87,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   });
   useVaultPins(!isVaultLocked);
   useVaultSync();
+  useLaunchFiles();
   // The Changes scan, warmed up early so that page opens with a result.
   // The tree as last seen, until the vault's walk lists it again.
   useVaultTreeSnapshot();
