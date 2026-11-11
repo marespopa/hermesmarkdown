@@ -138,6 +138,7 @@ describe("buildEditorCommands", () => {
       "import-file",
       "open-tasks-panel",
       "open-templates",
+      "token-cost",
       "duplicate-current-file",
       "move-current-file",
       "close-other-tabs",

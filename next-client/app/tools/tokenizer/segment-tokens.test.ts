@@ -46,6 +46,7 @@ describe("textStats", () => {
 
   it("splits text in a script without spaces into words", () => {
     expect(textStats("日本語のテキストです").words).toBeGreaterThan(1);
-    expect(textStats("Hello 日本語").words).toBeGreaterThan(2);
+    // Each run is counted on its own, so a space-separated word adds exactly one.
+    expect(textStats("Hello 日本語のテキストです").words).toBe(1 + textStats("日本語のテキストです").words);
   });
 });
