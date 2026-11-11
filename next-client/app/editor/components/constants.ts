@@ -140,6 +140,13 @@ export const TEMPLATES: Template[] = [
   { label: "WikiLink", icon: "[[", description: "Link to another file", aliases: ["wiki", "backlink", "file link"], content: WIKILINK_EDITOR_SENTINEL },
   { label: "Date", icon: "📅", description: "Pick a date from the calendar", aliases: ["today", "calendar", "day"], content: DATE_EDITOR_SENTINEL },
   { label: "Task", icon: "☑️", description: "Create a checklist task with status, due date, and tags", aliases: ["due", "status"], content: TASK_EDITOR_SENTINEL },
+  {
+    label: "Calculator",
+    icon: "=",
+    description: "Type a sum ending in = to see the result; Tab keeps it",
+    aliases: ["calc", "math", "sum", "equals"],
+    content: "1 + 1 =",
+  },
   { label: "Table", icon: "⊞", description: "Insert a Markdown table", aliases: ["grid", "tbl"], content: TABLE_DIALOG_SENTINEL },
   {
     label: "Code",
