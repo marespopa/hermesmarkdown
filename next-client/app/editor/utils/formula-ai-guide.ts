@@ -51,19 +51,19 @@ Formulas:
 // Worked example for NOTE_CALC_GUIDE; formula-ai-guide.test.ts checks the
 // results against the real scanner, so the prompt can't drift from it.
 export const NOTE_CALC_EXAMPLE = {
-  lines: ["rent = 1200", "utilities = 180", "rent + utilities", "rent + utilities + 15%"],
-  results: [null, null, "= 1380", "= 1587"],
+  lines: ["rent = 1200", "utilities = 180", "rent + utilities =", "rent + utilities + 15% ="],
+  results: [null, null, "1380", "1587"],
 };
 
 // For AI features that write new note content (chat, continue writing, new
 // note). Rules mirror utils/note-calc-scan.ts and utils/math-eval.ts.
 export const NOTE_CALC_GUIDE = `HermesMarkdown also has an inline calculator for plain lines outside tables.
-- A line holding a math expression shows its result at the end of the line, e.g. "120 * 12" is displayed with "= 1440". The result is shown by the app, not stored in the file.
+- A math expression that ends with "=" shows its result after the "=", e.g. "120 * 12 =" is displayed with "1440". Without the trailing "=" nothing is shown. The result is shown by the app, not stored in the file.
 - Variables: "name = expression" on its own line defines a variable for the lines below it. Names are one or more words, case-insensitive ("monthly rent = 1200"); "of" can't be part of a name. A name can be reassigned and may use its old value ("rent = rent + 100").
 - Operators: + - * /, parentheses, "1,234" thousands separators, "450 + 15%" (adds 15% of the left side), "15% of 200", and any other "%" as a fraction (50% = 0.5).
 - One leading list marker is allowed ("- rent + utilities"). Calculator lines are ignored inside code fences, $$ math blocks, frontmatter and headings.
 - Example (the app shows the results on the right):
 ${NOTE_CALC_EXAMPLE.lines.map((line, i) => `  ${line}${NOTE_CALC_EXAMPLE.results[i] ? `   → shows ${NOTE_CALC_EXAMPLE.results[i]}` : ""}`).join("\n")}
 - When the user wants quick sums, budgets or estimates in a note (not a table), write variables and expressions like this so the numbers stay live.
-- NEVER write the result yourself: "rent + utilities = 1380" breaks the calculator and goes stale when a value changes. Write "rent + utilities" and let the app show the result.
+- NEVER write the result yourself: "rent + utilities = 1380" breaks the calculator and goes stale when a value changes. Write "rent + utilities =" and let the app show the result.
 - Don't put currency symbols or units inside calculator lines; name the variable instead ("rent ron = 1200" is fine, "rent = 1200 RON" is not).`;
