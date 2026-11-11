@@ -61,9 +61,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ai-sdk/provider-utils@npm:4.0.61":
-  version: 4.0.61
-  resolution: "@ai-sdk/provider-utils@npm:4.0.61"
+"@ai-sdk/provider-utils@npm:4.0.65":
+  version: 4.0.65
+  resolution: "@ai-sdk/provider-utils@npm:4.0.65"
   dependencies:
     "@ai-sdk/provider": "npm:3.0.19"
     "@standard-schema/spec": "npm:^1.1.0"
@@ -71,7 +71,7 @@ __metadata:
     undici: "npm:^6.28.0"
   peerDependencies:
     zod: ^3.25.76 || ^4.1.8
-  checksum: 10c0/dcef202c0e2417b0cf5cbd1d36a7fd33528786f4d5b895b0e7dd4b74426a59e8f776779e5d808d397e041971c90150092738590f575cc3fd0e5c53a3e4db6e6e
+  checksum: 10c0/ffb50b5a8cc76c1cde4fad04eae828e13e784f14a5f0c2770a715d15f1e8cb3e5af51d98246afc6ceaab352fcfddd01a23852de32e9a204823a5783a6160c068
   languageName: node
   linkType: hard
 
