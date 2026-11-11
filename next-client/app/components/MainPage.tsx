@@ -97,7 +97,7 @@ const MainPage = ({ children }: Props) => {
             fontSize: "13px",
             fontWeight: 500,
             borderRadius: "12px",
-            // The panel material (`.glass-panel`) owns fill, blur, edge
+            // The panel material (`.glass-panel`) owns fill, edge
             // and shadow; react-hot-toast's own defaults would cover it.
             background: "var(--material-panel)",
             boxShadow: "inset 0 1px 0 var(--material-highlight), var(--material-shadow)",

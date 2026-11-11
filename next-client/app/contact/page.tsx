@@ -41,7 +41,7 @@ export default function ContactPage() {
         {/* --- CHANNELS SECTION --- */}
         <section className="border-t border-black/5 dark:border-white/10 pt-24">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-xl border border-black/5 dark:border-white/5 space-y-4 transition-all group">
+            <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 rounded-xl border border-black/5 dark:border-white/5 space-y-4 transition-all group">
               <div className="h-px w-8 bg-sage group-hover:w-12 transition-all duration-500" />
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] opacity-40">
                 Electronic Mail
@@ -53,7 +53,7 @@ export default function ContactPage() {
               </p>
             </div>
 
-            <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 backdrop-blur-sm rounded-xl border border-black/5 dark:border-white/5 space-y-4 transition-all group">
+            <div className="p-8 bg-neutral-50/50 dark:bg-neutral-900/30 rounded-xl border border-black/5 dark:border-white/5 space-y-4 transition-all group">
               <div className="h-px w-8 bg-purple-600 group-hover:w-12 transition-all duration-500" />
               <h2 className="text-xs font-bold uppercase tracking-[0.2em] opacity-40">
                 GitHub Community
