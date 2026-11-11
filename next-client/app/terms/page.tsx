@@ -2,8 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import Button from "@/app/components/Button/Button.component";
+import PageHero from "@/app/components/PageHero/PageHero";
 import TextLink from "@/app/components/TextLink";
 
 const BackgroundGraphics = () => (
@@ -16,35 +15,16 @@ const BackgroundGraphics = () => (
 );
 
 export default function TermsAndConditions() {
-  const router = useRouter();
-
   return (
     <main className="selection:bg-sage/30 overflow-x-hidden font-sans relative">
       <BackgroundGraphics />
       <div className="container max-w-screen-xl pt-32 pb-32 space-y-32">
-        {/* --- HEADER SECTION --- */}
-        <section className="space-y-8 animate-hero-fade-in">
-          <Button
-            variant="tertiary"
-            onClick={() => router.back()}
-            className="!text-ui-footnote uppercase tracking-[0.3em] opacity-40 hover:opacity-100 -ml-4"
-          >
-            ← Back
-          </Button>
-
-          <div className="space-y-4">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05]">
-              Terms of{" "}
-              <span className="text-neutral-600 dark:text-neutral-400 italic">
-                Service.
-              </span>
-            </h1>
-          </div>
-
-          <p className="text-lg md:text-2xl leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-3xl font-medium">
-            Transparency and accountability are core to the HermesMarkdown philosophy. These terms outline our mutual commitment to a fair and open workspace.
-          </p>
-        </section>
+        <PageHero
+          showBack
+          title="Terms of"
+          accent="Service."
+          intro="Transparency and accountability are core to the HermesMarkdown philosophy. These terms outline our mutual commitment to a fair and open workspace."
+        />
 
         {/* --- CONTENT SECTION --- */}
         <section className="prose prose-sm md:prose-base dark:prose-invert max-w-3xl border-t border-black/5 dark:border-white/10 pt-24 space-y-12">

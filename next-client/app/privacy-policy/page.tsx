@@ -2,8 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import Button from "@/app/components/Button/Button.component";
+import PageHero from "@/app/components/PageHero/PageHero";
 import TextLink from "@/app/components/TextLink";
 
 const BackgroundGraphics = () => (
@@ -16,35 +15,17 @@ const BackgroundGraphics = () => (
 );
 
 export default function PrivacyPolicy() {
-  const router = useRouter();
 
   return (
     <main className="selection:bg-sage/30 overflow-x-hidden font-sans relative">
       <BackgroundGraphics />
       <div className="container max-w-screen-xl pt-32 pb-32 space-y-32">
-        {/* --- HEADER SECTION --- */}
-        <section className="space-y-8 animate-hero-fade-in">
-          <Button
-            variant="tertiary"
-            onClick={() => router.back()}
-            className="!text-ui-footnote uppercase tracking-[0.3em] opacity-40 hover:opacity-100 -ml-4"
-          >
-            ← Back
-          </Button>
-
-          <div className="space-y-4">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[1.05]">
-              Privacy{" "}
-              <span className="text-neutral-600 dark:text-neutral-400 italic">
-                Policy.
-              </span>
-            </h1>
-          </div>
-
-          <p className="text-lg md:text-2xl leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-3xl font-medium">
-            At HermesMarkdown, we believe that your thoughts should remain private. Our commitment to a local-first architecture is the foundation of our privacy model.
-          </p>
-        </section>
+        <PageHero
+          showBack
+          title="Privacy"
+          accent="Policy."
+          intro="At HermesMarkdown, we believe that your thoughts should remain private. Our commitment to a local-first architecture is the foundation of our privacy model."
+        />
 
         {/* --- CONTENT SECTION --- */}
         <section className="prose prose-sm md:prose-base dark:prose-invert max-w-3xl border-t border-black/5 dark:border-white/10 pt-24 space-y-12">

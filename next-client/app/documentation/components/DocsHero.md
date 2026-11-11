@@ -1,6 +1,6 @@
 # DocsHero
 
-Description: The documentation home's opening: a centred "How can we help?" headline, a one-line description and a large rounded search field. While searching it announces how many articles match (or that none do).
+Description: The documentation home's opening: the "How can we help?" headline, a one-line description and a large rounded search field, laid out by the shared [PageHero](../../components/PageHero/PageHero.md) like the Contact, Terms and Privacy pages. While searching it announces how many articles match (or that none do).
 
 ## Local State & Storage
 - State: None; the query is owned by the page.
