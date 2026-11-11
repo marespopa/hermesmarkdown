@@ -16,10 +16,9 @@ body {
    Neutral surfaces only — clay/moss accents never appear as backgrounds.
    ─────────────────────────────────────────────────────────────────────── */
 :root {
-  /* Editorial Craft (warm & humanist): Instrument Serif for hero headings
-     (`font-hero`), Plus Jakarta Sans for everything else (`font-sans`). The
+  /* Editorial Craft (warm & humanist): Plus Jakarta Sans for the interface
+     and every heading, page titles included (`font-sans`). The
      editor's writing fonts are set separately (Settings → Typography). */
-  --landing-hero: var(--font-instrument-serif), 'Instrument Serif', Georgia, serif;
   --landing-body: var(--font-plus-jakarta), 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, ui-sans-serif, sans-serif;
   /* Code blocks and inline code (Settings → Typography → Code font):
      ThemeProvider sets the reader's pick on <html>; Geist Mono until then. */
@@ -54,6 +53,7 @@ body {
      surface, raised and chrome. */
   --clay:           #3A5A8C;
   --moss:           #3A5A8C;
+  --mention:        #7A4A8C;  /* @Name: plum, apart from the blue links */
   --moss-hover:     #324E7A;  /* the blue, darkened — hover/active state for sage buttons */
   /* Task status (box character): in progress, on hold, done. Status
      colours of their own, apart from the accent, as in every palette. To
@@ -133,6 +133,7 @@ html.dark {
   /* Ink: Paper's dark pair. Its identity hue is Paper's ink blue,
      lightened for contrast on the dark surfaces. */
   --clay:           #8FA8D0;
+  --mention:        #C3A0D8;
   --moss:           #8FA8D0;
   --task-prog:      #D88B68;
   --danger:         #D88B68;

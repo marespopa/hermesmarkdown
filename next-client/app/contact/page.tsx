@@ -2,8 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import Button from "@/app/components/Button/Button.component";
+import PageHero from "@/app/components/PageHero/PageHero";
 import TextLink from "@/app/components/TextLink";
 
 const BackgroundGraphics = () => (
@@ -16,51 +15,28 @@ const BackgroundGraphics = () => (
 );
 
 export default function ContactPage() {
-  const router = useRouter();
   const email = "office@marespopa.com";
 
   return (
     <main className="selection:bg-sage/30 overflow-x-hidden font-sans relative">
       <BackgroundGraphics />
       <div className="container max-w-screen-xl pt-32 pb-32 space-y-32">
-        {/* --- HEADER SECTION --- */}
-        <section className="space-y-8 animate-hero-fade-in">
-          <Button
-            variant="tertiary"
-            onClick={() => router.back()}
-            className="!text-ui-footnote uppercase tracking-[0.3em] opacity-40 hover:opacity-100 -ml-4"
+        <PageHero
+          showBack
+          title="Get in touch"
+          intro="HermesMarkdown is built in the open for writers who value privacy. Whether you've found a bug, have a feature request, or just want to talk shop about local-first tools—we're listening."
+        >
+          <TextLink
+            href={`mailto:${email}`}
+            variant="unstyled"
+            className="inline-flex items-center gap-4 bg-neutral-900 dark:bg-zinc-100 text-white dark:text-neutral-900 px-10 py-4 rounded-xl transition-all font-bold text-sm uppercase tracking-widest group"
           >
-            ← Back
-          </Button>
-
-          <div className="space-y-4">
-            <h1 className="text-5xl md:text-8xl font-hero font-normal tracking-tight leading-[1.05]">
-              Get in{" "}
-              <span className="text-neutral-600 dark:text-neutral-400 italic">
-                Touch.
-              </span>
-            </h1>
-          </div>
-
-          <p className="text-lg md:text-2xl leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-3xl font-medium">
-            HermesMarkdown is built in the open for writers who value privacy.
-            Whether you've found a bug, have a feature request, or just want to
-            talk shop about local-first tools—we're listening.
-          </p>
-
-          <div className="pt-8">
-            <TextLink
-              href={`mailto:${email}`}
-              variant="unstyled"
-              className="inline-flex items-center gap-4 bg-neutral-900 dark:bg-zinc-100 text-white dark:text-neutral-900 px-10 py-4 rounded-xl transition-all font-bold text-sm uppercase tracking-widest group"
-            >
-              {email}
-              <span className="group-hover:translate-x-1 transition-transform">
-                →
-              </span>
-            </TextLink>
-          </div>
-        </section>
+            {email}
+            <span className="group-hover:translate-x-1 transition-transform">
+              →
+            </span>
+          </TextLink>
+        </PageHero>
 
         {/* --- CHANNELS SECTION --- */}
         <section className="border-t border-black/5 dark:border-white/10 pt-24">

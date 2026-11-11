@@ -37,6 +37,7 @@ These change between light and dark mode. Always prefer these over static colors
 | `accent-hover`                    | `--clay`                        | same as `accent`      | same as `accent`         | Alias; no distinct hover value today                                                                                 |
 | `sage`                            | `--moss`                        | `#626F54`             | `#8FA178`                | Secondary accent — icons, muted interactive                                                                          |
 | `sage-hover`                      | `--moss-hover`                  | `#5C6A4E`             | `#A3B58C`                | Hover / active state for sage buttons                                                                                |
+| `mention`                         | `--mention`                     | `#7A4A8C` (Paper)     | `#C3A0D8` (Ink)          | `@Name` mentions in notes, a hue apart from links. Sepia, Solarized and Nord set their own; Plain and Graphite stay neutral and reuse `--moss` |
 
 `sage-subtle`, `sage-light` and `sage-dark` still exist for backwards compatibility but all resolve to `var(--moss)` — they are **not** distinct shades. Use `sage` with an opacity modifier (`bg-sage/10`, `ring-sage/20`) instead.
 
@@ -203,12 +204,11 @@ Defined in `tailwind.config.js` as custom `fontSize` entries. Sizes and line hei
 
 ## Font Families
 
-Three self-hosted faces (`app/fonts.ts`), the "Editorial Craft" pairing: Plus Jakarta Sans for everything sans, Instrument Serif for the hero headings of the landing and marketing pages, and Geist Mono for code. The sans and hero stacks are the `--landing-body` and `--landing-hero` tokens in `globals.scss`; every stack falls back to a system face with the same role. Two more are writing-only options, both built on IBM Plex and bundled unmodified under the SIL OFL (licence alongside the files), loaded only when picked: Duospace (`app/font-files/duospace/`, duospaced) and Quattro (`app/font-files/quattro/`, proportional).
+Self-hosted faces (`app/fonts.ts`): Plus Jakarta Sans for everything sans, page titles included (one family on every page, no serif), and Geist Mono for code. The sans stack is the `--landing-body` token in `globals.scss`; every stack falls back to a system face with the same role. Two more are writing-only options, both built on IBM Plex and bundled unmodified under the SIL OFL (licence alongside the files), loaded only when picked: Duospace (`app/font-files/duospace/`, duospaced) and Quattro (`app/font-files/quattro/`, proportional).
 
 | Token | Stack | Use |
 |---|---|---|
-| `font-sans` | Plus Jakarta Sans → system-ui (SF Pro) | UI chrome, labels, buttons, headings (also the `body` default) |
-| `font-hero` | Instrument Serif → Georgia → serif | The `h1` of the landing, docs, tools, legal, contact and error pages. One weight: use with `font-normal` |
+| `font-sans` | Plus Jakarta Sans → system-ui (SF Pro) | UI chrome, labels, buttons, headings and page titles (also the `body` default) |
 | `font-mono` | Geist Mono → SF Mono → Menlo | Code, keyboard chips, technical metadata, and a writing choice |
 
 The editor font is user-selectable (Settings → Typography) from `app/editor/settings/font-options.ts`: Quattro (default, so a note reads as a page), Geist Mono, Duospace (set without tracking, like the monospace: `data-font="mono"`) or Quattro. Plus Jakarta Sans is the interface face only; a saved sans writing choice (Inter, Plus Jakarta Sans) and the retired Source Serif 4 move to Quattro on load, and a saved Inter or Source Serif reading font moves to Plus Jakarta Sans. Text size offers the Dynamic Type body steps 15 / 17 (default) / 19 / 21 / 23px. Those two are the only typography settings. Line height (1.65), the reading measure (≤ 44rem / 704px, the same at every text size), heading rhythm and code styling are fixed in `app/editor/editor-typography.scss`.

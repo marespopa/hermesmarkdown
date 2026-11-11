@@ -24,11 +24,8 @@ export default function NotFound() {
           </p>
         </div>
 
-        <h1 className="text-6xl md:text-8xl font-hero font-normal tracking-tight leading-none">
-          Page{' '}
-          <span className="text-neutral-300 dark:text-neutral-700 italic">
-            not found.
-          </span>
+        <h1 className="text-6xl md:text-7xl font-bold tracking-tight leading-none">
+          Page not found.
         </h1>
 
         <p className="text-neutral-500 dark:text-neutral-400 text-lg leading-relaxed">

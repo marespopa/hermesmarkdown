@@ -69,6 +69,7 @@ All file writes go through `writeFileContent()` in `app/services/file-writer.ts`
 
 | Hook | Purpose |
 |------|---------|
+| `use-launch-files.ts` | Opens files the OS hands to the installed app (manifest `file_handlers`, `launchQueue`; Chromium). Each opens by name, like a picked file outside the vault. Mounted once by `EditorShell` |
 | `use-file-editor.ts` | Composes open / save / export (background indexing runs once, in `ActiveFileIndexer`) |
 | `use-open-file.ts` | Loads a file into the editor (and closes the home feed; the sidebar stays as it is); retries stale handles. Saved content on disk always wins: differing unsaved browser text for that file is kept as a `local` snapshot on the tab, never prompted. Only an unsaved draft asks before being replaced. Takes the text read ahead by `note-prefetch.ts` when the file's modified time and size still match; waits for the open notes' stored text (`whenOpenNotesHydrated`) before comparing with disk |
 | `use-show-open-note.ts` | `useShowOpenNoteAtOnce()`: `openFile`'s path for a note already open with a known disk time: it comes to the front at once from memory, then a `getFile()` metadata check runs behind it; a changed file's text replaces it (disk wins, differing unsaved text kept as a `local` snapshot), an unchanged one keeps text, caret and unsaved edits. `atom_verifyingNotePath` keeps its editor read-only until the check is done; the delayed loading bar shows only if it's slow. A failed check falls back to the full open |

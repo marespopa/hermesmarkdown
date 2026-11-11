@@ -2,8 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import Button from "@/app/components/Button/Button.component";
+import PageHero from "@/app/components/PageHero/PageHero";
 import TextLink from "@/app/components/TextLink";
 
 const BackgroundGraphics = () => (
@@ -16,35 +15,16 @@ const BackgroundGraphics = () => (
 );
 
 export default function PrivacyPolicy() {
-  const router = useRouter();
 
   return (
     <main className="selection:bg-sage/30 overflow-x-hidden font-sans relative">
       <BackgroundGraphics />
       <div className="container max-w-screen-xl pt-32 pb-32 space-y-32">
-        {/* --- HEADER SECTION --- */}
-        <section className="space-y-8 animate-hero-fade-in">
-          <Button
-            variant="tertiary"
-            onClick={() => router.back()}
-            className="!text-ui-footnote uppercase tracking-[0.3em] opacity-40 hover:opacity-100 -ml-4"
-          >
-            ← Back
-          </Button>
-
-          <div className="space-y-4">
-            <h1 className="text-5xl md:text-8xl font-hero font-normal tracking-tight leading-[1.05]">
-              Privacy{" "}
-              <span className="text-neutral-600 dark:text-neutral-400 italic">
-                Policy.
-              </span>
-            </h1>
-          </div>
-
-          <p className="text-lg md:text-2xl leading-relaxed text-neutral-500 dark:text-neutral-400 max-w-3xl font-medium">
-            At HermesMarkdown, we believe that your thoughts should remain private. Our commitment to a local-first architecture is the foundation of our privacy model.
-          </p>
-        </section>
+        <PageHero
+          showBack
+          title="Privacy Policy"
+          intro="At HermesMarkdown, we believe that your thoughts should remain private. Our commitment to a local-first architecture is the foundation of our privacy model."
+        />
 
         {/* --- CONTENT SECTION --- */}
         <section className="prose prose-sm md:prose-base dark:prose-invert max-w-3xl border-t border-black/5 dark:border-white/10 pt-24 space-y-12">
@@ -59,9 +39,14 @@ export default function PrivacyPolicy() {
             <h2 className="text-xl font-bold tracking-tight uppercase tracking-widest text-sage dark:text-sage text-xs">Data Collection & Storage</h2>
             <h3 className="text-ui-title-3 font-semibold">User Content (Markdown Files)</h3>
             <p>
-              HermesMarkdown does not store, transmit, or have access to your Markdown files, notes, or vaults. When you open a local folder as a Vault, the application interacts with your file system directly through your browser&apos;s File System Access API. Your content never leaves your machine.
+              HermesMarkdown does not store, transmit, or have access to your Markdown files, notes, or vaults. When you open a local folder as a Vault, the application interacts with your file system directly through your browser&apos;s File System Access API. Your content never leaves your machine, except for text you send to an AI provider (see AI Features below).
             </p>
             
+            <h3 className="text-ui-title-3 font-semibold">AI Features (Optional)</h3>
+            <p>
+              AI is off until you add your own API key. The key is kept in your browser. When you use an AI feature, the text you send and your key pass through the HermesMarkdown server, which forwards them to the provider you chose (Anthropic, Google or another) for that one request. HermesMarkdown does not store the text, the reply or the key. A local Ollama model is called straight from your browser, with no request to our server. The provider handles your text under its own terms.
+            </p>
+
             <h3 className="text-ui-title-3 font-semibold">Local Storage</h3>
             <p>
               We use <code>localStorage</code> and <code>IndexedDB</code> within your browser to store application settings (like theme, font, and editor preferences) and to maintain the list of Vault handles you have authorized. This data is local to your browser and is not synchronized with any external database.

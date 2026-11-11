@@ -6,7 +6,7 @@ import MainPage from "./components/MainPage";
 import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import InlineScript from "./components/InlineScript";
 import { Metadata, Viewport } from "next";
-import { plusJakarta, instrumentSerif, geistMono, jetbrainsMono, firaCode, duospace, quattro } from "./fonts";
+import { plusJakarta, geistMono, jetbrainsMono, firaCode, duospace, quattro } from "./fonts";
 import { CODE_FONT_STACKS } from "./atoms/ui-atoms";
 import { DARK_THEMES, DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, LEGACY_THEME_MAP, LIGHT_THEMES } from "./theme-palettes";
 
@@ -15,16 +15,13 @@ const SITE_DESCRIPTION =
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
-  title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
+  title: "HermesMarkdown — A Markdown Editor in Your Browser, Offline and Private",
   description: SITE_DESCRIPTION,
   applicationName: "HermesMarkdown",
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
   keywords: [
-    "context engineering",
-    "context engineering for notes",
     "local-first markdown editor",
     "markdown editor for engineers",
-    "AI-readable notes",
     "wikilinks",
     "offline markdown editor",
     "markdown editor pwa",
@@ -32,7 +29,6 @@ export const metadata: Metadata = {
     "privacy-focused editor",
     "no-cloud notes",
     "distraction-free editor",
-    "RAG knowledge base",
   ],
   manifest: "/manifest.json",
   // Home-screen install on iOS: full-screen, with its own name.
@@ -44,7 +40,7 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
   openGraph: {
-    title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
+    title: "HermesMarkdown — A Markdown Editor in Your Browser, Offline and Private",
     description: SITE_DESCRIPTION,
     url: "https://hermesmarkdown.com",
     siteName: "HermesMarkdown",
@@ -53,7 +49,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "HermesMarkdown — Runs in Browser, Files Stay on Disk",
+    title: "HermesMarkdown — A Markdown Editor in Your Browser, Offline and Private",
     description: SITE_DESCRIPTION,
     images: ["/assets/og-image.jpg"],
   },
@@ -138,7 +134,7 @@ export default function RootLayout({
       // them; THEME_INIT_SCRIPT swaps in the reader's own picks.
       data-light-theme={DEFAULT_LIGHT_THEME}
       data-dark-theme={DEFAULT_DARK_THEME}
-      className={`h-full overscroll-none ${plusJakarta.variable} ${instrumentSerif.variable} ${geistMono.variable} ${jetbrainsMono.variable} ${firaCode.variable} ${duospace.variable} ${quattro.variable}`}
+      className={`h-full overscroll-none ${plusJakarta.variable} ${geistMono.variable} ${jetbrainsMono.variable} ${firaCode.variable} ${duospace.variable} ${quattro.variable}`}
     >
       <head>
         <InlineScript html={THEME_INIT_SCRIPT} />

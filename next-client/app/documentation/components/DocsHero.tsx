@@ -3,6 +3,7 @@
 import React from "react";
 import { HiOutlineSearch } from "react-icons/hi";
 import { BareInput, FIELD_SURFACE } from "@/app/components/Input";
+import PageHero from "@/app/components/PageHero/PageHero";
 
 interface DocsHeroProps {
   query: string;
@@ -11,21 +12,22 @@ interface DocsHeroProps {
   resultCount: number;
 }
 
-// The docs home's opening: a centred question and one large search field
-// that filters every article below it.
+// The docs home's opening: the shared PageHero headline and one large search
+// field that filters every article below it.
 export default function DocsHero({ query, onQueryChange, resultCount }: DocsHeroProps) {
   const searching = query.trim() !== "";
   return (
-    <section className="text-center pt-14 pb-12 sm:pt-24 sm:pb-16 animate-hero-fade-in">
-      <p className="text-[17px] font-semibold text-fg-muted">HermesMarkdown Documentation</p>
-      <h1 className="mt-2 text-[40px] sm:text-[56px] font-hero font-normal tracking-[-0.01em] leading-[1.07] text-fg">
-        How can we help?
-      </h1>
-      <p className="mt-4 mx-auto max-w-2xl text-[19px] sm:text-[21px] leading-snug text-fg-muted">
-        Everything HermesMarkdown does, feature by feature. Plain <code className="font-mono text-[0.85em]">.md</code> files,
-        saved straight to your machine.
-      </p>
-      <div className="relative mt-10 mx-auto max-w-xl">
+    <PageHero
+      className="pt-24 pb-16"
+      title="How can we help?"
+      intro={
+        <>
+          Everything HermesMarkdown does, feature by feature. Plain <code className="font-mono text-[0.85em]">.md</code> files,
+          saved straight to your machine.
+        </>
+      }
+    >
+      <div className="relative max-w-xl">
         <HiOutlineSearch
           size={20}
           aria-hidden="true"
@@ -41,12 +43,12 @@ export default function DocsHero({ query, onQueryChange, resultCount }: DocsHero
         />
       </div>
       {searching && (
-        <p aria-live="polite" className="mt-4 text-[15px] text-fg-muted">
+        <p aria-live="polite" className="text-[15px] text-fg-muted">
           {resultCount === 0
             ? `No results for “${query.trim()}”.`
             : `${resultCount} ${resultCount === 1 ? "article" : "articles"} found`}
         </p>
       )}
-    </section>
+    </PageHero>
   );
 }

@@ -62,7 +62,7 @@ export default function LandingPage() {
           <p className="text-ui-footnote font-bold uppercase tracking-[0.3em] text-sage dark:text-sage">
             Hermes&middot;Markdown
           </p>
-          <h1 className="text-4xl font-bold leading-tight tracking-tight md:text-6xl lg:text-7xl">
+          <h1 className="text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl lg:text-7xl">
             A place where all you can do is write.
           </h1>
           <p className="max-w-2xl text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 md:text-xl">

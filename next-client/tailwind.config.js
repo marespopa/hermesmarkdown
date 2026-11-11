@@ -41,9 +41,8 @@ module.exports = {
       // Each family leads with its self-hosted face (app/fonts.ts) and falls
       // back to the Apple system face with the same role.
       fontFamily: {
-        // Stacks live in globals.scss (--landing-body, --landing-hero).
+        // Stacks live in globals.scss (--landing-body).
         sans: ["var(--landing-body)"],
-        hero: ["var(--landing-hero)"],
         mono: [
           "var(--font-geist-mono)",
           "SF Mono",
@@ -98,6 +97,9 @@ module.exports = {
           dark:    'var(--moss)',
           hover:   'var(--moss-hover)',
         },
+        // `mention` = the @Name hue, apart from links (sage). Tinted themes give
+        // it a hue of their own; Plain and Graphite stay neutral and reuse moss.
+        mention: 'var(--mention)',
         // Unlike the other var colors, `accent` takes opacity modifiers
         // (`bg-accent/15`): color-mix fades the var by <alpha-value> (1 with
         // no modifier, so plain `text-accent` is the colour itself).

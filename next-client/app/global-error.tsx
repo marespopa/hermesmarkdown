@@ -27,10 +27,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
           </div>
 
           <h1 className="text-6xl md:text-8xl font-bold tracking-tight leading-none">
-            Something{' '}
-            <span className="text-neutral-300 italic" style={{ fontFamily: 'Georgia, serif' }}>
-              went wrong.
-            </span>
+            Something went wrong.
           </h1>
 
           <p className="text-neutral-500 text-lg leading-relaxed">
