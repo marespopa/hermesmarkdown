@@ -41,13 +41,14 @@ describe("AI note calculator guide", () => {
   });
 
   it("documents syntax the scanner accepts", () => {
-    expect(scanLabels(["120 * 12"])).toEqual(["= 1440"]);
-    expect(scanLabels(["450 + 15%"])).toEqual(["= 517.5"]);
-    expect(scanLabels(["15% of 200"])).toEqual(["= 30"]);
-    // A computed assignment shows its own result; a bare literal doesn't.
-    expect(scanLabels(["rent = 1200", "rent = rent + 100", "rent * 2"])).toEqual([null, "= 1300", "= 2600"]);
-    expect(scanLabels(["monthly rent = 1,200", "- monthly rent * 12"])).toEqual([null, "= 14400"]);
-    expect(scanLabels(["rent ron = 1200", "rent ron * 2"])).toEqual([null, "= 2400"]);
+    expect(scanLabels(["120 * 12 ="])).toEqual(["1440"]);
+    expect(scanLabels(["450 + 15% ="])).toEqual(["517.5"]);
+    expect(scanLabels(["15% of 200 ="])).toEqual(["30"]);
+    // A computed assignment ending in "=" shows its own result; a bare literal doesn't.
+    expect(scanLabels(["120 * 12"])).toEqual([null]);
+    expect(scanLabels(["rent = 1200", "rent = rent + 100 =", "rent * 2 ="])).toEqual([null, "1300", "2600"]);
+    expect(scanLabels(["monthly rent = 1,200", "- monthly rent * 12 ="])).toEqual([null, "14400"]);
+    expect(scanLabels(["rent ron = 1200", "rent ron * 2 ="])).toEqual([null, "2400"]);
   });
 
   it("warns against the forms that break the calculator", () => {

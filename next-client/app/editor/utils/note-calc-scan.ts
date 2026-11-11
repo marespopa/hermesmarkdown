@@ -27,6 +27,8 @@ export interface LineCalc {
 }
 
 export const ASSIGNMENT = /^\s*([A-Za-z_][\w ]*?)\s*=(?!=)(.*)$/;
+// A trailing `=` (not `==`, `>=`, `<=`, `!=`) asks for the result.
+const TRAILING_EQUALS = /^(.*?[^=<>!\s])\s*=\s*$/;
 const LIST_MARKER = /^\s*(?:[-*+]|\d+[.)])\s+/;
 const HEADING = /^\s{0,3}#{1,6}(\s|$)/;
 const DATE_LIKE = /^\s*[\d.,]+(?:[-/][\d.,]+)+\s*$/;
@@ -65,7 +67,7 @@ export function formatNoteCalcResult(value: number): string | null {
   const text = Math.abs(rounded) >= 1e21
     ? String(rounded)
     : rounded.toFixed(4).replace(/\.?0+$/, "");
-  return `= ${text === "-0" ? "0" : text}`;
+  return text === "-0" ? "0" : text;
 }
 
 export function scanLine(text: string, lineNumber: number, prev: LineCalc | null): LineCalc {
@@ -103,14 +105,17 @@ export function scanLine(text: string, lineNumber: number, prev: LineCalc | null
 
   const resolve = (name: string) => lookup(scope, name);
   const options = { resolve, percent: true, thousandsSeparators: true };
-  const assignment = parseAssignment(content);
-  const result = evaluateMathExpression(assignment ? assignment.expression : content, options);
+  const trailing = TRAILING_EQUALS.exec(content);
+  const body = trailing ? trailing[1] : content;
+  const assignment = parseAssignment(body);
+  const result = evaluateMathExpression(assignment ? assignment.expression : body, options);
   const nextScope = assignment
     ? { name: assignment.name, value: result && Number.isFinite(result.value) ? result.value : undefined, parent: scope }
     : scope;
 
-  // 5. Label: only for evaluated, finite, non-literal expressions.
-  const label = result && !result.isLiteral ? formatNoteCalcResult(result.value) : null;
+  // 5. Label: only once the line ends with `=`, for evaluated, finite,
+  // non-literal expressions.
+  const label = trailing && result && !result.isLiteral ? formatNoteCalcResult(result.value) : null;
   return { block: null, scope: nextScope, label };
 }
 
