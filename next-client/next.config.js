@@ -26,7 +26,8 @@ const nextConfig = {
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ""}`,
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' blob: data:",
+              // The footer's launch badges load from these two hosts only.
+              "img-src 'self' blob: data: https://api.producthunt.com https://tools.cafe",
               "font-src 'self' data:",
               "connect-src 'self' https: http: blob: data:",
               "worker-src 'self' blob:",
