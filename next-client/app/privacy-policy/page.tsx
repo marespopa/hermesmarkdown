@@ -22,8 +22,7 @@ export default function PrivacyPolicy() {
       <div className="container max-w-screen-xl pt-32 pb-32 space-y-32">
         <PageHero
           showBack
-          title="Privacy"
-          accent="Policy."
+          title="Privacy Policy"
           intro="At HermesMarkdown, we believe that your thoughts should remain private. Our commitment to a local-first architecture is the foundation of our privacy model."
         />
 

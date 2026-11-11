@@ -7,9 +7,9 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ back }) }));
 import PageHero from "./PageHero";
 
 describe("PageHero", () => {
-  it("shows the headline with its tail and the intro", () => {
-    render(<PageHero title="Privacy" accent="Policy." intro="Your notes stay yours." />);
-    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Privacy Policy.");
+  it("shows the headline and the intro", () => {
+    render(<PageHero title="Privacy Policy" intro="Your notes stay yours." />);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Privacy Policy");
     expect(screen.getByText("Your notes stay yours.")).toBeTruthy();
   });
 

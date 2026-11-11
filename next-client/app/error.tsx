@@ -35,10 +35,7 @@ export default function Error({ error, reset }: ErrorPageProps) {
         </div>
 
         <h1 className="text-6xl md:text-7xl font-bold tracking-tight leading-none">
-          Something{' '}
-          <span className="text-neutral-300 dark:text-neutral-700 italic">
-            went wrong.
-          </span>
+          Something went wrong.
         </h1>
 
         <p className="text-neutral-500 dark:text-neutral-400 text-lg leading-relaxed">

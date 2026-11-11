@@ -21,8 +21,7 @@ export default function TermsAndConditions() {
       <div className="container max-w-screen-xl pt-32 pb-32 space-y-32">
         <PageHero
           showBack
-          title="Terms of"
-          accent="Service."
+          title="Terms of Service"
           intro="Transparency and accountability are core to the HermesMarkdown philosophy. These terms outline our mutual commitment to a fair and open workspace."
         />
 

@@ -19,8 +19,7 @@ export default function DocsHero({ query, onQueryChange, resultCount }: DocsHero
   return (
     <PageHero
       className="pt-24 pb-16"
-      title="How can we"
-      accent="help?"
+      title="How can we help?"
       intro={
         <>
           Everything HermesMarkdown does, feature by feature. Plain <code className="font-mono text-[0.85em]">.md</code> files,

@@ -23,8 +23,7 @@ export default function ContactPage() {
       <div className="container max-w-screen-xl pt-32 pb-32 space-y-32">
         <PageHero
           showBack
-          title="Get in"
-          accent="Touch."
+          title="Get in touch"
           intro="HermesMarkdown is built in the open for writers who value privacy. Whether you've found a bug, have a feature request, or just want to talk shop about local-first tools—we're listening."
         >
           <TextLink
