@@ -6,7 +6,7 @@ import MainPage from "./components/MainPage";
 import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import InlineScript from "./components/InlineScript";
 import { Metadata, Viewport } from "next";
-import { plusJakarta, instrumentSerif, geistMono, jetbrainsMono, firaCode, duospace, quattro } from "./fonts";
+import { plusJakarta, geistMono, jetbrainsMono, firaCode, duospace, quattro } from "./fonts";
 import { CODE_FONT_STACKS } from "./atoms/ui-atoms";
 import { DARK_THEMES, DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, LEGACY_THEME_MAP, LIGHT_THEMES } from "./theme-palettes";
 
@@ -134,7 +134,7 @@ export default function RootLayout({
       // them; THEME_INIT_SCRIPT swaps in the reader's own picks.
       data-light-theme={DEFAULT_LIGHT_THEME}
       data-dark-theme={DEFAULT_DARK_THEME}
-      className={`h-full overscroll-none ${plusJakarta.variable} ${instrumentSerif.variable} ${geistMono.variable} ${jetbrainsMono.variable} ${firaCode.variable} ${duospace.variable} ${quattro.variable}`}
+      className={`h-full overscroll-none ${plusJakarta.variable} ${geistMono.variable} ${jetbrainsMono.variable} ${firaCode.variable} ${duospace.variable} ${quattro.variable}`}
     >
       <head>
         <InlineScript html={THEME_INIT_SCRIPT} />

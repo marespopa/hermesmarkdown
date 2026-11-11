@@ -41,9 +41,8 @@ module.exports = {
       // Each family leads with its self-hosted face (app/fonts.ts) and falls
       // back to the Apple system face with the same role.
       fontFamily: {
-        // Stacks live in globals.scss (--landing-body, --landing-hero).
+        // Stacks live in globals.scss (--landing-body).
         sans: ["var(--landing-body)"],
-        hero: ["var(--landing-hero)"],
         mono: [
           "var(--font-geist-mono)",
           "SF Mono",
