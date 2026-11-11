@@ -524,7 +524,7 @@ ul li::marker {
   animation-duration: 180ms;
 }
 
-/* ── Templates: glass picker surface and spring motion ───────────────────
+/* ── Templates: picker surface and spring motion ───────────────────
    The picker takes the panel material. Durations stay within 150–250ms on
    --ease-spring. */
 .template-picker-surface {
@@ -572,25 +572,24 @@ ul li::marker {
 }
 
 /* ── Materials ────────────────────────────────────────────────────────────
-   Two frosted-glass materials over the tokens above. Components keep their
-   own shape (radius, padding); the material owns fill, blur, edge and
+   Two flat materials over the tokens above: solid fills, a hairline edge and
+   a soft shadow, no blur. The class names (glass-*) are historical. Components
+   keep their own shape (radius, padding); the material owns fill, edge and
    shadow, so leave bg-/border-colour/shadow utilities off them.
 
    .glass-bar: the bars that float over the page (pane tab bar, sidebar,
    mobile file bar). No edge or shadow of its own: bars draw their own
-   hairlines. The glass is a layer behind the content (::before), never on
-   the element itself: a backdrop-filter on the parent of a scroll area (the
-   sidebar's list) makes Chromium send the wheel to the editor scrolling
-   underneath. The bar must be positioned; :where() makes it `relative`
-   unless the element already says otherwise.
+   hairlines. The fill is a layer behind the content (::before), so a filter
+   can be put back later without landing on the parent of a scroll area (the
+   sidebar's list), where Chromium would send the wheel to the editor
+   scrolling underneath. The bar must be positioned; :where() makes it
+   `relative` unless the element already says otherwise.
 
    .glass-panel: everything that floats as a panel (menus, popovers,
-   tooltips, toasts, the palette, dialogs). Blur on the element itself, so
-   enter animations (which fade the element) don't drop the blur.
+   tooltips, toasts, the palette, dialogs).
 
-   Both go solid where blur isn't supported, and with Reduce Transparency
-   or Increase Contrast — at the token level, so styles set from script
-   (CodeMirror's menus) follow too. */
+   Both stay solid with Reduce Transparency or Increase Contrast, set at the
+   token level so styles set from script (CodeMirror's menus) follow too. */
 @layer components {
   :where(.glass-bar) {
     position: relative;
@@ -622,7 +621,7 @@ ul li::marker {
 
   /* A large panel that floats alone (the command palette): its edge is a
      hairline in the text colour, so it tints with the theme instead of
-     reading as a white rim on dark glass, and the top highlight is fainter. */
+     reading as a light rim on a dark panel. */
   .glass-panel-soft {
     border-color: transparent;
     box-shadow:

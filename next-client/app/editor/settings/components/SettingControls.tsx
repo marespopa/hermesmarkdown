@@ -130,7 +130,7 @@ export const SettingGroup = ({
         {title}
       </p>
     )}
-    <div className="rounded-xl border border-edge-subtle bg-chrome/60 px-4 py-0.5 backdrop-blur-xl">
+    <div className="rounded-xl border border-edge-subtle bg-chrome/60 px-4 py-0.5">
       {children}
     </div>
   </div>
