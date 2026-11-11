@@ -55,7 +55,7 @@ describe("createSlashMenuSource", () => {
     expect(result?.to).toBe(10);
     expect(result?.filter).toBe(false);
     // Names starting with the query first, then names merely holding its letters.
-    expect(result?.options.map(({ label }) => label)).toEqual(["Code", "Collapse", "Callout"]);
+    expect(result?.options.map(({ label }) => label)).toEqual(["Code", "Collapse", "Calculator", "Callout"]);
   });
 
   it("groups the whole list into sections, basic blocks first, and drops them for a search", () => {
