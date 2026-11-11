@@ -37,6 +37,7 @@ These change between light and dark mode. Always prefer these over static colors
 | `accent-hover`                    | `--clay`                        | same as `accent`      | same as `accent`         | Alias; no distinct hover value today                                                                                 |
 | `sage`                            | `--moss`                        | `#626F54`             | `#8FA178`                | Secondary accent — icons, muted interactive                                                                          |
 | `sage-hover`                      | `--moss-hover`                  | `#5C6A4E`             | `#A3B58C`                | Hover / active state for sage buttons                                                                                |
+| `mention`                         | `--mention`                     | `#7A4A8C` (Paper)     | `#C3A0D8` (Ink)          | `@Name` mentions in notes, a hue apart from links. Sepia, Solarized and Nord set their own; Plain and Graphite stay neutral and reuse `--moss` |
 
 `sage-subtle`, `sage-light` and `sage-dark` still exist for backwards compatibility but all resolve to `var(--moss)` — they are **not** distinct shades. Use `sage` with an opacity modifier (`bg-sage/10`, `ring-sage/20`) instead.
 

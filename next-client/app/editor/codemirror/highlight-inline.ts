@@ -59,7 +59,7 @@ export function processInline(ranges: MarkRange[], label: string, base: number) 
     for (const m of label.matchAll(REGEX_MENTION)) {
       const from = m.index! + m[1].length;
       if (codeSpans.some(([a, b]) => from >= a && from < b)) continue;
-      push(from, from + m[2].length, "text-sage dark:text-sage");
+      push(from, from + m[2].length, "text-mention");
     }
   }
 
