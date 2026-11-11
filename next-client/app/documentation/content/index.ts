@@ -3,6 +3,7 @@ import { aiFeaturesGroup } from "./ai-features";
 import { editorWorkspaceItems } from "./editor-workspace";
 import { editorWritingItems } from "./editor-writing";
 import { exportHtmlItem, exportPdfItem } from "./export-pdf";
+import { freeToolsItems } from "./free-tools";
 import { getStartedGroup } from "./get-started";
 import { mobileGroup, settingsGroup } from "./settings-mobile";
 import { templatesItems } from "./templates";
@@ -14,6 +15,7 @@ export const GROUPS: Group[] = [
   {
     ...getStartedGroup,
     summary: "Open a folder or a browser vault and write your first file.",
+    items: [...getStartedGroup.items, ...freeToolsItems],
   },
   {
     id: "editor",

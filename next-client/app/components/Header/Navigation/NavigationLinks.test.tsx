@@ -8,6 +8,17 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/",
 }));
 
+describe("NavigationLinks", () => {
+  it("links to the free tools", () => {
+    render(
+      <Provider store={createStore()}>
+        <NavigationLinks />
+      </Provider>,
+    );
+    expect(screen.getByRole("link", { name: "Tools" })).toHaveAttribute("href", "/tools");
+  });
+});
+
 describe("NavigationLinks theme control", () => {
   beforeEach(() => {
     localStorage.clear();

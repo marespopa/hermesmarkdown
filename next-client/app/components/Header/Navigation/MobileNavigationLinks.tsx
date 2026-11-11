@@ -68,6 +68,16 @@ export default function MobileNavigationLinks({ handleClose }: Props) {
               variant="bare"
               onClick={() => {
                 handleClose();
+                router.push("/tools");
+              }}
+              className={navBtnStyles}
+            >
+              Tools
+            </Button>
+            <Button
+              variant="bare"
+              onClick={() => {
+                handleClose();
                 router.push("/contact");
               }}
               className={navBtnStyles}

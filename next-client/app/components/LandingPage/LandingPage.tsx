@@ -163,6 +163,10 @@ export default function LandingPage() {
           <Link href="/markdown-editor" className="font-semibold text-fg underline-offset-4 hover:underline">
             what a Markdown editor is
           </Link>
+          , try the{" "}
+          <Link href="/tools" className="font-semibold text-fg underline-offset-4 hover:underline">
+            free Markdown tools
+          </Link>
           , or browse the{" "}
           <Link href="/documentation" className="font-semibold text-fg underline-offset-4 hover:underline">
             documentation

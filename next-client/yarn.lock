@@ -5909,6 +5909,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"gpt-tokenizer@npm:4.0.3":
+  version: 4.0.3
+  resolution: "gpt-tokenizer@npm:4.0.3"
+  checksum: 10c0/ffcecb50af579d63d70cef80556f2c4f0704078e52528dc3ca79e3a9fcd81479dcb948672ed7f8df5effbb27ef62ff56eefe018d576934f20470f38c18cd6e61
+  languageName: node
+  linkType: hard
+
 "graceful-fs@npm:^4.2.6":
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
@@ -6042,6 +6049,7 @@ __metadata:
     eslint-plugin-react: "npm:^7.37.4"
     eslint-plugin-react-hooks: "npm:^5.1.0"
     fflate: "npm:^0.8.2"
+    gpt-tokenizer: "npm:4.0.3"
     husky: "npm:^9.1.7"
     jotai: "npm:^2.20.3"
     jotai-family: "npm:^1.1.0"

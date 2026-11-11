@@ -1,6 +1,6 @@
 # Footer
 
-Description: Site footer for marketing pages (hidden on `/editor`) with links, app version, and the `ProductHuntBadge`/`ToolsCafeBadge` sub-components.
+Description: Site footer for marketing pages (hidden on `/editor`) with links (including Free Tools and one link per tool from the `app/tools/content/tools.ts` catalog), app version, and the `ProductHuntBadge`/`ToolsCafeBadge` sub-components.
 
 ## Local State & Storage
 - State: None.
