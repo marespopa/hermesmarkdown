@@ -112,4 +112,45 @@ describe("the double-Shift palette gesture", () => {
     press();
     expect(onOpen).toHaveBeenCalledOnce();
   });
+
+  it("does not open when letters typed with Shift held arrive as composing keydowns", () => {
+    const { onOpen, tracker } = setup();
+    tracker.keydown(keyEvent("keydown"));
+    tracker.keydown(keyEvent("keydown", { key: "Process", isComposing: true }));
+    tracker.keydown(keyEvent("keydown", { key: "Process", isComposing: true }));
+    tracker.keyup(keyEvent("keyup"));
+    tracker.keydown(keyEvent("keydown"));
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it("does not open when a keyboard wraps each capital in its own Shift and sends no letter keydown", () => {
+    const { onOpen, press, tick, tracker } = setup();
+    for (let letter = 0; letter < 4; letter++) {
+      tracker.keydown(keyEvent("keydown"));
+      tracker.textInput();
+      tracker.keyup(keyEvent("keyup"));
+      tick(80);
+    }
+    // Shift on its own right after the word still belongs to the typing.
+    press();
+    press();
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it("does not open when text is typed between the two presses", () => {
+    const { onOpen, press, tracker } = setup();
+    press();
+    tracker.textInput();
+    press();
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it("opens again on a clean double press once typing has stopped", () => {
+    const { onOpen, press, tick, tracker } = setup();
+    tracker.textInput();
+    tick(DOUBLE_SHIFT_MS + 1);
+    press();
+    press();
+    expect(onOpen).toHaveBeenCalledOnce();
+  });
 });
