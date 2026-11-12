@@ -58,7 +58,10 @@ export default function LandingPage() {
         })}
       />
 
-      <section className="container max-w-screen-xl flex min-h-screen flex-col justify-center py-24">
+      {/* Little room above on a phone, where the hero is taller than the
+          screen and its top padding only pushed it below the fold; the small
+          viewport height, so the browser's bars don't cut it off. */}
+      <section className="container max-w-screen-xl flex min-h-svh flex-col justify-center pb-16 pt-10 sm:pt-14 lg:py-20">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="space-y-7">
             <p className="text-ui-footnote font-bold uppercase tracking-[0.3em] text-sage dark:text-sage">

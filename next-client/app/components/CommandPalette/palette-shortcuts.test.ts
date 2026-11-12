@@ -74,4 +74,42 @@ describe("the double-Shift palette gesture", () => {
     press({ isComposing: true });
     expect(onOpen).not.toHaveBeenCalled();
   });
+
+  it("does not open after Shift+key and Shift again: capitals typed one after the other", () => {
+    const { onOpen, tracker } = setup();
+    // Shift down, a letter, Shift up: a capital, not a tap of Shift.
+    tracker.keydown(keyEvent("keydown"));
+    tracker.keydown(keyEvent("keydown", { key: "I", shiftKey: true }));
+    tracker.keyup(keyEvent("keyup", { key: "I", shiftKey: true }));
+    tracker.keyup(keyEvent("keyup"));
+    // Shift again at once, for the next capital.
+    tracker.keydown(keyEvent("keydown"));
+    expect(onOpen).not.toHaveBeenCalled();
+    tracker.keydown(keyEvent("keydown", { key: "A", shiftKey: true }));
+    tracker.keyup(keyEvent("keyup"));
+    tracker.keydown(keyEvent("keydown"));
+    expect(onOpen).not.toHaveBeenCalled();
+  });
+
+  it("does not arm on a Shift that was held (to click or drag a selection), only on a tap", () => {
+    const { onOpen, press, tick, tracker } = setup();
+    tracker.keydown(keyEvent("keydown"));
+    tick(DOUBLE_SHIFT_MS + 1);
+    tracker.keyup(keyEvent("keyup"));
+    press();
+    expect(onOpen).not.toHaveBeenCalled();
+    // That last press was a tap, so one more opens it.
+    press();
+    expect(onOpen).toHaveBeenCalledOnce();
+  });
+
+  it("does not arm on a Shift released without its press having been seen", () => {
+    const { onOpen, press, tracker } = setup();
+    tracker.keyup(keyEvent("keyup"));
+    tracker.keydown(keyEvent("keydown"));
+    expect(onOpen).not.toHaveBeenCalled();
+    tracker.keyup(keyEvent("keyup"));
+    press();
+    expect(onOpen).toHaveBeenCalledOnce();
+  });
 });
