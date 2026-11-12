@@ -1,48 +1,64 @@
-// Copy for the home page sections below the hero. The FAQ is also the
+// Copy for the home page scenes below the hero. The FAQ is also the
 // home page's FAQPage structured data (app/page.tsx), so the two never drift.
 
-export type LandingFeature = { title: string; body: string };
+export type LandingPoint = { title: string; body: string };
+export type LandingScene = {
+  id: string;
+  headline: string;
+  accentLine: string;
+  lead: string;
+  points: LandingPoint[];
+};
 export type LandingFaq = { q: string; a: string };
 
-export const LANDING_FEATURES: LandingFeature[] = [
+export const LANDING_SCENES: LandingScene[] = [
   {
-    title: "Your files, on your disk",
-    body: "Open a folder and edit its files in place, offline too. Nothing is uploaded, there is no account, and an existing Obsidian vault opens as-is.",
+    id: "quiet",
+    headline: "Only your words.",
+    accentLine: "The rest stays out of the way.",
+    lead: "A calm page that shows the Markdown marks only where you are typing.",
+    points: [
+      { title: "Marks on your line only", body: "Syntax appears on the line you're on and hides everywhere else." },
+      { title: "One palette for everything", body: "Ctrl/Cmd+P finds files, commands, headings, tasks and note text." },
+      { title: "No Distraction Mode", body: "Ctrl/Cmd+Alt+Z hides everything but the page." },
+      { title: "Flow mode and Vim keys", body: "Fade all but the paragraph you're writing, or edit with Vim keys." },
+    ],
   },
   {
-    title: "Notes that connect",
-    body: "Link notes with [[wikilinks]], embed a note, a heading, an image or a CSV table with ![[Note]], edit tables like a spreadsheet with formulas, and sketch on drawing boards stored as Markdown.",
+    id: "more",
+    headline: "Tables, tasks and sketches.",
+    accentLine: "Still plain Markdown.",
+    lead: "More than notes, and every file stays readable in any other editor.",
+    points: [
+      { title: "Tables with formulas", body: "Edit pipe tables like a spreadsheet, with =SUM and more." },
+      { title: "All your tasks, one page", body: "Every task in the vault on a single Tasks page." },
+      { title: "Drawing boards", body: "Sketch on boards that are stored as Markdown." },
+      { title: "Inline calculator", body: "Write rent + utilities and the result appears at the end of the line." },
+      { title: "Diagrams and math", body: "Mermaid diagrams and math are rendered in place." },
+      { title: "Code files, too", body: "Highlighting, an outline and Format Code with your Prettier config." },
+    ],
   },
   {
-    title: "Code files, too",
-    body: "TypeScript, Python, JSON, YAML and other text files open in the same editor, with highlighting, line numbers, folding, an outline of their functions and classes, and Format Code with your Prettier config.",
+    id: "files",
+    headline: "Your files, on your disk.",
+    accentLine: "No account.",
+    lead: "Open a folder and edit its files where they already are.",
+    points: [
+      { title: "Edit in place, offline too", body: "Nothing is uploaded and nothing needs a sign-up." },
+      { title: "Obsidian vaults open as-is", body: "A vault is a folder of Markdown files, and wikilinks keep working." },
+      { title: "Keep it in git", body: "Commit with your own tools; the vault is a plain folder." },
+      { title: "Any browser, any device", body: "Safari, Firefox, iPhone, iPad and Android keep files in a browser vault on the device." },
+    ],
   },
   {
-    title: "Search everything",
-    body: "Find any file by name, or search the text of notes and code across the vault, with a regular expression when you need one.",
-  },
-  {
-    title: "Make it yours",
-    body: "Pick from four light and four dark color themes, from paper and blue ink to Solarized, plain neutral white and graphite. Hide the interface and dim everything but the sentence you're writing, or turn on Vim keys.",
-  },
-  {
-    title: "Export and AI, both optional",
-    body: "Export notes as PDF, a standalone HTML page or compiled Markdown. AI features use your own API key and stay off until you add one.",
-  },
-];
-
-export const LANDING_PLATFORMS: LandingFeature[] = [
-  {
-    title: "Chrome, Edge and other Chromium browsers",
-    body: "Read and write a folder on your disk directly.",
-  },
-  {
-    title: "Safari, Firefox, iPhone, iPad and Android",
-    body: "Keep files in a browser vault stored on the device.",
-  },
-  {
-    title: "Alongside git",
-    body: "A disk vault is a plain folder, so keep it in a git repository and commit with the tools you already use.",
+    id: "extras",
+    headline: "Export and AI,",
+    accentLine: "only if you want them.",
+    lead: "Both stay out of sight until you reach for them.",
+    points: [
+      { title: "Export", body: "Save a note as PDF, a standalone HTML page or compiled Markdown." },
+      { title: "AI with your own key", body: "Off until you add a key, and every change is shown as a diff you accept or reject." },
+    ],
   },
 ];
 
