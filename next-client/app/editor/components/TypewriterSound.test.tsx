@@ -2,10 +2,10 @@ import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render } from "@testing-library/react";
 import { Provider, createStore } from "jotai";
-import { atom_typewriterSound } from "@/app/atoms/ui-atoms";
+import { atom_typewriterLevel, atom_typewriterSound } from "@/app/atoms/ui-atoms";
 import TypewriterSound from "./TypewriterSound";
 
-const sound = vi.hoisted(() => ({ play: vi.fn(), close: vi.fn() }));
+const sound = vi.hoisted(() => ({ play: vi.fn(), close: vi.fn(), setVolume: vi.fn() }));
 
 vi.mock("@/app/utils/typewriter-sound", async () => {
   const actual = await vi.importActual<typeof import("@/app/utils/typewriter-sound")>("@/app/utils/typewriter-sound");
@@ -33,6 +33,7 @@ describe("TypewriterSound", () => {
   afterEach(() => {
     sound.play.mockClear();
     sound.close.mockClear();
+    sound.setVolume.mockClear();
     document.body.innerHTML = "";
   });
 
@@ -107,5 +108,21 @@ describe("TypewriterSound", () => {
     fireEvent.keyDown(editor, { key: "x", ctrlKey: true });
     input(editor, "deleteByCut");
     expect(sound.play.mock.calls.map(([kind]) => kind)).toEqual(["key"]);
+  });
+
+  it("plays at the chosen volume, and changes it without starting over", () => {
+    const { store } = setup(true);
+    React.act(() => store.set(atom_typewriterLevel, "quiet"));
+    expect(sound.setVolume).toHaveBeenLastCalledWith("quiet");
+    React.act(() => store.set(atom_typewriterLevel, "loud"));
+    expect(sound.setVolume).toHaveBeenLastCalledWith("loud");
+    expect(sound.close).not.toHaveBeenCalled();
+
+    // Off and on again: the volume last chosen.
+    React.act(() => store.set(atom_typewriterLevel, "off"));
+    expect(sound.close).toHaveBeenCalled();
+    React.act(() => store.set(atom_typewriterSound, true));
+    expect(store.get(atom_typewriterLevel)).toBe("loud");
+    expect(sound.setVolume).toHaveBeenLastCalledWith("loud");
   });
 });

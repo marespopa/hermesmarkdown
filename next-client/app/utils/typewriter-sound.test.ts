@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createTypewriterSound, typewriterInputKind, typewriterKeyNamed, typewriterKind } from "./typewriter-sound";
+import { TYPEWRITER_GAIN, createTypewriterSound, typewriterInputKind, typewriterKeyNamed, typewriterKind } from "./typewriter-sound";
 
 const key = (overrides: Partial<Parameters<typeof typewriterKind>[0]>) =>
   typewriterKind({ key: "a", ctrlKey: false, metaKey: false, altKey: false, isComposing: false, ...overrides });
@@ -71,6 +71,7 @@ function fakeContext() {
     const n: Record<string, unknown> = { connect: vi.fn((next: unknown) => next ?? n), start: vi.fn(), stop: vi.fn(), gain: param(), frequency: param(), Q: param(), type: "" };
     return n;
   };
+  const gains: { gain: { value: number } }[] = [];
   const ctx = {
     state: "running",
     sampleRate: 100,
@@ -80,7 +81,13 @@ function fakeContext() {
     close: vi.fn(async () => {}),
     createBuffer: vi.fn((_c: number, length: number) => ({ getChannelData: () => new Float32Array(length) })),
     createBufferSource: vi.fn(node),
-    createGain: vi.fn(node),
+    // Every gain node made; the first is the master.
+    gains,
+    createGain: vi.fn(() => {
+      const made = node();
+      gains.push(made as unknown as { gain: { value: number } });
+      return made;
+    }),
     createBiquadFilter: vi.fn(node),
     createOscillator: vi.fn(node),
   };
@@ -138,6 +145,19 @@ describe("createTypewriterSound", () => {
   it("stays silent, without throwing, where Web Audio is missing", () => {
     vi.stubGlobal("AudioContext", undefined);
     expect(() => createTypewriterSound().play("key")).not.toThrow();
+  });
+
+  it("sets the master gain from the volume, chosen before or after the first key", () => {
+    const { ctx, advance } = setup();
+    const sound = createTypewriterSound();
+    sound.setVolume("quiet");
+    sound.play("key");
+    expect(ctx.gains[0].gain.value).toBe(TYPEWRITER_GAIN.quiet);
+    advance(100);
+    sound.setVolume("loud");
+    expect(ctx.gains[0].gain.value).toBe(TYPEWRITER_GAIN.loud);
+    expect(TYPEWRITER_GAIN.quiet).toBeLessThan(TYPEWRITER_GAIN.normal);
+    expect(TYPEWRITER_GAIN.normal).toBeLessThan(TYPEWRITER_GAIN.loud);
   });
 
   it("closes the context", () => {

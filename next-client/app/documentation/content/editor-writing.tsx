@@ -157,13 +157,15 @@ export const editorWritingItems: Subsection[] = [
     id: "typewriter-sound",
     title: "Typewriter sound",
     lead: "A soft typewriter click as you type.",
-    keywords: "typewriter sound click clack keys typing audio noise carriage return mute off",
+    keywords: "typewriter sound click clack keys typing audio noise carriage return mute off volume quiet loud louder level",
     body: (
       <>
         <p>
           Each key you type in a note makes a soft typewriter click, with a carriage-return clunk on{" "}
-          <code>Enter</code>. Switch it off under Settings → Editor → Writing → Typewriter Sound, or
-          run <strong>Enable/Disable Typewriter Sound</strong> from the command palette.
+          <code>Enter</code>. Choose Off, Quiet, Normal or Loud under Settings → Editor → Writing →
+          Typewriter Sound, or run a <strong>Typewriter Sound: …</strong> command from the command
+          palette. <strong>Enable/Disable Typewriter Sound</strong> turns it off and back on at the
+          volume you last chose.
         </p>
         <Callout type="note">
           The sound is generated on your device, so it works offline and nothing is downloaded.

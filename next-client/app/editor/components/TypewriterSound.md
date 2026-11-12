@@ -3,7 +3,8 @@
 Headless component, mounted once in `EditorShell`, that plays a typewriter click for each key typed in a note.
 
 ## Local State & Storage
-- Reads `atom_typewriterSound` (`ui-atoms.ts`, `localStorage["typewriterSound"]`, on by default). Turn it off in Settings → Editor → Writing → **Typewriter Sound**, or with the palette's **Enable/Disable Typewriter Sound**.
+- Reads `atom_typewriterSound` (`ui-atoms.ts`, `localStorage["typewriterSound"]`, on by default) and `atom_typewriterVolume` (`localStorage["typewriterVolume"]`: `quiet`, `normal` (the default) or `loud`). Settings → Editor → Writing → **Typewriter Sound** shows the two as one choice (Off, Quiet, Normal, Loud; `atom_typewriterLevel`), and so do the palette's **Typewriter Sound: …** commands. **Enable/Disable Typewriter Sound** flips the switch alone, so turning it on returns to the volume last chosen.
+- A change of volume calls the engine's `setVolume` (the master gain, `TYPEWRITER_GAIN`); the engine and its audio context are kept.
 - Makes the sound engine only while the setting is on, and closes it (and its audio context) when it's turned off or the shell unmounts. Nothing audio-related runs on load: the audio context is made on the first key.
 
 ## Behavior
@@ -14,4 +15,4 @@ Headless component, mounted once in `EditorShell`, that plays a typewriter click
 - The sound itself is synthesised on the Web Audio API (`createTypewriterSound`), so there are no audio files and it works offline; each click varies a little, and a held key gives one click per 25 ms. A phone's silent switch or media volume mutes it like any other page audio.
 
 ## Dependencies
-`app/utils/typewriter-sound.ts`, `atom_typewriterSound`.
+`app/utils/typewriter-sound.ts`, `atom_typewriterSound`, `atom_typewriterVolume`.
