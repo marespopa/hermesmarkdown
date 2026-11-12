@@ -62,7 +62,8 @@ describe("TypewriterSound", () => {
   });
 
   it("ignores auto-repeat except when deleting", () => {
-    const { editor } = setup();
+    // Set explicitly: the test above saved "off" to storage.
+    const { editor } = setup(true);
     fireEvent.keyDown(editor, { key: "a", repeat: true });
     expect(sound.play).not.toHaveBeenCalled();
     fireEvent.keyDown(editor, { key: "Backspace", repeat: true });

@@ -18,4 +18,4 @@ Description: Brings the top-corner buttons (Show sidebar, Copy Contents, search;
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| (none) |  |  | Takes no props; renders nothing while the mode is off |
+| (none) |  |  | Takes no props; always rendered, and the row is put away when the mode is switched off |

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useAtomValue } from "jotai";
+import { atom_pageOnly } from "@/app/atoms/ui-atoms";
 
 // How long (ms) the top-right row stays after the top edge is touched.
 export const PEEK_MS = 4000;
@@ -16,6 +18,12 @@ export const PEEK_ROW_ATTRIBUTE = "data-page-only-row";
 // The strip itself counts as part of the row, so tapping it again keeps it up.
 export default function PageOnlyPeek() {
   const [peek, setPeek] = useState(false);
+  const pageOnly = useAtomValue(atom_pageOnly);
+
+  // Leaving the mode puts the row away with it.
+  useEffect(() => {
+    if (!pageOnly) setPeek(false);
+  }, [pageOnly]);
 
   useEffect(() => {
     if (!peek) return;

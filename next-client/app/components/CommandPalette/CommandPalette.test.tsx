@@ -153,7 +153,7 @@ describe("CommandPalette", () => {
       fireEvent.keyDown(window, { key: "Escape" });
       expect(screen.getByRole("combobox")).toBeInTheDocument();
 
-      await act(async () => { await vi.advanceTimersByTimeAsync(199); });
+      await act(async () => { await vi.advanceTimersByTimeAsync(169); });
       expect(screen.getByRole("combobox")).toBeInTheDocument();
 
       await act(async () => { await vi.advanceTimersByTimeAsync(1); });
