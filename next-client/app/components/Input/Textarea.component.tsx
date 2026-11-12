@@ -2,6 +2,7 @@
 
 import React, { forwardRef } from "react";
 import { FIELD_SURFACE } from "./field-styles";
+import { NO_AUTOFILL } from "./no-autofill";
 
 interface Props extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   name: string;
@@ -28,7 +29,6 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>(
       className = "",
       textareaClassName = "",
       autoFocus,
-      autoComplete = "off",
       ...rest
     },
     ref,
@@ -55,7 +55,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, Props>(
             onChange={handleChange}
             placeholder={placeholder}
             ref={ref}
-            autoComplete={autoComplete}
+            {...NO_AUTOFILL}
             className={`${baseStyles} select-text ${textareaClassName}`}
             aria-label={label || name}
             autoFocus={autoFocus}
