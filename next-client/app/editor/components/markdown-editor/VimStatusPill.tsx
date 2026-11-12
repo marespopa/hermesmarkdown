@@ -13,8 +13,9 @@ const MODE_LABEL: Record<string, string> = {
 };
 
 // Vim's mode, pending keys and `:` / `/` prompt, floating over the bottom of
-// the pane on the same chrome pill as the palette's search. Hidden while inserting: writing is the default state, so the page
-// only shows Vim when you've left it.
+// the pane: the mode is plain faint text on the page's colour, and only the
+// prompt (a field to type in) gets a panel. Hidden while inserting: writing is
+// the default state, so the page only shows Vim when you've left it.
 //
 // The pill stays mounted (opacity only, never `invisible`): the library
 // focuses the prompt's input synchronously when it opens, before React has
@@ -33,8 +34,9 @@ export default function VimStatusPill({ status, hostRef, besideOutline = false }
     <div className="pointer-events-none sticky bottom-0 z-20 h-0">
       <div
         aria-hidden={!visible}
-        className={`absolute bottom-4 flex items-center gap-2 rounded-full glass-panel px-3 py-1 text-ui-caption text-fg-muted
+        className={`absolute bottom-4 flex items-center gap-2 text-ui-caption text-fg-muted
           transition-[opacity,transform] duration-150
+          ${prompting ? "rounded-full glass-panel px-3 py-1" : "rounded-md bg-surface px-1.5 py-0.5"}
           ${prompting ? "left-1/2 w-[min(32rem,calc(100%-2rem))] -translate-x-1/2" : besideOutline ? "right-4 md:right-60" : "right-4"}
           ${visible ? "pointer-events-auto opacity-100" : "translate-y-1 opacity-0"}`}
       >

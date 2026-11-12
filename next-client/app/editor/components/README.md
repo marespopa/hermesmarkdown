@@ -12,6 +12,10 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [ai-chat/](ai-chat/README.md) | Shared AI building blocks the companion uses: @mention and model hooks, the note tools, mention menu, context chips. |
 | [CalloutTypeMenu](CalloutTypeMenu.md) | Dropdown of callout types, opened right after inserting a callout from the slash menu; picking one rewrites `[!type]`. |
 | [ConflictDialog](ConflictDialog.md) | Resolves an on-disk change to the open file by reloading from disk, keeping the current text, or merging manually (conflict markers, with per-side resolution). |
+| [PageOnlyPeek](PageOnlyPeek.md) | The way out of No Distraction Mode on a touch screen: a tap on the very top edge brings the top-right row back for a few seconds. |
+| [PageOnlyToggleButton](PageOnlyToggleButton.md) | The pressed-state pill button that leaves No Distraction Mode; in the top-right row only while the mode is on. |
+| [TypewriterSound](TypewriterSound.md) | Headless: a synthesised typewriter click for each key typed in a note, switched in Settings → Editor → Writing. |
+| [DocumentCheckDialog](DocumentCheckDialog.md) | The palette's Check document: broken links, missing images and skipped headings in the open note, each with a Fix button. |
 | [DraftImportDialog](DraftImportDialog.md) | Confirms before an imported file replaces a non-empty draft. |
 | [CreateVaultSubSteps](CreateVaultSubSteps.md) | Presentational steps for vault creation: a name input with validation, a parent-folder picker, and an "installing" spinner. |
 | [DatePickerCallout](DatePickerCallout.md) | Calendar dialog for picking or replacing a date in the editor, with keyboard navigation and quick relative actions. |
@@ -19,7 +23,6 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [BlockTypeMenu](BlockTypeMenu.md) | The selection toolbar's "Turn into" dropdown: shows the line's block type and turns selected lines into text, a heading, a list, a to-do or a quote. |
 | [BrowserVaultDialog](BrowserVaultDialog.md) | Create, reopen, or delete vaults stored in browser storage (Safari, Firefox, mobile). |
 | [RecentVaultsDialog](RecentVaultsDialog.md) | Open, reorder, pin or remove recent vaults; only pinned ones are listed in the Vault menu, and they never age out. |
-| [OutlineToggleButton](OutlineToggleButton.md) | The editor corner's pill that shows or hides the note's outline, left of Copy Contents. |
 | [ImageDialog](ImageDialog.md) | Lightbox for note images; resolves vault-relative paths locally. |
 | [LinkPill](LinkPill.md) | Floating pill over a Markdown or wiki link in the editor, offering open and edit (label and URL). |
 | [MarkdownEditor](MarkdownEditor.md) | CodeMirror 6 Markdown editor with inline pills, callouts, slash templates, and folding. |
@@ -27,7 +30,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [MermaidDialog](MermaidDialog.md) | Full-size viewer for a Mermaid diagram, rendered locally with `mermaid` (`securityLevel: "strict"`), in a `MermaidViewer`. |
 | [MermaidViewer](MermaidViewer.md) | A rendered diagram with zoom, fit, drag-to-pan and SVG download; used by `MermaidDialog`. |
 | [MobileFileIndicator](MobileFileIndicator.md) | Compact mobile header chip showing the active file name and its save state, with menu, save, command palette, AI chat and outline shortcuts. |
-| [MobileDrawer/](MobileDrawer/README.md) | The phone's left (Files / Tags) and right (Outline & metrics) drawers, and the edge swipes that open them. |
+| [MobileDrawer/](MobileDrawer/README.md) | The phone's left (Files) and right (Outline & metrics) drawers, and the edge swipes that open them. |
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
 | [board/](board/README.md) | Boards: Markdown notes holding an Excalidraw scene, shown as a canvas (`BoardViewLoader` → lazy `BoardView`, `BoardError`). |
 | [PaneLeaf](PaneLeaf.md) | One workspace pane: its quiet title header, the drop layer, and the active file's editor or read-only preview (behind `PrivateNoteGate`). |
@@ -60,9 +63,8 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [EditorShell](EditorShell.md) | The frame of every /editor route: hosts the sidebar (a plain panel that takes room), sets `--content-left`, owns the sidebar shortcuts and the vault dialogs, shows the open vault's pins (`useVaultPins`) and mounts `PinCommands`. |
 | [RecoveryBanner](RecoveryBanner.md) | The line above the editor while notes can't be saved (vault access lost, vault folder missing, storage full or nearly full) or the note is very large; offers Export note as .md and a fix. |
 | [ActiveFileIndexer](ActiveFileIndexer.md) | Re-indexes the active note a second after its text changes; mounted once by EditorShell so typing re-renders only it. |
-| [CopyContentButton](CopyContentButton.md) | Copies the active note as Markdown; sits just left of the SearchPill in the editor's top-right corner, in its look. |
 | [DocumentationLink](DocumentationLink.md) | The compact Documentation icon immediately before the SearchPill in editor and page headers. |
-| [SearchPill](SearchPill.md) | The command palette's search field at rest, in the toolbar and every page's title bar: the app's main way in. |
+| [SearchPill](SearchPill.md) | The command palette's search button, in the toolbar and every page's title bar: the app's main way in. |
 | [ShellPage](ShellPage.md) | The frame of every /editor page (Tasks, Templates, Trash, All Files, Settings): a title bar and the page, beside the open sidebar. |
 | [PageHelpLink](PageHelpLink.md) | The (?) in a page's title bar: a link to its section of the documentation. |
 | [WorkspaceSidebar](WorkspaceSidebar.md) | The window's sidebar (desktop), the same on every /editor route and only the library: the vault switcher, New note, Pinned and Files; hideable and resizable. |

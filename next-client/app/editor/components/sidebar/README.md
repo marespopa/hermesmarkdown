@@ -6,9 +6,6 @@ The parts of `WorkspaceSidebar` (one level up), top to bottom, and what they sha
 |---|---|
 | [SidebarHeader](SidebarHeader.md) | Vault switcher (the open vault's name and its menu), New note, Hide sidebar. |
 | [SidebarPinned](SidebarPinned.md) | First, with a vault and at least one pin: the vault's pins (kept on this device, `pin-atoms.ts`) — notes, folders, tags and pages — in order, at most nine, each with its emoji or glyph and its Ctrl/Cmd+1–9 key; a click on a row's icon opens its menu (set the icon, unpin it); drag rows (or Alt+↑/↓) to reorder. |
-| [SidebarTabs](SidebarTabs.md) | The Files / Tags switch under the header (`atom_activeSidebarTab`, shared with the phone drawer). |
-| [SidebarSystemFilters](SidebarSystemFilters.md) | The smart filters (All Notes, Untagged, Todo, Today, Archive) with counts, above both views; a click lists them on the Tags page. |
-| [SidebarTags](SidebarTags.md) | The Tags view: tags nested on `/` with rolled-up counts and optional icons, pinned tags first, right-click to Pin / Unpin. |
 | [SidebarFiles](SidebarFiles.md) | The vault's file tree under a Search field (a regular expression on paths); a note's or folder's menu has Pin / Unpin. |
 | [SidebarSection](SidebarSection.md) | A collapsible group set apart by a full-width hairline, its chevron always shown, with an optional ⋯ menu. |
 | `sidebar-classes.ts` | The quiet look every part uses: 28px rows in the primary text colour, neutral grey icons (`SIDEBAR_ICON_CLASS`), the current row on a soft accent fill (`SIDEBAR_ACCENT_FILL`, the file tree's active-row fill), quiet icon buttons. |

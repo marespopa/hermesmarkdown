@@ -32,8 +32,7 @@ interface UseTemplateNoteOptions {
 //   palette), named after its first heading or title.
 // - The palette's "Insert template…" / "Save as template…" reach the active
 //   pane through `hermes:insert-vault-template` / `hermes:save-as-template`;
-//   a `~` template row sends its entry along (`detail.entry`), skipping the
-//   picker.
+//   a command may send an entry along (`detail.entry`), skipping the picker.
 export function useTemplateNote({
   viewRef,
   editorView,

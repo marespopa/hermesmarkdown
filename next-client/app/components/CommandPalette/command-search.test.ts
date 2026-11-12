@@ -58,4 +58,16 @@ describe("command search ranking", () => {
     expect(matches).toHaveLength(5_000);
     expect(performance.now() - start).toBeLessThan(50);
   });
+
+  it("treats * and ? as a glob over the file name, or the path when it has a slash", () => {
+    const tsx = { name: "Button.tsx", path: "app/Button.tsx" };
+    expect(matchFile("*.tsx", tsx)).not.toBeNull();
+    expect(matchFile("*.TSX", tsx)).not.toBeNull();
+    expect(matchFile("*.tsx", { name: "Button.ts", path: "app/Button.ts" })).toBeNull();
+    expect(matchFile("*.tsx", { name: "Button.tsx.md", path: "Button.tsx.md" })).toBeNull();
+    expect(matchFile("Butto?.tsx", tsx)).not.toBeNull();
+    expect(matchFile("app/*.tsx", tsx)).not.toBeNull();
+    expect(matchFile("*/*.tsx", { name: "a.tsx", path: "x/y/a.tsx" })).toBeNull();
+    expect(matchFile("**/*.tsx", { name: "a.tsx", path: "x/y/a.tsx" })).not.toBeNull();
+  });
 });

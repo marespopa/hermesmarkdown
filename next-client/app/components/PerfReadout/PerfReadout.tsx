@@ -26,10 +26,10 @@ function DevPerfReadout() {
   const [stored, setStored] = useAtom(atom_perfReadout);
   useRegisterCommand({
     id: "toggle-perf-readout",
-    label: "Toggle Performance Readout",
+    label: `${stored ? "Disable" : "Enable"} Performance Readout`,
     description: "Dev only: open, typing and storage timings",
     category: "Views",
-    keywords: "performance perf timing measure fps latency dev debug",
+    keywords: "toggle performance perf timing measure fps latency dev debug",
     action: () => setStored((on) => !on),
   });
   const visible = stored || queryFlag();

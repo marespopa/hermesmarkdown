@@ -109,7 +109,6 @@ describe("SettingsPage", () => {
 
     expect(screen.getByText("Vim Mode")).toBeInTheDocument();
     expect(screen.getByText("Word Count")).toBeInTheDocument();
-    expect(screen.getByText("Close Sidebar While Writing")).toBeInTheDocument();
     expect(screen.queryByText("Full Width")).not.toBeInTheDocument();
     // Palette-only toggles and the sidebar have no settings rows.
     expect(screen.queryByText("Word Wrap")).not.toBeInTheDocument();

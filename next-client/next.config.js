@@ -31,7 +31,7 @@ const nextConfig = {
               "font-src 'self' data:",
               "connect-src 'self' https: http: blob: data:",
               "worker-src 'self' blob:",
-              "frame-src 'self' blob:",
+              "frame-src 'self' blob: https://www.youtube-nocookie.com",
               "object-src 'none'",
               "base-uri 'self'",
             ].join("; "),

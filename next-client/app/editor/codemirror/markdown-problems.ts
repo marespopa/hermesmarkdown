@@ -1,13 +1,14 @@
 import { ensureSyntaxTree, syntaxTree } from "@codemirror/language";
 import { StateEffect, StateField, type EditorState, type Extension, type Text } from "@codemirror/state";
-import { Decoration, EditorView, ViewPlugin, WidgetType, type DecorationSet, type ViewUpdate } from "@codemirror/view";
+import { Decoration, EditorView, ViewPlugin, type DecorationSet, type ViewUpdate } from "@codemirror/view";
 import { loadYaml, type YamlLoad } from "@/app/utils/load-yaml";
 
 // Problems that change how much of a note renders: frontmatter that isn't
 // valid YAML, and a code fence or `$$` block that is never closed (the rest
-// of the note then reads as code or math). Each gets a one-line notice just
-// above the block, with a button to the line at fault. Checked a moment after
-// typing stops, never per keystroke.
+// of the note then reads as code or math). Each is marked quietly on the line
+// at fault: a faint wavy underline, with the message as its tooltip, and no
+// text or button added to the page. Checked a moment after typing stops,
+// never per keystroke.
 
 export interface MarkdownProblem {
   /** 1-based line at fault ("Go to line"). */
@@ -81,54 +82,25 @@ function unclosedMathProblems(doc: Text, codeLines: Set<number>): MarkdownProble
   return [{ line: open, anchorLine: open, message: `The math block on line ${open} is never closed.` }];
 }
 
-class ProblemWidget extends WidgetType {
-  constructor(readonly problem: MarkdownProblem) {
-    super();
-  }
-
-  eq(other: ProblemWidget) {
-    return other.problem.line === this.problem.line && other.problem.message === this.problem.message;
-  }
-
-  toDOM(view: EditorView) {
-    const box = document.createElement("div");
-    box.className = "cm-markdown-problem";
-    box.setAttribute("role", "note");
-    const text = document.createElement("span");
-    text.textContent = this.problem.message;
-    const jump = document.createElement("button");
-    jump.type = "button";
-    jump.className = "cm-markdown-problem-jump";
-    jump.textContent = `Go to line ${this.problem.line}`;
-    jump.addEventListener("click", () => {
-      const line = view.state.doc.line(Math.min(this.problem.line, view.state.doc.lines));
-      view.dispatch({ selection: { anchor: line.from }, scrollIntoView: true });
-      view.focus();
-    });
-    box.append(text, jump);
-    return box;
-  }
-}
-
 const setProblems = StateEffect.define<MarkdownProblem[]>();
 
-function decorate(state: EditorState, problems: MarkdownProblem[]): DecorationSet {
-  const ranges = problems
-    .filter((problem) => problem.anchorLine <= state.doc.lines)
-    .sort((a, b) => a.anchorLine - b.anchorLine)
-    .map((problem) =>
-      Decoration.widget({ widget: new ProblemWidget(problem), block: true, side: -1 }).range(
-        state.doc.line(problem.anchorLine).from,
-      ),
-    );
+/** The lines at fault, marked (`.cm-problem-line`) with their message as the tooltip. */
+export function problemDecorations(state: EditorState, problems: MarkdownProblem[]): DecorationSet {
+  const byLine = new Map<number, string>();
+  for (const problem of problems) {
+    if (problem.line >= 1 && problem.line <= state.doc.lines && !byLine.has(problem.line)) byLine.set(problem.line, problem.message);
+  }
+  const ranges = [...byLine]
+    .sort(([a], [b]) => a - b)
+    .map(([line, message]) => Decoration.line({ class: "cm-problem-line", attributes: { title: message } }).range(state.doc.line(line).from));
   return Decoration.set(ranges, true);
 }
 
 const problemField = StateField.define<DecorationSet>({
   create: () => Decoration.none,
   update(value, tr) {
-    for (const effect of tr.effects) if (effect.is(setProblems)) return decorate(tr.state, effect.value);
-    // Edits clear the notices; the next check puts back any still true.
+    for (const effect of tr.effects) if (effect.is(setProblems)) return problemDecorations(tr.state, effect.value);
+    // Edits clear the marks; the next check puts back any still true.
     return tr.docChanged ? Decoration.none : value;
   },
   provide: (field) => EditorView.decorations.from(field),

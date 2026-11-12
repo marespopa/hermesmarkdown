@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, type CSSProperties } from "react";
 import ConflictDialog from "./components/ConflictDialog";
+import DocumentCheckDialog from "./components/DocumentCheckDialog";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_fileName, atom_content, atom_activeFilePath, atom_workspaceLayout, atom_isFileLoading, atom_isVaultRestoring, contentStore } from "@/app/atoms/atoms";
 import { flushAllBoardWrites } from "@/app/utils/board/board-flush";
@@ -228,6 +229,7 @@ export default function LiteEditor() {
         <h1 className="sr-only">HermesMarkdown Editor</h1>
         {/* Modals (the vault dialogs live in EditorShell, for every route) */}
         <ConflictDialog />
+        <DocumentCheckDialog />
         {/* Before MermaidDialog, so its "Open viewer" stacks on top. */}
         <RenderedBlockSourceDialog />
         <MermaidDialog />

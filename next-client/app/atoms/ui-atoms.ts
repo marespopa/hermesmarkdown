@@ -36,12 +36,16 @@ export const atom_showInvisibles = atomWithStorage<boolean>("showInvisibles", fa
 export const atom_vimMode = atomWithStorage<boolean>("vimMode", false);
 // The faint word count pill in the editor corner (WordCountPill). Off by default.
 export const atom_showWordCount = atomWithStorage<boolean>("showWordCount", false);
+// A typewriter click per key typed in the note (TypewriterSound; Settings →
+// Editor → Writing). On by default, one switch off in Settings or the palette.
+export const atom_typewriterSound = atomWithStorage<boolean>("typewriterSound", true);
 // The note's outline in the pane's bottom-right corner (EditorOutline;
 // Ctrl/Cmd+Shift+M, Settings → Editor → View). Off by default.
 export const atom_showOutline = atomWithStorage<boolean>("showOutline", false);
 // Lets the editor's text column fill the sheet instead of stopping at the
-// reading width (--editor-measure, editor-typography.scss). On by default.
-export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
+// reading width (--editor-measure, editor-typography.scss). Off by default:
+// lines stop at a comfortable reading width.
+export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", false);
 // Focus (Settings → Editor): "dim" fades every paragraph but the caret's
 // and keeps the caret line centred (codemirror/flow-mode.ts); "sentence" is
 // "dim" narrowed to the caret's sentence. Off by default. Focus never hides
@@ -50,7 +54,7 @@ export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", true);
 export const FOCUS_MODES = ["off", "dim", "sentence"] as const;
 export type FocusMode = (typeof FOCUS_MODES)[number];
 export const atom_focusMode = atomWithChoiceStorage<FocusMode>("focusMode", FOCUS_MODES, "off");
-// Toggle Sentence Focus (Ctrl/Cmd+Alt+F): sentence focus on, or back to the
+// Enable/Disable Sentence Focus (Ctrl/Cmd+Alt+F): sentence focus on, or back to the
 // level used before it ("off" when there was none).
 const atom_focusBeforeSentence = atom<FocusMode>("off");
 export const atom_toggleSentenceFocus = atom(null, (get, set) => {
@@ -77,10 +81,12 @@ export const atom_sidebarWidth = atom(
   (get) => clampSidebarWidth(get(atom_sidebarWidthStored)),
   (_get, set, width: number) => set(atom_sidebarWidthStored, clampSidebarWidth(width)),
 );
-// Settings → Editor → Close Sidebar While Writing: typing in a note puts the
-// sidebar away, so the page has the window to itself. Off by default: the
-// sidebar otherwise closes only when you close it.
-export const atom_closeSidebarWhileWriting = atomWithStorage<boolean>("closeSidebarWhileWriting", false);
+// No Distraction Mode (the button in the editor's top-right row, the palette,
+// Ctrl/Cmd+Alt+Z): just you and the page. The sidebar, AI companion, corner
+// buttons, file name, outline and word count are hidden and the page takes
+// their room (`data-page-only` on <html>, editor/hooks/use-page-only.ts).
+// Session only: a reload shows the interface as you left it.
+export const atom_pageOnly = atom(false);
 // Sidebar sections the user folded (by title: "Pinned", "Files"), remembered.
 export const atom_sidebarCollapsed = atomWithStorage<Record<string, boolean>>("sidebarCollapsed", {}, undefined, { getOnInit: true });
 // Each stack falls back to the Apple system face with the same role.
@@ -235,10 +241,6 @@ export const atom_userName = atomWithStorage<string>("userName", "");
 // "Not Now" on the FolderPrompt: it shrinks to a "Not saved to a folder"
 // mark for the rest of the visit. In memory, so the next visit asks again.
 export const atom_folderPromptDismissed = atom<boolean>(false);
-// Folded heading sections per note path, by heading line (heading-fold.ts),
-// so a note reopened later in the visit folds the same headings. In memory:
-// a new visit opens every note unfolded.
-export const atom_headingFolds = atom<Record<string, string[]>>({});
 
 export const atom_frontmatterHasPrompted = atomWithStorage<boolean>(
   "frontmatterHasPrompted",
@@ -392,6 +394,10 @@ export const atom_aiBuilderRequest = atom<number>(0);
 // The CM6 EditorView belonging to whichever pane is currently active: AI
 // actions and palette editor commands target it.
 export const atom_activeEditorView = atom<EditorView | null>(null);
+
+// Check document (palette command): whether its dialog is open. It reads the
+// note from the active pane's editor (editor/components/DocumentCheckDialog.tsx).
+export const atom_documentCheckOpen = atom(false);
 
 export type PalettePinnedItem =
   | { kind: "file"; id: string }

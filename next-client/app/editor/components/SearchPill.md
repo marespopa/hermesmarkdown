@@ -1,13 +1,13 @@
 # SearchPill
 
-Description: The command palette's search field at rest, in toolbar size: the app's main way in. It sits in every page's title bar (`ShellPage`) and, in the editor, in the window's top-right corner at the same spot (`EditorShell`), always `SEARCH_PILL_WIDTH` wide (`clamp(9rem,28vw,18rem)`, exported so the editor's floating title keeps clear of it); the home feed has its own, larger one (`FeedBar`). A click (or Ctrl/Cmd+P anywhere, or pressing Shift twice) opens the palette. Like the feed's pill it is the palette's morph anchor (`data-palette-anchor` and the shared `PALETTE_SEARCH_TRANSITION` view-transition name), so opening the palette grows the pill into its field, and it turns invisible while the palette is open. Outside a `CommandPaletteProvider` (a page under test) it renders nothing (`useOptionalCommandPalette`).
+Description: The command palette's way in, as a search button: the app's main way in. It sits in every page's title bar (`ShellPage`) and, in the editor, in the window's top-right corner (`EditorShell`), the corner the AI companion's icon used to take: a `SEARCH_PILL_WIDTH` (`2rem`) square with the magnifier centered, like the other corner buttons (the width is exported so the editor's floating title keeps clear of it); a hover shows the shared `Tooltip` with the shortcut. The home feed has its own, larger search bar (`FeedBar`). A click (or Ctrl/Cmd+P anywhere, or pressing Shift twice) opens the palette, which appears as one panel; the button doesn't morph into it. Outside a `CommandPaletteProvider` (a page under test) it renders nothing (`useOptionalCommandPalette`).
 
 ## Local State & Storage
-- State: the palette's `isOpen` (read).
+- State: none (it only calls the palette's `open`).
 - Persistence: None.
 
 ## Dependencies
-- Core: `useOptionalCommandPalette`, `SEARCH_OR_CREATE_PLACEHOLDER` / `SEARCH_KBD_CLASS` (`palette-model`), `Button`.
+- Core: `useOptionalCommandPalette`, `SEARCH_OR_CREATE_PLACEHOLDER` (`palette-model`), `Button`, `Tooltip`.
 - Zero-Cloud: No network or telemetry side effects.
 
 ## Quick Usage

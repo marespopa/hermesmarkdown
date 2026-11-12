@@ -117,7 +117,8 @@ export async function runFormatCode(view: EditorView, isNote: boolean): Promise<
   const result = await formatCodeInEditor(view, isNote);
   clearTimeout(timer);
   if (loadingId) toast.dismiss(loadingId);
-  if (result.status === "formatted") toast.success(result.note ? `Formatted. ${result.note}` : "Formatted", { duration: result.note ? 4000 : 1500 });
+  // A format you can see needs no announcement; only a note about it does.
+  if (result.status === "formatted") { if (result.note) toast.success(`Formatted. ${result.note}`, { duration: 4000 }); }
   else if (result.status === "unchanged") toast(result.note ? `Already formatted. ${result.note}` : "Already formatted", { duration: result.note ? 4000 : 1500 });
   else toast.error(result.reason);
   return result;

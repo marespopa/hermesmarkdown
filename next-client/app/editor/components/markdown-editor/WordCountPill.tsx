@@ -46,7 +46,7 @@ export default function WordCountPill({ view, text }: { view: EditorView | null;
 
   const visible = !typing && shown > 0;
   return (
-    <div className="pointer-events-none sticky bottom-0 z-10 h-0">
+    <div className="page-only-hide pointer-events-none sticky bottom-0 z-10 h-0 transition-[opacity,visibility] duration-300 motion-reduce:transition-none">
       <CountBadge
         role="status"
         aria-hidden={!visible}

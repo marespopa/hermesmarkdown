@@ -32,20 +32,14 @@ export const baseTheme = EditorView.theme({
   ".cm-line": {
     padding: 0,
   },
-  // Frontmatter keeps a visible tint at rest, so the block always reads as a
-  // panel; hover/focus deepens it and lifts the text colour.
+  // Frontmatter is plain, quiet text: no box, fill or edge, and no inset, so it
+  // lines up with the note's own text. Only its colour is softer, and lifts a
+  // step on hover or focus.
   ".cm-frontmatter-line": {
-    backgroundColor: "var(--frontmatter-bg-hover)",
     color: "var(--fg-faint)",
     fontWeight: "400",
     letterSpacing: "0.005em",
-    // Inset via a transparent border, not padding: drawSelection() reads the
-    // paddingLeft of the *first* .cm-line to place the left edge of every
-    // full-line selection rect. With frontmatter at the top of the doc, a
-    // padded line here shifted select-all right by ~0.55rem on every line.
-    // The background still paints under the border (background-clip default).
-    borderInline: "0.55rem solid transparent",
-    transition: "background-color 150ms ease, color 150ms ease",
+    transition: "color 150ms ease",
   },
   ".cm-frontmatter-line *": {
     fontWeight: "400 !important",
@@ -62,14 +56,6 @@ export const baseTheme = EditorView.theme({
     color: "var(--fg-faint)",
     opacity: "0.55",
   },
-  ".cm-frontmatter-line.cm-frontmatter-start": {
-    borderRadius: "0.55rem 0.55rem 0 0",
-    paddingTop: "0.15rem",
-  },
-  ".cm-frontmatter-line.cm-frontmatter-end": {
-    borderRadius: "0 0 0.55rem 0.55rem",
-    paddingBottom: "0.15rem",
-  },
   // The room below the frontmatter, kept tight so the title sits close
   // under it (frontmatter-block.ts): text right after the closing `---`
   // gets this spacer block — a block of its own, not padding on the text's
@@ -81,7 +67,6 @@ export const baseTheme = EditorView.theme({
     lineHeight: "var(--frontmatter-gap, 1rem)",
   },
   ".cm-frontmatter-line:hover, .cm-frontmatter-line:focus-within": {
-    backgroundColor: "var(--frontmatter-bg-active)",
     color: "var(--fg-muted)",
   },
   // Horizontal rule (---, ***, ___): a thin line across the text column;
@@ -168,86 +153,19 @@ export const baseTheme = EditorView.theme({
     border: "none",
     color: "transparent",
   },
-  // A heading's fold chevron (heading-fold.ts) hangs in the leading margin
-  // where its `#`s do, out of the text flow, one line of the heading tall.
-  // It shows while the pointer is over the heading and stays while folded;
-  // on the caret's lines the `#`s take that spot, so it steps aside.
-  ".cm-headingFold": {
-    position: "absolute",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    height: "1lh",
-    padding: "0",
-    border: "none",
-    background: "none",
-    color: "var(--fg-faint)",
-    cursor: "pointer",
-    opacity: "0",
-    transform: "translateX(calc(-100% - 0.35rem))",
-    transition: "opacity 150ms ease, color 150ms ease",
-  },
-  ".cm-headingFold svg": {
-    width: "14px",
-    height: "14px",
-    transform: "rotate(90deg)",
-    transition: "transform 150ms ease",
-  },
-  ".cm-headingFold[aria-expanded=false] svg": {
-    transform: "none",
-  },
-  ".cm-line:hover .cm-headingFold, .cm-headingFold:focus-visible, .cm-headingFold[aria-expanded=false]": {
-    opacity: "1",
-  },
-  ".cm-headingFold:hover": {
-    color: "var(--fg)",
-  },
-  ".cm-line:not(.cm-marginMarksHidden) .cm-headingFold:not(.cm-frontmatterFold)": {
-    visibility: "hidden",
-  },
-  // The frontmatter's, by its opening `---`, just outside the panel (past
-  // the line's 0.55rem inset border).
-  ".cm-frontmatterFold": {
-    transform: "translateX(calc(-100% - 0.9rem))",
-  },
-  // No hover on touch screens: the chevrons stay faintly in view.
-  "@media (hover: none)": {
-    ".cm-headingFold": { opacity: "0.6" },
-  },
-  // After a folded heading: a quiet `…` that unfolds it.
-  ".cm-headingFoldPlaceholder": {
-    marginLeft: "0.4em",
-    padding: "0 0.35em",
-    borderRadius: "4px",
-    fontWeight: "400",
-    color: "var(--fg-faint)",
-    backgroundColor: "var(--frontmatter-bg-hover)",
-    cursor: "pointer",
-  },
-  // Folded frontmatter: one line on its panel, the title then a cloud of
-  // tag pills.
-  ".cm-frontmatterFoldPlaceholder": {
-    cursor: "pointer",
-  },
-  ".cm-frontmatterFoldTitle": {
-    color: "var(--fg-muted)",
-  },
-  ".cm-frontmatterFoldName": {
-    color: "var(--fg-faint)",
-  },
-  ".cm-frontmatterFoldPlaceholder:hover .cm-frontmatterFoldTitle, .cm-frontmatterFoldPlaceholder:hover .cm-frontmatterFoldName": {
-    color: "var(--fg)",
-  },
-  ".cm-headingFoldPlaceholder:hover": {
-    color: "var(--fg)",
-    backgroundColor: "var(--frontmatter-bg-active)",
-  },
-  // The pill look (fill, colour, size) lives in components/TagPill.
-  // Laid out as text, like the chip being edited (live-markers-theme.ts): an
-  // inline-flex box sits taller in the line, so selecting the tag would make
-  // the text jump. At the body size: in a note only headings change size.
+  // A tag in the note is a quiet pill: the colour comes from
+  // components/TagPill (muted, or the secondary accent for a workflow tag),
+  // on a faint neutral tint with horizontal padding only, so the line keeps
+  // its height. Laid out as text, like the chip being
+  // edited (live-markers-theme.ts): an inline-flex box sits taller in the
+  // line, so selecting the tag would make the text jump. At the body size and
+  // weight: in a note only headings change size.
   ".cm-tag-pill": {
     fontSize: "1em",
+    fontWeight: "inherit",
+    backgroundColor: "color-mix(in srgb, var(--fg) 6%, transparent)",
+    padding: "0.05em 0.4em",
+    borderRadius: "0.4em",
     display: "inline",
     verticalAlign: "baseline",
     boxDecorationBreak: "clone",
@@ -329,7 +247,8 @@ export const baseTheme = EditorView.theme({
     content: '"↗"',
   },
   ".cm-link-display-wiki": {
-    color: "var(--moss)",
+    color: "var(--wikilink)",
+    textDecorationColor: "color-mix(in srgb, var(--wikilink) 38%, transparent)",
     textDecorationStyle: "dotted",
   },
   ".cm-link-display-wiki::after": {
@@ -339,19 +258,16 @@ export const baseTheme = EditorView.theme({
     color: "var(--link-hover)",
     textDecorationColor: "currentColor",
   },
+  ".cm-link-display-wiki:hover": {
+    color: "var(--wikilink)",
+  },
+  // Dates and priorities are coloured text, not chips: no border, fill or
+  // padding, so they sit in the line like any word.
   ".cm-annotation-display": {
-    display: "inline-flex",
-    alignItems: "center",
-    border: "1px solid var(--border-subtle)",
-    borderRadius: "0.4em",
-    backgroundColor: "color-mix(in srgb, var(--chrome) 52%, transparent)",
-    fontWeight: "500",
-    // Tight enough that the pill, padding and border included, fits the line.
-    lineHeight: "1.25",
-    padding: "0.08em 0.42em",
+    display: "inline",
+    fontWeight: "400",
     marginInline: "0.06em",
     whiteSpace: "nowrap",
-    verticalAlign: "0.06em",
     cursor: "text",
   },
   ".cm-date-display": {
@@ -370,19 +286,14 @@ export const baseTheme = EditorView.theme({
   ".cm-date-display-started, .cm-date-display-done": {
     color: "var(--fg-faint)",
   },
-  ".cm-priority-display": {
-    borderRadius: "9999px",
-  },
   ".cm-priority-display-high": {
     color: "var(--clay)",
-    backgroundColor: "color-mix(in srgb, var(--clay) 8%, transparent)",
   },
   ".cm-priority-display-med": {
     color: "var(--fg-muted)",
   },
   ".cm-priority-display-low": {
     color: "var(--moss)",
-    backgroundColor: "color-mix(in srgb, var(--moss) 7%, transparent)",
   },
 });
 

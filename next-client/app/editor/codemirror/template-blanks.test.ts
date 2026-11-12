@@ -2,11 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import { EditorSelection, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { markdown } from "@codemirror/lang-markdown";
-import toast from "react-hot-toast";
 import { findBlanks, jumpToBlank, templateBlanks } from "./template-blanks";
 import { setTemplateNote, templateFieldPills } from "./template-field-pills";
 
-vi.mock("react-hot-toast", () => ({ default: { success: vi.fn() } }));
 
 function makeView(doc: string, caret = 0) {
   return new EditorView({
@@ -44,7 +42,6 @@ describe("template blanks", () => {
     jumpToBlank(view, 1);
     view.dispatch(view.state.replaceSelection("Ana"));
     expect(jumpToBlank(view, 1)).toBe(true);
-    expect(toast.success).toHaveBeenCalledWith("Template ready ✦", expect.anything());
     expect(jumpToBlank(view, 1)).toBe(false);
   });
 

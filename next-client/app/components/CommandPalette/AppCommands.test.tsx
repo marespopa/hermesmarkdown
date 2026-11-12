@@ -134,8 +134,8 @@ describe("AppCommands and SettingsCommands", () => {
     renderCommands();
     expect(command("open-settings")?.label).toBe("Open Settings");
     expect(command("show-keyboard-shortcuts")?.label).toBe("Show Keyboard Shortcuts");
-    expect(command("toggle-word-wrap")?.label).toBe("Toggle Word Wrap");
-    expect(command("toggle-line-numbers")?.label).toBe("Toggle Line Numbers");
+    expect(command("toggle-word-wrap")?.label).toBe("Disable Word Wrap");
+    expect(command("toggle-line-numbers")?.label).toBe("Enable Line Numbers");
   });
 
   it("toggles word wrap and sets the Focus level from the palette", () => {

@@ -1,7 +1,6 @@
 "use client";
 
 import { atom_visibleTasks } from "@/app/atoms/task-atoms";
-import { atom_templates } from "@/app/atoms/template-atoms";
 import { atom_activeEditorView, atom_commandUseCounts, atom_editorFontFamily, atom_pendingScrollTarget, atom_recentFilePaths, atom_searchRegex, atom_showHiddenFiles, type PalettePinnedItem } from "@/app/atoms/ui-atoms";
 import Button from "@/app/components/Button";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
@@ -20,6 +19,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { HiOutlineChevronLeft } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
 import { fuzzyMatch, matchCommand, matchFile } from "./command-search";
+import { collectNoteMentions } from "./palette-mentions";
 import { type Command, useCommandPalette } from "./CommandPaletteContext";
 import PaletteFooter from "./PaletteFooter";
 import PaletteSearchBar from "./PaletteSearchBar";
@@ -27,15 +27,18 @@ import PaletteRow from "./PaletteRow";
 import { usePaletteContentSearch } from "./use-palette-content-search";
 import { usePaletteFiles } from "./use-palette-files";
 import { usePalettePins } from "./use-palette-pins";
-import { buildCreateRow, buildMenuRows, buildTagRows, buildTaskRows, buildTemplateRows, commandRow, SEARCH_OR_CREATE_PLACEHOLDER, MAX_VISIBLE_ROWS, pinnedKey, rowGroup, type Row, type Scope, scopeFromPrefix, scopePrefix, TOP_LEVEL_MENU } from "./palette-model";
+import { buildCreateRow, buildMenuRows, buildTagRows, buildTaskRows, commandRow, SEARCH_OR_CREATE_PLACEHOLDER, MAX_VISIBLE_ROWS, pinnedKey, rowGroup, type Row, type Scope, scopeFromPrefix, scopePrefix, TOP_LEVEL_MENU } from "./palette-model";
 import { finishPerfAfterPaint } from "@/app/utils/perf/perf-metrics";
 import { usePalettePrefetch } from "./use-palette-prefetch";
 
 
+// How long the closing palette stays mounted: a little past its 150ms exit
+// animation (`--layout-duration`), so it never unmounts mid-fade.
+const EXIT_MS = 170;
+
 export default function CommandPalette() {
-  const { isOpen, initialQuery, initialMenuId, close, commands, markUsed, createNote, isMorphing } = useCommandPalette();
+  const { isOpen, initialQuery, initialMenuId, close, commands, markUsed, createNote } = useCommandPalette();
   const tasks = useAtomValue(atom_visibleTasks);
-  const templates = useAtomValue(atom_templates);
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const showHiddenFiles = useAtomValue(atom_showHiddenFiles);
   const fontFamily = useAtomValue(atom_editorFontFamily);
@@ -45,7 +48,7 @@ export default function CommandPalette() {
   // Pinned notes (shared with the sidebar's Files) and pinned commands.
   const { pinnedItems, isPinned, togglePin: togglePinnedRow } = usePalettePins();
   const setPendingScrollTarget = useSetAtom(atom_pendingScrollTarget);
-  const { openFile, createNoteFromTemplate } = useFileSystem();
+  const { openFile } = useFileSystem();
   const router = useRouter();
   const pathname = usePathname();
   const isMobileChrome = useIsMobileChrome();
@@ -148,18 +151,19 @@ export default function CommandPalette() {
     if (scope === "task") {
       return buildTaskRows(query, tasks);
     }
-    if (scope === "template") return buildTemplateRows(query, templates);
     if (!activeEditorView) return [];
-    const headings: Extract<Row, { kind: "heading" }>[] = [];
-    for (let number = 1; number <= activeEditorView.state.doc.lines; number++) {
-      const line = activeEditorView.state.doc.line(number);
-      const heading = /^(#{1,6})\s+(.+)$/.exec(line.text);
-      if (!heading) continue;
-      const match = fuzzyMatch(query, heading[2]);
-      if (match) headings.push({ kind: "heading", id: `${line.from}`, label: heading[2], detail: `H${heading[1].length}`, from: line.from, titleIndices: match.indices, detailIndices: [], score: match.score });
+    const mentions: Extract<Row, { kind: "mention" }>[] = [];
+    for (const mention of collectNoteMentions(activeEditorView.state.doc)) {
+      const match = fuzzyMatch(query, mention.label.slice(1));
+      if (match) {
+        mentions.push({
+          kind: "mention", id: `${mention.from}`, label: mention.label, detail: `${mention.count} ${mention.count === 1 ? "mention" : "mentions"}`,
+          from: mention.from, titleIndices: match.indices.map((index) => index + 1), detailIndices: [], score: match.score,
+        });
+      }
     }
-    return headings.sort((a, b) => b.score - a.score || a.from - b.from);
-  }, [activeEditorView, commandUseCounts, filesByTag, paletteCommands, query, scope, tasks, templates]);
+    return mentions.sort((a, b) => b.score - a.score || a.from - b.from);
+  }, [activeEditorView, commandUseCounts, filesByTag, paletteCommands, query, scope, tasks]);
 
   const fileRows = useMemo<Row[]>(() => {
     if (scope || !query) return [];
@@ -205,8 +209,7 @@ export default function CommandPalette() {
   useEffect(() => setSelectedIndex((index) => Math.min(index, Math.max(0, rows.length - 1))), [rows.length]);
   usePalettePrefetch(isOpen, rows[selectedIndex]);
 
-  // `newNote`: Ctrl/Cmd+Enter, which makes a template row start a new note.
-  const execute = async (row: Row | undefined, newNote = false) => {
+  const execute = async (row: Row | undefined) => {
     if (!row || runningId) return;
     if (row.kind === "file" || row.kind === "content") {
       // Close first and let that paint: reading the file and re-rendering the
@@ -235,21 +238,8 @@ export default function CommandPalette() {
       }
       return;
     }
-    if (row.kind === "template") {
-      // Into the note in front (no picker in between); Ctrl/Cmd+Enter, or no
-      // note open, makes a new note from it.
-      close();
-      await nextPaint();
-      if (!newNote && activeEditorView) {
-        document.dispatchEvent(new CustomEvent("hermes:insert-vault-template", { detail: { entry: row.entry } }));
-        return;
-      }
-      const path = await createNoteFromTemplate?.(row.entry);
-      if (path && !pathname.startsWith("/editor")) router.push("/editor");
-      return;
-    }
     if (row.kind === "task") { router.push("/editor/tasks"); close(); return; }
-    if (row.kind === "heading") {
+    if (row.kind === "mention") {
       activeEditorView?.dispatch({ selection: { anchor: row.from }, effects: EditorView.scrollIntoView(row.from, { y: "start", yMargin: 16 }) });
       activeEditorView?.focus(); close(); return;
     }
@@ -313,14 +303,13 @@ export default function CommandPalette() {
     if (event.key === "ArrowUp") { event.preventDefault(); setSelectedIndex((index) => rows.length ? (index - 1 + rows.length) % rows.length : 0); return; }
     if (event.key === "Enter") {
       event.preventDefault();
-      void execute(rows[selectedIndex], event.ctrlKey || event.metaKey);
+      void execute(rows[selectedIndex]);
     }
   };
 
   const displayQuery = scope ? `${scopePrefix(scope)}${query}` : query;
   const menuTitle = menuStack.map((command) => command.label.replace(/…$/, "")).join(" › ");
-  const scopeMessage = scope === "template" && templates.length === 0 ? "No templates yet. Open Templates to add one or a pack."
-    : scope !== "content" ? null
+  const scopeMessage = scope !== "content" ? null
     : contentSearch.status === "unavailable" ? "Text search isn't available in this browser."
       : contentSearch.status === "short" ? "Type at least 2 characters to search file text."
         : contentSearch.invalid ? "Not a valid regular expression yet." : null;
@@ -333,15 +322,17 @@ export default function CommandPalette() {
     && !(scope === "content" && (contentSearch.status === "searching" || contentSearch.fileScan));
 
   return <OverlayPanel isOpen={isOpen} onClose={close} variant={isMobileChrome ? "sheet" : "modal"} backdrop="dim"
-    // During a search-pill morph the view transition animates; the panel's own
-    // enter/exit animations and exit delay would hide it, so they're skipped.
-    backdropClassName={`bg-surface/85 dark:bg-black/60 duration-overlay-backdrop motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in" : "animate-out fade-out"}`}
-    exitDurationMs={isMorphing ? 0 : 200}
+    // One piece: the panel, search field included, enters and exits together.
+    // The exit holds its last frame (`fill-mode-forwards`) until it unmounts:
+    // without that the faded panel snaps back to visible if the animation
+    // ends before the unmount, which flickered on every close.
+    backdropClassName={`bg-surface/85 dark:bg-black/60 duration-overlay-backdrop motion-reduce:animate-none ${isOpen ? "animate-in fade-in" : "animate-out fade-out fill-mode-forwards"}`}
+    exitDurationMs={EXIT_MS}
     // Centred, at a fixed height so it doesn't jump as the results change.
     containerClassName={isMobileChrome ? "" : "items-center justify-center p-4"}
     panelClassName={isMobileChrome
-      ? `flex-1 flex flex-col bg-overlay duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in slide-in-from-bottom-2 ease-out" : "animate-out fade-out slide-out-to-bottom-2 ease-in"}`
-      : `w-[600px] max-w-full h-[min(520px,calc(100dvh-2rem))] flex flex-col glass-panel glass-panel-soft rounded-xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isMorphing ? "" : isOpen ? "animate-in fade-in zoom-in-[0.98] ease-out" : "animate-out fade-out zoom-out-[0.98] ease-in"}`}>
+      ? `flex-1 flex flex-col bg-overlay duration-overlay-panel motion-reduce:animate-none ${isOpen ? "animate-in fade-in slide-in-from-bottom-2 ease-out" : "animate-out fade-out slide-out-to-bottom-2 ease-in fill-mode-forwards"}`
+      : `w-[600px] max-w-full h-[min(520px,calc(100dvh-2rem))] flex flex-col glass-panel glass-panel-soft rounded-xl overflow-hidden duration-overlay-panel motion-reduce:animate-none ${isOpen ? "animate-in fade-in zoom-in-[0.98] ease-out" : "animate-out fade-out zoom-out-[0.98] ease-in fill-mode-forwards"}`}>
     <div className="flex min-h-0 flex-1 flex-col" onKeyDown={handleKeyDown}>
     <PaletteSearchBar
       inputRef={inputRef}
@@ -367,7 +358,7 @@ export default function CommandPalette() {
         <div className="animate-in fade-in slide-in-from-top-1 px-6 py-8 text-center duration-200 motion-reduce:animate-none">
           <span aria-hidden="true" className="text-lg">🪴</span>
           <p className="mt-2 text-ui-footnote text-fg">No matches found</p>
-          <p className="mt-1 text-ui-footnote text-fg-muted">Try a file name, or a mode below: #tag, !task, @heading, /text, ~template, &gt;command.</p>
+          <p className="mt-1 text-ui-footnote text-fg-muted">Try a file name, or a mode below: #tag, !task, @mention, /text, &gt;command.</p>
         </div>
       )}
       <div className="py-1.5">{rows.map((row, index) => (

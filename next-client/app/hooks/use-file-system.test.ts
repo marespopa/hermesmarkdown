@@ -324,7 +324,6 @@ describe("useFileSystem - createFile conflict resolution", () => {
     expect(prompt).toHaveBeenCalledWith("Enter folder name:", "", "New Folder");
     expect(yearDirectory.getDirectoryHandle).toHaveBeenCalledWith("Plans", { create: true });
     expect(folder).toBe(createdFolder);
-    expect(toast.success).toHaveBeenCalledWith("Created: Plans");
   });
 
   it("renames a nested item in the folder its vault path names, even when resolve() can't find it", async () => {

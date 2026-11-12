@@ -237,8 +237,8 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     (name: string, entry: TemplateEntry) => createLinkedNote(name, entry),
     [createLinkedNote],
   );
-  // The palette's `~` templates (Ctrl/Cmd+Enter, or Enter with no note
-  // open): asks the new note's name, then creates it from `entry` in the
+  // Not called now: the palette's `~` templates mode that used it was removed.
+  // Asks the new note's name, then creates it from `entry` in the
   // New Files folder (or the name's own folder) and opens it. A note of that
   // name already there opens unchanged. Resolves to its path, or null.
   const createNoteFromTemplate = useCallback(async (entry: TemplateEntry): Promise<string | null> => {

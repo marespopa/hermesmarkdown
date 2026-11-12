@@ -30,8 +30,8 @@ export default function CompanionHeader({ open, onClose }: CompanionHeaderProps)
   const modelNames = [...new Set([AUTO_MODEL_LABEL, ...modelOptions.map((model) => model.name)])];
 
   return (
-    <header className={`flex shrink-0 items-center gap-1 border-b border-edge-subtle pl-4 pr-3 ${PANE_HEADER_HEIGHT}`}>
-      <h2 id="companion-title" className="shrink-0 text-ui-subhead font-semibold select-none">AI Companion</h2>
+    <header className={`flex shrink-0 items-center gap-1 pl-4 pr-3 ${PANE_HEADER_HEIGHT}`}>
+      <h2 id="companion-title" className="shrink-0 text-ui-footnote font-normal text-fg-muted select-none">AI Companion</h2>
       {isChoosingModel ? (
         <Typeahead
           name="companion-model"

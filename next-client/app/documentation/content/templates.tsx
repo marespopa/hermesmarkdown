@@ -67,8 +67,7 @@ export const templatesItems: Subsection[] = [
         <p>
           Blanks left by a template show as grey boxes in the new file. Press <strong>Tab</strong>{" "}
           to select the next one and type to replace it, or <strong>Shift+Tab</strong> to go back.
-          Clicking a blank selects it too. When none are left, you&apos;ll see{" "}
-          <strong>Template ready ✦</strong>. Press Esc to use Tab normally again in that file.
+          Clicking a blank selects it too. Press Esc to use Tab normally again in that file.
         </p>
         <h4 className={h4}>Where new files go</h4>
         <p>

@@ -11,12 +11,13 @@ import {
   toggleStrikethrough,
 } from "../../codemirror/commands";
 import { setHeading, toggleCodeBlock, wrapAsLink } from "../../codemirror/format-shortcuts";
-import { foldCurrentSection, unfoldAllSections } from "../../codemirror/heading-fold";
 import { gotoLine, openSearchPanel } from "@codemirror/search";
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { formatShortcut, isMacPlatform } from "@/app/utils/platform";
 import { isPlainTextPath } from "@/app/utils/file-kinds";
 import { runFormatCode } from "../../codemirror/format-code-command";
+import { runTidyNote } from "../../codemirror/tidy-note-command";
+import toast from "react-hot-toast";
 import { TEMPLATES } from "../constants";
 import type { EditorCommandContext } from "./use-editor-command-context";
 
@@ -27,6 +28,7 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     isAiEnabled,
     isAiConfigured,
     runEditorCommand,
+    setDocumentCheckOpen,
     setAiBuilderRequest,
     openCompanion,
     requestCompanionAction,
@@ -69,8 +71,8 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     { id: "format-code", label: "Format Code", category: "Editor" as const, shortcut: isMacPlatform() ? "⇧⌥F" : "Shift+Alt+F", keywords: "prettier beautify pretty print code block fence json typescript javascript css html yaml", action: () => runEditorCommand((view) => runFormatCode(view, !isPlainTextPath(activeFilePath ?? ""))) },
     { id: "find-in-note", label: "Find and replace in file", category: "Editor" as const, shortcut: formatShortcut("F"), keywords: "search replace regex", action: () => runEditorCommand(openSearchPanel) },
     { id: "go-to-line", label: "Go to Line…", category: "Editor" as const, shortcut: formatShortcut("G", { alt: true }), keywords: "jump line number goto", action: () => runEditorCommand(gotoLine) },
-    { id: "fold-current-section", label: "Fold current section", category: "Editor" as const, shortcut: formatShortcut(".", { shift: true }), keywords: "collapse heading outline hide", action: () => runEditorCommand(foldCurrentSection) },
-    { id: "unfold-all-sections", label: "Unfold all sections", category: "Editor" as const, shortcut: formatShortcut(",", { shift: true }), keywords: "expand headings sections show", action: () => runEditorCommand(unfoldAllSections) },
+    { id: "check-document", label: "Check document", category: "Editor" as const, keywords: "lint problems broken links missing images skipped headings validate fix", action: () => setDocumentCheckOpen(true) },
+    { id: "tidy-note", label: "Tidy note", category: "Editor" as const, keywords: "clean up format align tables space headings renumber ordered lists", action: () => runEditorCommand((view) => { if (!runTidyNote(view)) toast("Nothing to tidy"); }) },
     { id: "indent-subtree", label: "Indent current item", category: "Editor" as const, keywords: "nest list task", action: () => runEditorCommand(indentCurrentSubtree) },
     { id: "outdent-subtree", label: "Outdent current item", category: "Editor" as const, keywords: "unnest list task", action: () => runEditorCommand(outdentCurrentSubtree) },
     { id: "toggle-checkbox", label: "Toggle checkbox", category: "Tasks" as const, keywords: "task done todo", action: () => runEditorCommand(toggleCheckboxOnLine) },
@@ -81,7 +83,11 @@ export function buildEditorAiCommandGroups(context: EditorCommandContext) {
     { id: "task-status-todo", label: "Task: Reset to To Do", category: "Tasks" as const, keywords: "reopen open [ ]", action: () => runEditorCommand(setTaskStatusOnCurrentLine("todo")) },
   ].map((command) => ({
     ...command,
-    disabledReason: activeEditorView ? undefined : "Open and focus a file first",
+    disabledReason: !activeEditorView
+      ? "Open and focus a file first"
+      : (command.id === "check-document" || command.id === "tidy-note") && isPlainTextPath(activeFilePath ?? "")
+        ? "Markdown notes only"
+        : undefined,
   }));
 
   // The vault Template and Template field entries are slash-menu only (they

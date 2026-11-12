@@ -204,7 +204,7 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
                 setDragging(row.key);
               }}
               onDragEnd={endDrag}
-              className={`relative ${SIDEBAR_ROW_CLASS} ${row.current || folderMenu?.key === row.key ? SIDEBAR_ITEM_CURRENT_CLASS : SIDEBAR_ITEM_IDLE_CLASS} ${dragging === row.key ? "opacity-50" : ""}`}
+              className={`group/pin relative ${SIDEBAR_ROW_CLASS} ${row.current || folderMenu?.key === row.key ? SIDEBAR_ITEM_CURRENT_CLASS : SIDEBAR_ITEM_IDLE_CLASS} ${dragging === row.key ? "opacity-50" : ""}`}
             >
               {dropAt !== null && (dropAt === index || (dropAt === index + 1 && index === rows.length - 1)) && (
                 <span aria-hidden="true" className={`pointer-events-none absolute inset-x-1 h-0.5 rounded-full bg-fg-faint ${dropAt === index ? "-top-px" : "-bottom-px"}`} />
@@ -265,7 +265,7 @@ export default function SidebarPinned({ activePath }: { activePath: string | nul
                     <span className="h-3 w-3 animate-spin rounded-full border-[1.5px] border-fg-faint border-t-transparent motion-reduce:animate-none" />
                   </span>
                 ) : (
-                  <kbd aria-hidden="true" className="shrink-0 font-mono text-[10px] text-fg-faint [@media(hover:none)]:hidden">
+                  <kbd aria-hidden="true" className="hidden shrink-0 font-mono text-[10px] text-fg-faint group-hover/pin:inline group-focus-within/pin:inline [@media(hover:none)]:hidden">
                     {formatShortcut(String(index + 1))}
                   </kbd>
                 )}

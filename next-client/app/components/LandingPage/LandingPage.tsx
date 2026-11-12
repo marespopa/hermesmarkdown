@@ -1,21 +1,22 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_hasOpenFileContent } from "@/app/atoms/atoms";
 import { atom_userName } from "@/app/atoms/ui-atoms";
 import LoadingOverlay from "@/app/components/LoadingOverlay/LoadingOverlay";
 import Button from "@/app/components/Button/Button.component";
+import TextLink from "@/app/components/TextLink/TextLink.component";
 import Toast from "@/app/components/Toast";
 import { FiFileText } from "react-icons/fi";
 import FloatingStartButton from "./FloatingStartButton";
 import LandingThemePicker from "./LandingThemePicker";
-import { LANDING_FAQ, LANDING_FEATURES, LANDING_PLATFORMS } from "./landing-content";
+import LandingVideo from "./LandingVideo";
+import { LANDING_FAQ, LANDING_SCENES } from "./landing-content";
 
 const SECTION = "container max-w-screen-xl border-t border-black/5 py-20 dark:border-white/10";
-const H2 = "text-2xl font-bold tracking-tight md:text-3xl";
+const H2 = "text-3xl font-bold leading-tight tracking-tight md:text-4xl";
 const BODY = "leading-relaxed text-neutral-600 dark:text-neutral-400";
 
 export default function LandingPage() {
@@ -58,92 +59,77 @@ export default function LandingPage() {
       />
 
       <section className="container max-w-screen-xl flex min-h-screen flex-col justify-center py-24">
-        <div className="max-w-3xl space-y-7">
-          <p className="text-ui-footnote font-bold uppercase tracking-[0.3em] text-sage dark:text-sage">
-            Hermes&middot;Markdown
-          </p>
-          <h1 className="text-5xl font-bold leading-[1.05] tracking-tight md:text-7xl lg:text-7xl">
-            A place where all you can do is write.
-          </h1>
-          <p className="max-w-2xl text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 md:text-xl">
-            An editor for your notes and code that runs in your browser and
-            saves straight to your device. No accounts, no cloud, nothing
-            between you and the page.
-          </p>
-          <div ref={heroCtaRef} className="flex flex-col items-start gap-5 pt-2 sm:flex-row sm:items-center">
-            <Button
-              variant="hero"
-              onClick={handleStart}
-              className="w-full px-10 sm:w-auto"
-            >
-              Start Writing
-            </Button>
-            <Link
-              href="/documentation"
-              className="inline-flex items-center gap-1.5 text-ui-callout font-semibold text-neutral-600 transition-colors hover:text-fg dark:text-neutral-400 dark:hover:text-fg"
-            >
-              Read the docs <span aria-hidden="true">→</span>
-            </Link>
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <div className="space-y-7">
+            <p className="text-ui-footnote font-bold uppercase tracking-[0.3em] text-sage dark:text-sage">
+              Hermes&middot;Markdown
+            </p>
+            <h1 className="text-4xl font-bold leading-[1.1] tracking-tight md:text-5xl lg:text-6xl">
+              Markdown notes and code,{" "}
+              <br />
+              <span className="text-[var(--link)]">right in your browser.</span>
+            </h1>
+            <p className="max-w-xl text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 md:text-xl">
+              A local-first editor that saves straight to your device. No
+              account, no cloud, nothing to install.
+            </p>
+            <div ref={heroCtaRef} className="flex flex-col items-start gap-5 pt-2 sm:flex-row sm:items-center">
+              <Button
+                variant="hero"
+                onClick={handleStart}
+                className="w-full px-10 sm:w-auto"
+              >
+                Start Writing
+              </Button>
+              <TextLink
+                href="/documentation"
+                variant="unstyled"
+                className="inline-flex items-center gap-1.5 text-ui-callout font-semibold text-neutral-600 transition-colors hover:text-fg dark:text-neutral-400 dark:hover:text-fg"
+              >
+                Read the docs <span aria-hidden="true">→</span>
+              </TextLink>
+            </div>
+            <p className="text-ui-footnote text-fg-faint">
+              Private by default. Your work stays in files you control.
+            </p>
           </div>
-          <p className="text-ui-footnote text-fg-faint">
-            Private by default. Your work stays in files you control.
-          </p>
+          <LandingVideo />
         </div>
       </section>
+
+      {LANDING_SCENES.map((scene) => (
+        <section key={scene.id} className={SECTION} aria-labelledby={`landing-${scene.id}`}>
+          <div className="max-w-3xl space-y-4">
+            <h2 id={`landing-${scene.id}`} className={H2}>
+              {scene.headline}{" "}
+              <br />
+              <span className="text-[var(--link)]">{scene.accentLine}</span>
+            </h2>
+            <p className={`text-lg ${BODY}`}>{scene.lead}</p>
+          </div>
+          <ul className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+            {scene.points.map((point) => (
+              <li key={point.title} className="space-y-2">
+                <h3 className="text-ui-callout font-semibold">{point.title}</h3>
+                <p className={BODY}>{point.body}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
 
       <section className={SECTION} aria-labelledby="landing-theme">
         <div className="max-w-3xl space-y-4">
           <h2 id="landing-theme" className={H2}>
-            Pick your paper
+            Pick your paper.
           </h2>
           <p className={`text-lg ${BODY}`}>
-            Choose the colors you write on, for light and dark. The page
-            changes as you pick, and you can change them later in Settings.
+            Four light and four dark themes. Change them any time.
           </p>
         </div>
         <div className="mt-10">
           <LandingThemePicker />
         </div>
-      </section>
-
-      <section className={SECTION} aria-labelledby="landing-features">
-        <div className="max-w-3xl space-y-4">
-          <h2 id="landing-features" className={H2}>
-            A local-first editor for notes and code
-          </h2>
-          <p className={`text-lg ${BODY}`}>
-            HermesMarkdown edits Markdown notes and code files where they
-            already live. There is nothing to install and nothing to sign up
-            for, and your files stay readable by any other editor or tool.
-          </p>
-        </div>
-        <ul className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-          {LANDING_FEATURES.map((feature) => (
-            <li key={feature.title} className="space-y-2">
-              <h3 className="text-ui-callout font-semibold">{feature.title}</h3>
-              <p className={BODY}>{feature.body}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className={SECTION} aria-labelledby="landing-platforms">
-        <div className="max-w-3xl space-y-4">
-          <h2 id="landing-platforms" className={H2}>
-            Works in every modern browser
-          </h2>
-          <p className={`text-lg ${BODY}`}>
-            Where your files live depends on what the browser allows.
-          </p>
-        </div>
-        <ul className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-3">
-          {LANDING_PLATFORMS.map((platform) => (
-            <li key={platform.title} className="space-y-2">
-              <h3 className="text-ui-callout font-semibold">{platform.title}</h3>
-              <p className={BODY}>{platform.body}</p>
-            </li>
-          ))}
-        </ul>
       </section>
 
       <section className={SECTION} aria-labelledby="landing-faq">
@@ -160,17 +146,17 @@ export default function LandingPage() {
         </dl>
         <p className={`mt-12 max-w-3xl ${BODY}`}>
           New to Markdown? Read{" "}
-          <Link href="/markdown-editor" className="font-semibold text-fg underline-offset-4 hover:underline">
+          <TextLink href="/markdown-editor">
             what a Markdown editor is
-          </Link>
+          </TextLink>
           , try the{" "}
-          <Link href="/tools" className="font-semibold text-fg underline-offset-4 hover:underline">
+          <TextLink href="/tools">
             free Markdown tools
-          </Link>
+          </TextLink>
           , or browse the{" "}
-          <Link href="/documentation" className="font-semibold text-fg underline-offset-4 hover:underline">
+          <TextLink href="/documentation">
             documentation
-          </Link>
+          </TextLink>
           .
         </p>
       </section>

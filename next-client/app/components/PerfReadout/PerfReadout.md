@@ -4,7 +4,7 @@ Description: Dev-only readout of what people feel: note open → text painted, k
 
 ## Local State & Storage
 - State: The samples live in `app/utils/perf/perf-metrics.ts` (module level), read with `useSyncExternalStore`.
-- Persistence: `localStorage["perfReadout"]` (`atom_perfReadout`), toggled by the palette's **Toggle Performance Readout**. `?perf=1` shows it for one visit without storing anything.
+- Persistence: `localStorage["perfReadout"]` (`atom_perfReadout`), toggled by the palette's **Enable/Disable Performance Readout**. `?perf=1` shows it for one visit without storing anything.
 - Production builds render nothing, register no command, and record no samples.
 
 ## Dependencies

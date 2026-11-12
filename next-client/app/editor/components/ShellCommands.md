@@ -1,6 +1,6 @@
 # ShellCommands
 
-The shell's palette commands: **Show Sidebar** / **Hide Sidebar** (`toggle-sidebar`, `atom_sidebarOpen`) and **Show AI Companion** / **Hide AI Companion** (`toggle-companion`, `atom_companionOpen`). The label follows the state.
+The shell's palette commands: **Show Sidebar** / **Hide Sidebar** (`toggle-sidebar`, `atom_sidebarOpen`) and **Show AI Companion** / **Hide AI Companion** (`toggle-companion`, `atom_companionOpen`). The label follows the state. **No Distraction Mode** / **Exit No Distraction Mode** (`toggle-no-distraction`, `atom_pageOnly`, `Ctrl/Cmd+Alt+Z`, which `usePageOnly` in [EditorShell](EditorShell.md) handles) is just you and the page.
 
 ## Props
 | Prop | Type | Description |

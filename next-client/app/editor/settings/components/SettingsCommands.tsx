@@ -8,7 +8,7 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_focusMode, atom_fullWidth, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_toggleSentenceFocus } from "@/app/atoms/ui-atoms";
+import { atom_focusMode, atom_fullWidth, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_toggleSentenceFocus, atom_typewriterSound } from "@/app/atoms/ui-atoms";
 import { useRegisterCommand, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { FOCUS_OPTIONS } from "../focus-options";
 import { FONTS, TEXT_SIZES } from "../font-options";
@@ -26,6 +26,7 @@ export default function SettingsCommands() {
   const [showInvisibles, setShowInvisibles] = useAtom(atom_showInvisibles);
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [showWordCount, setShowWordCount] = useAtom(atom_showWordCount);
+  const [typewriterSound, setTypewriterSound] = useAtom(atom_typewriterSound);
   const [showOutline, setShowOutline] = useAtom(atom_showOutline);
   const [focusMode, setFocusMode] = useAtom(atom_focusMode);
   const toggleSentenceFocus = useSetAtom(atom_toggleSentenceFocus);
@@ -33,22 +34,25 @@ export default function SettingsCommands() {
   const [, setTextSize] = useAtom(atom_renderedFontSize);
   const [, setAutosaveMode] = useAtom(atom_autosaveMode);
 
+  const verb = (on: boolean) => (on ? "Disable" : "Enable");
+
   const commands: Command[] = [
-    { id: "toggle-full-width", label: "Toggle Full Width", category: "Settings", keywords: "editor layout wide column line length measure", action: () => setFullWidth(!fullWidth) },
-    { id: "toggle-word-wrap", label: "Toggle Word Wrap", category: "Settings", keywords: "editor lines wrap", action: () => setWordWrap(!wordWrap) },
-    { id: "toggle-line-numbers", label: "Toggle Line Numbers", category: "Settings", keywords: "editor gutter", action: () => setLineNumbers(!lineNumbers) },
-    { id: "toggle-invisibles", label: "Toggle Invisibles", category: "Settings", keywords: "whitespace empty lines blank spaces tabs pilcrow", action: () => setShowInvisibles(!showInvisibles) },
-    { id: "toggle-word-count", label: "Toggle Word Count", category: "Settings", keywords: "words stats statistics length counter", action: () => setShowWordCount(!showWordCount) },
-    { id: "toggle-outline", label: "Toggle Outline", category: "Settings", keywords: "headings contents overview minimap toc view", shortcut: formatShortcut("M", { shift: true }), action: () => setShowOutline(!showOutline) },
-    { id: "toggle-vim-mode", label: "Toggle Vim Mode", category: "Settings", keywords: "editor keybindings modal", action: () => setVimMode(!vimMode) },
+    { id: "toggle-full-width", label: `${verb(fullWidth)} Full Width`, category: "Settings", keywords: "toggle editor layout wide column line length measure", action: () => setFullWidth(!fullWidth) },
+    { id: "toggle-word-wrap", label: `${verb(wordWrap)} Word Wrap`, category: "Settings", keywords: "toggle editor lines wrap", action: () => setWordWrap(!wordWrap) },
+    { id: "toggle-line-numbers", label: `${verb(lineNumbers)} Line Numbers`, category: "Settings", keywords: "toggle editor gutter", action: () => setLineNumbers(!lineNumbers) },
+    { id: "toggle-invisibles", label: `${verb(showInvisibles)} Invisibles`, category: "Settings", keywords: "toggle whitespace empty lines blank spaces tabs pilcrow", action: () => setShowInvisibles(!showInvisibles) },
+    { id: "toggle-word-count", label: `${verb(showWordCount)} Word Count`, category: "Settings", keywords: "toggle words stats statistics length counter", action: () => setShowWordCount(!showWordCount) },
+    { id: "toggle-typewriter-sound", label: `${verb(typewriterSound)} Typewriter Sound`, category: "Settings", keywords: "toggle typing keys click clack audio noise mute", action: () => setTypewriterSound(!typewriterSound) },
+    { id: "toggle-outline", label: `${verb(showOutline)} Outline`, category: "Settings", keywords: "toggle headings contents overview minimap toc view", shortcut: formatShortcut("M", { shift: true }), action: () => setShowOutline(!showOutline) },
+    { id: "toggle-vim-mode", label: `${verb(vimMode)} Vim Mode`, category: "Settings", keywords: "toggle editor keybindings modal", action: () => setVimMode(!vimMode) },
     // Focus Mode on (dim other paragraphs) or off: the palette's top-level
     // switch. The levels follow, one command each; the current one is disabled.
     {
       id: "toggle-focus-mode",
-      label: "Toggle Focus Mode",
+      label: `${verb(focusMode !== "off")} Focus Mode`,
       description: focusMode === "off" ? "Dim every paragraph but the caret's" : "Turn Focus off",
       category: "Settings",
-      keywords: "focus paper zen distraction free dim paragraph typewriter flow writing",
+      keywords: "toggle focus paper zen distraction free dim paragraph typewriter flow writing",
       action: () => setFocusMode(focusMode === "off" ? "dim" : "off"),
     },
     ...FOCUS_OPTIONS.map(({ label, value }) => ({
@@ -61,9 +65,9 @@ export default function SettingsCommands() {
     })),
     {
       id: "toggle-sentence-focus",
-      label: "Toggle Sentence Focus",
+      label: `${verb(focusMode === "sentence")} Sentence Focus`,
       category: "Settings",
-      keywords: "focus sentence dim typewriter flow writing distraction free",
+      keywords: "toggle focus sentence dim typewriter flow writing distraction free",
       shortcut: formatShortcut("F", { alt: true }),
       action: () => toggleSentenceFocus(),
     },

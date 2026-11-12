@@ -1,6 +1,6 @@
 # PaletteFooter
 
-Description: The command palette's foot and its legend: one chip per search mode (`SCOPES` in `palette-model`, in order: `#` Tags, `!` Tasks, `@` Headings, `/` Text, `~` Templates, `>` Commands), each with its prefix in a key cap, then the version. Clicking a chip does what typing its prefix does; the mode in use is lit (`aria-pressed`, the accent behind the key cap), and clicking it again goes back to notes. Settings and the theme aren't here: they're commands in the list (Open Settings, `Theme: …`). Extracted from `CommandPalette.tsx`.
+Description: The command palette's foot and its legend: one chip per search mode (`SCOPES` in `palette-model`, in order: `#` Tags, `!` Tasks, `@` Mentions, `/` Text, `>` Commands), each with its prefix in a key cap, then the version. Clicking a chip does what typing its prefix does; the mode in use is lit (`aria-pressed`, the accent behind the key cap), and clicking it again goes back to notes. Settings and the theme aren't here: they're commands in the list (Open Settings, `Theme: …`). Extracted from `CommandPalette.tsx`.
 
 ## Props
 | Prop | Type | Description |

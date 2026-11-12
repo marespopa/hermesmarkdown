@@ -69,8 +69,8 @@ export function buildWorkspaceTaskViewCommandGroups(context: EditorCommandContex
   const preferencesAndNavigation: Command[] = [
     {
       id: "toggle-hidden-files",
-      label: "Toggle Hidden Files",
-      keywords: "hidden dotfiles skills files tree reveal show hide",
+      label: `${showHiddenFiles ? "Disable" : "Enable"} Hidden Files`,
+      keywords: "toggle hidden dotfiles skills files tree reveal show hide",
       action: () => {
         const next = !showHiddenFiles;
         setShowHiddenFiles(next);

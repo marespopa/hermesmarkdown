@@ -1,9 +1,9 @@
 import React from "react";
 import { describe, expect, it } from "vitest";
-import { render } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import { Provider, createStore } from "jotai";
 import { atom_companionOpen } from "@/app/atoms/companion-atoms";
-import { atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_pageOnly, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { CommandPaletteProvider, useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import ShellCommands from "./ShellCommands";
 
@@ -44,6 +44,16 @@ describe("ShellCommands", () => {
     expect(seen.current["toggle-companion"].label).toBe("Show AI Companion");
     seen.current["toggle-companion"].action();
     expect(store.get(atom_companionOpen)).toBe(true);
+  });
+
+  it("switches No Distraction Mode on and off, the label following", async () => {
+    const { store, seen } = setup(true);
+    expect(seen.current["toggle-no-distraction"].label).toBe("No Distraction Mode");
+    seen.current["toggle-no-distraction"].action();
+    expect(store.get(atom_pageOnly)).toBe(true);
+    await waitFor(() => expect(seen.current["toggle-no-distraction"].label).toBe("Exit No Distraction Mode"));
+    seen.current["toggle-no-distraction"].action();
+    expect(store.get(atom_pageOnly)).toBe(false);
   });
 
   it("offers no companion command without AI set up", () => {

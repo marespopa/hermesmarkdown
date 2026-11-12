@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { atom_openFiles } from "@/app/atoms/file-atoms";
 import { atom_userName } from "@/app/atoms/ui-atoms";
 import LandingPage from "./LandingPage";
-import { LANDING_FAQ } from "./landing-content";
+import { LANDING_FAQ, LANDING_SCENES } from "./landing-content";
 
 const router = vi.hoisted(() => ({
   push: vi.fn(),
@@ -52,7 +52,7 @@ describe("LandingPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "A place where all you can do is write.",
+        name: "Markdown notes and code, right in your browser.",
       }),
     ).toBeInTheDocument();
     expect(
@@ -69,13 +69,18 @@ describe("LandingPage", () => {
   it("explains the editor below the hero, with an FAQ and links to the guides", () => {
     renderLandingPage();
 
-    expect(
-      screen.getByRole("heading", {
-        level: 2,
-        name: "A local-first editor for notes and code",
-      }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 3, name: "Code files, too" })).toBeInTheDocument();
+    for (const scene of LANDING_SCENES) {
+      expect(
+        screen.getByRole("heading", {
+          level: 2,
+          name: `${scene.headline} ${scene.accentLine}`,
+        }),
+      ).toBeInTheDocument();
+      for (const point of scene.points) {
+        expect(screen.getByRole("heading", { level: 3, name: point.title })).toBeInTheDocument();
+      }
+    }
+    expect(screen.getByRole("heading", { level: 2, name: "Pick your paper." })).toBeInTheDocument();
     for (const { q, a } of LANDING_FAQ) {
       expect(screen.getByText(q)).toBeInTheDocument();
       expect(screen.getByText(a)).toBeInTheDocument();
@@ -88,6 +93,18 @@ describe("LandingPage", () => {
       "href",
       "/tools",
     );
+  });
+
+  it("loads no video until Watch the video is pressed", () => {
+    const { container } = render(
+      <Provider store={createStore()}>
+        <LandingPage />
+      </Provider>,
+    );
+
+    expect(container.querySelector("iframe")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Watch the video" }));
+    expect(container.querySelector("iframe")).not.toBeNull();
   });
 
   it("opens the editor from the primary action", () => {

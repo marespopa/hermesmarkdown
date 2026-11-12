@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_renderedFontSize } from "@/app/atoms/atoms";
-import { atom_fullWidth, atom_hasCompletedOnboarding } from "@/app/atoms/ui-atoms";
+import { atom_hasCompletedOnboarding } from "@/app/atoms/ui-atoms";
 import { atom_isVaultRestoring } from "@/app/atoms/vault-atoms";
 import { showHintToast } from "@/app/components/Toastr";
 import { formatShortcut } from "@/app/utils/platform";
@@ -42,7 +42,6 @@ export function useFirstRun(isMobileChrome: boolean) {
   const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
   const setHasCompleted = useSetAtom(atom_hasCompletedOnboarding);
   const setRenderedFontSize = useSetAtom(atom_renderedFontSize);
-  const setFullWidth = useSetAtom(atom_fullWidth);
   // A ref, not state: React's development double run of effects replays
   // this one before a state update lands, which showed the hint twice.
   const done = useRef(false);
@@ -52,11 +51,10 @@ export function useFirstRun(isMobileChrome: boolean) {
     done.current = true;
     setHasCompleted(true);
     if (!isStored("renderedFontSize")) setRenderedFontSize(FIRST_RUN_TEXT_SIZE);
-    if (!isStored("fullWidth")) setFullWidth(true);
     showHintToast(
       isMobileChrome
         ? "Tap the menu button anytime to open the command palette."
         : `Press ${formatShortcut("p")} (or Shift twice) anytime to open the command palette.`,
     );
-  }, [firstRun, isVaultRestoring, isMobileChrome, setHasCompleted, setRenderedFontSize, setFullWidth]);
+  }, [firstRun, isVaultRestoring, isMobileChrome, setHasCompleted, setRenderedFontSize]);
 }

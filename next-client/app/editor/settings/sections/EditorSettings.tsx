@@ -3,7 +3,7 @@
 import React from "react";
 import { useAtom } from "jotai";
 import { atom_vimMode } from "@/app/atoms/atoms";
-import { atom_closeSidebarWhileWriting, atom_focusMode, atom_showOutline, atom_showWordCount, type FocusMode } from "@/app/atoms/ui-atoms";
+import { atom_focusMode, atom_showOutline, atom_showWordCount, atom_typewriterSound, type FocusMode } from "@/app/atoms/ui-atoms";
 import { formatShortcut } from "@/app/utils/platform";
 import Toggle from "@/app/components/Toggle";
 import { SelectControl, SettingGroup, SettingItem } from "../components/SettingControls";
@@ -16,8 +16,8 @@ export default function EditorSettings() {
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [focusMode, setFocusMode] = useAtom(atom_focusMode);
   const [showWordCount, setShowWordCount] = useAtom(atom_showWordCount);
-  const [closeSidebarWhileWriting, setCloseSidebarWhileWriting] = useAtom(atom_closeSidebarWhileWriting);
   const [showOutline, setShowOutline] = useAtom(atom_showOutline);
+  const [typewriterSound, setTypewriterSound] = useAtom(atom_typewriterSound);
 
   return (
     <>
@@ -39,14 +39,14 @@ export default function EditorSettings() {
           }
         />
         <SettingItem
-          label="Close Sidebar While Writing"
-          description="Put the sidebar away as soon as you type in a file, so the page has the window to itself. Off, the sidebar stays open until you close it."
-          control={<Toggle variant="soft" active={closeSidebarWhileWriting} onChange={setCloseSidebarWhileWriting} label="Close sidebar while writing" />}
-        />
-        <SettingItem
           label="Word Count"
           description="Show the file's word count faintly in the corner of the editor. It steps aside while you type."
           control={<Toggle variant="soft" active={showWordCount} onChange={setShowWordCount} label="Word count" />}
+        />
+        <SettingItem
+          label="Typewriter Sound"
+          description="Play a soft typewriter click as you type in a note, with a carriage return on Enter. It's generated on your device, so it works offline."
+          control={<Toggle variant="soft" active={typewriterSound} onChange={setTypewriterSound} label="Typewriter sound" />}
         />
       </SettingGroup>
       <SettingGroup title="View">

@@ -5,27 +5,19 @@ import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { HiOutlineCog } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
-import { atom_mobileDrawerOpen, atom_mobileDrawerTab, type MobileDrawerTab } from "@/app/atoms/mobile-drawer-atoms";
-import Button, { SEGMENT_TRACK_CLASS } from "@/app/components/Button";
+import { atom_mobileDrawerOpen } from "@/app/atoms/mobile-drawer-atoms";
+import Button from "@/app/components/Button";
 import OverlayPanel from "@/app/components/OverlayLayer/OverlayPanel";
 import FilesPane from "./FilesPane";
-import TagsPane from "./TagsPane";
 import { useSwipeToClose } from "./use-edge-swipe";
 
-const TABS: { id: MobileDrawerTab; label: string }[] = [
-  { id: "files", label: "Files" },
-  { id: "tags", label: "Tags" },
-];
-
-// The phone's navigation drawer, from the left edge: Files and Tags tabs,
-// with Settings at the foot. Both tabs stay mounted (the inactive one
-// hidden), so each keeps its scroll position. The back gesture, Escape, the
-// backdrop, a swipe toward the edge and × close it (OverlayPanel). Picking a
-// note or a tag puts the drawer away first, then does the slow work behind it.
+// The phone's navigation drawer, from the left edge: the vault's Files, with
+// Settings at the foot. The back gesture, Escape, the backdrop, a swipe toward
+// the edge and × close it (OverlayPanel). Picking a note puts the drawer away
+// first, then does the slow work behind it.
 export default function MobileDrawer() {
   const router = useRouter();
   const [open, setOpen] = useAtom(atom_mobileDrawerOpen);
-  const [tab, setTab] = useAtom(atom_mobileDrawerTab);
   const close = useCallback(() => setOpen(false), [setOpen]);
   const swipe = useSwipeToClose("left", close);
 
@@ -48,32 +40,13 @@ export default function MobileDrawer() {
     >
       <div className="flex h-full min-h-0 flex-col" {...swipe}>
         <div className="flex shrink-0 items-center gap-2 border-b border-edge-subtle px-3 py-2">
-          <h2 id="mobile-drawer-title" className="sr-only">Navigation</h2>
-          <div role="tablist" aria-label="Library" className={`flex flex-1 ${SEGMENT_TRACK_CLASS}`}>
-            {TABS.map(({ id, label }) => (
-              <Button
-                key={id}
-                variant="segment"
-                role="tab"
-                aria-selected={tab === id}
-                onClick={() => setTab(id)}
-                className="flex-1"
-              >
-                {label}
-              </Button>
-            ))}
-          </div>
+          <h2 id="mobile-drawer-title" className="flex-1 px-1 text-sm font-semibold text-fg">Files</h2>
           <Button variant="close" onClick={close} aria-label="Close navigation" title="Close">
             <IoClose size={20} aria-hidden="true" />
           </Button>
         </div>
         <div data-scroll-root className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <div role="tabpanel" hidden={tab !== "files"} aria-label="Files">
-            <FilesPane onOpened={close} />
-          </div>
-          <div role="tabpanel" hidden={tab !== "tags"} aria-label="Tags">
-            <TagsPane onNavigate={goTo} />
-          </div>
+          <FilesPane onOpened={close} />
         </div>
         <div className="shrink-0 border-t border-edge-subtle p-3">
           <Button variant="secondary" onClick={() => goTo("/editor/settings")} className="w-full">

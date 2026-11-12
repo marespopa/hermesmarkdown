@@ -204,7 +204,6 @@ html.dark .app-sheet .editor-sheet {
 .cm-table-preview table {
   width: 100%;
   border-collapse: collapse;
-  border-block: 1px solid var(--border);
   color: var(--fg);
   font: inherit;
   table-layout: auto;
@@ -222,7 +221,6 @@ html.dark .app-sheet .editor-sheet {
 }
 
 .cm-table-preview th {
-  background-color: color-mix(in srgb, var(--fg) 2.5%, transparent);
   color: var(--fg-muted);
   font-weight: 600;
 }
@@ -486,7 +484,7 @@ html.dark .app-sheet .editor-sheet {
 }
 
 .cm-table-preview .cm-table-wikilink {
-  color: var(--link);
+  color: var(--wikilink);
 }
 
 @media (max-width: 639px) {
@@ -697,30 +695,10 @@ html.dark .app-sheet .editor-sheet {
   white-space: pre-wrap !important;
 }
 
-/* markdown-problems.ts: a notice above invalid frontmatter or an unclosed
-   code / math block, with a button to the line at fault. */
-.cm-markdown-problem {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25em 0.75em;
-  margin: 0.25em 0;
-  padding: 0.35em 0.75em;
-  border-left: 2px solid var(--danger);
-  color: var(--fg-muted);
-  font-family: var(--landing-body);
-  font-size: 0.8125rem;
-  line-height: 1.4;
-}
-
-.cm-markdown-problem-jump {
-  color: var(--fg);
-  font-weight: 500;
-  text-decoration: none;
-  border-radius: 4px;
-}
-
-.cm-markdown-problem-jump:hover,
-.cm-markdown-problem-jump:focus-visible {
-  text-decoration: underline;
+/* markdown-problems.ts: the line of invalid frontmatter or an unclosed code /
+   math block gets a faint wavy underline; its message is the tooltip. */
+.cm-problem-line {
+  text-decoration: underline wavy color-mix(in srgb, var(--danger) 55%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
 }

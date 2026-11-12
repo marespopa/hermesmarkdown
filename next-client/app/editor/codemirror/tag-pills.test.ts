@@ -10,6 +10,21 @@ import {
   tagPillPlugin,
 } from "./tag-pills";
 
+describe("collectTagMatches mentions", () => {
+  it("matches @Name as a tag-look pill, keeping its case", () => {
+    const matches = collectTagMatches("Ask @Dana, then (@launch-team) about #idea");
+    expect(matches.map((match) => match.text)).toEqual(["#idea", "@Dana", "@launch-team"]);
+    const mention = matches.find((match) => match.text === "@Dana")!;
+    expect(mention).toMatchObject({ mention: true, kind: "custom", tagName: "dana", from: 4, to: 9 });
+    expect(tagPillClassName(mention.kind)).toContain("cm-tag-pill");
+  });
+
+  it("leaves emails, @due(…) annotations, inline code and frontmatter alone", () => {
+    expect(collectTagMatches("mail a@b.com and @due(2026-01-02) and `@code`").map((match) => match.text)).toEqual([]);
+    expect(collectTagMatches("---\nowner: @frontmatter\n---\n@body").map((match) => match.text)).toEqual(["@body"]);
+  });
+});
+
 describe("collectTagMatches", () => {
   it("matches plain, nested, and hyphenated tags", () => {
     const tags = collectTagMatches("alpha #project/subtag #team-alpha #draft");

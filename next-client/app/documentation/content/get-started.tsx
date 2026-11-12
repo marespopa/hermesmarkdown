@@ -302,6 +302,14 @@ export const getStartedGroup: Group = {
             you add, delete or move outside HermesMarkdown show up on their own (straight away in Chrome and Edge,
             otherwise when you come back to the window).
           </p>
+          <p>
+            When another tool changes the note you have open (an AI assistant, a Git pull, a synced
+            folder), the note shows the new text and a quiet <strong>Changed outside the editor</strong>{" "}
+            pill appears at the bottom of the pane. Open it for one card per change, under its heading,
+            with the old and new text: <strong>Keep</strong> closes a card, <strong>Undo</strong> puts
+            the old text back as an ordinary edit, and <strong>Keep all</strong> or <strong>Undo all</strong>{" "}
+            decides the rest. Private notes are never compared.
+          </p>
           <KV
             rows={[
               { label: "Sidebar", value: "Show: Sidebar button at the top left / Hide: button in the sidebar's header or Escape / CTRL/CMD+\\ or CTRL/CMD+ALT+S" },

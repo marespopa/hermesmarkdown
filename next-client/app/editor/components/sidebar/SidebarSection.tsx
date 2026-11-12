@@ -53,10 +53,9 @@ function SectionMenu({ label, items }: { label: string; items: SectionMenuItem[]
   );
 }
 
-// A titled, collapsible group: a full-width hairline above it sets it apart
-// from the header or the section before; its header is a caption led by a disclosure chevron that is
-// always shown (right when folded, down when open), and the whole header
-// folds or unfolds it. The ⋯ menu shows on hover or focus.
+// A titled, collapsible group with no rules around it: its header is a faint
+// caption led by a disclosure chevron (always shown: right when
+// folded, down when open), and the whole header folds or unfolds it. The ⋯ menu shows on hover or focus.
 // Collapsed sections are remembered (atom_sidebarCollapsed, by title);
 // `defaultCollapsed` starts one folded until it's opened once.
 export default function SidebarSection({
@@ -74,13 +73,13 @@ export default function SidebarSection({
   const expanded = !(collapsed[title] ?? defaultCollapsed);
   const setExpanded = (next: boolean) => setCollapsed((prev) => ({ ...prev, [title]: !next }));
   return (
-    <section aria-label={title} className="-mx-2 flex flex-col border-t border-edge px-2 pt-2.5 pb-3">
+    <section aria-label={title} className="-mx-2 flex flex-col px-2 pt-1 pb-2">
       <div className="group/section flex items-center gap-0.5 h-7 pr-1">
         <Button
           variant="unstyled"
           onClick={() => setExpanded(!expanded)}
           aria-expanded={expanded}
-          className="flex flex-1 min-w-0 items-center gap-1.5 h-7 px-1.5 rounded-md text-ui-caption font-semibold text-fg-muted select-none transition-colors hover:text-fg hover:bg-fill focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage"
+          className="flex flex-1 min-w-0 items-center gap-1.5 h-7 px-1.5 rounded-md text-ui-caption font-normal text-fg-faint select-none transition-colors hover:text-fg-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-sage"
         >
           <HiChevronRight
             size={12}

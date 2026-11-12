@@ -39,7 +39,7 @@ export function processInline(ranges: MarkRange[], label: string, base: number) 
     for (const m of label.matchAll(REGEX_WIKILINK)) {
       if (/^\[\[\d{4}-\d{2}-\d{2}\]\]$/.test(m[0])) continue;
       push(m.index!, m.index! + 2, FADED);
-      push(m.index! + 2, m.index! + m[0].length - 2, "!text-sage dark:!text-sage font-medium underline cursor-pointer");
+      push(m.index! + 2, m.index! + m[0].length - 2, "!text-wikilink font-medium underline cursor-pointer");
       push(m.index! + m[0].length - 2, m.index! + m[0].length, FADED);
     }
   }

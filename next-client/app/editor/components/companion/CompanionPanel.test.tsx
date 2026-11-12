@@ -141,7 +141,7 @@ describe("CompanionPanel", () => {
     expect(screen.getByText("Auto → Claude 4.5 Haiku")).toBeInTheDocument();
   });
 
-  it("shows replies as Markdown, with Copy shown on the latest reply only", () => {
+  it("shows replies as Markdown, with Copy shown on hover", () => {
     messages = [
       { id: "u1", role: "user", parts: [{ type: "text", text: "Summarise" }] },
       { id: "a1", role: "assistant", parts: [{ type: "text", text: "First **draft**" }] },
@@ -154,7 +154,7 @@ describe("CompanionPanel", () => {
     expect(screen.getByText("Launch").closest("li")).not.toBeNull();
     const [older, latest] = screen.getAllByRole("button", { name: /Copy/ });
     expect(older.parentElement).toHaveClass("opacity-0");
-    expect(latest.parentElement).not.toHaveClass("opacity-0");
+    expect(latest.parentElement).toHaveClass("opacity-0", "group-hover:opacity-100");
   });
 
   it("keeps header actions limited to closing the panel", () => {
