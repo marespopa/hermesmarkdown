@@ -197,14 +197,13 @@ describe("WorkspaceSidebar", () => {
     expect(screen.queryByTestId("file-tree")).not.toBeInTheDocument();
   });
 
-  it("is the library: the vault and Files, with no Open Notes or Outline; Settings stays in the header", () => {
+  it("is the library: the vault and Files, with no Open Notes, Outline or Settings", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar(true, null, false, { "a.md": { fileName: "a.md", content: "# Plan", lastSavedContent: "" } });
 
     expect(screen.getByRole("region", { name: "Files" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Settings" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Documentation" })).not.toBeInTheDocument();
-    for (const name of ["Home", "All Files", "Tags", "Tasks", "Templates", "Trash", "Export", "Help"]) {
+    for (const name of ["Settings", "Home", "All Files", "Tags", "Tasks", "Templates", "Trash", "Export", "Help"]) {
       expect(screen.queryByRole("button", { name })).not.toBeInTheDocument();
     }
     for (const name of ["Pinned", "Recent", "Open Notes", "Outline", "Linked from"]) {
@@ -337,7 +336,7 @@ describe("WorkspaceSidebar", () => {
 
   it("hides on Escape inside it", () => {
     renderSidebar();
-    fireEvent.keyDown(screen.getByRole("button", { name: "Settings" }), { key: "Escape" });
+    fireEvent.keyDown(screen.getByRole("button", { name: "Hide sidebar" }), { key: "Escape" });
     expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
   });
 

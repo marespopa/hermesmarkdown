@@ -13,10 +13,11 @@ import { formatShortcut } from "@/app/utils/platform";
 // centered, like the other corner buttons. It opens the command palette,
 // which appears as one panel of its own.
 export const SEARCH_PILL_WIDTH = "2rem";
-// The editor corner's width: the No Distraction and Copy Contents buttons (2rem each), their gaps and the SearchPill, so the pane's floating title
+// The editor corner's width: the No Distraction, Copy Contents and Settings
+// buttons (2rem each), their gaps and the SearchPill, so the pane's floating title
 // keeps clear of it. (While No Distraction Mode is on, its exit button joins
 // it for a moment, but the title is hidden then.)
-export const EDITOR_CORNER_WIDTH = `calc(${SEARCH_PILL_WIDTH} + 4.75rem)`;
+export const EDITOR_CORNER_WIDTH = `calc(${SEARCH_PILL_WIDTH} + 7.125rem)`;
 
 export default function SearchPill({ className = "" }: { className?: string }) {
   const palette = useOptionalCommandPalette();

@@ -12,6 +12,7 @@ import PageHelpLink, { type PageHelp } from "./PageHelpLink";
 import DocumentationLink from "./DocumentationLink";
 import { PANE_HEADER_HEIGHT } from "./pane-header-classes";
 import SearchPill from "./SearchPill";
+import SettingsButton from "./SettingsButton";
 import { editorFileHref } from "../utils/editor-url";
 
 // Room for EditorShell's Show sidebar button while the sidebar is hidden.
@@ -24,6 +25,7 @@ const EDGE_ROOM = "1.25rem";
 // ← Editor (the sidebar is only the library, so this is the way back),
 // which returns to the note in front, at its URL. With `help`, a (?) before
 // the Documentation link points to the page's section of the documentation.
+// Settings (desktop, and not on Settings itself) sits just before the search.
 export default function ShellPage({ title, help, children }: { title: string; help?: PageHelp; children: ReactNode }) {
   const router = useRouter();
   const isMobileChrome = useIsMobileChrome();
@@ -55,6 +57,8 @@ export default function ShellPage({ title, help, children }: { title: string; he
         <span className="min-w-0 flex-1 truncate text-ui-subhead font-semibold select-none">{title}</span>
         {help && <PageHelpLink {...help} />}
         <DocumentationLink />
+        {/* On a phone Settings is at the foot of the drawer. */}
+        {hasSidebar && !isMobileChrome && <SettingsButton />}
         <SearchPill className="shrink" />
       </header>
       <div className="flex min-h-0 flex-1 flex-col">

@@ -28,4 +28,18 @@ describe("ShellPage", () => {
     expect(documentation).toHaveAttribute("href", "/documentation");
     expect(documentation.compareDocumentPosition(search) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
+
+  it("has Settings just before search", () => {
+    render(
+      <Provider store={createStore()}>
+        <ShellPage title="Tasks"><main>Tasks</main></ShellPage>
+      </Provider>,
+    );
+
+    const settings = screen.getByRole("button", { name: "Settings" });
+    const search = screen.getByRole("button", { name: "Search files and command palette modes" });
+    const documentation = screen.getByRole("link", { name: "Documentation" });
+    expect(documentation.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(settings.compareDocumentPosition(search) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });

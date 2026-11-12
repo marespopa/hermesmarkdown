@@ -54,16 +54,10 @@ describe("SidebarHeader", () => {
     expect(screen.queryByRole("button", { name: /vault icon/ })).not.toBeInTheDocument();
   });
 
-  it("opens Settings from the header", () => {
+  it("has no Settings button (it is in the window's top-right corner), New file control or Documentation link", () => {
     recents.openVaultEntry = null;
     setup();
-    fireEvent.click(screen.getByRole("button", { name: "Settings" }));
-    expect(navigation.push).toHaveBeenCalledWith("/editor/settings");
-  });
-
-  it("has no New file control or Documentation link", () => {
-    recents.openVaultEntry = null;
-    setup();
+    expect(screen.queryByRole("button", { name: "Settings" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "New file" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Documentation" })).not.toBeInTheDocument();
   });
