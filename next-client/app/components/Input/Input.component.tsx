@@ -5,6 +5,7 @@ import { FaTimes } from "react-icons/fa";
 import { HiOutlineEye, HiOutlineEyeOff } from "react-icons/hi";
 import Button from "@/app/components/Button/Button.component";
 import { FIELD_CLASS } from "./field-styles";
+import { NO_AUTOFILL } from "./no-autofill";
 
 interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   name: string;
@@ -45,7 +46,6 @@ const Input = forwardRef<HTMLInputElement, Props>(
       inputClassName = "",
       autoFocus,
       selectOnFocus,
-      autoComplete = "off",
       ...rest
     },
     ref,
@@ -110,7 +110,7 @@ const Input = forwardRef<HTMLInputElement, Props>(
             min={validation?.min}
             max={validation?.max}
             ref={ref}
-            autoComplete={autoComplete}
+            {...NO_AUTOFILL}
             className={`${FIELD_CLASS} w-full ${isPassword || onClear ? "pr-10" : ""} ${inputClassName} select-text`}
             aria-label={label || name}
             autoFocus={autoFocus}

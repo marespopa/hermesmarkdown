@@ -7,6 +7,7 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import DialogModal from "./DialogModal";
 import Button from "@/app/components/Button";
 import Input from "@/app/components/Input";
+import { NO_AUTOFILL } from "@/app/components/Input/no-autofill";
 import Typeahead from "@/app/components/Typeahead";
 import SelectOptionList from "./SelectOptionList";
 
@@ -109,6 +110,7 @@ export default function GlobalDialog() {
               {config.multiline ? (
                 <div className="space-y-2">
                   <textarea
+                    {...NO_AUTOFILL}
                     aria-label={config.message ?? "Input"}
                     className="w-full min-h-[120px] resize-y rounded-xl border border-edge bg-input-bg dark:bg-paper-dark px-3 py-2.5 text-ui-subhead text-fg placeholder:text-fg-faint focus:outline-none focus:ring-2 focus:ring-sage/40"
                     value={promptValue}
@@ -133,7 +135,7 @@ export default function GlobalDialog() {
                 </div>
               ) : (
                 <Input
-                  name="prompt-input"
+                  name="dialog-field"
                   value={promptValue}
                   handleChange={(e) => setPromptValue(e.target.value)}
                   placeholder={config.type === "new-file" ? "e.g. meeting-notes" : "Enter value..."}

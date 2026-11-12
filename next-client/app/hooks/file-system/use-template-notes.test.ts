@@ -4,7 +4,7 @@ import { act, renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import toast from "react-hot-toast";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
-import { atom_newNoteFolder, atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
+import { atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata, type FileMetadata } from "@/app/atoms/metadata";
 import { writeFileContent } from "@/app/services/file-writer";
 import { NEW_TEMPLATE_BODY, useTemplateCreate } from "./use-template-create";
@@ -16,6 +16,9 @@ vi.mock("@/app/services/file-writer", () => ({
 }));
 const dialog = { confirm: vi.fn(), prompt: vi.fn() };
 vi.mock("@/app/hooks/use-dialog", () => ({ useDialog: () => dialog }));
+// The folder question: answers with the folder each setup() names.
+const askSaveFolder = vi.fn();
+vi.mock("./use-ask-save-folder", () => ({ useAskSaveFolder: () => askSaveFolder }));
 const pickTemplate = vi.fn();
 const askPrompts = vi.fn();
 vi.mock("@/app/hooks/use-template-dialog", () => ({ useTemplateDialog: () => ({ pickTemplate, askPrompts }) }));
@@ -76,7 +79,7 @@ const RFC_TEMPLATE =
 
 const meta = (path: string) => ({ path, name: path.split("/").pop()! }) as FileMetadata;
 
-async function setup({ templates = { "_templates/rfc.md": RFC_TEMPLATE } as Record<string, string>, newNoteFolder = "" } = {}) {
+async function setup({ templates = { "_templates/rfc.md": RFC_TEMPLATE } as Record<string, string>, pickedFolder = "" as string | null } = {}) {
   const root = new FakeDir("vault");
   const metadata: Record<string, FileMetadata> = {};
   for (const [path, content] of Object.entries(templates)) {
@@ -86,7 +89,7 @@ async function setup({ templates = { "_templates/rfc.md": RFC_TEMPLATE } as Reco
   const store = createStore();
   store.set(atom_vaultHandle, root as unknown as FileSystemDirectoryHandle);
   store.set(atom_fileMetadata, metadata);
-  store.set(atom_newNoteFolder, newNoteFolder);
+  askSaveFolder.mockResolvedValue(pickedFolder);
   const props = { scanVault: vi.fn(async () => {}), indexVaultTags: vi.fn(async () => {}), openFile: vi.fn(async () => {}) };
   const wrapper = ({ children }: { children: React.ReactNode }) => React.createElement(Provider, { store }, children);
   const { result } = renderHook(() => useTemplateCreate(props), { wrapper });
@@ -154,12 +157,20 @@ describe("createNoteFromMissingLink", () => {
     expect(root.at("rfcs/a.md")?.content).toBe("\n");
   });
 
-  it("creates a folderless link in the New Notes Folder", async () => {
+  it("creates a folderless link in the folder the user picks", async () => {
     pickTemplate.mockResolvedValue("blank");
-    const { root, props, flows } = await setup({ newNoteFolder: "inbox" });
+    const { root, props, flows } = await setup({ pickedFolder: "inbox" });
     await act(() => flows.createNoteFromMissingLink("idea|My idea"));
+    expect(askSaveFolder).toHaveBeenCalledWith('Save "idea.md"');
     expect(root.at("inbox/idea.md")?.content).toBe("\n");
     expect(props.openFile).toHaveBeenCalledWith(root.at("inbox/idea.md"), "inbox/idea.md", true);
+  });
+
+  it("creates nothing for a folderless link when the folder question is cancelled", async () => {
+    const { flows } = await setup({ pickedFolder: null });
+    await act(() => flows.createNoteFromMissingLink("idea"));
+    expect(pickTemplate).not.toHaveBeenCalled();
+    expect(writeFileContent).not.toHaveBeenCalled();
   });
 
   it("opens a file that exists on disk without writing it", async () => {
@@ -322,8 +333,8 @@ describe("createLinkedNoteFromTemplate", () => {
   });
   const rfc = { name: "rfc", path: "_templates/rfc.md" };
 
-  it("creates the note in the New Notes Folder and returns its link path, without opening it", async () => {
-    const { root, props, flows } = await setup({ newNoteFolder: "inbox" });
+  it("creates the note in the picked folder and returns its link path, without opening it", async () => {
+    const { root, props, flows } = await setup({ pickedFolder: "inbox" });
     let path: string | null = null;
     await act(async () => { path = await flows.createLinkedNoteFromTemplate("Auth", rfc); });
     expect(path).toBe("inbox/Auth");
@@ -332,11 +343,12 @@ describe("createLinkedNoteFromTemplate", () => {
     expect(props.scanVault).toHaveBeenCalled();
   });
 
-  it("uses the folder in the name", async () => {
+  it("uses the folder in the name, without asking for one", async () => {
     const { root, flows } = await setup();
     let path: string | null = null;
     await act(async () => { path = await flows.createLinkedNoteFromTemplate("specs/Auth", rfc); });
     expect(path).toBe("specs/Auth");
+    expect(askSaveFolder).not.toHaveBeenCalled();
     expect(root.at("specs/Auth.md")).toBeDefined();
   });
 
@@ -349,8 +361,8 @@ describe("createLinkedNoteFromTemplate", () => {
     expect(writeFileContent).not.toHaveBeenCalled();
   });
 
-  it("links an existing note as it is, without asking or writing", async () => {
-    const { root, flows } = await setup({ newNoteFolder: "inbox" });
+  it("links an existing note as it is, without the template's questions or writing", async () => {
+    const { root, flows } = await setup({ pickedFolder: "inbox" });
     await root.put("inbox/Auth.md", "mine");
     let path: string | null = null;
     await act(async () => { path = await flows.createLinkedNoteFromTemplate("Auth", rfc); });
@@ -368,8 +380,8 @@ describe("createWikiLinkFile", () => {
     localStorage.clear();
   });
 
-  it("creates a blank note in the New Notes Folder without asking for a folder", async () => {
-    const { root, props, flows } = await setup({ newNoteFolder: "inbox" });
+  it("creates a blank note in the picked folder without asking for a name", async () => {
+    const { root, props, flows } = await setup({ pickedFolder: "inbox" });
     let path: string | null = null;
     await act(async () => { path = await flows.createWikiLinkFile("Idea"); });
     expect(path).toBe("inbox/Idea");

@@ -3,20 +3,17 @@
 import React from "react";
 import { useAtom } from "jotai";
 import { atom_autosaveMode, atom_showHiddenFiles } from "@/app/atoms/atoms";
-import { atom_newNoteFolder, atom_searchMarkdownOnly } from "@/app/atoms/ui-atoms";
-import { BareInput, FIELD_COMPACT_CLASS } from "@/app/components/Input";
+import { atom_searchMarkdownOnly } from "@/app/atoms/ui-atoms";
 import Toggle from "@/app/components/Toggle";
-import { normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { SelectControl, SettingGroup, SettingItem } from "../components/SettingControls";
 import PrivacyModeSetting from "./PrivacyModeSetting";
 
-// Settings → Files: Vault (new notes folder, hidden files, code file search) and Autosave
+// Settings → Files: Vault (hidden files, code file search) and Autosave
 // groups, then Privacy (PrivacyModeSetting).
 export default function FilesSettings() {
   const [autosaveMode, setAutosaveMode] = useAtom(atom_autosaveMode);
   const [showHiddenFiles, setShowHiddenFiles] = useAtom(atom_showHiddenFiles);
-  const [newNoteFolder, setNewNoteFolder] = useAtom(atom_newNoteFolder);
   const [searchMarkdownOnly, setSearchMarkdownOnly] = useAtom(atom_searchMarkdownOnly);
   const { scanVault, indexVaultTags, vaultHandle } = useFileSystem();
 
@@ -32,20 +29,6 @@ export default function FilesSettings() {
   return (
     <>
       <SettingGroup title="Vault">
-        <SettingItem
-          label="New Files Folder"
-          description="Where new files go: drafts (named after their first line), and files made from a template or a link that names no folder. Leave empty for the vault root."
-          control={
-            <BareInput
-              value={newNoteFolder}
-              onChange={(e) => setNewNoteFolder(e.target.value)}
-              onBlur={() => setNewNoteFolder(normalizeFolderPath(newNoteFolder))}
-              placeholder="Vault root"
-              aria-label="New files folder"
-              className={`${FIELD_COMPACT_CLASS} w-44`}
-            />
-          }
-        />
         <SettingItem
           label="Show Hidden Files"
           description="Show files and folders starting with . or _ in Files and search."

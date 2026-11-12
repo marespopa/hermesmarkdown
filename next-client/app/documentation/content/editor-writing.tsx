@@ -425,8 +425,8 @@ graph TD
       <>
         <p>
           Open the command palette and run <strong>New board</strong> (with a vault open). It asks
-          for the board&apos;s name, creates <code>Sprint plan.board.md</code> (for a board named
-          Sprint plan) in your New Files folder and opens it as a canvas.
+          for the board&apos;s name and its folder, creates <code>Sprint plan.board.md</code> (for a board named
+          Sprint plan) there and opens it as a canvas.
           If the name is taken you get <code>Sprint plan (1).board.md</code>.
           To link a new board from the file you&apos;re writing, type <code>/board</code>: it asks for
           the name, creates the board without leaving the file and inserts a link to it (a board

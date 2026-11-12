@@ -4,13 +4,14 @@ import { useCallback } from "react";
 import { useStore } from "jotai";
 import toast from "react-hot-toast";
 import { atom_vaultHandle, resolveFileHandleAtPath } from "@/app/atoms/vault-atoms";
-import { atom_newNoteFolder, atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
+import { atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
 import { atom_templates, atom_templatesFolder } from "@/app/atoms/template-atoms";
 import { writeFileContent } from "@/app/services/file-writer";
 import { useDialog } from "../use-dialog";
 import { useTemplateDialog } from "../use-template-dialog";
 import { withRetry } from "./shared";
-import { ensureVaultFolder, normalizeFolderPath } from "./unique-file";
+import { ensureVaultFolder } from "./unique-file";
+import { useAskSaveFolder } from "./use-ask-save-folder";
 import { useTemplateNotes } from "./use-template-notes";
 import {
   matchTemplateForName,
@@ -52,7 +53,7 @@ function reportCreateError(err: any) {
 
 // Note creation from links (a missing [[link]], the WikiLink dialog), with or
 // without a template: the note goes in the link's folder when it has one,
-// else the New Files folder, and the link names it; a note of that name
+// else the folder the user picks, and the link names it; a note of that name
 // already there is opened (or linked) as it is, never duplicated or
 // overwritten. Also "New template…", which creates a template file with a
 // minimal body.
@@ -62,7 +63,15 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   const { pickTemplate } = useTemplateDialog();
   const { readTemplate, instantiate } = useTemplateNotes();
 
-  const newNotesFolder = useCallback(() => normalizeFolderPath(store.get(atom_newNoteFolder)), [store]);
+  const askSaveFolder = useAskSaveFolder();
+
+  // The folder a new note goes in: the one its name carries, else the one
+  // the user picks (null = cancelled).
+  const folderFor = useCallback(
+    (parsed: { folder?: string | null; baseName: string }) =>
+      parsed.folder != null ? Promise.resolve(parsed.folder) : askSaveFolder(`Save "${parsed.baseName}.md"`),
+    [askSaveFolder],
+  );
 
   // Writes `<folder>/<baseName>.md`, rescans, opens it and puts the caret at
   // `{{cursor}}`. A file already there is opened unchanged instead (what's
@@ -141,7 +150,8 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
       toast.error(`Can't create a file named "${shown}"`);
       return;
     }
-    const folder = parsed.folder ?? newNotesFolder();
+    const folder = await folderFor(parsed);
+    if (folder === null) return;
     const notePath = joinPath(folder, `${parsed.baseName}.md`);
     try {
       const existing = await findExisting(vaultHandle, notePath);
@@ -165,7 +175,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     const expanded = await linkedNoteText(chosen, parsed.baseName);
     if (!expanded) return;
     await writeNewNote(folder, parsed.baseName, expanded);
-  }, [store, newNotesFolder, pickTemplate, linkedNoteText, writeNewNote, scanVault, openFile]);
+  }, [store, folderFor, pickTemplate, linkedNoteText, writeNewNote, scanVault, openFile]);
 
   // A pack's "New template": asks the name, then `_templates/<name>.md` (in
   // `<pack>/` when given) with a minimal body. With `from`, no question: its
@@ -215,7 +225,8 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
       toast.error(`Can't create a file named "${name.trim()}"`);
       return null;
     }
-    const folder = parsed.folder ?? newNotesFolder();
+    const folder = await folderFor(parsed);
+    if (folder === null) return null;
     const path = joinPath(folder, `${parsed.baseName}.md`);
     try {
       if (await findExisting(vaultHandle, path)) {
@@ -230,7 +241,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
     if (!expanded) return null;
     const created = await writeNewNote(folder, parsed.baseName, expanded, { open: false });
     return created ? created.path.replace(/\.md$/, "") : null;
-  }, [store, newNotesFolder, linkedNoteText, writeNewNote]);
+  }, [store, folderFor, linkedNoteText, writeNewNote]);
 
   const createWikiLinkFile = useCallback((name: string) => createLinkedNote(name), [createLinkedNote]);
   const createLinkedNoteFromTemplate = useCallback(
@@ -239,7 +250,7 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
   );
   // Not called now: the palette's `~` templates mode that used it was removed.
   // Asks the new note's name, then creates it from `entry` in the
-  // New Files folder (or the name's own folder) and opens it. A note of that
+  // name's own folder (else the one the user picks) and opens it. A note of that
   // name already there opens unchanged. Resolves to its path, or null.
   const createNoteFromTemplate = useCallback(async (entry: TemplateEntry): Promise<string | null> => {
     const name = await dialog.prompt("Name the new file", entry.name, "New file from template");
@@ -249,11 +260,13 @@ export function useTemplateCreate({ scanVault, indexVaultTags, openFile }: UseTe
       toast.error(`Can't create a file named "${name.trim()}"`);
       return null;
     }
+    const folder = await folderFor(parsed);
+    if (folder === null) return null;
     const expanded = await linkedNoteText(entry, parsed.baseName);
     if (!expanded) return null;
-    const created = await writeNewNote(parsed.folder ?? newNotesFolder(), parsed.baseName, expanded);
+    const created = await writeNewNote(folder, parsed.baseName, expanded);
     return created?.path ?? null;
-  }, [dialog, newNotesFolder, linkedNoteText, writeNewNote]);
+  }, [dialog, folderFor, linkedNoteText, writeNewNote]);
   // `name` ends in `.board` (boardBaseName).
   const createLinkedBoard = useCallback((name: string) => createLinkedNote(name, "board"), [createLinkedNote]);
 

@@ -12,9 +12,9 @@ import {
   atom_vaultHandle,
   atom_workspaceLayout,
 } from "@/app/atoms/atoms";
-import { atom_newNoteFolder } from "@/app/atoms/ui-atoms";
 import { withRetry } from "@/app/hooks/file-system/shared";
-import { createUniqueFile, ensureVaultFolder, normalizeFolderPath } from "@/app/hooks/file-system/unique-file";
+import { useAskSaveFolder } from "@/app/hooks/file-system/use-ask-save-folder";
+import { createUniqueFile, ensureVaultFolder } from "@/app/hooks/file-system/unique-file";
 import { writeFileContent } from "@/app/services/file-writer";
 import { draftTitle } from "../utils/draft-title";
 
@@ -24,18 +24,26 @@ interface UseMaterializeDraftOptions {
 }
 
 // One save at a time per window: autosave, blur and Cmd+S can all fire while
-// a write is in flight, and each must not create its own file.
+// the folder question is open or a write is in flight, and each must not ask
+// again or create its own file.
 let inFlight: Promise<string | null> | null = null;
 
-// Saves the draft into the vault's New Files folder (no dialog), named
-// after its first line (see draftTitle). Typed text is never lost or
+// Autosave asks once per draft: after a cancelled question it stays quiet
+// until the draft is saved or emptied, so the dialog doesn't come back while
+// typing goes on. A save the user asks for always asks.
+let autoAskDeclined = false;
+
+// Saves the draft into the vault folder the user picks (asked every time),
+// named after its first line (see draftTitle). Typed text is never lost or
 // overwritten onto another note: a taken name gets ` (1)`. The draft tab
 // then becomes that file in place. Whitespace-only drafts are never written.
-// Resolves to the new vault path, or null when nothing was saved.
+// Resolves to the new vault path, or null when nothing was saved (cancelling
+// the question leaves the draft as it was). `auto` marks an autosave.
 export function useMaterializeDraft({ scanVault, indexVaultTags }: UseMaterializeDraftOptions) {
   const store = useStore();
+  const askSaveFolder = useAskSaveFolder();
 
-  return useCallback(async (_paneId?: string): Promise<string | null> => {
+  return useCallback(async (_paneId?: string, { auto = false }: { auto?: boolean } = {}): Promise<string | null> => {
     if (inFlight) return inFlight;
 
     // A restored draft waits until the vault is readable (startup, or
@@ -46,12 +54,24 @@ export function useMaterializeDraft({ scanVault, indexVaultTags }: UseMaterializ
     const leaf = store.get(atom_workspaceLayout).rootContainer;
     if ((leaf.activeFilePath || "draft") !== "draft") return null;
 
-    if (!store.get(atom_openFiles).draft?.content.trim()) return null;
+    const draftText = () => store.get(atom_openFiles).draft?.content ?? "";
+    if (!draftText().trim()) {
+      autoAskDeclined = false;
+      return null;
+    }
+    if (auto && autoAskDeclined) return null;
 
     inFlight = (async () => {
       try {
-        const folderPath = normalizeFolderPath(store.get(atom_newNoteFolder));
-        const content = store.get(atom_openFiles).draft?.content ?? "";
+        const folderPath = await askSaveFolder(`Save "${draftTitle(draftText(), new Date())}.md"`);
+        if (folderPath === null) {
+          if (auto) autoAskDeclined = true;
+          return null;
+        }
+        autoAskDeclined = false;
+        // Read after the question: text typed while it was open is saved too.
+        const content = draftText();
+        if (!content.trim()) return null;
         const folder = await ensureVaultFolder(vaultHandle, folderPath);
         const { handle, fileName } = await createUniqueFile(folder, draftTitle(content, new Date()));
         await withRetry(() => writeFileContent(handle, content));
@@ -79,5 +99,5 @@ export function useMaterializeDraft({ scanVault, indexVaultTags }: UseMaterializ
       }
     })();
     return inFlight;
-  }, [store, scanVault, indexVaultTags]);
+  }, [store, askSaveFolder, scanVault, indexVaultTags]);
 }

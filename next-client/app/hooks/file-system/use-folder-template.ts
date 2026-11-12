@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useStore } from "jotai";
 import toast from "react-hot-toast";
-import { atom_vaultFolderPaths, atom_vaultHandle, atom_vaultName } from "@/app/atoms/vault-atoms";
+import { atom_vaultFolderPaths, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_pendingScrollTarget } from "@/app/atoms/ui-atoms";
 import { atom_folderTemplates } from "@/app/atoms/template-atoms";
 import { atom_clearBusy, atom_markBusy } from "@/app/atoms/busy-path-atoms";
@@ -22,6 +22,7 @@ import { useTemplateDialog } from "../use-template-dialog";
 import { directoryAtPath, entryExists } from "./directory-ops";
 import { readScaffoldSource, rollbackScaffold, ScaffoldClashError, writeScaffold } from "./folder-template-ops";
 import { readClipboard } from "./use-template-notes";
+import { useAskSaveFolder } from "./use-ask-save-folder";
 import { holdVaultSync } from "./vault-sync-hold";
 
 interface UseFolderTemplateProps {
@@ -32,9 +33,7 @@ interface UseFolderTemplateProps {
 
 type OkPlan = Extract<ScaffoldPlan, { ok: true }>;
 
-const ROOT_VALUE = "__root__";
 const BUILTIN_VALUE = "builtin:";
-const isHiddenSegment = (path: string) => path.split("/").some((s) => s.startsWith("_") || s.startsWith("."));
 
 let runCounter = 0;
 
@@ -46,6 +45,7 @@ let runCounter = 0;
 export function useFolderTemplate({ scanVault, indexVaultTags, openFile }: UseFolderTemplateProps) {
   const store = useStore();
   const dialog = useDialog();
+  const askSaveFolder = useAskSaveFolder();
   const { askPrompts } = useTemplateDialog();
 
   const runWrites = useCallback(async (
@@ -120,18 +120,9 @@ export function useFolderTemplate({ scanVault, indexVaultTags, openFile }: UseFo
 
     let destinationPath = destinationArg;
     if (destinationPath === undefined) {
-      const vaultName = store.get(atom_vaultName) ?? vault.name;
-      const folders = store.get(atom_vaultFolderPaths).filter((p) => !isHiddenSegment(p)).sort((a, b) => a.localeCompare(b));
-      const chosen = await dialog.select(
-        "Choose a destination folder:",
-        [
-          { label: `/ ${vaultName} (root)`, value: ROOT_VALUE },
-          ...folders.map((p) => ({ label: p, value: `path:${p}` })),
-        ],
-        "New from Folder Template",
-      );
-      if (!chosen) return null;
-      destinationPath = chosen === ROOT_VALUE ? "" : String(chosen).slice("path:".length);
+      const chosen = await askSaveFolder("New from Folder Template");
+      if (chosen === null) return null;
+      destinationPath = chosen;
     }
 
     let source: Awaited<ReturnType<typeof readScaffoldSource>>;
@@ -183,7 +174,7 @@ export function useFolderTemplate({ scanVault, indexVaultTags, openFile }: UseFo
     void holdVaultSync(() => runWrites(vault, destination, destinationPath, topPath, plan, runId))
       .catch((err) => console.error("Folder template follow-up failed:", err));
     return topPath;
-  }, [store, dialog, askPrompts, runWrites]);
+  }, [store, dialog, askSaveFolder, askPrompts, runWrites]);
 
   return { newFromFolderTemplate };
 }

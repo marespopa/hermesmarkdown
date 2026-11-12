@@ -139,7 +139,7 @@ export const getStartedGroup: Group = {
     {
       id: "first-note",
       title: "Your first file",
-      lead: "Start typing. On its first save the file goes into your New Files folder, named after its first line.",
+      lead: "Start typing. On its first save you choose the folder, and the file is named after its first line.",
       keywords: "new file new note draft save autosave name title folder frontmatter",
       body: (
         <>
@@ -168,8 +168,10 @@ export const getStartedGroup: Group = {
             so nothing you typed is lost.
           </p>
           <p>
-            The file goes into your New Files folder (the vault root unless you set one in
-            Settings → Files), with no dialog. Move it anywhere later from the file tree.
+            Each first save asks which folder the file goes in: the vault root or any folder in it,
+            with the one you picked last listed first. Cancel and the note stays a draft. Autosave
+            asks once per draft; after a cancel it waits for your own save. Move the file anywhere
+            later from the file tree.
           </p>
           <p>
             A file you leave empty is never saved, so no empty files pile up in your vault. Renaming
@@ -178,7 +180,7 @@ export const getStartedGroup: Group = {
           </p>
           <KV
             rows={[
-              { label: "Default folder for new files", value: "Vault root · Settings → Files → Vault → New Files Folder" },
+              { label: "Folder for a new file", value: "Asked on its first save" },
               { label: "Start in a specific folder", value: "New File in that folder's menu in Files" },
               { label: "Create from a search", value: 'Type a title in the palette, then Create "…"' },
             ]}

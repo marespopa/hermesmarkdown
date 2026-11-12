@@ -122,11 +122,16 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
       doubleShift.keydown(e);
     };
     const handleKeyUp = (e: KeyboardEvent) => doubleShift.keyup(e);
+    // Capture phase: the editor handles its own input and may stop it there.
+    const handleTextInput = () => doubleShift.textInput();
+    const TEXT_EVENTS = ["beforeinput", "compositionstart", "compositionupdate"] as const;
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("keyup", handleKeyUp);
+    TEXT_EVENTS.forEach((type) => document.addEventListener(type, handleTextInput, true));
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("keyup", handleKeyUp);
+      TEXT_EVENTS.forEach((type) => document.removeEventListener(type, handleTextInput, true));
     };
   }, [open]);
 

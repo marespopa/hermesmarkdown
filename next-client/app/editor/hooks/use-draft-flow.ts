@@ -23,7 +23,7 @@ interface UseDraftFlowOptions {
 // The editor page's new-note flow: New file opens a blank draft (no
 // dialogs), and a draft in a vault saves itself — named from its first
 // line — on autosave once that line is finished, or on Cmd+S. Its first
-// save goes into the New Files folder, with no dialog. Leaving the window
+// save asks which folder it goes in (autosave asks once). Leaving the window
 // doesn't save a draft: the text is kept in browser storage meanwhile.
 export function useDraftFlow({ vaultHandle, scanVault, indexVaultTags }: UseDraftFlowOptions) {
   const store = useStore();
@@ -39,7 +39,7 @@ export function useDraftFlow({ vaultHandle, scanVault, indexVaultTags }: UseDraf
   const handleDraftAutosave = useCallback(() => {
     // Read now, not subscribed: the editor page would re-render on every keystroke.
     if (!activeFileHandle && vaultHandle && isDraftTitleSettled(store.get(atom_content))) {
-      void materializeDraft();
+      void materializeDraft(undefined, { auto: true });
     }
   }, [activeFileHandle, vaultHandle, store, materializeDraft]);
 
