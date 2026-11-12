@@ -13,6 +13,7 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [CalloutTypeMenu](CalloutTypeMenu.md) | Dropdown of callout types, opened right after inserting a callout from the slash menu; picking one rewrites `[!type]`. |
 | [ConflictDialog](ConflictDialog.md) | Resolves an on-disk change to the open file by reloading from disk, keeping the current text, or merging manually (conflict markers, with per-side resolution). |
 | [PageOnlyPeek](PageOnlyPeek.md) | The way out of No Distraction Mode on a touch screen: a tap on the very top edge brings the top-right row back for a few seconds. |
+| [CornerButton](CornerButton.md) | The one button of the window's top-right row (editor corner and page title bars): a tinted rounded square with an icon and a tooltip; a link with `href`. |
 | [SettingsButton](SettingsButton.md) | The pill button that opens Settings, just before the search pill in the window's top-right corner (editor and page title bars, desktop). |
 | [PageOnlyToggleButton](PageOnlyToggleButton.md) | The pressed-state pill button that leaves No Distraction Mode; in the top-right row only while the mode is on. |
 | [TypewriterSound](TypewriterSound.md) | Headless: a synthesised typewriter click for each key typed in a note, switched in Settings → Editor → Writing. |

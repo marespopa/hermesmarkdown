@@ -2,9 +2,7 @@
 
 import React from "react";
 import { HiOutlineQuestionMarkCircle } from "react-icons/hi";
-import TextLink from "@/app/components/TextLink";
-import Tooltip from "@/app/components/Tooltip";
-import { PILL_BUTTON_CLASS } from "./pane-header-classes";
+import CornerButton from "./CornerButton";
 
 export interface PageHelp {
   /** The page's section of the documentation, e.g. `/documentation#tasks-page`. */
@@ -15,19 +13,8 @@ export interface PageHelp {
 
 // A small (?) at the top right of an /editor page (ShellPage's title bar):
 // a link to that page's section of the documentation, with what it explains
-// as its tooltip. In the corner buttons' look (PILL_BUTTON_CLASS), as the
-// editor's top-right row.
+// as its tooltip. A CornerButton, as every button of the editor's
+// top-right row.
 export default function PageHelpLink({ href, label }: PageHelp) {
-  return (
-    <Tooltip label={label} position="bottom" portal>
-      <TextLink
-        href={href}
-        variant="unstyled"
-        aria-label={`Help: ${label}`}
-        className={PILL_BUTTON_CLASS}
-      >
-        <HiOutlineQuestionMarkCircle size={14} aria-hidden />
-      </TextLink>
-    </Tooltip>
-  );
+  return <CornerButton icon={<HiOutlineQuestionMarkCircle size={14} aria-hidden />} label={`Help: ${label}`} tooltip={label} href={href} />;
 }

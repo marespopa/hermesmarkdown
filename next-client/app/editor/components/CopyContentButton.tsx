@@ -4,10 +4,8 @@ import React from "react";
 import { useAtomValue } from "jotai";
 import { HiOutlineDocumentDuplicate } from "react-icons/hi";
 import { atom_activePaneId, atom_fileContent, atom_workspaceLayout, findLeaf } from "@/app/atoms/atoms";
-import Button from "@/app/components/Button";
-import Tooltip from "@/app/components/Tooltip";
 import { copyContentToClipboard } from "../hooks/use-pane-file-actions";
-import { PILL_BUTTON_CLASS } from "./pane-header-classes";
+import CornerButton from "./CornerButton";
 
 // Copies the active pane's file as it is (a note's Markdown, a code file's
 // source) to the clipboard: the palette's
@@ -21,16 +19,12 @@ export default function CopyContentButton({ className = "" }: { className?: stri
   const content = useAtomValue(atom_fileContent(leaf?.activeFilePath || "draft"));
 
   return (
-    <Tooltip label="Copy Contents" position="bottom" portal>
-      <Button
-        variant="unstyled"
-        onClick={() => { void copyContentToClipboard(content); }}
-        isDisabled={!hasNote || !content.trim()}
-        aria-label="Copy Contents"
-        className={`${PILL_BUTTON_CLASS} ${className}`}
-      >
-        <HiOutlineDocumentDuplicate size={14} aria-hidden="true" />
-      </Button>
-    </Tooltip>
+    <CornerButton
+      icon={<HiOutlineDocumentDuplicate size={14} aria-hidden="true" />}
+      label="Copy Contents"
+      onClick={() => { void copyContentToClipboard(content); }}
+      isDisabled={!hasNote || !content.trim()}
+      className={className}
+    />
   );
 }
