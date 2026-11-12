@@ -61,7 +61,8 @@ const VOICES: Record<TypewriterKey, { clack: number; level: number; decay: numbe
   return: { clack: 1000, level: 0.5, decay: 0.09, thump: 90 },
 };
 // The master gain of each volume (Settings → Editor → Typewriter Sound).
-export const TYPEWRITER_GAIN: Record<TypewriterVolume, number> = { quiet: 0.3, normal: 0.7, loud: 1.3 };
+// Normal is full level (1), as a media player at 100%.
+export const TYPEWRITER_GAIN: Record<TypewriterVolume, number> = { quiet: 0.4, normal: 1, loud: 1.6 };
 // Held keys repeat fast; one click per this many ms keeps it a click, not a buzz.
 const MIN_GAP_MS = 25;
 
