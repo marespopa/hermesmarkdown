@@ -34,6 +34,7 @@ import PerfReadout from "@/app/components/PerfReadout/PerfReadout";
 import CompanionPanel from "./companion/CompanionPanel";
 import ShellCommands from "./ShellCommands";
 import TypewriterSound from "./TypewriterSound";
+import SettingsButton from "./SettingsButton";
 import MobileDrawer from "./MobileDrawer/MobileDrawer";
 import MobileOutlineDrawer from "./MobileDrawer/MobileOutlineDrawer";
 import { useEdgeSwipe } from "./MobileDrawer/use-edge-swipe";
@@ -184,6 +185,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
           {/* The row rests invisible: hover it or the top edge, or tap the edge. */}
           <PageOnlyToggleButton />
           <CopyContentButton />
+          <SettingsButton />
           <SearchPill />
         </div>
       )}

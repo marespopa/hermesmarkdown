@@ -8,9 +8,10 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_focusMode, atom_fullWidth, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_toggleSentenceFocus, atom_typewriterSound } from "@/app/atoms/ui-atoms";
+import { atom_focusMode, atom_fullWidth, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_toggleSentenceFocus, atom_typewriterLevel, atom_typewriterSound } from "@/app/atoms/ui-atoms";
 import { useRegisterCommand, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { FOCUS_OPTIONS } from "../focus-options";
+import { TYPEWRITER_OPTIONS } from "../typewriter-options";
 import { FONTS, TEXT_SIZES } from "../font-options";
 import { formatShortcut } from "@/app/utils/platform";
 
@@ -27,6 +28,7 @@ export default function SettingsCommands() {
   const [vimMode, setVimMode] = useAtom(atom_vimMode);
   const [showWordCount, setShowWordCount] = useAtom(atom_showWordCount);
   const [typewriterSound, setTypewriterSound] = useAtom(atom_typewriterSound);
+  const [typewriterLevel, setTypewriterLevel] = useAtom(atom_typewriterLevel);
   const [showOutline, setShowOutline] = useAtom(atom_showOutline);
   const [focusMode, setFocusMode] = useAtom(atom_focusMode);
   const toggleSentenceFocus = useSetAtom(atom_toggleSentenceFocus);
@@ -43,6 +45,15 @@ export default function SettingsCommands() {
     { id: "toggle-invisibles", label: `${verb(showInvisibles)} Invisibles`, category: "Settings", keywords: "toggle whitespace empty lines blank spaces tabs pilcrow", action: () => setShowInvisibles(!showInvisibles) },
     { id: "toggle-word-count", label: `${verb(showWordCount)} Word Count`, category: "Settings", keywords: "toggle words stats statistics length counter", action: () => setShowWordCount(!showWordCount) },
     { id: "toggle-typewriter-sound", label: `${verb(typewriterSound)} Typewriter Sound`, category: "Settings", keywords: "toggle typing keys click clack audio noise mute", action: () => setTypewriterSound(!typewriterSound) },
+    // The sound's volume, one command each; Enable goes back to the last one.
+    ...TYPEWRITER_OPTIONS.map(({ label, value }) => ({
+      id: `set-typewriter-sound-${value}`,
+      label: `Typewriter Sound: ${label}`,
+      category: "Settings" as const,
+      keywords: "typing keys click clack audio noise volume level louder quieter softer mute",
+      disabledReason: typewriterLevel === value ? "Current setting" : undefined,
+      action: () => setTypewriterLevel(value),
+    })),
     { id: "toggle-outline", label: `${verb(showOutline)} Outline`, category: "Settings", keywords: "toggle headings contents overview minimap toc view", shortcut: formatShortcut("M", { shift: true }), action: () => setShowOutline(!showOutline) },
     { id: "toggle-vim-mode", label: `${verb(vimMode)} Vim Mode`, category: "Settings", keywords: "toggle editor keybindings modal", action: () => setVimMode(!vimMode) },
     // Focus Mode on (dim other paragraphs) or off: the palette's top-level

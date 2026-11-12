@@ -1,3 +1,5 @@
+import type { TypewriterVolume } from "@/app/atoms/ui-atoms";
+
 export type TypewriterKey = "key" | "space" | "return" | "back";
 
 // Which sound a keydown makes, or null for no sound: printable characters,
@@ -11,6 +13,45 @@ export function typewriterKind(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "m
   return event.key.length === 1 ? "key" : null;
 }
 
+// Whether a keydown names its key. An on-screen keyboard (and an IME) sends
+// "Unidentified" or "Process" for most keys, so those are heard from the
+// `beforeinput` that follows instead (`typewriterInputKind`).
+export function typewriterKeyNamed(event: Pick<KeyboardEvent, "key" | "keyCode" | "isComposing">): boolean {
+  return !event.isComposing && event.keyCode !== 229 && event.key !== "Unidentified" && event.key !== "Process";
+}
+
+// Which sound a `beforeinput` makes, or null for no sound: text typed or
+// composed, a line break, or a character deleted. `composing` is the text of
+// the composition so far (an on-screen keyboard composes each word): a
+// composition that got shorter is a delete, and one that didn't change (the
+// commit at its end) is silent. Paste, cut, drop, undo and the rest are silent.
+export function typewriterInputKind(event: Pick<InputEvent, "inputType" | "data">, composing = ""): TypewriterKey | null {
+  const text = event.data ?? "";
+  switch (event.inputType) {
+    case "insertLineBreak":
+    case "insertParagraph":
+      return "return";
+    case "deleteContentBackward":
+    case "deleteContentForward":
+      return "back";
+    case "insertCompositionText":
+      if (text === composing) return null;
+      if (text.length < composing.length) return "back";
+      return textKind(text);
+    case "insertText":
+      return textKind(text);
+    default:
+      return null;
+  }
+}
+
+function textKind(text: string): TypewriterKey | null {
+  if (!text) return null;
+  const last = text[text.length - 1];
+  if (last === "\n") return "return";
+  return last === " " ? "space" : "key";
+}
+
 // Band-pass centre of the key's clack, the clack's loudness, the length of
 // its decay and the pitch of the thump under it.
 const VOICES: Record<TypewriterKey, { clack: number; level: number; decay: number; thump: number }> = {
@@ -19,7 +60,9 @@ const VOICES: Record<TypewriterKey, { clack: number; level: number; decay: numbe
   back: { clack: 2100, level: 0.24, decay: 0.045, thump: 150 },
   return: { clack: 1000, level: 0.5, decay: 0.09, thump: 90 },
 };
-const MASTER_LEVEL = 0.7;
+// The master gain of each volume (Settings → Editor → Typewriter Sound).
+// Normal is full level (1), as a media player at 100%.
+export const TYPEWRITER_GAIN: Record<TypewriterVolume, number> = { quiet: 0.4, normal: 1, loud: 1.6 };
 // Held keys repeat fast; one click per this many ms keeps it a click, not a buzz.
 const MIN_GAP_MS = 25;
 
@@ -28,12 +71,13 @@ const MIN_GAP_MS = 25;
 // little different each time, and a carriage return (a slide and a
 // clunk) on Enter. The audio context is
 // made on the first key (a user gesture, as browsers need) and closed by
-// `close`.
+// `close`. `setVolume` sets the master gain, before or after that first key.
 export function createTypewriterSound() {
   let ctx: AudioContext | null = null;
   let master: GainNode | null = null;
   let noise: AudioBuffer | null = null;
   let last = 0;
+  let gain = TYPEWRITER_GAIN.normal;
 
   function context(): AudioContext | null {
     if (ctx) return ctx;
@@ -41,7 +85,7 @@ export function createTypewriterSound() {
     if (!Context) return null;
     ctx = new Context();
     master = ctx.createGain();
-    master.gain.value = MASTER_LEVEL;
+    master.gain.value = gain;
     master.connect(ctx.destination);
     noise = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.5), ctx.sampleRate);
     const data = noise.getChannelData(0);
@@ -138,6 +182,11 @@ export function createTypewriterSound() {
 
   return {
     play,
+    // The volume of every click from now on.
+    setVolume(volume: TypewriterVolume) {
+      gain = TYPEWRITER_GAIN[volume];
+      if (master) master.gain.value = gain;
+    },
     close() {
       const old = ctx;
       ctx = null;

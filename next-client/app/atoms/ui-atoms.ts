@@ -39,6 +39,24 @@ export const atom_showWordCount = atomWithStorage<boolean>("showWordCount", fals
 // A typewriter click per key typed in the note (TypewriterSound; Settings →
 // Editor → Writing). On by default, one switch off in Settings or the palette.
 export const atom_typewriterSound = atomWithStorage<boolean>("typewriterSound", true);
+// How loud the click is while it's on. Kept apart from the switch so turning
+// the sound off and on again returns to the volume last chosen.
+export const TYPEWRITER_VOLUMES = ["quiet", "normal", "loud"] as const;
+export type TypewriterVolume = (typeof TYPEWRITER_VOLUMES)[number];
+export const atom_typewriterVolume = atomWithChoiceStorage<TypewriterVolume>("typewriterVolume", TYPEWRITER_VOLUMES, "normal");
+// The Typewriter Sound setting as one choice: Off, or a volume.
+export type TypewriterLevel = "off" | TypewriterVolume;
+export const atom_typewriterLevel = atom(
+  (get): TypewriterLevel => (get(atom_typewriterSound) ? get(atom_typewriterVolume) : "off"),
+  (_get, set, level: TypewriterLevel) => {
+    if (level === "off") {
+      set(atom_typewriterSound, false);
+      return;
+    }
+    set(atom_typewriterVolume, level);
+    set(atom_typewriterSound, true);
+  },
+);
 // The note's outline in the pane's bottom-right corner (EditorOutline;
 // Ctrl/Cmd+Shift+M, Settings → Editor → View). Off by default.
 export const atom_showOutline = atomWithStorage<boolean>("showOutline", false);

@@ -374,6 +374,27 @@ html[data-page-only-peek] .corner-peek {
   opacity: 1;
   pointer-events: auto;
 }
+/* The pages' top-right row (ShellPage): quiet like the editor's. With a
+   pointer that hovers, it rests invisible and shows while the title bar is
+   hovered or one of its buttons has keyboard focus. On touch it stays shown:
+   there is no top-edge tap there to bring it back. */
+.corner-quiet {
+  transition: opacity 200ms ease-out;
+}
+@media (hover: hover) {
+  .corner-quiet {
+    opacity: 0;
+  }
+  .corner-quiet-zone:hover .corner-quiet,
+  .corner-quiet:focus-within {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .corner-quiet {
+    transition: none;
+  }
+}
 html[data-page-only] .page-only-room {
   --content-left: 0px !important;
   --content-right: 0px !important;

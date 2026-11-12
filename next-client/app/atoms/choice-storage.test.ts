@@ -1,7 +1,7 @@
 import { createStore } from "jotai";
 import { beforeEach, describe, expect, it } from "vitest";
 import { atomWithChoiceStorage, normalizeChoice } from "./choice-storage";
-import { atom_autosaveMode, atom_focusMode } from "./ui-atoms";
+import { atom_autosaveMode, atom_focusMode, atom_typewriterLevel, atom_typewriterSound } from "./ui-atoms";
 
 const CHOICES = ["one", "two"] as const;
 
@@ -40,6 +40,20 @@ describe("atomWithChoiceStorage", () => {
 
 describe("settings stored by older versions", () => {
   beforeEach(() => localStorage.clear());
+
+  it("reads the Typewriter Sound switch as Off or Normal, and remembers the volume while off", () => {
+    const store = createStore();
+    expect(store.get(atom_typewriterLevel)).toBe("normal");
+    store.set(atom_typewriterSound, false);
+    expect(store.get(atom_typewriterLevel)).toBe("off");
+
+    store.set(atom_typewriterLevel, "quiet");
+    expect(store.get(atom_typewriterSound)).toBe(true);
+    store.set(atom_typewriterLevel, "off");
+    expect(store.get(atom_typewriterSound)).toBe(false);
+    store.set(atom_typewriterSound, true);
+    expect(store.get(atom_typewriterLevel)).toBe("quiet");
+  });
 
   it("reads the retired On Focus Change autosave mode as After Delay", () => {
     localStorage.setItem("autosaveMode", JSON.stringify("onFocusChange"));
