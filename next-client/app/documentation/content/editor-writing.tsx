@@ -14,13 +14,13 @@ export const editorWritingItems: Subsection[] = [
           You always edit the Markdown source, styled as you type: headings, emphasis, links,
           tags and dates are highlighted in place, and tables render as an editable grid.
           Font and theme live under Settings; word wrap, line numbers and invisibles (¶ on empty
-          lines, dots for spaces) are command palette toggles (<strong>Toggle Word Wrap</strong>,{" "}
-          <strong>Toggle Line Numbers</strong>, <strong>Toggle Invisibles</strong>).
+          lines, dots for spaces) are command palette toggles (<strong>Enable/Disable Word Wrap</strong>,{" "}
+          <strong>Enable/Disable Line Numbers</strong>, <strong>Enable/Disable Invisibles</strong>).
         </p>
         <p>
           The text fills the whole editor by default. For a column about as wide as a page, so
           lines stay easy to read on a wide screen, turn off <strong>Full Width</strong> under
-          Settings → Appearance → Typography, or run <strong>Toggle Full Width</strong> from the
+          Settings → Appearance → Typography, or run <strong>Enable/Disable Full Width</strong> from the
           command palette. Changing the text size never moves the column&apos;s edges; it only
           changes how much fits on a line.
         </p>
@@ -42,6 +42,14 @@ export const editorWritingItems: Subsection[] = [
           Paste or drop an image and it&apos;s saved to the vault&apos;s <code>assets/</code>{" "}
           folder and linked with <code>![](assets/…)</code>. Paste comma- or tab-separated
           data outside a table and HermesMarkdown offers to convert it into a Markdown table.
+        </p>
+        <p>
+          Two palette commands look after a finished note. <strong>Tidy note</strong> aligns table
+          columns, puts a blank line around headings and renumbers ordered lists, in one step that
+          CTRL/CMD+Z takes back; frontmatter and code blocks are left as typed.{" "}
+          <strong>Check document</strong> lists broken <code>[[wikilinks]]</code> and links to files,
+          images that can&apos;t be found and headings that skip a level, each with a Fix button
+          (<strong>Fix all</strong> for the lot). Both are for Markdown notes.
         </p>
         <p>
           Paste rich text from a web page, Google Docs, Word or an email and it arrives as Markdown:
@@ -86,7 +94,7 @@ export const editorWritingItems: Subsection[] = [
       <>
         <p>
           Turn on Vim mode under Settings → Editor
-          (or the <strong>Toggle Vim Mode</strong> command). Outside Insert mode, a small pill at the
+          (or the <strong>Enable/Disable Vim Mode</strong> command). Outside Insert mode, a small pill at the
           bottom right of the file shows the current mode and any keys of a command you haven&apos;t
           finished. Typing <code>:</code> or <code>/</code> opens the command line in that pill.
         </p>
@@ -106,7 +114,7 @@ export const editorWritingItems: Subsection[] = [
         <p>
           Choose a level under Settings → Editor → Focus, or run one of the{" "}
           <strong>Focus: …</strong> commands from the command palette.{" "}
-          <code>CTRL/CMD+ALT+F</code> (<strong>Toggle Sentence Focus</strong>) switches sentence
+          <code>CTRL/CMD+ALT+F</code> (<strong>Enable/Disable Sentence Focus</strong>) switches sentence
           focus on, and back to the level you had before. As the caret moves from one sentence to
           the next, the old one fades out and the new one fades in.
         </p>
@@ -118,12 +126,13 @@ export const editorWritingItems: Subsection[] = [
           ]}
         />
         <p>
-          Nothing hides while you type, and there&apos;s no toolbar to hide: only the button at the top
-          of the page, which opens the command palette. To be alone with the text, close the sidebar (
-          <code>CTRL/CMD+\</code>); the page takes its room, and it stays that way across reloads. The
-          sidebar stays open until you close it; turn on{" "}
-          <strong>Close Sidebar While Writing</strong> (Settings → Editor) to have it put away as soon
-          as you type in a file.
+          For just you and the page, switch on <strong>No Distraction Mode</strong> from the command
+          palette or with <code>CTRL/CMD+ALT+Z</code>. The sidebar, AI companion, buttons, file name,
+          outline and word count all go, and the page takes their room. Use the same shortcut or the
+          palette to bring them back, or, on a tablet, tap the very top edge of the screen: the search
+          bar and a button to leave the mode return for a few seconds. It&apos;s for this session, so a
+          reload shows the interface as you left it. To close just the sidebar for good, press{" "}
+          <code>CTRL/CMD+\</code>; the page takes its room, and it stays that way across reloads.
         </p>
         <p>
           At the strongest level, the current paragraph is the run of non-blank lines around the
@@ -133,13 +142,32 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <p>
           Turn on <strong>Word Count</strong> in Settings → Editor (or run{" "}
-          <strong>Toggle Word Count</strong>) to show the file&apos;s word count faintly in the
+          <strong>Enable/Disable Word Count</strong>) to show the file&apos;s word count faintly in the
           bottom-left corner of the editor. It steps aside while you type and comes back when you
           pause or move the mouse. Frontmatter and Markdown marks on their own, like{" "}
           <code>#</code> or <code>-</code>, aren&apos;t counted.
         </p>
         <Callout type="note">
           Focus only changes how the editor looks. The Markdown in your file stays the same.
+        </Callout>
+      </>
+    ),
+  },
+  {
+    id: "typewriter-sound",
+    title: "Typewriter sound",
+    lead: "A soft typewriter click as you type.",
+    keywords: "typewriter sound click clack keys typing audio noise carriage return mute off",
+    body: (
+      <>
+        <p>
+          Each key you type in a note makes a soft typewriter click, with a carriage-return clunk on{" "}
+          <code>Enter</code>. Switch it off under Settings → Editor → Writing → Typewriter Sound, or
+          run <strong>Enable/Disable Typewriter Sound</strong> from the command palette.
+        </p>
+        <Callout type="note">
+          The sound is generated on your device, so it works offline and nothing is downloaded.
+          Shortcuts and typing outside a note (a dialog, the search field) stay silent.
         </Callout>
       </>
     ),
@@ -168,10 +196,9 @@ export const editorWritingItems: Subsection[] = [
             { label: "- List item", value: "Stays as typed: a faint marker before the text, nested items indented by their spaces" },
             { label: "- [ ] Task, 1. [ ] Task", value: "Stays as typed, the marker coloured by its status as on the Tasks page, so you can write the status ([/], [!], [x]); CTRL+Click it to go To Do → In Progress → Done" },
             { label: "1. Numbered item", value: "Stays as typed, the number faint" },
-            { label: "> [!note] Title", value: "Shown as a rounded, tinted card; the > and [!note] show on the caret's line, so edit the type in place" },
+            { label: "> [!note] Title", value: "Shown as inset text with the type's coloured icon and title; the > and [!note] show on the caret's line, so edit the type in place" },
             { label: "> ## Heading, > - item, > | table |", value: "Inside a callout, headings, lists, tasks, tables, code and quotes look as they do outside it" },
             { label: "> [!note]- Title", value: "Starts collapsed when the file opens (+ starts expanded); folding with the chevron writes the sign for you" },
-            { label: "# Heading (fold)", value: "Hover a heading for a chevron in the margin: it folds everything under it up to the next heading of the same or a higher level, and a … marks the fold. Ctrl/Cmd+Shift+. folds or unfolds the caret's section, Ctrl/Cmd+Shift+, unfolds every section. Folds aren't saved in the file; a file keeps them while you switch away and back during the visit" },
             { label: "<details><summary>Title</summary> … </details>", value: "Folds like a callout: the summary stays, the body folds. Starts collapsed unless the tag says open; the chevron writes open for you" },
             { label: "```js … ```", value: "Fences stay as typed, language included" },
             { label: "#tag, 2026-10-08", value: "Stay chips while you edit them" },

@@ -100,6 +100,8 @@ module.exports = {
         // `mention` = the @Name hue, apart from links (sage). Tinted themes give
         // it a hue of their own; Plain and Graphite stay neutral and reuse moss.
         mention: 'var(--mention)',
+        // `wikilink` = [[note links]], the palette's warm hue (follows --task-prog).
+        wikilink: 'var(--wikilink)',
         // Unlike the other var colors, `accent` takes opacity modifiers
         // (`bg-accent/15`): color-mix fades the var by <alpha-value> (1 with
         // no modifier, so plain `text-accent` is the colour itself).

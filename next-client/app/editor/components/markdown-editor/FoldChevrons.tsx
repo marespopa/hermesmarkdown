@@ -17,8 +17,7 @@ interface FoldChevronsProps {
 }
 
 // Collapse/expand chevrons drawn at the right edge of foldable callouts and
-// `<details>` sections. Headings fold from their own chevrons in the
-// margin (`codemirror/heading-fold.ts`).
+// `<details>` sections. Headings and the frontmatter don't fold.
 export default function FoldChevrons({ chevrons, onToggle }: FoldChevronsProps) {
   return (
     <>

@@ -1,6 +1,6 @@
 # VimStatusPill
 
-Description: Vim mode indicator for the editor, shown when Vim mode is on. A chrome pill (the same recipe as the palette's search pill) floats at the bottom right of the pane (left of the outline when it's on) with a dot and the mode: Normal or Replace (clay dot), Visual / Visual line / Visual block (moss dot). Keys of an unfinished command (`d2`) follow as a keycap. It fades out in Insert mode. Typing `:`, `/` or `?` turns it into a wider, centred command line; Vim messages ("Not an editor command") show there too.
+Description: Vim mode indicator for the editor, shown when Vim mode is on. The mode floats at the bottom right of the pane (left of the outline when it's on) as plain faint text on the page's colour, with a dot, no pill (only the `:` / `/` prompt gets a panel, being a field to type in): Normal or Replace (clay dot), Visual / Visual line / Visual block (moss dot). Keys of an unfinished command (`d2`) follow as a keycap. It fades out in Insert mode. Typing `:`, `/` or `?` turns it into a wider, centred command line; Vim messages ("Not an editor command") show there too.
 
 Replaces the library's status panel, a full-width strip under the text.
 

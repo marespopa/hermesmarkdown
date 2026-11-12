@@ -109,7 +109,6 @@ export function useDuplicateItem({ scanVault, indexVaultTags, openFile }: UseDup
         }
 
         await openFile(newFileHandle, path, true);
-        toast.success("Duplicated: " + newName);
       } catch (err: any) {
         console.error("File System Error:", err?.message || err);
         toast.error(err.message || "Failed to duplicate file");

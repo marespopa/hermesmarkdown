@@ -81,7 +81,31 @@ export function matchCommand(query: string, command: SearchableCommand): Command
     : { ...metadataMatch, indices: [], source: "metadata" };
 }
 
+// A query with `*` or `?` is a glob: `*.tsx` lists every .tsx file. Without a
+// "/" it matches the file name; with one it matches the whole path. `*` never
+// crosses a "/" except in the path form `**`.
+function globMatch(query: string, file: { name: string; path: string }): FileMatchResult | null {
+  const pattern = query.trim().toLowerCase();
+  const source = pattern.split(/(\*\*|\*|\?)/).map((part) => {
+    if (part === "**") return ".*";
+    if (part === "*") return "[^/]*";
+    if (part === "?") return "[^/]";
+    return part.replace(/[.+^${}()|[\]\\]/g, "\\$&");
+  }).join("");
+  const onPath = pattern.includes("/");
+  const target = onPath ? file.path : file.name;
+  const match = new RegExp(`^${source}$`, "i").exec(target);
+  if (!match) return null;
+  const indices = Array.from({ length: target.length }, (_, index) => index);
+  return {
+    score: 1_000 - target.length,
+    titleIndices: onPath ? [] : indices,
+    pathIndices: onPath ? indices : [],
+  };
+}
+
 export function matchFile(query: string, file: { name: string; path: string }): FileMatchResult | null {
+  if (/[*?]/.test(query)) return globMatch(query, file);
   const normalizedQuery = query.trim().toLowerCase();
   const normalizedName = file.name.toLowerCase();
   const directTitleIndex = normalizedName.indexOf(normalizedQuery);

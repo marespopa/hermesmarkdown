@@ -3,10 +3,10 @@ import React from "react";
 // The one look for a count anywhere in the app: tags and task groups in
 // listings, the Tasks header and tabs, the editor's word count. Small,
 // tabular, faint, with thousands separators ("1,204"). `floating` is the
-// same count on a flat raised chip, for one that sits over content.
+// same text on the page's own colour (no border, no chip), for one that sits
+// over content, so text under it never shows through.
 const INLINE_CLASS = "shrink-0 text-ui-caption font-normal tabular-nums text-fg-faint";
-const FLOATING_CLASS =
-  "rounded-full border border-edge-subtle bg-surface-raised px-2.5 py-0.5 text-ui-caption font-normal tabular-nums text-fg-muted";
+const FLOATING_CLASS = "rounded-md bg-surface px-1.5 py-0.5 text-ui-caption font-normal tabular-nums text-fg-faint";
 
 type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "children"> & {
   count: number;

@@ -18,8 +18,8 @@
 }
 
 /* Full Width (Settings → Editor): the column fills the sheet, inside its
-   page margins. The sheet widens when the chrome fades and the page takes
-   the sidebar's room (editor.scss), so full-width lines rewrap then. */
+   page margins. The sheet widens when No Distraction Mode gives the page
+   the sidebar's room (globals.scss), so full-width lines rewrap then. */
 .editor-sheet[data-full-width] {
   --editor-measure: 100%;
 }
@@ -68,13 +68,14 @@
 /* Headings: a Major Third scale (×1.25 a step: 1.953em / 1.563em / 1.25em /
    1.125em, then body size), a line height that opens up as they shrink
    (1.2 / 1.3 / 1.4) and tracking that tightens as they grow. Semibold, as
-   in Apple's headline styles. No room above or below: only real blank lines space a heading from its
+   in Apple's headline styles. Set in the palette's identity hue (--moss),
+   hashes included. No room above or below: only real blank lines space a heading from its
    neighbours, so a missing blank line shows here rather than only after
    the Markdown is pasted elsewhere. That includes H1 under the frontmatter
    block: the blank line or spacer after it gives a short, fixed gap
    (`--frontmatter-gap`, frontmatter-block.ts). */
 .editor-sheet.editor-container .cm-line.cm-heading {
-  color: var(--fg);
+  color: var(--moss);
   line-height: 1.3;
 }
 
@@ -186,19 +187,14 @@
   padding: 0.1em 0.3em;
 }
 
-/* Fenced code: one block whose tint sits ~4% off the sheet, with a hairline
-   edge. The inline inset is a transparent border, not padding: drawSelection()
-   reads the first line's padding-left for every selection rect, so padding
-   here would skew selections in a note that opens with a code block. The
-   hairline edge is box-shadow (no layout), offset outward on one axis only so
-   a line's shadow never paints over the line above or below it. */
+/* Fenced code: a faint tint behind the lines (it runs under the transparent
+   border), the code face, a little inset and room above and below. The inline inset is a transparent border, not
+   padding: drawSelection() reads the first line's padding-left for every
+   selection rect, so padding here would skew selections in a note that opens
+   with a code block. */
 .editor-sheet.editor-container .cm-line.cm-codeblock {
-  --codeblock-edge: color-mix(in srgb, var(--fg) 9%, transparent);
-  /* Translucent, not mixed into --surface: CodeMirror draws the selection on
-     a layer beneath the text, and an opaque line background hides it. */
-  background-color: color-mix(in srgb, var(--fg) 4%, transparent);
   border-inline: 1.125rem solid transparent;
-  box-shadow: -1px 0 var(--codeblock-edge), 1px 0 var(--codeblock-edge);
+  background-color: color-mix(in srgb, var(--fg) 4%, transparent);
   font-family: var(--font-code);
   /* Contextual alternates, and a slashed zero so 0 and O never mix. */
   font-feature-settings: "calt" 1, "zero" 1;
@@ -207,21 +203,13 @@
 }
 
 .editor-sheet.editor-container .cm-line.cm-codeblock-start {
-  border-start-start-radius: 0.5rem;
-  border-start-end-radius: 0.5rem;
-  box-shadow:
-    -1px 0 var(--codeblock-edge),
-    1px 0 var(--codeblock-edge),
-    0 -1px var(--codeblock-edge);
   padding-top: 0.75em;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
 
 .editor-sheet.editor-container .cm-line.cm-codeblock-end {
-  border-end-start-radius: 0.5rem;
-  border-end-end-radius: 0.5rem;
-  box-shadow:
-    -1px 0 var(--codeblock-edge),
-    1px 0 var(--codeblock-edge),
-    0 1px var(--codeblock-edge);
   padding-bottom: 0.75em;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }

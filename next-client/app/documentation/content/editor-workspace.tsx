@@ -122,7 +122,7 @@ export const editorWorkspaceItems: Subsection[] = [
     id: "frontmatter",
     title: "Frontmatter",
     lead: "The YAML block at the top of a file — edited as plain text, with a shortcut to add one.",
-    keywords: "yaml frontmatter metadata title tags properties collapse fold",
+    keywords: "yaml frontmatter metadata title tags properties",
     body: (
       <>
         <p>
@@ -135,13 +135,8 @@ title:
 tags: []
 ---`}</Code>
         <p>
-          The editor shows frontmatter exactly as typed, on a subtle tinted panel. Hover it for a
-          chevron in the margin by the opening <code>---</code>: it folds the whole block into one
-          line showing just its <code>title</code> (its <code>name</code> when there is no title)
-          and its <code>tags</code> as pills; click that line to unfold it. Folding or unfolding
-          moves the cursor to the top of the file, so the page stays where it is. With the caret inside,
-          Ctrl/Cmd+Shift+. folds or unfolds it too. The file keeps it folded while you switch away
-          and back during the visit.
+          The editor shows frontmatter exactly as typed, as part of the page: the same column, in a
+          softer colour, with no box around it.
         </p>
         <p>
           Typing inside the frontmatter offers what your vault already uses: keys at the start of a
@@ -231,7 +226,7 @@ tags: []
         <p>
           With nothing typed it lists your pinned and recent files, then a short menu of what you
           reach for most: <strong>Search in Files…</strong> (file text), <strong>Ask AI</strong>,{" "}
-          <strong>New File</strong>, <strong>Insert template…</strong>, <strong>Toggle Focus Mode</strong>;
+          <strong>New File</strong>, <strong>Insert template…</strong>, <strong>Enable/Disable Focus Mode</strong>;
           then, set apart, the pages it can take you to: <strong>Open Tasks</strong>,{" "}
           <strong>Open Templates</strong>, <strong>Open Settings</strong> and <strong>Open Documentation</strong>.
           An arrow marks a row that opens another page; <strong>Open Documentation</strong> opens in a new
@@ -244,9 +239,8 @@ tags: []
             { label: "#", value: "All unique vault tags; choose one to filter Files" },
             { label: ">", value: "Commands by name, description, category, or keyword" },
             { label: "!", value: "Tasks; choose one to open its file at the source line" },
-            { label: "@", value: "Headings in the active file; choose one to place it at the top" },
+            { label: "@", value: "Mentions (@Name) in the active file; choose one to place it at the top" },
             { label: "/", value: "File text across the vault, including readable code and text files; choose a line to open it at that match" },
-            { label: "~", value: "Your templates; Enter inserts one into the file, CTRL/CMD+Enter starts a new file from it" },
           ]}
         />
         <p>
@@ -313,11 +307,11 @@ tags: []
             { label: "Open Templates", value: "Your templates, New template and examples" },
             { label: "Open files", value: "Next/previous, close current/other/all" },
             { label: "Tasks", value: "Grouping, due-date filters, and clear filters" },
-            { label: "Toggle Hidden Files", value: "—" },
+            { label: "Enable/Disable Hidden Files", value: "—" },
             { label: "Theme: Light / Dark / System", value: "—" },
             { label: "Light Theme: … / Dark Theme: …", value: "The palette each mode uses" },
-            { label: "Toggle Full Width / Word Wrap / Line Numbers / Invisibles / Word Count / Vim Mode", value: "—" },
-            { label: "Toggle Focus Mode", value: "Dim other paragraphs, or turn Focus off" },
+            { label: "Enable/Disable Full Width / Word Wrap / Line Numbers / Invisibles / Word Count / Vim Mode", value: "—" },
+            { label: "Enable/Disable Focus Mode", value: "Dim other paragraphs, or turn Focus off" },
             { label: "Focus: …", value: "Off, or dim other paragraphs or sentences" },
             { label: "Settings", value: "Editor Font, Text Size, Autosave, Open Settings" },
           ]}

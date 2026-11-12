@@ -3,7 +3,6 @@ import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createStore, Provider } from "jotai";
 import { atom_renderedFontSize } from "@/app/atoms/atoms";
-import { atom_fullWidth } from "@/app/atoms/ui-atoms";
 import { atom_isVaultRestoring } from "@/app/atoms/vault-atoms";
 import { showHintToast } from "@/app/components/Toastr";
 import { FIRST_RUN_TEXT_SIZE, isFirstRun, useFirstRun } from "./use-first-run";
@@ -24,11 +23,11 @@ describe("useFirstRun", () => {
     localStorage.clear();
   });
 
-  it("on a first visit, applies Medium text and full width and shows the palette shortcut once", () => {
+  it("on a first visit, applies Medium text and shows the palette shortcut once", () => {
     const { store, rerender } = setup();
     expect(store.get(atom_renderedFontSize)).toBe(FIRST_RUN_TEXT_SIZE);
-    expect(localStorage.getItem("fullWidth")).toBe("true");
-    expect(store.get(atom_fullWidth)).toBe(true);
+    // Width is left alone: the reading width is the default.
+    expect(localStorage.getItem("fullWidth")).toBeNull();
     expect(showHintToast).toHaveBeenCalledTimes(1);
     expect(vi.mocked(showHintToast).mock.calls[0][0]).toMatch(/anytime to open the command palette/);
     expect(isFirstRun()).toBe(false);

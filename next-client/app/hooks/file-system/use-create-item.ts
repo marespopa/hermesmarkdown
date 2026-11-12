@@ -108,7 +108,6 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
       // parent, and its folder list would drop the new one when it ends:
       // re-index (as for a new note), which takes over from that run.
       void indexVaultTags();
-      if (name === undefined) toast.success(`Created: ${folderName}`);
       return folder;
     } catch (error) {
       console.error("Failed to create folder:", error);
@@ -185,7 +184,6 @@ export function useCreateItem({ scanVault, indexVaultTags, openFile }: UseCreate
 
         await openFile(newFileHandle, path, true);
 
-        toast.success("Created: " + fileName);
         return newFileHandle;
       } catch (err: any) {
         console.warn("File System Error:", err?.message || err);

@@ -1,10 +1,8 @@
 import { EditorState, StateField, Text } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, WidgetType } from "@codemirror/view";
-import { parseFmFields } from "@/app/utils/frontmatter-utils";
 
-// The frontmatter is shown as typed: its YAML lines on a tinted panel
-// (`.cm-frontmatter-line`, highlight.ts / theme.ts). It folds like a heading
-// section, from a chevron by its opening `---` (heading-fold.ts).
+// The frontmatter is shown as typed, in plain quiet text (`.cm-frontmatter-line`,
+// highlight.ts / theme.ts). It doesn't fold.
 
 export interface FrontmatterRange {
   // End of the closing `---` delimiter.
@@ -32,25 +30,6 @@ export function frontmatterRangeOf(doc: Text): FrontmatterRange | null {
   }
   rangeByDoc.set(doc, range);
   return range;
-}
-
-const unquote = (value: string) => value.trim().replace(/^['"]|['"]$/g, "").trim();
-
-export interface FrontmatterSummary {
-  title: string;
-  tags: string[];
-}
-
-// What folded frontmatter shows (heading-fold.ts): the `title`'s value (the
-// `name`'s when there's no title) and every tag, without its `#`; either is
-// empty when the block has none.
-export function frontmatterSummary(state: EditorState): FrontmatterSummary {
-  const range = frontmatterRangeOf(state.doc);
-  if (!range) return { title: "", tags: [] };
-  const fields = parseFmFields(state.doc.sliceString(0, range.closeTo));
-  const title = unquote(fields.title ?? "") || unquote(fields.name ?? "");
-  const tags = (fields.tags ?? "").split(",").map((tag) => unquote(tag).replace(/^#/, "")).filter(Boolean);
-  return { title, tags };
 }
 
 // Room between the frontmatter and the text under it, the same either way

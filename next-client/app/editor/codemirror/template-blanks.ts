@@ -1,6 +1,5 @@
 import { EditorSelection, StateEffect, StateField, type EditorState } from "@codemirror/state";
 import { keymap, type EditorView } from "@codemirror/view";
-import toast from "react-hot-toast";
 import { isBlankToken, templateTokenRegex } from "@/app/utils/templates/template-tokens";
 import { isInCode, templateNoteField } from "./template-field-pills";
 
@@ -47,7 +46,6 @@ export function jumpToBlank(view: EditorView, direction: 1 | -1): boolean {
   if (blanks.length === 0) {
     if (!nav.active) return false;
     view.dispatch({ effects: setBlankNav.of({ active: false, dismissed: false }) });
-    toast.success("Template ready ✦", { duration: 1500, position: "bottom-right" });
     return true;
   }
   const { from, to } = state.selection.main;

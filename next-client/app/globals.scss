@@ -64,6 +64,9 @@ body {
   --task-done:      #56674F;  /* green */
   --link:           #34568E;  /* editor links — the ink blue */
   --link-hover:     #2A4775;
+  /* [[Wikilinks]]: the palette's warm hue, apart from the blue headings
+     and web links. Follows --task-prog in every palette. */
+  --wikilink:       var(--task-prog);
   --caret:          var(--clay);
   --selection:      rgba(58, 90, 140, 0.18);  /* text selection — the accent, translucent */
   /* Code syntax: keywords take the accent; strings, numbers and function
@@ -332,6 +335,50 @@ html.dark {
   }
 }
 
+/* No Distraction Mode (editor/hooks/use-page-only.ts): while <html
+   data-page-only> is set, the chrome that carries `.page-only-hide` is
+   hidden and the shell's frame (`.page-only-room`, EditorShell) gives up the
+   sidebar's and the companion's room, so the page grows into it on the layout
+   transition. Each hidden element lists `opacity` and `visibility` in its own
+   Tailwind `transition-[...]`, so the fade plays out before it turns
+   unclickable. `!important` beats the frame's inline custom properties. */
+html[data-page-only] .page-only-hide {
+  opacity: 0;
+  visibility: hidden;
+}
+/* The top edge brings the top-right row back for a moment (PageOnlyPeek): the
+   way out of the mode with no keyboard. */
+html[data-page-only][data-page-only-peek] .page-only-peek {
+  opacity: 1;
+  visibility: visible;
+}
+/* The top-corner buttons (Show sidebar, Copy Contents, search) rest invisible
+   and show on hover or keyboard focus, or for a moment after a tap on the top
+   edge (PageOnlyPeek). On touch they can't be hit while hidden, so the first
+   tap only brings them back. */
+.corner-peek {
+  opacity: 0;
+}
+@media (hover: hover) {
+  .corner-peek:hover,
+  .corner-peek:focus-within {
+    opacity: 1;
+  }
+}
+@media (hover: none) {
+  .corner-peek {
+    pointer-events: none;
+  }
+}
+html[data-page-only-peek] .corner-peek {
+  opacity: 1;
+  pointer-events: auto;
+}
+html[data-page-only] .page-only-room {
+  --content-left: 0px !important;
+  --content-right: 0px !important;
+}
+
 .hermes-markdown-toast {
   @apply text-fg px-4 py-3 font-medium;
 }
@@ -504,21 +551,6 @@ ul li::marker {
   @apply text-sage;
 }
 
-// Home feed search pill ⇄ command palette search field (shared element,
-// see CommandPaletteContext `morphWithAnchor`). The rest of the page just
-// cross-fades quickly; the field glides and resizes between its two places.
-::view-transition-group(palette-search) {
-  animation-duration: 260ms;
-  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-::view-transition-old(palette-search),
-::view-transition-new(palette-search) {
-  animation-duration: 180ms;
-  // Keep the text at its natural size while the box resizes.
-  height: 100%;
-  object-fit: none;
-  object-position: left center;
-}
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 180ms;

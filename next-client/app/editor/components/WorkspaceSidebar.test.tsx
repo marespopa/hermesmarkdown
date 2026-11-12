@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createStore, Provider, useAtomValue } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
 import { atom_activePaneId, atom_openFiles, atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesRevealPath, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
+import { atom_filesFocusRequested, atom_filesRevealPath, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
 import { atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import { seedPins } from "@/app/atoms/pin-atoms.test-utils";
@@ -214,21 +214,6 @@ describe("WorkspaceSidebar", () => {
     expect(within(screen.getByRole("navigation")).queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("switches between Files and Tags under the header, with the smart filters above both", () => {
-    fileSystem.vaultHandle = { name: "Notes" };
-    renderSidebar();
-
-    expect(screen.getByRole("tab", { name: "Files" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("region", { name: "Filters" })).toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: "Tags" })).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("tab", { name: "Tags" }));
-    expect(screen.getByRole("tab", { name: "Tags" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("region", { name: "Tags" })).toBeInTheDocument();
-    expect(screen.queryByRole("region", { name: "Files" })).not.toBeInTheDocument();
-    expect(screen.getByRole("region", { name: "Filters" })).toBeInTheDocument();
-  });
-
   it("switches vaults from its header: the open vault's name opens the vault menu", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar();
@@ -323,26 +308,6 @@ describe("WorkspaceSidebar", () => {
     typeInto(content);
     expect(screen.getByRole("navigation").closest("[inert]")).toBeNull();
     editor.remove();
-  });
-
-  it("closes on typing in a note with Close Sidebar While Writing on, not on typing elsewhere", () => {
-    localStorage.setItem("closeSidebarWhileWriting", "true");
-    fileSystem.vaultHandle = { name: "Notes" };
-    render(
-      <Provider>
-        <HydrateAtoms initialValues={[[atom_sidebarOpen, true], [atom_closeSidebarWhileWriting, true], [atom_vaultHandle, fileSystem.vaultHandle]]}>
-          <WorkspaceSidebar />
-        </HydrateAtoms>
-      </Provider>
-    );
-    const { editor, content } = mountEditor();
-
-    typeInto(screen.getByRole("navigation"));
-    expect(screen.getByRole("navigation").closest("[inert]")).toBeNull();
-    typeInto(content);
-    expect(screen.getByRole("navigation", { hidden: true }).closest("[inert]")).not.toBeNull();
-    editor.remove();
-    localStorage.removeItem("closeSidebarWhileWriting");
   });
 
   it("creates a file from the Files menu on any route", () => {

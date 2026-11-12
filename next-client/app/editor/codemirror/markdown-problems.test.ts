@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EditorState } from "@codemirror/state";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { load } from "js-yaml";
-import { frontmatterProblem, unclosedBlockProblems } from "./markdown-problems";
+import { frontmatterProblem, problemDecorations, unclosedBlockProblems } from "./markdown-problems";
 
 const stateOf = (doc: string) => EditorState.create({ doc, extensions: [markdown({ base: markdownLanguage })] });
 
@@ -47,5 +47,40 @@ describe("unclosedBlockProblems", () => {
 
   it("ignores $$ inside code", () => {
     expect(unclosedBlockProblems(stateOf("```\n$$\n```\n"))).toEqual([]);
+  });
+});
+
+describe("problemDecorations", () => {
+  const collect = (doc: string, problems: { line: number; anchorLine: number; message: string }[]) => {
+    const found: { from: number; class: string; title: string }[] = [];
+    const cursor = problemDecorations(stateOf(doc), problems).iter();
+    while (cursor.value) {
+      const spec = cursor.value.spec as { class: string; attributes: { title: string } };
+      found.push({ from: cursor.from, class: spec.class, title: spec.attributes.title });
+      cursor.next();
+    }
+    return found;
+  };
+
+  it("marks the line at fault, with the message as its tooltip", () => {
+    const doc = "intro\n```js\ncode";
+    expect(collect(doc, [{ line: 2, anchorLine: 2, message: "Never closed." }])).toEqual([
+      { from: 6, class: "cm-problem-line", title: "Never closed." },
+    ]);
+  });
+
+  it("marks a line once, in order, and skips lines the note doesn't have", () => {
+    const doc = "a\nb\nc";
+    const found = collect(doc, [
+      { line: 3, anchorLine: 3, message: "third" },
+      { line: 1, anchorLine: 1, message: "first" },
+      { line: 1, anchorLine: 1, message: "again" },
+      { line: 9, anchorLine: 9, message: "gone" },
+    ]);
+    expect(found.map((mark) => mark.title)).toEqual(["first", "third"]);
+  });
+
+  it("marks nothing when there is no problem", () => {
+    expect(collect("a\nb", [])).toEqual([]);
   });
 });

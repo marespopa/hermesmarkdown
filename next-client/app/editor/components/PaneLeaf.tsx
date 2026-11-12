@@ -29,7 +29,7 @@ import { useNoteMenuItems } from "../hooks/use-note-menu-items";
 import { useVaultMenuItems } from "../hooks/use-vault-menu-items";
 import { useFolderCreateActions } from "../hooks/use-folder-create-actions";
 import PaneEmptyState from "./PaneEmptyState";
-import { EDITOR_CORNER_WIDTH } from "./CopyContentButton";
+import { EDITOR_CORNER_WIDTH } from "./SearchPill";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
 import { atom_autosaveMode, atom_saveRequested, AUTOSAVE_DELAY, atom_sidebarOpen, atom_openingFilePath, atom_fullWidth } from "@/app/atoms/ui-atoms";
 import { NoteSheetSkeleton } from "./EditorSkeleton";
@@ -185,11 +185,12 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
       )}
       {!isMobileChrome && (
         <div
-          // Clear of Copy Contents and the SearchPill in the top-right corner (EditorShell).
+          // Clear of the SearchPill in the top-right corner (EditorShell).
           style={{ paddingRight: `calc(${EDITOR_CORNER_WIDTH} + 3rem)` }}
-          className={`pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-start transition-[padding] duration-layout ease-layout motion-reduce:transition-none ${sidebarOpen ? "pl-3" : "pl-12"}`}
+          className={`page-only-hide pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-start transition-[padding,opacity,visibility] duration-layout ease-layout motion-reduce:transition-none ${sidebarOpen ? "pl-3" : "pl-12"}`}
         >
-          <div className="pointer-events-auto min-w-0">
+          {/* Faint at rest, full strength under the pointer or the keyboard. */}
+          <div className="pointer-events-auto min-w-0 opacity-60 transition-opacity duration-200 hover:opacity-100 focus-within:opacity-100 motion-reduce:transition-none">
             <PaneTitle
               title={hasFiles || pendingPath ? activeTitle : null}
               folder={hasFiles || pendingPath ? activeFolder : ""}

@@ -1,6 +1,6 @@
 # FoldChevrons
 
-Description: Collapse/expand chevrons drawn at the right edge of foldable callouts (`> [!note]-`) and raw HTML `<details>` sections (`kind: "details"`, labelled "Expand/Collapse section"; callouts keep "… callout"). Headings have no chevron here: theirs hang in the leading margin, drawn by CodeMirror (`codemirror/heading-fold.ts`).
+Description: Collapse/expand chevrons drawn at the right edge of foldable callouts (`> [!note]-`) and raw HTML `<details>` sections (`kind: "details"`, labelled "Expand/Collapse section"; callouts keep "… callout"). Headings and the frontmatter don't fold.
 
 ## Local State & Storage
 - State: None; chevron positions come from `useCodeMirrorCalloutFold`.

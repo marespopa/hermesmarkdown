@@ -17,7 +17,8 @@ describe("palette scopes", () => {
     expect(scopeFromPrefix("#tag")?.scope).toBe("tag");
     expect(scopeFromPrefix(">cmd")?.scope).toBe("command");
     expect(scopeFromPrefix("!task")?.scope).toBe("task");
-    expect(scopeFromPrefix("@head")?.scope).toBe("heading");
+    expect(scopeFromPrefix("@name")?.scope).toBe("mention");
+    expect(scopeFromPrefix("~tpl")).toBeNull();
     expect(scopeFromPrefix("plain")).toBeNull();
   });
 });

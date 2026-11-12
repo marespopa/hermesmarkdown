@@ -50,7 +50,6 @@ export default function ConflictDialog() {
       setLastSavedContent(incoming);
       setFileLastModified(file.lastModified);
       setConflict(null);
-      toast.success("Loaded incoming changes");
     } catch (error) {
       console.error("Failed to reload externally modified file:", error);
       toast.error("Failed to reload file");
@@ -63,7 +62,6 @@ export default function ConflictDialog() {
       const file = await activeFileHandle.getFile();
       setFileLastModified(file.lastModified);
       setConflict(null);
-      toast.success("Kept current changes");
     } catch (error) {
       console.error("Failed to keep current changes:", error);
       toast.error("Failed to access file");

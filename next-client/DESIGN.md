@@ -35,9 +35,10 @@ These change between light and dark mode. Always prefer these over static colors
 | `text-fg-faint`                   | `--fg-faint`                    | `#6D6B67`             | `#948F87`                | Placeholders, hints, tertiary labels                                                                                 |
 | `accent`                          | `--clay`                        | `#A2563E`             | `#D88B68`                | Primary accent — active states, focus, unsaved dot                                                                   |
 | `accent-hover`                    | `--clay`                        | same as `accent`      | same as `accent`         | Alias; no distinct hover value today                                                                                 |
-| `sage`                            | `--moss`                        | `#626F54`             | `#8FA178`                | Secondary accent — icons, muted interactive                                                                          |
+| `sage`                            | `--moss`                        | `#626F54`             | `#8FA178`                | Secondary accent — icons, muted interactive, note headings                                                                          |
 | `sage-hover`                      | `--moss-hover`                  | `#5C6A4E`             | `#A3B58C`                | Hover / active state for sage buttons                                                                                |
 | `mention`                         | `--mention`                     | `#7A4A8C` (Paper)     | `#C3A0D8` (Ink)          | `@Name` mentions in notes, a hue apart from links. Sepia, Solarized and Nord set their own; Plain and Graphite stay neutral and reuse `--moss` |
+| `wikilink`                        | `--wikilink`                    | `#984F38` (Paper)     | `#D88B68` (Ink)          | `[[Wikilinks]]` in notes: the palette's warm hue (follows `--task-prog`), apart from headings and web links                 |
 
 `sage-subtle`, `sage-light` and `sage-dark` still exist for backwards compatibility but all resolve to `var(--moss)` — they are **not** distinct shades. Use `sage` with an opacity modifier (`bg-sage/10`, `ring-sage/20`) instead.
 
@@ -48,7 +49,7 @@ CSS-only variables (no Tailwind token):
 | `--link` / `--link-hover` | `#2C66D1` / `#1764D8` | `#64A8FF` / `#8DBEFF` | Links in the editor |
 | `--caret` | `#3B82F6` | `#3B82F6` | Editor caret, and Vim's block cursor (tinted) |
 | `--selection` | `rgba(59,130,246,0.22)` | `rgba(59,130,246,0.32)` | Text selection, in the editor and app-wide `::selection` |
-| `--frontmatter-bg` / `--frontmatter-bg-hover` | `rgba(60,56,50,0.035)` / `0.055` | `rgba(214,207,198,0.04)` / `0.065` | Frontmatter block background |
+| `--frontmatter-bg` / `--frontmatter-bg-hover` | `rgba(60,56,50,0.035)` / `0.055` | `rgba(214,207,198,0.04)` / `0.065` | Soft fill of the template preview's frontmatter (in the editor, frontmatter and the folded-section `…` have no fill: plain quiet text) |
 | `--frontmatter-label-opacity` | `0.4` | `0.5` | Frontmatter key labels |
 
 **Source:** `app/globals.scss` `:root` and `html.dark` blocks.

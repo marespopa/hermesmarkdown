@@ -2,12 +2,12 @@ import React from "react";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { useHydrateAtoms } from "jotai/utils";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { version } from "../../../package.json";
 import CommandPalette from "./CommandPalette";
 import { CommandPaletteProvider, useCommandPalette, useRegisterCommand } from "./CommandPaletteContext";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_mobileDrawerOpen, atom_mobileDrawerTab } from "@/app/atoms/mobile-drawer-atoms";
+import { atom_mobileDrawerOpen } from "@/app/atoms/mobile-drawer-atoms";
 import { atom_pinsByVault, atom_pinsVaultKey } from "@/app/atoms/pin-atoms";
 import { atom_privacyLevel } from "@/app/atoms/privacy-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
@@ -182,7 +182,7 @@ describe("CommandPalette", () => {
     expect(within(footer).queryByRole("button", { name: "Settings" })).not.toBeInTheDocument();
     expect(within(footer).queryByRole("button", { name: /Theme/ })).not.toBeInTheDocument();
     expect(within(footer).getAllByRole("button").map((button) => button.getAttribute("aria-label"))).toEqual([
-      "Tags", "Tasks", "Headings", "Text", "Templates", "Commands",
+      "Tags", "Tasks", "Mentions", "Text", "Commands",
     ]);
   });
 
@@ -207,7 +207,7 @@ describe("CommandPalette", () => {
     fireEvent.change(input, { target: { value: "no-match" } });
 
     expect(screen.getByText("No matches found")).toBeInTheDocument();
-    expect(screen.getByText("Try a file name, or a mode below: #tag, !task, @heading, /text, ~template, >command.")).toBeInTheDocument();
+    expect(screen.getByText("Try a file name, or a mode below: #tag, !task, @mention, /text, >command.")).toBeInTheDocument();
     expect(screen.getByText("🪴")).toHaveAttribute("aria-hidden", "true");
   });
 
@@ -341,7 +341,7 @@ describe("CommandPalette", () => {
     expect(store.get(atom_sidebarOpen)).toBe(true);
   });
 
-  it("Show Files on mobile opens the navigation drawer on Files", async () => {
+  it("Show Files on mobile opens the navigation drawer", async () => {
     isMobileChrome = true;
     const store = renderPaletteWithStore();
     fireEvent.keyDown(document, { key: "p", ctrlKey: true });
@@ -349,7 +349,6 @@ describe("CommandPalette", () => {
     fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">show files" } });
     fireEvent.click(screen.getByRole("option", { name: /Show Files/ }));
     await waitFor(() => expect(store.get(atom_mobileDrawerOpen)).toBe(true));
-    expect(store.get(atom_mobileDrawerTab)).toBe("files");
     expect(store.get(atom_sidebarOpen)).toBe(false);
   });
 
@@ -687,21 +686,19 @@ describe("CommandPalette", () => {
     expect(openFile).not.toHaveBeenCalled();
   });
 
-  it("searches headings in the active editor and navigates to the selected heading", async () => {
+  it("lists the note's mentions with a count, ignoring code, and jumps to the chosen one", async () => {
     const dispatch = vi.fn();
     const focus = vi.fn();
     const lines = [
-      { text: "# Introduction", from: 0 },
-      { text: "Body", from: 15 },
-      { text: "## Deployment Guide", from: 20 },
+      { text: "# Plan", from: 0 },
+      { text: "Ask @Dana to review", from: 7 },
+      { text: "```", from: 27 },
+      { text: "@Override", from: 31 },
+      { text: "```", from: 41 },
+      { text: "Then @dana and @launch-team agree, mail a@b.com", from: 45 },
     ];
     const activeEditorView = {
-      state: {
-        doc: {
-          lines: lines.length,
-          line: (lineNumber: number) => lines[lineNumber - 1],
-        },
-      },
+      state: { doc: { lines: lines.length, line: (lineNumber: number) => lines[lineNumber - 1] } },
       dispatch,
       focus,
     };
@@ -709,12 +706,19 @@ describe("CommandPalette", () => {
     fireEvent.keyDown(document, { key: "p", ctrlKey: true });
     const input = await screen.findByRole("combobox");
 
-    fireEvent.change(input, { target: { value: "@deploy" } });
-    expect(screen.getByRole("listbox")).toHaveTextContent("Deployment Guide");
+    fireEvent.change(input, { target: { value: "@" } });
+    const options = screen.getAllByRole("option");
+    expect(options).toHaveLength(2);
+    expect(screen.getByRole("listbox")).toHaveTextContent("@Dana");
+    expect(screen.getByRole("listbox")).toHaveTextContent("2 mentions");
+    expect(screen.getByRole("listbox")).toHaveTextContent("@launch-team");
+    expect(screen.getByRole("listbox")).not.toHaveTextContent("@Override");
+
+    fireEvent.change(input, { target: { value: "@launch" } });
     fireEvent.click(screen.getAllByRole("option")[0]);
 
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
-      selection: { anchor: 20 },
+      selection: { anchor: 60 },
       effects: expect.anything(),
     }));
     expect(focus).toHaveBeenCalled();
@@ -861,39 +865,6 @@ describe("CommandPalette", () => {
     expect(screen.getByRole("button", { name: "Tags" })).toHaveAttribute("aria-pressed", "false");
   });
 
-  describe("~ templates", () => {
-    const templateFiles = Object.fromEntries(["_templates/Meeting.md", "_templates/Journal/Daily.md", "Notes/Plan.md"].map((path) => [path, {
-      path, name: path.split("/").at(-1)!, handle: { kind: "file", name: path.split("/").at(-1)! },
-      tags: [], links: [], frontmatter: {}, modifiedAt: 1, wordCount: 1, tasks: [],
-    }]));
-
-    it("lists the vault's templates with their pack, and inserts the chosen one into the note in front", async () => {
-      const inserted = vi.fn();
-      document.addEventListener("hermes:insert-vault-template", inserted);
-      renderPalette([[atom_fileMetadata, templateFiles], [atom_activeEditorView, {} as never]]);
-      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
-      fireEvent.change(await screen.findByRole("combobox"), { target: { value: "~" } });
-
-      expect(screen.getByRole("option", { name: "Daily Journal" })).toBeInTheDocument();
-      expect(screen.getByRole("option", { name: "Meeting" })).toBeInTheDocument();
-      expect(screen.queryByRole("option", { name: /Plan/ })).not.toBeInTheDocument();
-
-      fireEvent.change(screen.getByRole("combobox"), { target: { value: "~meet" } });
-      fireEvent.keyDown(screen.getByRole("combobox"), { key: "Enter" });
-      await waitFor(() => expect(inserted).toHaveBeenCalledOnce());
-      expect((inserted.mock.calls[0][0] as CustomEvent).detail.entry).toMatchObject({ name: "Meeting", path: "_templates/Meeting.md" });
-      document.removeEventListener("hermes:insert-vault-template", inserted);
-    });
-
-    it("says so when the vault has no templates", async () => {
-      renderPalette();
-      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
-      fireEvent.click(await screen.findByRole("button", { name: "Templates" }));
-
-      expect(screen.getByText("No templates yet. Open Templates to add one or a pack.")).toBeInTheDocument();
-    });
-  });
-
   describe("Create row", () => {
     function renderWithCreate(onCreate: (title: string) => Promise<unknown>, values: any[] = []) {
       return render(
@@ -935,89 +906,6 @@ describe("CommandPalette", () => {
       fireEvent.keyDown(document, { key: "p", ctrlKey: true });
       fireEvent.change(await screen.findByRole("combobox"), { target: { value: ">new" } });
       expect(screen.queryByRole("option", { name: /Create/ })).not.toBeInTheDocument();
-    });
-  });
-
-  describe("search anchor morph", () => {
-    // A transition whose update runs right away and that settles normally.
-    const transitionRunning = (callback: () => unknown) => {
-      void callback();
-      return { ready: Promise.resolve(), finished: Promise.resolve(), updateCallbackDone: Promise.resolve() };
-    };
-    const addAnchor = () => {
-      const anchor = document.createElement("button");
-      anchor.setAttribute("data-palette-anchor", "");
-      document.body.appendChild(anchor);
-    };
-
-    afterEach(() => {
-      delete (document as any).startViewTransition;
-      delete (document as any).hidden;
-      document.querySelectorAll("[data-palette-anchor]").forEach((element) => element.remove());
-    });
-
-    it("opens through a view transition when a search anchor is on screen", async () => {
-      const startViewTransition = vi.fn(transitionRunning);
-      (document as any).startViewTransition = startViewTransition;
-      const anchor = document.createElement("button");
-      anchor.setAttribute("data-palette-anchor", "");
-      document.body.appendChild(anchor);
-
-      renderPalette();
-      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
-
-      expect(await screen.findByRole("combobox")).toBeInTheDocument();
-      expect(startViewTransition).toHaveBeenCalledTimes(1);
-
-      // Once the transition has settled the panel must not replay its own
-      // enter animation (that re-fade was a visible flicker).
-      await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)); });
-      expect(document.querySelector('[class~="zoom-in-[0.98]"]')).toBeNull();
-    });
-
-    it("opens directly without an anchor", async () => {
-      const startViewTransition = vi.fn(transitionRunning);
-      (document as any).startViewTransition = startViewTransition;
-
-      renderPalette();
-      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
-
-      expect(await screen.findByRole("combobox")).toBeInTheDocument();
-      expect(startViewTransition).not.toHaveBeenCalled();
-      // A normal open keeps the panel's own enter animation.
-      expect(document.querySelector('[class~="zoom-in-[0.98]"]')).not.toBeNull();
-    });
-
-    it("opens directly while the page is hidden", async () => {
-      const startViewTransition = vi.fn(transitionRunning);
-      (document as any).startViewTransition = startViewTransition;
-      Object.defineProperty(document, "hidden", { configurable: true, value: true });
-      addAnchor();
-
-      renderPalette();
-      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
-
-      expect(await screen.findByRole("combobox")).toBeInTheDocument();
-      expect(startViewTransition).not.toHaveBeenCalled();
-    });
-
-    it("still opens when the browser aborts the transition", async () => {
-      const aborted = () => Promise.reject(new DOMException("Transition was aborted because of invalid state", "InvalidStateError"));
-      (document as any).startViewTransition = vi.fn((callback: () => unknown) => {
-        void callback();
-        return { ready: aborted(), finished: aborted(), updateCallbackDone: Promise.resolve() };
-      });
-      addAnchor();
-      const unhandled = vi.fn();
-      process.on("unhandledRejection", unhandled);
-
-      renderPalette();
-      fireEvent.keyDown(document, { key: "p", ctrlKey: true });
-
-      expect(await screen.findByRole("combobox")).toBeInTheDocument();
-      await act(async () => { await new Promise((resolve) => setTimeout(resolve, 50)); });
-      process.off("unhandledRejection", unhandled);
-      expect(unhandled).not.toHaveBeenCalled();
     });
   });
 

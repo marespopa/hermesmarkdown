@@ -31,7 +31,7 @@ const FENCE = /^ {0,3}(`{3,}|~{3,})/;
 const LINK = /\[\[([^\]\n]+)\]\]/g;
 
 // Replaces inline code spans (matching backtick runs) with spaces, same length.
-function maskInlineCode(line: string): string {
+export function maskInlineCode(line: string): string {
   if (!line.includes("`")) return line;
   let out = "";
   let i = 0;

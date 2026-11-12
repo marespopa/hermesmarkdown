@@ -7,7 +7,7 @@ import React from "react";
 import type { IconType } from "react-icons";
 import {
   HiOutlineArrowSmRight, HiOutlineBookOpen, HiOutlineCheckCircle, HiOutlineChevronRight, HiOutlineExternalLink, HiOutlineCog, HiOutlineDocumentAdd, HiOutlineDocumentText, HiOutlineEye,
-  HiOutlineHashtag, HiOutlineLightningBolt, HiOutlinePlus, HiOutlineRefresh, HiOutlineSearch, HiOutlineSparkles, HiOutlineTemplate,
+  HiOutlineAtSymbol, HiOutlineLightningBolt, HiOutlinePlus, HiOutlineRefresh, HiOutlineSearch, HiOutlineSparkles, HiOutlineTemplate,
 } from "react-icons/hi";
 import { HighlightedText, parentFolder, type Row, splitTagDetail, type Scope, SEARCH_KBD_CLASS } from "./palette-model";
 
@@ -29,12 +29,12 @@ interface PaletteRowProps {
 // menu, what it does), a task's location, or the tags a #tag result matched.
 function resultContext(row: Row, scope: Scope | null, inMenu: boolean) {
   if (row.kind === "command") return row.command.disabledReason ?? (inMenu ? row.command.description : undefined);
-  if (row.kind === "task") return row.detail;
+  if (row.kind === "task" || row.kind === "mention") return row.detail;
   if (row.kind === "file" && scope === "tag") return row.detail;
   return null;
 }
 
-// A row's leading glyph, neutral grey: notes and headings by kind; the
+// A row's leading glyph, neutral grey: notes and mentions by kind; the
 // top-level menu's commands by id; other commands by category.
 const COMMAND_ICONS: Record<string, IconType> = {
   "search-notes": HiOutlineSearch,
@@ -51,8 +51,7 @@ const COMMAND_ICONS: Record<string, IconType> = {
 function rowIcon(row: Row): IconType {
   if (row.kind === "file") return HiOutlineDocumentText;
   if (row.kind === "create") return HiOutlinePlus;
-  if (row.kind === "template") return HiOutlineTemplate;
-  if (row.kind === "heading") return HiOutlineHashtag;
+  if (row.kind === "mention") return HiOutlineAtSymbol;
   if (row.kind === "task") return HiOutlineCheckCircle;
   if (row.kind !== "command") return HiOutlineLightningBolt;
   return COMMAND_ICONS[row.id]
@@ -63,8 +62,8 @@ function rowIcon(row: Row): IconType {
 // lines: the highlighted snippet, then `name:line` with the folder.
 export default function PaletteRow({ row, index, selected, scope, inMenu = false, runningId, isMobileChrome, onExecute, onHover, onContextMenu }: PaletteRowProps) {
   const context = resultContext(row, scope, inMenu);
-  // Right-aligned: a note's folder, or a template's pack.
-  const folder = row.kind === "file" || row.kind === "content" ? parentFolder(row.file.path) : row.kind === "template" ? row.detail : "";
+  // Right-aligned: a note's folder.
+  const folder = row.kind === "file" || row.kind === "content" ? parentFolder(row.file.path) : "";
   const isMaskedTask = row.kind === "task" && row.isMasked;
   const isPrivate = isMaskedTask || (row.kind === "file" && row.file.isPrivate);
   const opens = row.kind === "command" ? row.command.opens : undefined;

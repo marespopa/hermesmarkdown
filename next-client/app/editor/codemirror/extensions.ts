@@ -2,6 +2,7 @@ import { Compartment, EditorState, Extension } from "@codemirror/state";
 import { EditorView, keymap, drawSelection, rectangularSelection, crosshairCursor, placeholder as placeholderExt } from "@codemirror/view";
 import { history, historyKeymap, defaultKeymap } from "@codemirror/commands";
 import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
+import { codeFolding } from "@codemirror/language";
 import { languages } from "@codemirror/language-data";
 import { ViewUpdate } from "@codemirror/view";
 import { autocompletion } from "@codemirror/autocomplete";
@@ -30,7 +31,6 @@ import { templateBlanks } from "./template-blanks";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
 import { tableKeyBindings } from "./table-keymap";
 import { frontmatterSpacer } from "./frontmatter-block";
-import { headingFoldKeymap, headingFolding } from "./heading-fold";
 import { markdownProblems } from "./markdown-problems";
 import { flowMode, type FlowLevel } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
@@ -111,8 +111,10 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     // Backspace deletes one character: typing is never rewritten
     // (formatKeymap binds Enter to a plain line break).
     markdown({ base: markdownLanguage, codeLanguages: languages, addKeymap: false }),
-    // Folding (callouts, `<details>`, heading sections) with heading chevrons.
-    headingFolding,
+    // Folding for callouts and `<details>` (callout-fold.ts, details-fold.ts),
+    // which draw their own chevrons; CodeMirror's own placeholder stays hidden
+    // (theme.ts). Headings and the frontmatter don't fold.
+    codeFolding(),
     frontmatterSpacer,
     // Invalid frontmatter, unclosed code / math blocks: a notice above them.
     markdownProblems,
@@ -163,7 +165,7 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     findReplace(),
     // Without defaultKeymap's Ctrl/Cmd+[ / ] (indent less / more, which Tab
     // and Shift+Tab do): Ctrl+[ shows / hides the sidebar (EditorShell).
-    keymap.of([...formatKeymap, ...headingFoldKeymap, ...searchKeymap, ...historyKeymap, ...defaultKeymap.filter((binding) => binding.key !== "Mod-[" && binding.key !== "Mod-]")]),
+    keymap.of([...formatKeymap, ...searchKeymap, ...historyKeymap, ...defaultKeymap.filter((binding) => binding.key !== "Mod-[" && binding.key !== "Mod-]")]),
     EditorView.domEventHandlers({
       keydown: (event, view) => {
         if (event.key === "Enter" && event.shiftKey && (event.ctrlKey || event.metaKey)) {

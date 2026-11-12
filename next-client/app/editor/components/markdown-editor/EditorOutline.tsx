@@ -164,10 +164,10 @@ export default function EditorOutline({ view, scrollerRef, text, isCode = false,
   return (
     // A zero-height sticky box at the bottom of the scrolling pane (rendered
     // after the sheet) holds the outline in its corner while the note scrolls.
-    <div className="pointer-events-none sticky bottom-0 z-10 h-0 max-md:hidden">
+    <div className="page-only-hide transition-[opacity,visibility] duration-300 motion-reduce:transition-none pointer-events-none sticky bottom-0 z-10 h-0 max-md:hidden">
       <nav
         aria-label="Outline"
-        className="group/outline pointer-events-auto absolute bottom-4 right-4 w-52 rounded-xl glass-panel"
+        className="group/outline pointer-events-auto absolute bottom-4 right-4 w-52 rounded-lg border border-edge-subtle bg-surface"
       >
         {/* On the corner, clear of the rows. */}
         <Button

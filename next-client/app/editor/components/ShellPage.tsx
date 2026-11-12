@@ -39,7 +39,7 @@ export default function ShellPage({ title, help, children }: { title: string; he
       style={{ left: "var(--content-left, 0px)", right: "var(--content-right, 0px)" }}
       className="app-sheet fixed inset-y-0 flex flex-col bg-surface transition-[left,right] duration-layout ease-layout motion-reduce:transition-none overflow-hidden overscroll-none font-sans text-ink-light selection:bg-sage/10 dark:text-ink-dark">
       <header
-        style={{ paddingLeft: leading, paddingRight: "calc(2rem + var(--companion-toggle-room, 0px))" }}
+        style={{ paddingLeft: leading, paddingRight: "0.5rem" }}
         className={`flex shrink-0 items-center gap-3 border-b border-edge-subtle ${PANE_HEADER_HEIGHT} transition-[padding] duration-layout ease-layout motion-reduce:transition-none`}
       >
         <Button

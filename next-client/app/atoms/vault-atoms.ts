@@ -6,6 +6,7 @@ import { atom_remapPins } from "./pin-atoms";
 import { atom_fileMetadata } from "./metadata";
 import { atom_revealedPrivatePaths } from "./privacy-atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
+import { atom_recordExternalChange } from "./external-review-atoms";
 import { remapNoteContent } from "@/app/services/content-search-client";
 import { remapPath, remapPathsInLayout, removePathsFromLayout } from "./utils";
 import type { BrowserVaultDescriptor } from "@/app/services/opfs";
@@ -158,6 +159,7 @@ export const atom_rebindHandles = atom(
     }
 
     if (diskFiles.size > 0) {
+      const textBefore = get(atom_openFiles);
       set(atom_openFiles, (prev) => {
         let next = prev;
         for (const [path, disk] of diskFiles) {
@@ -170,6 +172,15 @@ export const atom_rebindHandles = atom(
         }
         return next;
       });
+      // Notes the disk changed while the app was closed: keep what they said.
+      const textAfter = get(atom_openFiles);
+      for (const path of diskFiles.keys()) {
+        const before = textBefore[path]?.content;
+        const after = textAfter[path]?.content;
+        if (before !== undefined && after !== undefined && before !== after) {
+          set(atom_recordExternalChange, { path, before, after });
+        }
+      }
     }
 
     if (missingPaths.length > 0) {

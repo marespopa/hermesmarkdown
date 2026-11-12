@@ -3,9 +3,11 @@
 import React, { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { usePathname } from "next/navigation";
-import { HiOutlineChatAlt2 } from "react-icons/hi";
 import { VscLayoutSidebarLeftOff } from "react-icons/vsc";
 import { atom_isAiConfigured, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
+import { usePageOnly } from "../hooks/use-page-only";
+import PageOnlyToggleButton from "./PageOnlyToggleButton";
+import PageOnlyPeek, { PEEK_ROW_ATTRIBUTE } from "./PageOnlyPeek";
 import { atom_companionOpen, atom_companionWidth } from "@/app/atoms/companion-atoms";
 import { atom_isVaultPending, atom_isVaultRestoring } from "@/app/atoms/vault-atoms";
 import useIsMobileChrome from "@/app/hooks/use-mobile-chrome";
@@ -22,7 +24,6 @@ import NewVaultDialog from "./NewVaultDialog";
 import { PANE_ICON_SIZE, PANE_SECTION_CLASS } from "./pane-header-classes";
 import PaneToolbarButton from "./PaneToolbarButton";
 import CopyContentButton from "./CopyContentButton";
-import OutlineToggleButton from "./OutlineToggleButton";
 import SearchPill from "./SearchPill";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import ActiveFileIndexer from "./ActiveFileIndexer";
@@ -32,6 +33,7 @@ import SwitchVaultCommands from "./editor-commands/SwitchVaultCommands";
 import PerfReadout from "@/app/components/PerfReadout/PerfReadout";
 import CompanionPanel from "./companion/CompanionPanel";
 import ShellCommands from "./ShellCommands";
+import TypewriterSound from "./TypewriterSound";
 import MobileDrawer from "./MobileDrawer/MobileDrawer";
 import MobileOutlineDrawer from "./MobileDrawer/MobileOutlineDrawer";
 import { useEdgeSwipe } from "./MobileDrawer/use-edge-swipe";
@@ -58,9 +60,10 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
 // the sidebar is hidden, a Show sidebar button sits in the top-left corner
 // of every page, the editor too (it has no toolbar). On the editor the
 // SearchPill sits in the top-right corner, where the pages' title bars have
-// theirs, with Copy Contents just left of it, so the page itself stays bare. Nothing
-// hides on its own: the sidebar opens and closes only when you toggle it,
-// remembered. RecoveryBanner floats above the content while notes can't be
+// theirs, so the page itself stays bare. The
+// sidebar opens and closes only when you toggle it, remembered. No Distraction
+// Mode (palette, or Ctrl/Cmd+Alt+Z) hides all of this at once.
+// RecoveryBanner floats above the content while notes can't be
 // saved (lost vault access, a missing vault folder, full storage). Once the
 // vault is unlocked it shows the vault's pins (kept on this device,
 // useVaultPins) and offers Pin Page to Sidebar…
@@ -76,6 +79,8 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   // Settings is a page of its own: neither the sidebar nor the companion.
   const onSettings = usePathname() === "/editor/settings";
   const hasSidebar = !isMobileChrome && !isVaultLocked && !onSettings;
+  // No Distraction Mode: just the page. Nothing on Settings or a phone to hide.
+  usePageOnly(!isMobileChrome && !onSettings);
   // Phone: the navigation drawer (left edge) and the outline drawer (right).
   const hasMobileDrawer = isMobileChrome && !isVaultLocked && !onSettings;
   const setMobileDrawerOpen = useSetAtom(atom_mobileDrawerOpen);
@@ -140,22 +145,21 @@ export default function EditorShell({ children }: { children: ReactNode }) {
     "--content-left": `${hasSidebar && sidebarOpen ? sidebarWidth : 0}px`,
     // The open companion's room; on mobile it is a sheet over the page.
     "--content-right": `${hasCompanion && !isMobileChrome && companionOpen ? companionWidth : 0}px`,
-    "--companion-toggle-room": `${hasCompanion && !isMobileChrome && !companionOpen ? 56 : 0}px`,
   } as CSSProperties;
 
   return (
-    <div className="contents" style={frame}>
+    <div className="page-only-room contents" style={frame}>
       {children}
       {hasSidebar && (
         // The sidebar slides in and out of this zero-width wrapper; the room
         // it takes is --content-left, above.
-        <div className="fixed inset-y-0 left-0 w-0 z-30">
+        <div className="page-only-hide transition-[opacity,visibility] duration-300 motion-reduce:transition-none fixed inset-y-0 left-0 w-0 z-30">
           <WorkspaceSidebar />
         </div>
       )}
       {hasSidebar && !sidebarOpen && (
         <div
-          className={`${PANE_SECTION_CLASS} fixed top-1.5 left-2 !ml-0 z-30`}
+          className={`${PANE_SECTION_CLASS} page-only-hide transition-[opacity,visibility] duration-300 motion-reduce:transition-none fixed top-1.5 left-2 !ml-0 z-30`}
         >
           <PaneToolbarButton
             icon={<VscLayoutSidebarLeftOff size={PANE_ICON_SIZE} />}
@@ -167,28 +171,18 @@ export default function EditorShell({ children }: { children: ReactNode }) {
           />
         </div>
       )}
-      {hasCompanion && !isMobileChrome && !companionOpen && (
-        <div className={`${PANE_SECTION_CLASS} fixed top-1.5 right-2 !ml-0 z-30`}>
-          <PaneToolbarButton
-            icon={<HiOutlineChatAlt2 size={PANE_ICON_SIZE} />}
-            label="AI Companion"
-            tooltip="Open AI companion"
-            shortcut={formatShortcut("J")}
-            tooltipPosition="bottom-end"
-            onClick={() => setCompanionOpen(true)}
-          />
-        </div>
-      )}
+      {hasSidebar && onEditor && <PageOnlyPeek />}
       {hasSidebar && onEditor && (
         // The way into the command palette, the center of the app: every
         // note and command (as Ctrl/Cmd+P). Placed as in ShellPage's title
         // bar, so it stays put moving between the editor and the pages.
-        // Copy Contents sits just left of it, the outline toggle left of that.
         <div
-          style={{ right: "calc(var(--content-right, 0px) + var(--companion-toggle-room, 0px) + 2rem)" }}
-          className="fixed top-1.5 z-30 flex items-center gap-1.5 transition-[right] duration-layout ease-layout motion-reduce:transition-none"
+          {...{ [PEEK_ROW_ATTRIBUTE]: "" }}
+          style={{ right: "calc(var(--content-right, 0px) + 0.5rem)" }}
+          className="corner-peek page-only-hide page-only-peek fixed top-1.5 z-30 flex items-center gap-1.5 transition-[right,opacity,visibility] duration-layout ease-layout motion-reduce:transition-none"
         >
-          <OutlineToggleButton />
+          {/* The row rests invisible: hover it or the top edge, or tap the edge. */}
+          <PageOnlyToggleButton />
           <CopyContentButton />
           <SearchPill />
         </div>
@@ -196,7 +190,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
       {hasCompanion && (
         isMobileChrome ? <CompanionPanel sheet /> : (
           // Slides in and out of this zero-width wrapper; its room is --content-right.
-          <div className="fixed inset-y-0 right-0 w-0 z-30">
+          <div className="page-only-hide transition-[opacity,visibility] duration-300 motion-reduce:transition-none fixed inset-y-0 right-0 w-0 z-30">
             <CompanionPanel />
           </div>
         )
@@ -218,6 +212,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
       <BrowserVaultDialog />
       <RecentVaultsDialog />
       {/* Dev builds only: timings for opens, typing and storage. */}
+      <TypewriterSound />
       <PerfReadout />
     </div>
   );

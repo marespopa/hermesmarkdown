@@ -242,7 +242,6 @@ export function useVaultManager() {
     setWorkspaceLayout(singlePaneLayout(["draft"], "draft"));
 
     clearVaultHandle();
-    toast.success("Vault closed");
   }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setVaultFolderPaths, setVaultTextFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor]);
 
   // Load vault on mount

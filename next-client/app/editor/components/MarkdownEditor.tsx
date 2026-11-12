@@ -32,7 +32,6 @@ import { useCodeMirrorCodeLanguagePicker } from "../hooks/use-codemirror-code-la
 import { useCodeMirrorCalloutType } from "../hooks/use-codemirror-callout-type";
 import { useCodeMirrorImage } from "../hooks/use-codemirror-image";
 import { useCodeMirrorCalloutFold } from "../hooks/use-codemirror-callout-fold";
-import { useCodeMirrorHeadingFold } from "../hooks/use-codemirror-heading-fold";
 import { useCodeMirrorViewState } from "../hooks/use-codemirror-view-state";
 import { useVerifyingReadOnly } from "../hooks/use-verifying-read-only";
 import { insertOrRevealFrontmatter } from "../codemirror/frontmatter-block";
@@ -46,6 +45,7 @@ import VimStatusPill from "./markdown-editor/VimStatusPill";
 import EditorOutline from "./markdown-editor/EditorOutline";
 import { isPlainTextPath } from "@/app/utils/file-kinds";
 import WordCountPill from "./markdown-editor/WordCountPill";
+import ExternalChangeReview from "./markdown-editor/ExternalChangeReview";
 import { useVimStatus } from "../hooks/use-vim-status";
 import TemplateStrip from "./TemplateStrip";
 import EmptyNoteTemplates from "./EmptyNoteTemplates";
@@ -202,8 +202,6 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const { chevrons, toggle: toggleCalloutFold, onCursorActivity: onFoldCursorActivity, onViewCreated } =
     useCodeMirrorCalloutFold({ containerRef });
-  const { onViewCreated: onHeadingFoldViewCreated, onCursorActivity: onHeadingFoldCursorActivity } =
-    useCodeMirrorHeadingFold(filePath);
   const { onViewCreated: onViewStateViewCreated, onCursorActivity: onViewStateCursorActivity } = useCodeMirrorViewState(filePath);
 
   const registerActiveView = useActiveEditorView(viewRef, {
@@ -212,12 +210,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
 
   const handleViewCreated = useCallback((view: EditorView) => {
     onViewCreated(view);
-    onHeadingFoldViewCreated(view);
-    // After the folds, so the saved scroll position lands on the folded layout.
+    // After the callout folds, so the saved scroll position lands on the folded layout.
     onViewStateViewCreated(view);
     setEditorView(view);
     registerActiveView(view);
-  }, [onHeadingFoldViewCreated, onViewCreated, onViewStateViewCreated, registerActiveView]);
+  }, [onViewCreated, onViewStateViewCreated, registerActiveView]);
 
   const onCombinedCursorActivity = useCallback((view: EditorView) => {
     onCursorActivity(view);
@@ -225,9 +222,8 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     onCodeLanguagePickerCursorActivity(view);
     onImageCursorActivity(view);
     onFoldCursorActivity(view);
-    onHeadingFoldCursorActivity(view);
     onViewStateCursorActivity(view);
-  }, [onCursorActivity, onTableCursorActivity,onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity, onHeadingFoldCursorActivity, onViewStateCursorActivity]);
+  }, [onCursorActivity, onTableCursorActivity,onCodeLanguagePickerCursorActivity, onImageCursorActivity, onFoldCursorActivity, onViewStateCursorActivity]);
 
   // Fold chevrons follow scrolling: callouts get one as they're rendered.
   const onViewportChange = useCallback((view: EditorView) => {
@@ -381,6 +377,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
       {showOutline && <EditorOutline view={editorView} scrollerRef={paneRef} text={editorValue} isCode={isPlainTextPath(filePath)} filePath={filePath} />}
       {vimMode && <VimStatusPill status={vimStatus} hostRef={vimStatusHostRef} besideOutline={showOutline} />}
       {showWordCount && props.isActivePane !== false && <WordCountPill view={editorView} text={editorValue} />}
+      {props.isActivePane !== false && <ExternalChangeReview view={editorView} filePath={filePath} text={editorValue} />}
     </div>
   );
 }

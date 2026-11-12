@@ -89,6 +89,7 @@ export const liveMarkersTheme = EditorView.theme({
   // its text, headings included, inset the same from the card's edge: one
   // more inset for each callout it's nested in (`--callout-nest`).
   ".cm-line.cm-callout": {
+    // The card takes its tint from the type's `bg-*` class (constants/callouts.ts).
     "--callout-edge": `calc(${QUOTE_INSET} * (var(--callout-nest, 0) + 1))`,
     paddingLeft: "var(--callout-edge) !important",
     paddingRight: `calc(${BODY_EM} * 0.75) !important`,
@@ -136,9 +137,8 @@ export const liveMarkersTheme = EditorView.theme({
     paddingBottom: "0.4em",
   },
   // Fenced code inside a callout (highlight-blocks.ts): a code block of its
-  // own on the card, as at the top level. Its panel is drawn behind the text
-  // (isolated, so it stays above the card's tint) from the card's text edge,
-  // so it lines up with the callout's text; the code sits inset in it.
+  // own, as at the top level (the code face and its inset, no box), lined up
+  // with the callout's text.
   ".cm-line.cm-callout-codeblock": {
     position: "relative",
     isolation: "isolate",
@@ -148,37 +148,13 @@ export const liveMarkersTheme = EditorView.theme({
     fontFeatureSettings: '"calt" 1, "zero" 1',
     letterSpacing: "0",
   },
-  ".cm-line.cm-callout-codeblock::before": {
-    content: '""',
-    position: "absolute",
-    zIndex: "-1",
-    top: "0",
-    bottom: "0",
-    left: "var(--callout-edge)",
-    right: `calc(${BODY_EM} * 0.75)`,
-    backgroundColor: "color-mix(in srgb, var(--fg) 5%, transparent)",
-    borderInline: "1px solid color-mix(in srgb, var(--fg) 9%, transparent)",
-    pointerEvents: "none",
-  },
   // The same room above and below as a top-level block (editor-typography.scss),
   // so the line numbers' code shapes fit it too (line-numbers.ts).
   ".cm-line.cm-callout-codeblock-start": {
     paddingTop: "0.75em",
   },
-  ".cm-line.cm-callout-codeblock-start::before": {
-    top: "0.35em",
-    borderTop: "1px solid color-mix(in srgb, var(--fg) 9%, transparent)",
-    borderTopLeftRadius: "0.5rem",
-    borderTopRightRadius: "0.5rem",
-  },
   ".cm-line.cm-callout-codeblock-end": {
     paddingBottom: "0.75em !important",
-  },
-  ".cm-line.cm-callout-codeblock-end::before": {
-    bottom: "0.35em",
-    borderBottom: "1px solid color-mix(in srgb, var(--fg) 9%, transparent)",
-    borderBottomLeftRadius: "0.5rem",
-    borderBottomRightRadius: "0.5rem",
   },
   // A blank line between list items: kept, but at half height, so a loose
   // list still reads as one list.

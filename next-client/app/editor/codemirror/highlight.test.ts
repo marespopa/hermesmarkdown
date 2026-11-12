@@ -57,6 +57,7 @@ describe("computeMarkdownDecorations", () => {
     const labelFrom = doc.indexOf("Hello");
     expect(decos.some((d) => d.from === hashFrom && d.class.includes("opacity-40"))).toBe(true);
     expect(decos.some((d) => d.from === labelFrom && d.class.includes("font-semibold"))).toBe(true);
+    expect(decos.some((d) => d.from === labelFrom && d.class.includes("text-sage"))).toBe(true);
   });
 
   // Sizes live in editor-typography.scss, keyed by the line class.
@@ -279,6 +280,7 @@ describe("computeMarkdownDecorations", () => {
     const decos = decorationsFor(doc);
     const nameFrom = doc.indexOf("My Note");
     expect(decos.some((d) => d.from === nameFrom && d.to === doc.indexOf("]]") && d.class.includes("underline"))).toBe(true);
+    expect(decos.some((d) => d.from === nameFrom && d.class.includes("text-wikilink"))).toBe(true);
   });
 
   describe("@mentions", () => {

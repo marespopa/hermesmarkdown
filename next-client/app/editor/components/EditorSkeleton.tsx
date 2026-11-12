@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { useAtomValue } from "jotai";
 import { atom_fullWidth, atom_sidebarOpen, atom_sidebarWidth } from "@/app/atoms/ui-atoms";
 import { PANE_HEADER_HEIGHT } from "./pane-header-classes";
-import { routeSkeleton, SearchPillSkeleton, SKELETON_BAR as BAR, SUBPAGE_BACKDROP } from "./RouteSkeletons";
-import { EDITOR_CORNER_WIDTH } from "./CopyContentButton";
+import { routeSkeleton, SKELETON_BAR as BAR, SUBPAGE_BACKDROP } from "./RouteSkeletons";
+import { EDITOR_CORNER_WIDTH } from "./SearchPill";
 
 // Paragraph line widths, as a share of the column, so the page reads as text.
 const PARAGRAPHS = [
@@ -77,12 +77,6 @@ function WorkspaceSkeleton({ sidebarOpen, sidebarWidth, fullWidth }: { sidebarOp
           className={`pointer-events-none absolute inset-x-0 top-2 z-10 flex justify-start max-[768px]:hidden ${sidebarOpen ? "pl-3" : "pl-12"}`}
         >
           <div className={`h-8 w-36 rounded-lg ${BAR}`} />
-        </div>
-        {/* EditorShell's outline toggle, Copy Contents and SearchPill, at the same spot. */}
-        <div className="absolute top-1.5 right-8 z-10 flex items-center gap-1.5 max-[768px]:hidden">
-          <div className={`h-8 w-8 shrink-0 rounded-lg ${BAR}`} />
-          <div className={`h-8 w-8 shrink-0 rounded-lg ${BAR}`} />
-          <SearchPillSkeleton />
         </div>
 
         <NoteSheetSkeleton fullWidth={fullWidth} />

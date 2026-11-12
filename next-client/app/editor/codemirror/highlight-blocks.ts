@@ -29,12 +29,12 @@ export interface BlockStyler {
 // live in editor-typography.scss.
 export const headingLineClass = (level: number) => `cm-heading cm-heading-${level}`;
 
-/** `# Title`: the hashes faded, the label semibold. Returns the level. */
+/** `# Title`: the hashes faded, the label semibold in the palette's identity hue. Returns the level. */
 export function styleHeading(out: BlockStyler, text: string, base: number): number {
   const m = REGEX_HEADING_PARTS.exec(text)!;
   const hashes = m[1];
   out.mark(base, base + hashes.length, FADED);
-  out.mark(base + hashes.length, base + text.length, `font-semibold ${LABEL}`);
+  out.mark(base + hashes.length, base + text.length, "font-semibold text-sage");
   out.inline(m[2], base + hashes.length);
   return hashes.trimEnd().length;
 }

@@ -10,6 +10,7 @@ import { indentSubtree, outdentSubtree, setTaskStatus, toggleTaskStatus } from "
 import { indentListOrLines, listItemHome, outdentListOrLines } from "./list-commands";
 import { insertTable, setHeading, toggleCodeBlock, wrapAsLink } from "./format-shortcuts";
 import { setBlockType, toggleBlockType } from "./block-type";
+import { continueCallout } from "./callout-enter";
 
 function wrapSelection(marker: string, userEvent: string) {
   return (view: EditorView): boolean => {
@@ -162,8 +163,11 @@ export const formatKeymap: readonly KeyBinding[] = [
   { key: "Mod-Shift-i", run: insertTable, preventDefault: true },
   // Cmd+Y redoes on macOS too (historyKeymap only binds Cmd+Shift+Z there).
   { mac: "Mod-y", run: redo, preventDefault: true },
-  // Enter is a plain line break: no list or quote continuation, no indent.
-  { key: "Enter", run: insertNewline },
+  // Enter is a plain line break: no list or quote continuation, no indent,
+  // except in a callout, where every Enter starts the next row with its `>`
+  // prefix until it's deleted (callout-enter.ts). Shift+Enter is the plain
+  // break, and so the way out.
+  { key: "Enter", run: (view) => continueCallout(view) || insertNewline(view) },
   { key: "Shift-Enter", run: insertNewline },
   { key: "Home", run: listItemHome },
 ];

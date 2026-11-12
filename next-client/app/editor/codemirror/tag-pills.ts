@@ -1,6 +1,7 @@
 import { EditorSelection, Range, type Text } from "@codemirror/state";
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType } from "@codemirror/view";
-import { REGEX_HASHTAG } from "../components/regex";
+import { syntaxTree } from "@codemirror/language";
+import { REGEX_CODE_INLINE, REGEX_HASHTAG, REGEX_MENTION } from "../components/regex";
 import { tagKind, tagPillClass } from "@/app/components/TagPill";
 import { collectInVisibleLines } from "./visible-lines";
 
@@ -10,6 +11,8 @@ export interface TagMatch {
   text: string;
   tagName: string;
   kind: "workflow" | "custom";
+  /** An `@Name`: shown as a tag pill (the same look) but not a tag. */
+  mention?: boolean;
 }
 
 export interface FrontmatterTagList {
@@ -159,9 +162,30 @@ export function collectTagMatches(doc: string, detectFrontmatter = true): TagMat
         kind: tagKind(tagName),
       });
     }
+
+    // `@Name` takes the tag pill's look. Not in frontmatter, and not inside
+    // inline code (blanked to keep the offsets); fenced code is left out by
+    // the caller, which has the syntax tree.
+    if (!inFrontmatter && line.includes("@")) {
+      const readable = line.replace(REGEX_CODE_INLINE, (span) => " ".repeat(span.length));
+      for (const match of readable.matchAll(REGEX_MENTION)) {
+        const from = lineStart + match.index! + match[1].length;
+        matches.push({ from, to: from + match[2].length, text: match[2], tagName: match[2].slice(1).toLowerCase(), kind: "custom", mention: true });
+      }
+    }
   }
 
   return matches;
+}
+
+// Whether `pos` is in a code block or span, by the syntax tree.
+function inCode(view: EditorView, pos: number): boolean {
+  let node: ReturnType<ReturnType<typeof syntaxTree>["resolveInner"]> | null = syntaxTree(view.state).resolveInner(pos, 1);
+  while (node) {
+    if (node.name.includes("Code")) return true;
+    node = node.parent;
+  }
+  return false;
 }
 
 export function selectionTouchesTag(selection: EditorSelection, from: number, to: number) {
@@ -181,7 +205,7 @@ class TagPillWidget extends WidgetType {
     const node = document.createElement("span");
     node.textContent = this.match.text;
     node.className = tagPillClassName(this.match.kind);
-    node.setAttribute("aria-label", `Tag ${this.match.text}`);
+    node.setAttribute("aria-label", `${this.match.mention ? "Mention" : "Tag"} ${this.match.text}`);
     node.title = this.match.text;
 
     node.addEventListener("mousedown", (event) => {
@@ -277,6 +301,7 @@ export function buildTagPillDecorations(view: EditorView): DecorationSet {
     if (frontmatterLists.some((list) => list.from <= match.from && match.to <= list.to)) continue;
     const visible = view.visibleRanges.some((range) => range.from <= match.from && match.to <= range.to);
     if (!visible) continue;
+    if (match.mention && inCode(view, match.from)) continue;
     // Being edited: the same pill, laid out as text, so the line doesn't shift.
     if (selectionTouchesTag(selection, match.from, match.to)) {
       ranges.push(Decoration.mark({ class: `${tagPillClassName(match.kind)} cm-chip-editing` }).range(match.from, match.to));

@@ -1,18 +1,14 @@
 "use client";
 
-import React, { Suspense, useEffect, useLayoutEffect, useRef } from "react";
+import React, { Suspense, useEffect, useRef } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { atom_workspaceLayout } from "@/app/atoms/atoms";
-import { atom_activeSidebarTab } from "@/app/atoms/sidebar-tab-atoms";
-import { atom_closeSidebarWhileWriting, atom_filesFocusRequested, atom_filesRevealPath, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
+import { atom_filesFocusRequested, atom_filesRevealPath, atom_sidebarOpen, atom_sidebarWidth, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/app/atoms/ui-atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import SidebarFiles from "./sidebar/SidebarFiles";
 import SidebarHeader from "./sidebar/SidebarHeader";
 import SidebarPinned from "./sidebar/SidebarPinned";
-import SidebarSystemFilters from "./sidebar/SidebarSystemFilters";
-import SidebarTabs from "./sidebar/SidebarTabs";
-import SidebarTags from "./sidebar/SidebarTags";
 import { useSidebarNavigation } from "./sidebar/use-sidebar-navigation";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
 
@@ -24,9 +20,7 @@ const NO_TAGS: string[] = [];
 // (EditorShell hosts it), and kept to the library: the vault (a switcher),
 // New note and Hide; the vault's Pinned items (notes, folders, tags and
 // pages, kept on this device, Ctrl/Cmd+1–9), first; and the vault's
-// Files, with a filter, or its Tags (the Files / Tags switch under the
-// header), the smart filters (All Notes, Untagged, Todo, Today, Archive)
-// above either; at its foot, Settings and Help (Documentation,
+// Files; at its foot, Settings and Help (Documentation,
 // Keyboard Shortcuts), always at hand.
 // Switching between open notes is the palette's (Ctrl/Cmd+P), and the note's
 // outline is the editor's optional one (Ctrl/Cmd+Shift+M, EditorOutline).
@@ -36,8 +30,7 @@ const NO_TAGS: string[] = [];
 // edge; it takes room, pushing the page over (EditorShell), and slides out
 // when hidden. It stays open until you close it (`atom_sidebarOpen`: its
 // header's button, Escape inside it or Ctrl/Cmd+\; shown again from the
-// toolbar's), or, with Close Sidebar While Writing on (Settings → Editor),
-// until you type in a note. Resizes by dragging its trailing edge
+// toolbar's); typing in a note doesn't close it. Resizes by dragging its trailing edge
 // (`atom_sidebarWidth`, which keeps it within its bounds; double-click to reset).
 export default function WorkspaceSidebar() {
   const [open, setOpen] = useAtom(atom_sidebarOpen);
@@ -47,18 +40,8 @@ export default function WorkspaceSidebar() {
   const navigation = useSidebarNavigation();
   const treeController = useRef<VaultFileTreeController | null>(null);
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files", rememberedTree: true });
-  const [activeTab, setActiveTab] = useAtom(atom_activeSidebarTab);
-  // Each view keeps its own scroll position while the other is showing.
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const scrollByTab = useRef({ files: 0, tags: 0 });
 
-  const switchTab = (next: typeof activeTab) => {
-    if (scrollRef.current) scrollByTab.current[activeTab] = scrollRef.current.scrollTop;
-    setActiveTab(next);
-  };
-  useLayoutEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollByTab.current[activeTab];
-  }, [activeTab]);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // "Show Files" (atom_showFiles): once the sidebar is open, its Files tree
   // takes keyboard focus, on the folder "Show in Files" asked for if any.
@@ -72,18 +55,6 @@ export default function WorkspaceSidebar() {
     setFilesFocusRequested(false);
     setFilesRevealPath(null);
   }, [filesFocusRequested, filesRevealPath, open, setFilesFocusRequested, setFilesRevealPath]);
-
-  // Clicking in a note or opening one leaves it open. Only typing into a
-  // note puts it away, and only with Close Sidebar While Writing on.
-  const closeWhileWriting = useAtomValue(atom_closeSidebarWhileWriting);
-  useEffect(() => {
-    if (!open || !closeWhileWriting) return;
-    const onBeforeInput = (event: Event) => {
-      if (event.target instanceof Element && event.target.closest(".cm-editor")) setOpen(false);
-    };
-    document.addEventListener("beforeinput", onBeforeInput, true);
-    return () => document.removeEventListener("beforeinput", onBeforeInput, true);
-  }, [open, closeWhileWriting, setOpen]);
 
   // The note in front, on the editor only.
   const onWorkspace = navigation.onEditor;
@@ -120,7 +91,6 @@ export default function WorkspaceSidebar() {
       className="absolute inset-y-0 flex flex-col bg-surface paper-grain border-r border-edge-subtle font-sans transition-[left] duration-layout ease-layout motion-reduce:transition-none"
     >
       <SidebarHeader onHide={() => setOpen(false)} />
-      {hasVault && <SidebarTabs tab={activeTab} onChange={switchTab} />}
 
       {/* The scroll box: the Files tree virtualizes its rows against it (data-scroll-root).
           A right-click on it outside Pinned, a row or the Search field opens
@@ -144,14 +114,7 @@ export default function WorkspaceSidebar() {
           </div>
         )}
         {hasVault && (
-          <Suspense fallback={null}>
-            <SidebarSystemFilters />
-          </Suspense>
-        )}
-        {/* Both views stay mounted, the other hidden: each keeps its tree
-            open and its filter as you left it. */}
-        {hasVault && (
-          <div hidden={activeTab !== "files"}>
+          <div>
             <SidebarFiles
               treeController={treeController}
               activeFilePath={currentPath}
@@ -159,13 +122,6 @@ export default function WorkspaceSidebar() {
               allFiles={allFiles}
               folderPaths={folderPaths}
             />
-          </div>
-        )}
-        {hasVault && (
-          <div hidden={activeTab !== "tags"}>
-            <Suspense fallback={null}>
-              <SidebarTags />
-            </Suspense>
           </div>
         )}
       </div>

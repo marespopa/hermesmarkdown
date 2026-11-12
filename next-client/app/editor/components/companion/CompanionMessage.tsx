@@ -21,9 +21,9 @@ import { replyToHtml } from "./reply-html";
 // Finished and failed tool calls are debugging detail, left behind a quiet
 // "Show N steps"; a running call is left to the thread's working line while
 // `working`,
-// then the pages a web search drew on as links. Its Markdown can be copied: the latest reply always shows Copy,
-// earlier ones on hover or keyboard focus.
-function CompanionMessage({ message, activities, latest = false, working = false, autoModel }: { message: Message; activities: Record<string, string>; latest?: boolean; working?: boolean; autoModel?: string }) {
+// then the pages a web search drew on as links. Its Markdown can be copied: Copy shows
+// on hover or keyboard focus (always on touch).
+function CompanionMessage({ message, activities, working = false, autoModel }: { message: Message; activities: Record<string, string>; working?: boolean; autoModel?: string }) {
   const [copied, setCopied] = useState(false);
   const [showSteps, setShowSteps] = useState(false);
   const trashRequests = useAtomValue(atom_trashRequests);
@@ -103,7 +103,7 @@ function CompanionMessage({ message, activities, latest = false, working = false
         </div>
       )}
       {text && (
-        <div className={`flex items-center gap-2 ${latest ? "" : "opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100"}`}>
+        <div className={`flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100`}>
           <Button
             variant="small"
             className="!h-7 bg-fill hover:bg-fill-hover"

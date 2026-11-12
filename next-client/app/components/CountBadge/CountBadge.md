@@ -8,7 +8,7 @@ The one look for a count: small (`text-ui-caption`), tabular, faint, with thousa
 |------|------|---------|-------|
 | `count` | `number` | — | Formatted with `formatCount` (`en-US` separators). |
 | `unit` | `[singular, plural]` | — | Words after the number: `["word", "words"]` → "1 word", "2 words". |
-| `variant` | `"inline" \| "floating"` | `"inline"` | `floating`: the same text on a flat raised chip (border, `bg-surface-raised`, no glass), for a count over content such as `WordCountPill`. |
+| `variant` | `"inline" \| "floating"` | `"inline"` | `floating`: the same faint text on the page's own colour (no border, no chip), for a count over content such as `WordCountPill`. |
 | `className`, other span attributes | | | Passed through (`role`, `aria-hidden`, transitions). |
 
 ## Used by

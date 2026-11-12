@@ -3,7 +3,7 @@ import { renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import type { EditorView } from "@codemirror/view";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { atom_mobileDrawerOpen, atom_mobileDrawerTab } from "@/app/atoms/mobile-drawer-atoms";
+import { atom_mobileDrawerOpen } from "@/app/atoms/mobile-drawer-atoms";
 import { atom_aiEnabled, atom_claudeKey } from "@/app/atoms/ai-atoms";
 import { atom_companionOpen } from "@/app/atoms/companion-atoms";
 import { atom_activeEditorView, atom_aiBuilderRequest, atom_filesFocusRequested, atom_sidebarOpen } from "@/app/atoms/ui-atoms";
@@ -87,14 +87,13 @@ describe("useEditorShortcuts: Show Files", () => {
     expect(navigateWithGuard).not.toHaveBeenCalled();
   });
 
-  it("opens the navigation drawer on Files on mobile, without navigating", () => {
+  it("opens the navigation drawer on mobile, without navigating", () => {
     isMobileChrome = true;
     const navigateWithGuard = vi.fn();
     const store = renderShortcuts(null, navigateWithGuard);
     pressShowFiles();
     expect(navigateWithGuard).not.toHaveBeenCalled();
     expect(store.get(atom_mobileDrawerOpen)).toBe(true);
-    expect(store.get(atom_mobileDrawerTab)).toBe("files");
     expect(store.get(atom_sidebarOpen)).toBe(false);
   });
 });

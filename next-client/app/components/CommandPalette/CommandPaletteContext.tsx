@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { flushSync } from "react-dom";
 import { useAtom } from "jotai";
 import { atom_commandUseCounts, atom_recentCommandIds } from "@/app/atoms/ui-atoms";
 import { startPerf } from "@/app/utils/perf/perf-metrics";
@@ -41,46 +40,10 @@ type CommandPaletteContextValue = {
   markUsed: (id: string) => void;
   /** Creates a note titled with the query; set by the editor while it's mounted. */
   createNote: ((title: string) => Promise<unknown>) | null;
-  /** The current open/close went through a search-anchor morph (see morphWithAnchor). */
-  isMorphing: boolean;
   setCreateNote: (handler: ((title: string) => Promise<unknown>) | null) => void;
 };
 
 const CommandPaletteContext = createContext<CommandPaletteContextValue | null>(null);
-
-// Shared-element name linking a search anchor (the toolbar's search
-// pill) and the palette's search row, so opening and closing morph one into
-// the other instead of showing two separate components.
-export const PALETTE_SEARCH_TRANSITION = "palette-search";
-
-type ViewTransitionDocument = Document & {
-  startViewTransition?: (callback: () => Promise<void> | void) => {
-    ready: Promise<void>;
-    finished: Promise<void>;
-    updateCallbackDone: Promise<void>;
-  };
-};
-
-function canMorph(doc: ViewTransitionDocument) {
-  return (
-    typeof doc.startViewTransition === "function" &&
-    // A hidden page can't run a view transition (InvalidStateError).
-    !document.hidden &&
-    !!document.querySelector("[data-palette-anchor]") &&
-    !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
-  );
-}
-
-// The palette renders through a Portal (mounted by an effect) and keeps
-// itself mounted briefly on close, so its search field appears/disappears a
-// tick after the state change. The transition must not capture its "after"
-// state before that, or the pill just fades instead of morphing.
-async function waitForPaletteField(present: boolean, attempts = 20) {
-  for (let i = 0; i < attempts; i++) {
-    if (!!document.querySelector("[data-palette-field]") === present) return;
-    await new Promise((resolve) => setTimeout(resolve, 16));
-  }
-}
 
 export function CommandPaletteProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -110,62 +73,23 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
     };
   }, []);
 
-  // Whether the current open (or close) went through a search-anchor morph.
-  // The palette then skips its own enter/exit animations. It stays set for
-  // as long as the palette is open: clearing it when the transition finished
-  // would re-add the enter animation and replay the fade-in (a flicker).
-  // Every open/close sets it afresh.
-  const [isMorphing, setIsMorphing] = useState(false);
-
-  // Runs `update` inside a view transition when a search anchor is on screen
-  // (`[data-palette-anchor]`); otherwise, or without View Transitions support
-  // or with reduced motion, it just runs it.
-  const morphWithAnchor = useCallback((update: () => void, opening: boolean) => {
-    const doc = document as ViewTransitionDocument;
-    if (!canMorph(doc)) {
-      setIsMorphing(false);
-      update();
-      return;
-    }
-    const transition = doc.startViewTransition!(async () => {
-      flushSync(() => {
-        setIsMorphing(true);
-        update();
-      });
-      await waitForPaletteField(opening);
-    });
-    // The browser aborts the transition when the page is hidden mid-morph
-    // (another tab or window): its promises reject, but the update still
-    // runs, so there is nothing to recover; only the rejection is silenced.
-    const ignore = () => {};
-    transition.ready.catch(ignore);
-    transition.finished.catch(ignore);
-    transition.updateCallbackDone.catch(ignore);
-  }, []);
-
   const open = useCallback((query: string = "") => {
     startPerf("palette-open");
-    morphWithAnchor(() => {
-      setInitialQuery(query);
-      setInitialMenuId(null);
-      setIsOpen(true);
-    }, true);
-  }, [morphWithAnchor]);
+    setInitialQuery(query);
+    setInitialMenuId(null);
+    setIsOpen(true);
+  }, []);
   const openMenu = useCallback((id: string) => {
     startPerf("palette-open");
-    morphWithAnchor(() => {
-      setInitialQuery("");
-      setInitialMenuId(id);
-      setIsOpen(true);
-    }, true);
-  }, [morphWithAnchor]);
+    setInitialQuery("");
+    setInitialMenuId(id);
+    setIsOpen(true);
+  }, []);
   const close = useCallback(() => {
-    morphWithAnchor(() => {
-      setIsOpen(false);
-      setInitialQuery("");
-      setInitialMenuId(null);
-    }, false);
-  }, [morphWithAnchor]);
+    setIsOpen(false);
+    setInitialQuery("");
+    setInitialMenuId(null);
+  }, []);
 
   const markUsed = useCallback((id: string) => {
     setRecentCommandIds((prev) => [id, ...prev.filter((existing) => existing !== id)].slice(0, 3));
@@ -219,8 +143,8 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   );
 
   const value = useMemo(
-    () => ({ isOpen, initialQuery, initialMenuId, open, openMenu, close, commands, register, recentCommandIds, markUsed, createNote, isMorphing, setCreateNote }),
-    [isOpen, initialQuery, initialMenuId, open, openMenu, close, commands, register, recentCommandIds, markUsed, createNote, isMorphing, setCreateNote],
+    () => ({ isOpen, initialQuery, initialMenuId, open, openMenu, close, commands, register, recentCommandIds, markUsed, createNote, setCreateNote }),
+    [isOpen, initialQuery, initialMenuId, open, openMenu, close, commands, register, recentCommandIds, markUsed, createNote, setCreateNote],
   );
 
   return <CommandPaletteContext.Provider value={value}>{children}</CommandPaletteContext.Provider>;

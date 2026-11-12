@@ -27,6 +27,7 @@ import {
   atom_activeEditorView,
   atom_aiBuilderRequest,
   atom_browserVaultDialogOpen,
+  atom_documentCheckOpen,
   atom_aiEnabled,
   atom_isAiConfigured,
   atom_newVaultFlowOpen,
@@ -109,6 +110,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const { togglePin } = usePins();
   const toggleNotePin = (path: string) => void togglePin("note", path);
   const activeEditorView = useAtomValue(atom_activeEditorView);
+  const setDocumentCheckOpen = useSetAtom(atom_documentCheckOpen);
   const activeLeaf = activePaneId ? findLeaf(workspaceLayout.rootContainer, activePaneId) : null;
   const { filePath: activeFilePath, handleCopy, closeTabWithAutosave } = usePaneFileActions(activeLeaf);
   // A rename, move or move to Trash is working on the open note.
@@ -174,6 +176,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     setRevealedPrivatePaths,
     activeFileHandle,
     activeEditorView,
+    setDocumentCheckOpen,
     activeLeaf,
     activeFilePath,
     handleCopy,

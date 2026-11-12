@@ -2,6 +2,7 @@
 
 import { useAtom, useStore, useSetAtom } from "jotai";
 import { atom_openFiles, atom_liveHandles, atom_isVaultPending, isOpenNotesHydrated, whenOpenNotesHydrated } from "@/app/atoms/atoms";
+import { atom_recordExternalChange } from "@/app/atoms/external-review-atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
 import { createFileObserver } from "@/app/hooks/file-system/file-observer";
 import { indexNoteContent } from "@/app/services/content-search-client";
@@ -60,12 +61,18 @@ export function useFileWatcher() {
           // Disk wins for the note-text index too (as for the tab below).
           indexNoteContent([{ path, name: handle.name, content: remoteContent, modifiedAt: file.lastModified }]);
 
+          const textBefore = store.get(atom_openFiles)[path]?.content;
           setOpenFiles((prev) => {
             const fileState = prev[path];
             if (!fileState) return prev;
             const reconciled = reconcileWithDisk(fileState, remoteContent, file.lastModified);
             return reconciled === fileState ? prev : { ...prev, [path]: reconciled };
           });
+          // Disk text replaced the note's: keep what it said for review.
+          const textAfter = store.get(atom_openFiles)[path]?.content;
+          if (textBefore !== undefined && textAfter !== undefined && textBefore !== textAfter) {
+            store.set(atom_recordExternalChange, { path, before: textBefore, after: textAfter });
+          }
 
           anyChanged = true;
         }

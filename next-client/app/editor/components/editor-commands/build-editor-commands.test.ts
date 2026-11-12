@@ -48,6 +48,7 @@ function createContext(overrides: Partial<EditorCommandContext> = {}): EditorCom
     showHiddenFiles: false,
     setShowHiddenFiles: vi.fn(),
     setAiBuilderRequest: vi.fn(),
+    setDocumentCheckOpen: vi.fn(),
     requestCompanionAction: vi.fn(),
     isAiEnabled: true,
     isAiConfigured: true,
@@ -181,8 +182,8 @@ describe("buildEditorCommands", () => {
       "format-code",
       "find-in-note",
       "go-to-line",
-      "fold-current-section",
-      "unfold-all-sections",
+      "check-document",
+      "tidy-note",
       "indent-subtree",
       "outdent-subtree",
       "toggle-checkbox",
@@ -234,6 +235,19 @@ describe("buildEditorCommands", () => {
   it("lists no AI actions while AI features are off", () => {
     const commands = buildEditorCommands(createContext({ isAiEnabled: false, isAiConfigured: false }));
     expect(commands.some((command) => command.id.startsWith("ai-"))).toBe(false);
+  });
+
+  it("opens Check document and offers both note tools for Markdown notes only", () => {
+    const context = createContext();
+    const commands = buildEditorCommands(context);
+    commands.find((command) => command.id === "check-document")?.action();
+    expect(context.setDocumentCheckOpen).toHaveBeenCalledWith(true);
+    expect(commands.find((command) => command.id === "tidy-note")?.disabledReason).toBeUndefined();
+
+    const code = buildEditorCommands(createContext({ activeFilePath: "src/app.ts" } as Partial<EditorCommandContext>));
+    for (const id of ["check-document", "tidy-note"]) {
+      expect(code.find((command) => command.id === id)?.disabledReason).toBe("Markdown notes only");
+    }
   });
 
   it("offers Ask AI, New AI chat and Summarize AI chat for the companion", () => {

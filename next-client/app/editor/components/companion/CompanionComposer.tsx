@@ -124,7 +124,7 @@ export default function CompanionComposer({ request, isBusy, onSend, onStop }: C
   };
 
   return (
-    <div className="relative flex shrink-0 flex-col gap-2 border-t border-edge-subtle px-3 pt-2.5 pb-3">
+    <div className="relative flex shrink-0 flex-col gap-2 px-3 pt-1 pb-3">
       {mention && mentionOptions.length > 0 && (
         <MentionMenu options={mentionOptions} activeIndex={mentionIndex} query={mention.query} onSelect={selectMention} />
       )}

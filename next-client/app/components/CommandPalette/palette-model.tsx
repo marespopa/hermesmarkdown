@@ -4,7 +4,6 @@ import type { DisplayTask } from "@/app/atoms/task-atoms";
 import type { PalettePinnedItem } from "@/app/atoms/ui-atoms";
 import { MASKED_TEXT } from "@/app/utils/note-display";
 import type { ContentHit } from "@/app/workers/content-search-protocol";
-import type { TemplateEntry } from "@/app/utils/templates/template-registry";
 import React from "react";
 import { fuzzyMatch, matchCommand } from "./command-search";
 import type { Command } from "./CommandPaletteContext";
@@ -12,7 +11,7 @@ import type { Command } from "./CommandPaletteContext";
 // Command palette constants, row/scope types, and small pure helpers.
 export const MAX_VISIBLE_ROWS = 12;
 // Shared by the palette input (when notes can be created) and the search
-// pill (SearchPill) that morphs into it.
+// button (SearchPill) that opens it.
 export const SEARCH_OR_CREATE_PLACEHOLDER = "Search or create a file…";
 // A key cap: the toolbar pill's ⌘P, row shortcuts and the footer's hints.
 export const SEARCH_KBD_CLASS = "hidden shrink-0 rounded border border-edge px-1.5 py-0.5 font-mono text-ui-micro text-fg-muted sm:inline";
@@ -53,9 +52,8 @@ export function rowGroup(row: Row) {
 export const SCOPES = [
   { id: "tag", prefix: "#", label: "Tags" },
   { id: "task", prefix: "!", label: "Tasks" },
-  { id: "heading", prefix: "@", label: "Headings" },
+  { id: "mention", prefix: "@", label: "Mentions" },
   { id: "content", prefix: "/", label: "Text" },
-  { id: "template", prefix: "~", label: "Templates" },
   { id: "command", prefix: ">", label: "Commands" },
 ] as const;
 
@@ -68,8 +66,7 @@ export type Row =
   | { kind: "command"; id: string; label: string; detail: string; command: Command; titleIndices: number[]; detailIndices: number[]; score: number; matchSource: "label" | "metadata" }
   | { kind: "file"; id: string; label: string; detail: string; file: FileResult; titleIndices: number[]; detailIndices: number[]; score: number }
   | { kind: "task"; id: string; label: string; detail: string; isMasked: boolean; titleIndices: number[]; detailIndices: number[]; score: number }
-  | { kind: "heading"; id: string; label: string; detail: string; from: number; titleIndices: number[]; detailIndices: number[]; score: number }
-  | { kind: "template"; id: string; label: string; detail: string; entry: TemplateEntry; titleIndices: number[]; detailIndices: number[]; score: number }
+  | { kind: "mention"; id: string; label: string; detail: string; from: number; titleIndices: number[]; detailIndices: number[]; score: number }
   | { kind: "create"; id: string; label: string; detail: string; title: string; titleIndices: number[]; detailIndices: number[]; score: number }
   // A matching line from the `/` scope: label = snippet, detail = `name:line`.
   | { kind: "content"; id: string; label: string; detail: string; file: FileResult; line: number; column: number; titleIndices: number[]; detailIndices: number[]; score: number };
@@ -151,22 +148,6 @@ export function buildTagRows(query: string, filesByTag: Map<string, FileResult[]
       };
     })
     .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
-}
-
-// The `~` scope's rows: the vault's templates by name (or pack), loose
-// ones and packs in the registry's order for the empty query.
-export function buildTemplateRows(query: string, templates: TemplateEntry[]): Extract<Row, { kind: "template" }>[] {
-  return templates.map((entry, order) => {
-    const nameMatch = fuzzyMatch(query, entry.name);
-    const packMatch = !nameMatch && entry.pack ? fuzzyMatch(query, entry.pack) : null;
-    const match = nameMatch ?? packMatch;
-    if (!match) return null;
-    return {
-      kind: "template" as const, id: entry.path, label: entry.name, detail: entry.pack ?? "", entry,
-      titleIndices: nameMatch?.indices ?? [], detailIndices: packMatch?.indices ?? [], score: query ? match.score : -order,
-    };
-  }).filter((row): row is Extract<Row, { kind: "template" }> => row !== null)
-    .sort((a, b) => b.score - a.score);
 }
 
 // The `!` scope's rows. A masked task (from a private note) is listed only
