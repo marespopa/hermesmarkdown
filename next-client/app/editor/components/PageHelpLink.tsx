@@ -4,6 +4,7 @@ import React from "react";
 import { HiOutlineQuestionMarkCircle } from "react-icons/hi";
 import TextLink from "@/app/components/TextLink";
 import Tooltip from "@/app/components/Tooltip";
+import { PILL_BUTTON_CLASS } from "./pane-header-classes";
 
 export interface PageHelp {
   /** The page's section of the documentation, e.g. `/documentation#tasks-page`. */
@@ -14,7 +15,8 @@ export interface PageHelp {
 
 // A small (?) at the top right of an /editor page (ShellPage's title bar):
 // a link to that page's section of the documentation, with what it explains
-// as its tooltip.
+// as its tooltip. In the corner buttons' look (PILL_BUTTON_CLASS), as the
+// editor's top-right row.
 export default function PageHelpLink({ href, label }: PageHelp) {
   return (
     <Tooltip label={label} position="bottom" portal>
@@ -22,9 +24,9 @@ export default function PageHelpLink({ href, label }: PageHelp) {
         href={href}
         variant="unstyled"
         aria-label={`Help: ${label}`}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-fg-muted transition-colors hover:bg-fill hover:text-fg [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:w-11"
+        className={PILL_BUTTON_CLASS}
       >
-        <HiOutlineQuestionMarkCircle size={18} aria-hidden />
+        <HiOutlineQuestionMarkCircle size={14} aria-hidden />
       </TextLink>
     </Tooltip>
   );

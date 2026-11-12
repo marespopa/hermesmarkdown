@@ -1,6 +1,6 @@
 # PageHelpLink
 
-Description: The small (?) at the top right of every /editor page except the editor itself, in [ShellPage](ShellPage.md)'s title bar just before the `SearchPill`: a link to that page's section of the documentation (`/documentation#<section>`), with what the section explains as its tooltip and in its accessible name ("Help: How to use the Tasks page"). A quiet icon at the bar's control size (32px, 44px on touch), the fill on hover.
+Description: The small (?) at the top right of every /editor page except the editor itself, in [ShellPage](ShellPage.md)'s title bar, first in its top-right row: a link to that page's section of the documentation (`/documentation#<section>`), with what the section explains as its tooltip and in its accessible name ("Help: How to use the Tasks page"). It has the corner buttons' look (`PILL_BUTTON_CLASS`: 32px, the search pill's tint and rounding), as the editor's top-right row.
 
 | Page | Section |
 |---|---|

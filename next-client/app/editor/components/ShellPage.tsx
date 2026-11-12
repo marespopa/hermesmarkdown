@@ -42,7 +42,7 @@ export default function ShellPage({ title, help, children }: { title: string; he
       className="app-sheet fixed inset-y-0 flex flex-col bg-surface transition-[left,right] duration-layout ease-layout motion-reduce:transition-none overflow-hidden overscroll-none font-sans text-ink-light selection:bg-sage/10 dark:text-ink-dark">
       <header
         style={{ paddingLeft: leading, paddingRight: "0.5rem" }}
-        className={`flex shrink-0 items-center gap-3 border-b border-edge-subtle ${PANE_HEADER_HEIGHT} transition-[padding] duration-layout ease-layout motion-reduce:transition-none`}
+        className={`corner-quiet-zone flex shrink-0 items-center gap-3 border-b border-edge-subtle ${PANE_HEADER_HEIGHT} transition-[padding] duration-layout ease-layout motion-reduce:transition-none`}
       >
         <Button
           variant="unstyled"
@@ -55,11 +55,16 @@ export default function ShellPage({ title, help, children }: { title: string; he
         </Button>
         <span aria-hidden="true" className="h-4 w-px shrink-0 bg-edge-subtle" />
         <span className="min-w-0 flex-1 truncate text-ui-subhead font-semibold select-none">{title}</span>
-        {help && <PageHelpLink {...help} />}
-        <DocumentationLink />
-        {/* On a phone Settings is at the foot of the drawer. */}
-        {hasSidebar && !isMobileChrome && <SettingsButton />}
-        <SearchPill className="shrink" />
+        {/* The editor's top-right row (EditorShell), here too: the same
+            buttons' look and spacing, resting invisible where there is a
+            pointer to hover the bar with. */}
+        <div className="corner-quiet flex shrink-0 items-center gap-1.5">
+          {help && <PageHelpLink {...help} />}
+          <DocumentationLink />
+          {/* On a phone Settings is at the foot of the drawer. */}
+          {hasSidebar && !isMobileChrome && <SettingsButton />}
+          <SearchPill />
+        </div>
       </header>
       <div className="flex min-h-0 flex-1 flex-col">
         {children}

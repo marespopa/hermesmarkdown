@@ -12,7 +12,8 @@ import ProfileSettings from "./sections/ProfileSettings";
 import ShellPage from "../components/ShellPage";
 import { readUrlParam, replaceUrlParam, SECTION_PARAM } from "../utils/editor-url";
 
-// Settings, one section at a time; the open one is in the URL
+// Settings, one section at a time, picked from a row of tabs under the title
+// bar (no sidebar, on any screen); the open one is in the URL
 // (`?section=editor`), so a refresh or a link lands on it.
 const SettingsPage = () => {
 
@@ -71,9 +72,11 @@ const SettingsPage = () => {
 
   return (
     <ShellPage title="Settings" help={{ href: "/documentation#settings", label: "What the settings do" }}>
-    <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-      <aside className="flex shrink-0 flex-col border-b border-edge-subtle lg:w-60 lg:border-b-0 lg:border-r">
-        <nav aria-label="Settings sections" className="flex gap-0.5 overflow-x-auto px-3 py-3 lg:flex-col lg:overflow-visible">
+    <div className="flex min-h-0 flex-1 flex-col">
+      {/* The sections as a row of tabs at every width, in line with the
+          content column below; it scrolls sideways on a narrow screen. */}
+      <div className="shrink-0 border-b border-edge-subtle">
+        <nav aria-label="Settings sections" className="mx-auto flex w-full max-w-5xl gap-0.5 overflow-x-auto px-3 py-2 sm:px-8 lg:px-10 xl:px-14">
           {sections.map((s) => {
             const Icon = s.icon;
             const isActive = s.id === activeSection;
@@ -95,7 +98,7 @@ const SettingsPage = () => {
             );
           })}
         </nav>
-      </aside>
+      </div>
 
       <main className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
         <div className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-10 lg:px-12 xl:px-16">
