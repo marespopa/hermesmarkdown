@@ -53,19 +53,13 @@ export const settingsGroup: Group = {
     {
       id: "vault-home-settings",
       title: "New files & templates",
-      lead: "Choose where new files go. Templates always live in templates/.",
+      lead: "New files ask for their folder. Templates always live in templates/.",
       keywords: "new files folder new notes folder templates folder template packs settings vault",
       body: (
         <>
-          <KV
-            rows={[
-              { label: "New Files Folder", value: "Empty = vault root, or a folder like inbox" },
-            ]}
-          />
           <p>
-            New drafts are saved there, and so are files made from a template or a link that
-            names no folder. It lives under <strong>Settings → Files</strong>; a folder that
-            doesn&apos;t exist yet is created the first time a file is saved there.
+            There is no default folder to set: a draft on its first save, a new board, and a file
+            made from a template or a link that names no folder each ask which folder to use.
           </p>
           <p>
             Templates are in <code>_templates/</code> at the root of your vault, made the

@@ -13,8 +13,8 @@ without changing the public props contract or command behavior.
   registration order.
 - `document-vault-commands.ts` defines document lifecycle, note operations, and
   vault commands: `New File` (a draft named from its first line),
-  `New board` (with a vault open: asks the name, then `<name>.board.md` in the
-  New Files folder, numbered `<name> (1).board.md` on a clash; `useCreateBoard`), `Edit Board as
+  `New board` (with a vault open: asks the name, then the folder, then `<name>.board.md`
+  there, numbered `<name> (1).board.md` on a clash; `useCreateBoard`), `Edit Board as
   Markdown` / `Open as Board` (the active note, only when it is a board),
   `Export as Markdown` (always a .md download of the note, vault note or
   draft; it never saves), `Open File from Disk…` (a file from the device opens

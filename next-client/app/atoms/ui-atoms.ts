@@ -230,10 +230,9 @@ export const atom_showFiles = atom(null, (get, set) => {
   if (get(atom_sidebarCollapsed).Files) set(atom_sidebarCollapsed, (previous) => ({ ...previous, Files: false }));
   set(atom_filesFocusRequested, true);
 });
-// The New Files folder ("" = vault root; created on demand): where drafts are
-// saved on their first save, and where notes made from a template or a link
-// without a folder go.
-export const atom_newNoteFolder = atomWithStorage<string>("newNoteFolder", "");
+// The folder last picked when a new file asked where to go ("" = vault root):
+// listed first the next time (useAskSaveFolder). Not a setting.
+export const atom_lastSaveFolder = atomWithStorage<string>("lastSaveFolder", "");
 
 export const AUTOSAVE_MODES = ["afterDelay", "manual"] as const;
 export type AutosaveMode = (typeof AUTOSAVE_MODES)[number];

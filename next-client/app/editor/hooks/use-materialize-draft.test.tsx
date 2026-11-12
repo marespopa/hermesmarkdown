@@ -13,12 +13,14 @@ import {
   atom_workspaceLayout,
   EMPTY_DRAFT,
 } from "@/app/atoms/atoms";
-import { atom_newNoteFolder } from "@/app/atoms/ui-atoms";
 import { useMaterializeDraft } from "./use-materialize-draft";
 
 const { writeFileContent } = vi.hoisted(() => ({ writeFileContent: vi.fn().mockResolvedValue(undefined) }));
 vi.mock("@/app/services/file-writer", () => ({ writeFileContent }));
 vi.mock("react-hot-toast", () => ({ default: { success: vi.fn(), error: vi.fn() } }));
+// The folder question: the vault root unless a test answers otherwise.
+const askSaveFolder = vi.fn();
+vi.mock("@/app/hooks/file-system/use-ask-save-folder", () => ({ useAskSaveFolder: () => askSaveFolder }));
 
 function notFound() {
   return Object.assign(new Error("missing"), { name: "NotFoundError" });
@@ -71,6 +73,7 @@ describe("useMaterializeDraft", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    askSaveFolder.mockResolvedValue("");
   });
 
   it("saves the draft named after its first line and turns the tab into that file", async () => {
@@ -101,13 +104,49 @@ describe("useMaterializeDraft", () => {
     expect(path).toBe("Plan (1).md");
   });
 
-  it("saves into the New Notes folder without asking", async () => {
-    const { store, vault, result } = setup("Idea\n");
-    store.set(atom_newNoteFolder, "/inbox/");
+  it("asks for the folder and saves into the one picked", async () => {
+    askSaveFolder.mockResolvedValue("inbox");
+    const { vault, result } = setup("Idea\n");
     let path: string | null = null;
     await act(async () => { path = await result.current(); });
+    expect(askSaveFolder).toHaveBeenCalledWith('Save "Idea.md"');
     expect(path).toBe("inbox/Idea.md");
     expect(vault.dirs.get("inbox").files.has("Idea.md")).toBe(true);
+  });
+
+  it("writes nothing and keeps the draft when the folder question is cancelled", async () => {
+    askSaveFolder.mockResolvedValue(null);
+    const { store, result } = setup("Idea\n");
+    let path: string | null = "x";
+    await act(async () => { path = await result.current(); });
+    expect(path).toBeNull();
+    expect(writeFileContent).not.toHaveBeenCalled();
+    expect(store.get(atom_openFiles).draft.content).toBe("Idea\n");
+    expect((store.get(atom_workspaceLayout).rootContainer as any).activeFilePath).toBe("draft");
+  });
+
+  it("saves text typed while the folder question was open", async () => {
+    const { store, result } = setup("Idea\n");
+    askSaveFolder.mockImplementation(async () => {
+      store.set(atom_openFiles, { draft: { ...EMPTY_DRAFT, content: "Idea\nmore\n" } });
+      return "";
+    });
+    await act(async () => { await result.current(); });
+    expect(writeFileContent).toHaveBeenCalledWith(expect.objectContaining({ name: "Idea.md" }), "Idea\nmore\n");
+  });
+
+  it("asks once on autosave: after a cancel only a save the user asks for asks again", async () => {
+    askSaveFolder.mockResolvedValue(null);
+    const { result } = setup("Idea\n");
+    await act(async () => { await result.current(undefined, { auto: true }); });
+    await act(async () => { await result.current(undefined, { auto: true }); });
+    expect(askSaveFolder).toHaveBeenCalledOnce();
+
+    askSaveFolder.mockResolvedValue("");
+    let path: string | null = null;
+    await act(async () => { path = await result.current(); });
+    expect(askSaveFolder).toHaveBeenCalledTimes(2);
+    expect(path).toBe("Idea.md");
   });
 
   it("writes nothing for a whitespace-only draft", async () => {
@@ -136,9 +175,10 @@ describe("useMaterializeDraft", () => {
     expect(writeFileContent).not.toHaveBeenCalled();
   });
 
-  it("creates one file when saves overlap", async () => {
+  it("asks once and creates one file when saves overlap", async () => {
     const { vault, result } = setup("Once\n");
     await act(async () => { await Promise.all([result.current(), result.current()]); });
+    expect(askSaveFolder).toHaveBeenCalledOnce();
     expect([...vault.files]).toEqual(["Once.md"]);
   });
 });

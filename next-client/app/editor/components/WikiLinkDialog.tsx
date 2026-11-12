@@ -319,7 +319,7 @@ export default function WikiLinkDialog({
               })}
             </div>
             <p className="text-ui-caption text-ink-muted dark:text-stone">
-              The note goes in the folder from its name, else your New Notes folder. If it already exists there, it&apos;s linked as it is.
+              The note goes in the folder from its name, else in the folder you choose. If it already exists there, it&apos;s linked as it is.
             </p>
             <Button
               variant="primary"
@@ -342,7 +342,7 @@ export default function WikiLinkDialog({
               autoFocus
             />
             <p className="text-ui-caption text-ink-muted dark:text-stone">
-              The note goes in the folder from its name, else your New Notes folder. If it already exists there, it&apos;s linked as it is.
+              The note goes in the folder from its name, else in the folder you choose. If it already exists there, it&apos;s linked as it is.
             </p>
             <Button
               variant="primary"

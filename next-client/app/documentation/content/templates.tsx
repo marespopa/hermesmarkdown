@@ -73,7 +73,7 @@ export const templatesItems: Subsection[] = [
         <p>
           A template only gives a file its text. A file made from a link is named by the link and goes
           in the link&apos;s folder if it has one (<code>[[rfcs/auth-spec]]</code> goes in{" "}
-          <code>rfcs/</code>), else in your New Files folder.
+          <code>rfcs/</code>), else in the folder you choose when it is created.
         </p>
         <Callout type="note">
           If a file with that name is already in that folder, it opens (or is linked) as it is. Nothing
