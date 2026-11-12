@@ -100,3 +100,38 @@ describe("normalizeMathName", () => {
     expect(normalizeMathName("  Monthly   Rent ")).toBe("monthly rent");
   });
 });
+
+describe("functions option", () => {
+  const options: MathEvalOptions = { percent: true, thousandsSeparators: true, functions: true };
+  const value = (expression: string) => evaluateMathExpression(expression, options)?.value ?? null;
+
+  it("evaluates right-associative powers that bind tighter than * and unary minus", () => {
+    expect(value("2^10")).toBe(1024);
+    expect(value("2 * 3^2")).toBe(18);
+    expect(value("2^3^2")).toBe(512);
+    expect(value("-2^2")).toBe(-4);
+    expect(value("2^-1")).toBe(0.5);
+    expect(value("(-8)^0.5")).toBeNull();
+  });
+
+  it("calls sqrt, round, min and max with commas as argument separators", () => {
+    expect(value("sqrt(16) + 1")).toBe(5);
+    expect(value("round(3.14159, 2)")).toBe(3.14);
+    expect(value("round(2.5)")).toBe(3);
+    expect(value("max(1, 5, 3)")).toBe(5);
+    expect(value("min(1,200, 3)")).toBe(1);
+    expect(value("max(1,200) + 1,000")).toBe(1200);
+  });
+
+  it("rejects bad arity and domain", () => {
+    expect(value("sqrt(-1)")).toBeNull();
+    expect(value("sqrt(1, 2)")).toBeNull();
+    expect(value("round(1, 2, 3)")).toBeNull();
+    expect(value("max()")).toBeNull();
+  });
+
+  it("stays off without the option, so calc(…)= is unchanged", () => {
+    expect(evaluateMath("2^3")).toBeNull();
+    expect(evaluateMath("sqrt(4)")).toBeNull();
+  });
+});

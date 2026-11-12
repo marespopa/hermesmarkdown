@@ -110,6 +110,36 @@ describe("scanLine via collectNoteCalcLabels", () => {
   });
 });
 
+describe("natural-language lines", () => {
+  it("evaluates phrasing, precedence edge cases and units", () => {
+    expect(labels([
+      "100 + 10% + 20% =",
+      "20% of 50 + 10 =",
+      "5k divided by 2 =",
+      "Total server cost: 3 nodes multiplied by 45 plus 19% VAT =",
+      "25 is what % of 200 =",
+      "$40 times 3 =",
+      "3 nodes times 45 plus 19% VAT RON =",
+      "9 squared + sqrt of 16 =",
+    ])).toEqual({ 1: "132", 2: "20", 3: "2500", 4: "160.65", 5: "12.5%", 6: "$120", 7: "160.65 RON", 8: "85" });
+  });
+
+  it("keeps variables, including names an operator word would otherwise claim", () => {
+    expect(labels([
+      "price = 10",
+      "price times 3 =",
+      "x = 4",
+      "x times 2 =",
+      "budget = 2.5m",
+      "budget / 1000 =",
+    ])).toEqual({ 2: "30", 4: "8", 6: "2500" });
+  });
+
+  it("shows nothing for prose, plain numbers with units and hex", () => {
+    expect(labels(["hello world =", "3 apples =", "Chapter 1 =", "0x1f + 1 =", "5 and ="])).toEqual({});
+  });
+});
+
 describe("NoteCalcCache", () => {
   const lines = Array.from({ length: 1000 }, (_, i) => (i === 1 ? "base = 10" : `base + ${i + 1} =`));
   const doc = Text.of(lines);

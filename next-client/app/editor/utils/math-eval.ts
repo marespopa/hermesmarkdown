@@ -2,7 +2,9 @@
 // `evaluateMath` is the plain mode used by the `calc(…)=` shortcode; the
 // inline note calculator (utils/note-calc-scan.ts) calls
 // `evaluateMathExpression` with options that enable names, `%` / `of` and
-// `1,234` thousands separators.
+// `1,234` thousands separators, plus `^` and `sqrt/round/min/max` calls.
+
+import { evaluateMathFunction, MATH_FUNCTIONS, type MathFunction } from "./math-functions";
 
 export type MathResolver = (name: string) => number | undefined; // name is normalized (lowercase, single spaces)
 
@@ -10,6 +12,7 @@ export interface MathEvalOptions {
   resolve?: MathResolver;        // enables identifier tokens; absent → identifiers fail
   percent?: boolean;             // enables `%` and `of`
   thousandsSeparators?: boolean; // enables strict `1,234` groups
+  functions?: boolean;           // enables `^` and `sqrt(x)`, `round(x[, digits])`, `min(…)`, `max(…)`
 }
 
 export interface MathEvaluation {
@@ -17,12 +20,17 @@ export interface MathEvaluation {
   isLiteral: boolean; // one number, optional leading sign, optional trailing `%`
 }
 
-type MathToken = number | "(" | ")" | "+" | "-" | "*" | "/" | "%" | "of" | { type: "name"; name: string };
+type MathToken =
+  | number
+  | "(" | ")" | "+" | "-" | "*" | "/" | "^" | "," | "%" | "of"
+  | { type: "name"; name: string }
+  | { type: "func"; name: MathFunction };
 
 type MathNode =
   | number
   | { type: "unary"; op: "+" | "-"; value: MathNode }
-  | { type: "binary"; op: "+" | "-" | "*" | "/"; left: MathNode; right: MathNode }
+  | { type: "binary"; op: "+" | "-" | "*" | "/" | "^"; left: MathNode; right: MathNode }
+  | { type: "call"; name: MathFunction; args: MathNode[] }
   | { type: "name"; name: string }
   | { type: "percent"; value: MathNode }
   | { type: "of"; percent: MathNode; value: MathNode };
@@ -45,7 +53,10 @@ function readWord(expression: string, index: number): string | null {
 
 function tokenizeMath(expression: string, options: MathEvalOptions = {}): MathToken[] | null {
   const tokens: MathToken[] = [];
-  const numberChar = options.thousandsSeparators ? /[0-9.,]/ : /[0-9.]/;
+  // One entry per open `(`: true when it opens a function call, where `,`
+  // separates arguments instead of grouping thousands.
+  const parens: boolean[] = [];
+  const inCall = () => parens[parens.length - 1] === true;
   // Plain mode (`calc(…)=`) keeps skipping spaces only; the note calculator
   // also accepts tabs between tokens.
   const lenient = Boolean(options.resolve || options.percent || options.thousandsSeparators);
@@ -64,6 +75,7 @@ function tokenizeMath(expression: string, options: MathEvalOptions = {}): MathTo
       let number = char;
       index += 1;
 
+      const numberChar = options.thousandsSeparators && !inCall() ? /[0-9.,]/ : /[0-9.]/;
       while (index < expression.length && numberChar.test(expression[index])) {
         number += expression[index];
         index += 1;
@@ -83,9 +95,34 @@ function tokenizeMath(expression: string, options: MathEvalOptions = {}): MathTo
     }
 
     if (["(", ")", "+", "-", "*", "/"].includes(char)) {
+      if (char === "(") {
+        const previous = tokens[tokens.length - 1];
+        parens.push(typeof previous === "object" && previous.type === "func");
+      } else if (char === ")") {
+        parens.pop();
+      }
       tokens.push(char as MathToken);
       index += 1;
       continue;
+    }
+
+    if (options.functions && (char === "^" || (char === "," && inCall()))) {
+      tokens.push(char);
+      index += 1;
+      continue;
+    }
+
+    if (options.functions && NAME_START.test(char)) {
+      // `sqrt(` etc.: a function name directly (or after gaps) before `(`.
+      const word = readWord(expression, index);
+      const name = word?.toLowerCase() as MathFunction | undefined;
+      let cursor = index + (word?.length ?? 0);
+      while (isGap(expression[cursor])) cursor += 1;
+      if (name && MATH_FUNCTIONS.includes(name) && expression[cursor] === "(") {
+        tokens.push({ type: "func", name });
+        index = cursor;
+        continue;
+      }
     }
 
     if (char === "%" && options.percent) {
@@ -176,7 +213,7 @@ function parseTerm(tokens: MathToken[], position = 0): ParseResult {
   return { value: current, position: nextPosition };
 }
 
-// factor := ('+'|'-') factor | postfix
+// factor := ('+'|'-') factor | power
 function parseFactor(tokens: MathToken[], position = 0): ParseResult {
   const token = tokens[position];
 
@@ -189,7 +226,34 @@ function parseFactor(tokens: MathToken[], position = 0): ParseResult {
     };
   }
 
-  return parsePostfix(tokens, position);
+  return parsePower(tokens, position);
+}
+
+// power := postfix ('^' factor)?   (right-associative; -2^2 = -(2^2))
+function parsePower(tokens: MathToken[], position: number): ParseResult {
+  const base = parsePostfix(tokens, position);
+  if (!base || tokens[base.position] !== "^") return base;
+  const exponent = parseFactor(tokens, base.position + 1);
+  if (!exponent) return null;
+  return {
+    value: { type: "binary", op: "^", left: base.value, right: exponent.value },
+    position: exponent.position,
+  };
+}
+
+// call := func '(' expr (',' expr)* ')'
+function parseCall(tokens: MathToken[], position: number, name: MathFunction): ParseResult {
+  if (tokens[position] !== "(") return null;
+  const args: MathNode[] = [];
+  let cursor = position;
+  do {
+    const arg = parseExpression(tokens, cursor + 1);
+    if (!arg) return null;
+    args.push(arg.value);
+    cursor = arg.position;
+  } while (tokens[cursor] === ",");
+  if (tokens[cursor] !== ")") return null;
+  return { value: { type: "call", name, args }, position: cursor + 1 };
 }
 
 // postfix := primary ('%' ('of' factor)?)?
@@ -207,12 +271,16 @@ function parsePostfix(tokens: MathToken[], position: number): ParseResult {
   return { value: { type: "of", percent: primary.value, value: value.value }, position: value.position };
 }
 
-// primary := number | name | '(' expr ')'
+// primary := number | name | call | '(' expr ')'
 function parsePrimary(tokens: MathToken[], position: number): ParseResult {
   const token = tokens[position];
 
   if (typeof token === "number") {
     return { value: token, position: position + 1 };
+  }
+
+  if (typeof token === "object" && token.type === "func") {
+    return parseCall(tokens, position + 1, token.name);
   }
 
   if (typeof token === "object") {
@@ -248,6 +316,8 @@ function evaluateNode(node: MathNode, resolve?: MathResolver): number {
       return evaluateNode(node.value, resolve) / 100;
     case "of":
       return (evaluateNode(node.percent, resolve) / 100) * evaluateNode(node.value, resolve);
+    case "call":
+      return evaluateMathFunction(node.name, node.args.map((arg) => evaluateNode(arg, resolve)));
     default:
       break;
   }
@@ -275,6 +345,11 @@ function evaluateNode(node: MathNode, resolve?: MathResolver): number {
         throw new Error("Division by zero");
       }
       return left / right;
+    case "^": {
+      const value = left ** right;
+      if (Number.isNaN(value)) throw new Error("Invalid power");
+      return value;
+    }
     default:
       throw new Error("Unsupported operator");
   }
