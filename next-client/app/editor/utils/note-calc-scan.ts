@@ -1,5 +1,6 @@
 import type { Text } from "@codemirror/state";
 import { evaluateMathExpression, normalizeMathName } from "./math-eval";
+import { decorateNoteCalcLabel, normalizeMathExpression, type NormalizedMath } from "./note-calc-normalize";
 
 // Line scanner for the inline note calculator (codemirror/note-calc.ts).
 // Pure, no DOM. Each line is classified from the state carried over from
@@ -104,18 +105,26 @@ export function scanLine(text: string, lineNumber: number, prev: LineCalc | null
   if (DATE_LIKE.test(content)) return skip(null);
 
   const resolve = (name: string) => lookup(scope, name);
-  const options = { resolve, percent: true, thousandsSeparators: true };
+  const options = { resolve, percent: true, thousandsSeparators: true, functions: true };
   const trailing = TRAILING_EQUALS.exec(content);
   const body = trailing ? trailing[1] : content;
   const assignment = parseAssignment(body);
-  const result = evaluateMathExpression(assignment ? assignment.expression : body, options);
+  const expression = assignment ? assignment.expression : body;
+  let result = evaluateMathExpression(expression, options);
+  // Plain math failed: try natural-language phrasing ("5k divided by 2").
+  let normalized: NormalizedMath | null = null;
+  if (!result) {
+    normalized = normalizeMathExpression(expression, (name) => resolve(name) !== undefined);
+    result = normalized ? evaluateMathExpression(normalized.expr, options) : null;
+  }
   const nextScope = assignment
     ? { name: assignment.name, value: result && Number.isFinite(result.value) ? result.value : undefined, parent: scope }
     : scope;
 
   // 5. Label: only once the line ends with `=`, for evaluated, finite,
   // non-literal expressions.
-  const label = trailing && result && !result.isLiteral ? formatNoteCalcResult(result.value) : null;
+  const value = trailing && result && !result.isLiteral ? formatNoteCalcResult(result.value) : null;
+  const label = value !== null && normalized ? decorateNoteCalcLabel(value, normalized) : value;
   return { block: null, scope: nextScope, label };
 }
 

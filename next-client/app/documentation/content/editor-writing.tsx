@@ -307,7 +307,7 @@ export const editorWritingItems: Subsection[] = [
     id: "inline-calculator",
     title: "Inline calculator",
     lead: "Type math into any file and see the answer at the end of the line, with named values you can reuse further down.",
-    keywords: "calculator math calc sum total budget estimate variables named values percent of arithmetic numbers",
+    keywords: "calculator math calc sum total budget estimate variables named values percent of arithmetic numbers natural language times divided by plus minus squared square root sqrt round min max power k m b thousand million currency",
     body: (
       <>
         <p>
@@ -328,8 +328,28 @@ rent + utilities + 15%    = 1587`}</Code>
             { label: "15% of 200", value: "= 30" },
             { label: "1,200 * 3", value: "= 3600 · thousands separators" },
             { label: "rent = rent + 100", value: "Redefines a value from its old one" },
+            { label: "2^10 · sqrt(16)", value: "Powers, and sqrt, round, min, max" },
           ]}
         />
+        <p>
+          You can also write it in words. If a line isn&apos;t plain math, the calculator tries
+          reading it as a sentence. Labels and filler words such as <code>VAT</code> or{" "}
+          <code>each</code> are skipped, and a currency shows with the result:
+        </p>
+        <Code>{`Server cost: 3 nodes multiplied by 45 plus 19% VAT =   160.65
+5k divided by 2 =                                     2500
+$40 times 3 =                                         $120
+25 is what % of 200 =                                 12.5%
+9 squared plus square root of 16 =                    85`}</Code>
+        <p>
+          Words it understands: <code>times</code>, <code>x</code>, <code>multiplied by</code>,{" "}
+          <code>divided by</code>, <code>over</code>, <code>plus</code>, <code>and</code>,{" "}
+          <code>minus</code>, <code>less</code>, <code>percent</code>, <code>squared</code>,{" "}
+          <code>cubed</code>, <code>square root of</code>, and <code>5k</code>, <code>2.5m</code>,{" "}
+          <code>1b</code> or <code>3 million</code>. A value you named yourself always wins, so{" "}
+          <code>x = 4</code> then <code>x times 2</code> shows <code>8</code>. Lines that already
+          worked as plain math work the same as before.
+        </p>
         <p>
           Only lines that are math get a result. Prose, headings, plain numbers (<code>1200</code>),
           simple definitions (<code>rent = 1200</code>), dates and phone numbers are left alone, and
