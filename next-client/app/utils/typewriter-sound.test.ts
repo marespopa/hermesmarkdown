@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createTypewriterSound, typewriterKind } from "./typewriter-sound";
+import { createTypewriterSound, typewriterInputKind, typewriterKeyNamed, typewriterKind } from "./typewriter-sound";
 
 const key = (overrides: Partial<Parameters<typeof typewriterKind>[0]>) =>
   typewriterKind({ key: "a", ctrlKey: false, metaKey: false, altKey: false, isComposing: false, ...overrides });
@@ -21,6 +21,47 @@ describe("typewriterKind", () => {
     expect(key({ key: "k", altKey: true })).toBeNull();
     expect(key({ key: "a", isComposing: true })).toBeNull();
     for (const name of ["ArrowLeft", "Shift", "Escape", "Tab", "Control", "F5", "Dead"]) expect(key({ key: name })).toBeNull();
+  });
+});
+
+describe("typewriterKeyNamed", () => {
+  it("is true for a hardware key and false for an on-screen keyboard's or an IME's", () => {
+    expect(typewriterKeyNamed({ key: "a", keyCode: 65, isComposing: false })).toBe(true);
+    expect(typewriterKeyNamed({ key: "Enter", keyCode: 13, isComposing: false })).toBe(true);
+    expect(typewriterKeyNamed({ key: "Unidentified", keyCode: 229, isComposing: false })).toBe(false);
+    expect(typewriterKeyNamed({ key: "Process", keyCode: 229, isComposing: false })).toBe(false);
+    expect(typewriterKeyNamed({ key: "a", keyCode: 65, isComposing: true })).toBe(false);
+  });
+});
+
+describe("typewriterInputKind", () => {
+  const kind = (inputType: string, data: string | null = null, composing?: string) => typewriterInputKind({ inputType, data }, composing);
+
+  it("sounds for typed text, line breaks and deleting", () => {
+    expect(kind("insertText", "a")).toBe("key");
+    expect(kind("insertText", "word")).toBe("key");
+    expect(kind("insertText", " ")).toBe("space");
+    expect(kind("insertText", "word ")).toBe("space");
+    expect(kind("insertText", "\n")).toBe("return");
+    expect(kind("insertLineBreak")).toBe("return");
+    expect(kind("insertParagraph")).toBe("return");
+    expect(kind("deleteContentBackward")).toBe("back");
+    expect(kind("deleteContentForward")).toBe("back");
+  });
+
+  it("follows a composition: longer is a key, shorter a delete, unchanged silent", () => {
+    expect(kind("insertCompositionText", "t")).toBe("key");
+    expect(kind("insertCompositionText", "ta", "t")).toBe("key");
+    expect(kind("insertCompositionText", "t", "ta")).toBe("back");
+    expect(kind("insertCompositionText", "", "t")).toBe("back");
+    expect(kind("insertCompositionText", "ta", "ta")).toBeNull();
+    expect(kind("insertCompositionText", null)).toBeNull();
+  });
+
+  it("is silent for paste, cut, drop, undo and empty text", () => {
+    for (const type of ["insertFromPaste", "insertFromDrop", "deleteByCut", "deleteWordBackward", "historyUndo", "formatBold"]) expect(kind(type, "text")).toBeNull();
+    expect(kind("insertText", "")).toBeNull();
+    expect(kind("insertText", null)).toBeNull();
   });
 });
 

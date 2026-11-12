@@ -24,6 +24,11 @@ function setup(enabled?: boolean) {
   return { store, view, editor, field };
 }
 
+const input = (target: Element, inputType: string, data: string | null = null) =>
+  fireEvent(target, new InputEvent("beforeinput", { bubbles: true, cancelable: true, inputType, data }));
+// What an on-screen keyboard sends before each `beforeinput`.
+const unnamedKey = (target: Element) => fireEvent.keyDown(target, { key: "Unidentified", keyCode: 229 });
+
 describe("TypewriterSound", () => {
   afterEach(() => {
     sound.play.mockClear();
@@ -68,5 +73,39 @@ describe("TypewriterSound", () => {
     expect(sound.play).not.toHaveBeenCalled();
     fireEvent.keyDown(editor, { key: "Backspace", repeat: true });
     expect(sound.play).toHaveBeenCalledWith("back");
+  });
+
+  it("clicks for an on-screen keyboard, whose keys arrive as input and not as named keydowns", () => {
+    const { editor, field } = setup(true);
+    unnamedKey(editor);
+    input(editor, "insertCompositionText", "t");
+    unnamedKey(editor);
+    input(editor, "insertCompositionText", "ta");
+    unnamedKey(editor);
+    input(editor, "insertCompositionText", "t");
+    // The commit at the end of the word repeats its text: no second click.
+    input(editor, "insertCompositionText", "t");
+    fireEvent.compositionEnd(editor);
+    input(editor, "insertText", " ");
+    // A new word starts short; that isn't a delete.
+    input(editor, "insertCompositionText", "s");
+    fireEvent.compositionEnd(editor);
+    input(editor, "deleteContentBackward");
+    input(editor, "insertParagraph");
+    input(editor, "insertFromPaste", "pasted");
+    input(field, "insertText", "a");
+    expect(sound.play.mock.calls.map(([kind]) => kind)).toEqual(["key", "key", "back", "space", "key", "back", "return"]);
+  });
+
+  it("clicks once for a hardware key, which sends a keydown and then its input", () => {
+    const { editor } = setup(true);
+    fireEvent.keyDown(editor, { key: "a" });
+    input(editor, "insertText", "a");
+    // A held key repeats: its keydown is silent, and so is the input after it.
+    fireEvent.keyDown(editor, { key: "a", repeat: true });
+    input(editor, "insertText", "a");
+    fireEvent.keyDown(editor, { key: "x", ctrlKey: true });
+    input(editor, "deleteByCut");
+    expect(sound.play.mock.calls.map(([kind]) => kind)).toEqual(["key"]);
   });
 });

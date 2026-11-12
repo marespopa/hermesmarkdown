@@ -167,7 +167,9 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <Callout type="note">
           The sound is generated on your device, so it works offline and nothing is downloaded.
-          Shortcuts and typing outside a note (a dialog, the search field) stay silent.
+          Shortcuts and typing outside a note (a dialog, the search field) stay silent. It works
+          with a phone&apos;s or tablet&apos;s on-screen keyboard too, at the device&apos;s media
+          volume; an iPhone&apos;s silent switch mutes it.
         </Callout>
       </>
     ),

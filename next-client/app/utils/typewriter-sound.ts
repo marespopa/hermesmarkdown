@@ -11,6 +11,45 @@ export function typewriterKind(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "m
   return event.key.length === 1 ? "key" : null;
 }
 
+// Whether a keydown names its key. An on-screen keyboard (and an IME) sends
+// "Unidentified" or "Process" for most keys, so those are heard from the
+// `beforeinput` that follows instead (`typewriterInputKind`).
+export function typewriterKeyNamed(event: Pick<KeyboardEvent, "key" | "keyCode" | "isComposing">): boolean {
+  return !event.isComposing && event.keyCode !== 229 && event.key !== "Unidentified" && event.key !== "Process";
+}
+
+// Which sound a `beforeinput` makes, or null for no sound: text typed or
+// composed, a line break, or a character deleted. `composing` is the text of
+// the composition so far (an on-screen keyboard composes each word): a
+// composition that got shorter is a delete, and one that didn't change (the
+// commit at its end) is silent. Paste, cut, drop, undo and the rest are silent.
+export function typewriterInputKind(event: Pick<InputEvent, "inputType" | "data">, composing = ""): TypewriterKey | null {
+  const text = event.data ?? "";
+  switch (event.inputType) {
+    case "insertLineBreak":
+    case "insertParagraph":
+      return "return";
+    case "deleteContentBackward":
+    case "deleteContentForward":
+      return "back";
+    case "insertCompositionText":
+      if (text === composing) return null;
+      if (text.length < composing.length) return "back";
+      return textKind(text);
+    case "insertText":
+      return textKind(text);
+    default:
+      return null;
+  }
+}
+
+function textKind(text: string): TypewriterKey | null {
+  if (!text) return null;
+  const last = text[text.length - 1];
+  if (last === "\n") return "return";
+  return last === " " ? "space" : "key";
+}
+
 // Band-pass centre of the key's clack, the clack's loudness, the length of
 // its decay and the pitch of the thump under it.
 const VOICES: Record<TypewriterKey, { clack: number; level: number; decay: number; thump: number }> = {
