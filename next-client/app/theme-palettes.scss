@@ -4,11 +4,11 @@
 /* ─── Color themes ───────────────────────────────────────────────────────────
    Alternative palettes for each mode (app/theme-palettes.ts). ThemeProvider
    keeps both picks on <html data-light-theme data-dark-theme>; the light one
-   applies without `.dark`, the dark one with it. In pairs: Paper / Ink,
-   grey-white paper and blue ink (Ink is the dark paper), the plain
-   globals.scss tokens with no block here; Solarized / Nord; Plain /
-   Graphite, neutral with no tint; and Sepia, a warm cream reading page,
-   light only (Ink, the warm dark paper, is its night side). Paper and Ink are the defaults
+   applies without `.dark`, the dark one with it. Three a mode: Paper /
+   Ink, grey-white paper and blue ink (Ink is the dark paper), the plain
+   globals.scss tokens with no block here; Sepia, a warm cream reading
+   page, and Nord, arctic blue; and Quartz / Onyx, neutral with no tint and
+   a bright blue caret and selection. Paper and Ink are the defaults
    (DEFAULT_*_THEME, set on <html> before the first paint). Every
    page carries the paper grain (editor.scss). Each palette
    keeps --fg-faint and the accents at ≥4.5:1 on surface, raised and chrome.
@@ -23,7 +23,9 @@
    it (Paper and Ink share one blue, in globals.scss). Task statuses keep
    their own warm / green colours, apart from it. Icons and
    buttons stay neutral (ink on paper). It clears 4.5:1 on surface, raised
-   and chrome.
+   and chrome. A palette may give the caret and the selection a brighter
+   colour of their own (`caret`): they are not text, so they need not clear
+   that contrast.
    ─────────────────────────────────────────────────────────────────────── */
 
 // A color as space-separated RGB channels, for the `rgb(var(--x) / a)` aliases.
@@ -48,7 +50,7 @@
   --moss:           #{map.get($p, moss)};
   --moss-hover:     #{map.get($p, moss-hover)};
   // @Name mentions: a hue of their own where the palette has one; the
-  // neutral palettes (Plain, Graphite) leave `mention` out and keep moss.
+  // neutral palettes (Quartz, Onyx) leave `mention` out and keep moss.
   --mention:        #{map.get($p, mention) or map.get($p, moss)};
   --task-hold:      #{map.get($p, hold)};
   // Task statuses keep their own warm / green pair, apart from the accent.
@@ -59,8 +61,9 @@
   --link:           #{map.get($p, link)};
   --link-hover:     #{map.get($p, link-hover)};
   --row-stripe:     #{color.change(map.get($p, tint), $alpha: 0.035)};
-  // The caret and text selection take the identity hue too.
-  --caret:          #{map.get($p, clay)};
+  // The caret and text selection take the identity hue too, unless the
+  // palette sets a brighter `caret` for them.
+  --caret:          #{map.get($p, caret) or map.get($p, clay)};
   // Code syntax beside the accent keywords (globals.scss).
   --code-string:    #{map.get($p, code-string)};
   --code-number:    #{map.get($p, code-number)};
@@ -69,7 +72,7 @@
 
 @mixin light-palette($p) {
   @include palette($p);
-  --selection:       #{color.change(map.get($p, clay), $alpha: 0.2)};
+  --selection:       #{color.change(map.get($p, caret) or map.get($p, clay), $alpha: 0.2)};
   --material-edge:   #{color.change(map.get($p, tint), $alpha: 0.1)};
   --material-shadow: 0 1px 2px #{color.change(map.get($p, tint), $alpha: 0.06)},
     0 8px 24px -10px #{color.change(map.get($p, tint), $alpha: 0.14)};
@@ -88,7 +91,7 @@
 
 @mixin dark-palette($p) {
   @include palette($p);
-  --selection:           #{color.change(map.get($p, clay), $alpha: 0.3)};
+  --selection:           #{color.change(map.get($p, caret) or map.get($p, clay), $alpha: 0.3)};
   --frontmatter-bg:        #{color.change(map.get($p, tint), $alpha: 0.04)};
   --frontmatter-bg-hover:  #{color.change(map.get($p, tint), $alpha: 0.065)};
   --frontmatter-bg-active: #{color.change(map.get($p, tint), $alpha: 0.1)};
@@ -98,17 +101,20 @@
   --clay-surface:       #{channels(map.get($p, border))};
 }
 
-/* Light: Plain — neutral white, no tint; near-black ink, and the accent
-   is the ink itself (a grey selection, a black caret). */
-html[data-light-theme="plain"]:not(.dark) {
+/* Light: Quartz — neutral off-white, no tint, near-black ink; the caret and
+   the selection are a bright sky blue, and the accent that colours text,
+   toggles and focus rings is the same blue darkened to clear 4.5:1. Code
+   stays quiet: keywords in the accent, the rest in ink and muted ink. In the
+   note, headings are set in the ink (editor-typography.scss). */
+html[data-light-theme="quartz"]:not(.dark) {
   @include light-palette((
-    surface: #FCFCFC, raised: #F3F3F3, chrome: #F1F1F1, softgray: #E8E8E8,
-    overlay: #FFFFFF, input: #FFFFFF, border: #DDDDDD, tint: rgb(0, 0, 0),
-    fg: #1C1C1C, fg-muted: #555555, fg-faint: #6B6B6B, ink-hover: #2E2E2E,
-    clay: #2B2B2B, moss: #2B2B2B, moss-hover: #111111, hold: #806426,
+    surface: #F7F7F7, raised: #EFEFEF, chrome: #EDEDED, softgray: #E4E4E4,
+    overlay: #FFFFFF, input: #FFFFFF, border: #D9D9D9, tint: rgb(0, 0, 0),
+    fg: #1F1F1F, fg-muted: #555555, fg-faint: #666666, ink-hover: #2E2E2E,
+    clay: #0B6E99, moss: #0B6E99, moss-hover: #095C80, caret: #15BDEC, hold: #806426,
     prog: #A24B32, done: #4F6B45,
-    link: #2563C9, link-hover: #1A5CD0,
-    code-string: #2F6B32, code-number: #A1461E, code-function: #6F42C1,
+    link: #0B6E99, link-hover: #095C80,
+    code-string: #555555, code-number: #555555, code-function: #1F1F1F,
   ));
 }
 
@@ -126,46 +132,18 @@ html[data-light-theme="sepia"]:not(.dark) {
   ));
 }
 
-/* Light: Solarized — the Solarized base3 cream with its base02 ink; the
-   accents are darkened Solarized orange/green/yellow/blue to clear 4.5:1. */
-html[data-light-theme="solarized"]:not(.dark) {
-  @include light-palette((
-    surface: #FDF6E3, raised: #F4EDD8, chrome: #EEE8D5, softgray: #E6DFCA,
-    overlay: #FFFBF0, input: #FFFFFF, border: #DDD6C1, tint: rgb(7, 54, 66),
-    fg: #073642, fg-muted: #4D5E63, fg-faint: #566A70, ink-hover: #0B4250,
-    clay: #1A6BA6, moss: #1A6BA6, moss-hover: #176095, mention: #5257A3, hold: #7F6300,
-    prog: #B23F0E, done: #5F6E00,
-    link: #1A6BA6, link-hover: #155D92,
-    code-string: #19685F, code-number: #A8366A, code-function: #5257A3,
-  ));
-}
-
-/* Dark: Graphite — neutral gray, no tint; the accent is a light grey, as
-   Plain's is its ink. */
-html.dark[data-dark-theme="graphite"] {
+/* Dark: Onyx — neutral near-black, no tint, soft grey text; the accent is
+   a bright sky blue (the caret, the selection, toggles and links), as
+   Quartz's caret is, with the same quiet code and ink headings. */
+html.dark[data-dark-theme="onyx"] {
   @include dark-palette((
-    surface: #1C1C1E, raised: #2A2A2D, chrome: #111112,
-    overlay: #2A2A2D, input: #18181A, border: #3A3A3D, tint: rgb(210, 210, 215),
-    fg: #E9E9EB, fg-muted: #A6A6AB, fg-faint: #919196,
-    clay: #C8C8CC, moss: #C8C8CC, moss-hover: #D8D8DB, hold: #CFB475,
+    surface: #1A1A1A, raised: #272727, chrome: #101010,
+    overlay: #272727, input: #161616, border: #383838, tint: rgb(215, 215, 215),
+    fg: #DADADA, fg-muted: #A3A3A3, fg-faint: #8F8F8F,
+    clay: #2CC4F0, moss: #2CC4F0, moss-hover: #5AD1F3, hold: #CFB475,
     prog: #DC8E6C, done: #94A67E,
-    link: #68ABFF, link-hover: #8FC0FF,
-    code-string: #A6C98B, code-number: #E2A07A, code-function: #C6A4E0,
-  ));
-}
-
-/* Dark: Solarized — the Solarized base03 / base02 deep teal with base2 text;
-   the accents are lightened Solarized blue/yellow/orange/green/cyan/magenta/
-   violet to clear 4.5:1 on raised, as the light one's are darkened. */
-html.dark[data-dark-theme="solarized"] {
-  @include dark-palette((
-    surface: #002B36, raised: #073642, chrome: #00222B,
-    overlay: #073642, input: #00252F, border: #164B57, tint: rgb(147, 161, 161),
-    fg: #EEE8D5, fg-muted: #A9B7B6, fg-faint: #93A1A1,
-    clay: #5AABE3, moss: #5AABE3, moss-hover: #78BCEA, mention: #9A9EE0, hold: #CDA02A,
-    prog: #E8794A, done: #9CB13A,
-    link: #5AABE3, link-hover: #78BCEA,
-    code-string: #4DB8AE, code-number: #E86FA6, code-function: #9A9EE0,
+    link: #2CC4F0, link-hover: #5AD1F3,
+    code-string: #A3A3A3, code-number: #A3A3A3, code-function: #DADADA,
   ));
 }
 

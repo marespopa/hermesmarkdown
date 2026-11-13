@@ -98,7 +98,7 @@ module.exports = {
           hover:   'var(--moss-hover)',
         },
         // `mention` = the @Name hue, apart from links (sage). Tinted themes give
-        // it a hue of their own; Plain and Graphite stay neutral and reuse moss.
+        // it a hue of their own; the neutral ones (Quartz, Onyx) reuse moss.
         mention: 'var(--mention)',
         // `wikilink` = [[note links]], the palette's warm hue (follows --task-prog).
         wikilink: 'var(--wikilink)',

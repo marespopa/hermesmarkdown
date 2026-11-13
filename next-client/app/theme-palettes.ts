@@ -1,17 +1,17 @@
 // Color themes per mode: the light mode and the dark mode each pick one of
-// their own palettes (Settings → Appearance, the Theme commands), in pairs:
-// Paper / Ink (paper and blue ink; Ink is the dark paper), Solarized /
-// Solarized, and Plain / Graphite (neutral, no tint at all), plus Sepia, a
-// warm reading page, and Nord, arctic blue, with no pair of their own. Paper and
-// Ink, the paper pair, are the defaults. The colors live
+// their own three palettes (Settings → Appearance, the Theme commands):
+// Paper / Ink (paper and blue ink; Ink is the dark paper), the defaults;
+// Sepia, a warm reading page, and Nord, arctic blue; and Quartz / Onyx,
+// neutral with no tint, a bright blue caret and selection, and headings in
+// the ink. The colors live
 // in theme-palettes.scss, keyed by <html data-light-theme / data-dark-theme>;
 // the first palette of each list is the default, set on <html> before the
 // first paint (layout.tsx) when nothing else was picked. Paper and Ink are
 // the plain globals.scss tokens, with no block of their own.
 // The swatch values here only draw the picker's previews.
 
-export type LightTheme = "paper" | "sepia" | "solarized" | "plain";
-export type DarkTheme = "ink" | "nord" | "solarized" | "graphite";
+export type LightTheme = "paper" | "sepia" | "quartz";
+export type DarkTheme = "ink" | "nord" | "onyx";
 
 export interface ThemePalette<T extends string> {
   value: T;
@@ -34,16 +34,10 @@ export const LIGHT_THEMES: ThemePalette<LightTheme>[] = [
     swatch: { surface: "#F4ECD8", chrome: "#E8DEC6", fg: "#4F3D2C", accent: "#5E6624" },
   },
   {
-    value: "solarized",
-    label: "Solarized",
-    description: "Classic cream",
-    swatch: { surface: "#FDF6E3", chrome: "#EEE8D5", fg: "#073642", accent: "#1A6BA6" },
-  },
-  {
-    value: "plain",
-    label: "Plain",
-    description: "Neutral white",
-    swatch: { surface: "#FCFCFC", chrome: "#F1F1F1", fg: "#1C1C1C", accent: "#2B2B2B" },
+    value: "quartz",
+    label: "Quartz",
+    description: "Neutral page, blue caret",
+    swatch: { surface: "#F7F7F7", chrome: "#EDEDED", fg: "#1F1F1F", accent: "#15BDEC" },
   },
 ];
 
@@ -61,22 +55,26 @@ export const DARK_THEMES: ThemePalette<DarkTheme>[] = [
     swatch: { surface: "#2E3440", chrome: "#262B35", fg: "#ECEFF4", accent: "#88C0D0" },
   },
   {
-    value: "solarized",
-    label: "Solarized",
-    description: "Classic deep teal",
-    swatch: { surface: "#002B36", chrome: "#00222B", fg: "#EEE8D5", accent: "#5AABE3" },
-  },
-  {
-    value: "graphite",
-    label: "Graphite",
-    description: "Neutral dark",
-    swatch: { surface: "#1C1C1E", chrome: "#111112", fg: "#E9E9EB", accent: "#C8C8CC" },
+    value: "onyx",
+    label: "Onyx",
+    description: "Neutral dark, blue caret",
+    swatch: { surface: "#1A1A1A", chrome: "#101010", fg: "#DADADA", accent: "#2CC4F0" },
   },
 ];
 
 // Palettes from earlier versions, moved to their closest current one.
-const LEGACY_LIGHT_THEMES: Record<string, LightTheme> = { sage: "paper", porcelain: "plain" };
-const LEGACY_DARK_THEMES: Record<string, DarkTheme> = { midnight: "nord", dusk: "ink" };
+const LEGACY_LIGHT_THEMES: Record<string, LightTheme> = {
+  sage: "paper",
+  porcelain: "quartz",
+  plain: "quartz",
+  solarized: "sepia",
+};
+const LEGACY_DARK_THEMES: Record<string, DarkTheme> = {
+  midnight: "nord",
+  dusk: "ink",
+  graphite: "onyx",
+  solarized: "nord",
+};
 
 export const DEFAULT_LIGHT_THEME: LightTheme = "paper";
 export const DEFAULT_DARK_THEME: DarkTheme = "ink";

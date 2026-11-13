@@ -213,3 +213,18 @@
   border-bottom-left-radius: 8px;
   border-bottom-right-radius: 8px;
 }
+
+/* Quartz / Onyx (theme-palettes.scss): colours only. A heading keeps its
+   size and weight and is set in the ink, not the accent; list markers are
+   ink too, as typed. */
+html[data-light-theme="quartz"]:not(.dark),
+html.dark[data-dark-theme="onyx"] {
+  .editor-sheet.editor-container .cm-line.cm-heading,
+  .editor-sheet.editor-container .cm-line.cm-heading .text-sage {
+    color: var(--fg);
+  }
+
+  .editor-sheet.editor-container .cm-listMarker:not(.cm-listTask) {
+    color: var(--fg);
+  }
+}

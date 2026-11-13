@@ -124,10 +124,10 @@ export default function LandingPage() {
       <section className={SECTION} aria-labelledby="landing-theme">
         <div className="max-w-3xl space-y-4">
           <h2 id="landing-theme" className={H2}>
-            Pick your paper.
+            Pick your theme.
           </h2>
           <p className={`text-lg ${BODY}`}>
-            Four light and four dark themes. Change them any time.
+            Three light and three dark themes. Change them any time.
           </p>
         </div>
         <div className="mt-10">

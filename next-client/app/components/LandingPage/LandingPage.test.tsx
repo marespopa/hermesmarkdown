@@ -80,7 +80,7 @@ describe("LandingPage", () => {
         expect(screen.getByRole("heading", { level: 3, name: point.title })).toBeInTheDocument();
       }
     }
-    expect(screen.getByRole("heading", { level: 2, name: "Pick your paper." })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Pick your theme." })).toBeInTheDocument();
     for (const { q, a } of LANDING_FAQ) {
       expect(screen.getByText(q)).toBeInTheDocument();
       expect(screen.getByText(a)).toBeInTheDocument();
