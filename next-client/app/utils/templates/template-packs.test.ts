@@ -28,10 +28,16 @@ describe("built-in examples", () => {
     for (const template of examples) expect(template.body).not.toMatch(/^(file_name|target_folder):/m);
   });
 
-  it("ask for the attendees of a meeting and the owner of a project brief", () => {
-    const find = (name: string) => STARTER_TEMPLATES.find((t) => t.name === name)!.body!;
-    expect(expandTemplate(find("Meeting notes"), { ...ctx, prompts: { Attendees: "Design team" } }).text).toContain("attendees: Design team");
-    expect(expandTemplate(find("Project brief"), { ...ctx, prompts: { Owner: "Growth" } }).text).toContain("owner: Growth");
+  it("fill a note in one click: a title, the date, three sections, no questions or properties", () => {
+    for (const template of STARTER_TEMPLATES) {
+      const body = template.body!;
+      expect(body, template.name).not.toMatch(/\{\{\s*prompt:/);
+      expect(body.startsWith("# {{title}}\n{{date}}\n"), template.name).toBe(true);
+      expect(body.split("\n").filter((line) => line.startsWith("## ")), template.name).toHaveLength(3);
+      expect(body, template.name).not.toMatch(/\n\n\n/);
+    }
+    const { text } = expandTemplate(STARTER_TEMPLATES[0].body!, { ...ctx, title: "Meeting notes" });
+    expect(text.startsWith("# Meeting notes\n2026-10-12\n\n## Agenda\n- ")).toBe(true);
   });
 });
 

@@ -84,10 +84,10 @@ describe("useVaultTemplateInsert", () => {
     expect(view.state.doc.toString()).toBe(EXPANDED.text);
   });
 
-  it("uses an empty title in the draft", async () => {
+  it("titles a draft after the template, so its heading isn't empty", async () => {
     const { insert } = setup("", "draft");
     await act(() => insert());
-    expect(instantiate).toHaveBeenCalledWith("raw", "", "Insert", "");
+    expect(instantiate).toHaveBeenCalledWith("raw", "rfc", "Insert", "");
   });
 
   it("inserts nothing when the picker is cancelled", async () => {

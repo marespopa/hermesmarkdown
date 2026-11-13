@@ -25,11 +25,12 @@ export interface BuiltinPack {
   templates: BuiltinTemplate[];
 }
 
-const frontmatter = (fields: string[]) => ["---", ...fields, "---"];
-
+// Short on purpose: the first thing a new writer sees. A title, today's
+// date under it, and three sections; no questions to answer and no
+// properties block, so one click gives a note ready to type in.
 const MEETING_NOTES = [
-  ...frontmatter(["date: {{date}}", "attendees: {{prompt:Attendees}}"]),
   "# {{title}}",
+  "{{date}}",
   "",
   "## Agenda",
   "- {{cursor}}",
@@ -40,17 +41,11 @@ const MEETING_NOTES = [
   "## Action items",
   "- [ ] ",
   "",
-  "## Open questions",
-  "- ",
-  "",
-  "## Next steps",
-  "- ",
-  "",
 ].join("\n");
 
 const PROJECT_BRIEF = [
-  ...frontmatter(["owner: {{prompt:Owner}}", "status: Planned", "date: {{date}}"]),
   "# {{title}}",
+  "{{date}}",
   "",
   "## Goal",
   "{{cursor}}",
