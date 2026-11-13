@@ -16,7 +16,8 @@ const isHiddenSegment = (path: string) => path.split("/").some((s) => s.startsWi
 // cancelled; the choice is remembered for the next question.
 export function useAskSaveFolder() {
   const store = useStore();
-  const dialog = useDialog();
+  // `select` is stable; the object useDialog returns is new on every render.
+  const { select } = useDialog();
 
   return useCallback(async (title: string): Promise<string | null> => {
     const vault = store.get(atom_vaultHandle);
@@ -33,10 +34,10 @@ export function useAskSaveFolder() {
     const lastIndex = options.findIndex((option) => option.value === `${PATH_PREFIX}${last}`);
     if (lastIndex > 0) options.unshift(...options.splice(lastIndex, 1));
 
-    const chosen = await dialog.select("Choose a folder:", options, title);
+    const chosen = await select("Choose a folder:", options, title);
     if (!chosen) return null;
     const folder = chosen === ROOT_VALUE ? "" : String(chosen).slice(PATH_PREFIX.length);
     store.set(atom_lastSaveFolder, folder);
     return folder;
-  }, [store, dialog]);
+  }, [store, select]);
 }

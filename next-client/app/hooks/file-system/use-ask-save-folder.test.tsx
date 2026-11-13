@@ -69,4 +69,15 @@ describe("useAskSaveFolder", () => {
     expect(await ask()).toBeNull();
     expect(select).not.toHaveBeenCalled();
   });
+
+  // A new function each render would re-register the palette's Create row
+  // on every render, in an endless loop.
+  it("keeps the same function across renders", () => {
+    const store = createStore();
+    const wrapper = ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
+    const { result, rerender } = renderHook(() => useAskSaveFolder(), { wrapper });
+    const first = result.current;
+    rerender();
+    expect(result.current).toBe(first);
+  });
 });
