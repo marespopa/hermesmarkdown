@@ -31,7 +31,8 @@ function bodyOnly({ text, cursor }: ExpandedTemplate): ExpandedTemplate {
 // `/template` in the slash menu: pick a vault template, answer its prompts,
 // then insert it at the caret. An empty note gets the whole template
 // (frontmatter included); otherwise only the body. Called with a
-// template (the empty-note quick pills), it skips the picker. Selected text
+// template (the empty-note quick pills), it skips the picker. In a draft,
+// `{{title}}` is the template's name. Selected text
 // fills `{{selection}}` and the template replaces it.
 export function useVaultTemplateInsert({ viewRef, filePath }: UseVaultTemplateInsertOptions) {
   const store = useStore();
@@ -60,7 +61,9 @@ export function useVaultTemplateInsert({ viewRef, filePath }: UseVaultTemplateIn
       if (notice) toast.dismiss(notice);
     }
     const meta = filePath === "draft" ? undefined : store.get(atom_fileMetadata)[filePath];
-    const title = meta ? noteDisplayTitle(meta, false) : "";
+    // A draft has no name yet: `{{title}}` takes the template's, so the note
+    // starts with a real heading ("# Meeting notes"), not a bare `#`.
+    const title = meta ? noteDisplayTitle(meta, false) : chosen.name;
     const result = await instantiate(raw, title, "Insert", selection);
     if (!result) return;
     // The tab may have been switched or closed while the dialogs were open.

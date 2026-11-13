@@ -255,7 +255,7 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
                 filePath={leaf.activeFilePath || "draft"}
                 onWikiLinkClick={openOrCreateLink}
                 onFileLinkClick={(href) => void openFileLink(href, leaf.activeFilePath)}
-                placeholder={`Editing ${leaf.activeFilePath || "Draft"}...`}
+                placeholder="Type / for commands..."
               />
             )}
           </PrivateNoteGate>

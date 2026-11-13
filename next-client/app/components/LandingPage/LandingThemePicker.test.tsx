@@ -29,13 +29,13 @@ describe("LandingThemePicker", () => {
   it("picks a palette and a mode", () => {
     const store = renderPicker("light");
 
-    fireEvent.click(screen.getByRole("button", { name: "Plain theme" }));
-    expect(store.get(atom_lightTheme)).toBe("plain");
+    fireEvent.click(screen.getByRole("button", { name: "Quartz theme" }));
+    expect(store.get(atom_lightTheme)).toBe("quartz");
 
     fireEvent.click(screen.getByRole("button", { name: "Dark" }));
     expect(store.get(atom_theme)).toBe("dark");
-    fireEvent.click(screen.getByRole("button", { name: "Graphite theme" }));
-    expect(store.get(atom_darkTheme)).toBe("graphite");
+    fireEvent.click(screen.getByRole("button", { name: "Onyx theme" }));
+    expect(store.get(atom_darkTheme)).toBe("onyx");
   });
 
   it("shows both palettes under System", () => {

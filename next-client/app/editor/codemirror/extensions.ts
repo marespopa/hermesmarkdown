@@ -31,6 +31,7 @@ import { templateBlanks } from "./template-blanks";
 import { createWikiLinkTriggerPlugin, WikiLinkTriggerCallback } from "./wikilink-trigger";
 import { tableKeyBindings } from "./table-keymap";
 import { frontmatterSpacer } from "./frontmatter-block";
+import { paneTopScrollMargin } from "./pane-top-margin";
 import { markdownProblems } from "./markdown-problems";
 import { flowMode, type FlowLevel } from "./flow-mode";
 import { liveMarkers } from "./live-markers";
@@ -95,11 +96,9 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     opts.lineNumbersCompartment.of(opts.lineNumbers ? editorLineNumbers() : []),
     opts.invisiblesCompartment.of(opts.showInvisibles ? invisibles() : []),
     opts.flowModeCompartment.of(opts.flowMode ? flowMode(opts.flowMode) : []),
-    // Keep the caret clear of the editor's floating SearchPill when
-    // scrolling it into view (--pane-top-room, PaneLeaf; unset on mobile).
-    EditorView.scrollMargins.of((view) => ({
-      top: parseFloat(getComputedStyle(view.dom).getPropertyValue("--pane-top-room")) || 0,
-    })),
+    // Keep the caret clear of the pane's floating title when scrolling it
+    // into view, without hiding the first lines' menus (pane-top-margin.ts).
+    paneTopScrollMargin,
     history(),
     drawSelection(),
     // Multi-cursor: Mod-d adds the next match, Mod-Shift-l selects every

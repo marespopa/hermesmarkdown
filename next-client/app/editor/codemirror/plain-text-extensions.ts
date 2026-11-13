@@ -10,6 +10,7 @@ import { codeEditing, codeGutters } from "./code-editing";
 import { editorFilePath, formatCodeKeymap } from "./format-code-command";
 import { invisibles } from "./invisibles";
 import { findReplace } from "./find-replace";
+import { paneTopScrollMargin } from "./pane-top-margin";
 import type { BuildExtensionsOptions } from "./extensions";
 
 // Code and other text files (utils/file-kinds.ts) in the same editor, as
@@ -37,9 +38,7 @@ export function buildPlainTextExtensions(opts: BuildExtensionsOptions): Extensio
     opts.lineNumbersCompartment.of(codeGutters(!!opts.codeLanguage)),
     opts.invisiblesCompartment.of(opts.showInvisibles ? invisibles() : []),
     opts.flowModeCompartment.of([]),
-    EditorView.scrollMargins.of((view) => ({
-      top: parseFloat(getComputedStyle(view.dom).getPropertyValue("--pane-top-room")) || 0,
-    })),
+    paneTopScrollMargin,
     history(),
     drawSelection(),
     EditorState.allowMultipleSelections.of(true),

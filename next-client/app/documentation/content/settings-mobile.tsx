@@ -10,16 +10,16 @@ export const settingsGroup: Group = {
       id: "appearance",
       title: "Appearance",
       lead: "Pick a theme, the font you write in and the text size.",
-      keywords: "theme palette colors solarized sepia paper plain nord ink graphite dark light font code font monospace syntax typography text size sidebar layout full width focus",
+      keywords: "theme palette colors sepia paper quartz nord ink onyx neutral dark light font code font monospace syntax typography text size sidebar layout full width focus",
       body: (
         <>
           <p>
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically.
-            Each mode has its own color theme: Paper (the default), Sepia, Solarized or Plain for light,
-            and Ink (the default), Nord, Solarized or Graphite for dark. Paper and Ink are paper and blue ink (Ink is
-            the dark paper); Sepia is a warm cream page for long reading; Plain and Graphite are neutral, with no tint. Every theme has a faint paper grain. You can also pick them on the
+            Each mode has its own color theme: Paper (the default), Sepia or Quartz for light,
+            and Ink (the default), Nord or Onyx for dark. Paper and Ink are paper and blue ink (Ink is
+            the dark paper); Sepia is a warm cream page for long reading; Quartz and Onyx are neutral, with no tint, a bright blue caret and selection, headings in the text color rather than the accent, and quiet code colors. Every theme has a faint paper grain. You can also pick them on the
             home page before you start. Each theme has its own accent hue, kept to the
             caret, text selection, focus rings, toggles and selections; icons and buttons stay quiet ink on paper. In code blocks, keywords take that accent, and
             strings, numbers and function names each get a color of their own from the theme. Settings → Appearance shows the colors for the
@@ -35,7 +35,7 @@ export const settingsGroup: Group = {
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
-              { label: "Light / Dark theme", value: "Paper, Sepia, Solarized, Plain / Ink, Nord, Solarized, Graphite" },
+              { label: "Light / Dark theme", value: "Paper, Sepia, Quartz / Ink, Nord, Onyx" },
               { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Show/Hide Sidebar: navigation and the vault's files on the window's left edge, on every editor page (desktop)" },
               { label: "Typeface", value: "Quattro by default, Duospace or Geist Mono" },
               { label: "Code font", value: "Geist Mono by default, JetBrains Mono, Fira Code or your system's monospace" },
