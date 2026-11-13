@@ -188,9 +188,9 @@ describe("MarkdownEditor", () => {
   });
 
   it("shows the placeholder text when empty", async () => {
-    const { container } = renderEditor("", { placeholder: "Type / for templates" });
+    const { container } = renderEditor("", { placeholder: "Type / for commands..." });
     await waitForEditor(container);
-    expect(screen.getByText("Type / for templates")).toBeInTheDocument();
+    expect(screen.getByText("Type / for commands...")).toBeInTheDocument();
   });
 
   it("includes a Mermaid template in the slash menu list", () => {

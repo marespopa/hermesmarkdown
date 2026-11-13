@@ -613,7 +613,24 @@ ul li::marker {
   pointer-events: none;
 }
 
+/* The "where your files live" bar (FolderPrompt) floats over the note, on a
+   phone right where the first lines are, so it covered the editor's menus
+   (the `/` commands, emoji, template fields). While one is open the bar is
+   put away, and comes back when the menu closes. */
+.folder-prompt {
+  transition: opacity 120ms var(--ease-spring), visibility 0s;
+}
+body:has(.cm-tooltip-autocomplete) .folder-prompt {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms var(--ease-spring), visibility 0s 120ms;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .folder-prompt,
+  body:has(.cm-tooltip-autocomplete) .folder-prompt {
+    transition: none;
+  }
   .cm-content.cm-template-in,
   .template-preview-in,
   .template-quick-pills[data-state="open"] {

@@ -15,7 +15,9 @@ interface FolderPromptProps {
   placement?: "bottom" | "top";
 }
 
-const barBase = "fixed inset-x-0 z-30 flex justify-center px-4 pointer-events-none";
+// `folder-prompt`: steps aside while the editor's `/` menu is open, which it
+// would otherwise cover (globals.scss).
+const barBase = "folder-prompt fixed inset-x-0 z-30 flex justify-center px-4 pointer-events-none";
 const barPlacement = {
   bottom: "bottom-[calc(env(safe-area-inset-bottom)+1rem)]",
   top: "top-[3.25rem]",

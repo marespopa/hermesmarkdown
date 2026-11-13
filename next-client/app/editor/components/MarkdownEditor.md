@@ -34,7 +34,7 @@ import MarkdownEditor from "./MarkdownEditor";
 | value | `string` |  | Document text. A change from outside the editor (a reload, a line AI Chat added to this note) is applied as the one changed range (`changedRange` in `utils/text-diff.ts`), so the selection, scroll and undo history map through it |
 | onChange | `(value: string) => void` |  | Change handler |
 | filePath? | `string` | `"draft"` | Vault path (for image paste, scroll targets and formula refs) |
-| placeholder? | `string` | `"Type / for templates"` | Empty-state text |
+| placeholder? | `string` | `"Type / for commands..."` | Empty-state text |
 | onWikiLinkClick? | `(name: string) => void` |  | `[[link]]` navigation (`PaneLeaf` passes `openOrCreateLink`, which also creates missing notes) |
 | onFileLinkClick? | `(href: string) => void` |  | Markdown links to a vault path, `[Editor](./app/editor/README.md)` (`PaneLeaf` passes `openFileLink` with the note's path; a missing file is reported, never created). Ctrl/Cmd+click, the link pill and table cells' rendered links all reach it |
 | isActivePane? | `boolean` |  | Pane context |

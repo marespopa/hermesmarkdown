@@ -239,7 +239,7 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
     vimMode,
     flowMode,
     onOpenActiveHelperRef: openActiveHelperRef,
-    placeholder: props.placeholder || "Type / for templates",
+    placeholder: props.placeholder || "Type / for commands...",
     onFocusChange: setIsEditorFocused,
     onCursorActivity: onCombinedCursorActivity,
     onViewportChange,
