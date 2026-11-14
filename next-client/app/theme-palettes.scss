@@ -4,11 +4,11 @@
 /* ─── Color themes ───────────────────────────────────────────────────────────
    Alternative palettes for each mode (app/theme-palettes.ts). ThemeProvider
    keeps both picks on <html data-light-theme data-dark-theme>; the light one
-   applies without `.dark`, the dark one with it. Three a mode: Paper /
+   applies without `.dark`, the dark one with it. Three a mode: Quartz /
+   Onyx, neutral with no tint and a bright blue caret and selection; Paper /
    Ink, grey-white paper and blue ink (Ink is the dark paper), the plain
-   globals.scss tokens with no block here; Sepia, a warm cream reading
-   page, and Nord, arctic blue; and Quartz / Onyx, neutral with no tint and
-   a bright blue caret and selection. Paper and Ink are the defaults
+   globals.scss tokens with no block here; and Sepia, a warm cream reading
+   page, and Nord, arctic blue. Quartz and Onyx are the defaults
    (DEFAULT_*_THEME, set on <html> before the first paint). Every
    page carries the paper grain (editor.scss). Each palette
    keeps --fg-faint and the accents at ≥4.5:1 on surface, raised and chrome.

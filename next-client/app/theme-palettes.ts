@@ -1,9 +1,9 @@
 // Color themes per mode: the light mode and the dark mode each pick one of
 // their own three palettes (Settings → Appearance, the Theme commands):
-// Paper / Ink (paper and blue ink; Ink is the dark paper), the defaults;
-// Sepia, a warm reading page, and Nord, arctic blue; and Quartz / Onyx,
-// neutral with no tint, a bright blue caret and selection, and headings in
-// the ink. The colors live
+// Quartz / Onyx, the defaults: neutral with no tint, a bright blue caret and
+// selection, and headings in the ink; Paper / Ink (paper and blue ink; Ink
+// is the dark paper); and Sepia, a warm reading page, and Nord, arctic
+// blue. The colors live
 // in theme-palettes.scss, keyed by <html data-light-theme / data-dark-theme>;
 // the first palette of each list is the default, set on <html> before the
 // first paint (layout.tsx) when nothing else was picked. Paper and Ink are
@@ -22,6 +22,12 @@ export interface ThemePalette<T extends string> {
 
 export const LIGHT_THEMES: ThemePalette<LightTheme>[] = [
   {
+    value: "quartz",
+    label: "Quartz",
+    description: "Neutral page, blue caret",
+    swatch: { surface: "#F7F7F7", chrome: "#EDEDED", fg: "#1F1F1F", accent: "#15BDEC" },
+  },
+  {
     value: "paper",
     label: "Paper",
     description: "Grey-white paper, blue ink",
@@ -33,15 +39,15 @@ export const LIGHT_THEMES: ThemePalette<LightTheme>[] = [
     description: "Warm cream, for reading",
     swatch: { surface: "#F4ECD8", chrome: "#E8DEC6", fg: "#4F3D2C", accent: "#5E6624" },
   },
-  {
-    value: "quartz",
-    label: "Quartz",
-    description: "Neutral page, blue caret",
-    swatch: { surface: "#F7F7F7", chrome: "#EDEDED", fg: "#1F1F1F", accent: "#15BDEC" },
-  },
 ];
 
 export const DARK_THEMES: ThemePalette<DarkTheme>[] = [
+  {
+    value: "onyx",
+    label: "Onyx",
+    description: "Neutral dark, blue caret",
+    swatch: { surface: "#1A1A1A", chrome: "#101010", fg: "#DADADA", accent: "#2CC4F0" },
+  },
   {
     value: "ink",
     label: "Ink",
@@ -53,12 +59,6 @@ export const DARK_THEMES: ThemePalette<DarkTheme>[] = [
     label: "Nord",
     description: "Arctic blue",
     swatch: { surface: "#2E3440", chrome: "#262B35", fg: "#ECEFF4", accent: "#88C0D0" },
-  },
-  {
-    value: "onyx",
-    label: "Onyx",
-    description: "Neutral dark, blue caret",
-    swatch: { surface: "#1A1A1A", chrome: "#101010", fg: "#DADADA", accent: "#2CC4F0" },
   },
 ];
 
@@ -76,8 +76,8 @@ const LEGACY_DARK_THEMES: Record<string, DarkTheme> = {
   solarized: "nord",
 };
 
-export const DEFAULT_LIGHT_THEME: LightTheme = "paper";
-export const DEFAULT_DARK_THEME: DarkTheme = "ink";
+export const DEFAULT_LIGHT_THEME: LightTheme = "quartz";
+export const DEFAULT_DARK_THEME: DarkTheme = "onyx";
 
 // Stored values come from localStorage, so a palette from an earlier version
 // moves to its closest current one, and anything else unknown (a

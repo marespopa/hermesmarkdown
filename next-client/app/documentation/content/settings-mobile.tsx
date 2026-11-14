@@ -17,8 +17,8 @@ export const settingsGroup: Group = {
             System/light/dark theme controls are available in Settings → Appearance and from the
             command palette (<strong>Theme: Light</strong>, <strong>Theme: Dark</strong>,{" "}
             <strong>Theme: System</strong>). System follows your operating system automatically.
-            Each mode has its own color theme: Paper (the default), Sepia or Quartz for light,
-            and Ink (the default), Nord or Onyx for dark. Paper and Ink are paper and blue ink (Ink is
+            Each mode has its own color theme: Quartz (the default), Paper or Sepia for light,
+            and Onyx (the default), Ink or Nord for dark. Paper and Ink are paper and blue ink (Ink is
             the dark paper); Sepia is a warm cream page for long reading; Quartz and Onyx are neutral, with no tint, a bright blue caret and selection, headings in the text color rather than the accent, and quiet code colors. Every theme has a faint paper grain. You can also pick them on the
             home page before you start. Each theme has its own accent hue, kept to the
             caret, text selection, focus rings, toggles and selections; icons and buttons stay quiet ink on paper. In code blocks, keywords take that accent, and
@@ -35,7 +35,7 @@ export const settingsGroup: Group = {
           <KV
             rows={[
               { label: "Theme", value: "Settings → Appearance" },
-              { label: "Light / Dark theme", value: "Paper, Sepia, Quartz / Ink, Nord, Onyx" },
+              { label: "Light / Dark theme", value: "Quartz, Paper, Sepia / Onyx, Ink, Nord" },
               { label: "Sidebar", value: "The Sidebar button, CTRL/CMD+\\, CTRL/CMD+ALT+S or Show/Hide Sidebar: navigation and the vault's files on the window's left edge, on every editor page (desktop)" },
               { label: "Typeface", value: "Quattro by default, Duospace or Geist Mono" },
               { label: "Code font", value: "Geist Mono by default, JetBrains Mono, Fira Code or your system's monospace" },

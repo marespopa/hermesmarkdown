@@ -47,10 +47,10 @@ describe("ThemeProvider", () => {
   });
 
   it("keeps the pre-painted palettes until storage hydrates, never the defaults", async () => {
-    document.documentElement.dataset.lightTheme = "quartz";
-    document.documentElement.dataset.darkTheme = "onyx";
-    window.localStorage.setItem("lightTheme", JSON.stringify("quartz"));
-    window.localStorage.setItem("darkTheme", JSON.stringify("onyx"));
+    document.documentElement.dataset.lightTheme = "sepia";
+    document.documentElement.dataset.darkTheme = "nord";
+    window.localStorage.setItem("lightTheme", JSON.stringify("sepia"));
+    window.localStorage.setItem("darkTheme", JSON.stringify("nord"));
     const seen: string[] = [];
     const observer = new MutationObserver(() => {
       seen.push(`${document.documentElement.dataset.lightTheme}/${document.documentElement.dataset.darkTheme}`);
@@ -66,12 +66,12 @@ describe("ThemeProvider", () => {
     );
 
     await waitFor(() => {
-      expect(document.documentElement.dataset.lightTheme).toBe("quartz");
-      expect(document.documentElement.dataset.darkTheme).toBe("onyx");
+      expect(document.documentElement.dataset.lightTheme).toBe("sepia");
+      expect(document.documentElement.dataset.darkTheme).toBe("nord");
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
     observer.disconnect();
-    expect(seen.filter((v) => v.startsWith("paper/") || v.endsWith("/ink"))).toEqual([]);
+    expect(seen.filter((v) => v.startsWith("quartz/") || v.endsWith("/onyx"))).toEqual([]);
   });
 
   describe("syncThemeColor", () => {
