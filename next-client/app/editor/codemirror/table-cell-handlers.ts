@@ -6,7 +6,7 @@ import { detectDelimitedTable, parseDelimitedText } from "../utils/table-manipul
 import { altHint, caretOffsetIn, expandCalcInCell, matchByWrapper, openCellLink, refreshHandles, renderCell, rulersByWrapper, selectionOffsetsIn, setCaretOffset, toDisplay, toRaw } from "./table-cell-dom";
 import { addColumnAction, addRowAction, appendRowAction, copyCSVAction, copyJSONAction, findTableInState, insertColumnLeftAction, insertRowAboveAction, moveColumnAction, moveRowAction, normalizeTableSource, pasteGridAction, removeColumnAction, removeRowAction, removeTableAction, setAlignmentAction, sortColumnAction, sumColumnAction, TABLE_INSERT_KEYS } from "./table-commands";
 import type { TableDisplayMatch } from "./table-display";
-import { CELL_ATTR, cellKey, exitTable, focusCellElement, focusTableCellAt, getTableHandle, placeCaret, TABLE_WIDGET_CLASS } from "./table-focus";
+import { CELL_ATTR, cellKey, continueBelowTable, exitTable, focusCellElement, focusTableCellAt, getTableHandle, placeCaret, TABLE_WIDGET_CLASS } from "./table-focus";
 import { closeTableMenu, createTableRulers, showTableMenu, type TableMenuEntry } from "./table-handles";
 import { editTableSource } from "./table-source";
 
@@ -294,7 +294,11 @@ export function attachCellHandlers(wrapper: HTMLElement, view: EditorView) {
       } else if (mod) {
         const info = tableInfoFor(el);
         if (info) addRowAction(view, info);
-      } else if (!mod && !focus(cellAt(cell.row + 1, cell.col))) {
+      } else if (event.shiftKey) {
+        // Done with the table: on to a paragraph of its own below it.
+        const handle = getTableHandle(wrapper);
+        if (handle) continueBelowTable(view, handle);
+      } else if (!focus(cellAt(cell.row + 1, cell.col))) {
         const info = tableInfoFor(el);
         if (info) appendRowAction(view, info);
       }

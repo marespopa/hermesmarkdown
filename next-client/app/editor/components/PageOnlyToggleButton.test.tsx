@@ -7,11 +7,11 @@ import { atom_pageOnly } from "@/app/atoms/ui-atoms";
 import PageOnlyToggleButton from "./PageOnlyToggleButton";
 
 describe("PageOnlyToggleButton", () => {
-  it("is a pressed-state button that turns No Distraction Mode on and off", () => {
+  it("is a pressed-state button that turns Focus on and off", () => {
     const store = createStore();
     const Wrapper = ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>;
     render(<PageOnlyToggleButton />, { wrapper: Wrapper });
-    const button = screen.getByRole("button", { name: "No distraction mode" });
+    const button = screen.getByRole("button", { name: "Focus" });
     expect(button).toHaveAttribute("aria-pressed", "false");
     fireEvent.click(button);
     expect(button).toHaveAttribute("aria-pressed", "true");

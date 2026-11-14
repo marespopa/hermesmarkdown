@@ -82,9 +82,47 @@ export function focusTableCellOrEditor(view: EditorView, pos: number) {
   if (!focusTableCellAt(view, pos)) view.focus();
 }
 
+// Shift+Enter in a cell: done with the table, on with the text. The caret
+// goes to an empty line below the table with a blank line on each side of
+// it, adding only the lines that are missing, so what is typed next is a
+// paragraph of its own: a line directly under a table is read as another
+// row, and one directly above text joins that text. One undo step.
+export function continueBelowTable(view: EditorView, handle: Pick<TableWidgetHandle, "to">) {
+  const { doc } = view.state;
+  const blank = (n: number) => n <= doc.lines && doc.line(n).text.trim() === "";
+  const last = doc.lineAt(handle.to).number;
+  let at: number;
+  let insert: string;
+  let caret: number;
+  if (last === doc.lines) {
+    // The table ends the note.
+    [at, insert, caret] = [handle.to, "\n\n", handle.to + 2];
+  } else if (!blank(last + 1)) {
+    [at, insert, caret] = [handle.to, "\n\n\n", handle.to + 2];
+  } else {
+    const gap = doc.line(last + 1);
+    if (last + 1 === doc.lines) [at, insert, caret] = [gap.to, "\n", gap.to + 1];
+    else if (!blank(last + 2)) [at, insert, caret] = [gap.to, "\n\n", gap.to + 1];
+    else {
+      // Two blank lines already: use the second, with a blank under it.
+      const line = doc.line(last + 2);
+      [at, insert, caret] = [line.to, last + 2 === doc.lines || blank(last + 3) ? "" : "\n", line.from];
+    }
+  }
+  view.dispatch({
+    changes: insert ? { from: at, insert } : undefined,
+    selection: EditorSelection.cursor(caret),
+    scrollIntoView: true,
+    userEvent: "input",
+  });
+  view.focus();
+}
+
 // Leaves a table from the keyboard: puts the CM caret on the line just
 // above/below it, creating an empty line when the table touches the start
-// or end of the document so there's always somewhere to land.
+// or end of the document so there's always somewhere to land. At the end of
+// the note that is a blank line and then the caret's line, so text typed
+// there doesn't become another row.
 export function exitTable(view: EditorView, handle: Pick<TableWidgetHandle, "from" | "to">, side: "before" | "after") {
   const { doc } = view.state;
   if (side === "after") {
@@ -92,8 +130,8 @@ export function exitTable(view: EditorView, handle: Pick<TableWidgetHandle, "fro
       view.dispatch({ selection: EditorSelection.cursor(handle.to + 1), scrollIntoView: true });
     } else {
       view.dispatch({
-        changes: { from: doc.length, insert: "\n" },
-        selection: EditorSelection.cursor(doc.length + 1),
+        changes: { from: doc.length, insert: "\n\n" },
+        selection: EditorSelection.cursor(doc.length + 2),
         scrollIntoView: true,
       });
     }

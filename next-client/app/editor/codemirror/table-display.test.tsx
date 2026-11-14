@@ -432,6 +432,30 @@ describe("tableDisplayExtension", () => {
     expect(tableSource(view)?.rows).toEqual([["1", "2"]]);
   });
 
+  it("leaves the table for a paragraph of its own on Shift+Enter", async () => {
+    const TABLE = "| A | B |\n| --- | --- |\n| 1 | 2 |";
+    const cases: [string, string, number][] = [
+      // after the table → the note after Shift+Enter, caret offset from the table's end
+      ["", "\n\n", 2],
+      ["\n", "\n\n", 2],
+      ["\n\nText", "\n\n\n\nText", 2],
+      ["\n\n", "\n\n", 2],
+      ["\n\n\nText", "\n\n\n\nText", 2],
+    ];
+    for (const [after, expected, caret] of cases) {
+      const view = makeView(TABLE + after);
+      const cell = await cellAt(view, "2:1");
+      act(() => {
+        fireEvent.keyDown(cell, { key: "Enter", shiftKey: true });
+      });
+      await flush();
+
+      expect(view.state.doc.toString()).toBe(TABLE + expected);
+      expect(view.state.selection.main.head).toBe(TABLE.length + caret);
+      expect(tableSource(view)?.rows).toEqual([["1", "2"]]);
+    }
+  });
+
   it("opens the pipe source with Ctrl/Cmd+Shift+Enter from a cell", async () => {
     const doc = "| A | B |\n| --- | --- |\n| 1 | 2 |";
     const view = makeView(doc);

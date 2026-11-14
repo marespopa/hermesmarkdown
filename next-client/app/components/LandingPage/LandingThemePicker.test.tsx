@@ -19,23 +19,23 @@ describe("LandingThemePicker", () => {
   // The picks persist to localStorage, which the next test would read.
   beforeEach(() => window.localStorage.clear());
 
-  it("shows the light palettes in light mode, Paper picked by default", () => {
+  it("shows the light palettes in light mode, Quartz picked by default", () => {
     renderPicker("light");
 
-    expect(screen.getByRole("button", { name: "Paper theme" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Quartz theme" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.queryByRole("button", { name: "Nord theme" })).not.toBeInTheDocument();
   });
 
   it("picks a palette and a mode", () => {
     const store = renderPicker("light");
 
-    fireEvent.click(screen.getByRole("button", { name: "Quartz theme" }));
-    expect(store.get(atom_lightTheme)).toBe("quartz");
+    fireEvent.click(screen.getByRole("button", { name: "Sepia theme" }));
+    expect(store.get(atom_lightTheme)).toBe("sepia");
 
     fireEvent.click(screen.getByRole("button", { name: "Dark" }));
     expect(store.get(atom_theme)).toBe("dark");
-    fireEvent.click(screen.getByRole("button", { name: "Onyx theme" }));
-    expect(store.get(atom_darkTheme)).toBe("onyx");
+    fireEvent.click(screen.getByRole("button", { name: "Nord theme" }));
+    expect(store.get(atom_darkTheme)).toBe("nord");
   });
 
   it("shows both palettes under System", () => {
@@ -43,6 +43,6 @@ describe("LandingThemePicker", () => {
 
     expect(screen.getByRole("heading", { name: "Light" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Dark" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Ink theme" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Onyx theme" })).toHaveAttribute("aria-pressed", "true");
   });
 });

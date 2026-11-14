@@ -37,7 +37,7 @@ describe("usePageOnly", () => {
     const { store } = setup();
     act(() => store.set(atom_pageOnly, true));
     expect(toast).toHaveBeenCalledTimes(1);
-    expect(toast.mock.calls[0][0]).toMatch(/No Distraction Mode · .*Z or the top edge to leave/);
+    expect(toast.mock.calls[0][0]).toMatch(/Focus · .*Z or the top edge to leave/);
     act(() => store.set(atom_pageOnly, false));
     expect(toast).toHaveBeenCalledTimes(1);
   });
@@ -46,7 +46,7 @@ describe("usePageOnly", () => {
     vi.stubGlobal("matchMedia", (query: string) => ({ matches: query === "(hover: none)" }));
     const { store } = setup();
     act(() => store.set(atom_pageOnly, true));
-    expect(toast.mock.calls[0][0]).toBe("No Distraction Mode · tap the top edge to leave");
+    expect(toast.mock.calls[0][0]).toBe("Focus · tap the top edge to leave");
     vi.unstubAllGlobals();
   });
 

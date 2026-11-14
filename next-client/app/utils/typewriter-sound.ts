@@ -45,6 +45,18 @@ export function typewriterInputKind(event: Pick<InputEvent, "inputType" | "data"
   }
 }
 
+// Which sound an EditContext's `textupdate` makes, or null for no sound.
+// Where the editor takes its text through an EditContext (Chrome on Android),
+// typed text never reaches `beforeinput`: it arrives here, as the text that
+// replaces a range. Fewer characters than it replaced is a delete, and a
+// composition written again unchanged is silent.
+export function typewriterTextUpdateKind(update: { text: string; updateRangeStart: number; updateRangeEnd: number }, composing = ""): TypewriterKey | null {
+  const replaced = Math.abs(update.updateRangeEnd - update.updateRangeStart);
+  if (update.text.length < replaced) return "back";
+  if (replaced > 0 && update.text === composing) return null;
+  return textKind(update.text);
+}
+
 function textKind(text: string): TypewriterKey | null {
   if (!text) return null;
   const last = text[text.length - 1];

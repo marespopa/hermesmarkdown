@@ -28,7 +28,7 @@ export const TOP_LEVEL_ACTIONS = [
   "ai-menu",
   "new-file",
   "insert-template",
-  "toggle-focus-mode",
+  "toggle-focus",
 ];
 export const TOP_LEVEL_PAGES = [
   "open-tasks-panel",

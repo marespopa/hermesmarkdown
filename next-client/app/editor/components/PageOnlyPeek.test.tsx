@@ -30,7 +30,7 @@ afterEach(() => {
 });
 
 describe("PageOnlyPeek", () => {
-  it("is there outside No Distraction Mode too: the corner buttons rest invisible", () => {
+  it("is there outside Focus too: the corner buttons rest invisible", () => {
     setup(false);
     expect(screen.getByTestId("page-only-peek")).toBeInTheDocument();
   });

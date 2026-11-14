@@ -101,6 +101,20 @@ describe("buildEditorCommands", () => {
     expect(noVault.some((c) => c.id === "new-board")).toBe(false);
   });
 
+  it("offers Convert Board to Note only for a board", () => {
+    expect(buildEditorCommands(createContext()).some((c) => c.id === "convert-board-to-note")).toBe(false);
+
+    const asBoard = createContext({
+      activeIsBoard: true,
+      boardMarkdownPaths: new Set<string>(),
+      convertBoardToNote: vi.fn(),
+    } as unknown as Partial<EditorCommandContext>);
+    const convert = buildEditorCommands(asBoard).find((c) => c.id === "convert-board-to-note")!;
+    expect(convert.label).toBe("Convert Board to Note");
+    convert.action();
+    expect(asBoard.convertBoardToNote).toHaveBeenCalledWith("Note.md");
+  });
+
   it("offers the board toggle only for a board, flipping its label", () => {
     expect(buildEditorCommands(createContext()).some((c) => c.id === "toggle-board-markdown")).toBe(false);
 

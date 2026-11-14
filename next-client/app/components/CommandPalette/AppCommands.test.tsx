@@ -117,6 +117,7 @@ describe("AppCommands and SettingsCommands", () => {
   it("offers every palette of each mode and disables the current ones", () => {
     const store = createStore();
     store.set(atom_lightTheme, "paper");
+    store.set(atom_darkTheme, "ink");
     renderCommands(store);
 
     for (const id of ["paper", "sepia", "quartz"]) expect(command(`set-light-theme-${id}`)).toBeDefined();
@@ -138,7 +139,7 @@ describe("AppCommands and SettingsCommands", () => {
     expect(command("toggle-line-numbers")?.label).toBe("Enable Line Numbers");
   });
 
-  it("toggles word wrap and sets the Focus level from the palette", () => {
+  it("toggles word wrap and sets Focus Dimming from the palette", () => {
     const store = createStore();
     store.set(atom_wordWrap, true);
     renderCommands(store);
@@ -149,10 +150,12 @@ describe("AppCommands and SettingsCommands", () => {
     expect(command("toggle-flow-mode")).toBeUndefined();
     expect(command("toggle-hide-chrome-while-typing")).toBeUndefined();
     expect(command("set-focus-hide")).toBeUndefined();
+    expect(command("toggle-focus-mode")).toBeUndefined();
+    expect(command("toggle-sentence-focus")).toBeUndefined();
     expect(["set-focus-off", "set-focus-dim", "set-focus-sentence"].map((id) => command(id)?.label)).toEqual([
-      "Focus: Off",
-      "Focus: Dim other paragraphs",
-      "Focus: Dim other sentences",
+      "Focus Dimming: Off",
+      "Focus Dimming: Other paragraphs",
+      "Focus Dimming: Other sentences",
     ]);
     expect(command("set-focus-off")?.disabledReason).toBe("Current setting");
     act(() => { void command("set-focus-dim")?.action(); });

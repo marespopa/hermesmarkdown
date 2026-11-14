@@ -335,7 +335,7 @@ html.dark {
   }
 }
 
-/* No Distraction Mode (editor/hooks/use-page-only.ts): while <html
+/* Focus (editor/hooks/use-page-only.ts): while <html
    data-page-only> is set, the chrome that carries `.page-only-hide` is
    hidden and the shell's frame (`.page-only-room`, EditorShell) gives up the
    sidebar's and the companion's room, so the page grows into it on the layout

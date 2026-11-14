@@ -52,7 +52,7 @@ describe("LandingPage", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "Markdown notes and code, right in your browser.",
+        name: "Only your words. The rest stays out of the way.",
       }),
     ).toBeInTheDocument();
     expect(
@@ -95,16 +95,16 @@ describe("LandingPage", () => {
     );
   });
 
-  it("loads no video until Watch the video is pressed", () => {
+  it("shows the typing loop in the hero, with no embed", () => {
     const { container } = render(
       <Provider store={createStore()}>
         <LandingPage />
       </Provider>,
     );
 
+    expect(screen.getByRole("img", { name: /note being typed/ })).toBeInTheDocument();
     expect(container.querySelector("iframe")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Watch the video" }));
-    expect(container.querySelector("iframe")).not.toBeNull();
+    expect(screen.queryByRole("button", { name: "Watch the video" })).not.toBeInTheDocument();
   });
 
   it("opens the editor from the primary action", () => {

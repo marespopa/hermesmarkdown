@@ -13,7 +13,7 @@ export function isPageOnlyShortcut(event: KeyboardEvent): boolean {
   return (event.ctrlKey || event.metaKey) && event.altKey && !event.shiftKey && event.code === "KeyZ" && !event.defaultPrevented;
 }
 
-// No Distraction Mode: marks <html> while it is on (one attribute, so turning
+// Focus: marks <html> while it is on (one attribute, so turning
 // it on re-renders nothing), answers Ctrl/Cmd+Alt+Z, and says once, quietly,
 // how to get back, since nothing is left on screen to click (the shortcut, or
 // the top edge, PageOnlyPeek). `enabled` is
@@ -33,7 +33,7 @@ export function usePageOnly(enabled: boolean) {
       // No keyboard on a touch screen: the top edge is the way back.
       const touch = window.matchMedia?.("(hover: none)").matches;
       const how = touch ? "tap the top edge to leave" : `${formatShortcut("Z", { alt: true })} or the top edge to leave`;
-      toast(`No Distraction Mode · ${how}`, { id: "page-only", duration: 3000 });
+      toast(`Focus · ${how}`, { id: "page-only", duration: 3000 });
     }
     wasOn.current = pageOnly;
   }, [pageOnly, enabled]);

@@ -29,6 +29,16 @@ const input = (target: Element, inputType: string, data: string | null = null) =
 // What an on-screen keyboard sends before each `beforeinput`.
 const unnamedKey = (target: Element) => fireEvent.keyDown(target, { key: "Unidentified", keyCode: 229 });
 
+// An editor that takes its text through an EditContext: typed text arrives
+// as `textupdate` on that object, never as `beforeinput` on the page.
+function withEditContext(editor: Element) {
+  const editContext = new EventTarget();
+  Object.assign(editor, { editContext });
+  const textUpdate = (text: string, updateRangeStart: number, updateRangeEnd: number) =>
+    editContext.dispatchEvent(Object.assign(new Event("textupdate"), { text, updateRangeStart, updateRangeEnd }));
+  return { editContext, textUpdate };
+}
+
 describe("TypewriterSound", () => {
   afterEach(() => {
     sound.play.mockClear();
@@ -42,6 +52,31 @@ describe("TypewriterSound", () => {
     fireEvent.keyDown(editor, { key: "a" });
     fireEvent.keyDown(editor, { key: "Enter" });
     expect(sound.play.mock.calls.map(([kind]) => kind)).toEqual(["key", "return"]);
+  });
+
+  it("clicks for text typed through the editor's EditContext", () => {
+    const { editor } = setup();
+    const { editContext, textUpdate } = withEditContext(editor);
+    unnamedKey(editor);
+    textUpdate("w", 0, 0);
+    unnamedKey(editor);
+    textUpdate("wo", 0, 1);
+    unnamedKey(editor);
+    textUpdate("w", 0, 2);
+    editContext.dispatchEvent(new Event("compositionend"));
+    textUpdate(" ", 1, 1);
+    expect(sound.play.mock.calls.map(([kind]) => kind)).toEqual(["key", "key", "back", "space"]);
+  });
+
+  it("hears an EditContext from focus alone, and stops when turned off", () => {
+    const { editor, store } = setup();
+    const { textUpdate } = withEditContext(editor);
+    fireEvent.focusIn(editor);
+    textUpdate("a", 0, 0);
+    expect(sound.play).toHaveBeenCalledTimes(1);
+    React.act(() => store.set(atom_typewriterSound, false));
+    textUpdate("ab", 0, 1);
+    expect(sound.play).toHaveBeenCalledTimes(1);
   });
 
   it("is silent for shortcuts and for typing outside the editor", () => {

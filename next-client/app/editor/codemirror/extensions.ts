@@ -21,6 +21,7 @@ import { renderedBlockExtension } from "./rendered-block";
 import { noteEmbedsExtension } from "./note-embeds";
 import { embedGhost } from "./embed-ghost";
 import { shortcodeExpandPlugin } from "./shortcode-expand";
+import { headingSpace } from "./heading-space";
 import { noteCalcExtension } from "./note-calc";
 import { createSlashMenuSource, SlashMenuCallbacks } from "./slash-menu";
 import { createEmojiSource } from "./emoji-completion";
@@ -135,6 +136,8 @@ export function buildExtensions(opts: BuildExtensionsOptions): Extension[] {
     embedGhost(() => opts.slashMenuCallbacksRef.current.embedFiles?.() ?? []),
     noteCalcExtension,
     shortcodeExpandPlugin,
+    // `#` at the start of a line brings its space: `# `.
+    headingSpace,
     createWikiLinkTriggerPlugin(opts.wikiLinkTriggerRef),
     opts.vimModeCompartment.of(opts.vimMode ? loadedVim()?.vim() ?? [] : []),
     autocompletion({

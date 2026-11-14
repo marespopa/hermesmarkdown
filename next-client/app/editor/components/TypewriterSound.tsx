@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useAtomValue } from "jotai";
 import { atom_typewriterSound, atom_typewriterVolume } from "@/app/atoms/ui-atoms";
-import { createTypewriterSound, type TypewriterSound as SoundEngine, typewriterInputKind, typewriterKeyNamed, typewriterKind } from "@/app/utils/typewriter-sound";
+import { createTypewriterSound, type TypewriterSound as SoundEngine, typewriterInputKind, typewriterKeyNamed, typewriterKind, typewriterTextUpdateKind } from "@/app/utils/typewriter-sound";
 
 // A typewriter click for each key typed in the note (Settings → Editor →
 // Writing: Off, Quiet, Normal or Loud; or the palette's Enable/Disable
@@ -15,8 +15,13 @@ import { createTypewriterSound, type TypewriterSound as SoundEngine, typewriterI
 // Two events, one click: a keydown that names its key (a hardware keyboard)
 // is heard there, since the editor's keymap cancels the input of Enter and
 // Backspace. An on-screen keyboard sends unnamed keydowns, or none at all
-// when swiping, so its typing is heard from `beforeinput`.
+// when swiping, so its typing is heard from `beforeinput`. Where the editor
+// takes its text through an EditContext (Chrome on Android) typed text skips
+// `beforeinput` too, so the focused editor's EditContext is heard as well.
 const SAME_KEY_MS = 50;
+
+type EditContextHost = Element & { editContext?: EventTarget | null };
+type TextUpdate = Event & { text?: string; updateRangeStart?: number; updateRangeEnd?: number };
 
 export default function TypewriterSound() {
   const enabled = useAtomValue(atom_typewriterSound);
@@ -31,8 +36,34 @@ export default function TypewriterSound() {
     let namedAt = -Infinity;
     let composing = "";
     const inEditor = (event: Event) => event.target instanceof Element && !!event.target.closest(".cm-content");
+    const onTextUpdate = (event: TextUpdate) => {
+      const text = event.text ?? "";
+      const kind = typewriterTextUpdateKind({ text, updateRangeStart: event.updateRangeStart ?? 0, updateRangeEnd: event.updateRangeEnd ?? 0 }, composing);
+      composing = text;
+      if (performance.now() - namedAt < SAME_KEY_MS) return;
+      if (kind) sound.play(kind);
+    };
+    const onCompositionEnd = () => {
+      composing = "";
+    };
+    // The EditContext being listened to: the one of the editor last typed in
+    // or focused. It isn't in the document, so its events don't bubble here.
+    let heard: EventTarget | null = null;
+    const hear = (target: EventTarget | null) => {
+      const host: EditContextHost | null = target instanceof Element ? target.closest(".cm-content") : null;
+      const editContext = host?.editContext ?? null;
+      if (!host || editContext === heard) return;
+      heard?.removeEventListener("textupdate", onTextUpdate);
+      heard?.removeEventListener("compositionend", onCompositionEnd);
+      heard = editContext;
+      heard?.addEventListener("textupdate", onTextUpdate);
+      heard?.addEventListener("compositionend", onCompositionEnd);
+    };
+    const onFocusIn = (event: FocusEvent) => hear(event.target);
     const onKeyDown = (event: KeyboardEvent) => {
-      if (!inEditor(event) || !typewriterKeyNamed(event)) return;
+      if (!inEditor(event)) return;
+      hear(event.target);
+      if (!typewriterKeyNamed(event)) return;
       namedAt = performance.now();
       if (event.repeat && event.key !== "Backspace" && event.key !== "Delete") return;
       const kind = typewriterKind(event);
@@ -46,13 +77,15 @@ export default function TypewriterSound() {
       if (performance.now() - namedAt < SAME_KEY_MS) return;
       if (kind) sound.play(kind);
     };
-    const onCompositionEnd = () => {
-      composing = "";
-    };
+    hear(document.activeElement);
+    document.addEventListener("focusin", onFocusIn);
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("beforeinput", onBeforeInput);
     document.addEventListener("compositionend", onCompositionEnd);
     return () => {
+      heard?.removeEventListener("textupdate", onTextUpdate);
+      heard?.removeEventListener("compositionend", onCompositionEnd);
+      document.removeEventListener("focusin", onFocusIn);
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("beforeinput", onBeforeInput);
       document.removeEventListener("compositionend", onCompositionEnd);

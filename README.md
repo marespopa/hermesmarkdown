@@ -32,7 +32,7 @@ See [next-client/ARCHITECTURE.md](next-client/ARCHITECTURE.md) for the detailed 
 
 - Open an existing folder or create a new vault; create, rename, move, duplicate, and delete Markdown files and folders.
 - Browse files in Files, the sidebar's vault tree (**Show Files**, `Ctrl/Cmd+Shift+E`; full screen on phones), open them in the editor with tabs, and see every task on the vault-wide Tasks page.
-- Be alone with the page: **No Distraction Mode** (the palette, or `Ctrl/Cmd+Alt+Z`) hides the sidebar, AI companion, buttons, file name, outline and word count, and the page takes their room.
+- Be alone with the page: **Focus** (the palette, or `Ctrl/Cmd+Alt+Z`) hides the sidebar, AI companion, buttons, file name, outline and word count, and the page takes their room.
 - Use the command-first quick switcher (`Ctrl/Cmd+P` or `Shift` twice) to find files by name, and its prefixes to search tags (`#`), commands (`>`), tasks (`!`), headings in the current note (`@`), and note text across the vault (`/`, case-insensitive, all words must match; private notes are never listed). Pin up to five items with `Ctrl/Cmd+D`.
 - External file changes are detected by polling (and immediately when the window regains focus). If both local and external edits exist, a conflict dialog lets you accept the incoming version, keep yours, or resolve them in a merge editor.
 - Git stays outside the browser: keep a disk vault in a repository and commit, pull and push with your own tools; `.git` and tool folders are never listed.
@@ -46,7 +46,7 @@ See [next-client/ARCHITECTURE.md](next-client/ARCHITECTURE.md) for the detailed 
 - Click checkboxes to toggle tasks and click lifecycle tags to cycle their status. Dates and `@priority` annotations render as pills.
 - Fenced code blocks receive syntax highlighting. Mermaid diagrams and display math (`$$ … $$` or a ```` ```math ```` fence, rendered with KaTeX) are shown rendered in the editor. Double-click one, or press `Ctrl/Cmd+Shift+Enter` beside it, to edit its source with a live preview. Mermaid diagrams can also open in a viewer with zoom and SVG download.
 - Inline calculator: write `rent = 1200`, `utilities = 180`, then `rent + utilities`, and a faint `= 1380` appears at the end of the line. It supports named values, `450 + 15%` and `15% of 200`. Results are only displayed, and the file keeps just what you typed.
-- Optional flow mode (Settings → Editor or the command palette): fades everything but the paragraph you are writing and keeps the current line centered on screen.
+- Optional dimming in Focus (Settings → Editor → Focus Dimming, or the command palette): fades everything but the paragraph or sentence you are writing and keeps the current line centered on screen.
 - Paste or drop images; they are saved to the vault's `assets/` folder and linked.
 - Optional AI (bring your own Anthropic or Gemini key, off until you turn it on): a companion panel (`Ctrl/Cmd+J`, or Ask AI on a selection) with `@note` / `@folder` / `@vault` references, attachments and follow-ups, and rewrite actions on selected text. It reads and edits notes by proposing changes only; you accept or reject each change in a diff before anything is written.
 

@@ -2,8 +2,9 @@
 
 import React, { useCallback } from "react";
 import { useAtomValue, useSetAtom, useStore } from "jotai";
-import { HiOutlineClipboardCopy, HiOutlineCode, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
+import { HiOutlineClipboardCopy, HiOutlineCode, HiOutlineDocumentText, HiOutlinePencil, HiOutlineTrash } from "react-icons/hi";
 import { TbPinned, TbPinnedFilled } from "react-icons/tb";
+import { useConvertBoardToNote } from "./use-convert-board-to-note";
 import { atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
 import { atom_liveHandles, atom_openFiles } from "@/app/atoms/atoms";
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
@@ -17,7 +18,7 @@ import type { TabContextMenuItem } from "../components/TabContextMenu";
 import { usePaneFileActions } from "./use-pane-file-actions";
 
 // The open note's menu, opened from the pane's title: Copy Contents, Edit as Markdown /
-// Open as Board for a board, Pin / Unpin; then Rename… and Move to Trash for
+// Open as Board and Convert to Note for a board, Pin / Unpin; then Rename… and Move to Trash for
 // a vault note; then Close, Close Others and Close All (of `leaf`).
 export function useNoteMenuItems(leaf: PanelLeaf | null) {
   const store = useStore();
@@ -25,6 +26,7 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
   const { isPinned: isPinnedAs, togglePin } = usePins();
   const boardMarkdownPaths = useAtomValue(atom_boardMarkdownPaths);
   const toggleBoardMarkdown = useSetAtom(atom_toggleBoardMarkdown);
+  const convertBoardToNote = useConvertBoardToNote();
   const { renameFile, deleteFile } = useFileSystem();
   const { buildTabMenuItems } = usePaneFileActions(leaf);
 
@@ -50,6 +52,11 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
         label: boardMarkdownPaths.has(path) ? "Open as Board" : "Edit as Markdown",
         icon: <HiOutlineCode size={15} />,
         onClick: () => toggleBoardMarkdown(path),
+      });
+      items.push({
+        label: "Convert to Note",
+        icon: <HiOutlineDocumentText size={15} />,
+        onClick: () => void convertBoardToNote(path),
       });
     }
     // Notes in the vault can be pinned (the sidebar's Pinned section, first
@@ -88,5 +95,5 @@ export function useNoteMenuItems(leaf: PanelLeaf | null) {
     const closeItems = buildTabMenuItems(path);
     closeItems[0] = { ...closeItems[0], divider: true };
     return [...items, ...closeItems];
-  }, [store, hasVault, isPinnedAs, togglePin, boardMarkdownPaths, toggleBoardMarkdown, renameFile, deleteFile, buildTabMenuItems]);
+  }, [store, hasVault, isPinnedAs, togglePin, boardMarkdownPaths, toggleBoardMarkdown, convertBoardToNote, renameFile, deleteFile, buildTabMenuItems]);
 }

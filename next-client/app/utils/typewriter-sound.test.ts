@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { TYPEWRITER_GAIN, createTypewriterSound, typewriterInputKind, typewriterKeyNamed, typewriterKind } from "./typewriter-sound";
+import { TYPEWRITER_GAIN, createTypewriterSound, typewriterInputKind, typewriterKeyNamed, typewriterKind, typewriterTextUpdateKind } from "./typewriter-sound";
 
 const key = (overrides: Partial<Parameters<typeof typewriterKind>[0]>) =>
   typewriterKind({ key: "a", ctrlKey: false, metaKey: false, altKey: false, isComposing: false, ...overrides });
@@ -31,6 +31,29 @@ describe("typewriterKeyNamed", () => {
     expect(typewriterKeyNamed({ key: "Unidentified", keyCode: 229, isComposing: false })).toBe(false);
     expect(typewriterKeyNamed({ key: "Process", keyCode: 229, isComposing: false })).toBe(false);
     expect(typewriterKeyNamed({ key: "a", keyCode: 65, isComposing: true })).toBe(false);
+  });
+});
+
+describe("typewriterTextUpdateKind", () => {
+  const kind = (text: string, updateRangeStart: number, updateRangeEnd: number, composing?: string) =>
+    typewriterTextUpdateKind({ text, updateRangeStart, updateRangeEnd }, composing);
+
+  it("sounds for text typed or composed, by its last character", () => {
+    expect(kind("a", 4, 4)).toBe("key");
+    expect(kind("wor", 4, 6, "wo")).toBe("key");
+    expect(kind(" ", 7, 7, "wor")).toBe("space");
+    expect(kind("\n", 7, 7)).toBe("return");
+    expect(kind("a", 4, 4, "a")).toBe("key");
+  });
+
+  it("sounds a delete when the text got shorter", () => {
+    expect(kind("", 3, 4)).toBe("back");
+    expect(kind("wo", 4, 7, "wor")).toBe("back");
+  });
+
+  it("is silent for a composition written again unchanged, and for nothing", () => {
+    expect(kind("wor", 4, 7, "wor")).toBeNull();
+    expect(kind("", 4, 4)).toBeNull();
   });
 });
 

@@ -10,7 +10,7 @@ import { SelectControl, SettingGroup, SettingItem } from "../components/SettingC
 import { FOCUS_OPTIONS } from "../focus-options";
 import { TYPEWRITER_OPTIONS } from "../typewriter-options";
 
-// Settings → Editor: the Writing group (Vim mode, Focus, Word Count,
+// Settings → Editor: the Writing group (Vim mode, Focus Dimming, Word Count,
 // Typewriter Sound) and the View group (Outline). Word wrap, line numbers,
 // and invisibles are command-palette toggles only (SettingsCommands).
 export default function EditorSettings() {
@@ -29,10 +29,10 @@ export default function EditorSettings() {
           control={<Toggle variant="soft" active={vimMode} onChange={setVimMode} />}
         />
         <SettingItem
-          label="Focus"
-          description="Dim every paragraph (or sentence) but the one you're in, and keep your line centered."
+          label="Focus Dimming"
+          description="While Focus is on, dim every paragraph (or sentence) but the one you're in, and keep your line centered."
           control={
-            <SelectControl value={focusMode} onChange={(value) => setFocusMode(value as FocusMode)} ariaLabel="Focus">
+            <SelectControl value={focusMode} onChange={(value) => setFocusMode(value as FocusMode)} ariaLabel="Focus Dimming">
               {FOCUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>{option.label}</option>
               ))}

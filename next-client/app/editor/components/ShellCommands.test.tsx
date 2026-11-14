@@ -46,13 +46,13 @@ describe("ShellCommands", () => {
     expect(store.get(atom_companionOpen)).toBe(true);
   });
 
-  it("switches No Distraction Mode on and off, the label following", async () => {
+  it("switches Focus on and off, the label following", async () => {
     const { store, seen } = setup(true);
-    expect(seen.current["toggle-no-distraction"].label).toBe("No Distraction Mode");
-    seen.current["toggle-no-distraction"].action();
+    expect(seen.current["toggle-focus"].label).toBe("Enter Focus");
+    seen.current["toggle-focus"].action();
     expect(store.get(atom_pageOnly)).toBe(true);
-    await waitFor(() => expect(seen.current["toggle-no-distraction"].label).toBe("Exit No Distraction Mode"));
-    seen.current["toggle-no-distraction"].action();
+    await waitFor(() => expect(seen.current["toggle-focus"].label).toBe("Exit Focus"));
+    seen.current["toggle-focus"].action();
     expect(store.get(atom_pageOnly)).toBe(false);
   });
 

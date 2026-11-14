@@ -141,7 +141,7 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("button", { name: "Hide from lists" })).toBeInTheDocument();
   });
 
-  it("offers one Focus setting with three levels, none of them hiding the interface", () => {
+  it("offers one Focus Dimming setting with three levels", () => {
     const setFocusMode = vi.fn();
     (useAtom as any).mockImplementation((atom: any) => {
       if (atom === atom_focusMode) return ["off", setFocusMode];
@@ -152,12 +152,12 @@ describe("SettingsPage", () => {
 
     expect(screen.queryByText("Flow Mode")).not.toBeInTheDocument();
     expect(screen.queryByText("Hide Interface While Typing")).not.toBeInTheDocument();
-    const focus = screen.getByRole("combobox", { name: "Focus" });
+    const focus = screen.getByRole("combobox", { name: "Focus Dimming" });
     expect(focus).toHaveValue("off");
     expect(Array.from((focus as HTMLSelectElement).options).map((option) => option.text)).toEqual([
       "Off",
-      "Dim other paragraphs",
-      "Dim other sentences",
+      "Other paragraphs",
+      "Other sentences",
     ]);
     fireEvent.change(focus, { target: { value: "dim" } });
     expect(setFocusMode).toHaveBeenCalledWith("dim");

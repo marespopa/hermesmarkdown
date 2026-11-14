@@ -79,6 +79,17 @@ describe("PaneLeaf with a board", () => {
     expect(screen.getByTestId("board-view")).toBeInTheDocument();
   });
 
+  it("converts a board back to a note from its title menu", async () => {
+    renderPane(BOARD);
+    fireEvent.contextMenu(screen.getByText("Sketch"));
+    fireEvent.click(screen.getByText("Convert to Note"));
+
+    expect(await screen.findByTestId("markdown-editor")).toBeInTheDocument();
+    expect(screen.queryByTestId("board-view")).not.toBeInTheDocument();
+    fireEvent.contextMenu(screen.getByText("Sketch"));
+    expect(screen.queryByText("Convert to Note")).not.toBeInTheDocument();
+  });
+
   it("doesn't offer Edit as Markdown for a normal note", () => {
     renderPane("# Plain note", "Plain.md");
     fireEvent.contextMenu(screen.getByText("Plain"));

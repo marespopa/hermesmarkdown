@@ -7,7 +7,7 @@ import { useRegisterCommand } from "@/app/components/CommandPalette/CommandPalet
 import { formatShortcut } from "@/app/utils/platform";
 
 // The shell's own palette commands: show / hide the sidebar and the AI
-// companion, and No Distraction Mode. EditorShell mounts it on every route that has them, so they work
+// companion, and Focus. EditorShell mounts it on every route that has them, so they work
 // with no note open too; `hasCompanion` is false until AI is set up.
 export default function ShellCommands({ hasCompanion }: { hasCompanion: boolean }) {
   const [sidebarOpen, setSidebarOpen] = useAtom(atom_sidebarOpen);
@@ -22,9 +22,9 @@ export default function ShellCommands({ hasCompanion }: { hasCompanion: boolean 
     action: () => setSidebarOpen(!sidebarOpen),
   });
   useRegisterCommand({
-    id: "toggle-no-distraction",
-    label: pageOnly ? "Exit No Distraction Mode" : "No Distraction Mode",
-    keywords: "zen focus quiet clean hide sidebar companion outline word count writing full screen minimal just the page distraction free",
+    id: "toggle-focus",
+    label: pageOnly ? "Exit Focus" : "Enter Focus",
+    keywords: "toggle zen quiet clean hide sidebar companion outline word count writing full screen minimal just the page no distraction free mode dim paragraph sentence typewriter",
     shortcut: formatShortcut("Z", { alt: true }),
     action: () => setPageOnly(!pageOnly),
   });
