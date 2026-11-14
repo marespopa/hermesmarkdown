@@ -74,7 +74,7 @@ describe("TypewriterSound", () => {
     fireEvent.focusIn(editor);
     textUpdate("a", 0, 0);
     expect(sound.play).toHaveBeenCalledTimes(1);
-    store.set(atom_typewriterSound, false);
+    React.act(() => store.set(atom_typewriterSound, false));
     textUpdate("ab", 0, 1);
     expect(sound.play).toHaveBeenCalledTimes(1);
   });
