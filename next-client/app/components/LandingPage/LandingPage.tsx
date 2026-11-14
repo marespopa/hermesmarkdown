@@ -12,7 +12,7 @@ import Toast from "@/app/components/Toast";
 import { FiFileText } from "react-icons/fi";
 import FloatingStartButton from "./FloatingStartButton";
 import LandingThemePicker from "./LandingThemePicker";
-import LandingVideo from "./LandingVideo";
+import LandingLoop from "./LandingLoop";
 import { LANDING_FAQ, LANDING_SCENES } from "./landing-content";
 
 const SECTION = "container max-w-screen-xl border-t border-black/5 py-20 dark:border-white/10";
@@ -68,13 +68,14 @@ export default function LandingPage() {
               Hermes&middot;Markdown
             </p>
             <h1 className="text-4xl font-bold leading-[1.1] tracking-tight md:text-5xl lg:text-6xl">
-              Markdown notes and code,{" "}
+              Only your words.{" "}
               <br />
-              <span className="text-[var(--link)]">right in your browser.</span>
+              <span className="text-[var(--link)]">The rest stays out of the way.</span>
             </h1>
             <p className="max-w-xl text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 md:text-xl">
-              A local-first editor that saves straight to your device. No
-              account, no cloud, nothing to install.
+              A minimal Markdown editor that runs in your browser and saves plain
+              files to your disk. No account, no cloud, nothing to install to
+              start.
             </p>
             <div ref={heroCtaRef} className="flex flex-col items-start gap-5 pt-2 sm:flex-row sm:items-center">
               <Button
@@ -93,10 +94,11 @@ export default function LandingPage() {
               </TextLink>
             </div>
             <p className="text-ui-footnote text-fg-faint">
-              Private by default. Your work stays in files you control.
+              Free, and private by default. Nothing you write leaves your device
+              unless you turn on AI.
             </p>
           </div>
-          <LandingVideo />
+          <LandingLoop />
         </div>
       </section>
 
@@ -110,14 +112,16 @@ export default function LandingPage() {
             </h2>
             <p className={`text-lg ${BODY}`}>{scene.lead}</p>
           </div>
-          <ul className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
-            {scene.points.map((point) => (
-              <li key={point.title} className="space-y-2">
-                <h3 className="text-ui-callout font-semibold">{point.title}</h3>
-                <p className={BODY}>{point.body}</p>
-              </li>
-            ))}
-          </ul>
+          {scene.points.length > 0 && (
+            <ul className="mt-12 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+              {scene.points.map((point) => (
+                <li key={point.title} className="space-y-2">
+                  <h3 className="text-ui-callout font-semibold">{point.title}</h3>
+                  <p className={BODY}>{point.body}</p>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       ))}
 
