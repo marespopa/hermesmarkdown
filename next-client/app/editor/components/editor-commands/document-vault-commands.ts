@@ -12,6 +12,7 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
     boardMarkdownPaths,
     closeVault,
     activeIsBoard,
+    convertBoardToNote,
     createBoard,
     createFolder,
     createTemplate,
@@ -123,6 +124,14 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
           category: "Document" as const,
           keywords: "board markdown raw source json repair edit",
           action: () => toggleBoardMarkdown(activeFilePath),
+        }, {
+          // The way back to a plain note: takes the drawing and the board
+          // frontmatter out (asking first when there is a drawing).
+          id: "convert-board-to-note",
+          label: "Convert Board to Note",
+          category: "Document" as const,
+          keywords: "board note markdown plain text back undo remove drawing turn into md",
+          action: () => { void convertBoardToNote(activeFilePath); },
         }]
       : []),
     ...(activeFileHandle

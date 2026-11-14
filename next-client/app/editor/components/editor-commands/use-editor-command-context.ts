@@ -41,6 +41,7 @@ import { useFileSystem } from "@/app/hooks/use-file-system";
 import { supportsDirectoryInput } from "@/app/services/vault-archive";
 import { usePaneFileActions } from "../../hooks/use-pane-file-actions";
 import { useCreateBoard } from "../../hooks/use-create-board";
+import { useConvertBoardToNote } from "../../hooks/use-convert-board-to-note";
 import { atom_activeIsBoard, atom_boardMarkdownPaths, atom_toggleBoardMarkdown } from "@/app/atoms/board-atoms";
 import { useOpenCompanion } from "../companion/use-open-companion";
 
@@ -82,6 +83,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const createBoard = useCreateBoard(createFile);
   const boardMarkdownPaths = useAtomValue(atom_boardMarkdownPaths);
   const toggleBoardMarkdown = useSetAtom(atom_toggleBoardMarkdown);
+  const convertBoardToNote = useConvertBoardToNote();
   const vaultDescriptor = useAtomValue(atom_vaultDescriptor);
   const setBrowserVaultDialogOpen = useSetAtom(atom_browserVaultDialogOpen);
   const supportsFolderImport = supportsDirectoryInput();
@@ -131,6 +133,7 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     createBoard,
     boardMarkdownPaths,
     toggleBoardMarkdown,
+    convertBoardToNote,
     pinnedNotePaths,
     toggleNotePin,
     renameFile,
