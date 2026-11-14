@@ -55,8 +55,7 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "Back to the previous file (again to return)", shortcut: "CTRL/CMD+0" },
             { label: "Outline on / off", shortcut: "CTRL/CMD+SHIFT+M" },
             { label: "Show / hide sidebar", shortcut: "CTRL/CMD+\\, CTRL/CMD+ALT+S or CTRL+[" },
-            { label: "No Distraction Mode (on / off)", shortcut: "CTRL/CMD+ALT+Z" },
-            { label: "Sentence focus on / off", shortcut: "CTRL/CMD+ALT+F" },
+            { label: "Focus on / off", shortcut: "CTRL/CMD+ALT+Z" },
           ],
         },
         {
@@ -66,6 +65,7 @@ export const keyboardShortcutsItem: Subsection = {
             { label: "Cell below (adds a row at the end)", shortcut: "ENTER" },
             { label: "Move across cells, leave the table", shortcut: "ARROWS" },
             { label: "Leave the table", shortcut: "ESCAPE" },
+            { label: "New paragraph below the table", shortcut: "SHIFT+ENTER" },
             { label: "Insert row below", shortcut: "CTRL/CMD+ENTER" },
             { label: "Delete row", shortcut: "CTRL/CMD+SHIFT+BACKSPACE" },
             { label: "Move row up / down", shortcut: "ALT+↑ / ALT+↓" },

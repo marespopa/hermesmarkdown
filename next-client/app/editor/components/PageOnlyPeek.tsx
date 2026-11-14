@@ -14,7 +14,7 @@ export const PEEK_ROW_ATTRIBUTE = "data-page-only-row";
 export const PEEK_EDGE = 32;
 
 // The top-corner buttons rest invisible; the window's top edge brings them
-// back. In No Distraction Mode nothing is left on screen, so a hand on the
+// back. In Focus nothing is left on screen, so a hand on the
 // very top edge (a finished tap, or the mouse moving there) brings the
 // top-right row back for a few seconds: the button to leave the mode, and the
 // search pill that opens the palette. A press anywhere else puts it away

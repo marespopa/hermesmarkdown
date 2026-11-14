@@ -44,7 +44,7 @@ const COMMAND_ICONS: Record<string, IconType> = {
   "go-templates": HiOutlineTemplate,
   "open-tasks-panel": HiOutlineCheckCircle,
   "go-tasks": HiOutlineCheckCircle,
-  "toggle-focus-mode": HiOutlineEye,
+  "toggle-focus": HiOutlineEye,
   "open-settings": HiOutlineCog,
   "open-documentation": HiOutlineBookOpen,
 };

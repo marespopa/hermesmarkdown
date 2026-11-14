@@ -18,7 +18,7 @@
 }
 
 /* Full Width (Settings → Editor): the column fills the sheet, inside its
-   page margins. The sheet widens when No Distraction Mode gives the page
+   page margins. The sheet widens when Focus gives the page
    the sidebar's room (globals.scss), so full-width lines rewrap then. */
 .editor-sheet[data-full-width] {
   --editor-measure: 100%;

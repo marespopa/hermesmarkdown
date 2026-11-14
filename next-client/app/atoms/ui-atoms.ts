@@ -64,26 +64,14 @@ export const atom_showOutline = atomWithStorage<boolean>("showOutline", false);
 // reading width (--editor-measure, editor-typography.scss). Off by default:
 // lines stop at a comfortable reading width.
 export const atom_fullWidth = atomWithStorage<boolean>("fullWidth", false);
-// Focus (Settings → Editor): "dim" fades every paragraph but the caret's
-// and keeps the caret line centred (codemirror/flow-mode.ts); "sentence" is
-// "dim" narrowed to the caret's sentence. Off by default. Focus never hides
-// the interface: the sidebar and the toolbar go away only when you close
-// them. A "hide" saved by an older version reads as "off".
+// Focus Dimming (Settings → Editor): what Focus (atom_pageOnly) dims while
+// it is on. "dim" fades every paragraph but the caret's and keeps the caret
+// line centred (codemirror/flow-mode.ts); "sentence" is "dim" narrowed to
+// the caret's sentence. Off by default: Focus then only hides the interface.
+// Nothing dims outside Focus. A "hide" saved by an older version reads as "off".
 export const FOCUS_MODES = ["off", "dim", "sentence"] as const;
 export type FocusMode = (typeof FOCUS_MODES)[number];
 export const atom_focusMode = atomWithChoiceStorage<FocusMode>("focusMode", FOCUS_MODES, "off");
-// Enable/Disable Sentence Focus (Ctrl/Cmd+Alt+F): sentence focus on, or back to the
-// level used before it ("off" when there was none).
-const atom_focusBeforeSentence = atom<FocusMode>("off");
-export const atom_toggleSentenceFocus = atom(null, (get, set) => {
-  const current = get(atom_focusMode);
-  if (current === "sentence") {
-    set(atom_focusMode, get(atom_focusBeforeSentence));
-    return;
-  }
-  set(atom_focusBeforeSentence, current);
-  set(atom_focusMode, "sentence");
-});
 // The window's sidebar (desktop): open notes and the vault's file tree, on the
 // leading edge. Hidden by default; toggled from its corner button, Ctrl/Cmd+\\ or Ctrl/Cmd+Alt+S.
 export const atom_sidebarOpen = atomWithStorage<boolean>("sidebarOpen", false);
@@ -99,10 +87,11 @@ export const atom_sidebarWidth = atom(
   (get) => clampSidebarWidth(get(atom_sidebarWidthStored)),
   (_get, set, width: number) => set(atom_sidebarWidthStored, clampSidebarWidth(width)),
 );
-// No Distraction Mode (the button in the editor's top-right row, the palette,
+// Focus (the button in the editor's top-right row, the palette,
 // Ctrl/Cmd+Alt+Z): just you and the page. The sidebar, AI companion, corner
 // buttons, file name, outline and word count are hidden and the page takes
-// their room (`data-page-only` on <html>, editor/hooks/use-page-only.ts).
+// their room (`data-page-only` on <html>, editor/hooks/use-page-only.ts),
+// and the note dims as atom_focusMode says (MarkdownEditor).
 // Session only: a reload shows the interface as you left it.
 export const atom_pageOnly = atom(false);
 // Sidebar sections the user folded (by title: "Pinned", "Files"), remembered.

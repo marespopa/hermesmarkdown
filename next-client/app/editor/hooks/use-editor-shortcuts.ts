@@ -3,7 +3,7 @@ import type React from "react";
 import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { atom_companionOpen } from "@/app/atoms/companion-atoms";
 import { openSearchPanel } from "@codemirror/search";
-import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_keyboardShortcutsOpen, atom_showOutline, atom_toggleSentenceFocus, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_activeEditorView, atom_aiBuilderRequest, atom_isAiConfigured, atom_keyboardShortcutsOpen, atom_showOutline, atom_vimMode } from "@/app/atoms/ui-atoms";
 import { useCommandPalette } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { useShowFiles } from "@/app/hooks/use-show-files";
 import { isCloseTabShortcut, isNewFileShortcut } from "../utils/tab-shortcuts";
@@ -19,7 +19,7 @@ interface EditorShortcutOptions {
 }
 
 // Window-level editor shortcuts (Show Files, search, new note, close tab,
-// outline, sentence focus, the AI menu, AI chat, save, undo flush, shortcut help). Show / hide sidebar is
+// outline, the AI menu, AI chat, save, undo flush, shortcut help). Show / hide sidebar is
 // EditorShell's, so it works on every /editor route. Editor-local keys live in CodeMirror's
 // keymaps, which run first — so a key CodeMirror handled arrives here with
 // defaultPrevented set.
@@ -37,7 +37,6 @@ export function useEditorShortcuts({
   const activeEditorView = useAtomValue(atom_activeEditorView);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);
-  const toggleSentenceFocus = useSetAtom(atom_toggleSentenceFocus);
   const setShowOutline = useSetAtom(atom_showOutline);
   const setKeyboardShortcutsOpen = useSetAtom(atom_keyboardShortcutsOpen);
   // Desktop shows the sidebar's Files tree; mobile leaves for the Files page
@@ -99,12 +98,6 @@ export function useEditorShortcuts({
         setShowOutline((on) => !on);
       }
 
-      // Sentence focus on / off (Ctrl/Cmd+Alt+F).
-      if ((e.ctrlKey || e.metaKey) && e.altKey && !e.shiftKey && e.code === "KeyF") {
-        e.preventDefault();
-        toggleSentenceFocus();
-      }
-
       // Ask AI (Ctrl/Cmd+J): opens the AI companion with the note in front
       // and its selection, or closes it when it's open.
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "j" && !e.defaultPrevented && isAiConfigured) {
@@ -133,5 +126,5 @@ export function useEditorShortcuts({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeEditorView, setShowOutline, toggleSentenceFocus, setKeyboardShortcutsOpen, closeTabWithAutosave, flush, isAiConfigured, store, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, showFiles, saveRef, newFileRef]);
+  }, [activeEditorView, setShowOutline, setKeyboardShortcutsOpen, closeTabWithAutosave, flush, isAiConfigured, store, setAiBuilderRequest, activeTabPath, vimMode, openCommandPalette, showFiles, saveRef, newFileRef]);
 }

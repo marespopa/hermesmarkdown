@@ -226,7 +226,7 @@ tags: []
         <p>
           With nothing typed it lists your pinned and recent files, then a short menu of what you
           reach for most: <strong>Search in Files…</strong> (file text), <strong>Ask AI</strong>,{" "}
-          <strong>New File</strong>, <strong>Insert template…</strong>, <strong>Enable/Disable Focus Mode</strong>;
+          <strong>New File</strong>, <strong>Insert template…</strong>, <strong>Enter Focus</strong>;
           then, set apart, the pages it can take you to: <strong>Open Tasks</strong>,{" "}
           <strong>Open Templates</strong>, <strong>Open Settings</strong> and <strong>Open Documentation</strong>.
           An arrow marks a row that opens another page; <strong>Open Documentation</strong> opens in a new
@@ -311,8 +311,8 @@ tags: []
             { label: "Theme: Light / Dark / System", value: "—" },
             { label: "Light Theme: … / Dark Theme: …", value: "The palette each mode uses" },
             { label: "Enable/Disable Full Width / Word Wrap / Line Numbers / Invisibles / Word Count / Vim Mode", value: "—" },
-            { label: "Enable/Disable Focus Mode", value: "Dim other paragraphs, or turn Focus off" },
-            { label: "Focus: …", value: "Off, or dim other paragraphs or sentences" },
+            { label: "Enter Focus / Exit Focus", value: "Just you and the page" },
+            { label: "Focus Dimming: …", value: "What Focus dims: nothing, other paragraphs or other sentences" },
             { label: "Settings", value: "Editor Font, Text Size, Autosave, Open Settings" },
           ]}
         />

@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { atom_wordWrap, atom_isEditorFocused } from "@/app/atoms/atoms";
-import { atom_aiBuilderRequest, atom_focusMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_vimMode } from "@/app/atoms/ui-atoms";
+import { atom_aiBuilderRequest, atom_focusMode, atom_fullWidth, atom_isAiConfigured, atom_lineNumbers, atom_pageOnly, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_vimMode } from "@/app/atoms/ui-atoms";
 import type { TemplateEntry } from "@/app/utils/templates/template-registry";
 import { useAtom } from "jotai";
 import { EditorView } from "@codemirror/view";
@@ -76,10 +76,11 @@ export default function MarkdownEditor(props: MarkdownEditorProps) {
   const showOutline = useAtomValue(atom_showOutline);
   const showInvisibles = useAtomValue(atom_showInvisibles);
   const vimMode = useAtomValue(atom_vimMode);
-  // Paragraph or sentence dimming and typewriter scrolling: the two
-  // strongest Focus levels.
+  // Paragraph or sentence dimming and typewriter scrolling, only while
+  // Focus is on (Focus Dimming says which, or neither).
+  const focusOn = useAtomValue(atom_pageOnly);
   const focusMode = useAtomValue(atom_focusMode);
-  const flowMode = focusMode === "dim" ? "paragraph" : focusMode === "sentence" ? "sentence" : false;
+  const flowMode = !focusOn ? false : focusMode === "dim" ? "paragraph" : focusMode === "sentence" ? "sentence" : false;
   const fullWidth = useAtomValue(atom_fullWidth);
   const isAiConfigured = useAtomValue(atom_isAiConfigured);
   const setAiBuilderRequest = useSetAtom(atom_aiBuilderRequest);

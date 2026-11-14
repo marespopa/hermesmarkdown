@@ -62,8 +62,8 @@ export function isSidebarToggleShortcut(event: KeyboardEvent): boolean {
 // of every page, the editor too (it has no toolbar). On the editor the
 // SearchPill sits in the top-right corner, where the pages' title bars have
 // theirs, so the page itself stays bare. The
-// sidebar opens and closes only when you toggle it, remembered. No Distraction
-// Mode (palette, or Ctrl/Cmd+Alt+Z) hides all of this at once.
+// sidebar opens and closes only when you toggle it, remembered. Focus
+// (palette, or Ctrl/Cmd+Alt+Z) hides all of this at once.
 // RecoveryBanner floats above the content while notes can't be
 // saved (lost vault access, a missing vault folder, full storage). Once the
 // vault is unlocked it shows the vault's pins (kept on this device,
@@ -80,7 +80,7 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   // Settings is a page of its own: neither the sidebar nor the companion.
   const onSettings = usePathname() === "/editor/settings";
   const hasSidebar = !isMobileChrome && !isVaultLocked && !onSettings;
-  // No Distraction Mode: just the page. Nothing on Settings or a phone to hide.
+  // Focus: just the page. Nothing on Settings or a phone to hide.
   usePageOnly(!isMobileChrome && !onSettings);
   // Phone: the navigation drawer (left edge) and the outline drawer (right).
   const hasMobileDrawer = isMobileChrome && !isVaultLocked && !onSettings;

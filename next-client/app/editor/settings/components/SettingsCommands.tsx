@@ -1,6 +1,6 @@
 "use client";
 
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom } from "jotai";
 import {
   atom_autosaveMode,
   atom_editorFontFamily,
@@ -8,7 +8,7 @@ import {
   atom_vimMode,
   atom_wordWrap,
 } from "@/app/atoms/atoms";
-import { atom_focusMode, atom_fullWidth, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_toggleSentenceFocus, atom_typewriterLevel, atom_typewriterSound } from "@/app/atoms/ui-atoms";
+import { atom_focusMode, atom_fullWidth, atom_lineNumbers, atom_showInvisibles, atom_showOutline, atom_showWordCount, atom_typewriterLevel, atom_typewriterSound } from "@/app/atoms/ui-atoms";
 import { useRegisterCommand, type Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { FOCUS_OPTIONS } from "../focus-options";
 import { TYPEWRITER_OPTIONS } from "../typewriter-options";
@@ -31,7 +31,6 @@ export default function SettingsCommands() {
   const [typewriterLevel, setTypewriterLevel] = useAtom(atom_typewriterLevel);
   const [showOutline, setShowOutline] = useAtom(atom_showOutline);
   const [focusMode, setFocusMode] = useAtom(atom_focusMode);
-  const toggleSentenceFocus = useSetAtom(atom_toggleSentenceFocus);
   const [, setEditorFontFamily] = useAtom(atom_editorFontFamily);
   const [, setTextSize] = useAtom(atom_renderedFontSize);
   const [, setAutosaveMode] = useAtom(atom_autosaveMode);
@@ -56,32 +55,16 @@ export default function SettingsCommands() {
     })),
     { id: "toggle-outline", label: `${verb(showOutline)} Outline`, category: "Settings", keywords: "toggle headings contents overview minimap toc view", shortcut: formatShortcut("M", { shift: true }), action: () => setShowOutline(!showOutline) },
     { id: "toggle-vim-mode", label: `${verb(vimMode)} Vim Mode`, category: "Settings", keywords: "toggle editor keybindings modal", action: () => setVimMode(!vimMode) },
-    // Focus Mode on (dim other paragraphs) or off: the palette's top-level
-    // switch. The levels follow, one command each; the current one is disabled.
-    {
-      id: "toggle-focus-mode",
-      label: `${verb(focusMode !== "off")} Focus Mode`,
-      description: focusMode === "off" ? "Dim every paragraph but the caret's" : "Turn Focus off",
-      category: "Settings",
-      keywords: "toggle focus paper zen distraction free dim paragraph typewriter flow writing",
-      action: () => setFocusMode(focusMode === "off" ? "dim" : "off"),
-    },
+    // What Focus dims while it is on, one command each; the current one is
+    // disabled. (Focus itself is the shell's `toggle-focus`, ShellCommands.)
     ...FOCUS_OPTIONS.map(({ label, value }) => ({
       id: `set-focus-${value}`,
-      label: `Focus: ${label}`,
+      label: `Focus Dimming: ${label}`,
       category: "Settings" as const,
-      keywords: "focus distraction free hide interface chrome toolbar tabs sidebar typing dim paragraph typewriter flow writing",
+      keywords: "focus dim fade paragraph sentence typewriter flow writing",
       disabledReason: focusMode === value ? "Current setting" : undefined,
       action: () => setFocusMode(value),
     })),
-    {
-      id: "toggle-sentence-focus",
-      label: `${verb(focusMode === "sentence")} Sentence Focus`,
-      category: "Settings",
-      keywords: "toggle focus sentence dim typewriter flow writing distraction free",
-      shortcut: formatShortcut("F", { alt: true }),
-      action: () => toggleSentenceFocus(),
-    },
     ...FONTS.map(({ label, value }) => ({
       id: `set-editor-font-${label.toLowerCase().replace(/\s+/g, "-")}`,
       label: `Editor Font: ${label}`,

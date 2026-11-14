@@ -33,7 +33,8 @@ export const editorWritingItems: Subsection[] = [
         <p>
           Press <strong>CTRL/CMD+F</strong> to find and replace in the file, with match case,
           whole word and regex options. CTRL/CMD+ALT+1…6 turns the line into a heading (press
-          it again to remove it), CTRL/CMD+ALT+K wraps the selection as a link and
+          it again to remove it); typing <code>#</code> at the start of a line adds the
+          space after it for you, CTRL/CMD+ALT+K wraps the selection as a link and
           CTRL/CMD+ALT+C wraps it in a code block, or removes the block around the caret.
           CTRL/CMD+D adds the next match of the selection as another cursor, CTRL/CMD+SHIFT+L
           selects every match, and ALT+drag selects a column.
@@ -107,35 +108,35 @@ export const editorWritingItems: Subsection[] = [
   {
     id: "focus",
     title: "Focus",
-    lead: "Dim everything but the paragraph or sentence you're writing.",
-    keywords: "focus word count words hide interface chrome toolbar tabs sidebar collapse distraction free minimal typewriter scrolling dim paragraph sentence flow writing settings setup",
+    lead: "Just you and the page, with everything but the paragraph or sentence you're writing dimmed if you like.",
+    keywords: "focus no distraction mode zen full screen word count words hide interface chrome toolbar tabs sidebar collapse distraction free minimal typewriter scrolling dim paragraph sentence flow writing settings setup",
     body: (
       <>
         <p>
-          Choose a level under Settings → Editor → Focus, or run one of the{" "}
-          <strong>Focus: …</strong> commands from the command palette.{" "}
-          <code>CTRL/CMD+ALT+F</code> (<strong>Enable/Disable Sentence Focus</strong>) switches sentence
-          focus on, and back to the level you had before. As the caret moves from one sentence to
-          the next, the old one fades out and the new one fades in.
+          Switch <strong>Focus</strong> on with <code>CTRL/CMD+ALT+Z</code>, the button in the
+          editor&apos;s top-right row, or <strong>Enter Focus</strong> in the command palette. The
+          sidebar, AI companion, buttons, file name, outline and word count all go, and the page
+          takes their room. Use the same shortcut or the palette to bring them back, or, on a
+          tablet, tap the very top edge of the screen: the search bar and a button to leave Focus
+          return for a few seconds. It&apos;s for this session, so a reload shows the interface as
+          you left it. To close just the sidebar for good, press <code>CTRL/CMD+\</code>; the page
+          takes its room, and it stays that way across reloads.
+        </p>
+        <p>
+          Focus can also dim the text you aren&apos;t writing. Choose what under Settings → Editor →
+          Focus Dimming, or run one of the <strong>Focus Dimming: …</strong> commands from the
+          command palette. Nothing dims while Focus is off. As the caret moves from one sentence
+          to the next, the old one fades out and the new one fades in.
         </p>
         <KV
           rows={[
             { label: "Off", value: "Every line at full strength (default)" },
-            { label: "Dim other paragraphs", value: "Other paragraphs fade and the caret line stays centered" },
-            { label: "Dim other sentences", value: "Only the sentence you're writing stays at full strength" },
+            { label: "Other paragraphs", value: "Other paragraphs fade and the caret line stays centered" },
+            { label: "Other sentences", value: "Only the sentence you're writing stays at full strength" },
           ]}
         />
         <p>
-          For just you and the page, switch on <strong>No Distraction Mode</strong> from the command
-          palette or with <code>CTRL/CMD+ALT+Z</code>. The sidebar, AI companion, buttons, file name,
-          outline and word count all go, and the page takes their room. Use the same shortcut or the
-          palette to bring them back, or, on a tablet, tap the very top edge of the screen: the search
-          bar and a button to leave the mode return for a few seconds. It&apos;s for this session, so a
-          reload shows the interface as you left it. To close just the sidebar for good, press{" "}
-          <code>CTRL/CMD+\</code>; the page takes its room, and it stays that way across reloads.
-        </p>
-        <p>
-          At the strongest level, the current paragraph is the run of non-blank lines around the
+          With paragraphs dimmed, the current paragraph is the run of non-blank lines around the
           caret. Everything else dims while the editor has focus and returns to full strength when
           you click away. Typing, deleting, undo/redo and moving with the keyboard keep the line
           centered; clicking or selecting with the mouse never scrolls the view.
@@ -224,7 +225,8 @@ export const editorWritingItems: Subsection[] = [
         </p>
         <p>
           Click any cell to edit it in place. Tab moves to the next cell, and tabbing out of the last
-          one adds a row. Enter moves down a column. The arrow keys cross cell edges and step out of
+          one adds a row. Enter moves down a column, and Shift+Enter leaves the table and starts a
+          new paragraph below it. The arrow keys cross cell edges and step out of
           the table at its borders. The file is updated as you type, so undo and autosave
           always match what you see. The file on disk is still a plain Markdown pipe table.
         </p>
@@ -444,6 +446,7 @@ graph TD
           rows={[
             { label: "Edit as Markdown", value: "Right-click the board's title (or use the palette's Edit Board as Markdown) to see the raw file" },
             { label: "Open as Board", value: "Switch back from the raw file to the canvas" },
+            { label: "Convert to Note", value: "Right-click the board's title (or use the palette's Convert Board to Note) to make it a plain note again: the drawing is removed, after asking, and the text around it stays" },
           ]}
         />
         <Callout type="note">
