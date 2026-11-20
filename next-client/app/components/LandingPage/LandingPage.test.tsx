@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { atom_openFiles } from "@/app/atoms/file-atoms";
 import { atom_userName } from "@/app/atoms/ui-atoms";
 import LandingPage from "./LandingPage";
-import { LANDING_FAQ, LANDING_SCENES } from "./landing-content";
+import { LANDING_FAQ, LANDING_FEATURES, LANDING_FILES, LANDING_HEADLINE, LANDING_SPECS } from "./landing-content";
 
 const router = vi.hoisted(() => ({
   push: vi.fn(),
@@ -47,55 +47,46 @@ describe("LandingPage", () => {
     vi.clearAllMocks();
   });
 
-  it("renders a concise introduction with editor and documentation actions", () => {
+  it("opens with one headline, one line, one call to action and a docs link", () => {
     renderLandingPage();
 
-    expect(
-      screen.getByRole("heading", {
-        name: "Only your words. The rest stays out of the way.",
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Start Writing" }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Read the docs/ })).toHaveAttribute(
-      "href",
-      "/documentation",
-    );
-    expect(screen.queryByText("Try it. Right here.")).not.toBeInTheDocument();
-    expect(screen.queryByText("Optional GitHub backup, on your terms")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: LANDING_HEADLINE })).toBeInTheDocument();
+    expect(screen.getByText("HermesMarkdown", { selector: "p" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Read the docs/ })).toHaveAttribute("href", "/documentation");
+    // The hero's call to action only; the floating one is hidden and inert.
+    expect(screen.getAllByRole("button", { name: "Start writing" })).toHaveLength(1);
   });
 
-  it("explains the editor below the hero, with an FAQ and links to the guides", () => {
+  it("says the headline again at the close, without a second button", () => {
     renderLandingPage();
 
-    for (const scene of LANDING_SCENES) {
-      expect(
-        screen.getByRole("heading", {
-          level: 2,
-          name: `${scene.headline} ${scene.accentLine}`,
-        }),
-      ).toBeInTheDocument();
-      for (const point of scene.points) {
-        expect(screen.getByRole("heading", { level: 3, name: point.title })).toBeInTheDocument();
-      }
-    }
-    expect(screen.getByRole("heading", { level: 2, name: "Pick your theme." })).toBeInTheDocument();
-    for (const { q, a } of LANDING_FAQ) {
-      expect(screen.getByText(q)).toBeInTheDocument();
-      expect(screen.getByText(a)).toBeInTheDocument();
-    }
-    expect(screen.getByRole("link", { name: "what a Markdown editor is" })).toHaveAttribute(
-      "href",
-      "/markdown-editor",
-    );
-    expect(screen.getByRole("link", { name: "free Markdown tools" })).toHaveAttribute(
-      "href",
-      "/tools",
-    );
+    const close = screen.getByRole("heading", { level: 2, name: LANDING_HEADLINE }).closest("section");
+    expect(close?.querySelector("button")).toBeNull();
   });
 
-  it("shows the typing loop in the hero, with no embed", () => {
+  it("makes the privacy promise once, with its AI limit and a link to the specs", () => {
+    renderLandingPage();
+
+    expect(document.body.textContent?.match(/No account/g)).toHaveLength(1);
+    expect(screen.getByText(/Unless you turn on AI/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "See the specs" })).toHaveAttribute("href", "#specs");
+  });
+
+  it("gives each feature and the files their own chapter, with a demo", async () => {
+    renderLandingPage();
+
+    for (const feature of [...LANDING_FEATURES, LANDING_FILES]) {
+      expect(screen.getByRole("heading", { level: 2, name: feature.title })).toBeInTheDocument();
+      expect(screen.getByText(feature.eyebrow, { selector: "p" })).toBeInTheDocument();
+    }
+    expect(await screen.findByRole("img", { name: /command palette/ })).toBeInTheDocument();
+    expect(await screen.findByRole("img", { name: /table being edited/ })).toBeInTheDocument();
+    expect(await screen.findByRole("img", { name: /drawn diagram/ })).toBeInTheDocument();
+    expect(await screen.findByRole("img", { name: /Focus mode/ })).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /folder of notes, code and images/ })).toBeInTheDocument();
+  });
+
+  it("shows the typing loop in the hero only, with no embed", () => {
     const { container } = render(
       <Provider store={createStore()}>
         <LandingPage />
@@ -103,15 +94,44 @@ describe("LandingPage", () => {
     );
 
     expect(screen.getByRole("img", { name: /note being typed/ })).toBeInTheDocument();
-    expect(container.querySelector("iframe")).toBeNull();
-    expect(screen.queryByRole("button", { name: "Watch the video" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Make it yours." })).toBeInTheDocument();
+    expect(screen.getAllByRole("img", { name: /note being typed/ })).toHaveLength(1);
+    expect(container.querySelector("iframe, video")).toBeNull();
+  });
+
+  it("lists every spec once, in the specs section", () => {
+    renderLandingPage();
+
+    const specs = document.getElementById("specs");
+    expect(specs).not.toBeNull();
+    for (const { label, value } of LANDING_SPECS) {
+      expect(screen.getByText(label, { selector: "dt" })).toBeInTheDocument();
+      expect(screen.getByText(value)).toBeInTheDocument();
+    }
+    expect(screen.getByText(/Chrome and Edge on a computer: a folder on your disk/)).toBeInTheDocument();
+  });
+
+  it("folds each FAQ answer under its question, and links to the guides", () => {
+    const { container } = render(
+      <Provider store={createStore()}>
+        <LandingPage />
+      </Provider>,
+    );
+
+    const details = container.querySelectorAll("details");
+    expect(details).toHaveLength(LANDING_FAQ.length);
+    expect(LANDING_FAQ.length).toBeLessThanOrEqual(5);
+    details.forEach((item) => expect(item).not.toHaveAttribute("open"));
+    for (const { q } of LANDING_FAQ) expect(screen.getByText(q)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "what a Markdown editor is" })).toHaveAttribute("href", "/markdown-editor");
+    expect(screen.getByRole("link", { name: "free Markdown tools" })).toHaveAttribute("href", "/tools");
   });
 
   it("opens the editor from the primary action", () => {
     renderLandingPage();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Start Writing" }),
+      screen.getAllByRole("button", { name: "Start writing" })[0],
     );
 
     expect(router.push).toHaveBeenCalledWith("/editor");

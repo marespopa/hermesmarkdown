@@ -1,7 +1,7 @@
 {
   "id": "/editor",
   "name": "HermesMarkdown",
-  "short_name": "HermesMD",
+  "short_name": "HermesMarkdown",
   "description": "Minimal, local-first Markdown editor that runs in your browser and works offline. Edit folders on disk, or keep a vault in browser storage on Safari, Firefox, and mobile. WikiLinks, tasks, diagrams, and optional bring-your-own-key AI.",
   "start_url": "/editor",
   "scope": "/",

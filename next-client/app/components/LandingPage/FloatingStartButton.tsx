@@ -9,7 +9,7 @@ interface FloatingStartButtonProps {
   onStart: () => void;
 }
 
-// "Start Writing" that follows you down the home page: a glass pill centered
+// "Start writing" that follows you down the home page: the button alone, centered
 // at the bottom, sliding in once the hero's button has scrolled away above
 // and out again on the way back up, so there's always one call to action in
 // reach and never two. Hidden, it's inert and out of the tab order.
@@ -46,12 +46,14 @@ export default function FloatingStartButton({ heroRef, onStart }: FloatingStartB
       }`}
       style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 1.25rem)" }}
     >
-      <div className="glass-panel pointer-events-auto flex items-center gap-4 rounded-xl border border-edge-subtle p-1.5 shadow-lg sm:pl-5">
-        <p className="hidden text-ui-footnote text-fg-muted sm:block">No account. Your files stay on your device.</p>
-        <Button variant="hero" onClick={onStart} className="!h-10 !px-6">
-          Start Writing
-        </Button>
-      </div>
+      {/* The button alone, no tray around it: a soft, wide shadow lifts it off the page. */}
+      <Button
+        variant="hero"
+        onClick={onStart}
+        className="pointer-events-auto !h-11 !px-8 shadow-[0_1px_2px_rgb(0_0_0/0.08),0_12px_32px_-8px_rgb(0_0_0/0.35)]"
+      >
+        Start writing
+      </Button>
     </div>
   );
 }

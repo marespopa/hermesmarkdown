@@ -19,10 +19,17 @@ Shared, app-agnostic UI primitives. Each component has a sibling `<Name>.md` (st
 | [InlineScript](InlineScript.md) | Inline `<script>` that runs once during HTML parsing (theme init) without React's client-side script warning. |
 | [Input](Input/Input.md) | Labelled text/number/password/date input with clear button, debounce, and password reveal; also exports `BareInput` (unlabelled) and `Select`. |
 | [KeyboardShortcutsOverlay](KeyboardShortcutsOverlay/KeyboardShortcutsOverlay.md) | Overlay listing every registered command that has a shortcut, grouped by category and formatted for the user's platform. |
-| [LandingPage](LandingPage/LandingPage.md) | Home route hero with an entry point into the editor, plus a "welcome back" toast when a local file is already open, and a floating Start Writing button once the hero scrolls away. |
-| [FloatingStartButton](LandingPage/FloatingStartButton.md) | The home page's floating Start Writing pill, shown while the hero's button is scrolled out of view. |
+| [LandingPage](LandingPage/LandingPage.md) | Home route hero with an entry point into the editor, plus a "welcome back" toast when a local file is already open, and a floating Start writing button once the hero scrolls away. |
+| [FloatingStartButton](LandingPage/FloatingStartButton.md) | The home page's floating Start writing pill, shown while the hero's button is scrolled out of view. |
 | [LandingLoop](LandingPage/LandingLoop.md) | The home hero's demo: a silent, looping animation of a note being typed, drawn by the page, with marks only on the caret's line. |
 | [LandingThemePicker](LandingPage/LandingThemePicker.md) | The home page's theme selector: light/dark mode and the palettes for each, the same picks as Settings → Appearance. |
+| [LandingHero](LandingPage/LandingHero.md) | The home page's first screen: wordmark, headline, one line, Start writing, docs link, and the typing demo as centrepiece. |
+| [LandingFeature](LandingPage/LandingFeature.md) | One home page chapter: eyebrow, headline and sentence beside a live demo, sides alternating. |
+| [LandingSpecs](LandingPage/LandingSpecs.md) | The home page's specs table: each fact and trade-off said once. |
+| [LandingFaq](LandingPage/LandingFaq.md) | The home page's FAQ, each answer folded under its question. |
+| [Reveal](LandingPage/Reveal.md) | A home page section's one-time fade-and-rise entrance; still under reduced motion. |
+| [DemoFrame](LandingPage/DemoFrame.md) | The window-framed editor sheet every home page demo is drawn in. |
+| [DemoFiles](LandingPage/DemoFiles.md) | The files chapter's still: a folder of .md files and one open as plain text. |
 | [LoadingBar](LoadingBar/LoadingBar.md) | Slim top-of-viewport progress bar for short waits (file switching); appears after 150ms. |
 | [LoadingOverlay](LoadingOverlay/LoadingOverlay.md) | Full-screen loading veil with optional text, set in the user's rendered font. |
 | [MainPage](MainPage.md) | Root layout shell that mounts providers, the palette, toasts, `GlobalDialog`, and the header/footer. |

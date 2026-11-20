@@ -2,7 +2,6 @@ import { act, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import LandingLoop from "./LandingLoop";
 
-const FINISHED = "Trip notes- Book the train- Read the city guide- Pack light";
 const advance = (ms: number) => act(() => { vi.advanceTimersByTime(ms); });
 
 describe("LandingLoop", () => {
@@ -12,49 +11,64 @@ describe("LandingLoop", () => {
     vi.restoreAllMocks();
   });
 
-  // Types on, a key at a time, until the text matches.
-  function typeUntil(box: HTMLElement, test: (text: string) => boolean) {
-    for (let i = 0; i < 400 && !test(box.textContent ?? ""); i++) advance(20);
-    expect(test(box.textContent ?? "")).toBe(true);
+  const box = () => screen.getByRole("img", { name: /note being typed/ });
+  function typeUntil(test: (text: string) => boolean) {
+    for (let i = 0; i < 1000 && !test(box().textContent ?? ""); i++) advance(20);
+    expect(test(box().textContent ?? "")).toBe(true);
   }
 
-  it("starts as a still of the finished note, with no marks", () => {
+  it("starts as a still of the finished note, with its first task ticked", () => {
     render(<LandingLoop />);
-    expect(screen.getByRole("img", { name: /note being typed/ })).toHaveTextContent(FINISHED, { normalizeWhitespace: false });
+    expect(box()).toHaveTextContent("Launch checklist");
+    expect(box()).toHaveTextContent("Write the release notes");
+    expect(box().textContent).not.toContain("**");
+    expect(box().querySelector("[data-task='done']")).not.toBeNull();
+    // The link is folded to its label, and no line shows its heading marks.
+    expect(box().querySelector("[data-link]")).toHaveTextContent("changelog");
+    expect(box().textContent).not.toContain("](log.md)");
+    expect(box().querySelector("[data-margin-marks='shown']")).toBeNull();
   });
 
-  it("types the note, showing marks only on the caret's line", () => {
+  it("shows marks only on the caret's line while typing", () => {
     render(<LandingLoop />);
-    const box = screen.getByRole("img");
-
     advance(1200);
-    expect(box.textContent).toBe("");
-    advance(80 * 6);
-    expect(box.textContent).toBe("# Trip");
+    expect(box().textContent).toBe("");
 
-    typeUntil(box, (text) => text.includes("- Book"));
-    expect(box.textContent).toBe("Trip notes- Book");
+    typeUntil((text) => text.includes("Launch"));
+    // The heading's `#` shows in the margin while its line is being typed.
+    expect(box().querySelector("[data-margin-marks='shown']")).not.toBeNull();
 
-    typeUntil(box, (text) => text.includes("[city guide](guide.md)"));
-    typeUntil(box, (text) => text.includes("Pack"));
-    expect(box.textContent).toBe("Trip notes- Book the train- Read the city guide- Pack");
+    typeUntil((text) => text.includes("Write the **release"));
+    expect(box().textContent).toContain("- [ ] Write the **release");
+    expect(box().querySelector("[data-margin-marks='shown']")).toBeNull();
+
+    typeUntil((text) => text.includes("[changelog](log.md)"));
+    // The caret left the bold line: its marks are gone, and the new line shows its own.
+    expect(box().textContent).not.toContain("**");
+    expect(box().textContent).toContain("[changelog](log.md)");
+
+    typeUntil((text) => text.includes("Tag"));
+    expect(box().textContent).not.toContain("](log.md)");
+    expect(box().querySelector("[data-link]")).toHaveTextContent("changelog");
+    // List markers stay as typed on every line.
+    expect(box().textContent).toContain("- [ ] Update the changelog");
+    expect(box().querySelectorAll("[data-caret]")).toHaveLength(1);
   });
 
-  it("starts again after resting on the finished note", () => {
+  it("ticks a task, rests, then starts again", () => {
     render(<LandingLoop />);
-    const box = screen.getByRole("img");
-
     advance(1200);
-    typeUntil(box, (text) => text === FINISHED);
-    advance(3000);
-    expect(box.textContent).toBe("");
+    typeUntil((text) => text.includes("Tag the build"));
+    expect(box().querySelector("[data-task='done']")).toBeNull();
+    typeUntil(() => box().querySelector("[data-task='done']") !== null);
+    advance(3500);
+    expect(box().textContent).toBe("");
   });
 
   it("stays still when motion is reduced", () => {
     vi.spyOn(window, "matchMedia").mockImplementation((query: string) => ({ matches: true, media: query }) as MediaQueryList);
     render(<LandingLoop />);
-
     advance(10000);
-    expect(screen.getByRole("img")).toHaveTextContent(FINISHED, { normalizeWhitespace: false });
+    expect(box()).toHaveTextContent("Tag the build");
   });
 });
