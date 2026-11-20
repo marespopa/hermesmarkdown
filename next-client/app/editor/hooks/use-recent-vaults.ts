@@ -12,7 +12,7 @@ import {
   type VaultDescriptor,
 } from "@/app/atoms/vault-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { loadBrowserVaultRegistry, verifyPermission } from "@/app/services/idb";
+import { loadBrowserVaultRegistry, requestPermissionFirst } from "@/app/services/idb";
 import { listBrowserVaultIds } from "@/app/services/opfs";
 import {
   addRecentVault,
@@ -106,8 +106,10 @@ export function useRecentVaults() {
           toast.error("This browser can't open folders on disk.");
           return false;
         }
-        // Asks for access again if the browser has dropped it (needs this click).
-        if (!(await verifyPermission(entry.handle))) {
+        // Asks for access again if the browser has dropped it (needs this
+        // click, so it asks before anything else: a permission check ahead of
+        // it can hang, and the click is then too old to open the prompt).
+        if (!(await requestPermissionFirst(entry.handle))) {
           toast.error(`Access to "${entry.name}" wasn't granted.`);
           return false;
         }

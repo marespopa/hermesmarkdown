@@ -148,15 +148,16 @@ export async function requestPermissionFromUserGesture(handle: FileSystemHandle,
   return (await request.call(handle, options)) === "granted";
 }
 
-// The startup restore's ask: the browser's own Allow prompt, shown straight
-// away. A prompt only opens while a click is still fresh (about 5 seconds), as
-// after Resume on the landing page, so this asks first, with no query ahead of
-// it that could use that time up. With no recent click the browser refuses; the
+// Asks for a vault folder's access the way a click needs it (the startup
+// restore after Resume, and opening a vault from the Vault menu or Recent
+// Vaults): the browser's own Allow prompt, shown straight away. A prompt only
+// opens while a click is still fresh (about 5 seconds), so this asks first,
+// with no query ahead of it that could use that time up. With no recent click the browser refuses; the
 // access may still be granted from an earlier visit, so that is checked next
 // (briefly: the check has been seen never to answer). False means the caller
 // falls back to asking on the next click (VaultPendingOverlay). The prompt
 // waits for the user, so it has no timeout.
-export async function requestPermissionOnLoad(handle: FileSystemHandle, readWrite = true): Promise<boolean> {
+export async function requestPermissionFirst(handle: FileSystemHandle, readWrite = true): Promise<boolean> {
   if (!hasPermissionApi(handle)) return true;
   try {
     return await requestPermissionFromUserGesture(handle, readWrite);

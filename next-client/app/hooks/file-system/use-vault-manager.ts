@@ -29,7 +29,7 @@ import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
   loadVaultHandle,
   clearVaultHandle,
-  requestPermissionOnLoad,
+  requestPermissionFirst,
   requestPermissionFromUserGesture,
 } from "@/app/services/idb";
 import { metadataWorker, isIdbSupported } from "./shared";
@@ -276,7 +276,7 @@ export function useVaultManager() {
         setIsRequestingAccess(true);
         let granted: boolean;
         try {
-          granted = await requestPermissionOnLoad(savedHandle);
+          granted = await requestPermissionFirst(savedHandle);
         } finally {
           setIsRequestingAccess(false);
         }

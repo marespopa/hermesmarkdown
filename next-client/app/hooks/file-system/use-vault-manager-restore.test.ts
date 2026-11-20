@@ -15,14 +15,14 @@ vi.mock("./shared", async (importOriginal) => ({ ...(await importOriginal<object
 const saved = { kind: "directory", name: "notes" } as unknown as FileSystemDirectoryHandle;
 const idb = vi.hoisted(() => ({
   loadVaultHandle: vi.fn(),
-  requestPermissionOnLoad: vi.fn(),
+  requestPermissionFirst: vi.fn(),
 }));
 vi.mock("@/app/services/idb", async (importOriginal) => ({
   ...(await importOriginal<object>()),
   saveVaultHandle: vi.fn(async () => {}),
   clearVaultHandle: vi.fn(async () => {}),
   loadVaultHandle: idb.loadVaultHandle,
-  requestPermissionOnLoad: idb.requestPermissionOnLoad,
+  requestPermissionFirst: idb.requestPermissionFirst,
 }));
 
 function mount() {
@@ -46,11 +46,11 @@ describe("useVaultManager, restoring the saved vault on load", () => {
 
   it("asks for access straight away, and keeps the skeleton (not the overlay) while the browser's prompt is open", async () => {
     let answer!: (granted: boolean) => void;
-    idb.requestPermissionOnLoad.mockReturnValue(new Promise<boolean>((resolve) => { answer = resolve; }));
+    idb.requestPermissionFirst.mockReturnValue(new Promise<boolean>((resolve) => { answer = resolve; }));
     const store = mount();
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
 
-    expect(idb.requestPermissionOnLoad).toHaveBeenCalledWith(saved);
+    expect(idb.requestPermissionFirst).toHaveBeenCalledWith(saved);
     expect(store.get(atom_isRequestingAccess)).toBe(true);
     expect(store.get(atom_isVaultRestoring)).toBe(true);
     expect(store.get(atom_isVaultPending)).toBe(false);
@@ -64,7 +64,7 @@ describe("useVaultManager, restoring the saved vault on load", () => {
   });
 
   it("falls back to the access-paused overlay when the browser can't or won't ask", async () => {
-    idb.requestPermissionOnLoad.mockResolvedValue(false);
+    idb.requestPermissionFirst.mockResolvedValue(false);
     const store = mount();
 
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
