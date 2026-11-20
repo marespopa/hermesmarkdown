@@ -3,6 +3,7 @@
 import React from "react";
 import { PanelLeaf } from "@/app/types/workspace";
 import ImageViewer from "./ImageViewer";
+import PdfViewerLoader from "./PdfViewerLoader";
 import MarkdownEditor from "./MarkdownEditor";
 import PrivateNoteGate from "./PrivateNoteGate";
 import TabContextMenu from "./TabContextMenu";
@@ -33,7 +34,7 @@ import { EDITOR_CORNER_WIDTH } from "./SearchPill";
 import { atom_liveHandles } from "@/app/atoms/file-atoms";
 import { atom_autosaveMode, atom_saveRequested, AUTOSAVE_DELAY, atom_sidebarOpen, atom_openingFilePath, atom_fullWidth } from "@/app/atoms/ui-atoms";
 import { NoteSheetSkeleton } from "./EditorSkeleton";
-import { isImagePath } from "@/app/utils/file-kinds";
+import { isImagePath, isPdfPath } from "@/app/utils/file-kinds";
 
 interface PaneLeafProps {
   leaf: PanelLeaf;
@@ -248,6 +249,8 @@ export default function PaneLeaf({ leaf }: PaneLeafProps) {
               />
             ) : leaf.activeFilePath && isImagePath(leaf.activeFilePath) ? (
               <ImageViewer path={leaf.activeFilePath} />
+            ) : leaf.activeFilePath && isPdfPath(leaf.activeFilePath) ? (
+              <PdfViewerLoader key={leaf.activeFilePath} path={leaf.activeFilePath} />
             ) : (
               <MarkdownEditor
                 value={content}

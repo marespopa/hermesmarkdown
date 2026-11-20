@@ -6,7 +6,7 @@ import { atom_recordExternalChange } from "@/app/atoms/external-review-atoms";
 import { reconcileWithDisk } from "@/app/hooks/file-system/reconcile-disk";
 import { createFileObserver } from "@/app/hooks/file-system/file-observer";
 import { indexNoteContent } from "@/app/services/content-search-client";
-import { isImagePath } from "@/app/utils/file-kinds";
+import { isViewOnlyPath } from "@/app/utils/file-kinds";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const MIN_INTERVAL = 30_000;
@@ -47,7 +47,7 @@ export function useFileWatcher() {
     for (const path of paths) {
       const handle = store.get(atom_liveHandles(path));
       // Only poll native File System Access handles
-      if (!handle || !("kind" in handle) || isImagePath(path)) continue;
+      if (!handle || !("kind" in handle) || isViewOnlyPath(path)) continue;
 
       try {
         const file = await (handle as FileSystemFileHandle).getFile();

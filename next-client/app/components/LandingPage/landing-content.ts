@@ -56,7 +56,7 @@ export const LANDING_FILES: LandingFeature = {
   id: "files",
   eyebrow: "Files",
   title: "Your files, where they are.",
-  body: "Open a folder or an Obsidian vault and edit it in place: notes, code with syntax highlighting, and images. Pin the notes you use most and give them an emoji.",
+  body: "Open a folder or an Obsidian vault where it is: write notes, edit code with syntax highlighting, view images and PDFs. Pin the notes you use most and give them an emoji.",
   demo: "files",
 };
 
@@ -65,7 +65,7 @@ export const LANDING_FILES: LandingFeature = {
 export const LANDING_SPECS: LandingSpec[] = [
   {
     label: "Files",
-    value: "Notes are plain Markdown (.md). Code and config files open with syntax highlighting, other text files as plain text, and images as pictures. Obsidian vaults open as-is, and wikilinks keep working.",
+    value: "Notes are plain Markdown (.md). Code and config files open with syntax highlighting, other text files as plain text, images as pictures, and PDFs in a built-in viewer. Obsidian vaults open as-is, and wikilinks keep working.",
   },
   {
     label: "Storage",

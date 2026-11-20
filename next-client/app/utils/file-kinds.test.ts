@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isImagePath, isMarkdownPath, isPlainTextPath } from "./file-kinds";
+import { isImagePath, isMarkdownPath, isPdfPath, isPlainTextPath, isViewOnlyPath } from "./file-kinds";
 
 describe("file kinds", () => {
   it("tells notes from other text files by extension", () => {
@@ -29,5 +29,16 @@ describe("file kinds", () => {
     }
     expect(isImagePath("notes/plan.md")).toBe(false);
     expect(isImagePath("doc.pdf")).toBe(false);
+  });
+
+  it("treats PDFs as view-only, like images, and never as text", () => {
+    for (const path of ["doc.pdf", "a/b/Report.PDF"]) {
+      expect(isPdfPath(path)).toBe(true);
+      expect(isViewOnlyPath(path)).toBe(true);
+      expect(isPlainTextPath(path)).toBe(false);
+    }
+    expect(isViewOnlyPath("photo.png")).toBe(true);
+    expect(isViewOnlyPath("notes/plan.md")).toBe(false);
+    expect(isPdfPath("notes/pdf.md")).toBe(false);
   });
 });

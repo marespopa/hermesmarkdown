@@ -155,6 +155,31 @@ export const vaultGroup: Group = {
       ),
     },
     {
+      id: "images-and-pdfs",
+      title: "Images and PDFs",
+      lead: "Images and PDFs in the vault open in the pane to look at, never to edit.",
+      keywords: "image picture photo png jpg svg pdf document viewer zoom pages read only open",
+      body: (
+        <>
+          <p>
+            Open an image or a PDF from Files or the command palette, like any note. An image is
+            fitted to the pane. A PDF shows its pages in one scrolling column, fitted to the
+            pane&apos;s width, and you can select and copy its text.
+          </p>
+          <p>
+            The bar at the bottom of a PDF shows the page you&apos;re on and zooms. With the PDF
+            focused, <code>Ctrl/Cmd++</code> and <code>Ctrl/Cmd+−</code> zoom, and{" "}
+            <code>Ctrl/Cmd+0</code> fits it to the width again. A PDF protected by a
+            password can&apos;t be shown.
+          </p>
+          <p>
+            Images and PDFs are never changed, indexed or searched. They are read from the vault on
+            your device and never uploaded.
+          </p>
+        </>
+      ),
+    },
+    {
       id: "git",
       title: "Using git",
       lead: "HermesMarkdown doesn't run or read git: commit, pull and push with the tools you already use.",

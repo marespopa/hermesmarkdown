@@ -48,6 +48,18 @@ export function isImagePath(path: string): boolean {
   return IMAGE_EXTENSIONS.has(extensionOf(path));
 }
 
+// A PDF: listed in Files and opened in the pane's PDF viewer (PdfViewer),
+// never read as text, indexed or saved.
+export function isPdfPath(path: string): boolean {
+  return extensionOf(path) === "pdf";
+}
+
+// A file the editor shows but never reads as text, indexes or saves: an image
+// or a PDF, each opened in its own viewer.
+export function isViewOnlyPath(path: string): boolean {
+  return isImagePath(path) || isPdfPath(path);
+}
+
 // A text file that isn't a note. The vault's own data folder (`.hermesmarkdown/`) is
 // handled as before: listed with hidden files and indexed.
 export function isPlainTextPath(path: string): boolean {

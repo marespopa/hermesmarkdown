@@ -28,4 +28,4 @@ import PaneLeaf from "./PaneLeaf";
 
 `PANE_TOP_ROOM` lives in `pane-header-classes.ts`.
 
-- An open image file (`isImagePath`) shows `ImageViewer` instead of the editor; it is never read as text or saved.
+- An open image file (`isImagePath`) shows `ImageViewer` instead of the editor, and an open PDF (`isPdfPath`) shows [PdfViewerLoader](PdfViewerLoader.md), keyed by path. Neither is ever read as text or saved.

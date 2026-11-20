@@ -5,6 +5,7 @@ import {
   HiFolder,
   HiOutlineCode,
   HiOutlineDatabase,
+  HiOutlineDocument,
   HiOutlineDocumentText,
   HiOutlinePhotograph,
 } from "react-icons/hi";
@@ -35,6 +36,7 @@ export const TREE: TreeFile[] = [
   { name: "build.ts", Icon: HiOutlineCode },
   { name: "config.yaml", Icon: HiOutlineCode },
   { name: "cover.png", Icon: HiOutlinePhotograph },
+  { name: "spec.pdf", Icon: HiOutlineDocument },
 ];
 
 const NOTE = ["# Release plan", "", "- [x] Export to PDF", "- [ ] Dark theme", "", "Next, the [roadmap](Roadmap.md)."];

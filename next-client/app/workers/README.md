@@ -4,6 +4,7 @@ Web Workers and the pure modules they run. Nothing here touches the DOM, React o
 
 | File | Role |
 |---|---|
+| `pdf.worker.ts` | PDF.js's parser (`pdfjs-dist/build/pdf.worker.mjs`), bundled like the other workers. Started once by `app/editor/utils/pdfjs.ts` (`loadPdfJs`) when the first PDF opens |
 | `metadata.worker.ts` | The metadata worker (created in `app/hooks/file-system/shared.ts`). Parses notes posted by the main thread (frontmatter, tags, wikilinks, word count, tasks, preview) and keeps every parsed note's text in a `ContentIndex` for note-text search |
 | `parse-note.ts` | `parseNoteFile`: the pure per-file parse the metadata worker runs (frontmatter, tags, links, word count, tasks, preview), with board JSON stripped first |
 | `content-index.ts` | `ContentIndex` (path → text, a same-length lowercased copy, body start past the frontmatter, private flag, modified time), `foldCase`, `REGEX_FRONTMATTER`, size limits (`MAX_NOTE_CHARS` 1M per note, `MAX_TOTAL_CHARS` 32M in total) |
