@@ -9,7 +9,7 @@ import { recentVaultEntry, useRecentVaults, useRecentVaultTracker } from "./use-
 
 const fs = vi.hoisted(() => ({ initVaultFromHandle: vi.fn(), openBrowserVault: vi.fn() }));
 const services = vi.hoisted(() => ({
-  verifyPermission: vi.fn(),
+  requestPermissionFirst: vi.fn(),
   loadBrowserVaultRegistry: vi.fn(),
   listBrowserVaultIds: vi.fn(),
   loadRecentVaults: vi.fn(),
@@ -19,7 +19,7 @@ vi.mock("@/app/hooks/use-file-system", () => ({
   useFileSystem: () => ({ ...fs, isVaultSupported: true }),
 }));
 vi.mock("@/app/services/idb", () => ({
-  verifyPermission: services.verifyPermission,
+  requestPermissionFirst: services.requestPermissionFirst,
   loadBrowserVaultRegistry: services.loadBrowserVaultRegistry,
 }));
 vi.mock("@/app/services/opfs", () => ({ listBrowserVaultIds: services.listBrowserVaultIds }));
@@ -61,13 +61,32 @@ describe("useRecentVaults", () => {
     const { wrapper } = setup([LOCAL]);
     const { result } = renderHook(() => useRecentVaults(), { wrapper });
 
-    services.verifyPermission.mockResolvedValueOnce(false);
+    services.requestPermissionFirst.mockResolvedValueOnce(false);
     await act(async () => { expect(await result.current.openRecentVault(LOCAL)).toBe(false); });
     expect(fs.initVaultFromHandle).not.toHaveBeenCalled();
 
-    services.verifyPermission.mockResolvedValueOnce(true);
+    services.requestPermissionFirst.mockResolvedValueOnce(true);
     await act(async () => { expect(await result.current.openRecentVault(LOCAL)).toBe(true); });
     expect(fs.initVaultFromHandle).toHaveBeenCalledWith(folder);
+  });
+
+  it("says so when the access request never answers, and opens nothing", async () => {
+    vi.useFakeTimers();
+    try {
+      const { wrapper } = setup([LOCAL]);
+      const { result } = renderHook(() => useRecentVaults(), { wrapper });
+      services.requestPermissionFirst.mockReturnValueOnce(new Promise(() => {}));
+      let opened: boolean | undefined;
+      await act(async () => {
+        const pending = result.current.openRecentVault(LOCAL).then((value) => { opened = value; });
+        await vi.advanceTimersByTimeAsync(30_000);
+        await pending;
+      });
+      expect(opened).toBe(false);
+      expect(fs.initVaultFromHandle).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("forgets a browser vault that no longer exists instead of creating an empty one", async () => {

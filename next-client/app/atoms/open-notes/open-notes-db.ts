@@ -1,5 +1,6 @@
 import type { Snapshot } from "../file-atoms";
 import { timePerf } from "@/app/utils/perf/perf-metrics";
+import { withTimeout } from "@/app/utils/with-timeout";
 
 // The open notes' text in IndexedDB: one record per note in `texts`, its
 // snapshots in `snapshots`, both keyed by path. A write touches only the
@@ -39,24 +40,46 @@ export const isIndexedDbSupported = () => typeof window !== "undefined" && !!win
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
+// A browser that never answers an open (a tab thawed after a long time in the
+// background) would hold every later read on this one promise.
+const OPEN_TIMEOUT_MS = 4000;
+
 function openDb(): Promise<IDBDatabase> {
-  dbPromise ??= new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
-    request.onupgradeneeded = () => {
-      for (const name of [TEXTS, SNAPSHOTS]) {
-        if (!request.result.objectStoreNames.contains(name)) request.result.createObjectStore(name);
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-    request.onblocked = () => reject(new Error("Open files database blocked"));
-  });
+  const opening = withTimeout(
+    new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, 1);
+      request.onupgradeneeded = () => {
+        for (const name of [TEXTS, SNAPSHOTS]) {
+          if (!request.result.objectStoreNames.contains(name)) request.result.createObjectStore(name);
+        }
+      };
+      request.onsuccess = () => {
+        const db = request.result;
+        // Another tab upgrading, or the browser closing the connection: open afresh next time.
+        db.onversionchange = () => {
+          db.close();
+          if (dbPromise === opening) dbPromise = null;
+        };
+        db.onclose = () => {
+          if (dbPromise === opening) dbPromise = null;
+        };
+        resolve(db);
+      };
+      request.onerror = () => reject(request.error);
+      request.onblocked = () => reject(new Error("Open files database blocked"));
+    }),
+    OPEN_TIMEOUT_MS,
+    "Open files database",
+  );
+  dbPromise = opening;
   // A failed open is retried next time rather than cached.
-  dbPromise.catch(() => {
-    dbPromise = null;
+  opening.catch(() => {
+    if (dbPromise === opening) dbPromise = null;
   });
-  return dbPromise;
+  return opening;
 }
+
+const getDb = () => dbPromise ?? openDb();
 
 function readAll<T>(store: IDBObjectStore): Promise<Record<string, T>> {
   return new Promise((resolve, reject) => {
@@ -72,18 +95,38 @@ function readAll<T>(store: IDBObjectStore): Promise<Record<string, T>> {
   });
 }
 
+// One read of both stores. It settles when the transaction does, so an
+// aborted one (which fires no request error) rejects instead of hanging.
+async function readOnce(): Promise<OpenNotesData> {
+  const db = await getDb();
+  const tx = db.transaction([TEXTS, SNAPSHOTS], "readonly");
+  const finished = new Promise<never>((_, reject) => {
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error ?? new Error("Open files read aborted"));
+  });
+  finished.catch(() => {});
+  const read = Promise.all([
+    readAll<NoteTextRecord>(tx.objectStore(TEXTS)),
+    readAll<Snapshot[]>(tx.objectStore(SNAPSHOTS)),
+  ]).then(([texts, snapshots]) => ({ texts, snapshots }));
+  return withTimeout(Promise.race([read, finished]), LOAD_TIMEOUT_MS, "Open files read");
+}
+
+const LOAD_TIMEOUT_MS = 6000;
+
 export const indexedDbBackend: OpenNotesBackend = {
   async load() {
-    const db = await openDb();
-    const tx = db.transaction([TEXTS, SNAPSHOTS], "readonly");
-    const [texts, snapshots] = await Promise.all([
-      readAll<NoteTextRecord>(tx.objectStore(TEXTS)),
-      readAll<Snapshot[]>(tx.objectStore(SNAPSHOTS)),
-    ]);
-    return { texts, snapshots };
+    try {
+      return await readOnce();
+    } catch (err) {
+      // A fresh connection often works where the first hung or was cut.
+      console.warn("Open files: read failed, retrying:", err);
+      dbPromise = null;
+      return readOnce();
+    }
   },
   async write(changes) {
-    const db = await openDb();
+    const db = await getDb();
     return new Promise<void>((resolve, reject) => {
       const tx = db.transaction([TEXTS, SNAPSHOTS], "readwrite");
       const texts = tx.objectStore(TEXTS);

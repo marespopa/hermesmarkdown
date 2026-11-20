@@ -2,6 +2,7 @@ import type { FileState } from "../file-atoms";
 import { clearRecoveryIssue, isQuotaError, reportRecoveryIssue } from "../recovery-atoms";
 import { indexedDbBackend, isIndexedDbSupported, type NoteTextRecord, type OpenNotesBackend, type OpenNotesChanges } from "./open-notes-db";
 import { debouncedJSONStorage } from "./legacy-storage";
+import { markStartup } from "@/app/utils/startup-trace";
 
 // Keeps atom_openFiles in browser storage without blocking typing.
 // - The text lives in IndexedDB (open-notes-db.ts), one record per note:
@@ -76,7 +77,9 @@ function toMeta(files: OpenFiles): Record<string, NoteMeta> {
 const placeholder = (meta: NoteMeta): FileState => ({ content: "", lastSavedContent: "", ...meta });
 
 export class OpenNotesPersister {
-  private mode: "idb" | "legacy" = "legacy";
+  // "readonly": the stored text couldn't be read, so nothing is written until
+  // a reload (the notes would be saved over their stored text with empty ones).
+  private mode: "idb" | "legacy" | "readonly" = "legacy";
   private ready = true;
   private readyWaiters: (() => void)[] = [];
   private started: PersisterStart | null = null;
@@ -93,6 +96,7 @@ export class OpenNotesPersister {
     private readonly backend: OpenNotesBackend | null,
     private readonly legacy: LegacyStorage,
     private readonly meta: MetaStorage,
+    private readonly onLoadFailed: (err: unknown) => void = () => {},
   ) {}
 
   /** Reads what's stored. The old storage is read afresh each time; IndexedDB once. */
@@ -119,8 +123,10 @@ export class OpenNotesPersister {
     for (const [path, entry] of Object.entries(meta)) placeholders[path] = placeholder(entry);
     this.persisted = placeholders;
     this.ready = false;
+    markStartup("notes-load:start");
     const load = this.backend.load().then(
       ({ texts, snapshots }) => {
+        markStartup("notes-load:done");
         const files: OpenFiles = {};
         for (const [path, entry] of Object.entries(meta)) {
           const text = texts[path];
@@ -138,8 +144,13 @@ export class OpenNotesPersister {
         return files;
       },
       (err) => {
-        console.warn("Open files: IndexedDB unavailable, keeping them in localStorage:", err);
-        this.mode = "legacy";
+        // Hydrating with the empty placeholders and then writing would replace
+        // the stored text with nothing. Notes in a vault take their text from
+        // disk; the rest stay stored until a reload reads them.
+        console.warn("Open files: couldn't read their text from IndexedDB, not writing until a reload:", err);
+        this.mode = "readonly";
+        markStartup("notes-load:failed");
+        this.onLoadFailed(err);
         return null;
       },
     );
@@ -171,6 +182,7 @@ export class OpenNotesPersister {
   /** The open notes changed: schedule writing what differs. */
   change(next: OpenFiles): void {
     this.latest = next;
+    if (this.mode === "readonly") return;
     if (this.mode === "legacy") {
       this.legacy.setItem(LEGACY_KEY, next);
       return;
@@ -305,7 +317,20 @@ export class OpenNotesPersister {
 
 const legacyStorage: LegacyStorage = debouncedJSONStorage<OpenFiles | null>();
 
-export const openNotesPersister = new OpenNotesPersister(isIndexedDbSupported() ? indexedDbBackend : null, legacyStorage, localMeta);
+// A reload reads the text again, so offer it.
+function notifyLoadFailed() {
+  if (typeof window === "undefined") return;
+  void import("@/app/components/Toastr").then(({ showActionToast }) =>
+    showActionToast("Couldn't read your open notes from browser storage.", "Reload", () => window.location.reload()),
+  );
+}
+
+export const openNotesPersister = new OpenNotesPersister(
+  isIndexedDbSupported() ? indexedDbBackend : null,
+  legacyStorage,
+  localMeta,
+  notifyLoadFailed,
+);
 
 if (typeof window !== "undefined") {
   window.addEventListener("pagehide", () => openNotesPersister.flush());

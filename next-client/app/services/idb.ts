@@ -1,4 +1,5 @@
 import { isBrowserVaultDescriptor, type BrowserVaultDescriptor } from "./opfs";
+import { isTimeoutError, withTimeout } from "@/app/utils/with-timeout";
 
 const DB_NAME = "HermesMDVaultDB";
 const STORE_NAME = "handles";
@@ -8,26 +9,54 @@ const KEY_BROWSER_VAULT_REGISTRY = "browserVaults";
 
 const isSupported = () => typeof window !== "undefined" && !!window.indexedDB;
 
-export async function getDB() {
-  if (!isSupported()) {
-    throw new Error("IndexedDB not supported");
-  }
+let dbPromise: Promise<IDBDatabase> | null = null;
 
-  return new Promise<IDBDatabase>((resolve, reject) => {
-    try {
-      const request = indexedDB.open(DB_NAME, 2);
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME);
-        }
-      };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    } catch (err) {
-      reject(err);
-    }
+// An open the browser never answers (a tab thawed after a long time in the
+// background) must not hold the vault restore, and the editor's skeleton, forever.
+const OPEN_TIMEOUT_MS = 4000;
+
+// One connection, kept: every call used to open a new one and never close it.
+export function getDB(): Promise<IDBDatabase> {
+  if (!isSupported()) return Promise.reject(new Error("IndexedDB not supported"));
+  if (dbPromise) return dbPromise;
+
+  const opening = withTimeout(
+    new Promise<IDBDatabase>((resolve, reject) => {
+      try {
+        const request = indexedDB.open(DB_NAME, 2);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME);
+          }
+        };
+        request.onsuccess = () => {
+          const db = request.result;
+          // Another tab upgrading, or the browser closing the connection: open afresh next time.
+          db.onversionchange = () => {
+            db.close();
+            if (dbPromise === opening) dbPromise = null;
+          };
+          db.onclose = () => {
+            if (dbPromise === opening) dbPromise = null;
+          };
+          resolve(db);
+        };
+        request.onerror = () => reject(request.error);
+        request.onblocked = () => reject(new Error("Vault database blocked"));
+      } catch (err) {
+        reject(err);
+      }
+    }),
+    OPEN_TIMEOUT_MS,
+    "Vault database",
+  );
+  dbPromise = opening;
+  // A failed open is retried by the next call rather than cached.
+  opening.catch(() => {
+    if (dbPromise === opening) dbPromise = null;
   });
+  return opening;
 }
 
 export async function saveVaultHandle(handle: FileSystemDirectoryHandle) {
@@ -61,6 +90,8 @@ export async function loadVaultHandle(): Promise<FileSystemDirectoryHandle | nul
       request.onerror = () => reject(request.error);
     });
   } catch (err) {
+    // A timeout isn't "no saved vault": the caller keeps what it knows and says so.
+    if (isTimeoutError(err)) throw err;
     console.warn("Failed to load vault handle from IDB:", err);
     return null;
   }
@@ -115,6 +146,25 @@ export async function requestPermissionFromUserGesture(handle: FileSystemHandle,
   if (typeof request !== "function") return false;
   const options: any = readWrite ? { mode: "readwrite" } : {};
   return (await request.call(handle, options)) === "granted";
+}
+
+// Asks for a vault folder's access the way a click needs it (the startup
+// restore after Resume, and opening a vault from the Vault menu or Recent
+// Vaults): the browser's own Allow prompt, shown straight away. A prompt only
+// opens while a click is still fresh (about 5 seconds), so this asks first,
+// with no query ahead of it that could use that time up. With no recent click the browser refuses; the
+// access may still be granted from an earlier visit, so that is checked next
+// (briefly: the check has been seen never to answer). False means the caller
+// falls back to asking on the next click (VaultPendingOverlay). The prompt
+// waits for the user, so it has no timeout.
+export async function requestPermissionFirst(handle: FileSystemHandle, readWrite = true): Promise<boolean> {
+  if (!hasPermissionApi(handle)) return true;
+  try {
+    return await requestPermissionFromUserGesture(handle, readWrite);
+  } catch {
+    // No recent click: the browser won't open the prompt.
+  }
+  return withTimeout(queryPermission(handle, readWrite), 2000, "Vault permission check").catch(() => false);
 }
 
 export async function queryPermission(handle: FileSystemHandle, readWrite = true): Promise<boolean> {

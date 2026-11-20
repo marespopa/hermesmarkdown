@@ -26,3 +26,4 @@ import TabContextMenu from "./TabContextMenu";
 | label? | `string` |  | Accessible name (`role="menu"`) |
 | anchorRef? | `RefObject<HTMLElement>` |  | The button that opened the menu; presses on it aren't outside clicks, so it can toggle the menu shut |
 | align? | `"start" \| "end"` | `"start"` | `"end"`: `x` is the menu's right edge, for a menu under a trailing button (the toolbar's More, the sidebar's ⋯) |
+| overDialog? | `boolean` | `false` | Opened from inside a dialog: paints above it (`z-[1010]`, as `PinIconPopover`) and Escape closes only the menu (the Recent Vaults dialog's vault menu) |

@@ -12,6 +12,7 @@ import {
   atom_isVaultPending,
   atom_hasLoadedVault,
   atom_isVaultRestoring,
+  atom_isRequestingAccess,
   atom_isVaultUnlocking,
   atom_activeFileHandle,
   atom_activeFilePath,
@@ -25,10 +26,12 @@ import {
   atom_vaultKey,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_localVaultKey, atom_recentVaults } from "@/app/atoms/vault-atoms";
+import { resolveLocalVaultKey } from "@/app/services/local-vault-key";
 import {
   loadVaultHandle,
   clearVaultHandle,
-  queryPermission,
+  requestPermissionFirst,
   requestPermissionFromUserGesture,
 } from "@/app/services/idb";
 import { metadataWorker, isIdbSupported } from "./shared";
@@ -48,6 +51,13 @@ import { clearNoteContent } from "@/app/services/content-search-client";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { loadStoredWorkspace } from "./stored-workspace";
 import { readVaultHint, writeVaultHint } from "@/app/services/vault-hint";
+import { showActionToast } from "@/app/components/Toastr";
+import { withTimeout } from "@/app/utils/with-timeout";
+import { markStartup } from "@/app/utils/startup-trace";
+
+// Each browser-storage or permission step of the restore gets this long; past
+// it the restore ends rather than leave the editor on its skeleton for good.
+const STARTUP_STEP_TIMEOUT_MS = 8000;
 
 // Each scan and each indexing run takes a number; an older one drops its
 // results once a newer one starts, or once another vault is open. Module
@@ -65,6 +75,7 @@ export function useVaultManager() {
   const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
   const [hasLoadedVault, setHasLoadedVault] = useAtom(atom_hasLoadedVault);
   const setIsVaultRestoring = useSetAtom(atom_isVaultRestoring);
+  const setIsRequestingAccess = useSetAtom(atom_isRequestingAccess);
   const setIsVaultUnlocking = useSetAtom(atom_isVaultUnlocking);
   const [, setFileMetadata] = useAtom(atom_fileMetadata);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
@@ -195,6 +206,7 @@ export function useVaultManager() {
         // Pending (route hidden, inert) until the open notes are bound and the
         // top folder listed; the vault is then indexed behind the editor.
         setIsVaultUnlocking(true);
+        markStartup("vault:unlock");
         setCurrentDirectoryHandle(vaultHandle);
         setIsCloudVault(false);
         detectCloudVault(vaultHandle);
@@ -229,6 +241,7 @@ export function useVaultManager() {
     setIsVaultPending(false);
     setIsCloudVault(false);
     setVaultDescriptor(null);
+    store.set(atom_localVaultKey, null);
 
     setOpenFiles({
       draft: {
@@ -242,7 +255,7 @@ export function useVaultManager() {
     setWorkspaceLayout(singlePaneLayout(["draft"], "draft"));
 
     clearVaultHandle();
-  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setVaultFolderPaths, setVaultTextFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setVaultFolderPaths, setVaultTextFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor, store]);
 
   // Load vault on mount
   useEffect(() => {
@@ -254,20 +267,32 @@ export function useVaultManager() {
 
     // Restores the saved vault, resolving whether there was one to restore.
     async function restoreSavedVault(): Promise<boolean> {
+      markStartup("vault:load-handle");
       const savedHandle = await loadVaultHandle();
       if (savedHandle) {
+        store.set(atom_localVaultKey, await resolveLocalVaultKey(savedHandle, store.get(atom_recentVaults)));
         setVaultHandle(savedHandle);
         setVaultDescriptor({ kind: "local" });
-        // Only query permission on mount — requestPermission requires a user
-        // gesture and will throw a SecurityError if called automatically.
-        const granted = await queryPermission(savedHandle);
+        // The browser's Allow prompt opens right here when a click is still
+        // fresh (Resume on the landing page). Without one the browser refuses,
+        // and the "Vault Access Paused" overlay asks on the next click instead.
+        markStartup("vault:permission");
+        setIsRequestingAccess(true);
+        let granted: boolean;
+        try {
+          granted = await requestPermissionFirst(savedHandle);
+        } finally {
+          setIsRequestingAccess(false);
+        }
         if (granted) {
           // The editor can show while the vault is read, so reveal it now.
           setIsVaultRestoring(false);
+          markStartup("vault:readable");
           setCurrentDirectoryHandle(savedHandle);
           detectCloudVault(savedHandle);
           // Open notes first: their disk text and saving don't wait for the index.
           await rebindHandles(savedHandle);
+          markStartup("vault:rebound");
           await scanVault(savedHandle);
           await indexVaultTags(savedHandle);
         } else {
@@ -278,7 +303,7 @@ export function useVaultManager() {
 
       // Browser-storage vaults need no permission prompt.
       try {
-        const stored = await loadStoredWorkspace();
+        const stored = await withTimeout(loadStoredWorkspace(), STARTUP_STEP_TIMEOUT_MS, "Browser storage vault");
         if (stored) {
           await initVaultFromHandle(stored.handle, {
             descriptor: stored.descriptor,
@@ -303,12 +328,18 @@ export function useVaultManager() {
       if (readVaultHint() === "none") setIsVaultRestoring(false);
       try {
         writeVaultHint((await restoreSavedVault()) ? "saved" : "none");
+      } catch (err) {
+        // Browser storage didn't answer in time. That says nothing about
+        // whether a vault was saved, so the hint stays as it was; a reload retries.
+        console.error("Failed to restore the saved vault:", err);
+        showActionToast("Couldn't open your vault.", "Reload", () => window.location.reload());
       } finally {
+        markStartup("vault:restore-done");
         setIsVaultRestoring(false);
       }
     }
     init();
-  }, [setIsVaultRestoring, setVaultHandle, setVaultDescriptor, setIsVaultPending, hasLoadedVault, setHasLoadedVault, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, initVaultFromHandle]);
+  }, [setIsVaultRestoring, setIsRequestingAccess, setVaultHandle, setVaultDescriptor, setIsVaultPending, hasLoadedVault, setHasLoadedVault, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, initVaultFromHandle, store]);
 
   return {
     vaultHandle,

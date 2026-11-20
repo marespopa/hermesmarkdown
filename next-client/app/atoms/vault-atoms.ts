@@ -62,6 +62,9 @@ export const atom_hasLoadedVault = atom<boolean>(false);
 // True until the saved vault's permission is known on startup: the editor
 // stays hidden, and drafts aren't saved, until then.
 export const atom_isVaultRestoring = atom<boolean>(true);
+// True while the browser's Allow prompt is open on startup. It waits for the
+// user, so the "still opening" watchdog doesn't count it.
+export const atom_isRequestingAccess = atom<boolean>(false);
 // True from the moment access is granted again until the vault is scanned and
 // "Vault restored" shows; the route stays behind the overlay until then.
 export const atom_isVaultUnlocking = atom<boolean>(false);
@@ -96,12 +99,21 @@ export const atom_vaultName = atom<string | null>((get) => {
 });
 
 // Stable per-vault key for UI state persisted across reloads.
-export const atom_vaultKey = atom<string | null>((get) => {
-  const descriptor = get(atom_vaultDescriptor);
+// The open disk vault's key, resolved when it opens (resolveLocalVaultKey), so
+// two folders with the same name keep apart. Null until then: the folder's name.
+export const atom_localVaultKey = atom<string | null>(null);
+
+export function vaultKeyFor(
+  descriptor: VaultDescriptor | null,
+  handle: FileSystemDirectoryHandle | null,
+  localKey: string | null = null,
+): string | null {
   if (descriptor?.kind === "browser") return `browser:${descriptor.id}`;
-  const vaultHandle = get(atom_vaultHandle);
-  return vaultHandle ? `local:${vaultHandle.name}` : null;
-});
+  return handle ? (localKey ?? `local:${handle.name}`) : null;
+}
+
+export const atom_vaultKey = atom<string | null>((get) =>
+  vaultKeyFor(get(atom_vaultDescriptor), get(atom_vaultHandle), get(atom_localVaultKey)));
 
 // Walks a vault-relative path to a fresh file handle. Throws the underlying
 // DOMException (e.g. NotFoundError) when any segment is missing.

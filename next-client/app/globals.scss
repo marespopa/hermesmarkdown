@@ -319,6 +319,26 @@ html.dark {
   to { transform: translateX(300%); }
 }
 
+/* A vault switch: what it replaces fades in (opacity only). A vault icon
+   still opening pulses softly, after a short delay so a quick open shows nothing. */
+@keyframes vault-switch-in {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+
+.vault-switch-in {
+  animation: vault-switch-in 0.22s ease-out;
+}
+
+@keyframes vault-opening {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+.vault-opening {
+  animation: vault-opening 1s ease-in-out 0.15s infinite;
+}
+
 .loading-bar-appear {
   opacity: 0;
   animation: loading-bar-appear 0.2s ease-out 0.15s forwards;
@@ -550,6 +570,8 @@ ul li::marker {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .vault-switch-in,
+  .vault-opening,
   .animate-hero-fade-in,
   .animate-fade-in,
   .animate-dropdown-in,

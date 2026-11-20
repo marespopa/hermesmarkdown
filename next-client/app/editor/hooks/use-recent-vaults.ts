@@ -12,7 +12,8 @@ import {
   type VaultDescriptor,
 } from "@/app/atoms/vault-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
-import { loadBrowserVaultRegistry, verifyPermission } from "@/app/services/idb";
+import { loadBrowserVaultRegistry, requestPermissionFirst } from "@/app/services/idb";
+import { isTimeoutError, withTimeout } from "@/app/utils/with-timeout";
 import { listBrowserVaultIds } from "@/app/services/opfs";
 import {
   addRecentVault,
@@ -24,6 +25,9 @@ import {
   setRecentVaultPinned,
   type RecentVault,
 } from "@/app/services/recent-vaults";
+
+// How long opening a recent disk vault waits for the browser's access prompt.
+const PERMISSION_WAIT_MS = 30_000;
 
 // The open vault as a recents entry.
 export function recentVaultEntry(
@@ -106,8 +110,20 @@ export function useRecentVaults() {
           toast.error("This browser can't open folders on disk.");
           return false;
         }
-        // Asks for access again if the browser has dropped it (needs this click).
-        if (!(await verifyPermission(entry.handle))) {
+        // Asks for access again if the browser has dropped it (needs this
+        // click, so it asks before anything else: a permission check ahead of
+        // it can hang, and the click is then too old to open the prompt).
+        // The browser's own prompt waits for the user, but a request it never
+        // answers (no prompt shown) must not leave the click silent.
+        let granted = false;
+        try {
+          granted = await withTimeout(requestPermissionFirst(entry.handle), PERMISSION_WAIT_MS, "Vault access request");
+        } catch (err) {
+          if (!isTimeoutError(err)) throw err;
+          toast.error(`"${entry.name}" didn't answer. Try again.`);
+          return false;
+        }
+        if (!granted) {
           toast.error(`Access to "${entry.name}" wasn't granted.`);
           return false;
         }

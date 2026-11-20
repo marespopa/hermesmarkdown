@@ -193,4 +193,27 @@ describe("OpenNotesPersister", () => {
     persister.change({ "a.md": note("A2") });
     expect(legacy.current()).toEqual({ "a.md": note("A2") });
   });
+
+  describe("when the stored text can't be read", () => {
+    it("reports it and writes nothing, so the stored text is not replaced by empty notes", async () => {
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+      const { backend } = memoryBackend();
+      (backend.load as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("aborted"));
+      const legacy = fakeLegacy();
+      const meta = fakeMeta(JSON.stringify({ "a.md": { fileName: "A.md", activeFilePath: "a.md" } }));
+      const onLoadFailed = vi.fn();
+      const persister = new OpenNotesPersister(backend, legacy as never, meta, onLoadFailed);
+
+      const { files, load } = persister.start();
+      expect(await load).toBeNull();
+      expect(onLoadFailed).toHaveBeenCalledTimes(1);
+
+      persister.hydrated(files!, []);
+      persister.change({ "a.md": note("typed") });
+      persister.flush();
+      expect(backend.write).not.toHaveBeenCalled();
+      expect(legacy.setItem).not.toHaveBeenCalled();
+      expect(await persister.whenReady()).toBeUndefined();
+    });
+  });
 });

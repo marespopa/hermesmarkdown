@@ -31,6 +31,8 @@ interface TabContextMenuProps {
   anchorRef?: React.RefObject<HTMLElement | null>;
   /** "end": `x` is the menu's right edge (a menu under a trailing button). */
   align?: "start" | "end";
+  /** Opened from inside a dialog: paints above it, and Escape closes only the menu. */
+  overDialog?: boolean;
 }
 
 const EDGE = 8;
@@ -42,7 +44,7 @@ const EDGE = 8;
 // click outside closes it, and focus goes back where it was. Rendered into
 // `document.body`, so the pane header's stacking context (`z-20`) can't let
 // editor overlays (e.g. the frontmatter ×) paint over it.
-export default function TabContextMenu({ x, y, items, onClose, label, anchorRef, align = "start" }: TabContextMenuProps) {
+export default function TabContextMenu({ x, y, items, onClose, label, anchorRef, align = "start", overDialog = false }: TabContextMenuProps) {
   const hasCheckable = items.some((item) => item.checked !== undefined);
   const menuRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ x, y, ready: false, fromRight: align === "end" });
@@ -95,6 +97,13 @@ export default function TabContextMenu({ x, y, items, onClose, label, anchorRef,
   }, []);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
+    // Portaled, its keys still bubble to the dialog it was opened from.
+    if (overDialog && event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      onClose();
+      return;
+    }
     const buttons = enabledItems();
     if (!buttons.length) return;
     const current = buttons.indexOf(document.activeElement as HTMLElement);
@@ -116,7 +125,7 @@ export default function TabContextMenu({ x, y, items, onClose, label, anchorRef,
       aria-label={label}
       onKeyDown={handleKeyDown}
       style={{ left: pos.x, top: pos.y }}
-      className={`${MENU_PANEL_CLASS} min-w-[200px] max-w-[min(320px,calc(100vw-16px))] ${pos.fromRight ? "origin-top-right" : "origin-top-left"} transition-[opacity,transform] duration-150 ease-out motion-reduce:transition-none ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+      className={`${overDialog ? MENU_PANEL_CLASS.replace("z-50", "z-[1010]") : MENU_PANEL_CLASS} min-w-[200px] max-w-[min(320px,calc(100vw-16px))] ${pos.fromRight ? "origin-top-right" : "origin-top-left"} transition-[opacity,transform] duration-150 ease-out motion-reduce:transition-none ${pos.ready ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
     >
       {items.map((item, i) => (
         // Index too: two recent vaults can share a name.
