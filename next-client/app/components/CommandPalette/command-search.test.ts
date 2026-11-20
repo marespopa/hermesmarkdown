@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fuzzyMatch, matchCommand, matchFile } from "./command-search";
+import { fuzzyMatch, matchCommand, matchFile, namesPage } from "./command-search";
 
 describe("command search ranking", () => {
   it("ranks exact prefixes above later or scattered matches", () => {
@@ -69,5 +69,25 @@ describe("command search ranking", () => {
     expect(matchFile("app/*.tsx", tsx)).not.toBeNull();
     expect(matchFile("*/*.tsx", { name: "a.tsx", path: "x/y/a.tsx" })).toBeNull();
     expect(matchFile("**/*.tsx", { name: "a.tsx", path: "x/y/a.tsx" })).not.toBeNull();
+  });
+});
+
+describe("namesPage", () => {
+  const tasksPage = { id: "go-tasks", label: "Open Tasks", opens: "page" };
+  const filesPage = { id: "open-all-notes", label: "Open All Files", opens: "page" };
+  const replacePage = { id: "replace-in-files", label: "Replace in Files…", opens: "page" };
+
+  it("is true when the query starts the page's name or a word of it", () => {
+    expect(namesPage("Tasks", tasksPage)).toBe(true);
+    expect(namesPage("ta", tasksPage)).toBe(true);
+    expect(namesPage("files", filesPage)).toBe(true);
+    expect(namesPage("replace", replacePage)).toBe(true);
+  });
+
+  it("is false for actions, empty queries and the word Open itself", () => {
+    expect(namesPage("task", { id: "task-status-prog", label: "Task: Start" })).toBe(false);
+    expect(namesPage("", tasksPage)).toBe(false);
+    expect(namesPage("open", tasksPage)).toBe(false);
+    expect(namesPage("asks", tasksPage)).toBe(false);
   });
 });
