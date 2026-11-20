@@ -2,7 +2,7 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
-import { atom_isVaultPending, atom_isVaultRestoring, atom_vaultHandle } from "@/app/atoms/vault-atoms";
+import { atom_isRequestingAccess, atom_isVaultPending, atom_isVaultRestoring, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { readVaultHint, writeVaultHint } from "@/app/services/vault-hint";
 import { useVaultManager } from "./use-vault-manager";
 
@@ -15,14 +15,14 @@ vi.mock("./shared", async (importOriginal) => ({ ...(await importOriginal<object
 const saved = { kind: "directory", name: "notes" } as unknown as FileSystemDirectoryHandle;
 const idb = vi.hoisted(() => ({
   loadVaultHandle: vi.fn(),
-  queryPermission: vi.fn(),
+  requestPermissionOnLoad: vi.fn(),
 }));
 vi.mock("@/app/services/idb", async (importOriginal) => ({
   ...(await importOriginal<object>()),
   saveVaultHandle: vi.fn(async () => {}),
   clearVaultHandle: vi.fn(async () => {}),
   loadVaultHandle: idb.loadVaultHandle,
-  queryPermission: idb.queryPermission,
+  requestPermissionOnLoad: idb.requestPermissionOnLoad,
 }));
 
 function mount() {
@@ -44,14 +44,30 @@ describe("useVaultManager, restoring the saved vault on load", () => {
     vi.clearAllMocks();
   });
 
-  it("asks for access again when the permission check never answers, instead of staying on the skeleton", async () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
-    idb.queryPermission.mockReturnValue(new Promise(() => {}));
+  it("asks for access straight away, and keeps the skeleton (not the overlay) while the browser's prompt is open", async () => {
+    let answer!: (granted: boolean) => void;
+    idb.requestPermissionOnLoad.mockReturnValue(new Promise<boolean>((resolve) => { answer = resolve; }));
     const store = mount();
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+
+    expect(idb.requestPermissionOnLoad).toHaveBeenCalledWith(saved);
+    expect(store.get(atom_isRequestingAccess)).toBe(true);
+    expect(store.get(atom_isVaultRestoring)).toBe(true);
+    expect(store.get(atom_isVaultPending)).toBe(false);
+
+    // The user takes a while to decide: nothing times out meanwhile.
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
     expect(store.get(atom_isVaultRestoring)).toBe(true);
 
-    await act(async () => { await vi.advanceTimersByTimeAsync(4000); });
+    await act(async () => { answer(false); await vi.advanceTimersByTimeAsync(0); });
+    expect(store.get(atom_isRequestingAccess)).toBe(false);
+  });
+
+  it("falls back to the access-paused overlay when the browser can't or won't ask", async () => {
+    idb.requestPermissionOnLoad.mockResolvedValue(false);
+    const store = mount();
+
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
 
     expect(store.get(atom_isVaultRestoring)).toBe(false);
     expect(store.get(atom_isVaultPending)).toBe(true);

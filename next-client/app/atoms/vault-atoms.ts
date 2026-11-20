@@ -62,6 +62,9 @@ export const atom_hasLoadedVault = atom<boolean>(false);
 // True until the saved vault's permission is known on startup: the editor
 // stays hidden, and drafts aren't saved, until then.
 export const atom_isVaultRestoring = atom<boolean>(true);
+// True while the browser's Allow prompt is open on startup. It waits for the
+// user, so the "still opening" watchdog doesn't count it.
+export const atom_isRequestingAccess = atom<boolean>(false);
 // True from the moment access is granted again until the vault is scanned and
 // "Vault restored" shows; the route stays behind the overlay until then.
 export const atom_isVaultUnlocking = atom<boolean>(false);

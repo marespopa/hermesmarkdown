@@ -2,7 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import { useAtomValue } from "jotai";
-import { atom_isVaultRestoring, atom_isVaultUnlocking, atom_openingVaultName } from "@/app/atoms/atoms";
+import { atom_isRequestingAccess, atom_isVaultRestoring, atom_isVaultUnlocking, atom_openingVaultName } from "@/app/atoms/atoms";
 import { atom_openNotesHydrated } from "@/app/atoms/file-atoms";
 import { useVaultManager } from "@/app/hooks/file-system/use-vault-manager";
 import { useStartupWatchdog } from "../hooks/use-startup-watchdog";
@@ -27,9 +27,11 @@ export default function VaultAccessGate({ children }: { children: ReactNode }) {
   const isVaultUnlocking = useAtomValue(atom_isVaultUnlocking);
   const openingVaultName = useAtomValue(atom_openingVaultName);
   const notesHydrated = useAtomValue(atom_openNotesHydrated);
+  const isRequestingAccess = useAtomValue(atom_isRequestingAccess);
 
   // Skeleton up with nothing for the user to do: offer a reload if it lasts.
-  useStartupWatchdog(isVaultRestoring || (isVaultPending && isVaultUnlocking) || !notesHydrated);
+  // Not while the browser's Allow prompt is open: that waits for the user.
+  useStartupWatchdog(!isRequestingAccess && (isVaultRestoring || (isVaultPending && isVaultUnlocking) || !notesHydrated));
 
   useEffect(() => {
     if (!isVaultPending || isVaultUnlocking) return;
