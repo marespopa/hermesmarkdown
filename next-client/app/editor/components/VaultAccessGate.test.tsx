@@ -1,17 +1,23 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { atom_isVaultRestoring, atom_isVaultUnlocking } from "@/app/atoms/atoms";
+import { act } from "@testing-library/react";
+import { atom_isRequestingAccess, atom_isVaultRestoring, atom_isVaultUnlocking } from "@/app/atoms/atoms";
+import { STARTUP_STUCK_MS } from "../hooks/use-startup-watchdog";
 import VaultAccessGate from "./VaultAccessGate";
 
 const vaultManager = vi.hoisted(() => ({ isVaultPending: false, restoreVault: vi.fn() }));
+const toasts = vi.hoisted(() => ({ showActionToast: vi.fn() }));
+vi.mock("@/app/components/Toastr", () => ({ showActionToast: toasts.showActionToast }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => "/editor" }));
 vi.mock("@/app/hooks/file-system/use-vault-manager", () => ({ useVaultManager: () => vaultManager }));
 
-function renderGate({ restoring = false, pending = false, unlocking = false } = {}) {
+function renderGate({ restoring = false, pending = false, unlocking = false, requesting = false } = {}) {
   vaultManager.isVaultPending = pending;
   const store = createStore();
   store.set(atom_isVaultRestoring, restoring);
   store.set(atom_isVaultUnlocking, unlocking);
+  store.set(atom_isRequestingAccess, requesting);
   return render(
     <Provider store={store}>
       <VaultAccessGate>
@@ -22,6 +28,7 @@ function renderGate({ restoring = false, pending = false, unlocking = false } = 
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   cleanup();
   vi.clearAllMocks();
 });
@@ -67,5 +74,12 @@ describe("VaultAccessGate", () => {
     expect(screen.getByText("Route content").closest("[inert]")).toBeNull();
     expect(screen.queryByText("Restore Access")).not.toBeInTheDocument();
     expect(screen.queryByRole("status", { name: "Loading vault" })).not.toBeInTheDocument();
+  });
+
+  it("offers a reload when the skeleton stays up while access is being requested", () => {
+    vi.useFakeTimers();
+    renderGate({ restoring: true, requesting: true });
+    act(() => { vi.advanceTimersByTime(STARTUP_STUCK_MS); });
+    expect(toasts.showActionToast).toHaveBeenCalledWith("Still opening your notes…", "Reload", expect.any(Function));
   });
 });

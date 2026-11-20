@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   // Home-screen install on iOS: full-screen, with its own name.
   appleWebApp: {
     capable: true,
-    title: "HermesMD",
+    title: "HermesMarkdown",
     statusBarStyle: "default",
   },
   robots: { index: true, follow: true },

@@ -20,7 +20,7 @@ export default function Footer() {
               <div className="space-y-2">
                 <span className="text-ui-title-2 font-bold tracking-tight">HermesMarkdown</span>
                 <p className="text-ui-subhead text-neutral-400 leading-relaxed">
-                  A local-first Markdown editor for focused writing. No account, no cloud; your notes stay on your device.
+                  A minimal Markdown editor in your browser.
                 </p>
               </div>
               <div className="text-ui-footnote uppercase tracking-[0.2em] font-bold text-neutral-400">

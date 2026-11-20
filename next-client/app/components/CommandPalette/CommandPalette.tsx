@@ -18,7 +18,7 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { HiOutlineChevronLeft } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
-import { fuzzyMatch, matchCommand, matchFile } from "./command-search";
+import { fuzzyMatch, matchCommand, matchFile, namesPage } from "./command-search";
 import { collectNoteMentions } from "./palette-mentions";
 import { type Command, useCommandPalette } from "./CommandPaletteContext";
 import PaletteFooter from "./PaletteFooter";
@@ -142,7 +142,9 @@ export default function CommandPalette() {
             if (defaultOrderDifference) return defaultOrderDifference;
           }
 
-          return Number(b.matchSource === "label") - Number(a.matchSource === "label")
+          // A page named by the query comes first: ">tasks" opens Tasks.
+          return Number(namesPage(query, b.command)) - Number(namesPage(query, a.command))
+            || Number(b.matchSource === "label") - Number(a.matchSource === "label")
             || b.score - a.score
             || a.label.localeCompare(b.label);
         });

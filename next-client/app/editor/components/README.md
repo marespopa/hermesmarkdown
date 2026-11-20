@@ -36,6 +36,9 @@ Index of the editor UI. Each component has a sibling `<Name>.md` (a token-lean d
 | [NewVaultDialog](NewVaultDialog.md) | Dialog that creates a new local vault folder, using `CreateVaultSubSteps` to name it and pick a parent folder. |
 | [board/](board/README.md) | Boards: Markdown notes holding an Excalidraw scene, shown as a canvas (`BoardViewLoader` → lazy `BoardView`, `BoardError`). |
 | [PaneLeaf](PaneLeaf.md) | One workspace pane: its quiet title header, the drop layer, and the active file's editor or read-only preview (behind `PrivateNoteGate`). |
+| [PdfViewerLoader](PdfViewerLoader.md) | What PaneLeaf renders for an open `.pdf`: loads the PDF viewer, and PDF.js behind it, in their own chunk on the first PDF. |
+| [PdfViewer](PdfViewer.md) | An opened PDF, read-only: pages in one scrolling column fitted to the pane, the page in view, zoom (bar and Ctrl/Cmd +, −, 0), and messages for password-protected or unreadable files. |
+| [PdfPage](PdfPage.md) | One PDF page: a sheet sized before it draws, drawn by PDF.js once near the view, with selectable text. |
 | [PrivateNoteGate](PrivateNoteGate.md) | Wraps a pane's editor: shows `PrivateNoteVeil` instead of mounting it until a private note is revealed (per note or for the session). |
 | [PrivateNoteVeil](PrivateNoteVeil.md) | The veil over a private note: lock, title, **Show note** and **Show all private notes this session**. |
 | [PaneEmptyState](PaneEmptyState.md) | Empty-pane actions: new file (blank draft), open note or file, vault actions. |

@@ -47,7 +47,7 @@ describe("FloatingStartButton", () => {
 
   it("is hidden and out of reach while the hero's button is on screen", () => {
     render(<Harness onStart={vi.fn()} />);
-    expect(screen.queryByRole("button", { name: "Start Writing" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Start writing" })).not.toBeInTheDocument();
   });
 
   it("slides in once the hero's button scrolls away above, and out on the way back", () => {
@@ -55,10 +55,10 @@ describe("FloatingStartButton", () => {
     render(<Harness onStart={onStart} />);
 
     scrollTo(-20);
-    fireEvent.click(screen.getByRole("button", { name: "Start Writing" }));
+    fireEvent.click(screen.getByRole("button", { name: "Start writing" }));
     expect(onStart).toHaveBeenCalledTimes(1);
 
     scrollTo(120);
-    expect(screen.queryByRole("button", { name: "Start Writing" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Start writing" })).not.toBeInTheDocument();
   });
 });

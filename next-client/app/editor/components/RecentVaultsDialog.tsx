@@ -19,7 +19,8 @@ const MENU_ICON = { size: 15 } as const;
 const DRAG_TYPE = "application/x-hermes-recent-vault";
 
 // The vault switcher's recent vaults (useVaultMenuItems lists only the pinned
-// ones). A click on a vault's name opens it; a right-click opens its menu: Open, Pin / Unpin (pinned vaults show in the Vault menu and never
+// ones). A click or right-click on a vault's name opens its menu, like a
+// file's: Open, Pin / Unpin (pinned vaults show in the Vault menu and never
 // age out), Set Icon… (PinIconPopover), and Remove from Recents (its files
 // are untouched). Drag a row (or Alt+↑/↓ on it) to reorder within its group,
 // or click its leading icon to give the vault an emoji. The open vault is
@@ -48,7 +49,7 @@ export default function RecentVaultsDialog() {
     setIsOpen(false);
   };
 
-  // A right-click on the name (or the menu key: no pointer, so under the row).
+  // A click or right-click on the name (or the menu key: no pointer, so under the row).
   const openMenuAt = (key: string) => (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
     const rect = (rowRefs.current.get(key) ?? event.currentTarget).getBoundingClientRect();
@@ -153,10 +154,12 @@ export default function RecentVaultsDialog() {
         <Button
           variant="menu-item"
           className="rounded-none text-left flex-1 min-w-0"
-          onClick={() => { if (!isOpenVault) void open(entry); }}
+          onClick={openMenuAt(entry.key)}
           onContextMenu={openMenuAt(entry.key)}
           onKeyDown={moveByKey(entry.key)}
-          title={`${entry.name}: click to open, right-click for Pin…`}
+          aria-haspopup="menu"
+          aria-expanded={menu?.key === entry.key}
+          title={`${entry.name}: Open, Pin…`}
         >
           <span className="min-w-0">
             <span className="block truncate">{entry.name}</span>

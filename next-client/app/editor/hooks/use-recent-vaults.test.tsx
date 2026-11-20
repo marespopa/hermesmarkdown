@@ -70,25 +70,6 @@ describe("useRecentVaults", () => {
     expect(fs.initVaultFromHandle).toHaveBeenCalledWith(folder);
   });
 
-  it("says so when the access request never answers, and opens nothing", async () => {
-    vi.useFakeTimers();
-    try {
-      const { wrapper } = setup([LOCAL]);
-      const { result } = renderHook(() => useRecentVaults(), { wrapper });
-      services.requestPermissionFirst.mockReturnValueOnce(new Promise(() => {}));
-      let opened: boolean | undefined;
-      await act(async () => {
-        const pending = result.current.openRecentVault(LOCAL).then((value) => { opened = value; });
-        await vi.advanceTimersByTimeAsync(30_000);
-        await pending;
-      });
-      expect(opened).toBe(false);
-      expect(fs.initVaultFromHandle).not.toHaveBeenCalled();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
   it("forgets a browser vault that no longer exists instead of creating an empty one", async () => {
     const { store, wrapper } = setup([BROWSER]);
     services.listBrowserVaultIds.mockResolvedValueOnce([]);

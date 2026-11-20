@@ -1,7 +1,7 @@
 "use client";
 
 import { useAtom, useSetAtom, useStore } from "jotai";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect } from "react";
 import toast from "react-hot-toast";
 import {
   atom_vaultHandle,
@@ -12,13 +12,10 @@ import {
   atom_isVaultPending,
   atom_hasLoadedVault,
   atom_isVaultRestoring,
-  atom_isRequestingAccess,
-  atom_isVaultUnlocking,
   atom_activeFileHandle,
   atom_activeFilePath,
   atom_openFiles,
   atom_workspaceLayout,
-  atom_rebindHandles,
   atom_isCloudVault,
   atom_fileSystemVersion,
   atom_indexerState,
@@ -26,14 +23,7 @@ import {
   atom_vaultKey,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_localVaultKey, atom_recentVaults } from "@/app/atoms/vault-atoms";
-import { resolveLocalVaultKey } from "@/app/services/local-vault-key";
-import {
-  loadVaultHandle,
-  clearVaultHandle,
-  requestPermissionFirst,
-  requestPermissionFromUserGesture,
-} from "@/app/services/idb";
+import { clearVaultHandle } from "@/app/services/idb";
 import { metadataWorker, isIdbSupported } from "./shared";
 import {
   collectVaultFiles,
@@ -49,15 +39,10 @@ import { useVaultNavigation } from "./use-vault-navigation";
 import { useOpenVault } from "./use-open-vault";
 import { clearNoteContent } from "@/app/services/content-search-client";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
-import { loadStoredWorkspace } from "./stored-workspace";
+import { useVaultRestore } from "./use-vault-restore";
 import { readVaultHint, writeVaultHint } from "@/app/services/vault-hint";
 import { showActionToast } from "@/app/components/Toastr";
-import { withTimeout } from "@/app/utils/with-timeout";
 import { markStartup } from "@/app/utils/startup-trace";
-
-// Each browser-storage or permission step of the restore gets this long; past
-// it the restore ends rather than leave the editor on its skeleton for good.
-const STARTUP_STEP_TIMEOUT_MS = 8000;
 
 // Each scan and each indexing run takes a number; an older one drops its
 // results once a newer one starts, or once another vault is open. Module
@@ -75,8 +60,6 @@ export function useVaultManager() {
   const [isVaultPending, setIsVaultPending] = useAtom(atom_isVaultPending);
   const [hasLoadedVault, setHasLoadedVault] = useAtom(atom_hasLoadedVault);
   const setIsVaultRestoring = useSetAtom(atom_isVaultRestoring);
-  const setIsRequestingAccess = useSetAtom(atom_isRequestingAccess);
-  const setIsVaultUnlocking = useSetAtom(atom_isVaultUnlocking);
   const [, setFileMetadata] = useAtom(atom_fileMetadata);
   const [, setActiveFileHandle] = useAtom(atom_activeFileHandle);
   const [, setActiveFilePath] = useAtom(atom_activeFilePath);
@@ -86,7 +69,6 @@ export function useVaultManager() {
   const [, setVaultDescriptor] = useAtom(atom_vaultDescriptor);
   const [, setFileSystemVersion] = useAtom(atom_fileSystemVersion);
   const [showHiddenFiles] = useAtom(atom_showHiddenFiles);
-  const rebindHandles = useSetAtom(atom_rebindHandles);
   const setIndexerState = useSetAtom(atom_indexerState);
   const store = useStore();
 
@@ -192,39 +174,7 @@ export function useVaultManager() {
 
   const { initVaultFromHandle, openVault } = useOpenVault({ scanVault, indexVaultTags, detectCloudVault });
 
-  // A single gesture can reach restoreVault twice (the gate's window listener
-  // and the Restore Access button); only the first opens the browser prompt.
-  const isRestoringRef = useRef(false);
-
-  const restoreVault = useCallback(async () => {
-    if (!vaultHandle || isRestoringRef.current) return;
-    isRestoringRef.current = true;
-
-    try {
-      const granted = await requestPermissionFromUserGesture(vaultHandle);
-      if (granted) {
-        // Pending (route hidden, inert) until the open notes are bound and the
-        // top folder listed; the vault is then indexed behind the editor.
-        setIsVaultUnlocking(true);
-        markStartup("vault:unlock");
-        setCurrentDirectoryHandle(vaultHandle);
-        setIsCloudVault(false);
-        detectCloudVault(vaultHandle);
-        await rebindHandles(vaultHandle);
-        await scanVault(vaultHandle);
-        setIsVaultPending(false);
-        setIsVaultUnlocking(false);
-        toast.success("Vault restored");
-        await indexVaultTags(vaultHandle);
-      }
-    } catch (err: any) {
-      console.error("File System Error:", err?.message || err);
-      toast.error("Failed to restore vault");
-    } finally {
-      setIsVaultUnlocking(false);
-      isRestoringRef.current = false;
-    }
-  }, [vaultHandle, setIsVaultPending, setIsVaultUnlocking, setCurrentDirectoryHandle, setIsCloudVault, scanVault, indexVaultTags, rebindHandles, detectCloudVault]);
+  const { restoreVault, restoreSavedVault } = useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detectCloudVault, initVaultFromHandle });
 
   const { syncCurrentDirectoryToPath, navigateTo, navigateBack } = useVaultNavigation({ vaultHandle, currentDirectoryHandle, scanVault });
 
@@ -241,7 +191,6 @@ export function useVaultManager() {
     setIsVaultPending(false);
     setIsCloudVault(false);
     setVaultDescriptor(null);
-    store.set(atom_localVaultKey, null);
 
     setOpenFiles({
       draft: {
@@ -255,7 +204,7 @@ export function useVaultManager() {
     setWorkspaceLayout(singlePaneLayout(["draft"], "draft"));
 
     clearVaultHandle();
-  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setVaultFolderPaths, setVaultTextFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor, store]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setVaultFolderPaths, setVaultTextFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor]);
 
   // Load vault on mount
   useEffect(() => {
@@ -263,62 +212,6 @@ export function useVaultManager() {
     if (!isIdbSupported) {
       setIsVaultRestoring(false);
       return;
-    }
-
-    // Restores the saved vault, resolving whether there was one to restore.
-    async function restoreSavedVault(): Promise<boolean> {
-      markStartup("vault:load-handle");
-      const savedHandle = await loadVaultHandle();
-      if (savedHandle) {
-        store.set(atom_localVaultKey, await resolveLocalVaultKey(savedHandle, store.get(atom_recentVaults)));
-        setVaultHandle(savedHandle);
-        setVaultDescriptor({ kind: "local" });
-        // The browser's Allow prompt opens right here when a click is still
-        // fresh (Resume on the landing page). Without one the browser refuses,
-        // and the "Vault Access Paused" overlay asks on the next click instead.
-        markStartup("vault:permission");
-        setIsRequestingAccess(true);
-        let granted: boolean;
-        try {
-          granted = await requestPermissionFirst(savedHandle);
-        } finally {
-          setIsRequestingAccess(false);
-        }
-        if (granted) {
-          // The editor can show while the vault is read, so reveal it now.
-          setIsVaultRestoring(false);
-          markStartup("vault:readable");
-          setCurrentDirectoryHandle(savedHandle);
-          detectCloudVault(savedHandle);
-          // Open notes first: their disk text and saving don't wait for the index.
-          await rebindHandles(savedHandle);
-          markStartup("vault:rebound");
-          await scanVault(savedHandle);
-          await indexVaultTags(savedHandle);
-        } else {
-          setIsVaultPending(true);
-        }
-        return true;
-      }
-
-      // Browser-storage vaults need no permission prompt.
-      try {
-        const stored = await withTimeout(loadStoredWorkspace(), STARTUP_STEP_TIMEOUT_MS, "Browser storage vault");
-        if (stored) {
-          await initVaultFromHandle(stored.handle, {
-            descriptor: stored.descriptor,
-            persist: false,
-            announce: false,
-            keepTabs: true,
-            onReadable: () => setIsVaultRestoring(false),
-          });
-          return true;
-        }
-      } catch (err) {
-        console.error("Failed to restore vault from browser storage:", err);
-        toast.error("Failed to restore the vault from browser storage.");
-      }
-      return false;
     }
 
     async function init() {
@@ -339,7 +232,7 @@ export function useVaultManager() {
       }
     }
     init();
-  }, [setIsVaultRestoring, setIsRequestingAccess, setVaultHandle, setVaultDescriptor, setIsVaultPending, hasLoadedVault, setHasLoadedVault, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, initVaultFromHandle, store]);
+  }, [setIsVaultRestoring, hasLoadedVault, setHasLoadedVault, restoreSavedVault]);
 
   return {
     vaultHandle,

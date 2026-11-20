@@ -1,87 +1,105 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import DemoFrame, { DemoCaret, MARK, MarginMarks } from "./DemoFrame";
+import { appliedSteps, typedText, useScriptLoop, type ScriptStep } from "./useScriptLoop";
 
 // The home hero's demo: a short, silent loop of a note being typed, drawn by
-// the page itself (no video file, no embed, nothing requested). It shows the
-// editor's first idea: Markdown marks are visible only on the line being
-// edited, and step aside once the caret moves on.
-const SCRIPT = "# Trip notes\n\n- Book the train\n- Read the [city guide](guide.md)\n- Pack light";
-// A still of the finished note first (also what the server renders), a key
-// every KEY_MS, a breath before each Enter, and a rest on the finished note.
-const START_MS = 1200;
-const KEY_MS = 80;
-const LINE_MS = 380;
-const HOLD_MS = 3000;
-const LINK = /\[([^\]]+)\]\(([^)]+)\)/;
+// the page itself (no video file, no embed, nothing requested) in the
+// editor's own styles. It shows the editor's first idea: Markdown marks show
+// only where you are typing (a heading's `#` in the margin, `**` and a link's
+// source while the caret touches them) and step aside once the caret moves
+// on. List markers stay as typed. At the end the first task is ticked.
+export const HERO_SCRIPT: readonly ScriptStep[] = [
+  { type: "# Launch checklist\n\n- [ ] Write the **release notes**\n- [ ] Update the [changelog](log.md)\n- [ ] Tag the build" },
+  { pause: 600 },
+  { key: "Check" },
+  { pause: 2800 },
+];
 
-function Line({ text, caret }: { text: string; caret: boolean }) {
-  const heading = text.startsWith("# ");
-  const body = heading ? text.slice(2) : text;
-  const link = LINK.exec(body);
-  // Marks are drawn only on the caret's line.
-  const mark = (value: string) => (caret ? <span className="text-fg-faint">{value}</span> : null);
+const INLINE = /\*\*([^*]+)\*\*|\[([^\]]+)\]\(([^)]+)\)/;
+const TASK = /^(- )\[( |x)\] /;
+
+// A folded link (theme.ts `.cm-link-display`): the label in the link colour,
+// a light underline and a ↗ after it.
+const LINK =
+  "inline-flex items-baseline gap-[0.2em] whitespace-nowrap px-[0.08em] font-medium text-[var(--link)] underline decoration-[color-mix(in_srgb,var(--link)_38%,transparent)] [text-decoration-thickness:0.06em] underline-offset-[0.16em] after:font-semibold after:opacity-70 after:content-['↗']";
+// A done task's text (live-markers-theme.ts `.cm-task-done`).
+const DONE = "text-fg-muted line-through decoration-[color-mix(in_srgb,var(--fg-muted)_45%,transparent)] [text-decoration-thickness:1px]";
+
+// Inline marks show only while the caret touches their token; here the caret
+// is always at the end of the line being typed.
+function inline(text: string, caret: boolean): ReactNode[] {
+  const out: ReactNode[] = [];
+  let rest = text;
+  let at = 0;
+  for (let n = 0; rest; n++) {
+    const found = INLINE.exec(rest);
+    if (!found) {
+      out.push(rest);
+      break;
+    }
+    out.push(rest.slice(0, found.index));
+    const end = at + found.index + found[0].length;
+    const editing = caret && end === text.length;
+    if (found[1] !== undefined) {
+      out.push(
+        editing && <span key={`a${n}`} className={MARK}>**</span>,
+        <strong key={`b${n}`} className="font-semibold">{found[1]}</strong>,
+        editing && <span key={`c${n}`} className={MARK}>**</span>,
+      );
+    } else if (editing) {
+      out.push(<span key={`b${n}`} className={MARK}>[</span>, found[2], <span key={`c${n}`} className={MARK}>{`](${found[3]})`}</span>);
+    } else {
+      out.push(<span key={`b${n}`} data-link className={LINK}>{found[2]}</span>);
+    }
+    at = end;
+    rest = rest.slice(found.index + found[0].length);
+  }
+  return out;
+}
+
+/** One note line as the editor draws it; marks show only with the caret on it. Also drawn by DemoFiles. */
+export function Line({ text, caret }: { text: string; caret: boolean }) {
+  if (text.startsWith("# ")) {
+    return (
+      <div className="cm-line cm-heading cm-heading-1 font-semibold">
+        <MarginMarks marks="# " shown={caret} />
+        {inline(text.slice(2), caret)}
+        {caret && <DemoCaret />}
+      </div>
+    );
+  }
+  const task = TASK.exec(text);
+  const done = task?.[2] === "x";
   return (
-    <div className={heading ? "min-h-8 text-xl font-semibold leading-8 sm:min-h-10 sm:text-2xl sm:leading-10" : "min-h-6 leading-6 sm:min-h-7 sm:leading-7"}>
-      {heading && mark("# ")}
-      {link ? (
+    <div className="cm-line">
+      {task && (
         <>
-          {body.slice(0, link.index)}
-          {mark("[")}
-          <span className="text-[var(--link)]">{link[1]}</span>
-          {mark(`](${link[2]})`)}
-          {body.slice(link.index + link[0].length)}
+          <span className={`whitespace-pre ${MARK}`}>{task[1]}</span>
+          <span data-task={done ? "done" : "open"} className={`whitespace-pre ${done ? "text-[var(--task-done)]" : MARK}`}>
+            {`[${task[2]}] `}
+          </span>
         </>
-      ) : (
-        body
       )}
-      {caret && (
-        <span
-          data-caret
-          className="ml-px inline-block h-[1.1em] w-0.5 bg-[var(--caret)] align-text-bottom [animation:blink_1s_step-end_infinite] motion-reduce:[animation:none]"
-        />
-      )}
+      <span className={done ? DONE : undefined}>{inline(task ? text.slice(task[0].length) : text, caret)}</span>
+      {caret && <DemoCaret />}
+      {/* An empty line keeps its height, as CodeMirror's `<br>` does. */}
+      {!text && !caret && <br />}
     </div>
   );
 }
 
 export default function LandingLoop() {
-  // How many characters of the script are typed so far.
-  const [typed, setTyped] = useState(SCRIPT.length);
-
-  useEffect(() => {
-    // Reduced motion keeps the still of the finished note.
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    let at = 0;
-    let timer = 0;
-    const tick = () => {
-      // A hidden tab waits where it is.
-      if (document.hidden) {
-        timer = window.setTimeout(tick, HOLD_MS);
-        return;
-      }
-      setTyped(at);
-      const done = at >= SCRIPT.length;
-      const delay = done ? HOLD_MS : SCRIPT[at] === "\n" ? LINE_MS : KEY_MS;
-      at = done ? 0 : at + 1;
-      timer = window.setTimeout(tick, delay);
-    };
-    timer = window.setTimeout(tick, START_MS);
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  const lines = SCRIPT.slice(0, typed).split("\n");
+  const { ref, state } = useScriptLoop(HERO_SCRIPT);
+  const checked = appliedSteps(HERO_SCRIPT, state).some((step) => "key" in step && step.key === "Check");
+  const lines = typedText(HERO_SCRIPT, state).split("\n");
+  if (checked) lines[2] = lines[2].replace("[ ]", "[x]");
   return (
-    <div
-      role="img"
-      aria-label="A note being typed: Markdown marks show only on the line being edited."
-      className="relative aspect-video w-full overflow-hidden rounded-xl border border-edge bg-surface"
-    >
-      <div aria-hidden="true" className="whitespace-pre-wrap p-4 text-left text-sm text-fg sm:p-8 sm:text-base">
-        {lines.map((text, index) => (
-          <Line key={index} text={text} caret={index === lines.length - 1} />
-        ))}
-      </div>
-    </div>
+    <DemoFrame frameRef={ref} label="A note being typed: Markdown marks show only on the line being edited.">
+      {lines.map((text, index) => (
+        <Line key={index} text={text} caret={index === lines.length - 1} />
+      ))}
+    </DemoFrame>
   );
 }

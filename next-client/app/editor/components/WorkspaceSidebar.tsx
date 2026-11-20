@@ -7,9 +7,7 @@ import { atom_filesFocusRequested, atom_filesRevealPath, atom_sidebarOpen, atom_
 import { atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
 import SidebarFiles from "./sidebar/SidebarFiles";
-import { useVaultSwitchFade } from "../hooks/use-vault-switch-fade";
 import SidebarHeader from "./sidebar/SidebarHeader";
-import { VAULT_STRIP_WIDTH } from "./sidebar/vault-strip-width";
 import SidebarPinned from "./sidebar/SidebarPinned";
 import { useSidebarNavigation } from "./sidebar/use-sidebar-navigation";
 import type { VaultFileTreeController } from "./vault-tree/tree-model";
@@ -43,8 +41,7 @@ export default function WorkspaceSidebar() {
   const treeController = useRef<VaultFileTreeController | null>(null);
   const { allFiles, folderPaths } = useVaultFileSearch({ selectedTags: NO_TAGS, panel: "files", rememberedTree: true });
 
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const fadeRef = useVaultSwitchFade<HTMLDivElement>();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   // "Show Files" (atom_showFiles): once the sidebar is open, its Files tree
   // takes keyboard focus, on the folder "Show in Files" asked for if any.
@@ -89,8 +86,8 @@ export default function WorkspaceSidebar() {
         event.preventDefault();
         setOpen(false);
       }}
-      // Hidden, it slides out by its own width as the page slides back; it sits right of the vault strip, which stays.
-      style={{ width, left: open ? VAULT_STRIP_WIDTH : -width }}
+      // Hidden, it slides out by its own width as the page slides back.
+      style={{ width, left: open ? 0 : -width }}
       className="absolute inset-y-0 flex flex-col bg-surface paper-grain border-r border-edge-subtle font-sans transition-[left] duration-layout ease-layout motion-reduce:transition-none"
     >
       <SidebarHeader onHide={() => setOpen(false)} />
@@ -99,7 +96,7 @@ export default function WorkspaceSidebar() {
           A right-click on it outside Pinned, a row or the Search field opens
           the Files root's New File / New Folder menu, as on the tree's empty space. */}
       <div
-        ref={(element) => { scrollRef.current = element; fadeRef.current = element; }}
+        ref={scrollRef}
         data-scroll-root
         onContextMenu={(event) => {
           if (event.defaultPrevented || !(event.target instanceof Element)) return;
@@ -128,6 +125,7 @@ export default function WorkspaceSidebar() {
           </div>
         )}
       </div>
+
 
       {/* Resize handle on the trailing edge: a hairline lights up on hover
           and while dragging; arrow keys resize it too (Shift: larger steps). */}

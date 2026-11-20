@@ -81,6 +81,17 @@ export function matchCommand(query: string, command: SearchableCommand): Command
     : { ...metadataMatch, indices: [], source: "metadata" };
 }
 
+// A command that opens a page whose name the query starts, or starts a word
+// of: "tasks" names Open Tasks, "files" names Open All Files. Those come first
+// in a `>` search, so typing a page's name lands on the page, not on an action
+// that mentions it ("Task: Start").
+export function namesPage(query: string, command: SearchableCommand & { opens?: string }): boolean {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!command.opens || !normalizedQuery) return false;
+  const name = command.label.replace(/^(Open|Show|Go to) /i, "").replace(/…$/, "").toLowerCase();
+  return name.startsWith(normalizedQuery) || name.includes(` ${normalizedQuery}`);
+}
+
 // A query with `*` or `?` is a glob: `*.tsx` lists every .tsx file. Without a
 // "/" it matches the file name; with one it matches the whole path. `*` never
 // crosses a "/" except in the path form `**`.

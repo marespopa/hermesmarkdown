@@ -1,6 +1,5 @@
 "use client";
 
-import { VAULT_STRIP_WIDTH } from "./sidebar/vault-strip-width";
 import React from "react";
 import { usePathname } from "next/navigation";
 import { useAtomValue } from "jotai";
@@ -68,7 +67,7 @@ function WorkspaceSkeleton({ sidebarOpen, sidebarWidth, fullWidth }: { sidebarOp
     <div
       aria-hidden="true"
       // Where the page starts: past the open sidebar; the whole window at the mobile-chrome width.
-      style={{ "--skeleton-left": `${VAULT_STRIP_WIDTH + (sidebarOpen ? sidebarWidth : 0)}px` } as React.CSSProperties}
+      style={{ "--skeleton-left": `${sidebarOpen ? sidebarWidth : 0}px` } as React.CSSProperties}
       className="relative flex-1 min-w-0 h-full"
     >
       <div className="app-sheet absolute inset-0 min-[769px]:left-[var(--skeleton-left)] overflow-hidden bg-surface flex flex-col">
@@ -83,11 +82,10 @@ function WorkspaceSkeleton({ sidebarOpen, sidebarWidth, fullWidth }: { sidebarOp
         <NoteSheetSkeleton fullWidth={fullWidth} />
       </div>
 
-      <div style={{ width: VAULT_STRIP_WIDTH }} className="absolute inset-y-0 left-0 border-r border-edge-subtle bg-surface max-[768px]:hidden" />
       {sidebarOpen && (
         <div
-          style={{ width: sidebarWidth, left: VAULT_STRIP_WIDTH }}
-          className="absolute inset-y-0 flex flex-col bg-surface paper-grain border-r border-edge-subtle max-[768px]:hidden"
+          style={{ width: sidebarWidth }}
+          className="absolute inset-y-0 left-0 flex flex-col bg-surface paper-grain border-r border-edge-subtle max-[768px]:hidden"
         >
           <div className={`flex items-center gap-2 shrink-0 pl-4 pr-2 sm:pr-3 ${PANE_HEADER_HEIGHT}`}>
             <div className="flex-1">
