@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
-import { HiOutlineDatabase, HiOutlineGlobeAlt, HiOutlineX } from "react-icons/hi";
+import { HiOutlineDatabase, HiOutlineEmojiHappy, HiOutlineGlobeAlt, HiOutlineTrash } from "react-icons/hi";
 import { TbPinned, TbPinnedOff } from "react-icons/tb";
 import Button from "@/app/components/Button";
 import DialogModal from "@/app/components/DialogModal/DialogModal";
@@ -11,23 +11,30 @@ import { atom_vaultKey } from "@/app/atoms/vault-atoms";
 import type { RecentVault } from "@/app/services/recent-vaults";
 import { useRecentVaults } from "../hooks/use-recent-vaults";
 import PinIconPopover from "./PinIconPopover";
+import TabContextMenu, { type TabContextMenuItem } from "./TabContextMenu";
+
+const MENU_ICON = { size: 15 } as const;
 
 // The drag's payload type: this list reorders with it, and nothing else does.
 const DRAG_TYPE = "application/x-hermes-recent-vault";
 
 // The vault switcher's recent vaults (useVaultMenuItems lists only the pinned
-// ones): pin one to show it in the Vault menu (pinned vaults never age out), drag a
-// row (or Alt+↑/↓ on it) to reorder within its group, click a row's leading
-// icon to give the vault an emoji (PinIconPopover, straight away), remove one from the
-// list (its files are untouched), or click a name to open that vault. The
-// open vault is listed too, so it can be pinned. Each change is saved at
-// once, on this device (services/recent-vaults.ts).
+// ones). A click or right-click on a vault's name opens its menu, like a
+// file's: Open, Pin / Unpin (pinned vaults show in the Vault menu and never
+// age out), Set Icon… (PinIconPopover), and Remove from Recents (its files
+// are untouched). Drag a row (or Alt+↑/↓ on it) to reorder within its group,
+// or click its leading icon to give the vault an emoji. The open vault is
+// listed too, so it can be pinned. Each change is saved at once, on this
+// device (services/recent-vaults.ts).
 export default function RecentVaultsDialog() {
   const [isOpen, setIsOpen] = useAtom(atom_recentVaultsDialogOpen);
   const vaultKey = useAtomValue(atom_vaultKey);
   const { allRecentVaults: list, openRecentVault, forgetRecentVault, pinRecentVault, moveRecentVault, setRecentVaultIcon } = useRecentVaults();
   // The vault whose emoji is being picked, and its icon button.
   const [picker, setPicker] = useState<{ key: string; anchor: DOMRect } | null>(null);
+  // The vault whose menu is open, and where.
+  const [menu, setMenu] = useState<{ key: string; x: number; y: number } | null>(null);
+  const menuEntry = menu ? list.find((entry) => entry.key === menu.key) : undefined;
   const pickerEntry = picker ? list.find((entry) => entry.key === picker.key) : undefined;
   const iconRef = useRef<HTMLElement | null>(null);
   const rowRefs = useRef(new Map<string, HTMLDivElement>());
@@ -38,8 +45,41 @@ export default function RecentVaultsDialog() {
 
   const close = () => {
     setPicker(null);
+    setMenu(null);
     setIsOpen(false);
   };
+
+  // A click or right-click on the name (or the menu key: no pointer, so under the row).
+  const openMenuAt = (key: string) => (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    const rect = (rowRefs.current.get(key) ?? event.currentTarget).getBoundingClientRect();
+    const fromKeyboard = event.clientX === 0 && event.clientY === 0;
+    setPicker(null);
+    setMenu((open) => (open?.key === key && event.type === "click" ? null : { key, x: fromKeyboard ? rect.left + 8 : event.clientX, y: fromKeyboard ? rect.bottom : event.clientY }));
+  };
+
+  const menuItems = (entry: RecentVault): TabContextMenuItem[] => [
+    {
+      label: "Open Vault",
+      icon: <HiOutlineDatabase {...MENU_ICON} />,
+      disabled: entry.key === vaultKey,
+      onClick: () => void open(entry),
+    },
+    {
+      label: entry.pinned ? "Unpin" : "Pin",
+      icon: entry.pinned ? <TbPinnedOff {...MENU_ICON} /> : <TbPinned {...MENU_ICON} />,
+      onClick: () => pinRecentVault(entry.key, !entry.pinned),
+    },
+    {
+      label: entry.icon ? "Change Icon…" : "Set Icon…",
+      icon: <HiOutlineEmojiHappy {...MENU_ICON} />,
+      onClick: () => {
+        const rect = rowRefs.current.get(entry.key)?.getBoundingClientRect();
+        if (rect) setPicker({ key: entry.key, anchor: rect });
+      },
+    },
+    { label: "Remove from Recents", icon: <HiOutlineTrash {...MENU_ICON} />, divider: true, onClick: () => forgetRecentVault(entry.key) },
+  ];
 
   const indexAt = (clientY: number) => {
     const index = list.findIndex((entry) => {
@@ -114,10 +154,12 @@ export default function RecentVaultsDialog() {
         <Button
           variant="menu-item"
           className="rounded-none text-left flex-1 min-w-0"
-          onClick={() => void open(entry)}
+          onClick={openMenuAt(entry.key)}
+          onContextMenu={openMenuAt(entry.key)}
           onKeyDown={moveByKey(entry.key)}
-          disabled={isOpenVault}
-          title={isOpenVault ? "The open vault" : `Open ${entry.name}`}
+          aria-haspopup="menu"
+          aria-expanded={menu?.key === entry.key}
+          title={`${entry.name}: Open, Pin…`}
         >
           <span className="min-w-0">
             <span className="block truncate">{entry.name}</span>
@@ -126,25 +168,6 @@ export default function RecentVaultsDialog() {
               {isOpenVault ? " · Open" : ""}
             </span>
           </span>
-        </Button>
-        <Button
-          variant="icon"
-          aria-label={entry.pinned ? `Unpin ${entry.name}` : `Pin ${entry.name}`}
-          aria-pressed={!!entry.pinned}
-          title={entry.pinned ? "Unpin" : "Pin to the top"}
-          onClick={() => pinRecentVault(entry.key, !entry.pinned)}
-          onKeyDown={moveByKey(entry.key)}
-        >
-          {entry.pinned ? <TbPinnedOff size={16} /> : <TbPinned size={16} />}
-        </Button>
-        <Button
-          variant="icon"
-          aria-label={`Remove ${entry.name} from recents`}
-          title="Remove from recents"
-          onClick={() => forgetRecentVault(entry.key)}
-          onKeyDown={moveByKey(entry.key)}
-        >
-          <HiOutlineX size={16} />
         </Button>
       </div>
     );
@@ -156,8 +179,8 @@ export default function RecentVaultsDialog() {
         <div>
           <h2 id="recent-vaults-title" className="text-ui-title-3 font-bold">Recent Vaults</h2>
           <p className="mt-1 text-ui-footnote text-fg-muted">
-            Pinned vaults are listed in the Vault menu. Drag to reorder, or press Alt+↑/↓.
-            Removing a vault only takes it off this list; its notes are untouched.
+            Click a vault for its menu: Open, Pin or Unpin, Set Icon, Remove. Pinned vaults are listed in the Vault menu.
+            Drag to reorder, or press Alt+↑/↓. Removing a vault only takes it off this list; its notes are untouched.
           </p>
         </div>
         <div
@@ -187,6 +210,16 @@ export default function RecentVaultsDialog() {
             : list.map(row)}
         </div>
       </div>
+      {menu && menuEntry && (
+        <TabContextMenu
+          x={menu.x}
+          y={menu.y}
+          items={menuItems(menuEntry)}
+          label={`${menuEntry.name} menu`}
+          onClose={() => setMenu(null)}
+          overDialog
+        />
+      )}
       {picker && pickerEntry && (
         <PinIconPopover
           anchor={picker.anchor}
