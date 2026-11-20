@@ -50,8 +50,6 @@ vi.mock("../hooks/use-vault-menu-items", () => ({
   ],
 }));
 
-vi.mock("./sidebar/VaultStrip", () => ({ default: () => <div data-testid="vault-strip" /> }));
-
 vi.mock("../hooks/useVaultFileSearch", () => ({
   useVaultFileSearch: () => ({
     allFiles: [], folderPaths: [], processedFiles: [], totalResultsCount: 0, hasMoreResults: false,
@@ -215,11 +213,12 @@ describe("WorkspaceSidebar", () => {
     expect(within(screen.getByRole("navigation")).queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("shows the open vault's name in its header and the vault strip beside it", () => {
+  it("shows the open vault's name in its header, with the vault strip left to EditorShell", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar();
     expect(screen.queryByText("HermesMarkdown")).not.toBeInTheDocument();
-    expect(screen.getByTestId("vault-strip")).toBeInTheDocument();
+    expect(within(screen.getByRole("navigation")).getByText("Notes")).toBeInTheDocument();
+    expect(screen.queryByRole("toolbar", { name: "Vaults" })).not.toBeInTheDocument();
   });
 
   it("hides from its Hide sidebar button", () => {
