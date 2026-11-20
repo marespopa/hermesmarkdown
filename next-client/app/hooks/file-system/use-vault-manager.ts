@@ -26,6 +26,8 @@ import {
   atom_vaultKey,
 } from "@/app/atoms/atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_localVaultKey, atom_recentVaults } from "@/app/atoms/vault-atoms";
+import { resolveLocalVaultKey } from "@/app/services/local-vault-key";
 import {
   loadVaultHandle,
   clearVaultHandle,
@@ -239,6 +241,7 @@ export function useVaultManager() {
     setIsVaultPending(false);
     setIsCloudVault(false);
     setVaultDescriptor(null);
+    store.set(atom_localVaultKey, null);
 
     setOpenFiles({
       draft: {
@@ -252,7 +255,7 @@ export function useVaultManager() {
     setWorkspaceLayout(singlePaneLayout(["draft"], "draft"));
 
     clearVaultHandle();
-  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setVaultFolderPaths, setVaultTextFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor]);
+  }, [setVaultHandle, setCurrentDirectoryHandle, setVaultFiles, setVaultFolderPaths, setVaultTextFiles, setFileMetadata, setActiveFileHandle, setActiveFilePath, setIsVaultPending, setOpenFiles, setWorkspaceLayout, setIsCloudVault, setVaultDescriptor, store]);
 
   // Load vault on mount
   useEffect(() => {
@@ -267,6 +270,7 @@ export function useVaultManager() {
       markStartup("vault:load-handle");
       const savedHandle = await loadVaultHandle();
       if (savedHandle) {
+        store.set(atom_localVaultKey, await resolveLocalVaultKey(savedHandle, store.get(atom_recentVaults)));
         setVaultHandle(savedHandle);
         setVaultDescriptor({ kind: "local" });
         // The browser's Allow prompt opens right here when a click is still
@@ -335,7 +339,7 @@ export function useVaultManager() {
       }
     }
     init();
-  }, [setIsVaultRestoring, setIsRequestingAccess, setVaultHandle, setVaultDescriptor, setIsVaultPending, hasLoadedVault, setHasLoadedVault, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, initVaultFromHandle]);
+  }, [setIsVaultRestoring, setIsRequestingAccess, setVaultHandle, setVaultDescriptor, setIsVaultPending, hasLoadedVault, setHasLoadedVault, setCurrentDirectoryHandle, scanVault, indexVaultTags, rebindHandles, detectCloudVault, initVaultFromHandle, store]);
 
   return {
     vaultHandle,

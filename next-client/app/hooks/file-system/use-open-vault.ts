@@ -16,8 +16,13 @@ import {
   atom_rebindHandles,
   atom_isCloudVault,
   atom_vaultDescriptor,
+  atom_vaultKey,
+  atom_localVaultKey,
+  atom_recentVaults,
+  vaultKeyFor,
   type VaultDescriptor,
 } from "@/app/atoms/atoms";
+import { atom_sidebarCollapsed } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
 import {
   saveVaultHandle,
@@ -28,6 +33,8 @@ import { singlePaneLayout } from "./vault-scan";
 import { clearNoteContent } from "@/app/services/content-search-client";
 import { atom_browserVaultDialogOpen, atom_showFiles } from "@/app/atoms/ui-atoms";
 import { purgeExpiredTrash } from "./trash-ops";
+import { resolveLocalVaultKey } from "@/app/services/local-vault-key";
+import { loadVaultWorkspace, saveVaultWorkspace } from "@/app/services/vault-workspace";
 import { writeVaultHint } from "@/app/services/vault-hint";
 
 interface UseOpenVaultArgs {
@@ -84,15 +91,38 @@ export function useOpenVault({ scanVault, indexVaultTags, detectCloudVault }: Us
     // startup restore (not announced) has the editor skeleton instead.
     if (announce) setOpeningVaultName(vaultName);
     try {
+      // Switching: the vault being left is saved as it is, and the one opened
+      // comes back as it was left (its tabs, their text, folded sections).
+      const localKey = descriptor.kind === "local" ? await resolveLocalVaultKey(handle, store.get(atom_recentVaults)) : null;
+      let restored: Awaited<ReturnType<typeof loadVaultWorkspace>> = null;
+      if (!keepTabs) {
+        const leaving = store.get(atom_vaultKey);
+        if (leaving) {
+          void saveVaultWorkspace(leaving, {
+            layout: store.get(atom_workspaceLayout),
+            openFiles: store.get(atom_openFiles),
+            sidebarCollapsed: store.get(atom_sidebarCollapsed),
+          });
+        }
+        const arriving = vaultKeyFor(descriptor, handle, localKey);
+        if (arriving && !isNewVault) restored = await loadVaultWorkspace(arriving);
+      }
       setFileMetadata({});
       setVaultFiles([]);
       setVaultFolderPaths([]);
       setVaultTextFiles([]);
       if (!keepTabs) {
         clearNoteContent();
-        setOpenFiles({});
-        setWorkspaceLayout(singlePaneLayout([], null));
+        if (restored) {
+          setOpenFiles(restored.openFiles);
+          setWorkspaceLayout(restored.layout);
+          store.set(atom_sidebarCollapsed, restored.sidebarCollapsed);
+        } else {
+          setOpenFiles({});
+          setWorkspaceLayout(singlePaneLayout([], null));
+        }
       }
+      store.set(atom_localVaultKey, localKey);
       setVaultHandle(handle);
       setVaultDescriptor(descriptor);
       setCurrentDirectoryHandle(handle);

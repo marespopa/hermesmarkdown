@@ -49,9 +49,9 @@ const item = (name: string) => screen.getByRole("menuitem", { name });
 describe("RecentVaultsDialog", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("opens the vault's menu on a click on its name, and pins from it", () => {
+  it("opens the vault's menu on a right-click on its name, and pins from it", () => {
     setup([vault("Projects", true), vault("Archive")]);
-    fireEvent.click(nameOf("Archive"));
+    fireEvent.contextMenu(nameOf("Archive"));
     expect(recents.openRecentVault).not.toHaveBeenCalled();
     fireEvent.click(item("Pin"));
     expect(recents.pinRecentVault).toHaveBeenCalledWith("local:Archive", true);
@@ -65,6 +65,14 @@ describe("RecentVaultsDialog", () => {
     expect(recents.pinRecentVault).toHaveBeenCalledWith("local:Projects", false);
   });
 
+  it("opens the vault on a left-click on its name", async () => {
+    recents.openRecentVault.mockResolvedValue(true);
+    setup([vault("Projects", true), vault("Archive")]);
+    fireEvent.click(nameOf("Archive"));
+    expect(recents.openRecentVault).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
   it("has no separate pin or remove buttons on a row", () => {
     setup([vault("Archive")]);
     expect(screen.queryByRole("button", { name: /^(Pin|Unpin|Remove)/ })).not.toBeInTheDocument();
@@ -72,7 +80,7 @@ describe("RecentVaultsDialog", () => {
 
   it("removes a vault from the list from its menu", () => {
     setup([vault("Archive")]);
-    fireEvent.click(nameOf("Archive"));
+    fireEvent.contextMenu(nameOf("Archive"));
     fireEvent.click(item("Remove from Recents"));
     expect(recents.forgetRecentVault).toHaveBeenCalledWith("local:Archive");
   });
@@ -88,13 +96,13 @@ describe("RecentVaultsDialog", () => {
   it("opens a vault from its menu and closes, but not the open one", async () => {
     recents.openRecentVault.mockResolvedValue(true);
     const store = setup([vault("Projects"), vault("Archive")], "Projects");
-    fireEvent.click(nameOf("Projects"));
+    fireEvent.contextMenu(nameOf("Projects"));
     expect(item("Open Vault")).toBeDisabled();
     fireEvent.keyDown(item("Open Vault"), { key: "Escape" });
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
     expect(store.get(atom_recentVaultsDialogOpen)).toBe(true);
 
-    fireEvent.click(nameOf("Archive"));
+    fireEvent.contextMenu(nameOf("Archive"));
     fireEvent.click(item("Open Vault"));
     expect(recents.openRecentVault).toHaveBeenCalledWith(recents.list[1]);
     await waitFor(() => expect(store.get(atom_recentVaultsDialogOpen)).toBe(false));
@@ -109,7 +117,7 @@ describe("RecentVaultsDialog", () => {
 
   it("changes the icon from the vault's menu too", () => {
     setup([vault("Archive")]);
-    fireEvent.click(nameOf("Archive"));
+    fireEvent.contextMenu(nameOf("Archive"));
     fireEvent.click(item("Set Icon…"));
     fireEvent.click(screen.getByRole("button", { name: "Pick emoji" }));
     expect(recents.setRecentVaultIcon).toHaveBeenCalledWith("local:Archive", "📚");

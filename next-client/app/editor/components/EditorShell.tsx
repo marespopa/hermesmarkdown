@@ -1,5 +1,7 @@
 "use client";
 
+import VaultStrip from "./sidebar/VaultStrip";
+import { VAULT_STRIP_WIDTH } from "./sidebar/vault-strip-width";
 import React, { useEffect, type CSSProperties, type ReactNode } from "react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { usePathname } from "next/navigation";
@@ -143,7 +145,8 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   }, [hasSidebar, setSidebarOpen]);
 
   const frame = {
-    "--content-left": `${hasSidebar && sidebarOpen ? sidebarWidth : 0}px`,
+    // The vault strip stays when the sidebar panel is hidden.
+    "--content-left": `${hasSidebar ? VAULT_STRIP_WIDTH + (sidebarOpen ? sidebarWidth : 0) : 0}px`,
     // The open companion's room; on mobile it is a sheet over the page.
     "--content-right": `${hasCompanion && !isMobileChrome && companionOpen ? companionWidth : 0}px`,
   } as CSSProperties;
@@ -151,6 +154,11 @@ export default function EditorShell({ children }: { children: ReactNode }) {
   return (
     <div className="page-only-room contents" style={frame}>
       {children}
+      {hasSidebar && (
+        <div className="page-only-hide transition-[opacity,visibility] duration-300 motion-reduce:transition-none fixed inset-y-0 left-0 z-40 flex bg-surface paper-grain">
+          <VaultStrip />
+        </div>
+      )}
       {hasSidebar && (
         // The sidebar slides in and out of this zero-width wrapper; the room
         // it takes is --content-left, above.
@@ -160,7 +168,8 @@ export default function EditorShell({ children }: { children: ReactNode }) {
       )}
       {hasSidebar && !sidebarOpen && (
         <div
-          className={`${PANE_SECTION_CLASS} page-only-hide transition-[opacity,visibility] duration-300 motion-reduce:transition-none fixed top-1.5 left-2 !ml-0 z-30`}
+          className={`${PANE_SECTION_CLASS} page-only-hide transition-[opacity,visibility] duration-300 motion-reduce:transition-none fixed top-1.5 !ml-0 z-30`}
+          style={{ left: VAULT_STRIP_WIDTH + 8 }}
         >
           <PaneToolbarButton
             icon={<VscLayoutSidebarLeftOff size={PANE_ICON_SIZE} />}
