@@ -4,6 +4,7 @@ import { act, renderHook } from "@testing-library/react";
 import { createStore, Provider } from "jotai";
 import { atom_isRequestingAccess, atom_isVaultPending, atom_isVaultRestoring, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import { readVaultHint, writeVaultHint } from "@/app/services/vault-hint";
+import type { PermissionAsk } from "@/app/services/idb";
 import { useVaultManager } from "./use-vault-manager";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
@@ -49,7 +50,7 @@ describe("useVaultManager, restoring the saved vault on load", () => {
     ({ result, pending });
 
   it("asks for access straight away, and keeps the skeleton (not the overlay) while the browser's prompt is open", async () => {
-    let answer!: (ask: ReturnType<typeof ask>) => void;
+    let answer!: (value: PermissionAsk) => void;
     idb.askPermissionWithin.mockReturnValue(new Promise((resolve) => { answer = resolve; }));
     const store = mount();
     await act(async () => { await vi.advanceTimersByTimeAsync(0); });
