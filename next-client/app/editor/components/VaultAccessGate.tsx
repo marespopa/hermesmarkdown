@@ -3,7 +3,9 @@
 import { useEffect, type ReactNode } from "react";
 import { useAtomValue } from "jotai";
 import { atom_isVaultRestoring, atom_isVaultUnlocking, atom_openingVaultName } from "@/app/atoms/atoms";
+import { atom_openNotesHydrated } from "@/app/atoms/file-atoms";
 import { useVaultManager } from "@/app/hooks/file-system/use-vault-manager";
+import { useStartupWatchdog } from "../hooks/use-startup-watchdog";
 import LoadingOverlay from "@/app/components/LoadingOverlay";
 import EditorSkeleton from "./EditorSkeleton";
 import VaultPendingOverlay from "./VaultPendingOverlay";
@@ -16,6 +18,7 @@ import VaultPendingOverlay from "./VaultPendingOverlay";
 // the skeleton. Any click or key press then asks the browser for access, so
 // no separate button press is needed. Once access is granted the prompt goes
 // and the skeleton stays until the vault is loaded and "Vault restored" shows.
+// If the skeleton stays past 10 seconds (use-startup-watchdog.ts), a toast offers a reload.
 // While the user opens another vault, "Opening <name>..." covers the route
 // until its open notes and top folder are read.
 export default function VaultAccessGate({ children }: { children: ReactNode }) {
@@ -23,6 +26,10 @@ export default function VaultAccessGate({ children }: { children: ReactNode }) {
   const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
   const isVaultUnlocking = useAtomValue(atom_isVaultUnlocking);
   const openingVaultName = useAtomValue(atom_openingVaultName);
+  const notesHydrated = useAtomValue(atom_openNotesHydrated);
+
+  // Skeleton up with nothing for the user to do: offer a reload if it lasts.
+  useStartupWatchdog(isVaultRestoring || (isVaultPending && isVaultUnlocking) || !notesHydrated);
 
   useEffect(() => {
     if (!isVaultPending || isVaultUnlocking) return;

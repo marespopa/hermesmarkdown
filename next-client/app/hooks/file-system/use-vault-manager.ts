@@ -48,6 +48,13 @@ import { clearNoteContent } from "@/app/services/content-search-client";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { loadStoredWorkspace } from "./stored-workspace";
 import { readVaultHint, writeVaultHint } from "@/app/services/vault-hint";
+import { showActionToast } from "@/app/components/Toastr";
+import { withTimeout } from "@/app/utils/with-timeout";
+import { markStartup } from "@/app/utils/startup-trace";
+
+// Each browser-storage or permission step of the restore gets this long; past
+// it the restore ends rather than leave the editor on its skeleton for good.
+const STARTUP_STEP_TIMEOUT_MS = 8000;
 
 // Each scan and each indexing run takes a number; an older one drops its
 // results once a newer one starts, or once another vault is open. Module
@@ -195,6 +202,7 @@ export function useVaultManager() {
         // Pending (route hidden, inert) until the open notes are bound and the
         // top folder listed; the vault is then indexed behind the editor.
         setIsVaultUnlocking(true);
+        markStartup("vault:unlock");
         setCurrentDirectoryHandle(vaultHandle);
         setIsCloudVault(false);
         detectCloudVault(vaultHandle);
@@ -254,20 +262,24 @@ export function useVaultManager() {
 
     // Restores the saved vault, resolving whether there was one to restore.
     async function restoreSavedVault(): Promise<boolean> {
+      markStartup("vault:load-handle");
       const savedHandle = await loadVaultHandle();
       if (savedHandle) {
         setVaultHandle(savedHandle);
         setVaultDescriptor({ kind: "local" });
         // Only query permission on mount — requestPermission requires a user
         // gesture and will throw a SecurityError if called automatically.
-        const granted = await queryPermission(savedHandle);
+        markStartup("vault:permission");
+        const granted = await withTimeout(queryPermission(savedHandle), STARTUP_STEP_TIMEOUT_MS, "Vault permission check");
         if (granted) {
           // The editor can show while the vault is read, so reveal it now.
           setIsVaultRestoring(false);
+          markStartup("vault:readable");
           setCurrentDirectoryHandle(savedHandle);
           detectCloudVault(savedHandle);
           // Open notes first: their disk text and saving don't wait for the index.
           await rebindHandles(savedHandle);
+          markStartup("vault:rebound");
           await scanVault(savedHandle);
           await indexVaultTags(savedHandle);
         } else {
@@ -278,7 +290,7 @@ export function useVaultManager() {
 
       // Browser-storage vaults need no permission prompt.
       try {
-        const stored = await loadStoredWorkspace();
+        const stored = await withTimeout(loadStoredWorkspace(), STARTUP_STEP_TIMEOUT_MS, "Browser storage vault");
         if (stored) {
           await initVaultFromHandle(stored.handle, {
             descriptor: stored.descriptor,
@@ -303,7 +315,13 @@ export function useVaultManager() {
       if (readVaultHint() === "none") setIsVaultRestoring(false);
       try {
         writeVaultHint((await restoreSavedVault()) ? "saved" : "none");
+      } catch (err) {
+        // Browser storage didn't answer in time. That says nothing about
+        // whether a vault was saved, so the hint stays as it was; a reload retries.
+        console.error("Failed to restore the saved vault:", err);
+        showActionToast("Couldn't open your vault.", "Reload", () => window.location.reload());
       } finally {
+        markStartup("vault:restore-done");
         setIsVaultRestoring(false);
       }
     }
