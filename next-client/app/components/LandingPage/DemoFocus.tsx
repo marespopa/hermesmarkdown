@@ -21,7 +21,7 @@ const SECOND = "Export and themes are done. The docs still need a pass.";
 
 // Sentences of a paragraph; a trailing space after a full stop starts the next, empty one.
 function sentences(text: string): string[] {
-  const parts = text.match(/[^.!?]+[.!?]*\s*/g) ?? [];
+  const parts: string[] = [...(text.match(/[^.!?]+[.!?]*\s*/g) ?? [])];
   if (/[.!?]\s+$/.test(text)) parts.push("");
   return parts;
 }
