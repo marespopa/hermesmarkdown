@@ -155,8 +155,9 @@ export async function requestPermissionFromUserGesture(handle: FileSystemHandle,
 // with no query ahead of it that could use that time up. With no recent click the browser refuses; the
 // access may still be granted from an earlier visit, so that is checked next
 // (briefly: the check has been seen never to answer). False means the caller
-// falls back to asking on the next click (VaultPendingOverlay). The prompt
-// waits for the user, so it has no timeout.
+// falls back to asking on the next click (VaultPendingOverlay). The request
+// itself has no timeout (an open prompt waits for the user), so callers that
+// must not hang wait through askPermissionWithin.
 export async function requestPermissionFirst(handle: FileSystemHandle, readWrite = true): Promise<boolean> {
   if (!hasPermissionApi(handle)) return true;
   try {
@@ -165,6 +166,33 @@ export async function requestPermissionFirst(handle: FileSystemHandle, readWrite
     // No recent click: the browser won't open the prompt.
   }
   return withTimeout(queryPermission(handle, readWrite), 2000, "Vault permission check").catch(() => false);
+}
+
+// How long a caller waits for requestPermissionFirst before treating the ask as
+// unanswered (Android Chrome can leave it unsettled with no prompt on screen).
+export const PERMISSION_NO_ANSWER_MS = 4000;
+
+export type PermissionAsk = {
+  result: "granted" | "denied" | "no-answer";
+  // The request itself, still running after a "no-answer"; true when granted.
+  pending: Promise<boolean>;
+};
+
+// Asks like requestPermissionFirst but gives up waiting after `ms`: "no-answer"
+// means nothing replied yet, and `pending` still settles if it does later.
+export async function askPermissionWithin(
+  handle: FileSystemHandle,
+  ms = PERMISSION_NO_ANSWER_MS,
+  readWrite = true,
+): Promise<PermissionAsk> {
+  const pending = requestPermissionFirst(handle, readWrite).catch(() => false);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const noAnswer = new Promise<"no-answer">((resolve) => {
+    timer = setTimeout(() => resolve("no-answer"), ms);
+  });
+  const outcome = await Promise.race([pending, noAnswer]).finally(() => clearTimeout(timer));
+  if (outcome === "no-answer") return { result: "no-answer", pending };
+  return { result: outcome ? "granted" : "denied", pending };
 }
 
 export async function queryPermission(handle: FileSystemHandle, readWrite = true): Promise<boolean> {

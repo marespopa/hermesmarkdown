@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { describe, expect, it, vi } from "vitest";
-import { queryPermission, requestPermissionFromUserGesture, requestPermissionFirst, verifyPermission } from "./idb";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { askPermissionWithin, queryPermission, requestPermissionFromUserGesture, requestPermissionFirst, verifyPermission } from "./idb";
 
 describe("vault permission helpers", () => {
   it("treat handles without a permission API (Safari, Firefox, browser storage) as granted", async () => {
@@ -68,5 +68,45 @@ describe("vault permission helpers", () => {
     it("treats handles without a permission API as granted", async () => {
       await expect(requestPermissionFirst({ kind: "directory" } as unknown as FileSystemHandle)).resolves.toBe(true);
     });
+  });
+});
+
+describe("askPermissionWithin", () => {
+  afterEach(() => vi.useRealTimers());
+
+  const hung = () => {
+    let settle!: (state: string) => void;
+    const handle = {
+      queryPermission: vi.fn(async () => "prompt"),
+      requestPermission: vi.fn(() => new Promise<string>((resolve) => { settle = resolve; })),
+    };
+    return { handle: handle as unknown as FileSystemHandle, settle: (state: string) => settle(state) };
+  };
+
+  it("answers no-answer when the request never settles, and keeps the request running", async () => {
+    vi.useFakeTimers();
+    const { handle, settle } = hung();
+    const ask = askPermissionWithin(handle, 4000);
+    await vi.advanceTimersByTimeAsync(4000);
+    const { result, pending } = await ask;
+    expect(result).toBe("no-answer");
+    settle("granted");
+    await expect(pending).resolves.toBe(true);
+  });
+
+  it("answers granted when the request settles in time", async () => {
+    vi.useFakeTimers();
+    const { handle, settle } = hung();
+    const ask = askPermissionWithin(handle, 4000);
+    settle("granted");
+    await expect(ask).resolves.toMatchObject({ result: "granted" });
+  });
+
+  it("answers denied when the request is refused", async () => {
+    vi.useFakeTimers();
+    const { handle, settle } = hung();
+    const ask = askPermissionWithin(handle, 4000);
+    settle("denied");
+    await expect(ask).resolves.toMatchObject({ result: "denied" });
   });
 });
