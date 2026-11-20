@@ -8,6 +8,8 @@ import { useVaultManager } from "./use-vault-manager";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("react-hot-toast", () => ({ default: Object.assign(vi.fn(), { error: vi.fn(), success: vi.fn() }) }));
+const toasts = vi.hoisted(() => ({ showActionToast: vi.fn() }));
+vi.mock("@/app/components/Toastr", () => ({ showActionToast: toasts.showActionToast }));
 vi.mock("./shared", async (importOriginal) => ({ ...(await importOriginal<object>()), isIdbSupported: true }));
 
 const saved = { kind: "directory", name: "notes" } as unknown as FileSystemDirectoryHandle;
@@ -67,5 +69,6 @@ describe("useVaultManager, restoring the saved vault on load", () => {
 
     expect(store.get(atom_isVaultRestoring)).toBe(false);
     expect(readVaultHint()).toBe("saved");
+    expect(toasts.showActionToast).toHaveBeenCalledWith("Couldn't open your vault.", "Reload", expect.any(Function));
   });
 });
