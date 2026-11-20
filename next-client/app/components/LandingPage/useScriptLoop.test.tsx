@@ -58,7 +58,7 @@ describe("useScriptLoop", () => {
   });
 
   it("stays still when motion is reduced", () => {
-    vi.spyOn(window, "matchMedia").mockImplementation((query: string) => ({ matches: true, media: query }) as MediaQueryList);
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: true, media: query }) as MediaQueryList);
     render(<Probe />);
     advance(10000);
     expect(screen.getByTestId("probe")).toHaveTextContent("4:abc");

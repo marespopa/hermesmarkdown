@@ -8,6 +8,7 @@ describe("LandingLoop", () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
@@ -61,12 +62,13 @@ describe("LandingLoop", () => {
     typeUntil((text) => text.includes("Tag the build"));
     expect(box().querySelector("[data-task='done']")).toBeNull();
     typeUntil(() => box().querySelector("[data-task='done']") !== null);
-    advance(3500);
+    // The tick's press and the 2.8s rest, then the loop starts over, empty.
+    advance(3250);
     expect(box().textContent).toBe("");
   });
 
   it("stays still when motion is reduced", () => {
-    vi.spyOn(window, "matchMedia").mockImplementation((query: string) => ({ matches: true, media: query }) as MediaQueryList);
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: true, media: query }) as MediaQueryList);
     render(<LandingLoop />);
     advance(10000);
     expect(box()).toHaveTextContent("Tag the build");

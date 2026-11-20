@@ -43,10 +43,10 @@ const NOTE = ["# Release plan", "", "- [x] Export to PDF", "- [ ] Dark theme", "
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="pb-2 pt-1">
-      <p className="flex h-6 items-center gap-1.5 px-1.5 text-fg-faint sm:h-7">
+      <div className="flex h-6 items-center gap-1.5 px-1.5 text-fg-faint sm:h-7">
         <HiChevronRight size={11} className="shrink-0 rotate-90" />
         {title}
-      </p>
+      </div>
       <div className="flex flex-col gap-px pt-0.5">{children}</div>
     </div>
   );
