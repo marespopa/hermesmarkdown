@@ -99,21 +99,12 @@ export const atom_vaultName = atom<string | null>((get) => {
 });
 
 // Stable per-vault key for UI state persisted across reloads.
-// The open disk vault's key, resolved when it opens (resolveLocalVaultKey), so
-// two folders with the same name keep apart. Null until then: the folder's name.
-export const atom_localVaultKey = atom<string | null>(null);
-
-export function vaultKeyFor(
-  descriptor: VaultDescriptor | null,
-  handle: FileSystemDirectoryHandle | null,
-  localKey: string | null = null,
-): string | null {
+export const atom_vaultKey = atom<string | null>((get) => {
+  const descriptor = get(atom_vaultDescriptor);
   if (descriptor?.kind === "browser") return `browser:${descriptor.id}`;
-  return handle ? (localKey ?? `local:${handle.name}`) : null;
-}
-
-export const atom_vaultKey = atom<string | null>((get) =>
-  vaultKeyFor(get(atom_vaultDescriptor), get(atom_vaultHandle), get(atom_localVaultKey)));
+  const vaultHandle = get(atom_vaultHandle);
+  return vaultHandle ? `local:${vaultHandle.name}` : null;
+});
 
 // Walks a vault-relative path to a fresh file handle. Throws the underlying
 // DOMException (e.g. NotFoundError) when any segment is missing.

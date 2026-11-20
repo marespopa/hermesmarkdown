@@ -213,12 +213,15 @@ describe("WorkspaceSidebar", () => {
     expect(within(screen.getByRole("navigation")).queryByRole("status")).not.toBeInTheDocument();
   });
 
-  it("shows the open vault's name in its header, with the vault strip left to EditorShell", () => {
+  it("switches vaults from its header: the open vault's name opens the vault menu", () => {
     fileSystem.vaultHandle = { name: "Notes" };
     renderSidebar();
     expect(screen.queryByText("HermesMarkdown")).not.toBeInTheDocument();
-    expect(within(screen.getByRole("navigation")).getByText("Notes")).toBeInTheDocument();
-    expect(screen.queryByRole("toolbar", { name: "Vaults" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Switch vault: Notes" }));
+    const menu = screen.getByRole("menu", { name: "Switch vault" });
+    expect(within(menu).getByRole("menuitemcheckbox", { name: "Notes" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(within(menu).getByText("Open Vault…"));
+    expect(vaultMenu.open).toHaveBeenCalled();
   });
 
   it("hides from its Hide sidebar button", () => {

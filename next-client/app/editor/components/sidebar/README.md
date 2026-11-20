@@ -4,8 +4,7 @@ The parts of `WorkspaceSidebar` (one level up), top to bottom, and what they sha
 
 | Item | Purpose |
 |---|---|
-| [VaultStrip](VaultStrip.md) | The rail of vault "spaces" at the sidebar's left: click to switch, right-click for Pin / Icon / Remove. |
-| [SidebarHeader](SidebarHeader.md) | The open vault's icon and name, Hide sidebar. |
+| [SidebarHeader](SidebarHeader.md) | Vault switcher (the open vault's name and its menu), New note, Hide sidebar. |
 | [SidebarPinned](SidebarPinned.md) | First, with a vault and at least one pin: the vault's pins (kept on this device, `pin-atoms.ts`) — notes, folders, tags and pages — in order, at most nine, each with its emoji or glyph and its Ctrl/Cmd+1–9 key; a click on a row's icon opens its menu (set the icon, unpin it); drag rows (or Alt+↑/↓) to reorder. |
 | [SidebarFiles](SidebarFiles.md) | The vault's file tree under a Search field (a regular expression on paths); a note's or folder's menu has Pin / Unpin. |
 | [SidebarSection](SidebarSection.md) | A collapsible group set apart by a full-width hairline, its chevron always shown, with an optional ⋯ menu. |

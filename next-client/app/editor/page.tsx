@@ -31,7 +31,6 @@ import { useDraftImport } from "./hooks/use-draft-import";
 import { useToolHandoff } from "./hooks/use-tool-handoff";
 import { useEditorShortcuts } from "./hooks/use-editor-shortcuts";
 import { useNavigateWithGuard } from "./hooks/use-navigate-with-guard";
-import { useVaultSwitchFade } from "./hooks/use-vault-switch-fade";
 import { useSyncCurrentDirectory } from "./hooks/use-sync-current-directory";
 import DraftImportDialog from "./components/DraftImportDialog";
 import { useDraftFlow } from "./hooks/use-draft-flow";
@@ -44,7 +43,6 @@ import { useOpenCompanion } from "./components/companion/use-open-companion";
 import { downloadMarkdown } from "@/app/utils/download-markdown";
 
 export default function LiteEditor() {
-  const sheetFadeRef = useVaultSwitchFade<HTMLDivElement>();
   const router = useRouter();
   const [isMounting, setIsMounting] = useState(true);
   const fileName = useAtomValue(atom_fileName);
@@ -218,7 +216,6 @@ export default function LiteEditor() {
           it takes >150ms) signals the read + re-render instead of a full veil. */}
       <LoadingBar isVisible={isFileLoading && !isMounting} label="Opening file" />
       <div
-        ref={sheetFadeRef}
         className={`app-sheet fixed inset-y-0 flex flex-col bg-surface text-fg selection:bg-sage-light/30 font-sans overflow-hidden overscroll-none`}
         // Past the open sidebar, sliding with it (EditorShell); the whole
         // window on mobile.
