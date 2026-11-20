@@ -9,7 +9,7 @@ import VaultAccessGate from "./VaultAccessGate";
 const vaultManager = vi.hoisted(() => ({ isVaultPending: false, restoreVault: vi.fn() }));
 const toasts = vi.hoisted(() => ({ showActionToast: vi.fn() }));
 vi.mock("@/app/components/Toastr", () => ({ showActionToast: toasts.showActionToast }));
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => "/editor" }));
 vi.mock("@/app/hooks/file-system/use-vault-manager", () => ({ useVaultManager: () => vaultManager }));
 
 function renderGate({ restoring = false, pending = false, unlocking = false, requesting = false } = {}) {
