@@ -49,12 +49,14 @@ import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { loadStoredWorkspace } from "./stored-workspace";
 import { readVaultHint, writeVaultHint } from "@/app/services/vault-hint";
 import { showActionToast } from "@/app/components/Toastr";
-import { withTimeout } from "@/app/utils/with-timeout";
+import { isTimeoutError, withTimeout } from "@/app/utils/with-timeout";
 import { markStartup } from "@/app/utils/startup-trace";
 
 // Each browser-storage or permission step of the restore gets this long; past
 // it the restore ends rather than leave the editor on its skeleton for good.
 const STARTUP_STEP_TIMEOUT_MS = 8000;
+// The permission query is local and quick when it answers at all.
+const PERMISSION_QUERY_TIMEOUT_MS = 4000;
 
 // Each scan and each indexing run takes a number; an older one drops its
 // results once a newer one starts, or once another vault is open. Module
@@ -270,7 +272,14 @@ export function useVaultManager() {
         // Only query permission on mount — requestPermission requires a user
         // gesture and will throw a SecurityError if called automatically.
         markStartup("vault:permission");
-        const granted = await withTimeout(queryPermission(savedHandle), STARTUP_STEP_TIMEOUT_MS, "Vault permission check");
+        // A query the browser never answers counts as access to grant again:
+        // the "Vault Access Paused" overlay then asks on the next click, which
+        // is the one place a permission prompt can open.
+        const granted = await withTimeout(queryPermission(savedHandle), PERMISSION_QUERY_TIMEOUT_MS, "Vault permission check").catch((err) => {
+          if (!isTimeoutError(err)) throw err;
+          console.warn("Vault permission check didn't answer; asking for access instead:", err);
+          return false;
+        });
         if (granted) {
           // The editor can show while the vault is read, so reveal it now.
           setIsVaultRestoring(false);
