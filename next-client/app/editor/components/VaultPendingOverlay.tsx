@@ -7,15 +7,13 @@ import DialogModal from "@/app/components/DialogModal";
 
 interface VaultPendingOverlayProps {
   restoreVault: () => void;
-  /** Picks a folder to open instead (when the saved one can't be reached). */
-  chooseFolder: () => void | Promise<unknown>;
 }
 
 // Chrome on Android has no "Allow on every visit" option, so access is asked
 // for again on every load there.
 const isAndroid = () => typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
 
-export default function VaultPendingOverlay({ restoreVault, chooseFolder }: VaultPendingOverlayProps) {
+export default function VaultPendingOverlay({ restoreVault }: VaultPendingOverlayProps) {
   const android = isAndroid();
   return (
     <DialogModal
@@ -31,8 +29,7 @@ export default function VaultPendingOverlay({ restoreVault, chooseFolder }: Vaul
         <div className="flex flex-col gap-1">
           <h2 className="text-ui-body font-semibold tracking-tight">Vault Access Paused</h2>
           <p className="text-ui-footnote text-ink-muted dark:text-stone leading-relaxed">
-            Your browser needs permission again to open your local folder. If it
-            can&apos;t be reached (moved or deleted), choose it again.
+            Your browser needs permission again to open your local folder.
             {!android && (
               <>
                 {" "}Choose <span className="font-semibold">Allow on every visit</span> so
@@ -48,20 +45,8 @@ export default function VaultPendingOverlay({ restoreVault, chooseFolder }: Vaul
         >
           Restore Access
         </Button>
-        {/* The gate treats any click or key as "restore access"; this one is not. */}
-        <Button
-          variant="secondary"
-          onClick={(event) => {
-            event.stopPropagation();
-            void chooseFolder();
-          }}
-          onKeyDown={(event) => event.stopPropagation()}
-          className="w-full h-11 rounded-xl -mt-2"
-        >
-          Choose Folder…
-        </Button>
         <p className="text-ui-footnote text-ink-muted dark:text-stone -mt-2">
-          {android ? "or tap anywhere to restore" : "or press any key to restore"}
+          {android ? "or tap anywhere" : "or press any key"}
         </p>
       </div>
     </DialogModal>
