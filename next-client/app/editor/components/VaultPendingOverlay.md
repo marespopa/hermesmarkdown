@@ -1,6 +1,6 @@
 # VaultPendingOverlay
 
-Description: Prompt shown after reload when the stored vault handle needs the user to grant permission again. On desktop it points the user to the browser's "Allow on every visit" option so the prompt stops coming back; Chrome on Android has no such option, so there the copy leaves it out and says "or tap anywhere". The Restore Access button (or any tap or key press, via [VaultAccessGate](VaultAccessGate.md)) opens the browser prompt. Once access is granted, [VaultAccessGate](VaultAccessGate.md) closes the prompt and leaves [EditorSkeleton](EditorSkeleton.md) showing until the vault has loaded.
+Description: Prompt shown after reload when the stored vault handle needs the user to grant permission again. On desktop it points the user to the browser's "Allow on every visit" option so the prompt stops coming back; Chrome on Android has no such option, so there the copy leaves it out and says "or tap anywhere". The Restore Access button (or any tap or key press, via [VaultAccessGate](VaultAccessGate.md)) opens the browser prompt. **Choose Folder…** (a secondary button) is for a saved folder that can't be reached, moved or deleted: it opens the browser's folder picker and opens the chosen folder as the vault, which ends the pending state. It stops its click and key events from reaching the gate's window listeners, so it never also starts a restore. Once access is granted, [VaultAccessGate](VaultAccessGate.md) closes the prompt and leaves [EditorSkeleton](EditorSkeleton.md) showing until the vault has loaded.
 
 ## Local State & Storage
 - State: None; controlled.
@@ -14,10 +14,11 @@ Description: Prompt shown after reload when the stored vault handle needs the us
 ```tsx
 import VaultPendingOverlay from "./VaultPendingOverlay";
 
-<VaultPendingOverlay restoreVault={restoreVault} />
+<VaultPendingOverlay restoreVault={restoreVault} chooseFolder={openVault} />
 ```
 
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | restoreVault | `() => void` |  | Requests permission and reopens the vault |
+| chooseFolder | `() => void \| Promise<unknown>` |  | Picks a folder and opens it as the vault (`openVault`) |

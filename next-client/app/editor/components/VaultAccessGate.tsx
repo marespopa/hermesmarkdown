@@ -22,7 +22,7 @@ import VaultPendingOverlay from "./VaultPendingOverlay";
 // While the user opens another vault, "Opening <name>..." covers the route
 // until its open notes and top folder are read.
 export default function VaultAccessGate({ children }: { children: ReactNode }) {
-  const { isVaultPending, restoreVault } = useVaultManager();
+  const { isVaultPending, restoreVault, openVault } = useVaultManager();
   const isVaultRestoring = useAtomValue(atom_isVaultRestoring);
   const isVaultUnlocking = useAtomValue(atom_isVaultUnlocking);
   const openingVaultName = useAtomValue(atom_openingVaultName);
@@ -55,7 +55,7 @@ export default function VaultAccessGate({ children }: { children: ReactNode }) {
       {isVaultPending && (
         <>
           <EditorSkeleton />
-          {!isVaultUnlocking && <VaultPendingOverlay restoreVault={restoreVault} />}
+          {!isVaultUnlocking && <VaultPendingOverlay restoreVault={restoreVault} chooseFolder={openVault} />}
         </>
       )}
       {/* Switching vaults: covers the old vault until the new one is readable. */}
