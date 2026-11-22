@@ -2,8 +2,11 @@
 //
 // - Navigations: network first, falling back to the cached page (or the
 //   editor shell) when offline. Every successful navigation refreshes the cache.
-// - /_next/static and public assets: cache first. Next.js hashes these file
-//   names, so a cached copy never goes stale.
+// - /_next/static: cache first. Next.js hashes these file names, so a cached
+//   copy never goes stale.
+// - Other static files (the manifest, app icons, favicons, …): network first,
+//   the cached copy only offline. Their names never change, so cache first
+//   kept an installed app on an old name and icon for good.
 // - /api/* (AI) and cross-origin requests are never touched.
 //
 // The app registers this file as /sw.js?v=<app version>. A new version
@@ -22,8 +25,8 @@ const PRECACHE_URLS = [
   "/favicon.svg",
   "/favicon.ico",
   "/apple-touch-icon.png",
-  "/web-app-manifest-192x192.png",
-  "/web-app-manifest-512x512.png",
+  "/web-app-manifest-192x192.png?v=2",
+  "/web-app-manifest-512x512.png?v=2",
 ];
 const STATIC_ASSET = /\.(?:js|css|woff2?|ttf|otf|png|jpe?g|gif|svg|webp|avif|ico|json|txt)$/i;
 
@@ -42,7 +45,8 @@ self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     // One missing asset must not block installing the rest.
-    await Promise.all(PRECACHE_URLS.map((url) => cache.add(url).catch(() => undefined)));
+    // Past the browser's HTTP cache, so a new version never precaches old copies.
+    await Promise.all(PRECACHE_URLS.map((url) => cache.add(new Request(url, { cache: "reload" })).catch(() => undefined)));
     const assets = await shellAssetUrls(cache).catch(() => []);
     await Promise.all(assets.map((url) => cache.add(url).catch(() => undefined)));
     await self.skipWaiting();
@@ -70,6 +74,22 @@ async function cacheFirst(request) {
     cache.put(request, response.clone());
   }
   return response;
+}
+
+// Unhashed files: the network's copy (kept for offline), else the cached one.
+async function networkFirst(request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok && response.type === "basic") {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, response.clone());
+    }
+    return response;
+  } catch (err) {
+    const cached = await caches.match(request, { ignoreSearch: true });
+    if (cached) return cached;
+    throw err;
+  }
 }
 
 async function networkFirstNavigation(request) {
@@ -105,7 +125,9 @@ self.addEventListener("fetch", (event) => {
   // React Server Component payloads change per deploy; let Next.js handle them.
   if (request.headers.get("RSC") || url.searchParams.has("_rsc")) return;
 
-  if (url.pathname.startsWith("/_next/static/") || STATIC_ASSET.test(url.pathname)) {
+  if (url.pathname.startsWith("/_next/static/")) {
     event.respondWith(cacheFirst(request));
+  } else if (STATIC_ASSET.test(url.pathname)) {
+    event.respondWith(networkFirst(request));
   }
 });
