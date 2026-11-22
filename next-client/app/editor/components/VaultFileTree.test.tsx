@@ -7,10 +7,11 @@ import VaultFileTree from "./VaultFileTree";
 vi.mock("jotai", async (importOriginal) => {
   const actual = await importOriginal<typeof import("jotai")>();
   const { atom_busyPaths } = await import("@/app/atoms/busy-path-atoms");
+  const { atom_libraryMounts } = await import("@/app/atoms/vault-atoms");
   return {
     ...actual,
     useAtomValue: vi.fn((anAtom: any, options?: any) =>
-      anAtom === atom_busyPaths ? actual.useAtomValue(anAtom, options) : "idle"),
+      anAtom === atom_busyPaths || anAtom === atom_libraryMounts ? actual.useAtomValue(anAtom, options) : "idle"),
   };
 });
 
