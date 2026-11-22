@@ -13,7 +13,8 @@ import type { FileUndoGroup } from "@/app/atoms/vault-atoms";
 import type { FileUndoGroupRef } from "./use-file-undo";
 import { useRewriteLinksAfterMove } from "./use-rewrite-links";
 import { writeFileContent } from "@/app/services/file-writer";
-import { moveDirectoryByCopy } from "./directory-ops";
+import { moveDirectoryByCopy, CROSS_FOLDER_MOVE_MESSAGE } from "./directory-ops";
+import { isMountRoot, realHandle, sameLibraryFolder } from "@/app/services/library-roots";
 import { showUndoToast } from "./undo-toast";
 import { withBusyPaths } from "./busy-paths";
 import type { BusyPath } from "@/app/atoms/busy-path-atoms";
@@ -115,7 +116,7 @@ export function useMoveItem({ scanVault, indexVaultTags, recordUndo, undoFileOpe
           // 2. Prevent moving into itself or same directory
           let isSameEntry = false;
           try {
-            isSameEntry = await (freshHandle as any).isSameEntry(targetDir);
+            isSameEntry = await (freshHandle as any).isSameEntry(realHandle(targetDir));
           } catch {
             // Comparison failed
           }
@@ -146,10 +147,22 @@ export function useMoveItem({ scanVault, indexVaultTags, recordUndo, undoFileOpe
             // resolve unsupported; tabs are reconciled on the next rebind
           }
 
+          // A library folder stays where it is, and nothing moves between
+          // library folders yet (no native move crosses them).
+          if (oldPath && isMountRoot(oldPath)) {
+            toast.error(`“${oldPath}” is a library folder. Remove it from the library instead.`);
+            return null;
+          }
+          if (oldPath && newPath && !sameLibraryFolder(oldPath, newPath)) {
+            toast.error(CROSS_FOLDER_MOVE_MESSAGE);
+            return null;
+          }
+
           // 3. Attempt Native Move, with Fallback
           try {
             if ((freshHandle as any).move) {
-              await (freshHandle as any).move(targetDir, freshHandle.name);
+              // The real folder: native move rejects the library's root.
+              await (freshHandle as any).move(realHandle(targetDir), freshHandle.name);
             } else {
               throw new Error("Native move not supported");
             }

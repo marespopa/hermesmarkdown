@@ -40,6 +40,7 @@ import { useOpenVault } from "./use-open-vault";
 import { clearNoteContent } from "@/app/services/content-search-client";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
 import { useVaultRestore } from "./use-vault-restore";
+import { useLibraryFolders } from "./use-library-folders";
 import { readVaultHint, writeVaultHint } from "@/app/services/vault-hint";
 import { showActionToast } from "@/app/components/Toastr";
 import { markStartup } from "@/app/utils/startup-trace";
@@ -176,6 +177,8 @@ export function useVaultManager() {
 
   const { restoreVault, restoreSavedVault } = useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detectCloudVault, initVaultFromHandle });
 
+  const { addLibraryFolder, removeLibraryFolder, unlockLibraryFolder } = useLibraryFolders({ scanVault, indexVaultTags });
+
   const { syncCurrentDirectoryToPath, navigateTo, navigateBack } = useVaultNavigation({ vaultHandle, currentDirectoryHandle, scanVault });
 
   const closeVault = useCallback(() => {
@@ -247,5 +250,8 @@ export function useVaultManager() {
     navigateTo,
     navigateBack,
     syncCurrentDirectoryToPath,
+    addLibraryFolder,
+    removeLibraryFolder,
+    unlockLibraryFolder,
   };
 }

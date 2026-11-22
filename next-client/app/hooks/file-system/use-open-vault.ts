@@ -29,6 +29,8 @@ import { clearNoteContent } from "@/app/services/content-search-client";
 import { atom_browserVaultDialogOpen, atom_showFiles } from "@/app/atoms/ui-atoms";
 import { purgeExpiredTrash } from "./trash-ops";
 import { writeVaultHint } from "@/app/services/vault-hint";
+import { realHandle } from "@/app/services/library-roots";
+import { buildLibraryHandle } from "@/app/services/library-store";
 
 interface UseOpenVaultArgs {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -57,7 +59,7 @@ export function useOpenVault({ scanVault, indexVaultTags, detectCloudVault }: Us
   const store = useStore();
 
   const initVaultFromHandle = useCallback(async (
-    handle: FileSystemDirectoryHandle,
+    picked: FileSystemDirectoryHandle,
     options?: {
       isNewVault?: boolean;
       descriptor?: VaultDescriptor;
@@ -78,11 +80,15 @@ export function useOpenVault({ scanVault, indexVaultTags, detectCloudVault }: Us
       keepTabs = false,
       onReadable,
     } = options ?? {};
+    // The folder itself is what's saved; the vault opens on its library (the
+    // folder plus any folders added to it) when it has one.
+    const handle = realHandle(picked);
     const vaultName = descriptor.kind === "local" ? handle.name : descriptor.displayName;
 
     // A vault the user opens shows "Opening …" until it's readable; the
     // startup restore (not announced) has the editor skeleton instead.
     if (announce) setOpeningVaultName(vaultName);
+    let root: FileSystemDirectoryHandle = handle;
     try {
       setFileMetadata({});
       setVaultFiles([]);
@@ -93,9 +99,10 @@ export function useOpenVault({ scanVault, indexVaultTags, detectCloudVault }: Us
         setOpenFiles({});
         setWorkspaceLayout(singlePaneLayout([], null));
       }
-      setVaultHandle(handle);
+      root = descriptor.kind === "local" ? await buildLibraryHandle(`local:${handle.name}`, handle) : handle;
+      setVaultHandle(root);
       setVaultDescriptor(descriptor);
-      setCurrentDirectoryHandle(handle);
+      setCurrentDirectoryHandle(root);
       setIsVaultPending(false);
       setIsCloudVault(false);
       if (descriptor.kind === "local") {
@@ -108,8 +115,8 @@ export function useOpenVault({ scanVault, indexVaultTags, detectCloudVault }: Us
       if (persist) writeVaultHint("saved");
       // The open notes first (a few files, read again from disk), then the top
       // folder; the whole vault is indexed last, behind the editor.
-      await rebindHandles(handle);
-      await scanVault(handle);
+      await rebindHandles(root);
+      await scanVault(root);
       // A vault the user opens starts on its files: the sidebar shown with
       // Files unfolded and the tree focused.
       if (announce) store.set(atom_showFiles);
@@ -117,8 +124,8 @@ export function useOpenVault({ scanVault, indexVaultTags, detectCloudVault }: Us
       if (announce) setOpeningVaultName(null);
     }
     onReadable?.();
-    await indexVaultTags(handle);
-    void purgeExpiredTrash(handle);
+    await indexVaultTags(root);
+    void purgeExpiredTrash(root);
 
     if (announce) {
       toast.success(isNewVault ? `Vault created: ${vaultName}` : `Vault opened: ${vaultName}`);

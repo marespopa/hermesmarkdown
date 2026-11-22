@@ -23,6 +23,8 @@ import {
 import { withTimeout } from "@/app/utils/with-timeout";
 import { markStartup } from "@/app/utils/startup-trace";
 import { loadStoredWorkspace } from "./stored-workspace";
+import { realHandle } from "@/app/services/library-roots";
+import { buildLibraryHandle } from "@/app/services/library-store";
 import type { useOpenVault } from "./use-open-vault";
 
 // Each browser-storage or permission step of the restore gets this long; past
@@ -63,7 +65,7 @@ export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detect
   // Access was granted: bind the open notes, list the top folder, index behind
   // the editor. Does nothing once the vault is no longer pending, so a late
   // grant from an earlier ask can't run it twice.
-  const unlockVault = useCallback(async (handle: FileSystemDirectoryHandle) => {
+  const unlockVault = useCallback(async (granted: FileSystemDirectoryHandle) => {
     if (!store.get(atom_isVaultPending) || isUnlockingRef.current) return;
     isUnlockingRef.current = true;
     try {
@@ -71,9 +73,13 @@ export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detect
       // top folder listed; the vault is then indexed behind the editor.
       setIsVaultUnlocking(true);
       markStartup("vault:unlock");
+      // Added folders' access is asked again now: the browser may have kept it.
+      const primary = realHandle(granted);
+      const handle = await withTimeout(buildLibraryHandle(`local:${primary.name}`, primary), STARTUP_STEP_TIMEOUT_MS, "Library folders").catch(() => granted);
+      setVaultHandle(handle);
       setCurrentDirectoryHandle(handle);
       setIsCloudVault(false);
-      detectCloudVault(handle);
+      detectCloudVault(primary);
       await rebindHandles(handle);
       await scanVault(handle);
       setIsVaultPending(false);
@@ -87,7 +93,7 @@ export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detect
       setIsVaultUnlocking(false);
       isUnlockingRef.current = false;
     }
-  }, [store, setIsVaultPending, setIsVaultUnlocking, setCurrentDirectoryHandle, setIsCloudVault, detectCloudVault, rebindHandles, scanVault, indexVaultTags]);
+  }, [store, setVaultHandle, setIsVaultPending, setIsVaultUnlocking, setCurrentDirectoryHandle, setIsCloudVault, detectCloudVault, rebindHandles, scanVault, indexVaultTags]);
 
   const restoreVault = useCallback(async () => {
     if (!vaultHandle || isRestoringRef.current) return;
@@ -98,7 +104,7 @@ export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detect
     }, PERMISSION_NO_ANSWER_MS);
 
     try {
-      const granted = await requestPermissionFromUserGesture(vaultHandle).finally(() => clearTimeout(release));
+      const granted = await requestPermissionFromUserGesture(realHandle(vaultHandle)).finally(() => clearTimeout(release));
       if (granted) await unlockVault(vaultHandle);
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
@@ -131,13 +137,19 @@ export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detect
         // The editor can show while the vault is read, so reveal it now.
         setIsVaultRestoring(false);
         markStartup("vault:readable");
-        setCurrentDirectoryHandle(savedHandle);
+        // The vault's library: the folder plus any folders added to it, built
+        // after the ask (checking their access first could use up the click
+        // the Allow prompt needs). Folders whose access lapsed open locked,
+        // keeping their notes open.
+        const root = await withTimeout(buildLibraryHandle(`local:${savedHandle.name}`, savedHandle), STARTUP_STEP_TIMEOUT_MS, "Library folders").catch(() => savedHandle);
+        setVaultHandle(root);
+        setCurrentDirectoryHandle(root);
         detectCloudVault(savedHandle);
         // Open notes first: their disk text and saving don't wait for the index.
-        await rebindHandles(savedHandle);
+        await rebindHandles(root);
         markStartup("vault:rebound");
-        await scanVault(savedHandle);
-        await indexVaultTags(savedHandle);
+        await scanVault(root);
+        await indexVaultTags(root);
       } else {
         setIsVaultPending(true);
         if (ask.result === "no-answer") {

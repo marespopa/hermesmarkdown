@@ -8,6 +8,7 @@ import { atom_vaultTreeListedKey, atom_vaultTreeSnapshot } from "@/app/atoms/tre
 import { isViewOnlyPath, isPlainTextPath } from "@/app/utils/file-kinds";
 import { atom_pendingTreePaths } from "@/app/atoms/pending-tree-atoms";
 import { atom_showHiddenFiles } from "@/app/atoms/ui-atoms";
+import { isVaultDataPath } from "@/app/services/vault-data-dir";
 
 // Which view is searching: "files" (the Files page, the sidebar's Files
 // section) shows the full tree; "search" caps the results at a short list.
@@ -62,7 +63,7 @@ export function useVaultFileSearch({ selectedTags, panel, rememberedTree = false
   // from .hermesmarkdown/ while hidden files are shown (see collectVaultFiles), so
   // let those through too rather than assuming every entry is markdown.
   const isVisibleFile = useCallback((path: string) =>
-    path.endsWith(".md") || isPlainTextPath(path) || isViewOnlyPath(path) || (showHiddenFiles && path.startsWith(".hermesmarkdown/")),
+    path.endsWith(".md") || isPlainTextPath(path) || isViewOnlyPath(path) || (showHiddenFiles && isVaultDataPath(path)),
   [showHiddenFiles]);
 
   // Unfiltered — every visible file in the vault, ignoring search/tag filters.

@@ -11,17 +11,19 @@ interface UseVirtualTreeOptions {
   pendingCreate: PendingCreate | null;
   isFolderCollapsed: (path: string) => boolean;
   scrollRef: RefObject<HTMLDivElement | null>;
+  // A library with added folders: the vault's header name (treeItems).
+  vaultSection?: string | null;
 }
 
-export function useVirtualTree({ treeView, rows, pendingCreate, isFolderCollapsed, scrollRef }: UseVirtualTreeOptions) {
+export function useVirtualTree({ treeView, rows, pendingCreate, isFolderCollapsed, scrollRef, vaultSection }: UseVirtualTreeOptions) {
   // The tree as one flat list of lines; past VIRTUALIZE_THRESHOLD only the
   // lines in view (and a margin) are rendered, as fixed-height rows. The
   // list scrolls in its own box on the Files page, and with the whole
   // sidebar there (`data-scroll-root`), below its other sections, which is
   // the offset (`scrollMargin`) the virtualizer counts from.
   const items = useMemo(
-    () => (treeView ? treeItems(rows, pendingCreate, isFolderCollapsed) : []),
-    [treeView, rows, pendingCreate, isFolderCollapsed],
+    () => (treeView ? treeItems(rows, pendingCreate, isFolderCollapsed, vaultSection) : []),
+    [treeView, rows, pendingCreate, isFolderCollapsed, vaultSection],
   );
   const virtualizeTree = treeView && items.length > VIRTUALIZE_THRESHOLD;
   const listRef = useRef<HTMLDivElement>(null);

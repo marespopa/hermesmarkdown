@@ -10,6 +10,7 @@ import { HiOutlineDocumentText } from "react-icons/hi";
 import { atom_templates } from "@/app/atoms/template-atoms";
 import TemplateIcon from "@/app/components/TemplateDialog/TemplateIcon";
 import { matchTemplateForName, type TemplateEntry } from "@/app/utils/templates/template-registry";
+import { isVaultDataPath } from "@/app/services/vault-data-dir";
 
 interface WikiLinkDialogProps {
   isOpen: boolean;
@@ -65,7 +66,7 @@ export default function WikiLinkDialog({
 
   const items = useMemo((): SearchItem[] => {
     return Object.values(fileMetadata)
-      .filter((m) => !m.path.startsWith(".hermesmarkdown/"))
+      .filter((m) => !isVaultDataPath(m.path))
       .map((m) => ({
         id: `file:${m.path}`,
         name: m.name.replace(/\.md$/, ""),

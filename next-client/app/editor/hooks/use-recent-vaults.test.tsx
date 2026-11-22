@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { atom_pendingVaultIcon } from "@/app/atoms/ui-atoms";
 import { atom_recentVaults, atom_vaultDescriptor, atom_vaultHandle } from "@/app/atoms/vault-atoms";
 import type { RecentVault } from "@/app/services/recent-vaults";
+import { CompositeDirectoryHandle } from "@/app/services/library-roots";
 import { recentVaultEntry, useRecentVaults, useRecentVaultTracker } from "./use-recent-vaults";
 
 const fs = vi.hoisted(() => ({ initVaultFromHandle: vi.fn(), openBrowserVault: vi.fn() }));
@@ -48,6 +49,13 @@ describe("useRecentVaults", () => {
   it("describes a disk vault by its folder and the others by their display name", () => {
     expect(recentVaultEntry("local:journal", folder, { kind: "local" }, 7)).toEqual({ ...LOCAL, openedAt: 7 });
     expect(recentVaultEntry("browser:abc", {} as FileSystemDirectoryHandle, browserDescriptor, 1)).toEqual(BROWSER);
+  });
+
+  it("keeps the vault's own folder for a library, which can't be stored as it is", () => {
+    const library = new CompositeDirectoryHandle(folder, [{ name: "Work", handle: { name: "Work" } as FileSystemDirectoryHandle }]);
+    const entry = recentVaultEntry("local:journal", library as unknown as FileSystemDirectoryHandle, { kind: "local" }, 7);
+    expect(entry).toEqual({ ...LOCAL, openedAt: 7 });
+    expect(entry.kind === "local" && entry.handle).toBe(folder);
   });
 
   it("leaves the open vault out of the list", () => {

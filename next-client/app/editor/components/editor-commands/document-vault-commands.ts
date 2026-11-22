@@ -1,10 +1,14 @@
 import type { Command } from "@/app/components/CommandPalette/CommandPaletteContext";
 import { vaultDisplayName } from "@/app/atoms/vault-atoms";
+import { libraryMounts } from "@/app/services/library-roots";
 import { formatShortcut } from "@/app/utils/platform";
 import type { EditorCommandContext } from "./use-editor-command-context";
 
 export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
   const {
+    addLibraryFolder,
+    removeLibraryFolder,
+    isVaultSupported,
     activeFileHandle,
     activeFileBusy,
     activeFilePath,
@@ -246,6 +250,22 @@ export function buildDocumentVaultCommandGroups(context: EditorCommandContext) {
       keywords: "vault folder",
       action: () => openVault(),
     },
+    // A library: other disk folders opened beside the vault's own, searched
+    // and listed with it (services/library-roots.ts).
+    ...(vaultHandle && isVaultSupported && vaultDescriptor?.kind === "local"
+      ? [{
+          id: "add-library-folder",
+          label: "Add Folder to Library",
+          keywords: "vault folder open another second multiple library mount",
+          action: () => void addLibraryFolder(),
+        }]
+      : []),
+    ...libraryMounts(vaultHandle).map((mount) => ({
+      id: `remove-library-folder:${mount.name}`,
+      label: `Remove “${mount.name}” from Library`,
+      keywords: "library folder close unmount",
+      action: () => void removeLibraryFolder(mount.name),
+    })),
     ...(vaultHandle
       ? [{
           id: "new-folder",

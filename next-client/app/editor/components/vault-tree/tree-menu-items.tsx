@@ -3,12 +3,15 @@
 import {
   HiOutlineDocumentText,
   HiOutlineDuplicate,
+  HiOutlineFolderAdd,
+  HiOutlineMinusCircle,
   HiOutlinePencil,
   HiOutlineTemplate,
   HiOutlineTrash,
 } from "react-icons/hi";
 import { TEMPLATES_FOLDER } from "@/app/utils/templates/template-registry";
 import { TbPinned } from "react-icons/tb";
+import { isMountRoot } from "@/app/services/library-roots";
 import { fileCreateActions } from "./file-create-actions";
 import { renameShortcut, trashShortcut, type TreeMenuItem } from "./TreeContextMenu";
 import type { VaultFileTreeProps } from "./tree-model";
@@ -42,9 +45,23 @@ export function treeMenuItems(
     return items;
   };
 
-  if (target.type === "background") return newItems("");
+  if (target.type === "background") {
+    // Another disk folder, listed and searched with the vault.
+    const add: TreeMenuItem[] = props.addLibraryFolder
+      ? [{
+          label: "Add Folder to Library…",
+          icon: <HiOutlineFolderAdd {...ICON} />,
+          separated: true,
+          onSelect: () => void props.addLibraryFolder!(),
+        }]
+      : [];
+    const create = newItems("");
+    return [...create, ...add.map((item) => ({ ...item, separated: create.length > 0 }))];
+  }
 
-  const paths = actions.targetPaths(target.path);
+  // Library folders never go to the Trash (trashItems refuses them too).
+  const paths = actions.targetPaths(target.path).filter((path) => !isMountRoot(path));
+  if (paths.length === 0) paths.push(target.path);
   const trash: TreeMenuItem = {
     label: paths.length > 1 ? `Move ${paths.length} Items to Trash` : "Move to Trash",
     icon: <HiOutlineTrash {...ICON} />,
@@ -92,6 +109,22 @@ export function treeMenuItems(
           onSelect: () => props.togglePin!(targetPath, kind),
         }]
       : [];
+
+  if (target.kind === "folder" && isMountRoot(target.path)) {
+    // A library's added folder: removed from the library, never renamed or
+    // trashed (its files stay on disk).
+    const create = newItems(target.path);
+    const pin = pinItems("folder", create.length > 0);
+    const remove: TreeMenuItem[] = props.removeLibraryFolder
+      ? [{
+          label: "Remove from Library",
+          icon: <HiOutlineMinusCircle {...ICON} />,
+          separated: create.length + pin.length > 0,
+          onSelect: () => void props.removeLibraryFolder!(targetPath),
+        }]
+      : [];
+    return [...create, ...pin, ...remove];
+  }
 
   if (target.kind === "folder") {
     const create = newItems(target.path);

@@ -1,5 +1,6 @@
 "use client";
 
+import { realHandle } from "@/app/services/library-roots";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { atom, useAtom, useAtomValue, useStore } from "jotai";
@@ -112,7 +113,9 @@ export function useCompanionChat() {
     threadVault = vaultHandle;
     if (!previous || previous === vaultHandle) return;
     void (async () => {
-      const same = await previous.isSameEntry?.(vaultHandle).catch(() => false);
+      // The folders themselves: adding a folder to the library rebuilds its
+      // root handle, and that is still the same vault.
+      const same = await realHandle(previous).isSameEntry?.(realHandle(vaultHandle)).catch(() => false);
       if (same || store.get(atom_vaultHandle) !== vaultHandle) return;
       newChat();
       store.set(atom_companionProposals, []);

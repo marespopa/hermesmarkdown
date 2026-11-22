@@ -45,5 +45,13 @@ export function useFolderExpansion(activeAncestorPaths: Set<string>) {
     if (isFolderCollapsed(path)) setOverride(path, true);
   }, [isFolderCollapsed, setOverride]);
 
-  return { isFolderCollapsed, toggleFolder, expandFolder };
+  // Sections (the vault's header in a library) are open by default, and
+  // remembered like folders once toggled.
+  const isSectionCollapsed = useCallback((key: string) => collapsed.has(key), [collapsed]);
+  const setSectionOpen = useCallback((key: string, open: boolean) => {
+    if (collapsed.has(key) === !open) return;
+    setOverride(key, open);
+  }, [collapsed, setOverride]);
+
+  return { isFolderCollapsed, toggleFolder, expandFolder, isSectionCollapsed, setSectionOpen };
 }

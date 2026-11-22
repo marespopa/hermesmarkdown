@@ -1,3 +1,4 @@
+import { activeMounts, sameLibraryFolder } from "@/app/services/library-roots";
 // Below this count, plain rendering is simpler and avoids virtualizer
 // scroll-restoration quirks (e.g. jumping while resizing); above it, an
 // un-virtualized list of vault-scale (or larger) file counts would mean
@@ -55,6 +56,14 @@ export interface VaultFileTreeProps {
   // Tree-only: folders are inferred from paths, so folder actions need a way
   // to resolve a real FileSystemDirectoryHandle.
   resolveFolderHandle?: (path: string) => Promise<any | null>;
+  // A library's added folders (services/library-roots.ts): their row's menu
+  // removes one from the library, and a click on a locked one asks for its
+  // access again.
+  removeLibraryFolder?: (name: string) => unknown;
+  // Given where folders can be added (a vault opened from disk): the root's
+  // menu offers Add Folder to Library….
+  addLibraryFolder?: () => unknown;
+  unlockLibraryFolder?: (name: string) => unknown;
   // With a name (typed in the tree's inline field) they don't prompt.
   createNewFile?: (targetDirectory?: FileSystemDirectoryHandle, name?: string) => void | Promise<unknown>;
   createFolder?: (parentDirectory?: FileSystemDirectoryHandle, name?: string) => Promise<FileSystemDirectoryHandle | null>;
@@ -160,6 +169,12 @@ export function buildFileTree(files: any[], folderPaths: string[]): TreeNode[] {
     }
   };
   sortChildren(root);
+  // A library's added folders come after the vault's own top level.
+  const mounts = activeMounts();
+  if (mounts.length > 0) {
+    const isMount = (node: TreeNode) => node.type === "folder" && mounts.includes(node.path);
+    root.children = [...root.children.filter((n) => !isMount(n)), ...root.children.filter(isMount)];
+  }
 
   return root.children;
 }
@@ -182,11 +197,14 @@ export function parentFolderPath(path: string): string {
 
 // Whether `entry` may be moved into the folder at `targetPath` ("" = vault
 // root): not into itself or its own subtree, and not where it already is.
-// For a group: no folder into itself, and at least one item not there yet
+// Never into another folder of a library. For a group: no folder into itself, and at least one item not there yet
 // (items already in the target just stay).
 export function canDropInto(entry: DraggedEntry | null, targetPath: string): entry is DraggedEntry {
   if (!entry) return false;
   const items = entry.group ?? [entry];
+  // Nothing moves between a library's folders (yet): no drop target there.
+  const inTarget = targetPath ? `${targetPath}/-` : "-";
+  if (items.some((item) => !sameLibraryFolder(item.path, inTarget))) return false;
   return (
     !items.some((item) => item.kind === "folder" && isDescendantOrSelf(item.path, targetPath)) &&
     items.some((item) => parentFolderPath(item.path) !== targetPath)

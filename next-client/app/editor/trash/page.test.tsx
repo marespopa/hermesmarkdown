@@ -58,7 +58,7 @@ describe("TrashPage", () => {
     expect(trash.deleteTrashSlot).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole("button", { name: "Empty Trash" }));
-    await waitFor(() => expect(trash.deleteTrashSlot).toHaveBeenCalledWith(fileSystem.vaultHandle, plan.slot));
+    await waitFor(() => expect(trash.deleteTrashSlot).toHaveBeenCalledWith(fileSystem.vaultHandle, plan.slot, ".hermesmarkdown/trash"));
   });
 
   it("says when the Trash is empty, and asks for a vault without one", async () => {

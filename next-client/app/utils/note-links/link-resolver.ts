@@ -1,4 +1,5 @@
 import type { FileMetadata } from "@/app/atoms/metadata";
+import { mountPrefix } from "@/app/services/library-roots";
 
 export interface LinkResolver {
   resolve(target: string, fromPath?: string | null): FileMetadata | null;
@@ -20,7 +21,8 @@ function folderDistance(a: string, b: string): number {
 }
 
 // Builds lookup maps once so many links resolve in O(1) each. Rules: strip a
-// trailing `|alias`, exact case-insensitive vault path, then path relative to
+// trailing `|alias`, the path from the root of the library folder the linking
+// note is in, exact case-insensitive vault path, then path relative to
 // the linking note's folder (only for names holding a `/`), then basename
 // match; basename ties go to the note closest to `fromPath` in the tree (same
 // folder first), then the shortest path, then alphabetical.
@@ -41,6 +43,14 @@ export function createLinkResolver(fileMetadata: Record<string, FileMetadata>): 
       const cleanName = name.split("|")[0].trim();
       const fileName = cleanName.endsWith(".md") ? cleanName : cleanName + ".md";
       const fromFolder = fromPath ? folderOf(fromPath) : "";
+
+      // A note in a library's added folder reads root paths from its own
+      // folder's root first ("notes/a" from inside "Work" is "Work/notes/a.md").
+      const prefix = fromPath ? mountPrefix(fromPath) : "";
+      if (prefix && !fileName.toLowerCase().startsWith(prefix.toLowerCase())) {
+        const inFolder = byPath.get((prefix + fileName).toLowerCase());
+        if (inFolder) return inFolder;
+      }
 
       const exact = byPath.get(fileName.toLowerCase());
       if (exact) return exact;

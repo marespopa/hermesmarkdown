@@ -1,3 +1,5 @@
+import { libraryMounts, realHandle } from "@/app/services/library-roots";
+
 // Thin wrapper over Chromium's FileSystemObserver, which pushes change
 // records for observed handles instead of making us poll them. The API isn't
 // in TypeScript's DOM lib yet, so the minimal shape we use is declared here.
@@ -105,7 +107,8 @@ export function changesFileList(record: FileSystemChangeRecord): boolean {
   return !(record.relativePathComponents ?? []).some((part) => part.startsWith("."));
 }
 
-// Watches a whole vault folder (recursively) and calls `onChange` when its
+// Watches a whole vault folder (recursively; for a library, the vault's
+// folder and each readable added folder: the observer only takes real handles) and calls `onChange` when its
 // file list changes (changesFileList), and `onError` when the browser drops
 // the observation (the folder was deleted, moved or became unreadable).
 // Returns a stop function, or null when the browser has no
@@ -122,7 +125,12 @@ export async function observeVault(
       if (records.some(changesFileList)) onChange();
       if (onError && records.some((record) => record.type === "errored")) onError();
     });
-    await observer.observe(root, { recursive: true });
+    const roots = [realHandle(root), ...libraryMounts(root).filter((m) => !m.locked).map((m) => m.handle)];
+    const watched = await Promise.allSettled(roots.map((handle) => observer.observe(handle, { recursive: true })));
+    if (watched[0].status === "rejected") {
+      observer.disconnect();
+      return null;
+    }
     return () => observer.disconnect();
   } catch {
     return null;
