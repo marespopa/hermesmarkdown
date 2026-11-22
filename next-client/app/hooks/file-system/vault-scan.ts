@@ -1,6 +1,6 @@
 import { isTrashPath } from "@/app/services/vault-trash";
 import { isViewOnlyPath, isPlainTextPath } from "@/app/utils/file-kinds";
-import { VAULT_DATA_DIR } from "@/app/services/vault-data-dir";
+import { isVaultDataPath } from "@/app/services/vault-data-dir";
 
 // Pure vault-walking helpers used by use-vault-manager.ts: directory listing,
 // the recursive markdown walk for indexing, and cloud-folder detection. No
@@ -136,7 +136,7 @@ export async function collectVaultFiles(
     SKIPPED_DIRS.has(name) || (!includeHidden && name.startsWith(".")) || isTrashPath(path);
   const isWanted = (name: string, path: string) =>
     !isSecretFile(name) &&
-    (name.endsWith(".md") || (includeHidden && path.split("/")[0] === VAULT_DATA_DIR));
+    (name.endsWith(".md") || (includeHidden && isVaultDataPath(path)));
 
   // Never throws into the walk; nothing is reported once it's over (the
   // result carries those notes).

@@ -18,6 +18,7 @@ import {
   type TaskView,
 } from "./chat-tool-runners";
 import { openTasksBlock } from "./skill-context";
+import { isVaultDataPath } from "@/app/services/vault-data-dir";
 
 export type NoteToolCall = { toolName: string; input: unknown };
 export type NoteToolResult = { output: string; activity: string };
@@ -32,7 +33,7 @@ export function useNoteTools() {
 
   const skip = useCallback((path: string) => {
     const folder = store.get(atom_templatesFolder).folder;
-    return path.startsWith(".hermesmarkdown/") || isTemplatePath(path, folder);
+    return isVaultDataPath(path) || isTemplatePath(path, folder);
   }, [store]);
 
   const runTool = useCallback(async ({ toolName, input: rawInput }: NoteToolCall): Promise<NoteToolResult> => {

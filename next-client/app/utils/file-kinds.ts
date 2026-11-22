@@ -1,3 +1,5 @@
+import { isVaultDataPath } from "@/app/services/vault-data-dir";
+
 // Which vault files are notes and which are other text files. Notes (`.md`)
 // are indexed and edited as Markdown; text files (code, data, plain text)
 // are listed in Files and open as plain text, but are never indexed, so they
@@ -63,7 +65,7 @@ export function isViewOnlyPath(path: string): boolean {
 // A text file that isn't a note. The vault's own data folder (`.hermesmarkdown/`) is
 // handled as before: listed with hidden files and indexed.
 export function isPlainTextPath(path: string): boolean {
-  if (path.startsWith(".hermesmarkdown/")) return false;
+  if (isVaultDataPath(path)) return false;
   const name = path.slice(path.lastIndexOf("/") + 1).toLowerCase();
   return TEXT_FILE_EXTENSIONS.has(extensionOf(path)) || TEXT_FILE_NAMES.has(name);
 }

@@ -320,6 +320,8 @@ tags: []
           rows={[
             { label: "Open Vault / Close Vault / Refresh Vault", value: "—" },
             { label: "Create New Vault", value: "—" },
+            { label: "Add Folder to Library", value: "Open another disk folder beside the vault: listed in Files, found by Go to File and search" },
+            { label: "Remove “…” from Library", value: "Closes the added folder; its files stay on disk" },
             { label: "New File", value: "Blank file, named from its first line" },
             { label: "New Folder", value: "Choose a vault folder, then enter a name" },
             { label: "Rename / Delete", value: "Uses the same prompts for files and folders" },

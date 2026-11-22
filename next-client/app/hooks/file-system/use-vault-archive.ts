@@ -1,5 +1,6 @@
 "use client";
 
+import { realHandle } from "@/app/services/library-roots";
 import { useAtom } from "jotai";
 import { useCallback } from "react";
 import toast from "react-hot-toast";
@@ -43,7 +44,8 @@ export function useVaultArchive({ scanVault, indexVaultTags }: UseVaultArchivePr
     if (!vaultHandle) return false;
     const toastId = toast.loading("Packing vault…");
     try {
-      const blob = await createVaultZip(vaultHandle);
+      // The vault's own folder: added library folders are separate folders on disk.
+      const blob = await createVaultZip(realHandle(vaultHandle));
       const stamp = new Date().toISOString().slice(0, 10);
       downloadBlob(blob, `${vaultName.replace(/[\\/:*?"<>|]/g, "-")}-${stamp}.zip`);
       await recordExport();
@@ -72,7 +74,7 @@ export function useVaultArchive({ scanVault, indexVaultTags }: UseVaultArchivePr
 
     const toastId = toast.loading("Copying vault…");
     try {
-      const { folder, files } = await copyVaultToDirectory(vaultHandle, parent, vaultName);
+      const { folder, files } = await copyVaultToDirectory(realHandle(vaultHandle), parent, vaultName);
       await recordExport();
       toast.success(`Copied ${files} file(s) to ${parent.name}/${folder}`, { id: toastId });
       return true;

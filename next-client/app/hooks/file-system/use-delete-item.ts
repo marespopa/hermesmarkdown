@@ -19,10 +19,14 @@ import type { FileUndoGroupRef } from "./use-file-undo";
 import { useDialog } from "../use-dialog";
 import { emptyDirectory } from "./directory-ops";
 import { moveToTrash } from "./trash-ops";
-import { TRASH_DIR } from "@/app/services/vault-trash";
+import { trashDirFor } from "@/app/services/vault-trash";
+import { isMountRoot } from "@/app/services/library-roots";
 import { showUndoToast } from "./undo-toast";
 import { withBusyPaths } from "./busy-paths";
 import type { BusyPath } from "@/app/atoms/busy-path-atoms";
+
+const LIBRARY_FOLDER_DELETE_MESSAGE = (name: string) =>
+  `“${name}” is a library folder. Remove it from the library instead; its files stay on disk.`;
 
 interface UseDeleteItemProps {
   scanVault: (handle: FileSystemDirectoryHandle) => Promise<void>;
@@ -89,6 +93,10 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
 
   const deleteForever = useCallback(
     async (handle: FileSystemHandle, path?: string, question?: string) => {
+      if (path && isMountRoot(path)) {
+        toast.error(LIBRARY_FOLDER_DELETE_MESSAGE(path));
+        return;
+      }
       const type = handle.kind === "file" ? "file" : "folder";
       const confirmed = await dialog.confirm(
         question ?? `Delete ${type} "${handle.name}"? This cannot be undone.`,
@@ -97,6 +105,7 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
         "Cancel",
       );
       if (!confirmed) return;
+      if (path && isMountRoot(path)) return;
 
       const attemptDelete = async (retryCount = 0): Promise<void> => {
         if (!vaultHandle) return;
@@ -239,7 +248,9 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
             // unknown path: permanent delete below
           }
         }
-        if (path) located.push({ handle: item.handle, path });
+        // A library folder is removed from the library, never deleted.
+        if (path && isMountRoot(path)) toast.error(LIBRARY_FOLDER_DELETE_MESSAGE(path));
+        else if (path) located.push({ handle: item.handle, path });
         else await deleteForever(item.handle);
       }
 
@@ -252,7 +263,7 @@ export function useDeleteItem({ scanVault, indexVaultTags, recordUndo, undoFileO
       // Rows show a spinner until the move and the rescan are done.
       await withBusyPaths(store, outermost.map((item): [string, BusyPath] => [item.path, { op: "trash" }]), async () => {
         for (const [index, item] of outermost.entries()) {
-          if (TRASH_DIR.startsWith(`${item.path}/`)) {
+          if (trashDirFor(item.path).startsWith(`${item.path}/`)) {
             holdsTrash.push(item);
             continue;
           }

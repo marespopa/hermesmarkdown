@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { buildBacklinkIndex } from "./backlinks";
 import { createLinkResolver } from "./link-resolver";
 import { findRewriteCandidates, mapMovedPath, rewriteLinksInText, type PathMove } from "./rewrite-links";
 import { lineColumnAt, parseLinkTarget, scanWikiLinks } from "./wikilink-scan";
+import { setActiveMountNames } from "@/app/services/library-roots";
 
 function meta(path: string, links: string[] = []): FileMetadata {
   return {
@@ -127,5 +128,17 @@ describe("rewrite-links", () => {
     const files = [meta("Old.md"), meta("s.md", ["Old"]), meta("t.md", ["Other"])];
     const after = vault(meta("New.md"), meta("s.md", ["Old"]), meta("t.md"));
     expect(findRewriteCandidates(vault(...files), after, rename)).toEqual(["s.md"]);
+  });
+});
+
+describe("links in a library's added folder", () => {
+  afterEach(() => setActiveMountNames([]));
+
+  it("read a root path from the root of the folder the note is in first", () => {
+    setActiveMountNames(["Work"]);
+    const r = createLinkResolver(vault(meta("notes/a.md"), meta("Work/notes/a.md"), meta("Work/plan.md")));
+    expect(r.resolve("notes/a", "Work/plan.md")?.path).toBe("Work/notes/a.md");
+    expect(r.resolve("notes/a", "other.md")?.path).toBe("notes/a.md");
+    expect(r.resolve("Work/notes/a", "Work/plan.md")?.path).toBe("Work/notes/a.md");
   });
 });

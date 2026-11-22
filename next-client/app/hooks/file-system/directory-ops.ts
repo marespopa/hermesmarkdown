@@ -1,5 +1,8 @@
 import { writeFileContent } from "@/app/services/file-writer";
+import { isMountRoot, realHandle, sameLibraryFolder } from "@/app/services/library-roots";
 import { withRetry } from "./shared";
+
+export const CROSS_FOLDER_MOVE_MESSAGE = "Moving between library folders isn't supported yet.";
 
 // Empties a directory bottom-up, one entry at a time, so every removeEntry
 // call targets either a plain file or an already-empty directory — never a
@@ -161,6 +164,10 @@ export async function relocateEntry(
   toPath: string,
 ): Promise<void> {
   if (fromPath === toPath) return;
+  // A library folder is removed from the library, never moved, renamed or
+  // trashed; and nothing moves between library folders yet.
+  if (isMountRoot(fromPath) || isMountRoot(toPath)) throw new Error(`“${fromPath}” is a library folder`);
+  if (!sameLibraryFolder(fromPath, toPath)) throw new Error(CROSS_FOLDER_MOVE_MESSAGE);
   // Only the letter case changes (undoing "Draft.md" → "draft.md"): storage
   // that ignores case sees the new name as taken, so it goes through an
   // unused name first, and back to the old name if the second step fails.
@@ -184,7 +191,8 @@ export async function relocateEntry(
 
   if (typeof (handle as any).move === "function") {
     try {
-      await (handle as any).move(destParent, name);
+      // The real folder: native move rejects the library's root.
+      await (handle as any).move(realHandle(destParent), name);
       return;
     } catch (err) {
       console.warn("Native move failed, falling back to copy/delete:", err);

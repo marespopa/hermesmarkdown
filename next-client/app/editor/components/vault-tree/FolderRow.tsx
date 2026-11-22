@@ -2,7 +2,7 @@
 
 import Button from "@/app/components/Button";
 import { useEffect, useRef, useState } from "react";
-import { HiFolder, HiOutlineDotsVertical } from "react-icons/hi";
+import { HiFolder, HiOutlineDotsVertical, HiOutlineFolder, HiOutlineLockClosed } from "react-icons/hi";
 import { IoCaretForward } from "react-icons/io5";
 import { LIST_INDENT_PX, RowBusySpinner, type RowEditing, selectionClass } from "./FileRow";
 import { InlineNameField } from "./InlineNameField";
@@ -42,6 +42,10 @@ export interface FolderRowProps {
   // A rename, move or move to Trash is working on it (see FileRow).
   busy?: boolean;
   pendingName?: string;
+  // A library's added folder ("mount"), or one whose access has lapsed
+  // ("locked": a click asks for it again through onUnlock).
+  library?: "mount" | "locked";
+  onUnlock?: () => void;
 }
 
 export function FolderRow({
@@ -66,6 +70,8 @@ export function FolderRow({
   editing,
   busy = false,
   pendingName,
+  library,
+  onUnlock,
 }: FolderRowProps) {
   const [dragOver, setDragOver] = useState(false);
   const autoExpandTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -95,6 +101,11 @@ export function FolderRow({
         onClick={(e) => {
           e.stopPropagation();
           if (busy) return;
+          // The click is the gesture the browser's Allow prompt needs.
+          if (library === "locked") {
+            onUnlock?.();
+            return;
+          }
           const plain = onSelectClick ? onSelectClick(e) : true;
           if (plain) onToggle(node.path);
         }}
@@ -104,11 +115,11 @@ export function FolderRow({
           // A touch long-press picks the row up to drag (touch uses ⋯).
           if (!busy && !isTouchPressing?.()) onOpenMenu(e.clientX, e.clientY);
         }}
-        draggable={!editing && !busy}
+        draggable={!editing && !busy && !library}
         data-drop-folder={busy ? undefined : node.path}
-        onTouchStart={busy ? undefined : onTouchDragStart}
+        onTouchStart={busy || library ? undefined : onTouchDragStart}
         onDragStart={(e) => {
-          if (busy || isTouchPressing?.()) {
+          if (busy || library || isTouchPressing?.()) {
             e.preventDefault();
             return;
           }
@@ -166,11 +177,22 @@ export function FolderRow({
           }}
           className={`w-3 shrink-0 text-fg-faint transition-transform duration-layout ease-layout motion-reduce:transition-none ${isCollapsed ? "" : "rotate-90"}`}
         />
-        <HiFolder size={16} className="shrink-0 text-sage" />
+        {library === "locked" ? (
+          <HiOutlineLockClosed size={16} className="shrink-0 text-fg-faint" aria-label="Locked" />
+        ) : library === "mount" ? (
+          <HiOutlineFolder size={16} className="shrink-0 text-sage" aria-label="Library folder" />
+        ) : (
+          <HiFolder size={16} className="shrink-0 text-sage" />
+        )}
         {editing ? (
           <InlineNameField label="Folder name" {...editing} />
         ) : (
-          <span title={name} className={`min-w-0 flex-1 truncate ${busy ? "text-fg-muted" : ""}`}>{name}</span>
+          <span
+            title={library === "locked" ? `${name}: click to allow access` : name}
+            className={`min-w-0 flex-1 truncate ${busy || library === "locked" ? "text-fg-muted" : ""}`}
+          >
+            {name}
+          </span>
         )}
         {showColumns && <ListColumns modified="--" kind="Folder" />}
       </div>

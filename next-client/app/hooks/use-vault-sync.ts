@@ -9,6 +9,7 @@ import { useInterval } from "./use-interval";
 import { observeVault } from "./file-system/file-observer";
 import { checkVaultHealth } from "./file-system/vault-health";
 import { isVaultSyncHeld } from "./file-system/vault-sync-hold";
+import { withLapsedFoldersLocked } from "@/app/services/library-store";
 
 const VAULT_SYNC_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const CLOUD_VAULT_SYNC_INTERVAL = 1 * 60 * 1000; // 1 minute for cloud vaults
@@ -60,6 +61,17 @@ export function useVaultSync() {
       const health = await checkVaultHealth(vaultHandle);
       if (health !== "ok" || store.get(atom_vaultHandle) !== vaultHandle) {
         if (manual) toast.dismiss("vault-sync");
+        return;
+      }
+      // An added folder that lost access shows locked rather than empty.
+      const checked = await withLapsedFoldersLocked(vaultHandle);
+      if (store.get(atom_vaultHandle) !== vaultHandle) return;
+      if (checked !== vaultHandle) {
+        store.set(atom_vaultHandle, checked);
+        if (store.get(atom_currentDirectoryHandle) === vaultHandle) store.set(atom_currentDirectoryHandle, checked);
+        await scanVault(checked);
+        await indexVaultTags();
+        if (manual) toast.success("Vault synced", { id: "vault-sync" });
         return;
       }
       // Rescan whichever folder is the current directory, not just

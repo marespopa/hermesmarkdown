@@ -45,6 +45,7 @@ export default function SidebarFiles({ treeController, activeFilePath, openHandl
   const {
     vaultHandle, renameFile, deleteFile, trashItems, duplicateFile, moveItem, moveItems,
     createNewFile, createFolder, undoFileOperation, newFromFolderTemplate,
+    removeLibraryFolder, unlockLibraryFolder,
   } = useFileSystem();
 
   const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
@@ -121,6 +122,8 @@ export default function SidebarFiles({ treeController, activeFilePath, openHandl
         singleClickOpen
         folderPaths={shown.folderPaths}
         resolveFolderHandle={resolveFolderHandle}
+        removeLibraryFolder={removeLibraryFolder}
+        unlockLibraryFolder={unlockLibraryFolder}
         createNewFile={createNewFile}
         createFolder={createFolder}
         moveItem={moveItem}

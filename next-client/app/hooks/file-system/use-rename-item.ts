@@ -13,6 +13,7 @@ import type { FileUndoGroupRef } from "./use-file-undo";
 import { useRewriteLinksAfterMove } from "./use-rewrite-links";
 import { useDialog } from "../use-dialog";
 import { withBusyPaths } from "./busy-paths";
+import { isMountRoot, realHandle } from "@/app/services/library-roots";
 import { caseStepName, moveDirectoryByCopy, moveFileByCopy } from "./directory-ops";
 
 // Whether `from` is gone from `dir` and `to` is there, by the names as
@@ -79,6 +80,12 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
         // fall back to currentDirectoryHandle/vaultHandle above
       }
 
+      // A library folder keeps the name it's listed under.
+      if (dirParts?.length === 0 && isMountRoot(currentName)) {
+        toast.error(`“${currentName}” is a library folder and can't be renamed here.`);
+        return;
+      }
+
       const newName = String(requestedName ?? await dialog.prompt(
         "Enter new name:",
         currentName,
@@ -121,7 +128,7 @@ export function useRenameItem({ scanVault, indexVaultTags, recordUndo }: UseRena
           if ((freshHandle as any).move) {
             try {
               // Use explicit parentDir for maximum compatibility on some browsers/OSs
-              await (freshHandle as any).move(parentDir, to);
+              await (freshHandle as any).move(realHandle(parentDir), to);
               return;
             } catch (moveErr) {
               if (await renamedOnDisk(parentDir, from, to)) return;

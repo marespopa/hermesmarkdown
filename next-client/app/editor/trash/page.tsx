@@ -7,6 +7,7 @@ import Button from "@/app/components/Button";
 import { useDialog } from "@/app/hooks/use-dialog";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { deleteTrashSlot, listTrash, restoreFromTrash, type TrashedItem } from "@/app/hooks/file-system/trash-ops";
+import { trashDirOf } from "@/app/services/vault-trash";
 import { TRASH_RETENTION_DAYS } from "@/app/services/vault-trash";
 import ShellPage from "../components/ShellPage";
 
@@ -61,9 +62,11 @@ export default function TrashPage() {
     if (!vaultHandle || targets.length === 0) return;
     if (!(await dialog.confirm(message, "Delete Permanently", "Delete"))) return;
     markBusy(targets, true);
-    for (const slot of new Set(targets.map((item) => item.slot))) {
+    // Slot names can repeat across library folders' Trashes.
+    const slots = new Map(targets.map((item) => [`${trashDirOf(item.trashPath)}/${item.slot}`, item]));
+    for (const { slot, trashPath } of slots.values()) {
       try {
-        await deleteTrashSlot(vaultHandle, slot);
+        await deleteTrashSlot(vaultHandle, slot, trashDirOf(trashPath));
       } catch (err) {
         console.error("Failed to delete from the Trash:", err);
         toast.error("Couldn't delete everything");

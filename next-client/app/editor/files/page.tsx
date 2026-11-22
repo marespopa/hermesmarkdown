@@ -35,6 +35,7 @@ export default function FilesPage() {
     renameFile,
     vaultHandle,
     newFromFolderTemplate,
+    removeLibraryFolder, unlockLibraryFolder,
   } = useFileSystem();
   const vaultName = useAtomValue(atom_vaultName);
   // No Refresh button: the list follows the disk (useVaultSync, mounted by
@@ -153,6 +154,8 @@ export default function FilesPage() {
                 columns
                 folderPaths={isFiltered ? [] : folderPaths}
                 resolveFolderHandle={resolveFolderHandle}
+                removeLibraryFolder={removeLibraryFolder}
+                unlockLibraryFolder={unlockLibraryFolder}
                 createNewFile={createNewFile}
                 createFolder={createFolder}
                 moveItem={moveItem}

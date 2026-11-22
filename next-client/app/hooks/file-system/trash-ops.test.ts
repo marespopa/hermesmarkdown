@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { MemoryDirectoryHandle } from "@/app/services/memory-file-system.test-utils";
 import { isTrashSlotExpired, trashSlotDate, trashSlotName } from "@/app/services/vault-trash";
 import { relocateEntry, uniqueFolderName } from "./directory-ops";
 import { deleteTrashSlot, listTrash, moveToTrash, purgeExpiredTrash, removeEmptyTrashSlot, restoreFromTrash } from "./trash-ops";
 import { outermostItems } from "./use-delete-item";
+import { CompositeDirectoryHandle, setActiveMountNames } from "@/app/services/library-roots";
 
 const NOW = new Date("2026-10-06T09:43:55.123Z");
 
@@ -145,5 +146,63 @@ describe("Trash", () => {
   it("trashes a folder rather than also the items inside it", () => {
     const items = [{ path: "notes/a.md" }, { path: "notes" }, { path: "notes-old.md" }, { path: "notes" }];
     expect(outermostItems(items).map((item) => item.path)).toEqual(["notes", "notes-old.md"]);
+  });
+});
+
+describe("a library's Trashes", () => {
+  afterEach(() => setActiveMountNames([]));
+
+  async function library() {
+    const vault = new MemoryDirectoryHandle("vault");
+    await vault.writeText("notes/a.md", "x");
+    const work = new MemoryDirectoryHandle("Work");
+    await work.writeText("plans/b.md", "y");
+    setActiveMountNames(["Work"]);
+    const root = new CompositeDirectoryHandle(vault.asHandle(), [{ name: "Work", handle: work.asHandle() }]) as unknown as FileSystemDirectoryHandle;
+    return { vault, work, root };
+  }
+
+  it("sends a file to the Trash of the folder it was in", async () => {
+    const { vault, work, root } = await library();
+    const trashPath = await moveToTrash(root, "Work/plans/b.md", NOW);
+    expect(trashPath).toBe("Work/.hermesmarkdown/trash/2026-10-06T09-43-55-123Z-0/b.md");
+    expect(work.listPaths()).toEqual([
+      ".hermesmarkdown/trash/2026-10-06T09-43-55-123Z-0/.origin",
+      ".hermesmarkdown/trash/2026-10-06T09-43-55-123Z-0/b.md",
+    ]);
+    expect(vault.listPaths()).toEqual(["notes/a.md"]);
+  });
+
+  it("lists every folder's Trash and puts an item back in its own folder", async () => {
+    const { work, root } = await library();
+    await moveToTrash(root, "notes/a.md", new Date("2026-10-01T00:00:00Z"));
+    await moveToTrash(root, "Work/plans/b.md", NOW);
+    const items = await listTrash(root);
+    expect(items.map((item) => item.originalPath)).toEqual(["Work/plans/b.md", "notes/a.md"]);
+    expect(await restoreFromTrash(root, items[0])).toBe("Work/plans/b.md");
+    expect(work.listPaths()).toEqual(["plans/b.md"]);
+  });
+
+  it("deletes a slot from the Trash it is in", async () => {
+    const { work, root } = await library();
+    await moveToTrash(root, "Work/plans/b.md", NOW);
+    const [item] = await listTrash(root);
+    await deleteTrashSlot(root, item.slot, "Work/.hermesmarkdown/trash");
+    expect(work.listPaths()).toEqual([]);
+  });
+
+  it("empties old slots in every folder", async () => {
+    const { root } = await library();
+    await moveToTrash(root, "notes/a.md", new Date("2026-08-01T00:00:00Z"));
+    await moveToTrash(root, "Work/plans/b.md", new Date("2026-08-01T00:00:00Z"));
+    expect(await purgeExpiredTrash(root, NOW)).toBe(2);
+  });
+
+  it("never moves a library folder, nor anything between folders", async () => {
+    const { vault, work, root } = await library();
+    await expect(relocateEntry(root, "Work", "Moved")).rejects.toThrow("library folder");
+    await expect(relocateEntry(root, "Work/plans/b.md", "notes/b.md")).rejects.toThrow("between library folders");
+    expect(work.listPaths()).toEqual(["plans/b.md"]);
+    expect(vault.listPaths()).toEqual(["notes/a.md"]);
   });
 });

@@ -1,3 +1,4 @@
+import { activeMounts } from "@/app/services/library-roots";
 // Below this count, plain rendering is simpler and avoids virtualizer
 // scroll-restoration quirks (e.g. jumping while resizing); above it, an
 // un-virtualized list of vault-scale (or larger) file counts would mean
@@ -55,6 +56,11 @@ export interface VaultFileTreeProps {
   // Tree-only: folders are inferred from paths, so folder actions need a way
   // to resolve a real FileSystemDirectoryHandle.
   resolveFolderHandle?: (path: string) => Promise<any | null>;
+  // A library's added folders (services/library-roots.ts): their row's menu
+  // removes one from the library, and a click on a locked one asks for its
+  // access again.
+  removeLibraryFolder?: (name: string) => unknown;
+  unlockLibraryFolder?: (name: string) => unknown;
   // With a name (typed in the tree's inline field) they don't prompt.
   createNewFile?: (targetDirectory?: FileSystemDirectoryHandle, name?: string) => void | Promise<unknown>;
   createFolder?: (parentDirectory?: FileSystemDirectoryHandle, name?: string) => Promise<FileSystemDirectoryHandle | null>;
@@ -160,6 +166,12 @@ export function buildFileTree(files: any[], folderPaths: string[]): TreeNode[] {
     }
   };
   sortChildren(root);
+  // A library's added folders come after the vault's own top level.
+  const mounts = activeMounts();
+  if (mounts.length > 0) {
+    const isMount = (node: TreeNode) => node.type === "folder" && mounts.includes(node.path);
+    root.children = [...root.children.filter((n) => !isMount(n)), ...root.children.filter(isMount)];
+  }
 
   return root.children;
 }

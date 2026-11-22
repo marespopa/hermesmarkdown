@@ -1,6 +1,7 @@
 import { isPrivateContent, isPrivateFrontmatter } from "@/app/utils/note-privacy";
 import type { FileMetadata } from "@/app/atoms/metadata";
 import { isMarkdownPath } from "@/app/utils/file-kinds";
+import { isVaultDataPath } from "@/app/services/vault-data-dir";
 
 // The pure half of search_files: which files to search, the
 // matches in one file's text, and the answers. use-companion-tools.ts reads
@@ -33,7 +34,7 @@ export function searchMatcher(query: string, regex: boolean): ((line: string) =>
 export function searchablePaths(notes: Record<string, FileMetadata>, textFiles: string[], folder: string): string[] {
   const prefix = folder ? `${folder}/` : "";
   return [...new Set([...Object.keys(notes), ...textFiles])]
-    .filter((path) => path.startsWith(prefix) && !path.startsWith(".hermesmarkdown/"))
+    .filter((path) => path.startsWith(prefix) && !isVaultDataPath(path))
     .filter((path) => !isPrivateFrontmatter(notes[path]?.frontmatter))
     .sort((a, b) => a.localeCompare(b));
 }

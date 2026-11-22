@@ -60,6 +60,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
   const router = useRouter();
   const {
     openVault,
+    addLibraryFolder,
+    removeLibraryFolder,
     vaultHandle,
     scanVault,
     indexVaultTags,
@@ -126,6 +128,8 @@ export function useEditorCommandContext(props: EditorCommandsProps) {
     ...props,
     router,
     openVault,
+    addLibraryFolder,
+    removeLibraryFolder,
     vaultHandle,
     scanVault,
     indexVaultTags,

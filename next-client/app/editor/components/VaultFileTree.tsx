@@ -2,6 +2,7 @@
 
 import { atom_indexerState } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
+import { atom_libraryMounts } from "@/app/atoms/vault-atoms";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAtomValue } from "jotai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -40,6 +41,8 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
   } = props;
   const indexerState = useAtomValue(atom_indexerState);
   const fileMetadata = useAtomValue(atom_fileMetadata);
+  const libraryMounts = useAtomValue(atom_libraryMounts);
+  const lockedMounts = useMemo(() => libraryMounts.filter((m) => m.locked).map((m) => m.name), [libraryMounts]);
   const showColumns = treeView && columns;
   const isIndexing =
     indexerState === "compiling" ||
@@ -49,8 +52,11 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
   const [rootDragOver, setRootDragOver] = useState(false);
 
   const tree = useMemo(
-    () => (treeView ? buildFileTree(processedFiles, folderPaths) : []),
-    [treeView, processedFiles, folderPaths],
+    // A locked library folder has nothing listed yet: its row still shows.
+    () => (treeView ? buildFileTree(processedFiles, lockedMounts.length ? [...(folderPaths ?? []), ...lockedMounts] : folderPaths) : []),
+    // libraryMounts: the added folders sort after the vault's own top level.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [treeView, processedFiles, folderPaths, lockedMounts, libraryMounts],
   );
 
   const activeAncestorPaths = useMemo(() => ancestorFolders(activeFilePath), [activeFilePath]);
@@ -235,6 +241,10 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     editing: actions.renameEditing(node.path),
     busy: !!actions.busyFor(node.path),
     pendingName: actions.busyFor(node.path)?.newName,
+    library: libraryMounts.find((m) => m.name === node.path)
+      ? (lockedMounts.includes(node.path) ? "locked" as const : "mount" as const)
+      : undefined,
+    onUnlock: props.unlockLibraryFolder ? () => void props.unlockLibraryFolder!(node.path) : undefined,
   });
 
   const treeRowProps = {

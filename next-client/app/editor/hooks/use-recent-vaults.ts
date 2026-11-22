@@ -24,6 +24,7 @@ import {
   setRecentVaultPinned,
   type RecentVault,
 } from "@/app/services/recent-vaults";
+import { realHandle } from "@/app/services/library-roots";
 
 // The open vault as a recents entry.
 export function recentVaultEntry(
@@ -35,7 +36,9 @@ export function recentVaultEntry(
   if (descriptor?.kind === "browser") {
     return { key, kind: "browser", name: descriptor.displayName, descriptor, openedAt };
   }
-  return { key, kind: "local", name: handle.name, handle, openedAt };
+  // The folder itself: a library's root can't be stored in IndexedDB.
+  const folder = realHandle(handle);
+  return { key, kind: "local", name: folder.name, handle: folder, openedAt };
 }
 
 // Mounted once, by EditorShell (every /editor route): loads the recents list, then moves each

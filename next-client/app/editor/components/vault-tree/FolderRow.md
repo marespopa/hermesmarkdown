@@ -1,6 +1,6 @@
 # FolderRow
 
-Description: A single folder row in the vault tree (`role="treeitem"`, `aria-expanded`) — disclosure triangle (always only opens/closes), folder icon, name or `InlineNameField` while renaming, optional columns, medium weight when it contains the active file, selection and keyboard-cursor styling, and a drop target that auto-expands after 400 ms of hovering. A plain click selects and toggles it; ⌘/Ctrl/Shift clicks only change the selection. Its ⋯ button and right-click open the tree's shared menu (New File, New Folder, Rename, Move to Trash).
+Description: A single folder row in the vault tree (`role="treeitem"`, `aria-expanded`) — disclosure triangle (always only opens/closes), folder icon, name or `InlineNameField` while renaming, optional columns, medium weight when it contains the active file, selection and keyboard-cursor styling, and a drop target that auto-expands after 400 ms of hovering. A plain click selects and toggles it; ⌘/Ctrl/Shift clicks only change the selection. Its ⋯ button and right-click open the tree's shared menu (New File, New Folder, Rename, Move to Trash). A library's added folder (`library: "mount"`, `services/library-roots.ts`) shows an outline folder icon, can't be dragged, and its menu has Remove from Library instead of Rename / Move to Trash; a locked one (`library: "locked"`, access lapsed) shows a lock, and a click asks for its access again (`onUnlock`, the click being the gesture the browser's prompt needs).
 
 ## Local State & Storage
 - State: Drop-hover and the auto-expand timer are local; collapse, selection, editing and drag state are owned by `VaultFileTree`.
@@ -31,3 +31,4 @@ import { FolderRow } from "./vault-tree/FolderRow";
 | onOpenMenu | `(x, y) => void` | | ⋯ button and right-click |
 | isSelected? / isFocused? / treeFocused? / onSelectClick? | | | Selection (see `FileRow`) |
 | editing? | `RowEditing` | | Shows the inline name field |
+| library? / onUnlock? | `"mount" \| "locked"` / `() => void` | | A library's added folder; a locked one asks for access on click |

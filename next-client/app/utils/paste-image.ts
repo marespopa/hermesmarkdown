@@ -1,5 +1,6 @@
 import { withRetry } from "@/app/hooks/file-system/shared";
 import { writeFileContent } from "@/app/services/file-writer";
+import { isMountRoot } from "@/app/services/library-roots";
 
 const MIME_TO_EXT: Record<string, string> = {
   "image/png": "png",
@@ -25,41 +26,39 @@ function generateImageFileName(blob: Blob): string {
   return `image-${stamp}-${rand}.${extensionForBlob(blob)}`;
 }
 
-// Writes a pasted/dropped image into a single vault-root `assets/` folder
-// and returns the markdown-relative path from the currently open note's
-// directory to that file (e.g. "assets/foo.png" for a root-level note,
-// "../assets/foo.png" for a note one folder deep).
+// Writes a pasted/dropped image into the `assets/` folder at the root of the
+// folder the note is in (the vault's, or for a library's added folder, that
+// folder's own, so it still works opened anywhere else) and returns the
+// markdown-relative path from the open note's directory to that file (e.g.
+// "assets/foo.png" for a root-level note, "../assets/foo.png" for a note one
+// folder deep).
 export async function savePastedImage(
   vaultHandle: FileSystemDirectoryHandle,
   currentDirectoryHandle: FileSystemDirectoryHandle | null,
   blob: Blob,
 ): Promise<string> {
+  // The note's folder as path segments from the library's root; [] at the root.
+  let segments: string[] = [];
+  if (currentDirectoryHandle && currentDirectoryHandle !== vaultHandle) {
+    try {
+      segments = (await (vaultHandle as any).resolve(currentDirectoryHandle)) ?? [];
+    } catch (e) {
+      console.warn("Failed to resolve relative path for pasted image:", e);
+    }
+  }
+  const mount = segments.length > 0 && isMountRoot(segments[0]) ? segments[0] : null;
+  const folderRoot = mount ? await vaultHandle.getDirectoryHandle(mount) : vaultHandle;
+  const depth = mount ? segments.length - 1 : segments.length;
+
   const assetsHandle = await withRetry(() =>
-    vaultHandle.getDirectoryHandle("assets", { create: true }),
+    folderRoot.getDirectoryHandle("assets", { create: true }),
   );
   const fileName = generateImageFileName(blob);
   const fileHandle = await withRetry(() =>
     assetsHandle.getFileHandle(fileName, { create: true }),
   );
   await withRetry(() => writeFileContent(fileHandle, blob));
-
-  let isRoot = !currentDirectoryHandle;
-  if (currentDirectoryHandle) {
-    try {
-      isRoot = await (vaultHandle as any).isSameEntry(currentDirectoryHandle);
-    } catch {
-      isRoot = vaultHandle.name === currentDirectoryHandle.name;
-    }
-  }
-  if (isRoot) return `assets/${fileName}`;
-
-  try {
-    const segments: string[] = await (vaultHandle as any).resolve(currentDirectoryHandle);
-    if (segments) return `${"../".repeat(segments.length)}assets/${fileName}`;
-  } catch (e) {
-    console.warn("Failed to resolve relative path for pasted image:", e);
-  }
-  return `assets/${fileName}`;
+  return `${"../".repeat(depth)}assets/${fileName}`;
 }
 
 // Clipboard/DataTransfer items also fire for copied text, files of other

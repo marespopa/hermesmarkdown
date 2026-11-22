@@ -12,9 +12,23 @@ import { remapPath, remapPathsInLayout, removePathsFromLayout } from "./utils";
 import type { BrowserVaultDescriptor } from "@/app/services/opfs";
 import type { RecentVault } from "@/app/services/recent-vaults";
 import { moveNoteViewState } from "@/app/editor/utils/note-view-states";
+import { libraryMounts, setActiveMountNames } from "@/app/services/library-roots";
 
 // Vault / Local File System
-export const atom_vaultHandle = atom<FileSystemDirectoryHandle | null>(null);
+// The open vault's root: its folder, or a library of the folder and the
+// folders added to it (services/library-roots.ts). Setting it registers the
+// library's folder names for the path helpers (mountOf, stripMount).
+const atom_vaultHandleBase = atom<FileSystemDirectoryHandle | null>(null);
+export const atom_vaultHandle = atom(
+  (get) => get(atom_vaultHandleBase),
+  (get, set, next: FileSystemDirectoryHandle | null | ((prev: FileSystemDirectoryHandle | null) => FileSystemDirectoryHandle | null)) => {
+    const value = typeof next === "function" ? next(get(atom_vaultHandleBase)) : next;
+    setActiveMountNames(libraryMounts(value).map((m) => m.name));
+    set(atom_vaultHandleBase, value);
+  },
+);
+// The library's added folders (empty for a plain vault).
+export const atom_libraryMounts = atom((get) => libraryMounts(get(atom_vaultHandleBase)));
 export const atom_currentDirectoryHandle =
   atom<FileSystemDirectoryHandle | null>(null);
 

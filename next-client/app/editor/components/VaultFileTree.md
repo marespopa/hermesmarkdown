@@ -11,6 +11,8 @@ Description: The vault's tree, Files (the sidebar's Files section, the Files pag
 - **In place:** Rename and New File / New Folder show an `InlineNameField` in the row (new items as a pending row first in their folder, prefilled "Untitled" / "untitled folder"); Return or clicking away commits, Esc cancels. The flat list has no field, so its Rename uses the name prompt.
 - **Reveal:** after a rename, create or move, the resulting rows are selected and scrolled into view once they appear (their folders are opened).
 
+- **Library folders:** folders added to the vault's library (`services/library-roots.ts`) are top-level rows listed after the vault's own, with Remove from Library (`removeLibraryFolder`) in their menu instead of Rename / Move to Trash. A locked one (access lapsed, `atom_libraryMounts`) still shows its row, with a lock; clicking it asks for access (`unlockLibraryFolder`).
+
 ## Local State & Storage
 - State: `atom_indexerState`. Folder expansion comes from `useFolderExpansion` (collapsed by default, ancestors of the active file open automatically, manual toggles override). Selection (`useTreeSelection`), inline editing, the open menu and pending reveals (`useTreeActions`), the dragged entry and drop highlights are local. Flat-list rows are virtualized with `useVirtualizer`. The active file is scrolled into view once each time it changes (or when it first appears while the vault is still scanning), never on a plain list refresh.
 - Persistence: Manual folder expand/collapse overrides are kept per vault in `atom_fileTreeExpansion` (`localStorage["hermes_file_tree_expansion"]`). File operations run against local handles through the passed callbacks.
@@ -39,6 +41,7 @@ const tree = useRef<VaultFileTreeController | null>(null);
 | renameFile | `(handle, newName?, path?) => unknown` |  | Renames (resolving to the new path); called with the typed name from the inline field |
 | deleteFile / trashItems? | callbacks |  | Move to Trash: `trashItems` takes the whole selection as one action; without it, `deleteFile` per item |
 | duplicateFile? | `(handle) => void` |  | Menu action |
+| removeLibraryFolder? / unlockLibraryFolder? | `(name) => unknown` |  | A library's added folders: remove one (never touching the disk), ask a locked one's access again |
 | newFromFolderTemplate? | `(destinationPath) => Promise<string \| null>` |  | Folder templates: adds "New from Folder Template…" to folder and empty-space menus (not inside `_templates/`); resolves to the created top folder, which is revealed. Hosts pass it only while `atom_folderTemplates` is non-empty. While it writes, the pending rows (`atom_pendingTreePaths`) show with a busy spinner (`op: "create"`) |
 | undoFileOperation? | `() => unknown` |  | ⌘Z / Ctrl+Z in the tree |
 | controllerRef? | `MutableRefObject<VaultFileTreeController \| null>` |  | Lets the host start naming a new note / folder in place (`startCreate(kind, parentPath?)`; without a parent, in the selected folder) and give the tree keyboard focus with its cursor row in view (`focus()`, Show Files), or with the row at a path selected and in view once its folders are open (`reveal(path)`, Show in Files) |
