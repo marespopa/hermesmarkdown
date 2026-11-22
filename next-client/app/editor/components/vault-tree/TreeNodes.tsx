@@ -2,6 +2,7 @@
 
 import Button from "@/app/components/Button";
 import { HiFolder, HiOutlineDocumentText, HiOutlineDotsVertical } from "react-icons/hi";
+import { IoCaretForward } from "react-icons/io5";
 import { isMountRoot, mountOf } from "@/app/services/library-roots";
 import { FileRow, LIST_INDENT_PX, type RowEditing } from "./FileRow";
 import { FolderRow, type FolderRowProps } from "./FolderRow";
@@ -69,20 +70,36 @@ export function treeItems(
 
 // The vault's header in a library: its name, quiet like a sidebar section's
 // title, with the root's menu (New File, New Folder, Add Folder to Library).
-function VaultSectionRow({ name, onOpenMenu }: { name: string; onOpenMenu?: (x: number, y: number) => void }) {
+// A click opens or closes it, like an added folder's row.
+function VaultSectionRow({ name, collapsed = false, onToggle, onOpenMenu }: {
+  name: string;
+  collapsed?: boolean;
+  onToggle?: () => void;
+  onOpenMenu?: (x: number, y: number) => void;
+}) {
   return (
     <div
-      role="presentation"
+      role="button"
+      tabIndex={-1}
+      aria-expanded={!collapsed}
+      aria-label={name}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle?.();
+      }}
       onContextMenu={(e) => {
         if (!onOpenMenu) return;
         e.preventDefault();
         e.stopPropagation();
         onOpenMenu(e.clientX, e.clientY);
       }}
-      className="group relative mx-1 flex h-[var(--list-row,28px)] items-center gap-1.5 rounded-md pl-3 pr-8 text-ui-caption text-fg-faint select-none"
+      className="group relative mx-1 flex h-[var(--list-row,28px)] cursor-pointer items-center gap-1.5 rounded-md pl-3 pr-8 text-ui-caption text-fg-faint select-none hover:bg-paper-softgray/60 dark:hover:bg-paper-dark-surface/50"
     >
-      {/* Lines up with the added folders' names, after their disclosure triangle. */}
-      <span className="w-3 shrink-0" aria-hidden />
+      <IoCaretForward
+        size={10}
+        aria-hidden
+        className={`w-3 shrink-0 text-fg-faint transition-transform duration-layout ease-layout motion-reduce:transition-none ${collapsed ? "" : "rotate-90"}`}
+      />
       <span title={name} className="min-w-0 flex-1 truncate">{name}</span>
       {onOpenMenu && (
         <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity z-10">
@@ -124,8 +141,11 @@ export interface TreeItemRowProps {
     isPressing: () => boolean;
     dropTarget: string | null;
   };
-  // The vault section header's ⋯ button and right-click (the root's menu).
+  // The vault section header's ⋯ button and right-click (the root's menu),
+  // and its open / closed state.
   onOpenVaultMenu?: (x: number, y: number) => void;
+  vaultCollapsed?: boolean;
+  onToggleVault?: () => void;
 }
 
 export function TreeItemRow({
@@ -140,11 +160,15 @@ export function TreeItemRow({
   onDragStartFile,
   touchDrag,
   onOpenVaultMenu,
+  vaultCollapsed,
+  onToggleVault,
 }: TreeItemRowProps) {
   if (item.kind === "pending") {
     return pendingCreate ? <PendingRow pending={pendingCreate} depth={item.depth} /> : null;
   }
-  if (item.kind === "section") return <VaultSectionRow name={item.name} onOpenMenu={onOpenVaultMenu} />;
+  if (item.kind === "section") {
+    return <VaultSectionRow name={item.name} collapsed={vaultCollapsed} onToggle={onToggleVault} onOpenMenu={onOpenVaultMenu} />;
+  }
   const { node, depth } = item.row;
   if (node.type === "folder") {
     return (

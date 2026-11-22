@@ -41,25 +41,22 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
   } = props;
   const indexerState = useAtomValue(atom_indexerState);
   const fileMetadata = useAtomValue(atom_fileMetadata);
-  const library = useLibrarySections(folderPaths);
   const showColumns = treeView && columns;
   const isIndexing = indexerState === "compiling" || (typeof indexerState === "object" && indexerState.status === "compiling");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [draggedEntry, setDraggedEntry] = useState<DraggedEntry | null>(null);
   const [rootDragOver, setRootDragOver] = useState(false);
-
+  const activeAncestorPaths = useMemo(() => ancestorFolders(activeFilePath), [activeFilePath]);
+  const expansion = useFolderExpansion(activeAncestorPaths);
+  const library = useLibrarySections(folderPaths, expansion, expandAll);
   const tree = useMemo(
     () => (treeView ? buildFileTree(processedFiles, library.treeFolderPaths as string[]) : []),
     [treeView, processedFiles, library.treeFolderPaths],
   );
-
-  const activeAncestorPaths = useMemo(() => ancestorFolders(activeFilePath), [activeFilePath]);
-
-  const expansion = useFolderExpansion(activeAncestorPaths);
   const { toggleFolder, expandFolder } = expansion;
   const isFolderCollapsed = useMemo(() => (expandAll ? () => false : expansion.isFolderCollapsed), [expandAll, expansion.isFolderCollapsed]);
-
-  const rows = useMemo(() => flattenVisible(tree, isFolderCollapsed), [tree, isFolderCollapsed]);
+  const { visibleRows, openVaultFor } = library;
+  const rows = useMemo(() => visibleRows(flattenVisible(tree, isFolderCollapsed)), [tree, isFolderCollapsed, visibleRows]);
   // Dev only (PerfReadout): app start → the first rows painted.
   const hasRows = processedFiles.length > 0;
   useEffect(() => {
@@ -125,11 +122,13 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
         scrollRef.current?.focus({ preventScroll: true });
         if (focusPath) scrollToPath(focusPath);
       },
-      reveal,
+      reveal: (path: string) => { openVaultFor(path); reveal(path); }, // its section opened first
       openBackgroundMenu,
     };
     return () => { controllerRef.current = null; };
-  }, [controllerRef, actions.startCreate, focusPath, scrollToPath, reveal, openBackgroundMenu]);
+  }, [controllerRef, actions.startCreate, focusPath, scrollToPath, reveal, openVaultFor, openBackgroundMenu]);
+  const pendingParent = actions.pendingCreate?.parentPath;
+  useEffect(() => openVaultFor(pendingParent), [pendingParent, openVaultFor]); // an item being named shows
 
   const canDropAtRoot = canDropInto(draggedEntry, "");
 
@@ -251,6 +250,7 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     onDragStartFile: actions.startDrag,
     touchDrag: { start: startTouchDrag, isPressing: isTouchPressing, dropTarget: touchDropTarget },
     onOpenVaultMenu: canCreate ? (x: number, y: number) => void openBackgroundMenu(x, y) : undefined,
+    ...library.sectionProps,
   };
 
   const onTreeKeyDown = (e: React.KeyboardEvent) => {
