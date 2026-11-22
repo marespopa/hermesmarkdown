@@ -3,6 +3,7 @@
 import {
   HiOutlineDocumentText,
   HiOutlineDuplicate,
+  HiOutlineFolderAdd,
   HiOutlineMinusCircle,
   HiOutlinePencil,
   HiOutlineTemplate,
@@ -44,7 +45,19 @@ export function treeMenuItems(
     return items;
   };
 
-  if (target.type === "background") return newItems("");
+  if (target.type === "background") {
+    // Another disk folder, listed and searched with the vault.
+    const add: TreeMenuItem[] = props.addLibraryFolder
+      ? [{
+          label: "Add Folder to Library…",
+          icon: <HiOutlineFolderAdd {...ICON} />,
+          separated: true,
+          onSelect: () => void props.addLibraryFolder!(),
+        }]
+      : [];
+    const create = newItems("");
+    return [...create, ...add.map((item) => ({ ...item, separated: create.length > 0 }))];
+  }
 
   // Library folders never go to the Trash (trashItems refuses them too).
   const paths = actions.targetPaths(target.path).filter((path) => !isMountRoot(path));

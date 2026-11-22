@@ -11,6 +11,7 @@ import {
   atom_workspaceLayout,
   atom_rebindHandles,
   atom_currentDirectoryHandle,
+  atom_showFolderInFiles,
 } from "@/app/atoms/atoms";
 import { removePathsFromLayout } from "@/app/atoms/utils";
 import {
@@ -130,6 +131,8 @@ export function useLibraryFolders({ scanVault, indexVaultTags }: Args) {
       return false;
     }
     await shown;
+    // Files opens on it: the folder unfolded, selected and scrolled to.
+    store.set(atom_showFolderInFiles, name);
     toast.success(`Added “${name}” to the library`);
     return true;
   }, [store, applyLibrary]);

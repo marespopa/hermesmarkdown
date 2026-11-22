@@ -2,7 +2,7 @@
 
 import Button from "@/app/components/Button";
 import { useEffect, useRef, useState } from "react";
-import { HiFolder, HiOutlineDotsVertical, HiOutlineFolder, HiOutlineLockClosed } from "react-icons/hi";
+import { HiFolder, HiOutlineDotsVertical, HiOutlineLockClosed } from "react-icons/hi";
 import { IoCaretForward } from "react-icons/io5";
 import { LIST_INDENT_PX, RowBusySpinner, type RowEditing, selectionClass } from "./FileRow";
 import { InlineNameField } from "./InlineNameField";
@@ -177,22 +177,24 @@ export function FolderRow({
           }}
           className={`w-3 shrink-0 text-fg-faint transition-transform duration-layout ease-layout motion-reduce:transition-none ${isCollapsed ? "" : "rotate-90"}`}
         />
+        {/* A library folder is a section header, quiet like the vault's. */}
         {library === "locked" ? (
-          <HiOutlineLockClosed size={16} className="shrink-0 text-fg-faint" aria-label="Locked" />
-        ) : library === "mount" ? (
-          <HiOutlineFolder size={16} className="shrink-0 text-sage" aria-label="Library folder" />
-        ) : (
+          <HiOutlineLockClosed size={13} className="shrink-0 text-fg-faint" aria-hidden />
+        ) : !library && (
           <HiFolder size={16} className="shrink-0 text-sage" />
         )}
         {editing ? (
           <InlineNameField label="Folder name" {...editing} />
         ) : (
           <span
-            title={library === "locked" ? `${name}: click to allow access` : name}
-            className={`min-w-0 flex-1 truncate ${busy || library === "locked" ? "text-fg-muted" : ""}`}
+            title={name}
+            className={`min-w-0 flex-1 truncate ${library ? "text-ui-caption text-fg-faint" : busy ? "text-fg-muted" : ""}`}
           >
             {name}
           </span>
+        )}
+        {library === "locked" && (
+          <span className="shrink-0 text-ui-caption text-fg-muted">Allow access</span>
         )}
         {showColumns && <ListColumns modified="--" kind="Folder" />}
       </div>

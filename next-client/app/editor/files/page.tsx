@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAtom, useAtomValue } from "jotai";
 import Button from "@/app/components/Button";
 import { atom_activeFilePath } from "@/app/atoms/atoms";
-import { atom_vaultName } from "@/app/atoms/vault-atoms";
+import { atom_vaultDescriptor, atom_vaultName } from "@/app/atoms/vault-atoms";
 import { atom_selectedFileTags } from "@/app/atoms/ui-atoms";
 import { useFileSystem } from "@/app/hooks/use-file-system";
 import { useVaultFileSearch } from "../hooks/useVaultFileSearch";
@@ -35,8 +35,11 @@ export default function FilesPage() {
     renameFile,
     vaultHandle,
     newFromFolderTemplate,
-    removeLibraryFolder, unlockLibraryFolder,
+    removeLibraryFolder, unlockLibraryFolder, addLibraryFolder, isVaultSupported,
   } = useFileSystem();
+  // Folders can be added beside a vault opened from disk.
+  const vaultDescriptor = useAtomValue(atom_vaultDescriptor);
+  const canAddLibraryFolder = isVaultSupported && vaultDescriptor?.kind === "local";
   const vaultName = useAtomValue(atom_vaultName);
   // No Refresh button: the list follows the disk (useVaultSync, mounted by
   // EditorShell on every /editor route).
@@ -156,6 +159,7 @@ export default function FilesPage() {
                 resolveFolderHandle={resolveFolderHandle}
                 removeLibraryFolder={removeLibraryFolder}
                 unlockLibraryFolder={unlockLibraryFolder}
+                addLibraryFolder={canAddLibraryFolder ? addLibraryFolder : undefined}
                 createNewFile={createNewFile}
                 createFolder={createFolder}
                 moveItem={moveItem}

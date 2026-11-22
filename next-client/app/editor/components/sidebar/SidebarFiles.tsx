@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useCallback, useDeferredValue, useMemo, useState } from "react";
+import { useAtomValue } from "jotai";
+import { atom_vaultDescriptor } from "@/app/atoms/vault-atoms";
 import { HiOutlineSearch } from "react-icons/hi";
 import BareInput from "@/app/components/Input/BareInput";
 import { FIELD_SIDEBAR_CLASS } from "@/app/components/Input/field-styles";
@@ -45,8 +47,11 @@ export default function SidebarFiles({ treeController, activeFilePath, openHandl
   const {
     vaultHandle, renameFile, deleteFile, trashItems, duplicateFile, moveItem, moveItems,
     createNewFile, createFolder, undoFileOperation, newFromFolderTemplate,
-    removeLibraryFolder, unlockLibraryFolder,
+    removeLibraryFolder, unlockLibraryFolder, addLibraryFolder, isVaultSupported,
   } = useFileSystem();
+  // Folders can be added beside a vault opened from disk.
+  const vaultDescriptor = useAtomValue(atom_vaultDescriptor);
+  const canAddLibraryFolder = isVaultSupported && vaultDescriptor?.kind === "local";
 
   const resolveFolderHandle = useCallback(async (path: string): Promise<any | null> => {
     if (!path) return vaultHandle;
@@ -124,6 +129,7 @@ export default function SidebarFiles({ treeController, activeFilePath, openHandl
         resolveFolderHandle={resolveFolderHandle}
         removeLibraryFolder={removeLibraryFolder}
         unlockLibraryFolder={unlockLibraryFolder}
+        addLibraryFolder={canAddLibraryFolder ? addLibraryFolder : undefined}
         createNewFile={createNewFile}
         createFolder={createFolder}
         moveItem={moveItem}

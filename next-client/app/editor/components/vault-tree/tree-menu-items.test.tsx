@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { treeMenuItems } from "./tree-menu-items";
+import { setActiveMountNames } from "@/app/services/library-roots";
 import type { VaultFileTreeProps } from "./tree-model";
 
 const actions = {
@@ -101,5 +102,29 @@ describe("treeMenuItems pins", () => {
     const { props: treeProps } = props();
     const items = treeMenuItems({ type: "row", kind: "folder", path: "projects" }, { ...treeProps, isPinned: undefined, togglePin: undefined }, actions);
     expect(labels(items)).not.toContain("Pin");
+  });
+});
+
+describe("treeMenuItems in a library", () => {
+  it("offers Add Folder to Library in the root's menu when folders can be added", () => {
+    const addLibraryFolder = vi.fn();
+    const items = treeMenuItems({ type: "background" }, { ...props().props, addLibraryFolder }, actions);
+    expect(labels(items)).toEqual(["New File", "New Folder", "Add Folder to Library…"]);
+    items[2].onSelect();
+    expect(addLibraryFolder).toHaveBeenCalled();
+  });
+
+  it("removes an added folder from the library instead of renaming or trashing it", () => {
+    setActiveMountNames(["Work"]);
+    const removeLibraryFolder = vi.fn();
+    const items = treeMenuItems({ type: "row", kind: "folder", path: "Work" }, { ...props().props, removeLibraryFolder }, actions);
+    setActiveMountNames([]);
+    expect(labels(items)).toEqual(["New File", "New Folder", "Pin", "Remove from Library"]);
+    items[3].onSelect();
+    expect(removeLibraryFolder).toHaveBeenCalledWith("Work");
+  });
+
+  it("leaves it out where folders can't be added", () => {
+    expect(labels(treeMenuItems({ type: "background" }, props().props, actions))).toEqual(["New File", "New Folder"]);
   });
 });

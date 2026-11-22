@@ -2,7 +2,6 @@
 
 import { atom_indexerState } from "@/app/atoms/ui-atoms";
 import { atom_fileMetadata } from "@/app/atoms/metadata";
-import { atom_libraryMounts } from "@/app/atoms/vault-atoms";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAtomValue } from "jotai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -21,6 +20,7 @@ import { useTreeReveal } from "./vault-tree/use-tree-reveal";
 import { useTreeActions } from "./vault-tree/use-tree-actions";
 import { useTreeSelection } from "./vault-tree/use-tree-selection";
 import { useVirtualTree } from "./vault-tree/use-virtual-tree";
+import { useLibrarySections } from "./vault-tree/use-library-sections";
 import { recordSidebarTreePainted } from "@/app/utils/perf/perf-metrics";
 
 export default function VaultFileTree(props: VaultFileTreeProps) {
@@ -41,22 +41,16 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
   } = props;
   const indexerState = useAtomValue(atom_indexerState);
   const fileMetadata = useAtomValue(atom_fileMetadata);
-  const libraryMounts = useAtomValue(atom_libraryMounts);
-  const lockedMounts = useMemo(() => libraryMounts.filter((m) => m.locked).map((m) => m.name), [libraryMounts]);
+  const library = useLibrarySections(folderPaths);
   const showColumns = treeView && columns;
-  const isIndexing =
-    indexerState === "compiling" ||
-    (typeof indexerState === "object" && indexerState.status === "compiling");
+  const isIndexing = indexerState === "compiling" || (typeof indexerState === "object" && indexerState.status === "compiling");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [draggedEntry, setDraggedEntry] = useState<DraggedEntry | null>(null);
   const [rootDragOver, setRootDragOver] = useState(false);
 
   const tree = useMemo(
-    // A locked library folder has nothing listed yet: its row still shows.
-    () => (treeView ? buildFileTree(processedFiles, lockedMounts.length ? [...(folderPaths ?? []), ...lockedMounts] : folderPaths) : []),
-    // libraryMounts: the added folders sort after the vault's own top level.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [treeView, processedFiles, folderPaths, lockedMounts, libraryMounts],
+    () => (treeView ? buildFileTree(processedFiles, library.treeFolderPaths as string[]) : []),
+    [treeView, processedFiles, library.treeFolderPaths],
   );
 
   const activeAncestorPaths = useMemo(() => ancestorFolders(activeFilePath), [activeFilePath]);
@@ -110,9 +104,9 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
 
   const reveal = useTreeReveal({ rows, selectOnly, scrollToPath, scrollRef });
 
-  // The New File / New Folder menu at the vault's root, for a right-click on
-  // the tree's empty space or elsewhere in the sidebar. False without either.
-  const canCreate = !!(props.createNewFile || props.createFolder);
+  // The root's menu (New File, New Folder, Add Folder to Library), for a
+  // right-click on empty space, elsewhere in the sidebar or the vault's header.
+  const canCreate = !!(props.createNewFile || props.createFolder || props.addLibraryFolder);
   const { clear: clearSelection } = selection;
   const { openMenu } = actions;
   const openBackgroundMenu = useCallback((x: number, y: number) => {
@@ -154,6 +148,7 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     pendingCreate: actions.pendingCreate,
     isFolderCollapsed,
     scrollRef,
+    vaultSection: library.vaultSection, // the vault's header beside added folders
   });
   useEffect(() => {
     virtualScrollRef.current = scrollToRow;
@@ -241,10 +236,8 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     editing: actions.renameEditing(node.path),
     busy: !!actions.busyFor(node.path),
     pendingName: actions.busyFor(node.path)?.newName,
-    library: libraryMounts.find((m) => m.name === node.path)
-      ? (lockedMounts.includes(node.path) ? "locked" as const : "mount" as const)
-      : undefined,
-    onUnlock: props.unlockLibraryFolder ? () => void props.unlockLibraryFolder!(node.path) : undefined,
+    library: library.libraryFor(node.path),
+    onUnlock: () => void props.unlockLibraryFolder?.(node.path),
   });
 
   const treeRowProps = {
@@ -257,6 +250,7 @@ export default function VaultFileTree(props: VaultFileTreeProps) {
     setDraggedEntry,
     onDragStartFile: actions.startDrag,
     touchDrag: { start: startTouchDrag, isPressing: isTouchPressing, dropTarget: touchDropTarget },
+    onOpenVaultMenu: canCreate ? (x: number, y: number) => void openBackgroundMenu(x, y) : undefined,
   };
 
   const onTreeKeyDown = (e: React.KeyboardEvent) => {
