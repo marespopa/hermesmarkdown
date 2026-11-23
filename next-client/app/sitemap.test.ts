@@ -10,6 +10,9 @@ describe("sitemap", () => {
     expect(urls).toContain("https://hermesmarkdown.com/tools/markdown-table-generator");
     expect(urls).toContain("https://hermesmarkdown.com/tools/mermaid-in-markdown");
     expect(urls).toContain("https://hermesmarkdown.com/tools/markdown-cleaner");
+    for (const slug of ["word-to-markdown", "google-docs-to-markdown", "csv-to-markdown-table", "markdown-to-pdf"]) {
+      expect(urls).toContain(`https://hermesmarkdown.com/tools/${slug}`);
+    }
     expect(new Set(urls).size).toBe(urls.length);
   });
 

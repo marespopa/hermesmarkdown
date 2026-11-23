@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useDeferredValue, useMemo } from "react";
+import React, { useDeferredValue, useEffect, useMemo } from "react";
 import { useAtom } from "jotai";
 import { atom_cleanerFormat, atom_cleanerInput, type CleanerFormat } from "@/app/atoms/tool-atoms";
 import Button, { SEGMENT_TRACK_CLASS } from "@/app/components/Button";
@@ -27,10 +27,24 @@ const PANEL = "rounded-xl border border-edge-subtle bg-surface-raised";
 // as you type, with a report of every fix. A rich paste (web page, Google
 // Docs, Word) brings its HTML along so the formatting converts. Input and
 // format persist in this tab (tool-atoms.ts).
-export default function MarkdownCleanerTool() {
+export default function MarkdownCleanerTool({
+  initialMode,
+  hint,
+}: {
+  // Opens in this input format with an empty box (for the pages that start
+  // from "paste from Word", "paste from Google Docs").
+  initialMode?: CleanerFormat;
+  // A line above the tool saying where the text comes from.
+  hint?: string;
+}) {
   const [stored, setInput] = useAtom(atom_cleanerInput);
   const [choice, setChoice] = useAtom(atom_cleanerFormat);
-  const input = stored ?? CLEANER_EXAMPLES[0].text;
+  const input = stored ?? (initialMode ? "" : CLEANER_EXAMPLES[0].text);
+  useEffect(() => {
+    if (initialMode) setChoice(initialMode);
+    // Once, on arrival: the reader can still change the format afterwards.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const deferredInput = useDeferredValue(input);
   const result = useMemo(() => convertInput(deferredInput, choice), [deferredInput, choice]);
   const output = result.markdown;
@@ -57,6 +71,7 @@ export default function MarkdownCleanerTool() {
 
   return (
     <div className="space-y-5">
+      {hint && <p className="text-ui-subhead text-fg-muted">{hint}</p>}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2" role="group" aria-label="Examples">
           {CLEANER_EXAMPLES.map((example) => (
@@ -121,7 +136,7 @@ export default function MarkdownCleanerTool() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <CleanerOpenButton />
+        <CleanerOpenButton blankStart={!!initialMode} />
         <Button variant="outlined" onClick={copy} isDisabled={!output}>
           Copy Markdown
         </Button>

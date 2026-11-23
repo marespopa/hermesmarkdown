@@ -3,12 +3,13 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import "@testing-library/jest-dom";
 import { CLEANER_EXAMPLES } from "@/app/editor/paste/cleaner-examples";
-import { CleanerSkeleton, MermaidSkeleton, TableSkeleton, TokenCostSkeleton, TokenizerSkeleton } from "./ToolSkeletons";
+import { CleanerSkeleton, MermaidSkeleton, PdfSkeleton, TableSkeleton, TokenCostSkeleton, TokenizerSkeleton } from "./ToolSkeletons";
 
 describe("ToolSkeletons", () => {
   it.each([
     ["cleaner", CleanerSkeleton],
     ["mermaid", MermaidSkeleton],
+    ["pdf", PdfSkeleton],
     ["table", TableSkeleton],
     ["token cost", TokenCostSkeleton],
     ["tokenizer", TokenizerSkeleton],

@@ -23,7 +23,7 @@ const clamp = (value: string, max: number) => Math.min(max, Math.max(1, Math.rou
 // import, and the aligned Markdown, formulas as results or as written, with
 // Copy and Open in HermesMarkdown. The document persists in this tab
 // (atom_tableToolMarkdown).
-export default function TableTool() {
+export default function TableTool({ csvImportOpen = false }: { csvImportOpen?: boolean }) {
   const [stored, setStored] = useAtom(atom_tableToolMarkdown);
   const doc = stored ?? DEFAULT_TOOL_TABLE;
   const [cols, setCols] = useState("3");
@@ -69,7 +69,7 @@ export default function TableTool() {
         <Button variant="secondary" onClick={() => replace(createEmptyTable(clamp(cols, MAX_COLS), clamp(rows, MAX_ROWS)))}>
           New table
         </Button>
-        <TableCsvImport onConvert={replace} />
+        <TableCsvImport onConvert={replace} defaultOpen={csvImportOpen} />
       </div>
 
       <div className="rounded-xl overflow-hidden">

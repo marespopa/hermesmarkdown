@@ -14,6 +14,19 @@ describe("tool catalog", () => {
     }
   });
 
+  it("gives the converter pages their own copy, with at least 5 FAQs", () => {
+    const slugs = ["word-to-markdown", "google-docs-to-markdown", "csv-to-markdown-table", "markdown-to-pdf"] as const;
+    const cleaner = toolBySlug("markdown-cleaner");
+    for (const slug of slugs) {
+      const tool = toolBySlug(slug);
+      expect(tool.faq.length).toBeGreaterThanOrEqual(5);
+      expect(tool.features.length).toBeGreaterThanOrEqual(4);
+      expect(tool.lead).not.toBe(cleaner.lead);
+      const cleanerQuestions = new Set(cleaner.faq.map((entry) => entry.q));
+      for (const { q } of tool.faq) expect(cleanerQuestions.has(q)).toBe(false);
+    }
+  });
+
   it("sets the canonical URL to the tool's path", () => {
     expect(toolMetadata(toolBySlug("tokenizer")).alternates?.canonical).toBe("/tools/tokenizer");
   });
