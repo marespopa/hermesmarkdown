@@ -46,6 +46,12 @@ export const GOOGLE_DOCS_TO_MARKDOWN: ToolEntry = {
       a: "Only in this browser tab. Nothing is uploaded, and the text is cleared when you close the tab.",
     },
   ],
+  related: [
+    { slug: "word-to-markdown", anchor: "Convert a Word document to Markdown" },
+    { slug: "markdown-cleaner", anchor: "Clean up Markdown after converting" },
+    { slug: "csv-to-markdown-table", anchor: "Turn a Google Sheets export into a Markdown table" },
+  ],
+  pitchLink: { anchor: "Keep your Markdown on your own disk instead of a cloud account", href: "/alternatives/stackedit-alternative" },
   features: [
     "Google Docs headings, lists and links to Markdown",
     "Checklists to task lists",

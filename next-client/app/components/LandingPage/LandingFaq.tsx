@@ -1,5 +1,5 @@
 import TextLink from "@/app/components/TextLink/TextLink.component";
-import { LANDING_FAQ } from "./landing-content";
+import { LANDING_ALTERNATIVES_HREF, LANDING_FAQ, LANDING_GUIDES_HREF } from "./landing-content";
 import { H2, SECTION } from "./landing-styles";
 
 /** The FAQ, each answer folded under its question (native details, so it opens by keyboard), and the guide links. */
@@ -30,6 +30,11 @@ export default function LandingFaq() {
           New to Markdown? Read <TextLink href="/markdown-editor">what a Markdown editor is</TextLink>, try the{" "}
           <TextLink href="/tools">free Markdown tools</TextLink>, or browse the{" "}
           <TextLink href="/documentation">documentation</TextLink>.
+        </p>
+        <p className="mt-3 text-ui-footnote text-fg-muted">
+          Coming from another editor? See how it compares in the{" "}
+          <TextLink href={LANDING_ALTERNATIVES_HREF}>alternatives</TextLink>, or follow a{" "}
+          <TextLink href={LANDING_GUIDES_HREF}>how-to guide</TextLink>.
         </p>
       </div>
     </section>

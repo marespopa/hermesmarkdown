@@ -46,6 +46,12 @@ export const WORD_TO_MARKDOWN: ToolEntry = {
       a: "Yes. Any word processor that puts formatted text on the clipboard works the same way: copy, paste, and the formatting converts.",
     },
   ],
+  related: [
+    { slug: "google-docs-to-markdown", anchor: "Convert a Google Doc to Markdown" },
+    { slug: "markdown-cleaner", anchor: "Clean up Markdown after converting" },
+    { slug: "markdown-to-pdf", anchor: "Turn the Markdown back into a PDF" },
+  ],
+  pitchLink: { anchor: "Write Markdown with live formatting in a free browser editor", href: "/alternatives/typora-free-alternative" },
   features: [
     "Word heading styles to # headings",
     "Lists, links, bold and italic kept",

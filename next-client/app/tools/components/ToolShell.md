@@ -1,6 +1,6 @@
 # ToolShell
 
-Description: Server component for the page around a free tool, in order: breadcrumb (Tools › name), `h1` and lead, the tool, "How it works" with the privacy line ("Runs in your browser. Nothing is uploaded."), the HermesMarkdown pitch with the tool's own open button, the FAQ and links to the other tools. Renders the tool's JSON-LD (`toolJsonLd`). Everything but `children` is server-rendered, and the FAQ text matches the FAQPage data.
+Description: Server component for the page around a free tool, in order: breadcrumb (Tools › name), `h1` and lead, the tool, "How it works" with the privacy line ("Runs in your browser. Nothing is uploaded."), the HermesMarkdown pitch with the tool's own open button and its `pitchLink` (a descriptive text link beside it), the FAQ and "More free tools": the entry's `related` links first, with their descriptive anchors, then every other tool by name. Renders the tool's JSON-LD (`toolJsonLd`). Everything but `children` is server-rendered, and the FAQ text matches the FAQPage data.
 
 ## Local State & Storage
 - State: none. Persistence: none.

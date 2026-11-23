@@ -47,6 +47,11 @@ export const CSV_TO_MARKDOWN_TABLE: ToolEntry = {
       a: "No. Parsing and the grid run in your browser. The table is kept in this tab's session storage and is gone when you close the tab.",
     },
   ],
+  related: [
+    { slug: "markdown-table-generator", anchor: "Edit the table in a spreadsheet-style grid" },
+    { slug: "markdown-cleaner", anchor: "Clean up pasted spreadsheet text first" },
+  ],
+  pitchLink: { anchor: "Edit tables with spreadsheet formulas inside our Markdown editor", href: "/documentation/tables" },
   features: [
     "CSV, TSV and spreadsheet cells to Markdown tables",
     "Quoted fields handled",

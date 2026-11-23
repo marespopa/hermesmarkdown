@@ -46,6 +46,12 @@ export const MARKDOWN_CLEANER: ToolEntry = {
       a: "Yes. Open in HermesMarkdown carries the clean Markdown into the editor as a draft, which you can save as a Markdown file on your device.",
     },
   ],
+  related: [
+    { slug: "word-to-markdown", anchor: "Convert a Word document to Markdown" },
+    { slug: "google-docs-to-markdown", anchor: "Convert a Google Doc to Markdown" },
+    { slug: "csv-to-markdown-table", anchor: "Turn a CSV export into a Markdown table" },
+  ],
+  pitchLink: { anchor: "Keep cleaned notes in a Markdown editor that stays on your device", href: "/" },
   features: [
     "HTML, rich text, Google Docs and Word to Markdown",
     "CSV and TSV to Markdown tables",

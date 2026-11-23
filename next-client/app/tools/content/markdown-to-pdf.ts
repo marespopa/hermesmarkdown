@@ -46,6 +46,11 @@ export const MARKDOWN_TO_PDF: ToolEntry = {
       a: "No. The preview and the PDF are made in your browser. The text is kept in this tab's session storage until you close the tab.",
     },
   ],
+  related: [
+    { slug: "mermaid-in-markdown", anchor: "Preview a diagram before you print it" },
+    { slug: "markdown-table-generator", anchor: "Build a table to include in the PDF" },
+  ],
+  pitchLink: { anchor: "Set paper size, margins and headers in the editor's Export as PDF", href: "/documentation/export-pdf" },
   features: [
     "Live preview of the printed page",
     "Tables, code, task lists and callouts",

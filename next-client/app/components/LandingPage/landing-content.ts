@@ -82,6 +82,11 @@ export const LANDING_SPECS: LandingSpec[] = [
   { label: "Keyboard", value: "Optional Vim keys." },
 ];
 
+// Where to go from the FAQ for readers weighing HermesMarkdown against
+// another editor, or looking for a how-to.
+export const LANDING_ALTERNATIVES_HREF = "/alternatives";
+export const LANDING_GUIDES_HREF = "/guides";
+
 export const LANDING_FAQ: LandingFaq[] = [
   {
     q: "Where are my files stored?",

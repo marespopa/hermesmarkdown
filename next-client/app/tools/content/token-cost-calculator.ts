@@ -44,6 +44,11 @@ export const TOKEN_COST_CALCULATOR: ToolEntry = {
       a: "No. Counting runs in your browser, in a background worker. Your text is never sent to a server, and it's kept only in this browser tab.",
     },
   ],
+  related: [
+    { slug: "tokenizer", anchor: "See exactly how a model splits your text into tokens" },
+    { slug: "markdown-cleaner", anchor: "Clean a prompt or document before pricing it" },
+  ],
+  pitchLink: { anchor: "Use an AI companion in your notes, with your own key or a local model", href: "/guides/local-llm-ollama-markdown-editor" },
   features: [
     "Input, output and total cost for GPT, Claude and Gemini models",
     "Exact token counts with OpenAI's o200k tokenizer",

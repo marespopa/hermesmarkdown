@@ -43,6 +43,11 @@ export const MERMAID_IN_MARKDOWN: ToolEntry = {
       a: "Yes. Open in HermesMarkdown carries the diagram into the editor as a draft, where it renders inline in your note and you can save it as a Markdown file on your device.",
     },
   ],
+  related: [
+    { slug: "markdown-to-pdf", anchor: "Turn Markdown with diagrams into a PDF" },
+    { slug: "markdown-cleaner", anchor: "Tidy a Markdown file before you share it" },
+  ],
+  pitchLink: { anchor: "Draw diagrams as code inside our local-first Markdown editor", href: "/documentation/code-diagrams" },
   features: [
     "Live Mermaid preview as you type",
     "Zoom, pan and SVG download",

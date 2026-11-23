@@ -47,6 +47,11 @@ export const MARKDOWN_TABLE_GENERATOR: ToolEntry = {
       a: "Yes. Open in HermesMarkdown carries the table into the editor as a draft, formulas included: the same grid keeps working and calculating there, and you can save it as a Markdown note on your device.",
     },
   ],
+  related: [
+    { slug: "csv-to-markdown-table", anchor: "Convert a CSV export into a Markdown table" },
+    { slug: "markdown-cleaner", anchor: "Clean up pasted text before it goes in a table" },
+  ],
+  pitchLink: { anchor: "Edit tables visually inside our local-first Markdown editor", href: "/" },
   features: [
     "Spreadsheet-style grid with keyboard navigation",
     "Spreadsheet formulas (SUM, AVERAGE, IF …) with results or formulas in the output",

@@ -39,6 +39,11 @@ export interface ToolEntry {
   faq: { q: string; a: string }[];
   // Feature list for the WebApplication structured data.
   features: string[];
+  // Sibling tools to link to by what they do, shown first under "More free
+  // tools". The anchor is the link text.
+  related?: { slug: ToolEntry["slug"]; anchor: string }[];
+  // A text link next to the Open button in "Keep writing in HermesMarkdown".
+  pitchLink?: { anchor: string; href: string };
 }
 
 export const TOOLS: ToolEntry[] = [MARKDOWN_TABLE_GENERATOR, MERMAID_IN_MARKDOWN, MARKDOWN_CLEANER, TOKENIZER,

@@ -27,6 +27,19 @@ describe("tool catalog", () => {
     }
   });
 
+  it("links related tools that exist, and gives every tool a pitch link", () => {
+    for (const tool of TOOLS) {
+      expect(tool.related?.length, tool.slug).toBeGreaterThan(0);
+      for (const link of tool.related ?? []) {
+        expect(TOOLS.some((entry) => entry.slug === link.slug), `${tool.slug} -> ${link.slug}`).toBe(true);
+        expect(link.slug).not.toBe(tool.slug);
+        expect(link.anchor.length).toBeGreaterThan(10);
+      }
+      expect(tool.pitchLink?.anchor.length, tool.slug).toBeGreaterThan(10);
+      expect(tool.pitchLink?.href, tool.slug).toMatch(/^\//);
+    }
+  });
+
   it("sets the canonical URL to the tool's path", () => {
     expect(toolMetadata(toolBySlug("tokenizer")).alternates?.canonical).toBe("/tools/tokenizer");
   });
