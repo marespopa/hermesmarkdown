@@ -22,6 +22,7 @@ const EDITORS = [
     tagline: "Desktop knowledge base with plugins",
     notes: "Vault-based note-taking app with a large plugin ecosystem and graph view.",
     href: "https://obsidian.md/",
+    compare: "/alternatives/obsidian-web-editor",
   },
   {
     name: "Mark Text",
@@ -40,6 +41,7 @@ const EDITORS = [
     tagline: "Browser-based, cloud-connected",
     notes: "Online editor with import/export to Dropbox, GitHub, and Google Drive.",
     href: "https://dillinger.io/",
+    compare: "/alternatives/dillinger-alternative",
   },
 ];
 
@@ -131,6 +133,13 @@ export default function MarkdownEditorPage() {
                 <p className="mt-2 text-sm leading-relaxed text-neutral-500 dark:text-neutral-400">
                   {editor.notes}
                 </p>
+                {editor.compare && (
+                  <p className="mt-3 text-sm">
+                    <TextLink href={editor.compare} variant="inline">
+                      Compare with HermesMarkdown
+                    </TextLink>
+                  </p>
+                )}
               </div>
             ))}
           </div>

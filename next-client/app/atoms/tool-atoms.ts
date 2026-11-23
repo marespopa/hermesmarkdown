@@ -42,6 +42,15 @@ export const atom_mermaidToolSource = atomWithStorage<string | null>(
   { getOnInit: true },
 );
 
+// The Markdown to PDF tool's Markdown; null until edited, which shows a short
+// sample.
+export const atom_pdfToolMarkdown = atomWithStorage<string | null>(
+  "hermes_tool_pdf",
+  null,
+  createJSONStorage<string | null>(tabSessionStorage),
+  { getOnInit: true },
+);
+
 // The Markdown Cleaner's input (null until edited, which shows the first
 // example) and the chosen input format.
 export const atom_cleanerInput = atomWithStorage<string | null>(

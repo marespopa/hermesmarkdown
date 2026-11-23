@@ -5,7 +5,7 @@ import { HiOutlineQuestionMarkCircle } from "react-icons/hi";
 import CornerButton from "./CornerButton";
 
 export interface PageHelp {
-  /** The page's section of the documentation, e.g. `/documentation#tasks-page`. */
+  /** The page's section of the documentation, e.g. `/documentation/tasks-page`. */
   href: string;
   /** What the section explains, for the tooltip ("How to use Tasks"). */
   label: string;

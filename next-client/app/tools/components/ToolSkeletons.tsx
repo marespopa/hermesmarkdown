@@ -101,6 +101,21 @@ export function CleanerSkeleton() {
   );
 }
 
+export function PdfSkeleton() {
+  return (
+    <Status>
+      <div className="grid gap-5 md:grid-cols-2">
+        <Field height="h-[520px]" />
+        <div className="my-2 flex min-w-0 flex-col gap-1.5">
+          <Line textClass="px-0.5 text-ui-footnote" barClass="h-2.5 w-28" />
+          <div className={`${PANEL} h-[520px]`} />
+        </div>
+      </div>
+      <Actions widths={["w-36", "w-40", "w-20"]} />
+    </Status>
+  );
+}
+
 export function MermaidSkeleton() {
   return (
     <Status>

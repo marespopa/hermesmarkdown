@@ -12,7 +12,7 @@ Description: The frame of every /editor page (Tasks, Templates, Trash, All Files
 
 ## Quick Usage
 ```tsx
-<ShellPage title="Tasks" help={{ href: "/documentation#tasks-page", label: "How to use the Tasks page" }}>
+<ShellPage title="Tasks" help={{ href: "/documentation/tasks-page", label: "How to use the Tasks page" }}>
   <main className="flex-1 min-h-0 …">…</main>
 </ShellPage>
 ```

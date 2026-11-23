@@ -6,6 +6,8 @@ import ClientOnly from "../ClientOnly";
 import packageJson from "@/package.json";
 import { TOOLS, toolPath } from "@/app/tools/content/tools";
 import TextLink from "@/app/components/TextLink";
+import { ALTERNATIVES, alternativePath } from "@/app/alternatives/content";
+import { GUIDES, guideHeadline, guidePath } from "@/app/guides/content";
 
 export default function Footer() {
   return (
@@ -35,11 +37,11 @@ export default function Footer() {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-12 md:gap-24">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-12 gap-y-12 md:gap-x-16">
                <div className="flex flex-col gap-4">
                   <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold text-neutral-400">Product</h3>
                   <ul className="flex flex-col gap-2 text-ui-subhead font-medium">
-                    <li><TextLink href="/" variant="quiet">Editor</TextLink></li>
+                    <li><TextLink href="/editor" variant="quiet">Editor</TextLink></li>
                     <li><TextLink href="/documentation" variant="quiet">Documentation</TextLink></li>
                     <li><TextLink href="/markdown-editor" variant="quiet">What Is a Markdown Editor?</TextLink></li>
                     <li><TextLink href="/what-is-hermes-md" variant="quiet">HermesMarkdown vs Hermes Agent</TextLink></li>
@@ -55,6 +57,26 @@ export default function Footer() {
                         Issues
                       </TextLink>
                     </li>
+                  </ul>
+               </div>
+
+               <div className="flex flex-col gap-4">
+                  <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold text-neutral-400">Alternatives</h3>
+                  <ul className="flex flex-col gap-2 text-ui-subhead font-medium">
+                    <li><TextLink href="/alternatives" variant="quiet">All alternatives</TextLink></li>
+                    {ALTERNATIVES.map((entry) => (
+                      <li key={entry.slug}><TextLink href={alternativePath(entry)} variant="quiet">vs {entry.competitor}</TextLink></li>
+                    ))}
+                  </ul>
+               </div>
+
+               <div className="flex flex-col gap-4">
+                  <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold text-neutral-400">Guides</h3>
+                  <ul className="flex flex-col gap-2 text-ui-subhead font-medium">
+                    <li><TextLink href="/guides" variant="quiet">All guides</TextLink></li>
+                    {GUIDES.map((entry) => (
+                      <li key={entry.slug}><TextLink href={guidePath(entry)} variant="quiet">{guideHeadline(entry)}</TextLink></li>
+                    ))}
                   </ul>
                </div>
 

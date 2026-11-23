@@ -8,8 +8,8 @@ import { delimitedTextToMarkdownTable, detectDelimitedTable } from "@/app/editor
 // "From CSV or spreadsheet": paste comma- or tab-separated text (a range
 // copied from Excel, Numbers or Google Sheets is tab-separated) and convert
 // it into the grid. Text without columns leaves the grid alone.
-export default function TableCsvImport({ onConvert }: { onConvert: (table: string) => void }) {
-  const [open, setOpen] = useState(false);
+export default function TableCsvImport({ onConvert, defaultOpen = false }: { onConvert: (table: string) => void; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
 

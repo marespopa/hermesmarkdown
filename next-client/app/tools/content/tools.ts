@@ -4,6 +4,10 @@ import { MARKDOWN_TABLE_GENERATOR } from "./markdown-table-generator";
 import { MERMAID_IN_MARKDOWN } from "./mermaid-in-markdown";
 import { TOKEN_COST_CALCULATOR } from "./token-cost-calculator";
 import { TOKENIZER } from "./tokenizer";
+import { WORD_TO_MARKDOWN } from "./word-to-markdown";
+import { GOOGLE_DOCS_TO_MARKDOWN } from "./google-docs-to-markdown";
+import { CSV_TO_MARKDOWN_TABLE } from "./csv-to-markdown-table";
+import { MARKDOWN_TO_PDF } from "./markdown-to-pdf";
 
 // The free tools (/tools/*): one entry per page. The single source for the
 // hub, each page's copy and metadata, the sitemap and the footer. A tool is
@@ -12,7 +16,16 @@ import { TOKENIZER } from "./tokenizer";
 export const SITE_URL = "https://hermesmarkdown.com";
 
 export interface ToolEntry {
-  slug: "markdown-table-generator" | "mermaid-in-markdown" | "markdown-cleaner" | "tokenizer" | "token-cost-calculator";
+  slug:
+    | "markdown-table-generator"
+    | "mermaid-in-markdown"
+    | "markdown-cleaner"
+    | "tokenizer"
+    | "token-cost-calculator"
+    | "word-to-markdown"
+    | "google-docs-to-markdown"
+    | "csv-to-markdown-table"
+    | "markdown-to-pdf";
   // Short name for cards, links and the breadcrumb.
   name: string;
   // <title> and og:title.
@@ -26,9 +39,20 @@ export interface ToolEntry {
   faq: { q: string; a: string }[];
   // Feature list for the WebApplication structured data.
   features: string[];
+  // Sibling tools to link to by what they do, shown first under "More free
+  // tools". The anchor is the link text.
+  related?: { slug: ToolEntry["slug"]; anchor: string }[];
+  // A text link next to the Open button in "Keep writing in HermesMarkdown".
+  pitchLink?: { anchor: string; href: string };
 }
 
-export const TOOLS: ToolEntry[] = [MARKDOWN_TABLE_GENERATOR, MERMAID_IN_MARKDOWN, MARKDOWN_CLEANER, TOKENIZER, TOKEN_COST_CALCULATOR];
+export const TOOLS: ToolEntry[] = [MARKDOWN_TABLE_GENERATOR, MERMAID_IN_MARKDOWN, MARKDOWN_CLEANER, TOKENIZER,
+  TOKEN_COST_CALCULATOR,
+  WORD_TO_MARKDOWN,
+  GOOGLE_DOCS_TO_MARKDOWN,
+  CSV_TO_MARKDOWN_TABLE,
+  MARKDOWN_TO_PDF,
+];
 
 export function toolBySlug(slug: ToolEntry["slug"]): ToolEntry {
   const tool = TOOLS.find((entry) => entry.slug === slug);

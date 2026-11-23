@@ -7,15 +7,13 @@ import ServiceWorkerRegister from "./components/ServiceWorkerRegister";
 import InlineScript from "./components/InlineScript";
 import { Metadata, Viewport } from "next";
 import { plusJakarta, geistMono, jetbrainsMono, firaCode, duospace, quattro } from "./fonts";
+import { HOME_TITLE, SITE_DESCRIPTION } from "./utils/page-metadata";
 import { CODE_FONT_STACKS } from "./atoms/ui-atoms";
 import { DARK_THEMES, DEFAULT_DARK_THEME, DEFAULT_LIGHT_THEME, LEGACY_THEME_MAP, LIGHT_THEMES } from "./theme-palettes";
 
-const SITE_DESCRIPTION =
-  "A minimal Markdown editor that runs in your browser. Edit notes in local folders, saved to disk or to a browser vault on Safari, Firefox and mobile. Works offline. No accounts, no cloud.";
-
 export const metadata: Metadata = {
   metadataBase: new URL("https://hermesmarkdown.com"),
-  title: "HermesMarkdown — A Markdown Editor in Your Browser, Offline and Private",
+  title: HOME_TITLE,
   description: SITE_DESCRIPTION,
   applicationName: "HermesMarkdown",
   authors: [{ name: "Mares Popa", url: "https://www.marespopa.com/" }],
@@ -38,9 +36,8 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
   },
   robots: { index: true, follow: true },
-  alternates: { canonical: "/" },
   openGraph: {
-    title: "HermesMarkdown — A Markdown Editor in Your Browser, Offline and Private",
+    title: HOME_TITLE,
     description: SITE_DESCRIPTION,
     url: "https://hermesmarkdown.com",
     siteName: "HermesMarkdown",
@@ -49,7 +46,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "HermesMarkdown — A Markdown Editor in Your Browser, Offline and Private",
+    title: HOME_TITLE,
     description: SITE_DESCRIPTION,
     images: ["/assets/og-image.jpg"],
   },
@@ -66,23 +63,6 @@ export const viewport: Viewport = {
   // shrinking the layout viewport — visualViewport never reports a shrink,
   // so fixed/bottom-anchored UI and scroll-to-caret both stay covered.
   interactiveWidget: "resizes-content",
-};
-
-const SOFTWARE_APPLICATION_JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "HermesMarkdown",
-  applicationCategory: "productivity, text editor",
-  operatingSystem: "Web browser",
-  url: "https://hermesmarkdown.com",
-  description:
-    "HermesMarkdown is a minimal, local-first Markdown editor that runs entirely in your browser and works offline. It reads/writes files directly on disk, or keeps them in a browser vault where folder access isn't available (Safari, Firefox, iOS). No accounts, no cloud sync. It is unrelated to Hermes Agent's SOUL.md, memory.md, or plan-mode files.",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
-  sameAs: ["https://github.com/marespopa/hermesmarkdown"],
 };
 
 const THEME_INIT_SCRIPT = `
@@ -138,10 +118,6 @@ export default function RootLayout({
     >
       <head>
         <InlineScript html={THEME_INIT_SCRIPT} />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(SOFTWARE_APPLICATION_JSON_LD) }}
-        />
       </head>
       <body
         className="h-full min-h-screen bg-paper-pale dark:bg-paper-dark text-ink-light dark:text-ink-dark antialiased overscroll-none"

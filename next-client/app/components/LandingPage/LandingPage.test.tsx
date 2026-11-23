@@ -125,6 +125,8 @@ describe("LandingPage", () => {
     for (const { q } of LANDING_FAQ) expect(screen.getByText(q)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "what a Markdown editor is" })).toHaveAttribute("href", "/markdown-editor");
     expect(screen.getByRole("link", { name: "free Markdown tools" })).toHaveAttribute("href", "/tools");
+    expect(screen.getByRole("link", { name: "alternatives" })).toHaveAttribute("href", "/alternatives");
+    expect(screen.getByRole("link", { name: "how-to guide" })).toHaveAttribute("href", "/guides");
   });
 
   it("opens the editor from the primary action", () => {

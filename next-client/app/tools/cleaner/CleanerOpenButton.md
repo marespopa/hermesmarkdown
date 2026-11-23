@@ -20,3 +20,4 @@ Description: **Open in HermesMarkdown** for the Markdown Cleaner. Hands the clea
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `variant` | `"primary" \| "outlined"` | `"primary"` | Button style |
+| `blankStart` | `boolean` | `false` | The tool started empty (a converter page), so no example text stands in for a never-edited input |

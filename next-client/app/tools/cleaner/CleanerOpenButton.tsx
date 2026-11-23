@@ -13,8 +13,15 @@ export const CLEANER_HANDOFF_TITLE = "Clean Markdown";
 // block, both reading the same atoms. The conversion runs on click (it needs
 // the DOM, and the pitch block also renders on the server); over-long
 // output gets the handoff's "too large" toast.
-export default function CleanerOpenButton({ variant = "primary" }: { variant?: "primary" | "outlined" }) {
-  const input = useAtomValue(atom_cleanerInput) ?? CLEANER_EXAMPLES[0].text;
+export default function CleanerOpenButton({
+  variant = "primary",
+  blankStart = false,
+}: {
+  variant?: "primary" | "outlined";
+  // The tool started empty (a converter page), so no example stands in.
+  blankStart?: boolean;
+}) {
+  const input = useAtomValue(atom_cleanerInput) ?? (blankStart ? "" : CLEANER_EXAMPLES[0].text);
   const format = useAtomValue(atom_cleanerFormat);
   return (
     <OpenInWorkspaceButton

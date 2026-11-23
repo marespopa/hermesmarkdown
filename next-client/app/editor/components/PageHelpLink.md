@@ -23,7 +23,7 @@ Description: The small (?) at the top right of every /editor page except the edi
 ```tsx
 import PageHelpLink from "@/app/editor/components/PageHelpLink";
 
-<PageHelpLink href="/documentation#tasks-page" label="How to use the Tasks page" />
+<PageHelpLink href="/documentation/tasks-page" label="How to use the Tasks page" />
 ```
 
 ## Props Overview

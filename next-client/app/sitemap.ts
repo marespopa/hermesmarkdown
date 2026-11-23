@@ -1,4 +1,7 @@
 import { MetadataRoute } from "next";
+import { ALTERNATIVES, alternativePath } from "./alternatives/content";
+import { GUIDES, guidePath } from "./guides/content";
+import { allArticles, articlePath } from "./documentation/content/lookup";
 import { TOOLS, toolPath } from "./tools/content/tools";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -60,6 +63,25 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: currentDate,
       changeFrequency: "monthly" as const,
       priority: 0.8,
+    })),
+    // The comparison and how-to pages: each hub, then every entry.
+    ...[
+      { path: "/alternatives", priority: 0.7 },
+      ...ALTERNATIVES.map((entry) => ({ path: alternativePath(entry), priority: 0.7 })),
+      { path: "/guides", priority: 0.7 },
+      ...GUIDES.map((entry) => ({ path: guidePath(entry), priority: 0.7 })),
+    ].map(({ path, priority }) => ({
+      url: `${baseUrl}${path}`,
+      lastModified: currentDate,
+      changeFrequency: "monthly" as const,
+      priority,
+    })),
+    // One entry per documentation article.
+    ...allArticles().map(({ item }) => ({
+      url: `${baseUrl}${articlePath(item.id)}`,
+      lastModified: currentDate,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
     })),
   ];
 }

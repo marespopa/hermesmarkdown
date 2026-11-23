@@ -66,6 +66,8 @@ export function ShortcutGroups({ groups }: { groups: { context: string; rows: { 
 export type Subsection = {
   id: string;
   title: string;
+  /** Page title of the article's own URL, when it should differ from `title`. */
+  seoTitle?: string;
   lead: string;
   keywords?: string;
   body: ReactNode;
@@ -78,3 +80,13 @@ export type Group = {
   summary?: string;
   items: Subsection[];
 };
+
+// Article body typography, applied to whatever the content modules render.
+export const ARTICLE_BODY = [
+  "space-y-5 text-[17px] leading-[1.6] text-fg",
+  "[&_p]:break-words",
+  "[&_h4]:text-[19px] [&_h4]:font-semibold [&_h4]:tracking-tight [&_h4]:text-fg",
+  "[&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-2 [&_li]:break-words [&_li]:pl-1",
+  "[&_strong]:font-semibold",
+  "[&_:not(pre)>code]:font-mono [&_:not(pre)>code]:text-[0.88em] [&_:not(pre)>code]:bg-chrome [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:rounded-md",
+].join(" ");

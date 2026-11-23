@@ -91,6 +91,15 @@ export default function WhatIsHermesMd() {
                 you open, whether that&apos;s an Obsidian vault, a docs folder, or a plain notes directory.
               </p>
               <div className="p-5 border border-black/5 dark:border-white/5 rounded-xl bg-neutral-50/50 dark:bg-neutral-900/30 text-sm leading-relaxed">
+                <span className="block text-ui-footnote uppercase tracking-[0.2em] font-bold mb-2 opacity-60">Tokens</span>
+                Keeping agent files such as SOUL.md or memory.md within a context budget? Count how a model
+                splits them with the{" "}
+                <Link href="/tools/tokenizer" className="text-sage font-semibold hover:underline">AI Tokenizer</Link>{" "}
+                and price them with the{" "}
+                <Link href="/tools/token-cost-calculator" className="text-sage font-semibold hover:underline">Token Cost Calculator</Link>.
+                Both run in your browser and upload nothing.
+              </div>
+              <div className="p-5 border border-black/5 dark:border-white/5 rounded-xl bg-neutral-50/50 dark:bg-neutral-900/30 text-sm leading-relaxed">
                 <span className="block text-ui-footnote uppercase tracking-[0.2em] font-bold mb-2 opacity-60">File</span>
                 Hermes Agent (NousResearch) and HermesMarkdown are unrelated projects that happen to share
                 the Hermes name. If you landed here looking for SOUL.md, memory.md, or plan-mode setup, this
@@ -123,7 +132,7 @@ export default function WhatIsHermesMd() {
               </ul>
               <p>
                 See{" "}
-                <Link href="/documentation#frontmatter-conventions" className="text-sage font-semibold hover:underline">
+                <Link href="/documentation/frontmatter-conventions" className="text-sage font-semibold hover:underline">
                   Frontmatter conventions
                 </Link>{" "}
                 in the documentation for details.

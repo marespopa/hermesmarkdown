@@ -14,3 +14,4 @@ Description: The table generator's **From CSV or spreadsheet** panel. Closed, it
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | onConvert | `(table: string) => void` | | Receives the Markdown table |
+| defaultOpen | `boolean` | `false` | Starts with the import form open |

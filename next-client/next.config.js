@@ -4,6 +4,9 @@ const isDev = process.env.NODE_ENV !== "production";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Matches the canonical URLs: /x/ redirects (308) to /x.
+  trailingSlash: false,
+
   // Versions the service worker's cache (see public/sw.js).
   env: {
     NEXT_PUBLIC_APP_VERSION: version,

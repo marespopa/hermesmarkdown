@@ -22,7 +22,10 @@ const MUTED = "text-fg-muted leading-relaxed";
 // tools. Everything but the tool is server-rendered, and the FAQ text is the
 // same as the FAQPage structured data.
 export default function ToolShell({ tool, openInWorkspace, children }: Props) {
-  const others = TOOLS.filter((entry) => entry.slug !== tool.slug);
+  // Related tools first, with their descriptive anchors; then the rest by name.
+  const related = (tool.related ?? []).filter((link) => link.slug !== tool.slug);
+  const relatedSlugs = new Set(related.map((link) => link.slug));
+  const others = TOOLS.filter((entry) => entry.slug !== tool.slug && !relatedSlugs.has(entry.slug));
 
   return (
     <main className="selection:bg-sage/30 overflow-x-hidden font-sans">
@@ -62,7 +65,14 @@ export default function ToolShell({ tool, openInWorkspace, children }: Props) {
             A local-first Markdown editor that runs in your browser: notes stay on your device, with
             tables, diagrams and AI when you want it. No account needed.
           </p>
-          {openInWorkspace}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            {openInWorkspace}
+            {tool.pitchLink && (
+              <Link href={tool.pitchLink.href} className="font-semibold hover:text-fg transition-colors">
+                {tool.pitchLink.anchor}
+              </Link>
+            )}
+          </div>
         </section>
 
         <section className={SECTION}>
@@ -77,10 +87,15 @@ export default function ToolShell({ tool, openInWorkspace, children }: Props) {
           </div>
         </section>
 
-        {others.length > 0 && (
+        {(related.length > 0 || others.length > 0) && (
           <section className={SECTION}>
             <h2 className={H2}>More free tools</h2>
             <ul className="flex flex-wrap gap-x-6 gap-y-2">
+              {related.map((link) => (
+                <li key={link.slug}>
+                  <Link href={`/tools/${link.slug}`} className="font-semibold hover:text-fg transition-colors">{link.anchor}</Link>
+                </li>
+              ))}
               {others.map((entry) => (
                 <li key={entry.slug}>
                   <Link href={toolPath(entry)} className="font-semibold hover:text-fg transition-colors">{entry.name}</Link>

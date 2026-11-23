@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 
 describe("PageHelpLink", () => {
   it("links to the page's documentation, named by what it explains", () => {
-    render(<PageHelpLink href="/documentation#tasks-page" label="How to use the Tasks page" />);
-    expect(screen.getByRole("link", { name: "Help: How to use the Tasks page" })).toHaveAttribute("href", "/documentation#tasks-page");
+    render(<PageHelpLink href="/documentation/tasks-page" label="How to use the Tasks page" />);
+    expect(screen.getByRole("link", { name: "Help: How to use the Tasks page" })).toHaveAttribute("href", "/documentation/tasks-page");
   });
 });

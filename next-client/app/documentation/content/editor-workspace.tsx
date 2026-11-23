@@ -340,7 +340,7 @@ tags: []
         </p>
         <p>
           Combine this with the per-context shortcuts in{" "}
-          <TextLink href="#keyboard-shortcuts">Keyboard shortcuts</TextLink>{" "}
+          <TextLink href="/documentation/keyboard-shortcuts">Keyboard shortcuts</TextLink>{" "}
           and the slash command menu (<code>/</code>) for inserting content, and the editor is fully
           operable without ever reaching for the mouse.
         </p>

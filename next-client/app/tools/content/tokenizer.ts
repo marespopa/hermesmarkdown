@@ -48,6 +48,11 @@ export const TOKENIZER: ToolEntry = {
       a: "Yes. Open in HermesMarkdown carries the text into the editor as a draft, where you can keep writing and save it as a Markdown note.",
     },
   ],
+  related: [
+    { slug: "token-cost-calculator", anchor: "Estimate what those tokens cost across AI models" },
+    { slug: "markdown-cleaner", anchor: "Strip stray markup from a prompt before you count it" },
+  ],
+  pitchLink: { anchor: "Use an AI companion in your notes, with your own key or a local model", href: "/guides/local-llm-ollama-markdown-editor" },
   features: [
     "Exact token counts with OpenAI's o200k_base and cl100k_base tokenizers",
     "Highlighted token boundaries and token IDs",

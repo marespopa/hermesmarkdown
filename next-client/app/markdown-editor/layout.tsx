@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { serializeJsonLd } from "../utils/json-ld";
 
 export const metadata: Metadata = {
   title: "What Is a Markdown Editor? Popular Tools & Key Features — HermesMarkdown",
@@ -71,7 +72,7 @@ export default function MarkdownEditorLayout({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(FAQ_JSON_LD) }}
       />
       {children}
     </>

@@ -22,4 +22,5 @@ Actions: `CleanerOpenButton`, **Copy Markdown** (`showCopyToast`), **Clear**. Co
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| (none) | | | |
+| `initialMode` | `CleanerFormat` | none | Sets the input format once on mount and starts with an empty box instead of the first example (the Word and Google Docs converter pages) |
+| `hint` | `string` | none | A line above the tool saying where the text comes from |

@@ -77,7 +77,7 @@ export const editorWritingItems: Subsection[] = [
         />
         <p>
           For running totals that keep their working, use the{" "}
-          <TextLink href="#inline-calculator">inline calculator</TextLink> instead.
+          <TextLink href="/documentation/inline-calculator">inline calculator</TextLink> instead.
         </p>
         <Callout type="tip">
           Click actions work without touching raw syntax — CTRL+Click on a task&apos;s box moves it on a status,
@@ -300,7 +300,7 @@ export const editorWritingItems: Subsection[] = [
         </Callout>
         <p>
           AI features know this syntax too. See{" "}
-          <TextLink href="#ai-table-formulas">AI &amp; table formulas</TextLink>.
+          <TextLink href="/documentation/ai-table-formulas">AI &amp; table formulas</TextLink>.
         </p>
       </>
     ),
@@ -388,7 +388,7 @@ $40 times 3 =                                         $120
           <strong>Format Code</strong> (<code>SHIFT+ALT+F</code>, or the palette) tidies the code
           block under the caret with Prettier: JavaScript, TypeScript, JSON, CSS, SCSS, Less, HTML,
           Vue, YAML and GraphQL. It follows the nearest Prettier config in the vault (see{" "}
-          <TextLink href="#code-files">Code files</TextLink>), runs only when you ask, and is one undo
+          <TextLink href="/documentation/code-files">Code files</TextLink>), runs only when you ask, and is one undo
           step.
         </p>
         <p>
@@ -506,7 +506,7 @@ graph TD
         <p>
           <code>CTRL+Click</code> a wikilink to open the file. A link to
           a note that doesn&apos;t exist yet creates it, after you confirm or pick a template; see{" "}
-          <TextLink href="#templates">Templates</TextLink>.
+          <TextLink href="/documentation/templates">Templates</TextLink>.
         </p>
         <p>
           Renaming or moving a file, or renaming a folder, updates the wikilinks that would
