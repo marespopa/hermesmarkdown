@@ -18,4 +18,4 @@ Description: The Markdown table generator at `/tools/markdown-table-generator`. 
 ## Props Overview
 | Prop | Type | Default | Description |
 |---|---|---|---|
-| (none) | | | |
+| `csvImportOpen` | `boolean` | `false` | Starts with the CSV import open (the CSV to Markdown Table page) |

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { ALTERNATIVES } from "./alternatives/content";
+import { GUIDES } from "./guides/content";
 import { allArticles } from "./documentation/content/lookup";
 import sitemap from "./sitemap";
 
@@ -21,6 +23,17 @@ describe("sitemap", () => {
     for (const { item } of allArticles()) {
       expect(urls.filter((url) => url === `https://hermesmarkdown.com/documentation/${item.id}`)).toHaveLength(1);
     }
+  });
+
+  it("lists both hubs and every alternative and guide once", () => {
+    const urls = sitemap().map((entry) => entry.url);
+    const expected = [
+      "https://hermesmarkdown.com/alternatives",
+      "https://hermesmarkdown.com/guides",
+      ...ALTERNATIVES.map((entry) => `https://hermesmarkdown.com/alternatives/${entry.slug}`),
+      ...GUIDES.map((entry) => `https://hermesmarkdown.com/guides/${entry.slug}`),
+    ];
+    for (const url of expected) expect(urls.filter((candidate) => candidate === url)).toHaveLength(1);
   });
 
   it("has no trailing slash on any path", () => {

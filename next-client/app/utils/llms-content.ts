@@ -1,3 +1,5 @@
+import { ALTERNATIVES, alternativePath } from "@/app/alternatives/content";
+import { GUIDES, guideHeadline, guidePath } from "@/app/guides/content";
 import { GROUPS } from "@/app/documentation/content";
 import { SITE_URL, TOOLS, toolPath } from "@/app/tools/content/tools";
 
@@ -23,6 +25,10 @@ function header(): string[] {
 export function buildLlmsTxt(): string {
   const lines = [...header(), "## Free tools", ""];
   for (const tool of TOOLS) lines.push(`- [${tool.name}](${SITE_URL}${toolPath(tool)}): ${tool.lead}`);
+  lines.push("", "## Alternatives", "");
+  for (const entry of ALTERNATIVES) lines.push(`- [HermesMarkdown vs ${entry.competitor}](${SITE_URL}${alternativePath(entry)}): ${entry.lead}`);
+  lines.push("", "## Guides", "");
+  for (const entry of GUIDES) lines.push(`- [${guideHeadline(entry)}](${SITE_URL}${guidePath(entry)}): ${entry.lead}`);
   lines.push("", "## Documentation", "");
   for (const group of GROUPS) {
     lines.push(`### ${group.label}`, "");
@@ -39,6 +45,15 @@ export function buildLlmsFullTxt(): string {
     lines.push("Features:", ...tool.features.map((feature) => `- ${feature}`), "");
     lines.push("FAQ:", "");
     for (const { q, a } of tool.faq) lines.push(`Q: ${q}`, `A: ${a}`, "");
+  }
+  lines.push("## Alternatives", "");
+  for (const entry of ALTERNATIVES) {
+    lines.push(`### HermesMarkdown vs ${entry.competitor}`, "", `URL: ${SITE_URL}${alternativePath(entry)}`, "", entry.description, "", entry.lead, "");
+    lines.push("Comparison:", ...entry.comparison.map((row) => `- ${row.feature}: HermesMarkdown, ${row.hermes}. ${entry.competitor}, ${row.them}.`), "");
+  }
+  lines.push("## Guides", "");
+  for (const entry of GUIDES) {
+    lines.push(`### ${guideHeadline(entry)}`, "", `URL: ${SITE_URL}${guidePath(entry)}`, "", entry.description, "", entry.lead, "");
   }
   lines.push("## Documentation", "");
   for (const group of GROUPS) {
