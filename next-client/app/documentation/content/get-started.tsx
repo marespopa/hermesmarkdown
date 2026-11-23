@@ -18,7 +18,7 @@ export const getStartedGroup: Group = {
             Every modern browser can run HermesMarkdown. What differs is where a vault can live:
             opening a folder on disk needs the File System Access API, which only Chromium-based
             browsers implement. Everywhere else, you use a{" "}
-            <TextLink href="#browser-vaults">browser vault</TextLink>.
+            <TextLink href="/documentation/browser-vaults">browser vault</TextLink>.
           </p>
           <KV
             rows={[
@@ -77,7 +77,7 @@ export const getStartedGroup: Group = {
           </Callout>
           <p>
             Need the same files on several devices? Use a folder on disk that a sync service or{" "}
-            <TextLink href="#git">git</TextLink> keeps in step.
+            <TextLink href="/documentation/git">git</TextLink> keeps in step.
           </p>
         </>
       ),
@@ -101,7 +101,7 @@ export const getStartedGroup: Group = {
           </p>
           <p>
             Opening folders on disk needs a Chromium-based browser. In Safari and Firefox, choose{" "}
-            <TextLink href="#browser-vaults">a browser vault</TextLink>{" "}
+            <TextLink href="/documentation/browser-vaults">a browser vault</TextLink>{" "}
             instead.
           </p>
           <Callout type="warning">
@@ -154,7 +154,7 @@ export const getStartedGroup: Group = {
             at the bottom asks where your files live. <strong>Choose Folder…</strong> picks a folder (you can make a new one in the
             picker) and saves the note there; in browsers that can&apos;t open folders it reads{" "}
             <strong>Keep Files in This Browser</strong> and creates a{" "}
-            <TextLink href="#browser-vaults">browser vault</TextLink>.{" "}
+            <TextLink href="/documentation/browser-vaults">browser vault</TextLink>.{" "}
             <strong>Not Now</strong> shrinks it to a small &ldquo;Not saved to a folder&rdquo; mark;
             until you choose, the file is kept only in this browser. <code>CTRL/CMD+S</code> asks the
             same question.
@@ -188,7 +188,7 @@ export const getStartedGroup: Group = {
           <p>
             No template or metadata is added. Want frontmatter? Type <code>/frontmatter</code> to
             insert a starter block. See{" "}
-            <TextLink href="#frontmatter">Frontmatter</TextLink>.
+            <TextLink href="/documentation/frontmatter">Frontmatter</TextLink>.
             Autosave can be changed under{" "}
             Settings → Files → Autosave: <strong>After Delay</strong> (the default, two seconds after
             you stop typing) or{" "}
@@ -329,7 +329,7 @@ export const getStartedGroup: Group = {
           <p>
             To be alone with the text, close the sidebar (<code>CTRL/CMD+\</code>); it stays how you leave
             it. See{" "}
-            <TextLink href="#focus">Focus</TextLink> to dim everything but the paragraph you&apos;re writing.
+            <TextLink href="/documentation/focus">Focus</TextLink> to dim everything but the paragraph you&apos;re writing.
           </p>
         </>
       ),

@@ -30,7 +30,7 @@ export const aiFeaturesGroup: Group = {
             Nothing is sent until you use an AI feature. The key is stored in your browser. Each AI
             request passes through HermesMarkdown&apos;s servers on its way to Anthropic or Google — the
             key is never logged or saved there. See{" "}
-            <TextLink href="#privacy-model">Privacy model</TextLink>{" "}
+            <TextLink href="/documentation/privacy-model">Privacy model</TextLink>{" "}
             for the full picture.
           </p>
           <Callout type="note">
@@ -116,7 +116,7 @@ export const aiFeaturesGroup: Group = {
         <>
           <p>
             Ask for a template, for example &ldquo;make me an RFC template that asks for an
-            owner&rdquo;. The companion knows the <TextLink href="#templates">template tokens</TextLink> and
+            owner&rdquo;. The companion knows the <TextLink href="/documentation/templates">template tokens</TextLink> and
             proposes the template, saved as <code>_templates/RFC.md</code> for example once you apply
             it. It shows up in <code>/template</code> straight away.
           </p>

@@ -19,7 +19,7 @@ import { editorFileHref } from "../utils/editor-url";
 import { usePendingActions } from "./use-pending-actions";
 
 // How to make your own template, in the documentation.
-const HELP = { href: "/documentation#templates-page", label: "How to make your own template" };
+const HELP = { href: "/documentation/templates-page", label: "How to make your own template" };
 
 // Templates: the ones you make, to start new notes and folders from. New
 // template (the template wizard) leads; your templates follow, grouped by

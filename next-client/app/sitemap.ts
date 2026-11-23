@@ -1,4 +1,5 @@
 import { MetadataRoute } from "next";
+import { allArticles, articlePath } from "./documentation/content/lookup";
 import { TOOLS, toolPath } from "./tools/content/tools";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -60,6 +61,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: currentDate,
       changeFrequency: "monthly" as const,
       priority: 0.8,
+    })),
+    // One entry per documentation article.
+    ...allArticles().map(({ item }) => ({
+      url: `${baseUrl}${articlePath(item.id)}`,
+      lastModified: currentDate,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
     })),
   ];
 }

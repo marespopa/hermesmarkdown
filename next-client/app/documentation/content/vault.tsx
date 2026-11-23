@@ -38,7 +38,7 @@ export const vaultGroup: Group = {
           />
           <p>
             A{" "}
-            <TextLink href="#browser-vaults">browser vault</TextLink>{" "}
+            <TextLink href="/documentation/browser-vaults">browser vault</TextLink>{" "}
             holds the same plain files, just inside the browser&apos;s private storage instead of a
             folder you can see. Nothing is locked in: <strong>Export vault as zip</strong> hands you
             every file, and <strong>Import files into vault…</strong> brings a zip or folder into any
@@ -65,7 +65,7 @@ export const vaultGroup: Group = {
           <p>
             Files shows every file by its full name, extension included. Besides your files it lists
             the vault&apos;s other text files (code, JSON, YAML, CSV, plain text…); see{" "}
-            <TextLink href="#code-files">Code files</TextLink>.
+            <TextLink href="/documentation/code-files">Code files</TextLink>.
             A file&apos;s <code>type:</code> in its frontmatter (or a <code>#type/…</code> tag) picks its
             icon: project, task, meeting or bookmark.
           </p>
@@ -224,7 +224,7 @@ export const vaultGroup: Group = {
           <h4 className="text-[19px] font-semibold tracking-tight !mb-2 !mt-6">private</h4>
           <p>
             <code>private: true</code>, or a <code>private</code> tag, marks a file as{" "}
-            <TextLink href="#private-notes">private</TextLink>.
+            <TextLink href="/documentation/private-notes">private</TextLink>.
           </p>
         </>
       ),

@@ -27,7 +27,7 @@ export const settingsGroup: Group = {
             <strong>Light Theme: …</strong> and <strong>Dark Theme: …</strong>. The
             editor font, code font (for code blocks and inline code), text size and Full Width (off by default: lines stop at a reading width) are set under Settings →
             Appearance → Typography and apply across the editor. Vim mode and{" "}
-            <TextLink href="#focus">Focus</TextLink> are under Settings →
+            <TextLink href="/documentation/focus">Focus</TextLink> are under Settings →
             Editor. Word wrap, line numbers and invisibles (¶ on empty lines, dots for spaces) are
             command palette toggles: <strong>Enable/Disable Word Wrap</strong>,{" "}
             <strong>Enable/Disable Line Numbers</strong>, <strong>Enable/Disable Invisibles</strong>.
@@ -64,8 +64,8 @@ export const settingsGroup: Group = {
           <p>
             Templates are in <code>_templates/</code> at the root of your vault, made the
             first time you need it: every <code>.md</code> file directly in it, or one folder down
-            (a pack, see the <TextLink href="#templates-page">Templates page</TextLink>), is a{" "}
-            <TextLink href="#templates">template</TextLink>.
+            (a pack, see the <TextLink href="/documentation/templates-page">Templates page</TextLink>), is a{" "}
+            <TextLink href="/documentation/templates">template</TextLink>.
           </p>
         </>
       ),
@@ -79,7 +79,7 @@ export const settingsGroup: Group = {
         <>
           <p>
             Every shortcut in HermesMarkdown is built in and not user-configurable. See{" "}
-            <TextLink href="#keyboard-shortcuts">Keyboard shortcuts</TextLink>{" "}
+            <TextLink href="/documentation/keyboard-shortcuts">Keyboard shortcuts</TextLink>{" "}
             for the full reference grouped by context.
           </p>
         </>
@@ -133,7 +133,7 @@ export const mobileGroup: Group = {
             to the home screen protects it, and <strong>Export vault as zip</strong> keeps a backup
             in Files. To import on iOS, pick a <code>.zip</code> or individual files — folder picking
             isn&apos;t available there. See{" "}
-            <TextLink href="#browser-vaults">Browser vaults</TextLink>.
+            <TextLink href="/documentation/browser-vaults">Browser vaults</TextLink>.
           </Callout>
         </>
       ),

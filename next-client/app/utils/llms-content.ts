@@ -14,7 +14,7 @@ const BROWSER_SUPPORT = [
   "| Safari, Firefox, mobile | A browser vault, stored in the browser (IndexedDB) |",
 ].join("\n");
 
-const docUrl = (id: string) => `${SITE_URL}/documentation#${id}`;
+const docUrl = (id: string) => `${SITE_URL}/documentation/${id}`;
 
 function header(): string[] {
   return ["# HermesMarkdown", "", `> ${SUMMARY}`, "", "## Browser support", "", BROWSER_SUPPORT, ""];

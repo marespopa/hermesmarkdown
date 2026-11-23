@@ -34,7 +34,7 @@ export default function DocsSidebar({ groups, activeId, onNavigate }: DocsSideba
               return (
                 <li key={item.id}>
                   <TextLink
-                    href={`#${item.id}`}
+                    href={`/documentation/${item.id}`}
                     variant="unstyled"
                     onClick={onNavigate}
                     aria-current={active ? "location" : undefined}

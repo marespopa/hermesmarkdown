@@ -123,7 +123,7 @@ export default function WhatIsHermesMd() {
               </ul>
               <p>
                 See{" "}
-                <Link href="/documentation#frontmatter-conventions" className="text-sage font-semibold hover:underline">
+                <Link href="/documentation/frontmatter-conventions" className="text-sage font-semibold hover:underline">
                   Frontmatter conventions
                 </Link>{" "}
                 in the documentation for details.

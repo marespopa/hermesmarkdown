@@ -185,7 +185,7 @@ describe("TemplatesPage", () => {
 
   it("links to the documentation on making your own template", () => {
     renderPage();
-    expect(screen.getByRole("link", { name: "Help: How to make your own template" })).toHaveAttribute("href", "/documentation#templates-page");
+    expect(screen.getByRole("link", { name: "Help: How to make your own template" })).toHaveAttribute("href", "/documentation/templates-page");
   });
 
   it("asks for a vault first, and reads the vault when opened on this page", () => {

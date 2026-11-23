@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { allArticles } from "./documentation/content/lookup";
 import sitemap from "./sitemap";
 
 describe("sitemap", () => {
@@ -10,6 +11,13 @@ describe("sitemap", () => {
     expect(urls).toContain("https://hermesmarkdown.com/tools/mermaid-in-markdown");
     expect(urls).toContain("https://hermesmarkdown.com/tools/markdown-cleaner");
     expect(new Set(urls).size).toBe(urls.length);
+  });
+
+  it("lists every documentation article once", () => {
+    const urls = sitemap().map((entry) => entry.url);
+    for (const { item } of allArticles()) {
+      expect(urls.filter((url) => url === `https://hermesmarkdown.com/documentation/${item.id}`)).toHaveLength(1);
+    }
   });
 
   it("has no trailing slash on any path", () => {

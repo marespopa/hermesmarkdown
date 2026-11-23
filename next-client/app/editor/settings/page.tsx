@@ -71,7 +71,7 @@ const SettingsPage = () => {
   };
 
   return (
-    <ShellPage title="Settings" help={{ href: "/documentation#settings", label: "What the settings do" }}>
+    <ShellPage title="Settings" help={{ href: "/documentation/appearance", label: "What the settings do" }}>
     <div className="flex min-h-0 flex-1 flex-col">
       {/* The sections as a row of tabs at every width, in line with the
           content column below; it scrolls sideways on a narrow screen. */}

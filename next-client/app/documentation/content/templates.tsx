@@ -18,7 +18,7 @@ export const templatesItems: Subsection[] = [
           Run <strong>New template…</strong> from the command palette, or press{" "}
           <strong>New template</strong> on the Templates page. Pick a file or a folder template, give it
           a name, and start blank or from an example; it opens so you can add what you need. Nothing is
-          overwritten. See the <TextLink href="#templates-page">Templates page</TextLink>.
+          overwritten. See the <TextLink href="/documentation/templates-page">Templates page</TextLink>.
         </p>
         <p>
           Or turn a file you already like into one: run <strong>Save as template…</strong> from the
@@ -171,7 +171,7 @@ export const templatesItems: Subsection[] = [
           Use these in headings and links, for example in weekly, monthly or yearly files. Frontmatter
           lines (author, status, …) are copied into each new file. Templates stay out of the Tasks
           page. The AI companion can write templates for you; see{" "}
-          <TextLink href="#ai-templates">AI templates</TextLink>.
+          <TextLink href="/documentation/ai-templates">AI templates</TextLink>.
         </p>
       </>
     ),

@@ -12,7 +12,7 @@ describe("llms.txt", () => {
     const text = await response.text();
     for (const tool of TOOLS) expect(text).toContain(`${SITE_URL}${toolPath(tool)}`);
     for (const group of GROUPS) {
-      for (const item of group.items) expect(text).toContain(`${SITE_URL}/documentation#${item.id}`);
+      for (const item of group.items) expect(text).toContain(`${SITE_URL}/documentation/${item.id}`);
     }
   });
 
