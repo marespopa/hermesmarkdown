@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { serializeJsonLd } from "../utils/json-ld";
 
 export const metadata: Metadata = {
   title: "Is HermesMarkdown the same as Hermes Agent? — HermesMarkdown",
@@ -79,7 +80,7 @@ export default function WhatIsHermesMdLayout({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(FAQ_JSON_LD) }}
       />
       {children}
     </>

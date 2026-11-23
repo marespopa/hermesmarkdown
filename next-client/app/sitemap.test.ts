@@ -11,4 +11,9 @@ describe("sitemap", () => {
     expect(urls).toContain("https://hermesmarkdown.com/tools/markdown-cleaner");
     expect(new Set(urls).size).toBe(urls.length);
   });
+
+  it("has no trailing slash on any path", () => {
+    const urls = sitemap().map((entry) => entry.url);
+    for (const url of urls) expect(url.endsWith("/")).toBe(false);
+  });
 });

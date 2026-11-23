@@ -39,7 +39,7 @@ export default function Footer() {
                <div className="flex flex-col gap-4">
                   <h3 className="text-ui-footnote uppercase tracking-[0.3em] font-bold text-neutral-400">Product</h3>
                   <ul className="flex flex-col gap-2 text-ui-subhead font-medium">
-                    <li><TextLink href="/" variant="quiet">Editor</TextLink></li>
+                    <li><TextLink href="/editor" variant="quiet">Editor</TextLink></li>
                     <li><TextLink href="/documentation" variant="quiet">Documentation</TextLink></li>
                     <li><TextLink href="/markdown-editor" variant="quiet">What Is a Markdown Editor?</TextLink></li>
                     <li><TextLink href="/what-is-hermes-md" variant="quiet">HermesMarkdown vs Hermes Agent</TextLink></li>

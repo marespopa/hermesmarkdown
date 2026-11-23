@@ -28,8 +28,10 @@ const importShortcutsOverlay = () => import("./KeyboardShortcutsOverlay/Keyboard
 const CommandPalette = dynamic(importCommandPalette, { ssr: false });
 const KeyboardShortcutsOverlay = dynamic(importShortcutsOverlay, { ssr: false });
 
-function usePreloadOnIdle() {
+function usePreloadOnIdle(enabled: boolean) {
   useEffect(() => {
+    // Marketing routes load the chunks when first opened, not up front.
+    if (!enabled) return;
     const preload = () => {
       void importCommandPalette();
       void importShortcutsOverlay();
@@ -40,7 +42,7 @@ function usePreloadOnIdle() {
     }
     const id = window.setTimeout(preload, 2000);
     return () => window.clearTimeout(id);
-  }, []);
+  }, [enabled]);
 }
 
 // True from the first time `open` is set, so the closing animation still plays.
@@ -53,7 +55,7 @@ function useOpenedOnce(open: boolean) {
 }
 
 function GlobalOverlays({ eager }: { eager: boolean }) {
-  usePreloadOnIdle();
+  usePreloadOnIdle(eager);
   const { isOpen } = useCommandPalette();
   const shortcutsOpen = useAtomValue(atom_keyboardShortcutsOpen);
   const paletteOpened = useOpenedOnce(isOpen);
