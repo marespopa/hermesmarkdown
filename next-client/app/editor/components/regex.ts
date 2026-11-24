@@ -15,8 +15,8 @@ export const REGEX_HASHTAG = /(^|\s)(#(?=[^#\s/]*[a-zA-Z])(?:[\w-]+(?:\/[\w-]+)*
 // (so `a@b.com` is no mention), and `@due(…)`-style annotations are left out.
 export const REGEX_MENTION = /(^|[\s([{"'>,;:!?])(@[\w-]+)(?![\w-]*\()/g;
 export const REGEX_LINK = /(\[)([^\]]+)(\]\()([^)]+)(\))/g;
-export const REGEX_BOLD = /(\*\*|__)(.*?)\1/g;
-export const REGEX_ITALIC = /(\*|_)(.*?)\1/g;
+export const REGEX_BOLD = /(\*\*|(?<![\w_])__)(?=\S)(.*?)\1(?:(?<=\*)|(?![\w]))/g;
+export const REGEX_ITALIC = /(\*|(?<![\w_])_)(?=[^\s*_])(.*?)\1(?:(?<=\*)|(?![\w_]))/g;
 export const REGEX_STRIKETHROUGH = /(~~)(.*?)(~~)/g;
 // A URL link, with an optional "title"; the URL may hold backslash-escaped
 // characters (pasted HTML arrives as `[text](https://x.y/a_\(b\) "Title")`)
