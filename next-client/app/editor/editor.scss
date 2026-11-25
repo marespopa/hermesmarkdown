@@ -329,6 +329,10 @@ html.dark .app-sheet .editor-sheet {
   transition: opacity 150ms ease;
 }
 
+.cm-rendered-block-view {
+  right: 3.4em;
+}
+
 .cm-rendered-block-frame:hover .cm-rendered-block-edit,
 .cm-rendered-block-edit:focus-visible {
   opacity: 1;

@@ -12,7 +12,7 @@ import {
   type RenderedBlockTheme,
   type RenderResult,
 } from "../utils/rendered-block-cache";
-import { openRenderedBlockSource } from "../utils/open-helper-dialogs";
+import { openMermaidDialog, openRenderedBlockSource } from "../utils/open-helper-dialogs";
 
 // Mermaid fences and display math (`$$ … $$`, ```math fences) are shown as
 // their rendered output, like tables are shown as a grid. The source stays
@@ -163,6 +163,20 @@ class RenderedBlockWidget extends WidgetType {
     edit.textContent = "Edit";
     edit.setAttribute("aria-label", kind === "mermaid" ? "Edit Mermaid source" : "Edit LaTeX source");
     frame.appendChild(edit);
+
+    if (kind === "mermaid") {
+      const viewButton = document.createElement("button");
+      viewButton.type = "button";
+      viewButton.className = "cm-rendered-block-edit cm-rendered-block-view";
+      viewButton.textContent = "View";
+      viewButton.setAttribute("aria-label", "View diagram full size");
+      viewButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openMermaidDialog(source);
+      });
+      frame.appendChild(viewButton);
+    }
 
     const open = (event: Event) => {
       event.preventDefault();

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { HiMinus, HiOutlineArrowsExpand, HiOutlineDownload, HiPlus } from "react-icons/hi";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { HiMinus, HiOutlineArrowsExpand, HiOutlineDownload, HiOutlineDesktopComputer, HiPlus } from "react-icons/hi";
 import Button from "@/app/components/Button";
 
 type DiagramSize = {
@@ -40,7 +40,9 @@ interface Props {
   emptyText?: string;
 }
 
-// A rendered Mermaid diagram with zoom, fit, drag-to-pan and SVG download.
+// A rendered Mermaid diagram with zoom (buttons, keys, Ctrl/Cmd+wheel and
+// pinch at the pointer), fit, actual size, full screen, drag-to-pan and SVG
+// download.
 // Used by MermaidDialog.
 export default function MermaidViewer({
   svg,
@@ -60,8 +62,117 @@ export default function MermaidViewer({
   const [isDragging, setIsDragging] = useState(false);
   const fittedRef = useRef<{ request: number } | null>(null);
 
-  const zoomIn = () => setScale((scale) => Math.min(MAX_ZOOM, scale * 1.25));
-  const zoomOut = () => setScale((scale) => Math.max(MIN_ZOOM, scale / 1.25));
+  const containerRef = useRef<HTMLDivElement>(null);
+  const scaleRef = useRef(1);
+  const anchorRef = useRef<{ ratioX: number; ratioY: number; offsetX: number; offsetY: number } | null>(null);
+  const [isFull, setIsFull] = useState(false);
+  const [fallbackFull, setFallbackFull] = useState(false);
+
+  useEffect(() => {
+    scaleRef.current = scale;
+  }, [scale]);
+
+  // Zoom keeping the point under `focus` (client coords) fixed on screen;
+  // without one, the centre of the view.
+  const zoomTo = useCallback((next: number, focus?: { x: number; y: number }) => {
+    const preview = previewRef.current;
+    const clamped = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
+    const current = scaleRef.current;
+    if (preview && diagramSize && clamped !== current) {
+      const bounds = preview.getBoundingClientRect();
+      const offsetX = (focus?.x ?? bounds.left + bounds.width / 2) - bounds.left;
+      const offsetY = (focus?.y ?? bounds.top + bounds.height / 2) - bounds.top;
+      anchorRef.current = {
+        ratioX: (preview.scrollLeft + offsetX - 16) / (diagramSize.width * current),
+        ratioY: (preview.scrollTop + offsetY - 16) / (diagramSize.height * current),
+        offsetX,
+        offsetY,
+      };
+    }
+    scaleRef.current = clamped;
+    setScale(clamped);
+    // diagramSize is derived from svg.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [svg]);
+
+  useLayoutEffect(() => {
+    const anchor = anchorRef.current;
+    const preview = previewRef.current;
+    anchorRef.current = null;
+    if (!anchor || !preview || !diagramSize) return;
+    preview.scrollLeft = anchor.ratioX * diagramSize.width * scale + 16 - anchor.offsetX;
+    preview.scrollTop = anchor.ratioY * diagramSize.height * scale + 16 - anchor.offsetY;
+    // Only a zoom change moves the anchor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scale]);
+
+  const zoomIn = () => zoomTo(scaleRef.current * 1.25);
+  const zoomOut = () => zoomTo(scaleRef.current / 1.25);
+  const actualSize = () => zoomTo(1);
+
+  // Ctrl/Cmd + wheel (and trackpad pinch, which arrives the same way) zooms
+  // at the pointer; a plain wheel still scrolls.
+  useEffect(() => {
+    const preview = previewRef.current;
+    if (!preview) return;
+    const onWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+      zoomTo(scaleRef.current * Math.exp(-event.deltaY * 0.01), { x: event.clientX, y: event.clientY });
+    };
+    preview.addEventListener("wheel", onWheel, { passive: false });
+    return () => preview.removeEventListener("wheel", onWheel);
+  }, [zoomTo]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onChange = () => setIsFull(document.fullscreenElement === containerRef.current);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const fullscreen = isFull || fallbackFull;
+
+  const toggleFullscreen = () => {
+    const container = containerRef.current;
+    if (!container) return;
+    if (fullscreen) {
+      if (document.fullscreenElement) void document.exitFullscreen();
+      setFallbackFull(false);
+    } else if (container.requestFullscreen) {
+      container.requestFullscreen().catch(() => setFallbackFull(true));
+    } else {
+      setFallbackFull(true);
+    }
+  };
+
+  // The view changes size on entering/leaving fullscreen: refit.
+  useEffect(() => {
+    if (!svg) return;
+    const frame = requestAnimationFrame(() => requestAnimationFrame(fitWidth));
+    return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fullscreen]);
+
+  useEffect(() => {
+    if (!fallbackFull) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setFallbackFull(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [fallbackFull]);
+
+  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    if (event.key === "+" || event.key === "=") zoomIn();
+    else if (event.key === "-") zoomOut();
+    else if (event.key === "0") fitWidth();
+    else if (event.key === "1") actualSize();
+    else if (event.key.toLowerCase() === "f") toggleFullscreen();
+    else return;
+    event.preventDefault();
+  };
   const fitWidth = useCallback(() => {
     const previewBounds = previewRef.current?.getBoundingClientRect();
     const diagramBounds = diagramRef.current?.getBoundingClientRect();
@@ -71,7 +182,9 @@ export default function MermaidViewer({
     const availableWidth = previewBounds.width - 32;
     const availableHeight = previewBounds.height - 32;
     const fitRatio = Math.min(availableWidth / diagramBounds.width, availableHeight / diagramBounds.height);
-    setScale((scale) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, scale * fitRatio)));
+    const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, scaleRef.current * fitRatio));
+    scaleRef.current = next;
+    setScale(next);
     previewRef.current?.scrollTo({ left: 0, top: 0 });
   }, []);
 
@@ -136,10 +249,17 @@ export default function MermaidViewer({
   };
 
   return (
-    <div className="w-full min-w-0 space-y-2">
+    <div
+      ref={containerRef}
+      className={fullscreen
+        ? `flex flex-col gap-2 bg-paper-light p-3 dark:bg-paper-dark ${fallbackFull ? "fixed inset-0 z-[100]" : "h-full w-full"}`
+        : "w-full min-w-0 space-y-2"}
+    >
       <div
         ref={previewRef}
-        className={`relative overflow-auto bg-paper-light/50 dark:bg-paper-dark/40 rounded-md p-4 touch-none ${isDragging ? "cursor-grabbing" : "cursor-grab"} ${className}`}
+        className={`relative overflow-auto bg-paper-light/50 dark:bg-paper-dark/40 rounded-md p-4 touch-none ${isDragging ? "cursor-grabbing" : "cursor-grab"} outline-none ${fullscreen ? "min-h-0 flex-1" : className}`}
+        tabIndex={0}
+        onKeyDown={onKeyDown}
         onPointerDown={startDrag}
         onPointerMove={drag}
         onPointerUp={endDrag}
@@ -162,7 +282,9 @@ export default function MermaidViewer({
             <Button variant="pill-icon" onClick={zoomOut} aria-label="Zoom out" title="Zoom out"><HiMinus size={16} /></Button>
             <span className="min-w-11 text-center text-ui-caption text-ink-muted dark:text-stone">{Math.round(scale * 100)}%</span>
             <Button variant="pill-icon" onClick={zoomIn} aria-label="Zoom in" title="Zoom in"><HiPlus size={16} /></Button>
+            <Button variant="pill-icon" onClick={actualSize} aria-label="Actual size" title="Actual size (1)"><span className="text-ui-caption font-medium">1:1</span></Button>
             <Button variant="pill-icon" onClick={fitWidth} aria-label="Fit entire diagram" title="Fit diagram"><HiOutlineArrowsExpand size={16} /></Button>
+            <Button variant="pill-icon" onClick={toggleFullscreen} aria-label={fullscreen ? "Exit full screen" : "Full screen"} title={fullscreen ? "Exit full screen (Esc)" : "Full screen (F)"} aria-pressed={fullscreen}><HiOutlineDesktopComputer size={16} /></Button>
             <Button variant="pill-icon" onClick={downloadSVG} aria-label="Download diagram" title="Download SVG"><HiOutlineDownload size={16} /></Button>
           </div>
         )}
