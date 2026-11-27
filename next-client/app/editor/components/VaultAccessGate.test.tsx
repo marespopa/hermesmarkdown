@@ -82,7 +82,8 @@ describe("VaultAccessGate", () => {
     vaultManager.restoreVault.mockResolvedValueOnce("denied");
     renderGate({ pending: true });
     await act(async () => { fireEvent.keyDown(window, { key: "a" }); });
-    expect(screen.getByRole("status")).toHaveTextContent("Access wasn't allowed");
+    // The skeleton under the overlay is a status too, so find the message by its text.
+    expect(screen.getByText(/Access wasn't allowed/)).toHaveAttribute("role", "status");
   });
 
   it("keeps the route out of reach while the vault loads after access is granted", () => {
