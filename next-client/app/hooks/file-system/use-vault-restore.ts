@@ -23,8 +23,9 @@ import {
 import { withTimeout } from "@/app/utils/with-timeout";
 import { markStartup } from "@/app/utils/startup-trace";
 import { loadStoredWorkspace } from "./stored-workspace";
-import { realHandle } from "@/app/services/library-roots";
-import { buildLibraryHandle } from "@/app/services/library-store";
+import { libraryMounts, realHandle } from "@/app/services/library-roots";
+import { buildLibraryHandle, loadLibraryMounts } from "@/app/services/library-store";
+import { showActionToast } from "@/app/components/Toastr";
 import type { useOpenVault } from "./use-open-vault";
 
 // Each browser-storage or permission step of the restore gets this long; past
@@ -37,12 +38,18 @@ type Options = {
   indexVaultTags: (handle?: FileSystemDirectoryHandle) => Promise<void>;
   detectCloudVault: (handle: FileSystemDirectoryHandle) => boolean;
   initVaultFromHandle: ReturnType<typeof useOpenVault>["initVaultFromHandle"];
+  // Asks a locked added folder's access again, from a click (use-library-folders.ts).
+  unlockLibraryFolder: (name: string) => Promise<boolean>;
 };
+
+// What a tap on "Vault Access Paused" came to: access granted, refused (or
+// no prompt shown), or ignored because an earlier tap is still waiting.
+export type RestoreResult = "granted" | "denied" | "busy";
 
 // Restoring the saved vault: on load (restoreSavedVault) and from a tap on
 // "Vault Access Paused" (restoreVault). Every wait ends: an ask nobody answers
 // leaves the vault pending, and a late "granted" still unlocks it.
-export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detectCloudVault, initVaultFromHandle }: Options) {
+export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detectCloudVault, initVaultFromHandle, unlockLibraryFolder }: Options) {
   const store = useStore();
   const setIsVaultRestoring = useSetAtom(atom_isVaultRestoring);
   const setIsRequestingAccess = useSetAtom(atom_isRequestingAccess);
@@ -60,6 +67,19 @@ export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detect
   // next tap asks again. `attempt` tells a stale attempt from the current one.
   const isRestoringRef = useRef(false);
   const attemptRef = useRef(0);
+  // The folders added to the paused vault's library, loaded while it waits,
+  // so the tap that asks for the vault can ask for them too.
+  const pausedFoldersRef = useRef<{ name: string; handle: FileSystemDirectoryHandle }[]>([]);
+
+  // Added folders still locked once the vault is readable (the browser showed
+  // only one prompt for the tap, or the answer was no): a toast offers each
+  // one's own prompt, so its open notes needn't wait for a trip to the library.
+  const offerLockedFolders = useCallback((root: FileSystemDirectoryHandle) => {
+    for (const mount of libraryMounts(root)) {
+      if (!mount.locked) continue;
+      showActionToast(`“${mount.name}” needs access again.`, "Allow", () => void unlockLibraryFolder(mount.name));
+    }
+  }, [unlockLibraryFolder]);
   const isUnlockingRef = useRef(false);
 
   // Access was granted: bind the open notes, list the top folder, index behind
@@ -85,6 +105,7 @@ export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detect
       setIsVaultPending(false);
       setIsVaultUnlocking(false);
       toast.success("Vault restored");
+      offerLockedFolders(handle);
       await indexVaultTags(handle);
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
@@ -93,10 +114,10 @@ export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detect
       setIsVaultUnlocking(false);
       isUnlockingRef.current = false;
     }
-  }, [store, setVaultHandle, setIsVaultPending, setIsVaultUnlocking, setCurrentDirectoryHandle, setIsCloudVault, detectCloudVault, rebindHandles, scanVault, indexVaultTags]);
+  }, [store, setVaultHandle, setIsVaultPending, setIsVaultUnlocking, setCurrentDirectoryHandle, setIsCloudVault, detectCloudVault, rebindHandles, scanVault, indexVaultTags, offerLockedFolders]);
 
-  const restoreVault = useCallback(async () => {
-    if (!vaultHandle || isRestoringRef.current) return;
+  const restoreVault = useCallback(async (): Promise<RestoreResult> => {
+    if (!vaultHandle || isRestoringRef.current) return "busy";
     isRestoringRef.current = true;
     const attempt = ++attemptRef.current;
     const release = setTimeout(() => {
@@ -104,11 +125,25 @@ export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detect
     }, PERMISSION_NO_ANSWER_MS);
 
     try {
-      const granted = await requestPermissionFromUserGesture(realHandle(vaultHandle)).finally(() => clearTimeout(release));
-      if (granted) await unlockVault(vaultHandle);
+      // Every ask starts here, before any await, while the tap still counts:
+      // the vault first, then each added folder, so one tap can unlock the
+      // whole library. A browser that shows one prompt per tap refuses the
+      // rest; those folders are then offered one by one (offerLockedFolders).
+      const vaultAsk = requestPermissionFromUserGesture(realHandle(vaultHandle));
+      const folderAsks = pausedFoldersRef.current.map((folder) =>
+        requestPermissionFromUserGesture(folder.handle).catch(() => false),
+      );
+      const granted = await vaultAsk.finally(() => clearTimeout(release));
+      if (!granted) return "denied";
+      // The folders' prompts may still be open; wait for them a little, so
+      // an answer given now counts, but never hold the vault for long.
+      await withTimeout(Promise.all(folderAsks), PERMISSION_NO_ANSWER_MS, "Library folders' access").catch(() => {});
+      await unlockVault(vaultHandle);
+      return "granted";
     } catch (err: any) {
       console.error("File System Error:", err?.message || err);
       toast.error("Failed to restore vault");
+      return "denied";
     } finally {
       if (attemptRef.current === attempt) isRestoringRef.current = false;
     }
@@ -149,9 +184,15 @@ export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detect
         await rebindHandles(root);
         markStartup("vault:rebound");
         await scanVault(root);
+        offerLockedFolders(root);
         await indexVaultTags(root);
       } else {
         setIsVaultPending(true);
+        // The added folders, so the tap that asks for the vault asks for them too.
+        pausedFoldersRef.current = [];
+        void loadLibraryMounts(`local:${savedHandle.name}`, savedHandle).then((folders) => {
+          pausedFoldersRef.current = folders;
+        });
         if (ask.result === "no-answer") {
           // Still listening: a grant that arrives later unlocks the vault.
           void ask.pending.then((granted) => (granted ? unlockVault(savedHandle) : undefined));
@@ -178,7 +219,7 @@ export function useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detect
       toast.error("Failed to restore the vault from browser storage.");
     }
     return false;
-  }, [store, setVaultHandle, setVaultDescriptor, setIsRequestingAccess, setIsVaultRestoring, setIsVaultPending, setCurrentDirectoryHandle, detectCloudVault, rebindHandles, scanVault, indexVaultTags, unlockVault, initVaultFromHandle]);
+  }, [store, setVaultHandle, setVaultDescriptor, setIsRequestingAccess, setIsVaultRestoring, setIsVaultPending, setCurrentDirectoryHandle, detectCloudVault, rebindHandles, scanVault, indexVaultTags, unlockVault, initVaultFromHandle, offerLockedFolders]);
 
   return { restoreVault, restoreSavedVault, unlockVault };
 }

@@ -169,7 +169,9 @@ export const atom_rebindHandles = atom(
         // only other failures are logged.
         if (err?.name === "NotFoundError") {
           missingPaths.push(path);
-        } else {
+        } else if (err?.name !== "NotAllowedError") {
+          // NotAllowedError: the note's folder is locked until its access is
+          // allowed again (a toast offers it); its tab keeps the cached text.
           console.warn(`Failed to rebind handle for ${path}:`, err);
         }
       }

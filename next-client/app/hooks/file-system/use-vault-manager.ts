@@ -175,9 +175,9 @@ export function useVaultManager() {
 
   const { initVaultFromHandle, openVault } = useOpenVault({ scanVault, indexVaultTags, detectCloudVault });
 
-  const { restoreVault, restoreSavedVault } = useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detectCloudVault, initVaultFromHandle });
-
   const { addLibraryFolder, removeLibraryFolder, unlockLibraryFolder } = useLibraryFolders({ scanVault, indexVaultTags });
+
+  const { restoreVault, restoreSavedVault } = useVaultRestore({ vaultHandle, scanVault, indexVaultTags, detectCloudVault, initVaultFromHandle, unlockLibraryFolder });
 
   const { syncCurrentDirectoryToPath, navigateTo, navigateBack } = useVaultNavigation({ vaultHandle, currentDirectoryHandle, scanVault });
 
