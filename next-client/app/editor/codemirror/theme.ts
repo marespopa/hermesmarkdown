@@ -32,29 +32,21 @@ export const baseTheme = EditorView.theme({
   ".cm-line": {
     padding: 0,
   },
-  // Frontmatter is plain, quiet text: no box, fill or edge, and no inset, so it
-  // lines up with the note's own text. Only its colour is softer, and lifts a
-  // step on hover or focus.
+  // Frontmatter is plain text, in the note's own text colour: no box, fill or
+  // edge, and no inset, so it lines up with the note's text.
   ".cm-frontmatter-line": {
-    color: "var(--fg-faint)",
+    color: "inherit",
     fontWeight: "400",
     letterSpacing: "0.005em",
-    transition: "color 150ms ease",
   },
   ".cm-frontmatter-line *": {
     fontWeight: "400 !important",
   },
   ".cm-frontmatter-key": {
-    color: "var(--fg-muted)",
     fontWeight: "400 !important",
   },
   ".cm-frontmatter-comment": {
-    color: "var(--fg-faint)",
     fontStyle: "italic",
-  },
-  ".cm-frontmatter-separator": {
-    color: "var(--fg-faint)",
-    opacity: "0.55",
   },
   // The room below the frontmatter, kept tight so the title sits close
   // under it (frontmatter-block.ts): text right after the closing `---`
@@ -65,9 +57,6 @@ export const baseTheme = EditorView.theme({
   },
   ".cm-line.cm-frontmatter-gap": {
     lineHeight: "var(--frontmatter-gap, 1rem)",
-  },
-  ".cm-frontmatter-line:hover, .cm-frontmatter-line:focus-within": {
-    color: "var(--fg-muted)",
   },
   // Horizontal rule (---, ***, ___): a thin line across the text column;
   // the dashes themselves are hidden unless the caret is on the line.
