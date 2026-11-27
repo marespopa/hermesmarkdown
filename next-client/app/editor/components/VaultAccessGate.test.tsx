@@ -6,7 +6,17 @@ import { atom_isRequestingAccess, atom_isVaultRestoring, atom_isVaultUnlocking }
 import { STARTUP_STUCK_MS } from "../hooks/use-startup-watchdog";
 import VaultAccessGate from "./VaultAccessGate";
 
-const vaultManager = vi.hoisted(() => ({ isVaultPending: false, restoreVault: vi.fn() }));
+const vaultManager = vi.hoisted(() => ({
+  isVaultPending: false,
+  restoreVault: vi.fn(async (): Promise<string> => "busy"),
+  openVault: vi.fn(async () => true),
+  vaultHandle: null as unknown,
+}));
+const recents = vi.hoisted(() => ({
+  recentVaults: [{ key: "local:work", name: "Work", kind: "local", handle: {} }],
+  openRecentVault: vi.fn(async () => true),
+}));
+vi.mock("../hooks/use-recent-vaults", () => ({ useRecentVaults: () => recents }));
 const toasts = vi.hoisted(() => ({ showActionToast: vi.fn() }));
 vi.mock("@/app/components/Toastr", () => ({ showActionToast: toasts.showActionToast }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => "/editor" }));
@@ -51,6 +61,29 @@ describe("VaultAccessGate", () => {
     renderGate({ pending: true });
     fireEvent.keyDown(window, { key: "a" });
     expect(vaultManager.restoreVault).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores Tab, so the screen can be tabbed through", () => {
+    renderGate({ pending: true });
+    fireEvent.keyDown(window, { key: "Tab" });
+    expect(vaultManager.restoreVault).not.toHaveBeenCalled();
+  });
+
+  it("opens another vault without asking for the paused one", () => {
+    renderGate({ pending: true });
+    fireEvent.click(screen.getByRole("button", { name: "Work" }));
+    expect(recents.openRecentVault).toHaveBeenCalledWith(recents.recentVaults[0]);
+    fireEvent.click(screen.getByRole("button", { name: "Open Folder…" }));
+    expect(vaultManager.openVault).toHaveBeenCalledTimes(1);
+    expect(vaultManager.restoreVault).not.toHaveBeenCalled();
+  });
+
+  it("says so when the ask is refused", async () => {
+    vaultManager.restoreVault.mockResolvedValueOnce("denied");
+    renderGate({ pending: true });
+    await act(async () => { fireEvent.keyDown(window, { key: "a" }); });
+    // The skeleton under the overlay is a status too, so find the message by its text.
+    expect(screen.getByText(/Access wasn't allowed/)).toHaveAttribute("role", "status");
   });
 
   it("keeps the route out of reach while the vault loads after access is granted", () => {
